@@ -5,16 +5,25 @@ const urls = {
     GET: 'get',
     POST: 'post',
     PUT: 'put',
+    PATCH: 'patch',
     DELETE: 'delete',
   },
   auth: {
     login: '/login',
     profile: '/profile',
   },
+  dashboard: {
+    list: '/dashboard',
+    revenueAnalytics: '/dashboard/revenue-analytics'
+  },
   tradingAccounts: {
     list: '/accounts',
     create: '/accounts/create',
-    accountTrades: '/accounts/trades'
+    accountTrades: '/accounts/trades',
+    transactions: '/accounts/transactions',
+  },
+  clientList: {
+    list: '/client-list',
   },
   clientLedger: {
     list: '/ledger/clients',
@@ -56,6 +65,7 @@ const urls = {
     detail: '/support/tickets',
     comment: '/support/tickets/comments',
     attachment: '/support/tickets/attachments',
+    updateStatus: '/support/tickets/status',
   },
 
 

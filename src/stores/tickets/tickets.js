@@ -112,6 +112,41 @@ export const useTicketsStore = defineStore("tickets", () => {
     });
   };
 
+  // ─── Update Ticket Status ───────────────────────────────
+  const updateTicketStatus = (id, payload, onDone) => {
+    if (!id) return;
+
+    actionLoading.value = true;
+
+    const successHandler = () => {
+      actionLoading.value = false;
+
+      snackbar.show("Ticket status updated.", "success");
+
+      // refresh detail page data
+      fetchTicketDetail(id);
+
+      // refresh listing if needed
+      fetchTickets(true);
+
+      onDone?.();
+    };
+
+    const failureHandler = (err) => {
+      actionLoading.value = false;
+
+      snackbar.show(err?.message || "Something went wrong.", "error");
+    };
+
+    apiRequest(urls.KEYS.PATCH, urls.tickets.updateStatus, {
+      look_up_key: id,
+      data: payload,
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+    });
+  };
+
   // ─── Add Comment ───────────────────────────────────────
   const addComment = (id, payload, onDone) => {
     if (!id) return;
@@ -201,6 +236,7 @@ export const useTicketsStore = defineStore("tickets", () => {
 
     fetchTickets,
     createTicket,
+    updateTicketStatus,
 
     // NEW
     fetchTicketDetail,

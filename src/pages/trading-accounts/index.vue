@@ -177,6 +177,14 @@ onMounted(() => store.fetchAccounts())
                 <BarChart2 class="w-3.5 h-3.5" /> Trades
               </button>
             </td>
+            <td class="p-3 text-right">
+              <button
+                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary-border text-xs text-secondary-text hover:text-primary-text hover:bg-background transition-colors"
+                @click="router.push(`/account/transactions/${acc.account_id}`)"
+              >
+                <WalletIcon class="w-3.5 h-3.5" /> Transactions
+              </button>
+            </td>
           </tr>
         </tbody>
       </table>

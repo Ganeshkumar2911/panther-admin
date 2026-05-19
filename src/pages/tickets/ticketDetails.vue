@@ -26,12 +26,17 @@
             >
               {{ store.detail.priority }}
             </span>
-            <span
-              class="text-[11px] font-medium px-2 py-0.5 rounded-full border"
-              :class="statusClass(store.detail.status)"
+            <button
+              class="text-[11px] font-medium px-2 py-0.5 rounded-full border transition-opacity"
+              :class="[
+                statusClass(store.detail.status),
+                store.detail.status !== 'closed' ? 'cursor-pointer hover:opacity-80' : 'cursor-not-allowed opacity-60'
+              ]"
+              @click="openStatusDialog"
+              :disabled="store.detail.status === 'closed'"
             >
               {{ store.detail.status }}
-            </span>
+            </button>
           </div>
           <h1 class="text-base font-semibold text-primary-text">
             {{ store.detail.subject }}
@@ -184,6 +189,12 @@
       :ticket-id="ticketId"
       @close="dialog.open = false"
     />
+    <TicketStatusDialog
+      :open="statusDialog.open"
+      :status="store.detail?.status"
+      :ticketId="ticketId"
+      @close="statusDialog.open = false"
+    />
   </div>
 </template>
 
@@ -199,15 +210,23 @@ import {
 } from "lucide-vue-next";
 import { useTicketsStore } from "@/stores/tickets/tickets";
 import TicketActionDialog from "@/components/tickets/TicketActionDialog.vue";
+import TicketStatusDialog from "@/components/tickets/TicketStatusDialog.vue";
 
 const store = useTicketsStore();
 const route = useRoute();
 
 const ticketId = computed(() => route.params.id);
 const dialog = ref({ open: false, mode: "comment" });
+const statusDialog = ref({ open: false });
 
 const openDialog = (mode) => {
   dialog.value = { open: true, mode };
+};
+
+const openStatusDialog = () => {
+  if (store.detail?.status !== "closed") {
+    statusDialog.value.open = true;
+  }
 };
 
 const formatDate = (val) =>

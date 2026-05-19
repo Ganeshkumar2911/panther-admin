@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { LayoutDashboard, User, Wallet, Trophy, GitPullRequestArrow, ListTree, RefreshCcw, Ticket } from 'lucide-vue-next'
+import { LayoutDashboard, User, Users, Wallet, Trophy, GitPullRequestArrow, ListTree, RefreshCcw, Ticket } from 'lucide-vue-next'
 import { useProfileStore } from '@/stores/profile/profile'
 
 const store = useProfileStore()
@@ -29,6 +29,11 @@ const navItems = [
     label: 'Dashboard',
     to: '/dashboard',
     icon: LayoutDashboard,
+  },
+  {
+    label: 'Clients',
+    to: '/clients',
+    icon: Users,
   },
    {
     label: 'Client Wallet',

@@ -28,6 +28,16 @@ const routes = [
                 }
             },
             {
+                path: '/clients',
+                name: 'clients',
+                component: () => import('@/pages/clients/index.vue'),
+                meta: {
+                    requiresAuth: true,
+                    title: 'Clients',
+                    description: 'View and manage platform clients.',
+                }
+            },
+            {
                 path: '/trading-accounts',
                 name: 'trading-accounts',
                 component: () => import('@/pages/trading-accounts/index.vue'),
@@ -45,6 +55,17 @@ const routes = [
                     requiresAuth: true,
                     title: 'Account Trades',
                     description: 'Manage your client accounts and view Trade metrics.',
+                    showBackButton: true,
+                }
+            },
+            {
+                path: '/account/transactions/:id',
+                name: 'client-transactions',
+                component: () => import('@/pages/trading-accounts/transactions.vue'),
+                meta: {
+                    requiresAuth: true,
+                    title: 'Account Transactions',
+                    description: 'View and manage transactions for a specific account.',
                     showBackButton: true,
                 }
             },
