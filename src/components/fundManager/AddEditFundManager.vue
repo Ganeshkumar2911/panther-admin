@@ -23,6 +23,7 @@ const settlementOptions = [
 const form = ref({
   label_name: '',
   email: '',
+  min_capital: '',
   broker_share: '',
   fm_share: '',
   ib_pool_percentage: '',
@@ -39,6 +40,7 @@ const resetForm = () => {
     form.value = {
       label_name: props.item.label_name ?? '',
       email: '',
+      min_capital: props.item.min_capital ?? '',
       broker_share: props.item.broker_share ?? '',
       fm_share: props.item.fm_share ?? '',
       ib_pool_percentage: props.item.ib_pool_percentage ?? '',
@@ -50,6 +52,7 @@ const resetForm = () => {
     form.value = {
       label_name: '',
       email: '',
+      min_capital: '',
       broker_share: '',
       fm_share: '',
       ib_pool_percentage: '',
@@ -86,6 +89,7 @@ const validateForm = () => {
       newErrors.email = 'Invalid email'
     }
   }
+  if (!form.value.min_capital) newErrors.min_capital = 'Required'
   if (!form.value.broker_share) newErrors.broker_share = 'Required'
   if (!form.value.fm_share) newErrors.fm_share = 'Required'
   if (!form.value.ib_pool_percentage) newErrors.ib_pool_percentage = 'Required'
@@ -185,6 +189,20 @@ const getTitle = () => props.mode === 'add' ? 'Add Fund Manager' : 'Edit Fund Ma
             :class="errors.email ? 'border-primary-red' : 'border-primary-border focus:border-accent'"
           />
           <span v-if="errors.email" class="text-xs text-primary-red">{{ errors.email }}</span>
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-medium text-secondary-text">
+            Min Capital <span class="text-primary-red">*</span>
+          </label>
+          <input
+            v-model="form.min_capital"
+            type="number"
+            placeholder="e.g. 1000"
+            class="bg-background border rounded-xl px-3.5 py-2.5 text-sm text-primary-text outline-none transition-colors"
+            :class="errors.min_capital ? 'border-primary-red' : 'border-primary-border focus:border-accent'"
+          />
+          <span v-if="errors.min_capital" class="text-xs text-primary-red">{{ errors.min_capital }}</span>
         </div>
 
          <!-- Row 3 — Settlement Type + Settlement Time -->

@@ -20,7 +20,7 @@
           <div class="h-5 w-8 bg-background rounded-full" />
         </div>
         <div class="grid grid-cols-4 border-t border-primary-border divide-x divide-primary-border">
-          <div v-for="m in 4" :key="m" class="px-3 py-3 space-y-2">
+          <div v-for="m in 5" :key="m" class="px-3 py-3 space-y-2">
             <div class="h-2 w-8 bg-background rounded" />
             <div class="h-4 w-10 bg-background rounded" />
           </div>
@@ -52,7 +52,7 @@
         </div>
 
         <!-- Metrics row -->
-        <div class="grid grid-cols-4 border-t border-primary-border divide-x divide-primary-border">
+        <div class="grid grid-cols-5 border-t border-primary-border divide-x divide-primary-border">
           <div class="px-3 py-3">
             <p class="text-[10px] uppercase tracking-wide text-secondary-text mb-1">Broker</p>
             <p class="text-base font-medium text-primary-text">{{ item.broker_share }}%</p>
@@ -68,6 +68,10 @@
           <div class="px-3 py-3">
             <p class="text-[10px] uppercase tracking-wide text-secondary-text mb-1">IB Pool</p>
             <p class="text-base font-medium text-primary-text">{{ item.ib_pool_percentage }}%</p>
+          </div>
+          <div class="px-3 py-3">
+            <p class="text-[10px] uppercase tracking-wide text-secondary-text mb-1">Min Cap.</p>
+            <p class="text-base font-medium text-primary-text">{{ formatMoney(item.min_capital) }}</p>
           </div>
         </div>
 
@@ -139,6 +143,12 @@ const selectedItem = ref(null)
 
 
 const formatDate = (val) => new Date(val).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+const formatMoney = (val) => {
+  if (val == null || val === '') return '—'
+  const num = Number(val)
+  if (Number.isNaN(num)) return String(val)
+  return num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })
+}
 
 const handleAdd = () => { dialogMode.value = 'add'; selectedItem.value = null; dialogOpen.value = true }
 const handleEdit = (item) => { dialogMode.value = 'edit'; selectedItem.value = item; dialogOpen.value = true }
