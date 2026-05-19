@@ -252,13 +252,12 @@ let searchTimer = null
 const onSearch = () => {
   clearTimeout(searchTimer)
   searchTimer = setTimeout(() => {
-    store.fetchTransactions(route.params.id, true)
+    store.applyFilters(route.params.id)
   }, 500)
 }
 
 const handlePageChange = (page) => {
-  store.setPage(page)
-  store.fetchTransactions(route.params.id, true)
+  store.fetchTransactions(route.params.id, page)
 }
 
 const formatNum = (val) => (val ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })

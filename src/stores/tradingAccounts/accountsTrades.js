@@ -11,6 +11,7 @@ export const useAccountTradesStore = defineStore('accountTrades', () => {
   const data        = ref([])
   const loading     = ref(false)
   const error       = ref(null)
+  const side        = ref(null) // null | 'open' | 'close'
 
   const summary = ref({
     total_lots: 0,
@@ -27,7 +28,7 @@ export const useAccountTradesStore = defineStore('accountTrades', () => {
   const accountId = ref(null)
 
   // ─── Fetch Trades ──────────────────────────────────────
-  const fetchTrades = (id) => {
+  const fetchTrades = (id, sideParam = side.value) => {
     if (!id) return
 
     accountId.value = id
@@ -53,12 +54,18 @@ export const useAccountTradesStore = defineStore('accountTrades', () => {
       snackbar.show(err?.message || 'Failed to fetch trades', 'error')
     }
 
+    const params = {
+      page: pagination.page,
+      per_page: pagination.per_page,
+    }
+
+    if (sideParam) {
+      params.side = sideParam
+    }
+
     apiRequest('get', urls.tradingAccounts.accountTrades, {
       look_up_key: id,
-      params: {
-        page: pagination.page,
-        per_page: pagination.per_page,
-      },
+      params,
       isTokenRequired: true,
       onSuccess: successHandler,
       onFailure: failureHandler,
@@ -68,7 +75,13 @@ export const useAccountTradesStore = defineStore('accountTrades', () => {
   // ─── Pagination ────────────────────────────────────────
   const setPage = (page) => {
     pagination.page = page
-    fetchTrades(accountId.value)
+    fetchTrades(accountId.value, side.value)
+  }
+
+  const setSide = (nextSide) => {
+    side.value = nextSide || null
+    pagination.page = 1
+    fetchTrades(accountId.value, side.value)
   }
 
   // ─── Reset ─────────────────────────────────────────────
@@ -76,6 +89,7 @@ export const useAccountTradesStore = defineStore('accountTrades', () => {
     data.value      = []
     loading.value   = false
     error.value     = null
+    side.value      = null
 
     summary.value = {
       total_lots: 0,
@@ -98,9 +112,11 @@ export const useAccountTradesStore = defineStore('accountTrades', () => {
     error,
     pagination,
     summary,
+    side,
 
     fetchTrades,
     setPage,
+    setSide,
     reset,
   }
 })

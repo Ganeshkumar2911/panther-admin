@@ -47,6 +47,46 @@
       </template>
     </div>
 
+    <!-- Positions Tabs -->
+    <div class="flex items-center gap-2 mb-4">
+      <button
+        type="button"
+        class="px-3 py-1.5 text-xs font-medium rounded-full border transition-colors"
+        :class="
+          store.side == null
+            ? 'bg-primary-text text-background border-primary-text'
+            : 'bg-card-background text-secondary-text border-primary-border hover:text-primary-text'
+        "
+        @click="handleSideChange(null)"
+      >
+        All
+      </button>
+      <button
+        type="button"
+        class="px-3 py-1.5 text-xs font-medium rounded-full border transition-colors"
+        :class="
+          store.side === 'open'
+            ? 'bg-primary-text text-background border-primary-text'
+            : 'bg-card-background text-secondary-text border-primary-border hover:text-primary-text'
+        "
+        @click="handleSideChange('open')"
+      >
+        Open
+      </button>
+      <button
+        type="button"
+        class="px-3 py-1.5 text-xs font-medium rounded-full border transition-colors"
+        :class="
+          store.side === 'close'
+            ? 'bg-primary-text text-background border-primary-text'
+            : 'bg-card-background text-secondary-text border-primary-border hover:text-primary-text'
+        "
+        @click="handleSideChange('close')"
+      >
+        Close
+      </button>
+    </div>
+
     <!-- Table -->
     <div class="w-full border border-primary-border rounded-xl overflow-x-auto">
       <table class="w-full border-collapse">
@@ -261,6 +301,10 @@ const handlePageChange = (page) => {
   store.setPage(page);
 };
 
+const handleSideChange = (side) => {
+  store.setSide(side);
+};
+
 const formatNum = (val) =>
   (val ?? 0).toLocaleString("en-US", {
     minimumFractionDigits: 2,
@@ -273,5 +317,5 @@ const formatDate = (val) =>
     year: "numeric",
   });
 
-onMounted(() => store.fetchTrades(accountId));
+onMounted(() => store.fetchTrades(accountId, store.side));
 </script>
