@@ -77,13 +77,13 @@
         type="button"
         class="px-3 py-1.5 text-xs font-medium rounded-full border transition-colors"
         :class="
-          store.side === 'close'
+          store.side === 'closed'
             ? 'bg-primary-text text-background border-primary-text'
             : 'bg-card-background text-secondary-text border-primary-border hover:text-primary-text'
         "
-        @click="handleSideChange('close')"
+        @click="handleSideChange('closed')"
       >
-        Close
+        Closed
       </button>
     </div>
 
@@ -121,6 +121,11 @@
               class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
             >
               Exit
+            </th>
+            <th
+              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
+            >
+              LTP
             </th>
             <th
               class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
@@ -217,9 +222,9 @@
               <span
                 class="text-[11px] font-medium px-2 py-0.5 rounded-full border capitalize"
                 :class="
-                  trade.type === 'buy'
-                    ? 'bg-green-50 text-green-800 border-green-200'
-                    : 'bg-red-50 text-red-800 border-red-200'
+                  trade.type === 'BUY'
+                    ? 'bg-primary-green/10 text-green-800 border-primary-green/20'
+                    : 'bg-primary-red/10 text-red-800 border-primary-red/20'
                 "
               >
                 {{ trade.type }}
@@ -240,18 +245,22 @@
 
             <td class="p-3 text-xs text-primary-text tabular-nums">
               {{
-                trade.exit_price != null
-                  ? Number(trade.exit_price).toFixed(2)
+                trade.last_price != null
+                  ? Number(trade.last_price).toFixed(2)
                   : "—"
               }}
+            </td>
+
+            <td class="p-3 text-xs text-primary-text tabular-nums">
+              {{ lastTickerPriceText(trade) }}
             </td>
 
             <td class="p-3">
               <span
                 class="text-xs tabular-nums font-medium"
-                :class="trade.pnl >= 0 ? 'text-green-700' : 'text-red-700'"
+                :class="pnlValue(trade) >= 0 ? 'text-green-700' : 'text-red-700'"
               >
-                {{ trade.pnl >= 0 ? "+" : "" }}${{ trade.pnl.toFixed(2) }}
+                {{ pnlValue(trade) >= 0 ? "+" : "" }}${{ formatNum(pnlValue(trade)) }}
               </span>
             </td>
 
@@ -259,7 +268,7 @@
               <span
                 class="text-[11px] font-medium px-2 py-0.5 rounded-full border capitalize"
                 :class="
-                  trade.status === 'closed'
+                  trade.status === 'closedd'
                     ? 'bg-background text-secondary-text border-primary-border'
                     : 'bg-blue-50 text-blue-800 border-blue-200'
                 "
@@ -292,10 +301,32 @@ import { useRoute } from "vue-router";
 import { BarChart2 } from "lucide-vue-next";
 import { useAccountTradesStore } from "@/stores/tradingAccounts/accountsTrades";
 import Pagination from "@/components/common/Pagination.vue";
+import { livePNL } from '@/utils/livePNL'
+import { useTickerStore } from '@/stores/ws/ticker'
 
 const store = useAccountTradesStore();
 const route = useRoute();
 const accountId = route.params.id;
+const tickerStore = useTickerStore()
+
+const isOpenTrade = (trade) => String(trade?.status ?? "").toUpperCase() === "OPEN";
+const pnlValue = (trade) => {
+  const raw = isOpenTrade(trade) ? livePNL(trade) : trade?.pnl;
+  const val = Number(raw);
+  return Number.isFinite(val) ? val : 0;
+};
+
+const lastTickerPriceText = (trade) => {
+  const quote = tickerStore?.getLastPrice?.(trade?.symbol);
+  if (quote == null) return "—";
+
+  if (typeof quote === "number") return Number.isFinite(quote) ? formatNum(quote) : "—";
+
+  const side = String(trade?.type ?? "").toUpperCase();
+  const raw = side === "BUY" ? quote?.bid : quote?.ask;
+  const val = Number(raw);
+  return Number.isFinite(val) ? formatNum(val) : "—";
+};
 
 const handlePageChange = (page) => {
   store.setPage(page);

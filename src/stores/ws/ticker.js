@@ -1,169 +1,146 @@
-import { ref, provide, computed } from 'vue';
-import authToken from '@/common/authToken';
-import { defineStore } from 'pinia';
-import MatrixTicker from "@/helper/MatrixTicker";
-import { usePositionsStore } from '@/stores/positions/positions';
-import { useProfileStore } from '@/stores/profile/profile';
-// import { ManageWebsocketResponse } from '@/requests/manageResponse';
+import { ref, computed } from "vue";
+import authToken from "@/common/authToken";
+import { defineStore } from "pinia";
+import MatrixTicker from "@/utils/MatrixTicker";
 
-export const useTickerStore = defineStore('tickers', () => {
+export const useTickerStore = defineStore("tickers", () => {
 
   let ticker = null;
-  const positionsStore = usePositionsStore();
-  const profileStore = useProfileStore();
-
   let wsStatus = false;
+
   const lastPrices = ref({});
   const tickerList = ref([]);
-  const profits = ref({});
-  const candleData = ref({});
-  const token = computed(() => authToken.getToken().accessToken);
-  const userId = ref('');
-  const isBrokerConnected = ref(false);
-  // const brokerBalance = ref(null)
 
-  const channel = new BroadcastChannel('my-channel');
-  channel.addEventListener('message', (event) => {
-    const message = event.data;
-    if (message.type === 'logout') {
+  const token = computed(() => authToken.getToken().accessToken);
+
+  const isConnected = ref(false);
+
+  /* ---------------- Cross Tab Logout ---------------- */
+  const channel = new BroadcastChannel("my-channel");
+
+  channel.addEventListener("message", (event) => {
+    if (event.data?.type === "logout") {
       stopWebSocket();
     }
   });
 
+  /* ---------------- Add Symbols ---------------- */
   function updateTickerList(data) {
     let newSymbols = [];
+
     for (let i = 0; i < data.length; i++) {
-      if (!tickerList.value.includes(data[i])) {
-        tickerList.value.push(data[i]?.replace(/[^A-Z0-9]/g, ''));
-        newSymbols.push(data[i]?.replace(/[^A-Z0-9]/g, ''));
+      const symbol = String(data[i]).replace(/[^A-Z0-9]/g, "");
+
+      if (!tickerList.value.includes(symbol)) {
+        tickerList.value.push(symbol);
+        newSymbols.push(symbol);
       }
     }
 
-    if (token.value && ticker !== null && newSymbols.length > 0) {
-      subscribe(userId.value, newSymbols);
+    if (ticker && newSymbols.length > 0) {
+      subscribe(2, newSymbols);
     }
   }
 
-  const onTicks = (ticks) => {
-    const tick = ticks;
+  /* ---------------- Handle Incoming Tick ---------------- */
+  const onTicks = (tick) => {
+    console.log("PRICE UPDATE:", tick);
 
-    try {
-      // ManageWebsocketResponse(tick);
-    } catch (error) {
-      console.error("Error processing tick data:", error);
-    }
-
-    if (tick['price']) {
-      updateLastPrice(tick);
-    }
+    updateLastPrice(tick);
   };
 
-  const startWebSocket = (user_id) => {
-    if (!wsStatus) {
-      console.log("Starting Socket.IO connection");
+  /* ---------------- Start WS ---------------- */
+  const startWebSocket = () => {
+    if (wsStatus) return;
 
-      ticker = new MatrixTicker({
-        token: user_id,
-        reconnect: true,
-      });
+    ticker = new MatrixTicker({
+      token: token.value,
+      reconnect: true,
+    });
 
-      userId.value = user_id;
+    ticker.on("connect", () => {
+      isConnected.value = true;
 
-      ticker.on("connect", () => {
-        console.log("Socket connected");
-      });
+      console.log("WebSocket Connected");
+    });
 
-      subscribe(user_id);
+    ticker.on("disconnect", () => {
+      isConnected.value = false;
 
-      ticker.on('price_update', (data) => onTicks(data));
+      console.log("WebSocket Disconnected");
+    });
 
-      ticker.on('position_update', () => {
-        profileStore.getBrokerProfile();
-        if(positionsStore.activeView === 'closed')  positionsStore.fetchClosedPositions(true);
-        else positionsStore.fetchOpenPositions(true); 
-      });
+    ticker.on("error", (err) => {
+      console.error("WS Error:", err);
+    });
 
-      // ticker.on('broker_balance_update', (data) => {
-      //     brokerBalance.value = data
-      // })
+    /* ---------------- MAIN PRICE EVENT ---------------- */
+    ticker.on("price_update", onTicks);
 
-      // ✅ kept only this (safe)
-      ticker.on('broker_connected', (data) => {
-        isBrokerConnected.value = true;
-        setTimeout(() => isBrokerConnected.value = false, 2000);
-      });
-
-      ticker.on("disconnect", () => {
-        console.log("Socket disconnected");
-        wsStatus = false;
-      });
-
-      ticker.on('plan_expired', () => {
-        window.location.reload();
-      });
-
-      wsStatus = true;
-    }
+    wsStatus = true;
   };
 
+  /* ---------------- Stop WS ---------------- */
   const stopWebSocket = () => {
-    if (ticker != null) {
-      ticker.disconnect();
-      ticker = null;
-      wsStatus = false;
-    }
+    if (!ticker) return;
+
+    ticker.disconnect();
+
+    ticker = null;
+
+    wsStatus = false;
+
+    isConnected.value = false;
   };
 
+  /* ---------------- Subscribe ---------------- */
   const subscribe = (id, symbols = tickerList.value) => {
-    if (token.value && ticker && symbols.length > 0) {
+    if (ticker && symbols.length > 0) {
       ticker.subscribe(symbols, id);
     }
   };
 
+  /* ---------------- Unsubscribe ---------------- */
   const unsubscribe = (symbols) => {
-    if (token.value && ticker) {
-      ticker.unsubscribe(symbols, userId.value);
+    if (ticker) {
+      ticker.unsubscribe(symbols);
     }
   };
 
+  /* ---------------- Update Latest Price ---------------- */
   function updateLastPrice(data) {
-    const symbol = data['symbol'];
-    lastPrices.value[symbol] = data['price'];
-    return lastPrices.value;
+
+    const symbol = data.symbol;
+
+    lastPrices.value[symbol] = {
+      symbol: data.symbol,
+      bid: data.bid,
+      ask: data.ask,
+      last: data.last,
+      time: data.time,
+    };
   }
 
-  const getProfit = () => {
-    return profits.value['total_profit'];
-  };
-
-  // function getLatestBrokerData() {
-  //   return brokerBalance.value;
-  // }
-
+  /* ---------------- Get Last Price ---------------- */
   function getLastPrice(symbol) {
-    return lastPrices.value[symbol] || undefined;
+    return lastPrices.value[symbol] || null;
   }
-
-  provide('lastPriceStore', {
-    updateLastPrice,
-    getProfit,
-    getLastPrice,
-    startWebSocket,
-    stopWebSocket
-  });
 
   return {
-    unsubscribe,
-    isBrokerConnected,
-    subscribe,
-    getProfit,
-    updateLastPrice,
-    getLastPrice,
     startWebSocket,
     stopWebSocket,
+
+    subscribe,
+    unsubscribe,
+
     updateTickerList,
+
+    updateLastPrice,
+    getLastPrice,
+
     lastPrices,
     tickerList,
-    candleData,
+
+    isConnected,
   };
 });

@@ -3,12 +3,17 @@ import { ref, onMounted } from 'vue'
 import { useProfileStore } from '@/stores/profile/profile'
 import NavBar from '@/components/default/NavBar.vue'
 import TopBar from '@/components/default/TopBar.vue'
+import { useTickerStore } from '@/stores/ws/ticker'
 
 const sidebarOpen = ref(false)
 const profileStore = useProfileStore()
 // const kycStore = useKycStore()
-// const tickerStore = useTickerStore()
-onMounted(() => {
+const tickerStore = useTickerStore()
+onMounted(async () => {
+  await tickerStore.startWebSocket()
+
+  tickerStore.updateTickerList(['EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD', 'XAUUSD'])
+
   profileStore.fetchUserProfile()
 })
 </script>
