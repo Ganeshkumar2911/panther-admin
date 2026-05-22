@@ -187,7 +187,7 @@ const formatDate = (val) => val ? new Date(val).toLocaleDateString('en-GB', { da
 const formatType = (t) => t?.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) ?? '—'
 
 const typeClass = (type) => ({
-  broker_fee:       'bg-blue-50 text-blue-800 border-blue-200',
+  broker_fee:       'bg-primary-blue/50 text-blue-800 border-blue-200',
   platform_earning: 'bg-green-50 text-green-800 border-green-200',
 }[type] ?? 'bg-background text-secondary-text border-primary-border')
 

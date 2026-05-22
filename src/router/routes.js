@@ -120,6 +120,17 @@ const routes = [
                 }
             },
             {
+                path: '/fm/settlement-preview/:id',
+                name: 'fm-settlement-preview',
+                component: () => import('@/pages/fm-leaderboard/fmSettlement.vue'),
+                meta: {
+                    requiresAuth: true,
+                    title: 'FM Settlement Preview',
+                    description: 'Preview settlement details for a Fund Manager.',
+                    showBackButton: true,
+                }
+            },
+            {
                 path: '/fm-request',
                 name: 'fm-request',
                 component: () => import('@/pages/fm-request/index.vue'),

@@ -42,7 +42,7 @@
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Account</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Symbol</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Type</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Lot</th>
+            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Volume</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">PnL</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Fee</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Status</th>
@@ -169,7 +169,7 @@ const formatDate = (val) => val ? new Date(val).toLocaleDateString('en-GB', { da
 
 const statusClass = (s) => ({
   closed:   'bg-background text-secondary-text border-primary-border',
-  open:     'bg-blue-50 text-blue-800 border-blue-200',
+  open:     'bg-primary-blue/50 text-blue-800 border-blue-200',
   pending:  'bg-yellow-50 text-yellow-800 border-yellow-200',
   cancelled:'bg-red-50 text-red-800 border-red-200',
 }[s] ?? 'bg-background text-secondary-text border-primary-border')

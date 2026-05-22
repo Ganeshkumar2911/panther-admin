@@ -1,7 +1,20 @@
 <script setup>
 import { onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { LayoutDashboard, User, Users, Wallet, Trophy, GitPullRequestArrow, ListTree, RefreshCcw, Ticket } from 'lucide-vue-next'
+import {
+  LayoutDashboard,
+  User,
+  Users,
+  Wallet,
+  Trophy,
+  GitPullRequestArrow,
+  ListTree,
+  RefreshCcw,
+  Ticket,
+  CreditCard,
+  TrendingUp,
+  DollarSign,
+} from 'lucide-vue-next'
 import { useProfileStore } from '@/stores/profile/profile'
 
 const store = useProfileStore()
@@ -18,11 +31,11 @@ defineEmits(['close'])
 const route = useRoute()
 
 // ✅ Fetch profile on mount
-onMounted(() => {
-  if (!store.user) {
-    store.fetchUserProfile()
-  }
-})
+// onMounted(() => {
+//   if (!store.user) {
+//     store.fetchUserProfile()
+//   }
+// })
 
 const navItems = [
   {
@@ -35,26 +48,6 @@ const navItems = [
     to: '/clients',
     icon: Users,
   },
-   {
-    label: 'Client Wallet',
-    to: '/client-wallet',
-    icon: Wallet,
-  },
-  {
-    label: 'My Wallet',
-    to: '/my-wallet',
-    icon: Wallet,
-  },
-  {
-    label: 'FM Wallet',
-    to: '/fm-wallet',
-    icon: Wallet,
-  },
-  {
-    label: 'IB Wallet',
-    to: '/ib-wallet',
-    icon: Wallet,
-  },
   {
     label: 'Trading Accounts',
     to: '/trading-accounts',
@@ -66,19 +59,39 @@ const navItems = [
     icon: Trophy,
   },
   {
+    label: 'IB Network',
+    to: '/ib-tree',
+    icon: ListTree,
+  },
+  {
     label: 'FM Requests',
     to: '/fm-request',
     icon: GitPullRequestArrow,
   },
   {
+    label: 'Client Wallet',
+    to: '/client-wallet',
+    icon: CreditCard,
+  },
+  {
+    label: 'My Wallet',
+    to: '/my-wallet',
+    icon: Wallet,
+  },
+  {
+    label: 'FM Wallet',
+    to: '/fm-wallet',
+    icon: TrendingUp,
+  },
+  {
+    label: 'IB Wallet',
+    to: '/ib-wallet',
+    icon: DollarSign,
+  },
+  {
     label: 'Settlements',
     to: '/settlements',
     icon: RefreshCcw,
-  },
-  {
-    label: 'IB',
-    to: '/ib-tree',
-    icon: ListTree,
   },
   {
     label: 'Tickets',

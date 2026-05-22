@@ -31,6 +31,7 @@
     --color-primary-green: #22c55e;
     --color-primary-yellow: #eab308;
     --color-primary-red: #ef4444;
+    --color-primary-blue: #3b82f6;
 }
 
 .dark {
@@ -62,6 +63,7 @@
     --color-primary-green: #22c55e;
     --color-primary-yellow: #eab308;
     --color-primary-red: #ef4444;
+    --color-primary-blue: #3b82f6;
 }
 
 body{

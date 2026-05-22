@@ -144,7 +144,7 @@ onMounted(() => store.fetchAccounts())
             <td class="p-3">
               <span v-if="acc.account_role" class="text-[11px] font-medium px-2 py-0.5 rounded-full border capitalize"
                 :class="acc.account_role === 'master'
-                  ? 'bg-blue-50 text-blue-800 border-blue-200'
+                  ? 'bg-primary-blue/40 text-primary'
                   : 'bg-background text-secondary-text border-primary-border'"
               >
                 {{ acc.account_role }}

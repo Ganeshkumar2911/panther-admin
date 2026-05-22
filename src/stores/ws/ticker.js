@@ -2,14 +2,16 @@ import { ref, computed } from "vue";
 import authToken from "@/common/authToken";
 import { defineStore } from "pinia";
 import MatrixTicker from "@/utils/MatrixTicker";
+import { useProfileStore } from "@/stores/profile/profile";
 
 export const useTickerStore = defineStore("tickers", () => {
+  const profileStore = useProfileStore();
 
   let ticker = null;
   let wsStatus = false;
 
   const lastPrices = ref({});
-  const tickerList = ref([]);
+  const tickerList = ref([]);   
 
   const token = computed(() => authToken.getToken().accessToken);
 
@@ -38,14 +40,12 @@ export const useTickerStore = defineStore("tickers", () => {
     }
 
     if (ticker && newSymbols.length > 0) {
-      subscribe(2, newSymbols);
+      subscribe(profileStore.user?.user_id, newSymbols);
     }
   }
 
   /* ---------------- Handle Incoming Tick ---------------- */
   const onTicks = (tick) => {
-    console.log("PRICE UPDATE:", tick);
-
     updateLastPrice(tick);
   };
 
@@ -118,6 +118,7 @@ export const useTickerStore = defineStore("tickers", () => {
       ask: data.ask,
       last: data.last,
       time: data.time,
+      contract: data.contract_size,
     };
   }
 

@@ -212,17 +212,17 @@ const handlePageChange = (page) => {
 const formatDate = (val) => new Date(val).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
 
 const priorityClass = (p) => ({
-  low: 'bg-green-50 text-green-800 border-green-200',
-  medium: 'bg-yellow-50 text-yellow-800 border-yellow-200',
-  high: 'bg-red-50 text-red-800 border-red-200',
-}[p] ?? 'bg-background text-secondary-text border-primary-border')
+  low: 'bg-primary-green/20 text-primary-green border border-primary-green/30',
+  medium: 'bg-primary-yellow/20 text-primary-yellow border border-primary-yellow/30',
+  high: 'bg-primary-red/20 text-primary-red border border-primary-red/30',
+}[p] ?? 'bg-primary-border/20 text-secondary-text border border-primary-border')
 
 const statusClass = (s) => ({
-  open: 'bg-blue-50 text-blue-800 border-blue-200',
-  pending: 'bg-yellow-50 text-yellow-800 border-yellow-200',
-  resolved: 'bg-green-50 text-green-800 border-green-200',
-  closed: 'bg-background text-secondary-text border-primary-border',
-}[s] ?? 'bg-background text-secondary-text border-primary-border')
+  open: 'bg-primary-blue/20 text-primary',
+  pending: 'bg-primary-yellow/20 text-primary-yellow',
+  resolved: 'bg-primary-green/20 text-primary-green',
+  closed: 'bg-primary-border/20 text-secondary-text',
+}[s] ?? 'bg-primary-border/20 text-secondary-text')
 
 onMounted(() => store.fetchTickets())
 </script>

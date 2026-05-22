@@ -72,24 +72,28 @@ onMounted(() => {
         :loading="dashboardLoading"
       />
 
-      <!-- 6 · Settlement Analytics + table slot -->
-      <SettlementSection
-        :data="settlementSummary"
-        :loading="dashboardLoading"
-      >
-        <!--
-          Plug your existing settlement table component here:
-          <template #settlement-table>
-            <YourSettlementTable />
-          </template>
-        -->
-      </SettlementSection>
+     <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 items-stretch">
+        <!-- Recent Activity — 2/3 -->
+        <div class="xl:col-span-2">
+          <RecentActivitySection
+            :activities="recentActivity"
+            :loading="dashboardLoading"
+          />
+        </div>
 
-      <!-- 7 · Recent Activity -->
-      <RecentActivitySection
-        :activities="recentActivity"
-        :loading="dashboardLoading"
-      />
+        <!-- Settlement — 1/3 -->
+        <div class="xl:col-span-1 flex flex-col">
+          <SettlementSection
+            title="Settlement Analytics"
+            :completed="settlementSummary.completed ?? 0"
+            :pending="settlementSummary.pending ?? 0"
+            :failed="settlementSummary.failed ?? 0"
+            :value="`$${(settlementSummary.total_fees ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`"
+            :loading="dashboardLoading"
+          />
+        </div>
+      </div>
+
     </main>
 
   </div>

@@ -101,6 +101,12 @@
           </div>
           <div class="flex justify-end px-4 py-2.5">
             <button
+              class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-medium transition-colors mr-2"
+              @click.stop="handleSettlement(item)"
+            >
+              Settlement
+            </button>
+            <button
               class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-medium transition-colors"
               @click="handleEdit(item)"
             >
@@ -131,6 +137,7 @@
 
 <script setup>
 import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { CalendarDays, Edit, Plus, ChevronDown } from 'lucide-vue-next'
 import { useFmLeaderboardStore } from '@/stores/fmLeaderboard/fmLeaderboard'
 import Pagination from '@/components/common/Pagination.vue'
@@ -140,6 +147,7 @@ const store = useFmLeaderboardStore()
 const dialogOpen = ref(false)
 const dialogMode = ref('add')
 const selectedItem = ref(null)
+const router = useRouter()
 
 
 const formatDate = (val) => new Date(val).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
@@ -156,6 +164,11 @@ const handleEdit = (item) => { dialogMode.value = 'edit'; selectedItem.value = i
 const handlePageChange = (page) => {
   store.pagination.page = page
   store.fetchFmLeaderboard(true, page)
+}
+
+const handleSettlement = (item) => {
+  if (!item || item.id == null) return
+  router.push({ name: 'fm-settlement-preview', params: { id: item.id } })
 }
 
 onMounted(() => { store.fetchFmLeaderboard() })

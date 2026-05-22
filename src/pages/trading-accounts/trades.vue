@@ -19,7 +19,7 @@
           <p
             class="text-[11px] uppercase tracking-wide text-secondary-text mb-1"
           >
-            Total Lots
+            Total Volume
           </p>
           <p class="text-2xl font-medium text-primary-text">
             {{ formatNum(store.summary.total_lots) }}
@@ -27,11 +27,12 @@
         </div>
         <div
           class="bg-card-background border border-primary-border rounded-xl p-4"
+          v-if="store.side !== 'open'"
         >
           <p
             class="text-[11px] uppercase tracking-wide text-secondary-text mb-1"
           >
-            Total PnL
+            Total Closed PnL
           </p>
           <p
             class="text-2xl font-medium"
@@ -110,7 +111,7 @@
             <th
               class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
             >
-              Lot
+              Volume
             </th>
             <th
               class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
@@ -238,15 +239,15 @@
             <td class="p-3 text-xs text-primary-text tabular-nums">
               {{
                 trade.entry_price != null
-                  ? Number(trade.entry_price).toFixed(2)
+                  ? Number(trade.entry_price)
                   : "—"
               }}
             </td>
 
             <td class="p-3 text-xs text-primary-text tabular-nums">
               {{
-                trade.last_price != null
-                  ? Number(trade.last_price).toFixed(2)
+                trade.exit_price != null
+                  ? formatNum(trade.exit_price)
                   : "—"
               }}
             </td>
@@ -268,9 +269,9 @@
               <span
                 class="text-[11px] font-medium px-2 py-0.5 rounded-full border capitalize"
                 :class="
-                  trade.status === 'closedd'
+                  trade.status === 'CLOSED'
                     ? 'bg-background text-secondary-text border-primary-border'
-                    : 'bg-blue-50 text-blue-800 border-blue-200'
+                    : 'bg-primary-blue/20 text-primary'
                 "
               >
                 {{ trade.status }}
@@ -296,7 +297,7 @@
 </template>
 
 <script setup>
-import { onMounted } from "vue";
+import { onMounted, watch } from "vue";
 import { useRoute } from "vue-router";
 import { BarChart2 } from "lucide-vue-next";
 import { useAccountTradesStore } from "@/stores/tradingAccounts/accountsTrades";
@@ -339,7 +340,7 @@ const handleSideChange = (side) => {
 const formatNum = (val) =>
   (val ?? 0).toLocaleString("en-US", {
     minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    maximumFractionDigits: 5,
   });
 const formatDate = (val) =>
   new Date(val).toLocaleDateString("en-GB", {
@@ -347,6 +348,14 @@ const formatDate = (val) =>
     month: "short",
     year: "numeric",
   });
+
+// update ticker subscriptions based on symbols present in the trade list
+watch(() => store.data, (newData) => {
+  if (newData && newData.length > 0) {
+    const uniqueSymbols = [...new Set(newData.map(trade => trade.symbol))].filter(Boolean);
+    tickerStore.updateTickerList(uniqueSymbols);
+  }
+}, { deep: true });
 
 onMounted(() => store.fetchTrades(accountId, store.side));
 </script>

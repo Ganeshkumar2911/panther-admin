@@ -46,5 +46,8 @@ export function livePNL(trade) {
     pnl = (entryPrice - currentPrice) * lot
   }
 
-  return Number(pnl).toFixed(2)
+  const contractSize = Number(livePrice?.contract || 1)
+  pnl = pnl * contractSize
+
+  return Number(pnl).toFixed(3)
 }

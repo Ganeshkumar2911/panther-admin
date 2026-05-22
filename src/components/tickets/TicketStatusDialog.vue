@@ -97,7 +97,7 @@ const submit = async () => {
 const formatStatus = (s) => s?.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) ?? '—'
 
 const statusClass = (s) => ({
-  open:        'bg-blue-50 text-blue-800 border-blue-200',
+  open:        'bg-primary-blue/50 text-blue-800 border-blue-200',
   in_progress: 'bg-yellow-50 text-yellow-800 border-yellow-200',
   resolved:    'bg-green-50 text-green-800 border-green-200',
   closed:      'bg-background text-secondary-text border-primary-border',
