@@ -14,6 +14,7 @@ import {
   CreditCard,
   TrendingUp,
   DollarSign,
+  Tickets,
 } from 'lucide-vue-next'
 import { useProfileStore } from '@/stores/profile/profile'
 
@@ -96,7 +97,7 @@ const navItems = [
   {
     label: 'Tickets',
     to: '/tickets',
-    icon: Ticket,
+    icon: Tickets,
   }
 ]
 

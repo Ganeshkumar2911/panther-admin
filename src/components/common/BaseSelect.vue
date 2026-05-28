@@ -145,7 +145,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="relative w-full">
+  <div class="relative w-full min-w-0">
 
     <!-- Trigger -->
     <button
@@ -155,7 +155,7 @@ onBeforeUnmount(() => {
       aria-haspopup="listbox"
       @click="toggle"
       :class="[
-        'flex items-center justify-between w-full px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out focus:outline-none cursor-pointer select-none border border-primary-border',
+        'flex items-center justify-between w-full min-w-0 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out focus:outline-none cursor-pointer select-none border border-primary-border',
         triggerBgClass
       ]"
     >

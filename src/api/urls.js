@@ -54,6 +54,8 @@ const urls = {
     requestList: '/fm/requests',
     acceptRequest: '/fm/requests/approve',
     rejectRequest: '/fm/requests/reject',
+    settlementPreview: '/settlement/preview',
+    settlementRun: '/settlement/run',
   },
   settlements:{
     list: '/settlements',
@@ -61,6 +63,14 @@ const urls = {
   },
   tickets: {
     list: '/support/tickets',
+    create: '/support/tickets',
+    detail: '/support/tickets',
+    comment: '/support/tickets/comments',
+    attachment: '/support/tickets/attachments',
+    updateStatus: '/support/tickets/status',
+  },
+  platformTickets: {
+    list: '/support/tickets/platform',
     create: '/support/tickets',
     detail: '/support/tickets',
     comment: '/support/tickets/comments',

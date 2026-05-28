@@ -82,8 +82,9 @@ watch(() => props.open, (val) => {
 })
 
 const statusOptions = [
-  { label: 'Open', value: 'open' },
-  { label: 'Closed',      value: 'closed' },
+  { label: 'Open',        value: 'open' },
+  { label: 'In Progress', value: 'in_progress' },
+  { label: 'Resolved',    value: 'resolved' },
 ]
 
 const submit = async () => {
@@ -97,8 +98,9 @@ const submit = async () => {
 const formatStatus = (s) => s?.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) ?? '—'
 
 const statusClass = (s) => ({
-  open:    'bg-primary-green/20 text-primary-green border border-primary-green/30',
-  pending: 'bg-primary-yellow/20 text-primary-yellow border border-primary-yellow/30',
-  closed:  'bg-primary-red/20 text-primary-red border border-primary-red/30',
-}[s] ?? 'bg-primary-border/20 text-secondary-text border border-primary-border')
+  open:        'bg-blue-50 text-blue-800 border-blue-200',
+  in_progress: 'bg-yellow-50 text-yellow-800 border-yellow-200',
+  resolved:    'bg-green-50 text-green-800 border-green-200',
+  closed:      'bg-background text-secondary-text border-primary-border',
+}[s] ?? 'bg-background text-secondary-text border-primary-border')
 </script>

@@ -191,6 +191,27 @@ const routes = [
                     description: 'View details of the support ticket.',
                     showBackButton: true,
                 }
+            },
+            {
+                path: '/platform-tickets',
+                name: 'platform-tickets',
+                component: () => import('@/pages/platformTickets/index.vue'),
+                meta: {
+                    requiresAuth: true,
+                    title: 'Support Tickets',
+                    description: 'Raise a ticket to connect with the developer team.',
+                }
+            },
+            {
+                path: '/platform-tickets/:id',
+                name: 'platform-tickets-details',
+                component: () => import('@/pages/platformTickets/ticketDetails.vue'),
+                meta: {
+                    requiresAuth: true,
+                    title: 'Ticket Details',
+                    description: 'View details of the support ticket.',
+                    showBackButton: true,
+                }
             }
         ]
     }

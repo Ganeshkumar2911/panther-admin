@@ -7,129 +7,103 @@ import urls from '@/api/urls'
 
 import { useSnackbarStore } from '@/stores/snackbar/snackbar'
 
-export const useRunSettlementStore = defineStore(
-  'runSettlement',
-  () => {
-    const snackbar = useSnackbarStore()
+export const useRunSettlementStore = defineStore('runSettlement', () => {
+  const snackbar = useSnackbarStore()
 
-    const route = useRoute()
+  const route = useRoute()
+  const settlement = ref(null)
+  const loading = ref(false)
+  const runLoading = ref(false)
+  const error = ref(null)
 
-    // ─────────────────────────────────────
-    // STATE
-    // ─────────────────────────────────────
+  const fetchSettlement = () => {
+    loading.value = true
 
-    const settlement = ref(null)
+    error.value = null
 
-    const loading = ref(false)
-
-    const runLoading = ref(false)
-
-    const error = ref(null)
-
-    // ─────────────────────────────────────
-    // FETCH SETTLEMENT PREVIEW
-    // ─────────────────────────────────────
-
-    const fetchSettlement = () => {
-      loading.value = true
-
-      error.value = null
-
-      apiRequest(
-        urls.KEYS.GET,
-        `${urls.settlement.run}/${route.params.id}`,
-        {
-          isTokenRequired: true,
-
-          onSuccess: (res) => {
-            settlement.value = res?.data || null
-
-            loading.value = false
-          },
-
-          onFailure: (err) => {
-            loading.value = false
-
-            error.value = err
-
-            snackbar.show(
-              err?.message || 'Failed to fetch settlement preview.',
-              'error'
-            )
-          },
-        }
-      )
-    }
-
-    // ─────────────────────────────────────
-    // RUN SETTLEMENT
-    // ─────────────────────────────────────
-
-    const runSettlement = () => {
-      runLoading.value = true
-
-      error.value = null
-
-      apiRequest(
-        urls.KEYS.POST,
-        `${urls.settlement.run}/${route.params.id}`,
-        {
-          isTokenRequired: true,
-
-          onSuccess: (res) => {
-            snackbar.show(
-              res?.message || 'Settlement executed successfully.',
-              'success'
-            )
-
-            runLoading.value = false
-
-            fetchSettlement()
-          },
-
-          onFailure: (err) => {
-            runLoading.value = false
-
-            error.value = err
-
-            snackbar.show(
-              err?.message || 'Failed to run settlement.',
-              'error'
-            )
-          },
-        }
-      )
-    }
-
-    // ─────────────────────────────────────
-    // RESET
-    // ─────────────────────────────────────
-
-    const reset = () => {
-      settlement.value = null
+    const successHandler = (res) => {
+      settlement.value = res?.data || null
 
       loading.value = false
+    }
+
+    const failureHandler = (err) => {
+      loading.value = false
+
+      error.value = err
+
+      snackbar.show(
+        err?.message || 'Failed to fetch settlement preview.',
+        'error'
+      )
+    }
+
+    apiRequest(urls.KEYS.GET, urls.fm.settlementPreview, {
+      look_up_key: route.params.id,
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+    })
+  }
+
+  // ─────────────────────────────────────
+  // RUN SETTLEMENT
+  // ─────────────────────────────────────
+
+  const runSettlement = () => {
+    runLoading.value = true
+
+    error.value = null
+
+    const successHandler = (res) => {
+      snackbar.show(
+        res?.message || 'Settlement executed successfully.',
+        'success'
+      )
 
       runLoading.value = false
 
-      error.value = null
+      fetchSettlement()
     }
 
-    // ─────────────────────────────────────
-    // RETURN
-    // ─────────────────────────────────────
+    const failureHandler = (err) => {
+      runLoading.value = false
 
-    return {
-      // state
-      settlement,
-      loading,
-      runLoading,
-      error,
+      error.value = err
 
-      // methods
-      fetchSettlement,
-      runSettlement,
-      reset,
+      snackbar.show(
+        err?.message || 'Failed to run settlement.',
+        'error'
+      )
     }
+
+    apiRequest(urls.KEYS.POST, urls.fm.settlementRun, {
+      look_up_key: route.params.id,
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+    })
   }
-)
+
+  // ─────────────────────────────────────
+  // RESET
+  // ─────────────────────────────────────
+
+  const reset = () => {
+    settlement.value = null
+    loading.value = false
+    runLoading.value = false
+    error.value = null
+  }
+
+  return {
+    settlement,
+    loading,
+    runLoading,
+    error,
+
+    fetchSettlement,
+    runSettlement,
+    reset,
+  }
+})

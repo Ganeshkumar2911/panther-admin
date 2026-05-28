@@ -3,9 +3,10 @@ import authToken from "@/common/authToken";
 import { defineStore } from "pinia";
 import MatrixTicker from "@/utils/MatrixTicker";
 import { useProfileStore } from "@/stores/profile/profile";
-
+import { useClientListStore } from "@/stores/clientList/clientList";
 export const useTickerStore = defineStore("tickers", () => {
   const profileStore = useProfileStore();
+  const clientListStore = useClientListStore();
 
   let ticker = null;
   let wsStatus = false;
@@ -72,6 +73,10 @@ export const useTickerStore = defineStore("tickers", () => {
 
     ticker.on("error", (err) => {
       console.error("WS Error:", err);
+    });
+
+    ticker.on("new_user_registered", (data) => { 
+      clientListStore.fetchClients();
     });
 
     /* ---------------- MAIN PRICE EVENT ---------------- */

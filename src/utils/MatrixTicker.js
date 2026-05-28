@@ -24,6 +24,7 @@ class MatrixTicker {
       new_broker: [],
       payment_received: [],
       settlement: [],
+      new_user_registered: [],
     };
 
     this.current_reconnection_count = 0;
@@ -77,8 +78,8 @@ class MatrixTicker {
       this.trigger("superadmin_test", [data]);
     });
 
-    this.ws.on("new_client", (data) => {
-      this.trigger("new_client", [data]);
+    this.ws.on("new_user_registered", (data) => {
+      this.trigger("new_user_registered", [data]);
     });
 
     this.ws.on("kyc_uploaded", (data) => {
