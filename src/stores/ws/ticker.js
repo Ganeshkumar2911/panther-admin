@@ -4,6 +4,7 @@ import { defineStore } from "pinia";
 import MatrixTicker from "@/utils/MatrixTicker";
 import { useProfileStore } from "@/stores/profile/profile";
 import { useClientListStore } from "@/stores/clientList/clientList";
+import { useAccountsStore } from "@/stores/tradingAccounts/tradingAccounts";
 export const useTickerStore = defineStore("tickers", () => {
   const profileStore = useProfileStore();
   const clientListStore = useClientListStore();
@@ -54,6 +55,8 @@ export const useTickerStore = defineStore("tickers", () => {
   const startWebSocket = () => {
     if (wsStatus) return;
 
+    const accountsStore = useAccountsStore();
+
     ticker = new MatrixTicker({
       token: token.value,
       reconnect: true,
@@ -75,8 +78,16 @@ export const useTickerStore = defineStore("tickers", () => {
       console.error("WS Error:", err);
     });
 
-    ticker.on("new_user_registered", (data) => { 
+    ticker.on("new_user_registered", (data) => {
       clientListStore.fetchClients();
+    });
+
+    ticker.on("new_deposit", (data) => {
+      accountsStore.fetchAccounts();
+    });
+
+    ticker.on("new_withdrawal", (data) => {
+      accountsStore.fetchAccounts();
     });
 
     /* ---------------- MAIN PRICE EVENT ---------------- */

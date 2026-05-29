@@ -25,6 +25,8 @@ class MatrixTicker {
       payment_received: [],
       settlement: [],
       new_user_registered: [],
+      new_deposit: [],
+      new_withdrawal: [],
     };
 
     this.current_reconnection_count = 0;
@@ -96,6 +98,14 @@ class MatrixTicker {
 
     this.ws.on("settlement", (data) => {
       this.trigger("settlement", [data]);
+    });
+
+    this.ws.on("new_deposit", (data) => {
+      this.trigger("new_deposit", [data]);
+    });
+
+    this.ws.on("new_withdrawal", (data) => {
+      this.trigger("new_withdrawal", [data]);
     });
   }
 
