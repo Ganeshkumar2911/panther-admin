@@ -120,7 +120,7 @@ export const useGroupCategoriesStore = defineStore(
       const params = {
         page: 1,
         per_page: 10,
-        status: 'not_added',
+        status: 'all',
       }
 
       if (query.trim()) {
@@ -136,10 +136,7 @@ export const useGroupCategoriesStore = defineStore(
           params,
 
           onSuccess: (res) => {
-            groupOptions.value =
-              (res?.data || []).filter(
-                (item) => item?.is_added === false
-              )
+            groupOptions.value = res?.data || []
 
             groupSearchLoading.value = false
           },

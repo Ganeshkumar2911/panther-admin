@@ -3,7 +3,7 @@
     v-if="open"
     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
   >
-    <div class="bg-card-background rounded-2xl border border-primary-border w-full max-w-xl max-h-[90vh] flex flex-col" @click.stop>
+    <div class="bg-card-background rounded-2xl border border-primary-border w-full max-w-xl max-h-[90vh] flex flex-col no-scrollbar" @click.stop>
 
       <!-- Header -->
       <div class="px-6 py-4 border-b border-primary-border flex items-center justify-between shrink-0">
@@ -17,7 +17,7 @@
       </div>
 
       <!-- Scrollable Body -->
-      <div class="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+      <div class="flex-1 overflow-y-auto no-scrollbar px-6 py-5 space-y-5">
 
         <!-- Category Info -->
         <div class="bg-background border border-primary-border rounded-xl p-4 space-y-4">

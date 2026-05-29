@@ -182,14 +182,14 @@ onBeforeUnmount(() => {
         ref="dropdownRef"
         role="listbox"
         :class="[
-          'absolute z-50 mt-2 w-full rounded-lg overflow-hidden border border-primary-border shadow-md',
+          'absolute top-full left-0 z-50 mt-2 w-full h-56 flex flex-col rounded-lg overflow-hidden border border-primary-border shadow-md',
           dropdownBgClass
         ]"
       >
         <!-- Search -->
         <div
           v-if="searchable"
-          class="px-3 py-2 border-b border-primary-border"
+          class="shrink-0 px-3 py-2 border-b border-primary-border"
         >
           <div class="relative flex items-center">
             <Search
@@ -208,7 +208,7 @@ onBeforeUnmount(() => {
         </div>
 
         <!-- Options -->
-        <ul class="max-h-52 overflow-y-auto py-1">
+        <ul class="flex-1 min-h-0 overflow-y-auto py-1">
           <li
             v-if="isLoading"
             class="px-4 py-3 text-sm text-secondary-text text-center italic"

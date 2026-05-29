@@ -2,11 +2,11 @@
   <div class="px-4 pb-8">
 
     <!-- Header -->
-    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
-      <div>
+    <div class="flex flex-wrap items-center justify-end gap-3 mb-6">
+      <!-- <div>
         <h1 class="text-base font-semibold text-primary-text">Group Config</h1>
         <p class="text-xs text-secondary-text mt-0.5">Manage MT5 group configurations</p>
-      </div>
+      </div> -->
       <!-- <div class="flex items-center gap-2">
         <button
           class="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-primary-border bg-card-background text-xs text-secondary-text hover:text-primary-text hover:bg-background transition-all"

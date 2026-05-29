@@ -57,14 +57,12 @@
         <div>
           <p class="text-xs text-secondary-text mb-1.5">Account Category</p>
           <input
-            v-model="form.account_category"
+            :value="props.group?.account_category"
             type="text"
-            placeholder="e.g. standard, ECN"
-            :disabled="store.createLoading"
+            disabled
             class="w-full px-3 py-2.5 rounded-lg bg-background border border-primary-border text-primary-text text-sm outline-none focus:border-primary transition-colors placeholder:text-secondary-text disabled:opacity-50"
           />
         </div>
-
         <!-- Currency + Leverage -->
         <div class="grid grid-cols-2 gap-3">
           <div>
@@ -144,7 +142,7 @@ const props = defineProps({
 const emit = defineEmits(['close'])
 const store = useGroupConfigStore()
 
-const form = ref({ label: '', account_type: 'demo', account_category: '', currency: '', leverage: null, badge: '', description: '' })
+const form = ref({ label: '', account_type: props.group?.account_type,  account_category: '', currency: '', leverage: null, badge: '', description: '' })
 
 const isValid = computed(() => form.value.label && form.value.account_type && form.value.currency)
 
