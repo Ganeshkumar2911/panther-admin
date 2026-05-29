@@ -15,6 +15,7 @@ import {
   TrendingUp,
   DollarSign,
   Tickets,
+  Settings,
 } from 'lucide-vue-next'
 import { useProfileStore } from '@/stores/profile/profile'
 
@@ -98,6 +99,11 @@ const navItems = [
     label: 'Tickets',
     to: '/tickets',
     icon: Tickets,
+  },
+  {
+    label: 'Group Config',
+    to: '/group-config',
+    icon: Settings,
   }
 ]
 

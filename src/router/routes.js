@@ -212,7 +212,28 @@ const routes = [
                     description: 'View details of the support ticket.',
                     showBackButton: true,
                 }
-            }
+            },
+            {
+                path: '/group-config',
+                name: 'group-config',
+                component: () => import('@/pages/groupConfig/categories.vue'),
+                meta: {
+                    requiresAuth: true,
+                    title: 'Group Categories',
+                    description: 'Manage MT5 group categories.',
+                }
+            },
+            {
+                path: '/categories/:account_category/:account_type',
+                name: 'group-config-groups',
+                component: () => import('@/pages/groupConfig/index.vue'),
+                meta: {
+                    requiresAuth: true,
+                    title: 'Category Groups',
+                    description: 'Manage MT5 groups inside category.',
+                    showBackButton: true,
+                }
+            },
         ]
     }
 ]

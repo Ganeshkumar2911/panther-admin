@@ -2,7 +2,6 @@
   <div
     v-if="open"
     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
-    @click="emit('close')"
   >
     <div class="bg-card-background rounded-2xl border border-primary-border w-full max-w-md" @click.stop>
 

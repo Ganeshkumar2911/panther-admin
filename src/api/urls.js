@@ -77,6 +77,14 @@ const urls = {
     attachment: '/support/tickets/attachments',
     updateStatus: '/support/tickets/status',
   },
+  groupConfig: {
+    list: '/mt5/groups',
+    add: '/group-config',
+    categories: '/account-categories',
+    groups: '/mt5/groups',
+    create: '/group-config',
+  },
+
 
 
 }
