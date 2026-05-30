@@ -1,11 +1,13 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import tailwindcss from '@tailwindcss/vite'
-import vueDevTools from 'vite-plugin-vue-devtools'
 import path from 'path'
 
 export default defineConfig({
-  plugins: [vue(), tailwindcss(), vueDevTools()],
+  plugins: [
+    vue(),
+    tailwindcss(),
+  ],
 
   resolve: {
     alias: {
@@ -13,12 +15,5 @@ export default defineConfig({
     },
   },
 
-  server: {
-    host: '0.0.0.0',
-    port: 3003,
-    open: true,
-    hmr: {
-      overlay: true,
-    },
-  },
+  base: '/',
 })
