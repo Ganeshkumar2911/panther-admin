@@ -3,7 +3,7 @@
     v-if="open"
     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
   >
-    <div class="bg-card-background rounded-2xl border border-primary-border w-full max-w-lg" @click.stop>
+    <div class="bg-card-background rounded-2xl border border-primary-border w-full max-w-lg no-scrollbar" @click.stop>
 
       <div class="px-6 py-4 border-b border-primary-border flex items-center justify-between">
         <div class="flex items-center gap-2">
@@ -15,7 +15,7 @@
         </button>
       </div>
 
-      <div class="px-6 py-5 space-y-4 max-h-[70vh] overflow-y-auto">
+      <div class="px-6 py-5 space-y-4 max-h-[70vh] overflow-y-auto no-scrollbar">
 
         <!-- Group path (readonly) -->
         <div>
@@ -37,16 +37,16 @@
           />
         </div>
 
-        <!-- Account Type Toggle -->
+        <!-- Account Type (readonly) -->
         <div>
           <p class="text-xs text-secondary-text mb-1.5">Account Type</p>
-          <div class="flex items-center gap-1 bg-background border border-primary-border rounded-lg p-1 w-fit">
+          <div class="flex items-center gap-1 bg-background border border-primary-border rounded-lg p-1 w-fit opacity-70 cursor-not-allowed">
             <button
               v-for="t in ['demo', 'live']"
               :key="t"
+              disabled
               class="px-4 py-1.5 rounded-md text-xs font-medium capitalize transition-colors"
-              :class="form.account_type === t ? 'bg-primary text-black' : 'text-secondary-text hover:text-primary-text'"
-              @click="form.account_type = t"
+              :class="props.group?.account_type === t ? 'bg-primary text-black' : 'text-secondary-text'"
             >
               {{ t }}
             </button>
@@ -66,15 +66,11 @@
         <!-- Currency + Leverage -->
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <p class="text-xs text-secondary-text mb-1.5">Currency</p>
-            <input
-              v-model="form.currency"
-              type="text"
-              placeholder="USD"
-              :disabled="store.createLoading"
-              class="w-full px-3 py-2.5 rounded-lg bg-background border border-primary-border text-primary-text text-sm outline-none focus:border-primary transition-colors placeholder:text-secondary-text disabled:opacity-50"
-            />
+          <p class="text-xs text-secondary-text mb-1.5">MT5 Group Path</p>
+          <div class="w-full px-3 py-2.5 rounded-lg bg-background border border-primary-border text-secondary-text text-xs font-mono truncate opacity-70">
+            {{ group?.currency }}
           </div>
+        </div>
           <div>
             <p class="text-xs text-secondary-text mb-1.5">Leverage</p>
             <input
@@ -150,7 +146,7 @@ watch(() => props.open, (val) => {
   if (val) {
     form.value = {
       label: '',
-      account_type: 'demo',
+      account_type: props.group?.account_type,
       account_category: '',
       currency: props.group?.currency ?? '',
       leverage: null,
@@ -166,7 +162,7 @@ const submit = () => {
     label:            form.value.label,
     account_type:     props.group?.account_type,      
     account_category: props.group?.account_category,
-    currency:         form.value.currency,
+    currency:         props.group?.currency,
     leverage:         form.value.leverage,
     badge:            form.value.badge,
     description:      form.value.description,
