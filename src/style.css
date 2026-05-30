@@ -1,0 +1,123 @@
+@import url('https://fonts.googleapis.com/css2?family=Red+Hat+Display:ital,wght@0,300..900;1,300..900&display=swap');
+@import "tailwindcss";
+
+
+@theme {
+    /* Core */
+    --color-background: #EFE1D1;
+    --color-card-background: #ffffff;
+
+    /* Primary */
+    --color-primary: #A78295;
+    --color-primary-hover: #8e6b7f;
+
+    /* Secondary */
+    --color-secondary: #331D2C;
+
+    /* Navbar */
+    --color-navbar: #331D2C;
+
+    /* Text */
+    --color-primary-text: #331D2C;
+    --color-secondary-text: #6e5a66;
+
+    /* Border */
+    --color-primary-border: #e4d3c5;
+
+    /* Accent */
+    --color-accent: #3F2E3E;
+
+    /* Status */
+    --color-primary-green: #22c55e;
+    --color-primary-yellow: #eab308;
+    --color-primary-red: #ef4444;
+    --color-primary-blue: #3b82f6;
+}
+
+.dark {
+    /* Core */
+    --color-background: #140f13;
+    --color-card-background: #1f1720;
+
+    /* Primary */
+    --color-primary: #A78295;
+    --color-primary-hover: #c19bad;
+
+    /* Secondary */
+    --color-secondary: #d8c7d0;
+
+    /* Navbar */
+    --color-navbar: #000000;
+
+    /* Text */
+    --color-primary-text: #f5edf1;
+    --color-secondary-text: #b6a6af;
+
+    /* Border */
+    --color-primary-border: #2a1f28;
+
+    /* Accent */
+    --color-accent: #3F2E3E;
+
+    /* Status */
+    --color-primary-green: #22c55e;
+    --color-primary-yellow: #eab308;
+    --color-primary-red: #ef4444;
+    --color-primary-blue: #3b82f6;
+}
+
+body{
+    font-family: "Red Hat Display", sans-serif;
+}
+
+.title-text {
+    @apply font-semibold text-[19px];
+}
+
+.sub-text {
+    @apply text-[13px];
+}
+
+.normal-text {
+    @apply text-[16px] font-medium;
+}
+
+.mid-text{
+    @apply text-[14px]
+}
+
+.input-field {
+    @apply w-full border border-primary-border rounded-xl bg-background text-primary-text text-sm placeholder-secondary-text/50 outline-none transition-all duration-150;
+}
+
+.input-field:focus {
+    outline: none;
+    box-shadow: none; /* remove glow */
+    border-color: var(--color-primary); /* optional */
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE & old Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+/* Child row styling for tree hierarchy visualization */
+.bg-child-row {
+  background-color: rgba(167, 130, 149, 0.08);
+}
+
+.bg-child-row-hover {
+  background-color: rgba(167, 130, 149, 0.12);
+}
+
+.dark .bg-child-row {
+  background-color: rgba(167, 130, 149, 0.15);
+}
+
+.dark .bg-child-row-hover {
+  background-color: rgba(167, 130, 149, 0.25);
+}
