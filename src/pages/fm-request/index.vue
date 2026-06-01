@@ -71,6 +71,25 @@ const handleFundManagerSuccess = () => {
   fundManagerDialogOpen.value = false;
 };
 
+const formatMoney = (value, currency = "USD") => {
+  const amount = Number(value ?? 0);
+
+  if (Number.isNaN(amount)) return "-";
+
+  try {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  } catch {
+    return `${currency} ${amount.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+  }
+};
+
 onMounted(() => {
   store.fetchFmRequests();
 });
@@ -103,6 +122,16 @@ onMounted(() => {
               class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest pb-3 px-3"
             >
               User
+            </th>
+            <th
+              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest pb-3 px-3"
+            >
+              Broker
+            </th>
+            <th
+              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest pb-3 px-3"
+            >
+              Min Capital
             </th>
             <th
               class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest pb-3 px-3"
@@ -155,6 +184,15 @@ onMounted(() => {
               </div>
             </td>
             <td class="px-3 py-3.5">
+              <div class="space-y-1.5">
+                <div class="h-3 w-28 bg-card-background rounded" />
+                <div class="h-2.5 w-20 bg-card-background rounded" />
+              </div>
+            </td>
+            <td class="px-3 py-3.5">
+              <div class="h-3 w-20 bg-card-background rounded" />
+            </td>
+            <td class="px-3 py-3.5">
               <div class="h-3 w-20 bg-card-background rounded" />
             </td>
             <td class="px-3 py-3.5">
@@ -196,6 +234,26 @@ onMounted(() => {
               <p class="text-[11px] text-secondary-text mt-0.5">
                 ID {{ item.user_id }}
               </p>
+              <p class="text-[11px] text-secondary-text mt-0.5">
+                {{ item.created_at }}
+              </p>
+            </td>
+            <td class="px-3 py-3.5">
+              <p class="text-xs font-medium text-primary-text">
+                {{ item.broker_currency }}
+              </p>
+              <p class="text-[11px] text-secondary-text mt-0.5 break-all">
+                {{ item.broker_group }}
+              </p>
+              <p class="text-[11px] text-secondary-text mt-0.5">
+                Leverage: {{ item.broker_leverage }}
+              </p>
+              <p class="text-[11px] text-secondary-text mt-0.5">
+                Category: {{ item.broker_category }}
+              </p>
+            </td>
+            <td class="px-3 py-3.5 text-xs text-primary-text">
+              {{ formatMoney(item.min_capital, item.broker_currency) }}
             </td>
             <td class="px-3 py-3.5">
               <p class="text-xs text-primary-text capitalize">
