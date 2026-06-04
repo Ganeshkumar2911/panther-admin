@@ -1,11 +1,15 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { BarChart2, Wallet as WalletIcon } from 'lucide-vue-next'
-import { useAccountsStore } from '@/stores/tradingAccounts/tradingAccounts'
+import { BarChart2, RotateCcwKey, Wallet as WalletIcon } from 'lucide-vue-next'
 import Pagination from '@/components/common/Pagination.vue'
+import Tooltip from '@/components/common/Tooltip.vue'
+import ChangePasswordDialog from '@/components/trading-accounts/ChangePasswordDialog.vue'
+import { useAccountsStore } from '@/stores/tradingAccounts/tradingAccounts'
+import { useProfileStore } from '@/stores/profile/profile'
 
 const store = useAccountsStore()
+const profile = useProfileStore()
 const router = useRouter()
 
 const tabs = [
@@ -13,12 +17,46 @@ const tabs = [
   { label: 'Client', value: 'client' },
   { label: 'FM', value: 'fm' },
 ]
-const activeTab = ref('all')
+
+const tradingTypeFilters = [
+  { label: 'All', value: 'all' },
+  { label: 'Real', value: 'real' },
+  { label: 'Copy Trading', value: 'copy_trading' },
+]
+
+const accountTypeFilters = [
+  { label: 'All', value: 'all' },
+  { label: 'Demo', value: 'demo' },
+  { label: 'Live', value: 'live' },
+]
+
+const changePasswordDialog = ref({
+  open: false,
+  account: null,
+})
+
+const isFm = computed(() => profile.user?.role === 'fm')
+const activeTab = computed(() => store.filters.account_type ?? 'all')
+const activeTradingType = computed(() => store.filters.trading_type ?? 'all')
+const activeAccountType = computed(() => store.filters.account_subtype ?? 'all')
+const hasActiveFilters = computed(
+  () => activeTab.value !== 'all' || activeTradingType.value !== 'all' || activeAccountType.value !== 'all'
+)
+
+const emptyStateTitle = computed(() =>
+  hasActiveFilters.value ? 'No accounts match the selected filters' : 'No trading accounts yet'
+)
+
+const emptyStateDescription = computed(() =>
+  hasActiveFilters.value
+    ? 'Try a different account type, trading type, or account subtype.'
+    : 'Trading accounts will appear here once they are added.'
+)
+
+const getAccountId = (acc) => acc?.id ?? acc?.account_id ?? null
 
 const switchTab = (val) => {
   if (activeTab.value === val) return
-
-  activeTab.value = val
   store.setType(val)
 }
 
@@ -26,20 +64,74 @@ const handlePageChange = (page) => {
   store.setPage(page)
 }
 
-const formatNum = (val) => (val ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-const formatDate = (val) => new Date(val).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+const setTradingType = (type) => {
+  store.setFilters({
+    trading_type: type,
+  })
+}
 
-onMounted(() => store.fetchAccounts())
+const setAccountType = (type) => {
+  store.setFilters({
+    account_subtype: type,
+  })
+}
+
+const openChangePassword = (acc) => {
+  if (acc?.trading_type !== 'real') return
+
+  changePasswordDialog.value = {
+    open: true,
+    account: {
+      ...acc,
+      id: getAccountId(acc),
+    },
+  }
+}
+
+const closeChangePassword = () => {
+  changePasswordDialog.value = {
+    open: false,
+    account: null,
+  }
+}
+
+const confirmChangePassword = () => {
+  closeChangePassword()
+}
+
+const formatNum = (val) =>
+  Number(val ?? 0).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
+
+const formatDate = (val) => {
+  if (!val) return '—'
+
+  return new Date(val).toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  })
+}
+
+onMounted(() => {
+  if (!profile.user) {
+    profile.fetchUserProfile()
+  }
+
+  store.fetchAccounts()
+})
 </script>
 
 <template>
   <div class="px-4">
-
-    <!-- Tabs -->
-    <div class="flex items-center gap-1 bg-card-background border border-primary-border rounded-lg p-1 w-fit mb-6">
+    <!-- Old filter -->
+    <div class="flex items-center gap-1 bg-card-background border border-primary-border rounded-lg p-1 w-fit mb-5">
       <button
         v-for="tab in tabs"
         :key="tab.value"
+        type="button"
         class="px-4 py-1.5 rounded-md text-xs font-medium transition-colors"
         :class="activeTab === tab.value ? 'bg-primary text-black' : 'text-secondary-text hover:text-primary-text'"
         @click="switchTab(tab.value)"
@@ -48,6 +140,45 @@ onMounted(() => store.fetchAccounts())
       </button>
     </div>
 
+    <!-- New filters -->
+    <div v-if="!isFm" class="mb-5 space-y-3">
+      <div class="flex items-center gap-1 bg-card-background border border-primary-border rounded-lg p-1 w-fit">
+        <button
+          v-for="filter in tradingTypeFilters"
+          :key="filter.value"
+          type="button"
+          class="px-4 py-1.5 rounded-md text-xs font-medium transition-colors"
+          :class="
+            activeTradingType === filter.value
+              ? 'bg-primary text-black'
+              : 'text-secondary-text hover:text-primary-text'
+          "
+          @click="setTradingType(filter.value)"
+        >
+          {{ filter.label }}
+        </button>
+      </div>
+
+      <div
+        v-if="activeTradingType === 'real'"
+        class="flex items-center gap-1 bg-card-background border border-primary-border rounded-lg p-1 w-fit"
+      >
+        <button
+          v-for="filter in accountTypeFilters"
+          :key="filter.value"
+          type="button"
+          class="px-4 py-1.5 rounded-md text-xs font-medium transition-colors"
+          :class="
+            activeAccountType === filter.value
+              ? 'bg-primary text-black'
+              : 'text-secondary-text hover:text-primary-text'
+          "
+          @click="setAccountType(filter.value)"
+        >
+          {{ filter.label }}
+        </button>
+      </div>
+    </div>
     <!-- Summary Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
       <template v-if="store.loading">
@@ -74,116 +205,186 @@ onMounted(() => store.fetchAccounts())
       </template>
     </div>
 
+
     <!-- Table -->
-    <div class="w-full border border-primary-border rounded-xl overflow-x-auto">
+    <div class="w-full border border-primary-border rounded-lg overflow-x-auto no-scrollbar">
       <table class="w-full border-collapse">
         <thead>
           <tr class="border-b border-primary-border">
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Account</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Type</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Role</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Broker</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Balance</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">PnL</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Created</th>
-            <th class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Action</th>
+            <th
+              v-for="col in [
+                'Account',
+                'Type',
+                'Role',
+                'Broker',
+                'Balance',
+                'PnL',
+                'Created',
+                'Actions',
+              ]"
+              :key="col"
+              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3 whitespace-nowrap"
+              :class="col === 'Actions' ? 'text-right' : ''"
+            >
+              {{ col }}
+            </th>
           </tr>
         </thead>
 
-        <!-- Skeleton -->
+        <!-- Loading skeleton -->
         <tbody v-if="store.loading">
-          <tr v-for="n in 6" :key="n" class="border-b border-primary-border animate-pulse">
-            <td class="p-3"><div class="h-3 w-24 bg-card-background rounded" /></td>
-            <td class="p-3"><div class="h-5 w-14 bg-card-background rounded-full" /></td>
-            <td class="p-3"><div class="h-5 w-16 bg-card-background rounded-full" /></td>
-            <td class="p-3"><div class="h-3 w-10 bg-card-background rounded" /></td>
-            <td class="p-3"><div class="h-3 w-16 bg-card-background rounded" /></td>
-            <td class="p-3"><div class="h-3 w-16 bg-card-background rounded" /></td>
-            <td class="p-3"><div class="h-3 w-20 bg-card-background rounded" /></td>
-            <td class="p-3 flex justify-end"><div class="h-7 w-20 bg-card-background rounded-lg" /></td>
-          </tr>
-        </tbody>
-
-        <!-- Empty -->
-        <tbody v-else-if="store.data.length === 0">
-          <tr>
-            <td colspan="8" class="py-16 text-center">
-              <div class="flex flex-col items-center gap-3">
-                <div class="w-12 h-12 rounded-full bg-card-background flex items-center justify-center">
-                  <WalletIcon class="w-5 h-5 text-secondary-text" />
-                </div>
-                <p class="text-sm font-medium text-primary-text">No accounts found</p>
-                <p class="text-xs text-secondary-text">No {{ activeTab }} accounts available</p>
+          <tr
+            v-for="n in 6"
+            :key="n"
+            class="border-b border-primary-border animate-pulse"
+          >
+            <td class="px-3 py-4">
+              <div class="h-3 w-24 bg-card-background rounded" />
+            </td>
+            <td class="px-3 py-4">
+              <div class="h-5 w-14 bg-card-background rounded-full" />
+            </td>
+            <td class="px-3 py-4">
+              <div class="h-5 w-16 bg-card-background rounded-full" />
+            </td>
+            <td class="px-3 py-4">
+              <div class="h-3 w-10 bg-card-background rounded" />
+            </td>
+            <td class="px-3 py-4">
+              <div class="h-3 w-16 bg-card-background rounded" />
+            </td>
+            <td class="px-3 py-4">
+              <div class="h-3 w-16 bg-card-background rounded" />
+            </td>
+            <td class="px-3 py-4">
+              <div class="h-3 w-20 bg-card-background rounded" />
+            </td>
+            <td class="px-3 py-4">
+              <div class="flex justify-end gap-2">
+                <div class="h-7 w-16 bg-card-background rounded-lg" />
+                <div class="h-7 w-20 bg-card-background rounded-lg" />
+                <div class="h-7 w-7 bg-card-background rounded-lg" />
               </div>
             </td>
           </tr>
         </tbody>
 
-        <!-- Data -->
+        <!-- Empty state -->
+        <tbody v-else-if="store.data.length === 0">
+          <tr>
+            <td colspan="8" class="px-3 py-16 text-center">
+              <div class="flex flex-col items-center gap-3">
+                <div
+                  class="w-14 h-14 rounded-full bg-card-background border border-primary-border flex items-center justify-center"
+                >
+                  <WalletIcon class="w-6 h-6 text-secondary-text" />
+                </div>
+                <div>
+                  <h3 class="text-sm font-medium text-primary-text mb-1">
+                    {{ emptyStateTitle }}
+                  </h3>
+                  <p class="text-xs text-secondary-text">
+                    {{ emptyStateDescription }}
+                  </p>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+
+        <!-- Data rows -->
         <tbody v-else>
           <tr
             v-for="acc in store.data"
-            :key="acc.account_id"
+            :key="getAccountId(acc) ?? acc.account_number"
             class="border-b border-primary-border last:border-none hover:bg-card-background transition-colors"
           >
-            <td class="p-3">
-              <div class="flex items-center gap-2">
-                <div class="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-[10px] font-medium text-black shrink-0">
-                  {{ acc.account_number?.charAt(0) }}
-                </div>
-                <span class="text-xs font-medium text-primary-text">#{{ acc.account_number }}</span>
-              </div>
-            </td>
-
-            <td class="p-3">
-              <span class="text-[11px] font-medium px-2 py-0.5 rounded-full border border-primary-border bg-background text-secondary-text capitalize">
-                {{ acc.account_type }}
+            <td class="px-3 py-4">
+              <span class="text-sm font-medium text-primary-text tabular-nums">
+                #{{ acc.account_number ?? '—' }}
               </span>
             </td>
 
-            <td class="p-3">
-              <span v-if="acc.account_role" class="text-[11px] font-medium px-2 py-0.5 rounded-full border capitalize"
-                :class="acc.account_role === 'master'
-                  ? 'bg-primary-blue/40 text-primary'
-                  : 'bg-background text-secondary-text border-primary-border'"
+            <td class="px-3 py-4">
+              <span
+                class="text-[11px] font-medium px-2 py-1 rounded-full bg-card-background text-secondary-text capitalize"
+              >
+                {{ acc.account_type ?? '—' }}
+              </span>
+            </td>
+
+            <td class="px-3 py-4">
+              <span
+                v-if="acc.account_role"
+                class="text-[11px] font-medium px-2 py-1 rounded-full border capitalize"
+                :class="
+                  acc.account_role === 'master'
+                    ? 'bg-primary-blue/40 text-primary'
+                    : 'bg-background text-secondary-text border-primary-border'
+                "
               >
                 {{ acc.account_role }}
               </span>
               <span v-else class="text-xs text-secondary-text">—</span>
             </td>
 
-            <td class="p-3">
-              <span v-if="acc.broker" class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-primary text-black">
+            <td class="px-3 py-4">
+              <span
+                v-if="acc.broker"
+                class="text-[11px] font-medium px-2 py-1 rounded-full bg-primary text-black"
+              >
                 {{ acc.broker }}
               </span>
               <span v-else class="text-xs text-secondary-text">—</span>
             </td>
 
-            <td class="p-3 text-xs text-primary-text tabular-nums">${{ formatNum(acc.balance) }}</td>
+            <td class="px-3 py-4 text-xs text-primary-text tabular-nums">
+              ${{ formatNum(acc.balance) }}
+            </td>
 
-            <td class="p-3">
-              <span class="text-xs tabular-nums" :class="acc.pnl >= 0 ? 'text-green-700' : 'text-red-700'">
-                {{ acc.pnl >= 0 ? '+' : '' }}${{ formatNum(acc.pnl) }}
+            <td class="px-3 py-4">
+              <span
+                class="text-xs tabular-nums"
+                :class="Number(acc.pnl ?? 0) >= 0 ? 'text-green-700' : 'text-red-700'"
+              >
+                {{ Number(acc.pnl ?? 0) >= 0 ? '+' : '' }}${{ formatNum(acc.pnl) }}
               </span>
             </td>
 
-            <td class="p-3 text-xs text-secondary-text">{{ formatDate(acc.created_at) }}</td>
-
-            <td class="p-3 text-right">
-              <button
-                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary-border text-xs text-secondary-text hover:text-primary-text hover:bg-background transition-colors ml-auto"
-                @click="router.push(`/account/trade/${acc.account_id}`)"
-              >
-                <BarChart2 class="w-3.5 h-3.5" /> Trades
-              </button>
+            <td class="px-3 py-4 text-xs text-secondary-text">
+              {{ formatDate(acc.created_at) }}
             </td>
-            <td class="p-3 text-right">
-              <button
-                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary-border text-xs text-secondary-text hover:text-primary-text hover:bg-background transition-colors"
-                @click="router.push(`/account/transactions/${acc.account_id}`)"
-              >
-                <WalletIcon class="w-3.5 h-3.5" /> Transactions
-              </button>
+
+            <td class="px-3 py-4">
+              <div class="flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary-border text-xs text-secondary-text hover:text-primary-text hover:bg-background transition-colors"
+                  @click="router.push(`/account/trade/${getAccountId(acc)}`)"
+                >
+                  <BarChart2 class="w-3.5 h-3.5" />
+                  Trades
+                </button>
+
+                <button
+                  type="button"
+                  class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary-border text-xs text-secondary-text hover:text-primary-text hover:bg-background transition-colors"
+                  @click="router.push(`/account/transactions/${getAccountId(acc)}`)"
+                >
+                  <WalletIcon class="w-3.5 h-3.5" />
+                  Transactions
+                </button>
+
+                <Tooltip v-if="acc.trading_type === 'real'" text="Change Password">
+                  <button
+                    type="button"
+                    class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text hover:text-primary-text hover:bg-background transition-colors"
+                    @click="openChangePassword(acc)"
+                  >
+                    <RotateCcwKey class="h-3.5 w-3.5" />
+                  </button>
+                </Tooltip>
+              </div>
             </td>
           </tr>
         </tbody>
@@ -198,5 +399,11 @@ onMounted(() => store.fetchAccounts())
       />
     </div>
 
+    <ChangePasswordDialog
+      :open="changePasswordDialog.open"
+      :account="changePasswordDialog.account"
+      @close="closeChangePassword"
+      @confirm="confirmChangePassword"
+    />
   </div>
 </template>

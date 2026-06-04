@@ -90,6 +90,16 @@ const routes = [
                 }
             },
             {
+                path: '/payment-methods',
+                name: 'payment-methods',
+                component: () => import('@/pages/paymentMethods/index.vue'),
+                meta: {
+                    requiresAuth: true,
+                    title: 'Payment Methods',
+                    description: 'Manage payment methods, wallet labels, and activation status.',
+                }
+            },
+            {
                 path: '/fm-wallet',
                 name: 'fm-wallet',
                 component: () => import('@/pages/fm-wallet/index.vue'),

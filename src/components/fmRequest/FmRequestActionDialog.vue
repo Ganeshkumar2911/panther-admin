@@ -128,6 +128,37 @@ const isAcceptDisabled  = () => props.isSubmitting
             <span class="text-primary-text text-xs font-medium">{{ item?.user_id }}</span>
           </div>
 
+          <div class="grid grid-cols-2 gap-3">
+            <div class="bg-background border border-primary-border rounded-xl px-4 py-3">
+              <span class="block text-secondary-text text-[11px] uppercase tracking-widest">Broker Currency</span>
+              <span class="block text-primary-text text-xs font-medium mt-1">{{ item?.broker_currency ?? '-' }}</span>
+            </div>
+            <div class="bg-background border border-primary-border rounded-xl px-4 py-3">
+              <span class="block text-secondary-text text-[11px] uppercase tracking-widest">Min Capital</span>
+              <span class="block text-primary-text text-xs font-medium mt-1">
+                {{ item?.min_capital ?? '-' }}
+              </span>
+            </div>
+            <div class="bg-background border border-primary-border rounded-xl px-4 py-3 col-span-2">
+              <span class="block text-secondary-text text-[11px] uppercase tracking-widest">Broker Group</span>
+              <span class="block text-primary-text text-xs font-medium mt-1 break-all">
+                {{ item?.broker_group ?? '-' }}
+              </span>
+            </div>
+            <div class="bg-background border border-primary-border rounded-xl px-4 py-3">
+              <span class="block text-secondary-text text-[11px] uppercase tracking-widest">Broker Leverage</span>
+              <span class="block text-primary-text text-xs font-medium mt-1">
+                {{ item?.broker_leverage ?? '-' }}
+              </span>
+            </div>
+            <div class="bg-background border border-primary-border rounded-xl px-4 py-3">
+              <span class="block text-secondary-text text-[11px] uppercase tracking-widest">Created At</span>
+              <span class="block text-primary-text text-xs font-medium mt-1">
+                {{ item?.created_at ?? '-' }}
+              </span>
+            </div>
+          </div>
+
           <!-- Editable fields grid -->
           <div class="grid grid-cols-2 gap-3">
 

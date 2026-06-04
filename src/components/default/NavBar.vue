@@ -81,6 +81,11 @@ const navItems = [
     icon: Wallet,
   },
   {
+    label: 'Payment Methods',
+    to: '/payment-methods',
+    icon: CreditCard,
+  },
+  {
     label: 'FM Wallet',
     to: '/fm-wallet',
     icon: TrendingUp,
@@ -96,15 +101,15 @@ const navItems = [
     icon: RefreshCcw,
   },
   {
+    label: 'Group Config',
+    to: '/group-config',
+    icon: Settings,
+  },
+  {
     label: 'Tickets',
     to: '/tickets',
     icon: Tickets,
   },
-  {
-    label: 'Group Config',
-    to: '/group-config',
-    icon: Settings,
-  }
 ]
 
 // ✅ Active Route Check

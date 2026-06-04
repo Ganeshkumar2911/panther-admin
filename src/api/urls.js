@@ -19,6 +19,7 @@ const urls = {
   tradingAccounts: {
     list: '/accounts',
     create: '/accounts/create',
+    changePassword: '/accounts/change-password',
     accountTrades: '/accounts/trades',
     transactions: '/accounts/transactions',
   },
@@ -83,6 +84,11 @@ const urls = {
     categories: '/account-categories',
     groups: '/mt5/groups',
     create: '/group-config',
+  },
+  paymentMethods: {
+    list: '/payments/payment-methods',
+    syncWallets: '/payments/sync-wallets',
+    update: '/payments/payment-methods',
   },
 
 
