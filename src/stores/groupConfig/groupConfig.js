@@ -183,7 +183,7 @@ export const useGroupConfigStore = defineStore(
     // Add Group Config
     // ─────────────────────────────────────
 
-    const addGroupConfig = (payload) => {
+    const addGroupConfig = (payload, onSuccess) => {
       createLoading.value = true
 
       error.value = null
@@ -224,6 +224,8 @@ export const useGroupConfigStore = defineStore(
             createLoading.value = false
 
             fetchGroups()
+
+            if (onSuccess) onSuccess()
           },
 
           onFailure: (err) => {

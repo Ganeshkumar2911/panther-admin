@@ -126,60 +126,7 @@ onMounted(() => {
 
 <template>
   <div class="px-4">
-    <!-- Old filter -->
-    <div class="flex items-center gap-1 bg-card-background border border-primary-border rounded-lg p-1 w-fit mb-5">
-      <button
-        v-for="tab in tabs"
-        :key="tab.value"
-        type="button"
-        class="px-4 py-1.5 rounded-md text-xs font-medium transition-colors"
-        :class="activeTab === tab.value ? 'bg-primary text-black' : 'text-secondary-text hover:text-primary-text'"
-        @click="switchTab(tab.value)"
-      >
-        {{ tab.label }}
-      </button>
-    </div>
-
-    <!-- New filters -->
-    <div v-if="!isFm" class="mb-5 space-y-3">
-      <div class="flex items-center gap-1 bg-card-background border border-primary-border rounded-lg p-1 w-fit">
-        <button
-          v-for="filter in tradingTypeFilters"
-          :key="filter.value"
-          type="button"
-          class="px-4 py-1.5 rounded-md text-xs font-medium transition-colors"
-          :class="
-            activeTradingType === filter.value
-              ? 'bg-primary text-black'
-              : 'text-secondary-text hover:text-primary-text'
-          "
-          @click="setTradingType(filter.value)"
-        >
-          {{ filter.label }}
-        </button>
-      </div>
-
-      <div
-        v-if="activeTradingType === 'real'"
-        class="flex items-center gap-1 bg-card-background border border-primary-border rounded-lg p-1 w-fit"
-      >
-        <button
-          v-for="filter in accountTypeFilters"
-          :key="filter.value"
-          type="button"
-          class="px-4 py-1.5 rounded-md text-xs font-medium transition-colors"
-          :class="
-            activeAccountType === filter.value
-              ? 'bg-primary text-black'
-              : 'text-secondary-text hover:text-primary-text'
-          "
-          @click="setAccountType(filter.value)"
-        >
-          {{ filter.label }}
-        </button>
-      </div>
-    </div>
-    <!-- Summary Cards -->
+        <!-- Summary Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
       <template v-if="store.loading">
         <div v-for="n in 3" :key="n" class="bg-card-background border border-primary-border rounded-xl p-4 animate-pulse space-y-2">
@@ -203,6 +150,59 @@ onMounted(() => {
           </p>
         </div>
       </template>
+    </div>
+    <!-- Old filter -->
+    <div class="flex items-center gap-1 bg-card-background border border-primary-border rounded-lg p-1 w-fit mb-5 flex-nowrap whitespace-nowrap overflow-x-auto no-scrollbar">
+      <button
+        v-for="tab in tabs"
+        :key="tab.value"
+        type="button"
+        class="px-4 py-1.5 rounded-md text-xs font-medium transition-colors"
+        :class="activeTab === tab.value ? 'bg-primary text-black' : 'text-secondary-text hover:text-primary-text'"
+        @click="switchTab(tab.value)"
+      >
+        {{ tab.label }}
+      </button>
+    </div>
+
+    <!-- New filters -->
+    <div v-if="!isFm" class="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center">
+      <div class="flex items-center gap-1 bg-card-background border border-primary-border rounded-lg p-1 w-fit flex-nowrap whitespace-nowrap overflow-x-auto no-scrollbar">
+        <button
+          v-for="filter in tradingTypeFilters"
+          :key="filter.value"
+          type="button"
+          class="px-4 py-1.5 rounded-md text-xs font-medium transition-colors"
+          :class="
+            activeTradingType === filter.value
+              ? 'bg-primary text-black'
+              : 'text-secondary-text hover:text-primary-text'
+          "
+          @click="setTradingType(filter.value)"
+        >
+          {{ filter.label }}
+        </button>
+      </div>
+
+      <div
+        v-if="activeTradingType === 'real'"
+        class="flex items-center gap-1 bg-card-background border border-primary-border rounded-lg p-1 w-fit flex-nowrap whitespace-nowrap overflow-x-auto no-scrollbar"
+      >
+        <button
+          v-for="filter in accountTypeFilters"
+          :key="filter.value"
+          type="button"
+          class="px-4 py-1.5 rounded-md text-xs font-medium transition-colors"
+          :class="
+            activeAccountType === filter.value
+              ? 'bg-primary text-black'
+              : 'text-secondary-text hover:text-primary-text'
+          "
+          @click="setAccountType(filter.value)"
+        >
+          {{ filter.label }}
+        </button>
+      </div>
     </div>
 
 

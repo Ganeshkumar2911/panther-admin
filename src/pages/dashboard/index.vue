@@ -1,7 +1,7 @@
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import { RefreshCw } from 'lucide-vue-next'
+import { RefreshCw, CalendarDays, X } from 'lucide-vue-next'
 
 import { useDashboardStore } from '@/stores/dashboard/dashboard'
 
@@ -15,7 +15,25 @@ import RecentActivitySection from '@/components/dashboard/RecentActivitySection.
 
 // ─── Store ────────────────────────────────────────────────────────
 const store = useDashboardStore()
-const { dashboard, dashboardLoading, revenueLoading } = storeToRefs(store)
+const { dashboard, dashboardLoading, revenueLoading, dashboardFilters } = storeToRefs(store)
+
+// ─── Date filter local refs ──────────────────────────────────────
+const startDate = ref('')
+const endDate = ref('')
+
+const hasDateFilter = computed(() => dashboardFilters.value.start_date && dashboardFilters.value.end_date)
+
+function applyDateFilter() {
+  if (!startDate.value || !endDate.value) return
+  store.setDashboardFilters({ start_date: startDate.value, end_date: endDate.value })
+  store.applyDashboardFilters()
+}
+
+function clearDateFilter() {
+  startDate.value = ''
+  endDate.value = ''
+  store.resetDashboardFilters()
+}
 
 // ─── Dashboard data slices (from dashboard.value) ─────────────────
 const overview            = computed(() => dashboard.value?.overview ?? {})
@@ -43,6 +61,48 @@ onMounted(() => {
   <div class="min-h-screen bg-background text-primary-text antialiased">
     <!-- ─── Main ─────────────────────────────────────────────── -->
     <main class="max-w-screen-2xl mx-auto px-4 sm:px-6 space-y-10">
+
+      <!-- Date Range Filter -->
+      <div class="flex flex-wrap items-center gap-3">
+        <div class="flex items-center gap-2 flex-wrap">
+          <div class="flex items-center gap-1.5 bg-card-background border border-primary-border rounded-lg px-3 py-2">
+            <CalendarDays class="h-3.5 w-3.5 text-secondary-text shrink-0" />
+            <input
+              type="date"
+              v-model="startDate"
+              class="bg-transparent text-xs text-primary-text outline-none w-[120px] appearance-none"
+              placeholder="Start date"
+            />
+          </div>
+          <span class="text-xs text-secondary-text">to</span>
+          <div class="flex items-center gap-1.5 bg-card-background border border-primary-border rounded-lg px-3 py-2">
+            <CalendarDays class="h-3.5 w-3.5 text-secondary-text shrink-0" />
+            <input
+              type="date"
+              v-model="endDate"
+              :min="startDate"
+              class="bg-transparent text-xs text-primary-text outline-none w-[120px] appearance-none"
+              placeholder="End date"
+            />
+          </div>
+          <button
+            @click="applyDateFilter"
+            :disabled="!startDate || !endDate"
+            class="inline-flex items-center gap-1.5 text-xs font-medium px-4 py-2 rounded-lg transition-opacity"
+            :class="startDate && endDate ? 'bg-primary text-black hover:opacity-90' : 'bg-card-background text-secondary-text border border-primary-border cursor-not-allowed opacity-50'"
+          >
+            Apply
+          </button>
+          <button
+            v-if="hasDateFilter"
+            @click="clearDateFilter"
+            class="inline-flex items-center gap-1 text-xs font-medium text-secondary-text hover:text-primary-text px-3 py-2 rounded-lg border border-primary-border bg-card-background transition-colors"
+          >
+            <X class="h-3 w-3" />
+            Clear
+          </button>
+        </div>
+      </div>
 
       <!-- 1 · Overview -->
       <OverviewSection
