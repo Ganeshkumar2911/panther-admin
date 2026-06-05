@@ -28,6 +28,7 @@ export const useAccountsStore = defineStore('accounts', () => {
     account_type: 'all',
     trading_type: 'all',
     account_subtype: 'all',
+    search_query: '',
   })
 
   const activeType = computed(() => filters.account_type)
@@ -61,6 +62,7 @@ export const useAccountsStore = defineStore('accounts', () => {
       ...(filters.account_type !== 'all' ? { account_type: filters.account_type } : {}),
       ...(filters.trading_type !== 'all' ? { trading_type: filters.trading_type } : {}),
       ...(filters.account_subtype !== 'all' ? { account_subtype: filters.account_subtype } : {}),
+      ...(filters.search_query?.trim() ? { search_query: filters.search_query.trim() } : {}),
     }
 
     apiRequest('get', urls.tradingAccounts.list, {
@@ -109,6 +111,7 @@ export const useAccountsStore = defineStore('accounts', () => {
     filters.account_type = 'all'
     filters.trading_type = 'all'
     filters.account_subtype = 'all'
+    filters.search_query = ''
   }
 
   return {
