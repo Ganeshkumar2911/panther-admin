@@ -90,6 +90,11 @@ const urls = {
     syncWallets: '/payments/sync-wallets',
     update: '/payments/payment-methods',
   },
+  paymentRequests: {
+    list: '/payment-requests',
+    approve: '/payment-requests/approve/',
+    reject: '/payment-requests/reject/'
+  }
 
 
 

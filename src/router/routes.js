@@ -90,6 +90,16 @@ const routes = [
                 }
             },
             {
+                path: '/payment-requests',
+                name: 'payment-requests',
+                component: () => import('@/pages/payment-requests/index.vue'),
+                meta: {
+                    requiresAuth: true,
+                    title: 'Payment Requests',
+                    description: 'Manage and view payment requests.',
+                }
+            },
+            {
                 path: '/payment-methods',
                 name: 'payment-methods',
                 component: () => import('@/pages/paymentMethods/index.vue'),

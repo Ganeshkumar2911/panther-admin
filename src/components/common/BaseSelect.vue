@@ -182,7 +182,7 @@ onBeforeUnmount(() => {
         ref="dropdownRef"
         role="listbox"
         :class="[
-          'absolute top-full left-0 z-50 mt-2 w-full h-56 flex flex-col rounded-lg overflow-hidden border border-primary-border shadow-md',
+          'absolute top-full left-0 z-50 mt-2 w-full max-h-56 flex flex-col rounded-lg overflow-hidden border border-primary-border shadow-md',
           dropdownBgClass
         ]"
       >
