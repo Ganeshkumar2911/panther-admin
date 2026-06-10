@@ -94,17 +94,13 @@
         <thead>
           <tr class="border-b border-primary-border bg-card-background">
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3">ID</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3">Type</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3">Gateway</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3">Method</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3">Acquirer</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3">User</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3">Account</th>
+            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3">Type</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3">Amount</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3">Currency</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3">Payment</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3">Approval</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3">Date</th>
+            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3">Method & Reference</th>
+            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3">Status</th>
+            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3">Timing</th>
             <th class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3">Actions</th>
           </tr>
         </thead>
@@ -113,10 +109,6 @@
         <tbody v-if="store.loading">
           <tr v-for="n in 8" :key="n" class="border-b border-primary-border bg-card-background animate-pulse">
             <td class="px-3 py-3.5"><div class="h-3 w-8 bg-background rounded" /></td>
-            <td class="px-3 py-3.5"><div class="h-5 w-16 bg-background rounded-full" /></td>
-            <td class="px-3 py-3.5"><div class="h-3 w-16 bg-background rounded" /></td>
-            <td class="px-3 py-3.5"><div class="h-3 w-14 bg-background rounded" /></td>
-            <td class="px-3 py-3.5"><div class="h-3 w-10 bg-background rounded" /></td>
             <td class="px-3 py-3.5">
               <div class="space-y-1">
                 <div class="h-3 w-24 bg-background rounded" />
@@ -128,12 +120,28 @@
               <div class="space-y-1">
                 <div class="h-3 w-20 bg-background rounded" />
                 <div class="h-2.5 w-24 bg-background rounded" />
+                <div class="h-2.5 w-12 bg-background rounded" />
               </div>
             </td>
-            <td class="px-3 py-3.5"><div class="h-3 w-14 bg-background rounded" /></td>
-            <td class="px-3 py-3.5"><div class="h-3 w-10 bg-background rounded" /></td>
-            <td class="px-3 py-3.5"><div class="h-5 w-14 bg-background rounded-full" /></td>
-            <td class="px-3 py-3.5"><div class="h-5 w-14 bg-background rounded-full" /></td>
+            <td class="px-3 py-3.5"><div class="h-5 w-16 bg-background rounded-full" /></td>
+            <td class="px-3 py-3.5">
+              <div class="space-y-1">
+                <div class="h-3 w-14 bg-background rounded" />
+                <div class="h-2.5 w-10 bg-background rounded" />
+              </div>
+            </td>
+            <td class="px-3 py-3.5">
+              <div class="space-y-1">
+                <div class="h-3 w-20 bg-background rounded" />
+                <div class="h-2.5 w-24 bg-background rounded" />
+              </div>
+            </td>
+            <td class="px-3 py-3.5">
+              <div class="space-y-1">
+                <div class="h-5 w-14 bg-background rounded-full" />
+                <div class="h-5 w-14 bg-background rounded-full" />
+              </div>
+            </td>
             <td class="px-3 py-3.5"><div class="h-3 w-20 bg-background rounded" /></td>
             <td class="px-3 py-3.5 flex justify-end gap-1">
               <div class="h-6 w-16 bg-background rounded-lg" />
@@ -145,7 +153,7 @@
         <!-- Empty -->
         <tbody v-else-if="store.records.length === 0">
           <tr>
-            <td colspan="13" class="py-20 text-center bg-card-background">
+            <td colspan="9" class="py-20 text-center bg-card-background">
               <div class="flex flex-col items-center gap-3">
                 <div class="w-12 h-12 rounded-full bg-background flex items-center justify-center">
                   <Receipt class="w-5 h-5 text-secondary-text" />
@@ -167,17 +175,6 @@
             <td class="px-3 py-3.5 text-xs font-medium text-primary-text">#{{ req.id }}</td>
 
             <td class="px-3 py-3.5">
-              <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full border capitalize"
-                :class="req.type === 'deposit'
-                  ? 'bg-primary-green/10 text-primary-green border-primary-green/20'
-                  : 'bg-primary-yellow/10 text-primary-yellow border-primary-yellow/20'"
-              >{{ req.type }}</span>
-            </td>
-
-            <td class="px-3 py-3.5 text-xs text-secondary-text capitalize">{{ req.gateway }}</td>
-            <td class="px-3 py-3.5 text-xs text-secondary-text capitalize">{{ req.method }}</td>
-            <td class="px-3 py-3.5 text-xs text-primary-text font-medium">{{ req.acquirer }}</td>
-            <td class="px-3 py-3.5">
               <div class="space-y-0.5">
                 <p class="text-xs font-medium text-primary-text">{{ req.user_name || '—' }}</p>
                 <p class="text-[11px] text-secondary-text">{{ req.user_email || '—' }}</p>
@@ -188,28 +185,63 @@
               <div class="space-y-0.5">
                 <p class="text-xs font-medium text-primary-text">{{ req.trading_account_number || '—' }}</p>
                 <p class="text-[11px] text-secondary-text">Account ID {{ req.trading_account_id }}</p>
+                <p class="text-[11px] text-secondary-text capitalize font-medium">{{ req.account_type }}</p>
               </div>
             </td>
 
-            <td class="px-3 py-3.5 text-xs font-semibold text-primary-text tabular-nums">
-              ${{ fmt(req.amount) }}
-            </td>
-
-            <td class="px-3 py-3.5 text-xs text-secondary-text">{{ req.currency }}</td>
-
             <td class="px-3 py-3.5">
               <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full border capitalize"
-                :class="paymentStatusClass(req.payment_status)"
-              >{{ req.payment_status }}</span>
+                :class="req.type === 'deposit'
+                  ? 'bg-primary-green/10 text-primary-green border-primary-green/20'
+                  : 'bg-primary-yellow/10 text-primary-yellow border-primary-yellow/20'"
+              >{{ req.type }}</span>
             </td>
 
             <td class="px-3 py-3.5">
-              <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full border capitalize"
-                :class="approvalStatusClass(req.approval_status)"
-              >{{ req.approval_status }}</span>
+              <div class="space-y-0.5">
+                <p class="text-xs font-semibold text-primary-text tabular-nums">${{ fmt(req.amount) }}</p>
+                <p class="text-[11px] text-secondary-text">{{ req.currency }} <span v-if="req.broker_currency && req.broker_currency !== req.currency" class="opacity-50">({{ req.broker_currency }})</span></p>
+              </div>
             </td>
 
-            <td class="px-3 py-3.5 text-xs text-secondary-text">{{ formatDate(req.created_at) }}</td>
+            <td class="px-3 py-3.5">
+              <div class="space-y-1">
+                <p class="text-xs text-primary-text capitalize font-medium">{{ req.gateway }} &middot; {{ req.method }}</p>
+                <p class="text-[11px] text-secondary-text capitalize">{{ req.acquirer }}</p>
+                <p v-if="req.txid" class="text-[10px] text-secondary-text font-mono truncate max-w-[140px]" :title="req.txid">TX: {{ req.txid }}</p>
+                <p v-if="req.external_payment_id" class="text-[10px] text-secondary-text font-mono truncate max-w-[140px]" :title="req.external_payment_id">Ref: {{ req.external_payment_id }}</p>
+              </div>
+            </td>
+
+            <td class="px-3 py-3.5">
+              <div class="flex flex-col gap-1.5 items-start">
+                <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full border capitalize"
+                  :class="paymentStatusClass(req.payment_status)"
+                >
+                  {{ req.payment_status }}
+                </span>
+                <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full border capitalize"
+                  :class="approvalStatusClass(req.approval_status)"
+                >
+                  {{ req.approval_status }}
+                </span>
+                <p v-if="req.rejection_reason" class="text-[10px] text-red-500 max-w-[140px] leading-tight mt-1" :title="req.rejection_reason">{{ req.rejection_reason }}</p>
+              </div>
+            </td>
+
+            <td class="px-3 py-3.5">
+              <div class="space-y-1.5">
+                <div class="flex flex-col">
+                  <span class="text-[10px] text-secondary-text uppercase font-semibold">Created</span>
+                  <span class="text-xs text-primary-text">{{ formatDate(req.created_at) }}</span>
+                </div>
+                <div v-if="req.approved_at" class="flex flex-col">
+                  <span class="text-[10px] text-secondary-text uppercase font-semibold">Processed</span>
+                  <span class="text-xs text-primary-text">{{ formatDate(req.approved_at) }}</span>
+                  <span class="text-[10px] text-secondary-text">By ID {{ req.approved_by }}</span>
+                </div>
+              </div>
+            </td>
 
             <td class="px-3 py-3.5">
               <div class="flex items-center justify-end gap-1.5">
