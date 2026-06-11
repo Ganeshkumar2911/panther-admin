@@ -1,14 +1,18 @@
 <script setup>
-import { onMounted, computed } from 'vue'
+import { onMounted, computed, ref } from 'vue'
 import { Search, Users } from 'lucide-vue-next'
 import { useClientListStore } from '@/stores/clientList/clientList'
 import Pagination from '@/components/common/Pagination.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
+import ChangeIBDialog from '@/components/common/ChangeIBDialog.vue'
 
 const store = useClientListStore()
 
 let searchTimer = null
 let ibSearchTimer = null
+
+const changeIBDialogOpen = ref(false)
+const selectedClientForChangeIB = ref(null)
 
 const onSearch = () => {
   clearTimeout(searchTimer)
@@ -26,6 +30,20 @@ const handlePageChange = (page) => store.fetchClients(page)
 
 const formatNum = (val) => (val ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 const formatDate = (val) => val ? new Date(val).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
+
+const openChangeIBDialog = (client) => {
+  selectedClientForChangeIB.value = client
+  changeIBDialogOpen.value = true
+}
+
+const closeChangeIBDialog = () => {
+  changeIBDialogOpen.value = false
+  selectedClientForChangeIB.value = null
+}
+
+const handleChangeIBSuccess = () => {
+  store.fetchClients(store.pagination.page)
+}
 
 onMounted(() => store.fetchClients())
 </script>
@@ -88,6 +106,7 @@ onMounted(() => store.fetchClients())
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Followings</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Last Active</th>
             <th class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Status</th>
+            <th class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Actions</th>
           </tr>
         </thead>
 
@@ -181,6 +200,15 @@ onMounted(() => store.fetchClients())
               >
                 {{ client.is_active ? 'Active' : 'Inactive' }}
               </span>
+            </td>
+
+            <td class="p-3 text-right">
+              <button
+                @click="openChangeIBDialog(client)"
+                class="text-xs font-medium px-3 py-1 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition"
+              >
+                Change IB
+              </button>
             </td>
           </tr>
         </tbody>
@@ -277,6 +305,14 @@ onMounted(() => store.fetchClients())
         @page-change="handlePageChange"
       />
     </div>
+
+    <!-- Change IB Dialog -->
+    <ChangeIBDialog
+      :open="changeIBDialogOpen"
+      :client="selectedClientForChangeIB || {}"
+      @close="closeChangeIBDialog"
+      @success="handleChangeIBSuccess"
+    />
 
   </div>
 </template>

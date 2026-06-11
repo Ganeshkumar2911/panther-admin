@@ -106,9 +106,15 @@
         v-for="g in store.records"
         :key="g.config_id ?? g.group"
         class="bg-card-background border border-primary-border rounded-2xl p-5 flex flex-col gap-4 hover:border-primary/40 transition-all duration-200 group relative overflow-hidden"
+        :class="{ 'pt-8': g.is_default }"
       >
         <!-- Top accent line -->
         <span class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+        <!-- Default Badge Ribbon -->
+        <div v-if="!g.is_default" class="absolute top-0.5 -right-8 w-24 h-6 bg-gradient-to-r from-yellow-400 to-yellow-500 transform rotate-45 flex items-center justify-center shadow-lg">
+          <span class="text-[8px] font-bold text-yellow-900 transform -rotate-0">Default</span>
+        </div>
 
         <!-- Card Header -->
         <div class="flex items-start justify-between gap-2">

@@ -178,14 +178,14 @@
               <div class="space-y-0.5">
                 <p class="text-xs font-medium text-primary-text">{{ req.user_name || '—' }}</p>
                 <p class="text-[11px] text-secondary-text">{{ req.user_email || '—' }}</p>
-                <p class="text-[11px] text-secondary-text">ID {{ req.user_id }}</p>
+                <!-- <p class="text-[11px] text-secondary-text">ID {{ req.user_id }}</p> -->
               </div>
             </td>
             <td class="px-3 py-3.5">
               <div class="space-y-0.5">
                 <p class="text-xs font-medium text-primary-text">{{ req.trading_account_number || '—' }}</p>
-                <p class="text-[11px] text-secondary-text">Account ID {{ req.trading_account_id }}</p>
-                <p class="text-[11px] text-secondary-text capitalize font-medium">{{ req.account_type }}</p>
+                <!-- <p class="text-[11px] text-secondary-text">Account ID {{ req.trading_account_id }}</p> -->
+                <p class="text-[11px] text-secondary-text capitalize font-medium">{{ req.account_type }} {{ req.currency }}</p>
               </div>
             </td>
 
@@ -200,7 +200,7 @@
             <td class="px-3 py-3.5">
               <div class="space-y-0.5">
                 <p class="text-xs font-semibold text-primary-text tabular-nums">${{ fmt(req.amount) }}</p>
-                <p class="text-[11px] text-secondary-text">{{ req.currency }} <span v-if="req.broker_currency && req.broker_currency !== req.currency" class="opacity-50">({{ req.broker_currency }})</span></p>
+                <!-- <p class="text-[11px] text-secondary-text">{{ req.currency }} <span v-if="req.broker_currency && req.broker_currency !== req.currency" class="opacity-50">({{ req.broker_currency }})</span></p> -->
               </div>
             </td>
 
@@ -215,11 +215,11 @@
 
             <td class="px-3 py-3.5">
               <div class="flex flex-col gap-1.5 items-start">
-                <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full border capitalize"
+                <!-- <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full border capitalize"
                   :class="paymentStatusClass(req.payment_status)"
                 >
                   {{ req.payment_status }}
-                </span>
+                </span> -->
                 <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full border capitalize"
                   :class="approvalStatusClass(req.approval_status)"
                 >
@@ -238,7 +238,7 @@
                 <div v-if="req.approved_at" class="flex flex-col">
                   <span class="text-[10px] text-secondary-text uppercase font-semibold">Processed</span>
                   <span class="text-xs text-primary-text">{{ formatDate(req.approved_at) }}</span>
-                  <span class="text-[10px] text-secondary-text">By ID {{ req.approved_by }}</span>
+                  <!-- <span class="text-[10px] text-secondary-text">By ID {{ req.approved_by }}</span> -->
                 </div>
               </div>
             </td>
