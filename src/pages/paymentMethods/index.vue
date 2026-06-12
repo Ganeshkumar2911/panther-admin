@@ -9,7 +9,7 @@
       </div> -->
       <button
         :disabled="store.syncLoading"
-        class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-black text-xs font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+        class="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-black text-xs font-semibold transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed shadow-lg shadow-primary/20"
         @click="store.syncWallets()"
       >
         <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': store.syncLoading }" />
@@ -76,90 +76,56 @@
       <div
         v-for="record in store.records"
         :key="record.id"
-        class="bg-card-background border border-primary-border rounded-xl p-5 flex flex-col gap-4 hover:border-primary/30 transition-all duration-200"
+        class="bg-card-background border border-primary-border rounded-2xl p-5 flex flex-col gap-5 hover:border-primary/40 transition-all duration-300 group relative overflow-hidden"
       >
+        <!-- Top accent gradient -->
+        <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
-        <!-- Card Header: Label + Status Badge -->
-        <div class="flex items-start justify-between gap-2">
+        <!-- Header: Label + Active Toggle -->
+        <div class="flex items-center justify-between gap-3">
           <div class="flex-1 min-w-0">
-            <!-- Editable Label -->
             <div v-if="editingId === record.id" class="flex items-center gap-1.5">
               <input
                 v-model="editingLabel"
                 ref="labelInput"
                 type="text"
-                class="flex-1 min-w-0 px-2 py-1 rounded-lg bg-background border border-primary text-primary-text text-sm outline-none"
+                class="flex-1 min-w-0 px-2 py-1 rounded-lg bg-background border border-primary text-primary-text text-xs outline-none"
                 @keydown.enter="saveLabel(record)"
                 @keydown.escape="cancelEdit"
               />
-              <button
-                class="w-6 h-6 flex items-center justify-center rounded-md hover:bg-background transition-colors shrink-0"
-                :disabled="store.updateLoading"
-                @click="saveLabel(record)"
-              >
-                <Loader2 v-if="store.updateLoading && savingId === record.id" class="w-3.5 h-3.5 text-secondary-text animate-spin" />
-                <Check v-else class="w-3.5 h-3.5 text-primary-green" />
-              </button>
-              <button class="w-6 h-6 flex items-center justify-center rounded-md hover:bg-background transition-colors shrink-0" @click="cancelEdit">
-                <X class="w-3.5 h-3.5 text-secondary-text" />
-              </button>
+              <div class="flex items-center gap-1">
+                <button
+                  class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-background transition-colors"
+                  :disabled="store.updateLoading"
+                  @click="saveLabel(record)"
+                >
+                  <Loader2 v-if="store.updateLoading && savingId === record.id" class="w-3.5 h-3.5 text-secondary-text animate-spin" />
+                  <Check v-else class="w-3.5 h-3.5 text-primary-green" />
+                </button>
+                <button class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-background transition-colors" @click="cancelEdit">
+                  <X class="w-3.5 h-3.5 text-secondary-text" />
+                </button>
+              </div>
             </div>
-
             <div v-else class="flex items-center gap-1.5 group cursor-pointer" @click="startEdit(record)">
               <p class="text-sm font-semibold text-primary-text truncate">{{ record.wallet_label || 'Untitled Wallet' }}</p>
-              <Pencil class="w-3 h-3 text-secondary-text opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+              <Pencil class="w-3 h-3 text-secondary-text opacity-0 group-hover/label:opacity-100 transition-opacity shrink-0" />
             </div>
-
-            <p class="text-[11px] text-secondary-text mt-0.5">ID: {{ record.wallet_id }}</p>
+            <p class="text-[10px] font-mono text-secondary-text mt-0.5 uppercase">ID: {{ record.wallet_id }}</p>
           </div>
 
-          <span
-            class="text-[10px] font-semibold px-2 py-0.5 rounded-full border shrink-0"
-            :class="record.is_active
-              ? 'bg-primary-green/10 text-primary-green border-primary-green/20'
-              : 'bg-primary-red/10 text-primary-red border-primary-red/20'"
-          >
-            {{ record.is_active ? 'Active' : 'Inactive' }}
-          </span>
-        </div>
-
-        <!-- Meta Grid -->
-        <div class="grid grid-cols-2 gap-2">
-          <div class="bg-background rounded-lg px-3 py-2">
-            <p class="text-[10px] text-secondary-text mb-0.5">Currency ID</p>
-            <p class="text-xs font-medium text-primary-text">{{ record.currency_id }}</p>
-          </div>
-          <div class="bg-background rounded-lg px-3 py-2">
-            <p class="text-[10px] text-secondary-text mb-0.5">Wallet Type</p>
-            <p class="text-xs font-medium text-primary-text">{{ record.wallet_type }}</p>
-          </div>
-          <div class="bg-background rounded-lg px-3 py-2">
-            <p class="text-[10px] text-secondary-text mb-0.5">Confirmed</p>
-            <p class="text-xs font-semibold text-primary-green">{{ formatNum(record.balance_confirmed) }}</p>
-          </div>
-          <div class="bg-background rounded-lg px-3 py-2">
-            <p class="text-[10px] text-secondary-text mb-0.5">Pending</p>
-            <p class="text-xs font-medium text-primary-text">{{ formatNum(record.balance_pending) }}</p>
-          </div>
-        </div>
-
-        <!-- Footer: Min Transfer + Toggle -->
-        <div class="flex items-center justify-between pt-1 border-t border-primary-border">
-          <div>
-            <p class="text-[10px] text-secondary-text">Min Transfer</p>
-            <p class="text-xs font-medium text-primary-text">{{ formatNum(record.minimal_transfer_amount) }}</p>
-          </div>
-
-          <!-- Toggle -->
           <button
-            class="relative w-10 h-5 rounded-full transition-colors duration-200 focus:outline-none"
-            :class="record.is_active ? 'bg-primary' : 'bg-background border border-primary-border'"
+            class="relative w-9 h-4.5 rounded-full transition-all duration-200 focus:outline-none"
+            :class="record.is_active ? 'bg-primary shadow-lg shadow-primary/20' : 'bg-background border border-primary-border'"
             :disabled="store.updateLoading && togglingId === record.id"
             @click="toggleActive(record)"
           >
             <span
-              class="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200"
-              :class="record.is_active ? 'translate-x-5' : 'translate-x-0'"
+              class="absolute top-0.5 left-0.5 w-3.5 h-3.5 rounded-full transition-transform duration-200"
+              :class="[
+                record.is_active ? 'translate-x-4.5 bg-black' : 'translate-x-0 bg-secondary-text',
+                store.updateLoading && togglingId === record.id ? 'opacity-0' : 'opacity-100'
+              ]"
             />
             <Loader2
               v-if="store.updateLoading && togglingId === record.id"
@@ -168,6 +134,61 @@
           </button>
         </div>
 
+        <!-- Balance Section -->
+        <div class="bg-background/50 rounded-2xl p-4 border border-primary-border/50">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[10px] font-semibold uppercase tracking-wider text-secondary-text">Confirmed Balance</span>
+            <span
+              class="text-[9px] font-bold px-1.5 py-0.5 rounded-md border"
+              :class="record.is_active
+                ? 'bg-primary-green/10 text-primary-green border-primary-green/20'
+                : 'bg-primary-red/10 text-primary-red border-primary-red/20'"
+            >
+              {{ record.is_active ? 'ACTIVE' : 'INACTIVE' }}
+            </span>
+          </div>
+          <p class="text-xl font-bold text-primary-green truncate">
+            {{ formatNum(record.balance_confirmed) }}
+          </p>
+          <div class="flex items-center gap-1.5 mt-2 pt-2 border-t border-primary-border/30">
+            <span class="text-[10px] text-secondary-text">Pending:</span>
+            <span class="text-[10px] font-semibold text-primary-text">{{ formatNum(record.balance_pending) }}</span>
+          </div>
+        </div>
+
+        <!-- Meta Grid -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-1">
+            <p class="text-[10px] text-secondary-text">Currency ID</p>
+            <p class="text-xs font-medium text-primary-text">{{ record.currency_id }}</p>
+          </div>
+          <div class="space-y-1">
+            <p class="text-[10px] text-secondary-text">Wallet Type</p>
+            <p class="text-xs font-medium text-primary-text capitalize">{{ record.wallet_type === 1 ? 'Crypto' : record.wallet_type }}</p>
+          </div>
+        </div>
+
+        <!-- Transaction Limits -->
+        <div class="grid grid-cols-3 gap-2 pt-4 border-t border-primary-border/50">
+          <div class="text-center p-2 rounded-xl bg-background/30 border border-primary-border/20">
+            <p class="text-[9px] text-secondary-text mb-0.5">Min Deposit</p>
+            <p class="text-[11px] font-semibold text-primary-text truncate">{{ formatShortNum(record.minimum_deposit_amount) }}</p>
+          </div>
+          <div class="text-center p-2 rounded-xl bg-background/30 border border-primary-border/20">
+            <p class="text-[9px] text-secondary-text mb-0.5">Min Transfer</p>
+            <p class="text-[11px] font-semibold text-primary-text truncate">{{ formatShortNum(record.minimal_transfer_amount) }}</p>
+          </div>
+          <div class="text-center p-2 rounded-xl bg-background/30 border border-primary-border/20">
+            <p class="text-[9px] text-secondary-text mb-0.5">Max Withdraw</p>
+            <p class="text-[11px] font-semibold text-primary-text truncate">{{ formatShortNum(record.maximum_withdrawal_amount) }}</p>
+          </div>
+        </div>
+
+        <!-- Timestamp -->
+        <div class="flex items-center gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
+          <span class="w-1 h-1 rounded-full bg-secondary-text" />
+          <p class="text-[9px] text-secondary-text uppercase tracking-tighter">Created: {{ formatDate(record.created_at) }}</p>
+        </div>
       </div>
     </div>
 
@@ -237,7 +258,18 @@ const handlePageChange = (page) => {
 }
 
 const formatNum = (val) =>
-  (val ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 8 })
+  (val ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 })
+
+const formatShortNum = (val) => {
+  if (val === 0) return '0.00'
+  return (val ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return '—'
+  const d = new Date(dateStr)
+  return d.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })
+}
 
 onMounted(() => store.fetchPaymentMethods())
 </script>

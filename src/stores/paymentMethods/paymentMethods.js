@@ -173,44 +173,48 @@ export const usePaymentMethodsStore = defineStore(
       updatingId.value = id
       updateLoading.value = true
 
-      const successHandler = (res) => {
-        snackbar.show(
-          res?.message || 'Payment method updated successfully.',
-          'success'
-        )
+      return new Promise((resolve, reject) => {
+        const successHandler = (res) => {
+          snackbar.show(
+            res?.message || 'Payment method updated successfully.',
+            'success'
+          )
 
-        updatingId.value = null
-        updateLoading.value = false
+          updatingId.value = null
+          updateLoading.value = false
 
-        fetchPaymentMethods(true)
-      }
-
-      const failureHandler = (err) => {
-        updatingId.value = null
-        updateLoading.value = false
-
-        error.value = err
-
-        snackbar.show(
-          err?.message || 'Failed to update payment method.',
-          'error'
-        )
-      }
-
-      apiRequest(
-        urls.KEYS.PUT,
-        urls.paymentMethods.update,
-        {
-          look_up_key: id,
-
-          data: payload,
-
-          isTokenRequired: true,
-
-          onSuccess: successHandler,
-          onFailure: failureHandler,
+          fetchPaymentMethods(true)
+          resolve(res)
         }
-      )
+
+        const failureHandler = (err) => {
+          updatingId.value = null
+          updateLoading.value = false
+
+          error.value = err
+
+          snackbar.show(
+            err?.message || 'Failed to update payment method.',
+            'error'
+          )
+          reject(err)
+        }
+
+        apiRequest(
+          urls.KEYS.PUT,
+          urls.paymentMethods.update,
+          {
+            look_up_key: id,
+
+            data: payload,
+
+            isTokenRequired: true,
+
+            onSuccess: successHandler,
+            onFailure: failureHandler,
+          }
+        )
+      })
     }
 
     // ─────────────────────────────────────

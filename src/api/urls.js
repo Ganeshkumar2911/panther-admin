@@ -22,6 +22,8 @@ const urls = {
     changePassword: '/accounts/change-password',
     accountTrades: '/accounts/trades',
     transactions: '/accounts/transactions',
+    deposit: '/accounts/deposit',
+    withdraw: '/accounts/withdraw',
   },
   clientList: {
     list: '/client-list',

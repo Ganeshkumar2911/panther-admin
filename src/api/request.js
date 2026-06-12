@@ -4,7 +4,7 @@ import router from "../router";
 
 // ─── Constants
 
-const BASE_URL = "https://w2llv2cm-2504.inc1.devtunnels.ms/admin/";
+const BASE_URL = "https://848ncvt5-2504.euw.devtunnels.ms/admin/";
 // const BASE_URL = "https://848ncvt5-2504.euw.devtunnels.ms/admin/";
 const DEFAULT_TIMEOUT = 30_000;
 const MAX_RETRY_ATTEMPTS = 2;

@@ -1,10 +1,11 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { BarChart2, RotateCcwKey, Search, Wallet as WalletIcon } from 'lucide-vue-next'
+import { BarChart2, RotateCcwKey, Search, Wallet as WalletIcon, DollarSign, ArrowDownUp } from 'lucide-vue-next'
 import Pagination from '@/components/common/Pagination.vue'
 import Tooltip from '@/components/common/Tooltip.vue'
 import ChangePasswordDialog from '@/components/trading-accounts/ChangePasswordDialog.vue'
+import DepositWithdrawalDialog from '@/components/trading-accounts/DepositWithdrawal.vue'
 import { useAccountsStore } from '@/stores/tradingAccounts/tradingAccounts'
 import { useProfileStore } from '@/stores/profile/profile'
 
@@ -33,6 +34,12 @@ const accountTypeFilters = [
 const changePasswordDialog = ref({
   open: false,
   account: null,
+})
+
+const depositWithdrawalDialog = ref({
+  open: false,
+  account: null,
+  mode: 'deposit', // 'deposit' or 'withdrawal'
 })
 
 let searchTimer = null
@@ -112,6 +119,22 @@ const closeChangePassword = () => {
 
 const confirmChangePassword = () => {
   closeChangePassword()
+}
+
+const openDepositWithdrawalDialog = (acc, mode) => {
+  depositWithdrawalDialog.value = {
+    open: true,
+    account: { ...acc, id: getAccountId(acc) },
+    mode: mode,
+  }
+}
+
+const closeDepositWithdrawalDialog = () => {
+  depositWithdrawalDialog.value = {
+    open: false,
+    account: null,
+    mode: 'deposit',
+  }
 }
 
 const formatNum = (val) =>
@@ -472,23 +495,45 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
 
             <td class="px-3 py-4">
               <div class="flex items-center justify-end gap-2">
-                <button
-                  type="button"
-                  class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary-border text-xs text-secondary-text hover:text-primary-text hover:bg-background transition-colors"
-                  @click="router.push(`/account/trade/${getAccountId(acc)}`)"
-                >
-                  <BarChart2 class="w-3.5 h-3.5" />
-                  Trades
-                </button>
+                <Tooltip text="View Trades">
+                  <button
+                    type="button"
+                    class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text hover:text-primary-text hover:bg-background transition-colors"
+                    @click="router.push(`/account/trade/${getAccountId(acc)}`)"
+                  >
+                    <BarChart2 class="h-3.5 w-3.5" />
+                  </button>
+                </Tooltip>
 
-                <button
-                  type="button"
-                  class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary-border text-xs text-secondary-text hover:text-primary-text hover:bg-background transition-colors"
-                  @click="router.push(`/account/transactions/${getAccountId(acc)}`)"
-                >
-                  <WalletIcon class="w-3.5 h-3.5" />
-                  Transactions
-                </button>
+                <Tooltip text="View Transactions">
+                  <button
+                    type="button"
+                    class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text hover:text-primary-text hover:bg-background transition-colors"
+                    @click="router.push(`/account/transactions/${getAccountId(acc)}`)"
+                  >
+                    <WalletIcon class="h-3.5 w-3.5" />
+                  </button>
+                </Tooltip>
+
+                <Tooltip text="Deposit">
+                  <button
+                    type="button"
+                    class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text hover:text-primary-text hover:bg-background transition-colors"
+                    @click="openDepositWithdrawalDialog(acc, 'deposit')"
+                  >
+                    <DollarSign class="h-3.5 w-3.5" />
+                  </button>
+                </Tooltip>
+
+                <Tooltip text="Withdraw">
+                  <button
+                    type="button"
+                    class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text hover:text-primary-text hover:bg-background transition-colors"
+                    @click="openDepositWithdrawalDialog(acc, 'withdrawal')"
+                  >
+                    <ArrowDownUp class="h-3.5 w-3.5" />
+                  </button>
+                </Tooltip>
 
                 <Tooltip v-if="acc.trading_type === 'real'" text="Change Password">
                   <button
@@ -519,6 +564,14 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
       :account="changePasswordDialog.account"
       @close="closeChangePassword"
       @confirm="confirmChangePassword"
+    />
+
+    <DepositWithdrawalDialog
+      :open="depositWithdrawalDialog.open"
+      :account-data="depositWithdrawalDialog.account"
+      :mode="depositWithdrawalDialog.mode"
+      @close="closeDepositWithdrawalDialog"
+      @success="store.fetchAccounts(true)"
     />
   </div>
 </template>
