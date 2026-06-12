@@ -112,8 +112,8 @@
         <span class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
         <!-- Default Badge Ribbon -->
-        <div v-if="!g.is_default" class="absolute top-0.5 -right-8 w-24 h-6 bg-gradient-to-r from-yellow-400 to-yellow-500 transform rotate-45 flex items-center justify-center shadow-lg">
-          <span class="text-[8px] font-bold text-yellow-900 transform -rotate-0">Default</span>
+        <div v-if="g.is_default" class="absolute -top-1.5 pt-2.5 -left-8 w-24 h-10 bg-gradient-to-r from-yellow-400 to-yellow-500 transform -rotate-45 flex items-center justify-center shadow-lg">
+          <span class="text-[9px] sm:text-[10px] md:text-[11px] lg:text-xs font-bold text-yellow-900">Default</span>
         </div>
 
         <!-- Card Header -->
@@ -181,10 +181,42 @@
             <Plus class="w-3.5 h-3.5" /> Add Config
           </button>
         </div>
-        <div v-else class="flex items-center gap-2">
-          <div class="flex items-center gap-1.5 px-3 py-2 bg-background border border-primary-border rounded-xl flex-1">
+        <div v-else class="flex flex-col gap-2">
+          <div class="flex items-center gap-1.5 px-3 py-2 bg-background border border-primary-border rounded-xl">
             <CheckCircle2 class="w-3.5 h-3.5 text-primary-green shrink-0" />
-            <span class="text-[11px] text-secondary-text">Config #{{ g.config_id }}</span>
+            <span class="text-[11px] text-secondary-text flex-1">Config #{{ g.config_id }}</span>
+          </div>
+          <div class="flex items-center justify-start ml-4 gap-2">
+            <Tooltip
+              v-if="!g.is_default"
+              text="Set as Default"
+            >
+              <button
+                @click="openSetDefaultConfirm(g)"
+                :disabled="store.actionLoading.id === g.config_id && store.actionLoading.type === 'set_default'"
+                class="p-2 rounded-lg hover:bg-primary-yellow/10 text-yellow-600 transition-colors disabled:opacity-50"
+              >
+                <Loader2
+                  v-if="store.actionLoading.id === g.config_id && store.actionLoading.type === 'set_default'"
+                  class="w-4 h-4 animate-spin"
+                />
+                <Star v-else class="w-4 h-4" />
+              </button>
+            </Tooltip>
+
+            <Tooltip text="Remove Configuration">
+              <button
+                @click="openDeconfigConfirm(g)"
+                :disabled="store.actionLoading.id === g.config_id && store.actionLoading.type === 'deconfig'"
+                class="p-2 rounded-lg hover:bg-primary-red/50 text-red-600 transition-colors disabled:opacity-50"
+              >
+                <Loader2
+                  v-if="store.actionLoading.id === g.config_id && store.actionLoading.type === 'deconfig'"
+                  class="w-4 h-4 animate-spin"
+                />
+                <Trash2 v-else class="w-4 h-4" />
+              </button>
+            </Tooltip>
           </div>
         </div>
       </div>
@@ -205,21 +237,43 @@
       :group="dialog.group"
       @close="dialog.open = false"
     />
+
+    <!-- Confirmation Dialog -->
+    <ConfirmationDialog
+      :open="confirmDialog.open"
+      :title="confirmDialog.title"
+      :message="confirmDialog.message"
+      :type="confirmDialog.type"
+      :loading="store.actionLoading.id === confirmDialog.configId"
+      :confirm-text="confirmDialog.action === 'setDefault' ? 'Set Default' : 'Remove Config'"
+      @confirm="handleConfirmAction"
+      @cancel="handleCancelConfirm"
+    />
   </div>
 </template>
 
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { Search, RefreshCw, Plus, CheckCircle2, Database } from 'lucide-vue-next'
+import { Search, RefreshCw, Plus, CheckCircle2, Database, Star, Trash2 } from 'lucide-vue-next'
 import { useGroupConfigStore } from '@/stores/groupConfig/groupConfig'
 import Pagination from '@/components/common/Pagination.vue'
 import AddGroupConfigDialog from '@/components/groupConfig/AddGroupConfigDialog.vue'
+import ConfirmationDialog from '@/components/common/ConfirmationDialog.vue'
 
 const store = useGroupConfigStore()
 const route = useRoute()
 const refreshing = ref(false)
 const dialog = ref({ open: false, group: null })
+
+const confirmDialog = ref({
+  open: false,
+  type: 'warning',
+  title: '',
+  message: '',
+  action: null,
+  configId: null,
+})
 
 const tabs = [
   { label: 'All',       value: 'all'       },
@@ -261,6 +315,48 @@ const handlePageChange = (page) => {
 }
 
 const extractGroupName = (path) => path?.split('\\').pop() ?? path
+
+const openSetDefaultConfirm = (group) => {
+  confirmDialog.value = {
+    open: true,
+    type: 'success',
+    title: 'Set as Default',
+    message: `Are you sure you want to set "${group.label ?? group.group}" as the default group configuration?`,
+    action: 'setDefault',
+    configId: group.config_id,
+  }
+}
+
+const openDeconfigConfirm = (group) => {
+  confirmDialog.value = {
+    open: true,
+    type: 'danger',
+    title: 'De-configure Group',
+    message: `Are you sure you want to remove the configuration for "${group.label ?? group.group}"? This action cannot be undone.`,
+    action: 'deconfig',
+    configId: group.config_id,
+  }
+}
+
+const handleConfirmAction = () => {
+  const { action, configId } = confirmDialog.value
+
+  if (action === 'setDefault') {
+    store.setDefaultGroup(configId, () => {
+      confirmDialog.value.open = false
+    })
+  } else if (action === 'deconfig') {
+    store.deconfigGroup(configId, () => {
+      confirmDialog.value.open = false
+    })
+  }
+}
+
+const handleCancelConfirm = () => {
+  confirmDialog.value.open = false
+  confirmDialog.value.action = null
+  confirmDialog.value.configId = null
+}
 
 onMounted(() => {
   store.filters.account_category = route.params.account_category

@@ -82,6 +82,8 @@ const urls = {
   groupConfig: {
     list: '/mt5/groups',
     add: '/group-config',
+    setDefault: '/broker-group-configs/default',
+    deconfig: '/group-config/',
     categories: '/account-categories',
     groups: '/mt5/groups',
     create: '/group-config',
