@@ -5,6 +5,7 @@ import router from "../router";
 // ─── Constants
 
 const BASE_URL = "https://848ncvt5-2504.euw.devtunnels.ms/admin/";
+// const BASE_URL = "https://848ncvt5-2504.euw.devtunnels.ms/admin/";
 const DEFAULT_TIMEOUT = 30_000;
 const MAX_RETRY_ATTEMPTS = 2;
 const RETRYABLE_STATUS_CODES = [502, 503, 504];

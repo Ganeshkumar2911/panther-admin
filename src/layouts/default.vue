@@ -5,10 +5,25 @@ import NavBar from '@/components/default/NavBar.vue'
 import TopBar from '@/components/default/TopBar.vue'
 import { useTickerStore } from '@/stores/ws/ticker'
 
+const SIDEBAR_COLLAPSED_KEY = 'panther_sidebar_collapsed'
+const storedSidebarCollapsed =
+  typeof window !== 'undefined' ? localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true' : false
+
 const sidebarOpen = ref(false)
+const isSidebarCollapsed = ref(storedSidebarCollapsed)
 const profileStore = useProfileStore()
 // const kycStore = useKycStore()
 const tickerStore = useTickerStore()
+
+const setSidebarCollapsed = (value) => {
+  isSidebarCollapsed.value = value
+  localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(value))
+}
+
+const toggleSidebarCollapsed = () => {
+  setSidebarCollapsed(!isSidebarCollapsed.value)
+}
+
 onMounted(async () => {
   await tickerStore.startWebSocket()
 
@@ -22,10 +37,18 @@ onMounted(async () => {
   <div class="flex h-screen w-full overflow-hidden bg-background">
 
     <!-- NavBar Sidebar -->
-    <NavBar :is-open="sidebarOpen" @close="sidebarOpen = false" />
+    <NavBar
+      :is-open="sidebarOpen"
+      :is-collapsed="isSidebarCollapsed"
+      @close="sidebarOpen = false"
+      @toggle-collapse="toggleSidebarCollapsed"
+    />
 
     <!-- Main column — offset by sidebar width on md+ -->
-    <div class="flex flex-1 flex-col overflow-hidden md:ml-[240px]">
+    <div
+      class="flex flex-1 flex-col overflow-hidden transition-all duration-300 ease-in-out"
+      :class="isSidebarCollapsed ? 'md:ml-[80px]' : 'md:ml-[240px]'"
+    >
 
       <!-- Top Bar -->
       <TopBar @toggle-sidebar="sidebarOpen = !sidebarOpen" />

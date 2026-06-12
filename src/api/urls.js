@@ -19,11 +19,15 @@ const urls = {
   tradingAccounts: {
     list: '/accounts',
     create: '/accounts/create',
+    changePassword: '/accounts/change-password',
     accountTrades: '/accounts/trades',
     transactions: '/accounts/transactions',
+    deposit: '/accounts/deposit',
+    withdraw: '/accounts/withdraw',
   },
   clientList: {
     list: '/client-list',
+    changeIB: '/client/change-ib',
   },
   clientLedger: {
     list: '/ledger/clients',
@@ -46,6 +50,7 @@ const urls = {
     create: '/ib/create',
     update: '/ib/update',
     delete: '/ib/delete',
+    transfer: '/ib-transfer',
   },
   fm: {
     list: '/fund_managers',
@@ -80,10 +85,22 @@ const urls = {
   groupConfig: {
     list: '/mt5/groups',
     add: '/group-config',
+    setDefault: '/broker-group-configs/default',
+    deconfig: '/group-config/',
     categories: '/account-categories',
     groups: '/mt5/groups',
     create: '/group-config',
   },
+  paymentMethods: {
+    list: '/payments/payment-methods',
+    syncWallets: '/payments/sync-wallets',
+    update: '/payments/payment-methods',
+  },
+  paymentRequests: {
+    list: '/payment-requests',
+    approve: '/payment-requests/approve/',
+    reject: '/payment-requests/reject/'
+  }
 
 
 

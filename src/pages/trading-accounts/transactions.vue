@@ -129,7 +129,7 @@
               <span
                 class="text-[11px] font-medium px-2.5 py-1 rounded-full flex items-center gap-1 w-fit capitalize"
                 :class="tx.direction === 'credit'
-                  ? 'bg-primary-green text-black'
+                  ? 'bg-primary-green text-white'
                   : 'bg-primary-red text-white'"
               >
                 <ArrowDownLeft v-if="tx.direction === 'credit'" class="w-3 h-3" />
@@ -196,7 +196,7 @@
             </span>
             <span
               class="text-[11px] font-medium px-2 py-0.5 rounded-full capitalize"
-              :class="tx.direction === 'credit' ? 'bg-primary-green text-black' : 'bg-primary-red text-white'"
+              :class="tx.direction === 'credit' ? 'bg-primary-green text-white' : 'bg-primary-red text-white'"
             >
               {{ tx.direction }}
             </span>
@@ -265,9 +265,9 @@ const formatDate = (val) => val ? new Date(val).toLocaleDateString('en-GB', { da
 const formatType = (t) => t?.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) ?? '—'
 
 const typeClass = (type) => ({
-  trade_pnl: 'bg-primary text-black',
-  fee_paid:  'bg-primary-yellow text-black',
-  deposit:   'bg-primary-green text-black',
+  trade_pnl: 'bg-primary text-white',
+  fee_paid:  'bg-primary-yellow text-white',
+  deposit:   'bg-primary-green text-white',
   withdrawal:'bg-primary-red text-white',
 }[type] ?? 'border border-primary-border text-secondary-text')
 

@@ -18,6 +18,11 @@ export const useDashboardStore = defineStore('dashboard', () => {
     range: 'weekly',
   })
 
+  const dashboardFilters = reactive({
+    start_date: '',
+    end_date: '',
+  })
+
   const snackbar = useSnackbarStore()
 
   // ─── Dashboard ─────────────────────────────────────────────
@@ -41,8 +46,15 @@ export const useDashboardStore = defineStore('dashboard', () => {
       )
     }
 
+    const params = {}
+    if (dashboardFilters.start_date && dashboardFilters.end_date) {
+      params.start_date = dashboardFilters.start_date
+      params.end_date = dashboardFilters.end_date
+    }
+
     apiRequest(urls.KEYS.GET, urls.dashboard.list, {
       isTokenRequired: true,
+      params,
 
       onSuccess: successHandler,
       onFailure: failureHandler,
@@ -97,6 +109,21 @@ export const useDashboardStore = defineStore('dashboard', () => {
     fetchRevenueAnalytics()
   }
 
+  const setDashboardFilters = (nextFilters = {}) => {
+    Object.assign(dashboardFilters, nextFilters)
+  }
+
+  const applyDashboardFilters = () => {
+    fetchDashboard()
+  }
+
+  const resetDashboardFilters = () => {
+    dashboardFilters.start_date = ''
+    dashboardFilters.end_date = ''
+
+    fetchDashboard()
+  }
+
   // ─── Reset ────────────────────────────────────────────────
   const reset = () => {
     dashboard.value = null
@@ -108,6 +135,9 @@ export const useDashboardStore = defineStore('dashboard', () => {
     error.value = null
 
     revenueFilters.range = 'weekly'
+
+    dashboardFilters.start_date = ''
+    dashboardFilters.end_date = ''
   }
 
   return {
@@ -118,6 +148,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
     revenueLoading,
 
     revenueFilters,
+    dashboardFilters,
 
     error,
 
@@ -127,6 +158,10 @@ export const useDashboardStore = defineStore('dashboard', () => {
     setRevenueFilters,
     applyRevenueFilters,
     resetRevenueFilters,
+
+    setDashboardFilters,
+    applyDashboardFilters,
+    resetDashboardFilters,
 
     reset,
   }

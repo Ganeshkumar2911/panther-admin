@@ -1,5 +1,4 @@
 <script setup>
-import { onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   LayoutDashboard,
@@ -16,6 +15,9 @@ import {
   DollarSign,
   Tickets,
   Settings,
+  ChevronLeft,
+  ChevronRight,
+  Handshake,
 } from 'lucide-vue-next'
 import { useProfileStore } from '@/stores/profile/profile'
 
@@ -26,9 +28,13 @@ defineProps({
     type: Boolean,
     default: false,
   },
+  isCollapsed: {
+    type: Boolean,
+    default: false,
+  },
 })
 
-defineEmits(['close'])
+const emit = defineEmits(['close', 'toggle-collapse'])
 
 const route = useRoute()
 
@@ -81,6 +87,16 @@ const navItems = [
     icon: Wallet,
   },
   {
+    label: 'Payment Methods',
+    to: '/payment-methods',
+    icon: CreditCard,
+  },
+  {
+    label: 'Payment Requests',
+    to: '/payment-requests',
+    icon: Handshake,
+  },
+  {
     label: 'FM Wallet',
     to: '/fm-wallet',
     icon: TrendingUp,
@@ -96,15 +112,15 @@ const navItems = [
     icon: RefreshCcw,
   },
   {
+    label: 'Group Config',
+    to: '/group-config',
+    icon: Settings,
+  },
+  {
     label: 'Tickets',
     to: '/tickets',
     icon: Tickets,
   },
-  {
-    label: 'Group Config',
-    to: '/group-config',
-    icon: Settings,
-  }
 ]
 
 // ✅ Active Route Check
@@ -123,22 +139,30 @@ const isActive = (path) => route.path.startsWith(path)
 
   <!-- Sidebar -->
   <aside
-    class="fixed top-0 left-0 z-40 h-full w-[240px]
+    class="fixed top-0 left-0 z-40 h-full
            bg-navbar text-white border-r border-white/10
            flex flex-col
-           transition-transform duration-300 ease-in-out
+           transition-all duration-300 ease-in-out
            -translate-x-full md:translate-x-0"
-    :class="{ 'translate-x-0': isOpen }"
+    :class="[
+      { 'translate-x-0': isOpen },
+      isCollapsed ? 'w-[80px]' : 'w-[240px]'
+    ]"
   >
     <!-- Header -->
     <div class="h-[60px] flex items-center justify-between px-4 border-b border-white/10">
-      <div class="flex items-center gap-2.5">
+      <div v-if="!isCollapsed" class="flex items-center gap-2.5">
         <div class="w-7 h-7 rounded-lg flex items-center justify-center">
          <img class="rounded-full" src="/logo.png" alt="Logo">
         </div>
         <span class="text-white font-semibold text-sm">
           Welcome
         </span>
+      </div>
+      <div v-else class="flex items-center justify-center w-full">
+        <div class="w-7 h-7 rounded-lg flex items-center justify-center">
+         <img class="rounded-full" src="/logo.png" alt="Logo">
+        </div>
       </div>
     </div>
 
@@ -151,35 +175,54 @@ const isActive = (path) => route.path.startsWith(path)
         @click="$emit('close')"
         class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
                transition-all duration-200 group"
-        :class="
+        :class="[
           isActive(item.to)
             ? 'bg-primary text-white'
-            : 'text-white/70 hover:text-white hover:bg-white/10'
-        "
+            : 'text-white/70 hover:text-white hover:bg-white/10',
+          isCollapsed ? 'justify-center' : ''
+        ]"
+        :title="isCollapsed ? item.label : ''"
       >
         <component
           :is="item.icon"
-          class="w-4 h-4 transition-transform group-hover:scale-110"
+          class="w-4 h-4 transition-transform group-hover:scale-110 flex-shrink-0"
         />
-        <span>{{ item.label }}</span>
+        <span v-if="!isCollapsed">{{ item.label }}</span>
 
         <!-- Active dot -->
         <span
-          v-if="isActive(item.to)"
+          v-if="isActive(item.to) && !isCollapsed"
           class="ml-auto w-1.5 h-1.5 rounded-full bg-white"
         />
       </RouterLink>
     </nav>
 
     <!-- Footer -->
-    <div class="p-4 border-t border-white/10">
-      <div class="flex items-center gap-3 px-2">
-        <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-          <span class="text-black text-xs font-bold">{{ store.user?.name?.charAt(0).toUpperCase() }}</span>
-        </div>
-        <div>
-          <p class="text-white text-xs font-semibold">{{ store.user?.name }}</p>
-          <p class="text-white/60 text-[11px]">{{ store.user?.role }}</p>
+    <div class="border-t border-white/10">
+      <!-- User Info -->
+      <div class="p-4">
+        <div class="flex items-center" :class="isCollapsed ? 'justify-center' : 'gap-3'">
+          <div class="flex items-center min-w-0" :class="isCollapsed ? 'hidden' : 'gap-3'">
+            <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+              <span class="text-black text-xs font-bold">{{ store.user?.name?.charAt(0).toUpperCase() }}</span>
+            </div>
+            <div class="min-w-0">
+              <p class="text-white text-xs font-semibold truncate">{{ store.user?.name }}</p>
+              <p class="text-white/60 text-[11px] capitalize truncate">{{ store.user?.role }}</p>
+            </div>
+          </div>
+
+          <button
+            @click="emit('toggle-collapse')"
+            class="flex items-center justify-center w-10 h-10 rounded-lg
+                   text-white/70 hover:text-white hover:bg-white/10
+                   transition-all duration-200"
+            :class="isCollapsed ? '' : 'ml-auto'"
+            :title="isCollapsed ? 'Expand' : 'Collapse'"
+          >
+            <ChevronRight v-if="isCollapsed" class="w-5 h-5" />
+            <ChevronLeft v-else class="w-5 h-5" />
+          </button>
         </div>
       </div>
     </div>

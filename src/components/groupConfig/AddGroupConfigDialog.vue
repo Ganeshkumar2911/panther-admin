@@ -110,7 +110,8 @@
 
       <div class="px-6 py-4 border-t border-primary-border flex gap-3">
         <button
-          class="flex-1 px-4 py-2.5 rounded-lg text-xs font-medium text-secondary-text border border-primary-border hover:bg-background hover:text-primary-text transition-colors"
+          :disabled="store.createLoading"
+          class="flex-1 px-4 py-2.5 rounded-lg text-xs font-medium text-secondary-text border border-primary-border hover:bg-background hover:text-primary-text transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           @click="emit('close')"
         >Cancel</button>
         <button

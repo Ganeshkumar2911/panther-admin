@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, reactive } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import apiRequest from '@/api/request'
 import urls from '@/api/urls'
 import { useSnackbarStore } from '@/stores/snackbar/snackbar'
@@ -7,15 +7,14 @@ import { useSnackbarStore } from '@/stores/snackbar/snackbar'
 export const useAccountsStore = defineStore('accounts', () => {
   const snackbar = useSnackbarStore()
 
-  // ─── State ─────────────────────────────────────────────
-  const data        = ref([])
-  const loading     = ref(false)
-  const error       = ref(null)
+  const data = ref([])
+  const loading = ref(false)
+  const error = ref(null)
 
   const summary = ref({
     total_accounts: 0,
-    total_balance:  0,
-    total_pnl:      0,
+    total_balance: 0,
+    total_pnl: 0,
   })
 
   const pagination = reactive({
@@ -25,10 +24,15 @@ export const useAccountsStore = defineStore('accounts', () => {
     total_pages: 0,
   })
 
-  // Tabs filter (all | client | fm)
-  const activeType = ref('all')
+  const filters = reactive({
+    account_type: 'all',
+    trading_type: 'all',
+    account_subtype: 'all',
+    search_query: '',
+  })
 
-  // ─── Fetch Accounts ────────────────────────────────────
+  const activeType = computed(() => filters.account_type)
+
   const fetchAccounts = () => {
     loading.value = true
 
@@ -43,19 +47,22 @@ export const useAccountsStore = defineStore('accounts', () => {
         summary.value = res.summary
       }
 
-      loading.value   = false
+      loading.value = false
     }
 
     const failureHandler = (err) => {
       loading.value = false
-      error.value   = err
+      error.value = err
       snackbar.show(err?.message || 'Failed to fetch accounts', 'error')
     }
 
     const params = {
       page: pagination.page,
       per_page: pagination.per_page,
-      ...(activeType.value !== 'all' ? { account_type: activeType.value } : {}),
+      ...(filters.account_type !== 'all' ? { account_type: filters.account_type } : {}),
+      ...(filters.trading_type !== 'all' ? { trading_type: filters.trading_type } : {}),
+      ...(filters.account_subtype !== 'all' ? { account_subtype: filters.account_subtype } : {}),
+      ...(filters.search_query?.trim() ? { search_query: filters.search_query.trim() } : {}),
     }
 
     apiRequest('get', urls.tradingAccounts.list, {
@@ -66,29 +73,32 @@ export const useAccountsStore = defineStore('accounts', () => {
     })
   }
 
-  // ─── Change Tab (client / fm) ──────────────────────────
   const setType = (type) => {
-    activeType.value = type
-    pagination.page  = 1
+    filters.account_type = type
+    pagination.page = 1
     fetchAccounts()
   }
 
-  // ─── Pagination ────────────────────────────────────────
+  const setFilters = (nextFilters = {}) => {
+    Object.assign(filters, nextFilters)
+    pagination.page = 1
+    fetchAccounts()
+  }
+
   const setPage = (page) => {
     pagination.page = page
     fetchAccounts()
   }
 
-  // ─── Reset ─────────────────────────────────────────────
   const reset = () => {
-    data.value      = []
-    loading.value   = false
-    error.value     = null
+    data.value = []
+    loading.value = false
+    error.value = null
 
     summary.value = {
       total_accounts: 0,
-      total_balance:  0,
-      total_pnl:      0,
+      total_balance: 0,
+      total_pnl: 0,
     }
 
     Object.assign(pagination, {
@@ -98,7 +108,10 @@ export const useAccountsStore = defineStore('accounts', () => {
       total_pages: 0,
     })
 
-    activeType.value = 'all'
+    filters.account_type = 'all'
+    filters.trading_type = 'all'
+    filters.account_subtype = 'all'
+    filters.search_query = ''
   }
 
   return {
@@ -107,10 +120,12 @@ export const useAccountsStore = defineStore('accounts', () => {
     error,
     pagination,
     summary,
+    filters,
     activeType,
 
     fetchAccounts,
     setType,
+    setFilters,
     setPage,
     reset,
   }

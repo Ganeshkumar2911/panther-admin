@@ -1,12 +1,12 @@
 <script setup>
-import { ChevronRight, Minus, Pencil, Plus } from 'lucide-vue-next'
+import { ChevronRight, Minus, Pencil, Plus, ArrowLeftRight } from 'lucide-vue-next'
 
 defineProps({
   nodes: { type: Array, default: () => [] },
   expanded: { type: Object, default: () => ({}) },
 })
 
-const emit = defineEmits(['toggle', 'add-sub', 'edit'])
+const emit = defineEmits(['toggle', 'add-sub', 'edit', 'transfer-parent'])
 
 const toggle = (id) => emit('toggle', id)
 </script>
@@ -42,6 +42,14 @@ const toggle = (id) => emit('toggle', id)
         <div class="flex items-center justify-end gap-1">
             <button
             class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-background transition-colors"
+            title="Transfer Parent"
+            @click.stop="emit('transfer-parent', node)"
+            >
+            <ArrowLeftRight class="w-3.5 h-3.5 text-secondary-text" />
+            </button>
+            <button
+            class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-background transition-colors"
+            title="Edit IB"
             @click.stop="emit('edit', node)"
             >
             <Pencil class="w-3.5 h-3.5 text-secondary-text" />
@@ -49,6 +57,7 @@ const toggle = (id) => emit('toggle', id)
             <button
             v-if="node.level === 0"
             class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-background transition-colors"
+            title="Add Sub-IB"
             @click.stop="emit('add-sub', node.ib_id)"
             >
             <Plus class="w-3.5 h-3.5 text-secondary-text" />
@@ -64,6 +73,7 @@ const toggle = (id) => emit('toggle', id)
         @toggle="emit('toggle', $event)"
         @add-sub="emit('add-sub', $event)"
         @edit="emit('edit', $event)"
+        @transfer-parent="emit('transfer-parent', $event)"
         />
     </template>
   </template>

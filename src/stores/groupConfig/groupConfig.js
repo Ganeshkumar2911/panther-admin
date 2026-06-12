@@ -38,6 +38,11 @@ export const useGroupConfigStore = defineStore(
 
     const mt5GroupsLoading = ref(false)
 
+    const actionLoading = reactive({
+      type: null,
+      id: null,
+    })
+
     const error = ref(null)
 
     // ─────────────────────────────────────
@@ -183,7 +188,7 @@ export const useGroupConfigStore = defineStore(
     // Add Group Config
     // ─────────────────────────────────────
 
-    const addGroupConfig = (payload) => {
+    const addGroupConfig = (payload, onSuccess) => {
       createLoading.value = true
 
       error.value = null
@@ -224,6 +229,8 @@ export const useGroupConfigStore = defineStore(
             createLoading.value = false
 
             fetchGroups()
+
+            if (onSuccess) onSuccess()
           },
 
           onFailure: (err) => {
@@ -236,6 +243,88 @@ export const useGroupConfigStore = defineStore(
                 'Failed to add group configuration.',
               'error'
             )
+          },
+        }
+      )
+    }
+
+    // ─────────────────────────────────────
+    // Group Actions
+    // ─────────────────────────────────────
+
+    const setDefaultGroup = (configId, onSuccess) => {
+      if (!configId) return
+
+      actionLoading.type = 'set_default'
+      actionLoading.id = configId
+
+      apiRequest(
+        urls.KEYS.PATCH,
+        urls.groupConfig.setDefault,
+        {
+          isTokenRequired: true,
+          look_up_key: configId,
+
+          onSuccess: (res) => {
+            snackbar.show(
+              res?.message || 'Group set as default successfully.',
+              'success'
+            )
+
+            fetchGroups()
+
+            if (onSuccess) onSuccess(res)
+          },
+
+          onFailure: (err) => {
+            snackbar.show(
+              err?.message || 'Failed to set group as default.',
+              'error'
+            )
+          },
+
+          onFinally: () => {
+            actionLoading.type = null
+            actionLoading.id = null
+          },
+        }
+      )
+    }
+
+    const deconfigGroup = (configId, onSuccess) => {
+      if (!configId) return
+
+      actionLoading.type = 'deconfig'
+      actionLoading.id = configId
+
+      apiRequest(
+        urls.KEYS.DELETE,
+        urls.groupConfig.deconfig,
+        {
+          isTokenRequired: true,
+          look_up_key: configId,
+
+          onSuccess: (res) => {
+            snackbar.show(
+              res?.message || 'Group de-configured successfully.',
+              'success'
+            )
+
+            fetchGroups()
+
+            if (onSuccess) onSuccess(res)
+          },
+
+          onFailure: (err) => {
+            snackbar.show(
+              err?.message || 'Failed to de-config group.',
+              'error'
+            )
+          },
+
+          onFinally: () => {
+            actionLoading.type = null
+            actionLoading.id = null
           },
         }
       )
@@ -323,10 +412,14 @@ export const useGroupConfigStore = defineStore(
       searchMt5Groups,
 
       addGroupConfig,
+      setDefaultGroup,
+      deconfigGroup,
 
       applyFilters,
       setPage,
       setStatus,
+
+      actionLoading,
 
       reset,
     }
