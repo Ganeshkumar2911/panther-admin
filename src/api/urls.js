@@ -50,6 +50,7 @@ const urls = {
     create: '/ib/create',
     update: '/ib/update',
     delete: '/ib/delete',
+    transfer: '/ib-transfer',
   },
   fm: {
     list: '/fund_managers',

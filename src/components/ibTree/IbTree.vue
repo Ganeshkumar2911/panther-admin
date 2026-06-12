@@ -49,13 +49,21 @@
         <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
           <button
             class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-card-background border border-transparent hover:border-primary-border transition-colors"
+            title="Transfer Parent"
+            @click.stop="emit('transfer-parent', node)"
+          >
+            <ArrowLeftRight class="w-3.5 h-3.5 text-secondary-text" />
+          </button>
+          <button
+            class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-card-background border border-transparent hover:border-primary-border transition-colors"
+            title="Edit IB"
             @click.stop="emit('edit', node)"
           >
             <Pencil class="w-3.5 h-3.5 text-secondary-text" />
           </button>
           <button
-            
             class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-card-background border border-transparent hover:border-primary-border transition-colors"
+            title="Add Sub-IB"
             @click.stop="emit('add-sub', node.ib_id)"
           >
             <Plus class="w-3.5 h-3.5 text-secondary-text" />
@@ -74,6 +82,7 @@
           @toggle="emit('toggle', $event)"
           @edit="emit('edit', $event)"
           @add-sub="emit('add-sub', $event)"
+          @transfer-parent="emit('transfer-parent', $event)"
         />
       </div>
 
@@ -82,13 +91,13 @@
 </template>
 
 <script setup>
-import { ChevronRight, Minus, Pencil, Plus } from 'lucide-vue-next'
+import { ChevronRight, Minus, Pencil, Plus, ArrowLeftRight } from 'lucide-vue-next'
 
 defineProps({
   items: { type: Array, default: () => [] },
   expanded: { type: Object, default: () => ({}) },
 })
 
-const emit = defineEmits(['toggle', 'edit', 'add-sub'])
+const emit = defineEmits(['toggle', 'edit', 'add-sub', 'transfer-parent'])
 const toggle = (id) => emit('toggle', id)
 </script>

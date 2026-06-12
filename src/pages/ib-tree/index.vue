@@ -48,6 +48,7 @@
         @toggle="toggleRow"
         @edit="openEdit"
         @add-sub="openAddSub"
+        @transfer-parent="openTransferParent"
       />
     </div>
 
@@ -86,6 +87,7 @@
             @toggle="toggleRow"
             @add-sub="openAddSub"
             @edit="openEdit"
+            @transfer-parent="openTransferParent"
           />
         </tbody>
       </table>
@@ -97,6 +99,13 @@
       :parent-ib-id="dialog.parentIbId"
       @close="dialog.open = false"
     />
+
+    <TransferIbDialog
+      :open="transferDialog.open"
+      :ib="transferDialog.ib"
+      @close="transferDialog.open = false"
+      @success="onTransferSuccess"
+    />
   </div>
 </template>
 
@@ -107,16 +116,26 @@ import { useIbTreeStore } from '@/stores/ibTree/ibTree'
 import IbTreeRow from '@/components/ibTree/IbTreeRow.vue'
 import IbTree from '@/components/ibTree/IbTree.vue'
 import IbDialog from '@/components/ibTree/IbDialog.vue'
+import TransferIbDialog from '@/components/ibTree/TransferIbDialog.vue'
 
 const store = useIbTreeStore()
 const expanded = ref({})
 const viewMode = ref('table')
 const dialog = ref({ open: false, editData: null, parentIbId: null })
+const transferDialog = ref({ open: false, ib: null })
 
 const openAdd = () => { dialog.value = { open: true, editData: null, parentIbId: null } }
 const openAddSub = (id) => { dialog.value = { open: true, editData: null, parentIbId: id } }
 const openEdit = (node) => { dialog.value = { open: true, editData: node, parentIbId: null } }
 const toggleRow = (id) => { expanded.value[id] = !expanded.value[id] }
+
+const openTransferParent = (node) => {
+  transferDialog.value = { open: true, ib: node }
+}
+
+const onTransferSuccess = () => {
+  store.fetchIbTree(true)
+}
 
 onMounted(() => { store.fetchIbTree() })
 </script>
