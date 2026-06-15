@@ -279,11 +279,11 @@ onMounted(() => {
               <span
                 class="text-[11px] font-medium px-2.5 py-1 rounded-full border"
                 :class="{
-                  'bg-green-50 text-green-800 border-green-200':
+                  'bg-primary-green/50 border-green-200':
                     item.status === 'approved',
                   'bg-yellow-50 text-yellow-800 border-yellow-200':
                     item.status === 'pending',
-                  'bg-red-50 text-red-800 border-red-200':
+                  'bg-primary-red/50 text-red-800 border-red-200':
                     item.status === 'rejected',
                 }"
               >
@@ -297,7 +297,7 @@ onMounted(() => {
               >
                 <Tooltip text="Accept">
                   <button
-                    class="inline-flex items-center justify-center w-8 h-8 border border-gray-300 rounded bg-gray-100 text-green-500 cursor-pointer transition-all duration-200 hover:bg-green-50 hover:border-green-500"
+                    class="inline-flex items-center justify-center w-8 h-8 border border-gray-300 rounded bg-gray-100 text-green-500 cursor-pointer transition-all duration-200 hover:bg-primary-green/50 hover:border-green-500"
                     @click="handleAccept(item)"
                   >
                     <svg
@@ -316,7 +316,7 @@ onMounted(() => {
                 </Tooltip>
                 <Tooltip text="Reject">
                   <button
-                    class="inline-flex items-center justify-center w-8 h-8 border border-gray-300 rounded bg-gray-100 text-red-500 cursor-pointer transition-all duration-200 hover:bg-red-50 hover:border-red-500"
+                    class="inline-flex items-center justify-center w-8 h-8 border border-gray-300 rounded bg-gray-100 text-red-500 cursor-pointer transition-all duration-200 hover:bg-primary-red/50 hover:border-red-500"
                     @click="handleReject(item)"
                   >
                     <svg

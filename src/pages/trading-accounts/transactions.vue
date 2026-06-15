@@ -35,24 +35,24 @@
         <div class="bg-card-background border border-primary-border rounded-2xl p-4">
           <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-1">Net Flow</p>
           <p class="text-2xl font-semibold" :class="store.summary.net_flow >= 0 ? 'text-primary-green' : 'text-primary-red'">
-            {{ store.summary.net_flow >= 0 ? '+' : '' }}${{ formatNum(store.summary.net_flow) }}
+            {{ store.summary.net_flow >= 0 ? '+' : '' }}{{ formatMoney(store.summary.net_flow) }}
           </p>
         </div>
         <div class="bg-card-background border border-primary-border rounded-2xl p-4">
           <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-1">Total Credits</p>
-          <p class="text-2xl font-semibold text-primary-green">+${{ formatNum(store.summary.total_credits) }}</p>
+          <p class="text-2xl font-semibold text-primary-green">+{{ formatMoney(store.summary.total_credits) }}</p>
         </div>
         <div class="bg-card-background border border-primary-border rounded-2xl p-4">
           <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-1">Total Debits</p>
-          <p class="text-2xl font-semibold text-primary-red">-${{ formatNum(store.summary.total_debits) }}</p>
+          <p class="text-2xl font-semibold text-primary-red">-{{ formatMoney(store.summary.total_debits) }}</p>
         </div>
         <div class="bg-card-background border border-primary-border rounded-2xl p-4">
           <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-1">Total Deposit</p>
-          <p class="text-2xl font-semibold text-primary-text">${{ formatNum(store.summary.total_deposit) }}</p>
+          <p class="text-2xl font-semibold text-primary-text">{{ formatMoney(store.summary.total_deposit) }}</p>
         </div>
         <div class="bg-card-background border border-primary-border rounded-2xl p-4">
           <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-1">Total Withdrawal</p>
-          <p class="text-2xl font-semibold text-primary-text">${{ formatNum(store.summary.total_withdrawal) }}</p>
+          <p class="text-2xl font-semibold text-primary-text">{{ formatMoney(store.summary.total_withdrawal) }}</p>
         </div>
       </template>
     </div>
@@ -143,12 +143,12 @@
                 class="text-xs font-medium tabular-nums"
                 :class="tx.direction === 'credit' ? 'text-primary-green' : 'text-primary-red'"
               >
-                {{ tx.direction === 'credit' ? '+' : '-' }}${{ formatNum(tx.amount) }}
+                {{ tx.direction === 'credit' ? '+' : '-' }}{{ formatMoney(tx.amount) }}
               </span>
             </td>
 
-            <td class="px-4 py-3.5 text-xs text-secondary-text tabular-nums">${{ formatNum(tx.balance_before) }}</td>
-            <td class="px-4 py-3.5 text-xs text-primary-text tabular-nums">${{ formatNum(tx.balance_after) }}</td>
+            <td class="px-4 py-3.5 text-xs text-secondary-text tabular-nums">{{ formatMoney(tx.balance_before) }}</td>
+            <td class="px-4 py-3.5 text-xs text-primary-text tabular-nums">{{ formatMoney(tx.balance_after) }}</td>
             <td class="px-4 py-3.5 text-xs text-secondary-text">{{ tx.reference_id ?? '—' }}</td>
             <td class="px-4 py-3.5 text-xs text-secondary-text text-right">{{ formatDate(tx.created_at) }}</td>
           </tr>
@@ -207,12 +207,12 @@
           <div class="bg-background rounded-xl px-3 py-2.5">
             <p class="text-[10px] text-secondary-text mb-1">Amount</p>
             <p class="text-xs font-semibold tabular-nums" :class="tx.direction === 'credit' ? 'text-primary-green' : 'text-primary-red'">
-              {{ tx.direction === 'credit' ? '+' : '-' }}${{ formatNum(tx.amount) }}
+              {{ tx.direction === 'credit' ? '+' : '-' }}{{ formatMoney(tx.amount) }}
             </p>
           </div>
           <div class="bg-background rounded-xl px-3 py-2.5">
             <p class="text-[10px] text-secondary-text mb-1">Balance After</p>
-            <p class="text-xs font-semibold text-primary-text tabular-nums">${{ formatNum(tx.balance_after) }}</p>
+            <p class="text-xs font-semibold text-primary-text tabular-nums">{{ formatMoney(tx.balance_after) }}</p>
           </div>
           <div class="bg-background rounded-xl px-3 py-2.5">
             <p class="text-[10px] text-secondary-text mb-1">Reference</p>
@@ -247,6 +247,7 @@ import Pagination from '@/components/common/Pagination.vue'
 const store = useAccountTransactionsStore()
 const route = useRoute()
 const searchQuery = ref('')
+const activeCurrency = ref(localStorage.getItem('active_currency') || 'USD')
 
 let searchTimer = null
 const onSearch = () => {
@@ -261,6 +262,10 @@ const handlePageChange = (page) => {
 }
 
 const formatNum = (val) => (val ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+const formatMoney = (amount) => {
+  const num = formatNum(amount)
+  return activeCurrency.value === 'USC' ? `USC ${num}` : `$${num}`
+}
 const formatDate = (val) => val ? new Date(val).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
 const formatType = (t) => t?.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) ?? '—'
 

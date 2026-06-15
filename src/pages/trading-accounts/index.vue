@@ -165,6 +165,17 @@ const formatDate = (val) => {
   })
 }
 
+const setActiveCurrency = (acc) => {
+  const currency = acc?.broker_currency ?? acc?.currency
+  if (!currency) return
+
+  try {
+    localStorage.setItem('active_currency', currency)
+  } catch (e) {
+    // ignore storage failures
+  }
+}
+
 onMounted(() => {
   if (!profile.user) {
     profile.fetchUserProfile()
@@ -483,7 +494,7 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
             <td class="px-3 py-4">
               <span
                 class="text-[11px] font-medium px-2 py-1 rounded-full capitalize whitespace-nowrap"
-                :class="acc.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'"
+                :class="acc.is_active ? 'bg-primary-green/100 text-green-700' : 'bg-primary-red/100 text-red-700'"
               >
                 {{ acc.is_active ? 'Active' : 'Inactive' }}
               </span>
@@ -499,7 +510,7 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
                   <button
                     type="button"
                     class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text hover:text-primary-text hover:bg-background transition-colors"
-                    @click="router.push(`/account/trade/${getAccountId(acc)}`)"
+                    @click="setActiveCurrency(acc); router.push(`/account/trade/${getAccountId(acc)}`)"
                   >
                     <BarChart2 class="h-3.5 w-3.5" />
                   </button>
@@ -508,8 +519,8 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
                 <Tooltip text="View Transactions">
                   <button
                     type="button"
-                    class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text hover:text-primary-text hover:bg-background transition-colors"
-                    @click="router.push(`/account/transactions/${getAccountId(acc)}`)"
+class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text hover:text-primary-text hover:bg-background transition-colors"
+                    @click="setActiveCurrency(acc); router.push(`/account/transactions/${getAccountId(acc)}`)"
                   >
                     <WalletIcon class="h-3.5 w-3.5" />
                   </button>
@@ -518,8 +529,8 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
                 <Tooltip text="Deposit">
                   <button
                     type="button"
-                    class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text hover:text-primary-text hover:bg-background transition-colors"
-                    @click="openDepositWithdrawalDialog(acc, 'deposit')"
+class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text hover:text-primary-text hover:bg-background transition-colors"
+                    @click="setActiveCurrency(acc); openDepositWithdrawalDialog(acc, 'deposit')"
                   >
                     <DollarSign class="h-3.5 w-3.5" />
                   </button>
@@ -528,8 +539,8 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
                 <Tooltip text="Withdraw">
                   <button
                     type="button"
-                    class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text hover:text-primary-text hover:bg-background transition-colors"
-                    @click="openDepositWithdrawalDialog(acc, 'withdrawal')"
+class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text hover:text-primary-text hover:bg-background transition-colors"
+                    @click="setActiveCurrency(acc); openDepositWithdrawalDialog(acc, 'withdrawal')"
                   >
                     <ArrowDownUp class="h-3.5 w-3.5" />
                   </button>
@@ -538,8 +549,8 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
                 <Tooltip v-if="acc.trading_type === 'real'" text="Change Password">
                   <button
                     type="button"
-                    class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text hover:text-primary-text hover:bg-background transition-colors"
-                    @click="openChangePassword(acc)"
+class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text hover:text-primary-text hover:bg-background transition-colors"
+                    @click="setActiveCurrency(acc); openChangePassword(acc)"
                   >
                     <RotateCcwKey class="h-3.5 w-3.5" />
                   </button>

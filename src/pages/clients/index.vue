@@ -195,7 +195,7 @@ onMounted(() => store.fetchClients())
               <span
                 class="text-[11px] font-medium px-2 py-0.5 rounded-full border"
                 :class="client.is_active
-                  ? 'bg-green-50 text-green-800 border-green-200'
+                  ? 'bg-primary-green/50 border-green-200'
                   : 'bg-background text-secondary-text border-primary-border'"
               >
                 {{ client.is_active ? 'Active' : 'Inactive' }}
@@ -260,7 +260,7 @@ onMounted(() => store.fetchClients())
           <span
             class="text-[11px] font-medium px-2 py-0.5 rounded-full border"
             :class="client.is_active
-              ? 'bg-green-50 text-green-800 border-green-200'
+              ? 'bg-primary-green/50 text-green-800 border-green-200'
               : 'bg-background text-secondary-text border-primary-border'"
           >
             {{ client.is_active ? 'Active' : 'Inactive' }}

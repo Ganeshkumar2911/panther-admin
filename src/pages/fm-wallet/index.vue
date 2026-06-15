@@ -59,10 +59,10 @@ const formatDate = (val) => new Date(val).toLocaleDateString('en-GB', { day: '2-
 const formatType = (t) => t?.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) ?? '—'
 
 const typeClass = (type) => ({
-  deposit:    'bg-green-50 text-green-800 border-green-200',
-  withdrawal: 'bg-red-50 text-red-800 border-red-200',
-  trade_pnl:  'bg-primary-blue/50 text-blue-800 border-blue-200',
-  fee_paid:   'bg-yellow-50 text-yellow-800 border-yellow-200',
+  deposit:    'bg-primary-green/50 border-green-200',
+  withdrawal: 'bg-primary-red/50 border-red-200',
+  trade_pnl:  'bg-primary-blue/50 border-blue-200',
+  fee_paid:   'bg-yellow-50 border-yellow-200',
 }[type] ?? 'bg-background text-secondary-text border-primary-border')
 
 const amountClass = (type, amount) => {
@@ -231,7 +231,7 @@ onMounted(() => {
             <td class="p-3">
               <span class="text-[11px] font-medium px-2 py-0.5 rounded-full border capitalize"
                 :class="entry.account_role === 'master'
-                  ? 'bg-primary-blue/50 text-blue-800 border-blue-200'
+                  ? 'bg-primary-blue/50 border-blue-200'
                   : 'bg-background text-secondary-text border-primary-border'"
               >
                 {{ entry.account_role ?? '—' }}

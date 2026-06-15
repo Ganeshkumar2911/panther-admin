@@ -119,7 +119,7 @@
               class="w-8 h-8 flex items-center justify-center rounded-xl bg-background border border-primary-border hover:border-primary/40 transition-all hover:shadow-sm group/edit"
               @click="handleOpenEdit(record)"
             >
-              <Settings2 class="w-3.5 h-3.5 text-secondary-text group-hover/edit:text-primary transition-colors" />
+              <Pencil class="w-3.5 h-3.5 text-secondary-text group-hover/edit:text-primary transition-colors" />
             </button>
 
             <button

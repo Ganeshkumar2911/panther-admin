@@ -303,8 +303,8 @@ const isAcceptDisabled  = () => props.isSubmitting
           class="flex-1 px-4 py-2 rounded-xl text-sm font-medium flex items-center justify-center
                  gap-2 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           :class="action === 'accept'
-            ? 'bg-green-500/10 text-primary-green hover:bg-green-500/20'
-            : 'bg-red-500/10 text-primary-red hover:bg-red-500/20'"
+            ? 'bg-primary-green/500/10 hover:bg-primary-green/500/20'
+            : 'bg-primary-red/500/10 text-primary-red hover:bg-primary-red/500/20'"
         >
           <Loader2 v-if="isSubmitting" class="w-3.5 h-3.5 animate-spin" />
           <span v-else>{{ action === 'accept' ? 'Accept' : 'Reject' }}</span>

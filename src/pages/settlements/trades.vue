@@ -108,8 +108,8 @@
               <span
                 class="text-[11px] font-medium px-2 py-0.5 rounded-full border capitalize"
                 :class="row.order_type === 'buy'
-                  ? 'bg-green-50 text-green-800 border-green-200'
-                  : 'bg-red-50 text-red-800 border-red-200'"
+                  ? 'bg-primary-green/50 text-green-800 border-green-200'
+                  : 'bg-primary-red/50 text-red-800 border-red-200'"
               >
                 {{ row.order_type ?? '—' }}
               </span>
@@ -171,7 +171,7 @@ const statusClass = (s) => ({
   closed:   'bg-background text-secondary-text border-primary-border',
   open:     'bg-primary-blue/50 text-blue-800 border-blue-200',
   pending:  'bg-yellow-50 text-yellow-800 border-yellow-200',
-  cancelled:'bg-red-50 text-red-800 border-red-200',
+  cancelled:'bg-primary-red/50 text-red-800 border-red-200',
 }[s] ?? 'bg-background text-secondary-text border-primary-border')
 
 onMounted(() => store.fetchTrades(settlementId))

@@ -47,27 +47,32 @@
 
         <!-- Actions -->
         <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-          <button
-            class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-card-background border border-transparent hover:border-primary-border transition-colors"
-            title="Transfer Parent"
-            @click.stop="emit('transfer-parent', node)"
-          >
-            <ArrowLeftRight class="w-3.5 h-3.5 text-secondary-text" />
-          </button>
-          <button
-            class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-card-background border border-transparent hover:border-primary-border transition-colors"
-            title="Edit IB"
-            @click.stop="emit('edit', node)"
-          >
-            <Pencil class="w-3.5 h-3.5 text-secondary-text" />
-          </button>
-          <button
-            class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-card-background border border-transparent hover:border-primary-border transition-colors"
-            title="Add Sub-IB"
-            @click.stop="emit('add-sub', node.ib_id)"
-          >
-            <Plus class="w-3.5 h-3.5 text-secondary-text" />
-          </button>
+          <Tooltip text="Transfer Parent">
+            <button
+              class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-card-background border border-transparent hover:border-primary-border transition-colors"
+              @click.stop="emit('transfer-parent', node)"
+            >
+              <ArrowLeftRight class="w-3.5 h-3.5 text-secondary-text" />
+            </button>
+          </Tooltip>
+
+          <Tooltip text="Edit IB">
+            <button
+              class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-card-background border border-transparent hover:border-primary-border transition-colors"
+              @click.stop="emit('edit', node)"
+            >
+              <Pencil class="w-3.5 h-3.5 text-secondary-text" />
+            </button>
+          </Tooltip>
+
+          <Tooltip text="Add Sub-IB">
+            <button
+              class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-card-background border border-transparent hover:border-primary-border transition-colors"
+              @click.stop="emit('add-sub', node.ib_id)"
+            >
+              <Plus class="w-3.5 h-3.5 text-secondary-text" />
+            </button>
+          </Tooltip>
         </div>
       </div>
 
@@ -92,6 +97,7 @@
 
 <script setup>
 import { ChevronRight, Minus, Pencil, Plus, ArrowLeftRight } from 'lucide-vue-next'
+import Tooltip from '@/components/common/Tooltip.vue'
 
 defineProps({
   items: { type: Array, default: () => [] },

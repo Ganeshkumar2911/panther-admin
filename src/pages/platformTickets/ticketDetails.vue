@@ -238,16 +238,16 @@ const formatDate = (val) =>
 
 const priorityClass = (p) =>
   ({
-    low: "bg-green-50 text-green-800 border-green-200",
+    low: "bg-primary-green/50 text-green-800 border-green-200",
     medium: "bg-yellow-50 text-yellow-800 border-yellow-200",
-    high: "bg-red-50 text-red-800 border-red-200",
+    high: "bg-primary-red/50 text-red-800 border-red-200",
   })[p] ?? "bg-background text-secondary-text border-primary-border";
 
 const statusClass = (s) =>
   ({
     open: "bg-blue-50 text-blue-800 border-blue-200",
     pending: "bg-yellow-50 text-yellow-800 border-yellow-200",
-    resolved: "bg-green-50 text-green-800 border-green-200",
+    resolved: "bg-primary-green/50 text-green-800 border-green-200",
     closed: "bg-background text-secondary-text border-primary-border",
   })[s] ?? "bg-background text-secondary-text border-primary-border";
 

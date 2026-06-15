@@ -38,12 +38,12 @@
               {{ paymentMethod?.currency_id || '—' }} ({{ paymentMethod?.wallet_type === 1 ? 'Crypto' : 'Fiat' }})
             </p>
           </div>
-          <div class="col-span-2 pt-2 border-t border-primary-border/20">
+          <!-- <div class="col-span-2 pt-2 border-t border-primary-border/20">
             <p class="text-[10px] text-secondary-text uppercase tracking-wider mb-0.5">Confirmed Balance</p>
             <p class="text-sm font-bold text-primary-green">
               {{ formatNum(paymentMethod?.balance_confirmed) }} <span class="text-xs font-normal text-secondary-text">{{ paymentMethod?.currency_id }}</span>
             </p>
-          </div>
+          </div> -->
         </div>
 
         <!-- Validation Error Message -->

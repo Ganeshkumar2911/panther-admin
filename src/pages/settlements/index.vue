@@ -180,9 +180,9 @@ const handlePageChange = (page) => {
 const formatNum = (val) => (val ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 const statusClass = (s) => ({
-  completed: 'bg-green-50 text-green-800 border-green-200',
+  completed: 'bg-primary-green/50 text-green-800 border-green-200',
   pending:   'bg-yellow-50 text-yellow-800 border-yellow-200',
-  failed:    'bg-red-50 text-red-800 border-red-200',
+  failed:    'bg-primary-red/50 text-red-800 border-red-200',
 }[s] ?? 'bg-background text-secondary-text border-primary-border')
 
 const goToTrade = (settlementId) => {

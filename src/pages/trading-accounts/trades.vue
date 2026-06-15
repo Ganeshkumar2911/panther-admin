@@ -38,11 +38,8 @@
             class="text-2xl font-medium"
             :class="
               store.summary.total_pnl >= 0 ? 'text-green-700' : 'text-red-700'
-            "
-          >
-            {{ store.summary.total_pnl >= 0 ? "+" : "" }}${{
-              formatNum(store.summary.total_pnl)
-            }}
+            ">
+            {{ store.summary.total_pnl >= 0 ? "+" : "" }}{{ formatMoney(store.summary.total_pnl) }}
           </p>
         </div>
       </template>
@@ -261,7 +258,7 @@
                 class="text-xs tabular-nums font-medium"
                 :class="pnlValue(trade) >= 0 ? 'text-green-700' : 'text-red-700'"
               >
-                {{ pnlValue(trade) >= 0 ? "+" : "" }}${{ formatNum(pnlValue(trade)) }}
+                {{ pnlValue(trade) >= 0 ? "+" : "" }}{{ formatMoney(pnlValue(trade)) }}
               </span>
             </td>
 
@@ -297,7 +294,7 @@
 </template>
 
 <script setup>
-import { onMounted, watch } from "vue";
+import { onMounted, watch, ref } from "vue";
 import { useRoute } from "vue-router";
 import { BarChart2 } from "lucide-vue-next";
 import { useAccountTradesStore } from "@/stores/tradingAccounts/accountsTrades";
@@ -305,6 +302,7 @@ import Pagination from "@/components/common/Pagination.vue";
 import { livePNL } from '@/utils/livePNL'
 import { useTickerStore } from '@/stores/ws/ticker'
 
+const activeCurrency = ref(localStorage.getItem('active_currency') || 'USD')
 const store = useAccountTradesStore();
 const route = useRoute();
 const accountId = route.params.id;
@@ -342,6 +340,10 @@ const formatNum = (val) =>
     minimumFractionDigits: 2,
     maximumFractionDigits: 5,
   });
+const formatMoney = (amount) => {
+  const num = formatNum(amount)
+  return activeCurrency.value === 'USC' ? `USC ${num}` : `$${num}`
+}
 const formatDate = (val) =>
   new Date(val).toLocaleDateString("en-GB", {
     day: "2-digit",

@@ -45,15 +45,15 @@ const iconClass = {
 const buttonClass = {
   info: 'bg-blue-600 hover:bg-blue-700',
   warning: 'bg-yellow-600 hover:bg-yellow-700',
-  danger: 'bg-red-600 hover:bg-red-700',
-  success: 'bg-green-600 hover:bg-green-700',
+  danger: 'bg-primary-red/600 hover:bg-primary-red/700',
+  success: 'bg-primary-green/600 hover:bg-primary-green/700',
 }
 
 const bgClass = {
   info: 'bg-blue-50',
   warning: 'bg-yellow-50',
-  danger: 'bg-red-50',
-  success: 'bg-green-50',
+  danger: 'bg-primary-red/50',
+  success: 'bg-primary-green/50',
 }
 </script>
 

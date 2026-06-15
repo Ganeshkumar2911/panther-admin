@@ -1,5 +1,6 @@
 <script setup>
 import { ChevronRight, Minus, Pencil, Plus, ArrowLeftRight } from 'lucide-vue-next'
+import Tooltip from '@/components/common/Tooltip.vue'
 
 defineProps({
   nodes: { type: Array, default: () => [] },
@@ -40,30 +41,34 @@ const toggle = (id) => emit('toggle', id)
       </td>
       <td class="px-3 py-3.5 align-middle text-right">
         <div class="flex items-center justify-end gap-1">
+          <Tooltip text="Transfer Parent">
             <button
-            class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-background transition-colors"
-            title="Transfer Parent"
-            @click.stop="emit('transfer-parent', node)"
+              class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-background transition-colors"
+              @click.stop="emit('transfer-parent', node)"
             >
-            <ArrowLeftRight class="w-3.5 h-3.5 text-secondary-text" />
+              <ArrowLeftRight class="w-3.5 h-3.5 text-secondary-text" />
             </button>
+          </Tooltip>
+
+          <Tooltip text="Edit IB">
             <button
-            class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-background transition-colors"
-            title="Edit IB"
-            @click.stop="emit('edit', node)"
+              class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-background transition-colors"
+              @click.stop="emit('edit', node)"
             >
-            <Pencil class="w-3.5 h-3.5 text-secondary-text" />
+              <Pencil class="w-3.5 h-3.5 text-secondary-text" />
             </button>
+          </Tooltip>
+
+          <Tooltip text="Add Sub-IB" position="end">
             <button
-            v-if="node.level === 0"
-            class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-background transition-colors"
-            title="Add Sub-IB"
-            @click.stop="emit('add-sub', node.ib_id)"
+              class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-background transition-colors"
+              @click.stop="emit('add-sub', node.ib_id)"
             >
-            <Plus class="w-3.5 h-3.5 text-secondary-text" />
+              <Plus class="w-3.5 h-3.5 text-secondary-text" />
             </button>
+          </Tooltip>
         </div>
-        </td>
+      </td>
     </tr>
 
     <template v-if="node.children?.length && expanded[node.ib_id]">
