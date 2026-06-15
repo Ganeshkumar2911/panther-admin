@@ -113,11 +113,11 @@ function closeProfileDialog() {
       >
         <div class="w-7 h-7 rounded-full bg-card-background border border-primary-border text-primary flex items-center justify-center">
           <span class="text-xs font-bold">
-            {{ profileStore.user?.name?.charAt(0).toUpperCase() || 'U' }} 
+            {{ profileStore.user?.name?.charAt(0).toUpperCase() || 'S' }} 
           </span>
         </div>
         <span class="hidden text-primary-text sm:block text-xs font-medium">
-          {{ profileStore.user?.name || 'User' }}
+          {{ profileStore.user?.name || 'Super Admin' }}
         </span>
       </div>
 

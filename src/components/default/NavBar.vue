@@ -204,7 +204,7 @@ const isActive = (path) => route.path.startsWith(path)
         <div class="flex items-center" :class="isCollapsed ? 'justify-center' : 'gap-3'">
           <div class="flex items-center min-w-0" :class="isCollapsed ? 'hidden' : 'gap-3'">
             <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-              <span class="text-black text-xs font-bold">{{ store.user?.name?.charAt(0).toUpperCase() }}</span>
+              <span class="text-black text-xs font-bold">{{ store.user?.name?.charAt(0).toUpperCase() || 'S'}}</span>
             </div>
             <div class="min-w-0">
               <p class="text-white text-xs font-semibold truncate">{{ store.user?.name }}</p>

@@ -114,28 +114,37 @@
             <p class="text-[10px] font-mono text-secondary-text mt-0.5 uppercase">ID: {{ record.wallet_id }}</p>
           </div>
 
-          <button
-            class="relative w-9 h-4.5 rounded-full transition-all duration-200 focus:outline-none"
-            :class="record.is_active ? 'bg-primary shadow-lg shadow-primary/20' : 'bg-background border border-primary-border'"
-            :disabled="store.updateLoading && togglingId === record.id"
-            @click="toggleActive(record)"
-          >
-            <span
-              class="absolute top-0.5 left-0.5 w-3.5 h-3.5 rounded-full transition-transform duration-200"
-              :class="[
-                record.is_active ? 'translate-x-4.5 bg-black' : 'translate-x-0 bg-secondary-text',
-                store.updateLoading && togglingId === record.id ? 'opacity-0' : 'opacity-100'
-              ]"
-            />
-            <Loader2
-              v-if="store.updateLoading && togglingId === record.id"
-              class="absolute inset-0 m-auto w-3 h-3 text-secondary-text animate-spin"
-            />
-          </button>
+          <div class="flex items-center gap-3">
+            <button
+              class="w-8 h-8 flex items-center justify-center rounded-xl bg-background border border-primary-border hover:border-primary/40 transition-all hover:shadow-sm group/edit"
+              @click="handleOpenEdit(record)"
+            >
+              <Settings2 class="w-3.5 h-3.5 text-secondary-text group-hover/edit:text-primary transition-colors" />
+            </button>
+
+            <button
+              class="relative w-9 h-4.5 rounded-full transition-all duration-200 focus:outline-none"
+              :class="record.is_active ? 'bg-primary shadow-lg shadow-primary/20' : 'bg-background border border-primary-border'"
+              :disabled="store.updateLoading && togglingId === record.id"
+              @click="toggleActive(record)"
+            >
+              <span
+                class="absolute top-0.5 left-0.5 w-3.5 h-3.5 rounded-full transition-transform duration-200"
+                :class="[
+                  record.is_active ? 'translate-x-4.5 bg-black' : 'translate-x-0 bg-secondary-text',
+                  store.updateLoading && togglingId === record.id ? 'opacity-0' : 'opacity-100'
+                ]"
+              />
+              <Loader2
+                v-if="store.updateLoading && togglingId === record.id"
+                class="absolute inset-0 m-auto w-3 h-3 text-secondary-text animate-spin"
+              />
+            </button>
+          </div>
         </div>
 
         <!-- Balance Section -->
-        <div class="bg-background/50 rounded-2xl p-4 border border-primary-border/50">
+        <!-- <div class="bg-background/50 rounded-2xl p-4 border border-primary-border/50">
           <div class="flex items-center justify-between mb-1">
             <span class="text-[10px] font-semibold uppercase tracking-wider text-secondary-text">Confirmed Balance</span>
             <span
@@ -154,7 +163,7 @@
             <span class="text-[10px] text-secondary-text">Pending:</span>
             <span class="text-[10px] font-semibold text-primary-text">{{ formatNum(record.balance_pending) }}</span>
           </div>
-        </div>
+        </div> -->
 
         <!-- Meta Grid -->
         <div class="grid grid-cols-2 gap-3">
@@ -201,14 +210,22 @@
       />
     </div>
 
+    <!-- Edit Dialog -->
+    <EditPaymentMethodDialog
+      :open="isEditDialogOpen"
+      :paymentMethod="selectedPaymentMethod"
+      @close="isEditDialogOpen = false"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { onMounted, ref, computed, nextTick } from 'vue'
-import { RefreshCw, Wallet, Pencil, Check, X, Loader2 } from 'lucide-vue-next'
+import { RefreshCw, Wallet, Pencil, Check, X, Loader2, Settings2 } from 'lucide-vue-next'
 import { usePaymentMethodsStore } from '@/stores/paymentMethods/paymentMethods'
 import Pagination from '@/components/common/Pagination.vue'
+import EditPaymentMethodDialog from '@/components/paymentMethods/EditPaymentMethodDialog.vue'
 
 const store = usePaymentMethodsStore()
 
@@ -220,6 +237,15 @@ const labelInput   = ref(null)
 
 // ── Toggle state ──
 const togglingId = ref(null)
+
+// ── Edit Dialog state ──
+const isEditDialogOpen = ref(false)
+const selectedPaymentMethod = ref(null)
+
+const handleOpenEdit = (record) => {
+  selectedPaymentMethod.value = record
+  isEditDialogOpen.value = true
+}
 
 // ── Computed summary ──
 const activeCount     = computed(() => store.records.filter(r => r.is_active).length)

@@ -471,7 +471,7 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
               {{ formatMoney(acc.balance, acc.broker_currency ?? acc.currency) }}
             </td>
 
-            <td class="px-3 py-4">
+            <td class="px-3 py-4 text-nowrap">
               <span
                 class="text-xs tabular-nums"
                 :class="Number(acc.pnl ?? 0) >= 0 ? 'text-green-700' : 'text-red-700'"
