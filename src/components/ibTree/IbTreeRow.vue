@@ -1,5 +1,5 @@
 <script setup>
-import { ChevronRight, Minus, Pencil, Plus, ArrowLeftRight } from 'lucide-vue-next'
+import { ChevronRight, Minus, Pencil, Plus, ArrowLeftRight, Users } from 'lucide-vue-next'
 import Tooltip from '@/components/common/Tooltip.vue'
 
 defineProps({
@@ -7,7 +7,7 @@ defineProps({
   expanded: { type: Object, default: () => ({}) },
 })
 
-const emit = defineEmits(['toggle', 'add-sub', 'edit', 'transfer-parent'])
+const emit = defineEmits(['toggle', 'add-sub', 'edit', 'transfer-parent', 'view-clients'])
 
 const toggle = (id) => emit('toggle', id)
 </script>
@@ -41,6 +41,15 @@ const toggle = (id) => emit('toggle', id)
       </td>
       <td class="px-3 py-3.5 align-middle text-right">
         <div class="flex items-center justify-end gap-1">
+          <Tooltip text="View Clients">
+            <button
+              class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-background transition-colors"
+              @click="$router.push(`/ib-clients/${node.ib_id}`)"
+            >
+              <Users class="w-3.5 h-3.5 text-secondary-text" />
+            </button>
+          </Tooltip>
+
           <Tooltip text="Transfer Parent">
             <button
               class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-background transition-colors"
@@ -79,6 +88,7 @@ const toggle = (id) => emit('toggle', id)
         @add-sub="emit('add-sub', $event)"
         @edit="emit('edit', $event)"
         @transfer-parent="emit('transfer-parent', $event)"
+        @view-clients="emit('view-clients', $event)"
         />
     </template>
   </template>

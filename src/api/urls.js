@@ -51,6 +51,7 @@ const urls = {
     update: '/ib/update',
     delete: '/ib/delete',
     transfer: '/ib-transfer',
+    clients: '/ibs/clients/',
   },
   fm: {
     list: '/fund_managers',

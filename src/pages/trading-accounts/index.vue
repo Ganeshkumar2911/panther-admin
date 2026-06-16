@@ -280,7 +280,7 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
 
 
     <!-- Table -->
-    <div class="w-full border border-primary-border rounded-lg overflow-x-auto no-scrollbar">
+    <div class="w-full border border-primary-border rounded-lg overflow-x-auto">
       <table class="w-full border-collapse">
         <thead>
           <tr class="border-b border-primary-border">

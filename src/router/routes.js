@@ -192,6 +192,17 @@ const routes = [
                 }
             },
             {
+                path: '/ib-clients/:id',
+                name: 'ib-clients',
+                component: () => import('@/pages/ib-tree/clients.vue'),
+                meta: {
+                    requiresAuth: true,
+                    title: 'IB Clients',
+                    description: 'View and manage IB clients.',
+                    showBackButton: true,
+                }
+            },
+            {
                 path: '/tickets',
                 name: 'tickets',
                 component: () => import('@/pages/tickets/index.vue'),
