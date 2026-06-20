@@ -21,6 +21,7 @@ const toggle = (id) => emit('toggle', id)
       ]"
       @click="toggle(node.ib_id)"
     >
+      <!-- <td class="px-3 py-3.5 align-middle text-xs text-primary-text">{{ node.ib_id || '-' }}</td> -->
       <td class="px-3 py-3.5 align-middle" :style="{ paddingLeft: `${16 + node.level * 24}px` }">
         <div class="flex items-center gap-2">
           <ChevronRight
@@ -29,7 +30,16 @@ const toggle = (id) => emit('toggle', id)
             :class="{ 'rotate-90': expanded[node.ib_id] }"
           />
           <Minus v-else class="w-3 h-3 text-secondary-text opacity-30 shrink-0" />
-          <span class="text-xs text-primary-text">{{ node.name }}</span>
+          <!-- <span class="text-xs text-primary-text">ID: {{ node.ib_id }}</span> -->
+          <span class="text-xs text-primary-text">{{ node.ib_id }}</span>
+        </div>
+      </td>
+      <td class="px-3 py-3.5 align-middle text-xs text-primary-text">
+        <div>
+          {{ node.name || '-' }}
+        </div>
+        <div>
+          {{ node.email || '-' }}
         </div>
       </td>
       <td class="px-3 py-3.5 align-middle text-xs text-primary-text">{{ node.referral_code || '-' }}</td>

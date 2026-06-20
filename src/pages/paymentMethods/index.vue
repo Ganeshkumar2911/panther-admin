@@ -9,7 +9,7 @@
       </div> -->
       <button
         :disabled="store.syncLoading"
-        class="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-black text-xs font-semibold transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed shadow-lg shadow-primary/20"
+        class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
         @click="store.syncWallets()"
       >
         <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': store.syncLoading }" />

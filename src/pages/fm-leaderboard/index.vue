@@ -11,7 +11,11 @@
 
     <!-- Skeleton -->
     <div v-if="store.isLoading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div v-for="n in 3" :key="n" class="bg-card-background border border-primary-border rounded-2xl overflow-hidden animate-pulse">
+      <div
+        v-for="n in 3"
+        :key="n"
+        class="bg-card-background border border-primary-border rounded-2xl overflow-hidden animate-pulse"
+      >
         <div class="flex items-center justify-between px-4 py-3.5">
           <div class="flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-background" />
@@ -28,90 +32,121 @@
       </div>
     </div>
 
-    <!-- Cards -->
-    <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div
-        v-for="(item, index) in store.data"
-        :key="item.id"
-        class="bg-card-background border border-primary-border rounded-2xl overflow-hidden"
+    <!-- Cards / Empty state -->
+    <div v-else>
+    <div
+      v-if="!store.data || store.data.length === 0"
+      class="flex flex-col items-center justify-center rounded-lg border border-dashed border-primary-border bg-muted/30 py-16 px-4 text-center"
+    >
+      <div class="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-background border border-primary-border shadow-sm mb-5">
+        <UserRoundPlus class="text-primary-text" />
+      </div>
+
+      <h3 class="text-base font-semibold text-primary-text mb-1">No fund managers found</h3>
+      <p class="max-w-xs text-sm text-secondary-text mb-6">
+        Get started by adding your first fund manager to monitor performance and allocations.
+      </p>
+
+      <button 
+        @click="handleAdd"
+        class="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-white shadow"
       >
-        <!-- Header -->
+        <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+        </svg>
+        Add Fund Manager
+      </button>
+    </div>
+
+      <div
+        v-else
+        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+      >
         <div
-          class="flex items-center justify-between px-4 py-3.5 cursor-pointer hover:bg-background transition-colors"
-          @click="toggleCard(item.id)"
+          v-for="(item, index) in store.data"
+          :key="item.id"
+          class="bg-card-background border border-primary-border rounded-2xl overflow-hidden"
         >
-          <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-xs font-medium shrink-0">
-              {{ index + 1 }}
+          <!-- Header -->
+          <div
+            class="flex items-center justify-between px-4 py-3.5 cursor-pointer hover:bg-background transition-colors"
+            @click="toggleCard(item.id)"
+          >
+            <div class="flex items-center gap-2.5">
+              <div
+                class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-xs font-medium shrink-0"
+              >
+                {{ index + 1 }}
+              </div>
+              <span class="text-sm font-medium text-primary-text">{{ item.label_name ?? 'Unnamed' }}</span>
             </div>
-            <span class="text-sm font-medium text-primary-text">{{ item.label_name ?? 'Unnamed' }}</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="text-[11px] text-secondary-text bg-background border border-primary-border px-2 py-0.5 rounded-full">#{{ item.id }}</span>
-          </div>
-        </div>
-
-        <!-- Metrics row -->
-        <div class="grid grid-cols-5 border-t border-primary-border divide-x divide-primary-border">
-          <div class="px-3 py-3">
-            <p class="text-[10px] uppercase tracking-wide text-secondary-text mb-1">Broker</p>
-            <p class="text-base font-medium text-primary-text">{{ item.broker_share }}%</p>
-          </div>
-          <div class="px-3 py-3">
-            <p class="text-[10px] uppercase tracking-wide text-secondary-text mb-1">FM</p>
-            <p class="text-base font-medium text-primary-text">{{ item.fm_share }}%</p>
-          </div>
-          <div class="px-3 py-3">
-            <p class="text-[10px] uppercase tracking-wide text-secondary-text mb-1">Perf.</p>
-            <p class="text-base font-medium text-primary-text">{{ item.performance_fee }}%</p>
-          </div>
-          <div class="px-3 py-3">
-            <p class="text-[10px] uppercase tracking-wide text-secondary-text mb-1">IB Pool</p>
-            <p class="text-base font-medium text-primary-text">{{ item.ib_pool_percentage }}%</p>
-          </div>
-          <div class="px-3 py-3">
-            <p class="text-[10px] uppercase tracking-wide text-secondary-text mb-1">Min Cap.</p>
-            <p class="text-base font-medium text-primary-text">{{ formatMoney(item.min_capital) }}</p>
-          </div>
-        </div>
-
-        <!-- Expanded -->
-        <div class="border-t border-primary-border">
-          <div class="flex items-center justify-between px-4 py-2.5 border-b border-primary-border">
-            <span class="text-xs text-secondary-text">Settlement</span>
-            <span class="text-xs font-medium text-primary-text capitalize">{{ item.settlement }} · {{ item.settlement_time }}</span>
-          </div>
-          <div class="flex items-center justify-between px-4 py-2.5 border-b border-primary-border">
-            <span class="text-xs text-secondary-text">Status</span>
-            <span
-              class="text-[10px] font-medium px-2 py-0.5 rounded-full border"
-              :class="item.is_active
-                ? 'bg-primary-green/50 border-green-200'
-                : 'bg-background text-secondary-text border-primary-border'"
-            >
-              {{ item.is_active ? 'Active' : 'Inactive' }}
-            </span>
-          </div>
-          <div class="flex items-center justify-between px-4 py-2.5 border-b border-primary-border">
-            <span class="text-xs text-secondary-text">Created</span>
-            <div class="flex items-center gap-1.5">
-              <CalendarDays class="w-3 h-3 text-secondary-text" />
-              <span class="text-xs text-primary-text">{{ formatDate(item.created_at) }}</span>
+            <div class="flex items-center gap-2">
+              <span class="text-[11px] text-secondary-text bg-background border border-primary-border px-2 py-0.5 rounded-full">#{{ item.id }}</span>
             </div>
           </div>
-          <div class="flex justify-end px-4 py-2.5">
-            <button
-              class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-medium transition-colors mr-2"
-              @click.stop="handleSettlement(item)"
-            >
-              Settlement
-            </button>
-            <button
-              class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-medium transition-colors"
-              @click="handleEdit(item)"
-            >
-              <Edit class="w-3 h-3" /> Edit
-            </button>
+
+          <!-- Metrics row -->
+          <div class="grid grid-cols-5 border-t border-primary-border divide-x divide-primary-border">
+            <div class="px-3 py-3">
+              <p class="text-[10px] uppercase tracking-wide text-secondary-text mb-1">Broker</p>
+              <p class="text-base font-medium text-primary-text">{{ item.broker_share }}%</p>
+            </div>
+            <div class="px-3 py-3">
+              <p class="text-[10px] uppercase tracking-wide text-secondary-text mb-1">FM</p>
+              <p class="text-base font-medium text-primary-text">{{ item.fm_share }}%</p>
+            </div>
+            <div class="px-3 py-3">
+              <p class="text-[10px] uppercase tracking-wide text-secondary-text mb-1">Perf.</p>
+              <p class="text-base font-medium text-primary-text">{{ item.performance_fee }}%</p>
+            </div>
+            <div class="px-3 py-3">
+              <p class="text-[10px] uppercase tracking-wide text-secondary-text mb-1">IB Pool</p>
+              <p class="text-base font-medium text-primary-text">{{ item.ib_pool_percentage }}%</p>
+            </div>
+            <div class="px-3 py-3">
+              <p class="text-[10px] uppercase tracking-wide text-secondary-text mb-1">Min Cap.</p>
+              <p class="text-base font-medium text-primary-text">{{ formatMoney(item.min_capital) }}</p>
+            </div>
+          </div>
+
+          <!-- Expanded -->
+          <div class="border-t border-primary-border">
+            <div class="flex items-center justify-between px-4 py-2.5 border-b border-primary-border">
+              <span class="text-xs text-secondary-text">Settlement</span>
+              <span class="text-xs font-medium text-primary-text capitalize">{{ item.settlement }} · {{ item.settlement_time }}</span>
+            </div>
+            <div class="flex items-center justify-between px-4 py-2.5 border-b border-primary-border">
+              <span class="text-xs text-secondary-text">Status</span>
+              <span
+                class="text-[10px] font-medium px-2 py-0.5 rounded-full border"
+                :class="item.is_active
+                  ? 'bg-primary-green/50 border-green-200'
+                  : 'bg-background text-secondary-text border-primary-border'"
+              >
+                {{ item.is_active ? 'Active' : 'Inactive' }}
+              </span>
+            </div>
+            <div class="flex items-center justify-between px-4 py-2.5 border-b border-primary-border">
+              <span class="text-xs text-secondary-text">Created</span>
+              <div class="flex items-center gap-1.5">
+                <CalendarDays class="w-3 h-3 text-secondary-text" />
+                <span class="text-xs text-primary-text">{{ formatDate(item.created_at) }}</span>
+              </div>
+            </div>
+            <div class="flex justify-end px-4 py-2.5">
+              <button
+                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-medium transition-colors mr-2"
+                @click.stop="handleSettlement(item)"
+              >
+                Settlement
+              </button>
+              <button
+                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-medium transition-colors"
+                @click="handleEdit(item)"
+              >
+                <Edit class="w-3 h-3" /> Edit
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -138,7 +173,7 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { CalendarDays, Edit, Plus, ChevronDown } from 'lucide-vue-next'
+import { CalendarDays, Edit, Plus, ChevronDown, UserRoundPlus } from 'lucide-vue-next'
 import { useFmLeaderboardStore } from '@/stores/fmLeaderboard/fmLeaderboard'
 import Pagination from '@/components/common/Pagination.vue'
 import AddEditFundManager from '@/components/fundManager/AddEditFundManager.vue'
@@ -149,6 +184,7 @@ const dialogMode = ref('add')
 const selectedItem = ref(null)
 const router = useRouter()
 
+const toggleCard = () => {}
 
 const formatDate = (val) => new Date(val).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
 const formatMoney = (val) => {
@@ -158,8 +194,16 @@ const formatMoney = (val) => {
   return num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })
 }
 
-const handleAdd = () => { dialogMode.value = 'add'; selectedItem.value = null; dialogOpen.value = true }
-const handleEdit = (item) => { dialogMode.value = 'edit'; selectedItem.value = item; dialogOpen.value = true }
+const handleAdd = () => {
+  dialogMode.value = 'add'
+  selectedItem.value = null
+  dialogOpen.value = true
+}
+const handleEdit = (item) => {
+  dialogMode.value = 'edit'
+  selectedItem.value = item
+  dialogOpen.value = true
+}
 
 const handlePageChange = (page) => {
   store.pagination.page = page
@@ -171,5 +215,8 @@ const handleSettlement = (item) => {
   router.push({ name: 'fm-settlement-preview', params: { id: item.id } })
 }
 
-onMounted(() => { store.fetchFmLeaderboard() })
+onMounted(() => {
+  store.fetchFmLeaderboard()
+})
 </script>
+

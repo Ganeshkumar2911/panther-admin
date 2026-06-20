@@ -158,7 +158,7 @@ onMounted(() => store.fetchClients())
           >
             <td class="p-3">
               <div class="flex items-center gap-2.5">
-                <div class="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-[10px] font-medium text-black shrink-0">
+                <div class="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-[10px] font-medium text-white shrink-0">
                   {{ client.name?.charAt(0).toUpperCase() }}
                 </div>
                 <div>
@@ -170,7 +170,9 @@ onMounted(() => store.fetchClients())
 
             <td class="p-3">
               <p class="text-xs text-primary-text">{{ client.ib_name ?? '—' }}</p>
-              <p class="text-[11px] text-secondary-text">{{ client.ib_referral_code ?? '' }}</p>
+              <p class="text-xs text-primary-text">{{ client.ib_email ?? '—' }}</p>
+              <p class="text-[11px] text-secondary-text">Ref. {{ client.ib_referral_code ?? '' }}</p>
+              <p class="text-[11px] text-secondary-text">ID: {{ client.ib_id ?? '' }}</p>
             </td>
 
             <td class="p-3 text-xs text-primary-text tabular-nums">${{ formatNum(client.total_balance) }}</td>

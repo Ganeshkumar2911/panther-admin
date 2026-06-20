@@ -21,7 +21,7 @@ const tabs = [
 
 const tradingTypeFilters = [
   { label: 'All', value: 'all' },
-  { label: 'Real', value: 'real' },
+  { label: 'MT5', value: 'real' },
   { label: 'Copy Trading', value: 'copy_trading' },
 ]
 
@@ -95,7 +95,7 @@ const onSearch = () => {
     store.setFilters({
       search_query: store.filters.search_query,
     })
-  }, 400)
+  }, 1000)
 }
 
 const openChangePassword = (acc) => {
@@ -202,7 +202,7 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
           <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-1">Total Accounts</p>
           <p class="text-2xl font-medium text-primary-text">{{ store.summary.total_accounts ?? 0 }}</p>
         </div>
-        <div class="bg-card-background border border-primary-border rounded-xl p-4">
+        <!-- <div class="bg-card-background border border-primary-border rounded-xl p-4">
           <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-1">Total Balance</p>
           <p class="text-2xl font-medium text-primary-text">${{ formatNum(store.summary.total_balance) }}</p>
         </div>
@@ -211,7 +211,7 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
           <p class="text-2xl font-medium" :class="store.summary.total_pnl >= 0 ? 'text-green-700' : 'text-red-700'">
             {{ store.summary.total_pnl >= 0 ? '+' : '' }}${{ formatNum(store.summary.total_pnl) }}
           </p>
-        </div>
+        </div> -->
       </template>
     </div>
     <!-- Filters -->
@@ -222,7 +222,7 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
           :key="tab.value"
           type="button"
           class="px-4 py-1.5 rounded-md text-xs font-medium transition-colors"
-          :class="activeTab === tab.value ? 'bg-primary text-black' : 'text-secondary-text hover:text-primary-text'"
+          :class="activeTab === tab.value ? 'bg-primary text-white' : 'text-secondary-text hover:text-primary-text'"
           @click="switchTab(tab.value)"
         >
           {{ tab.label }}
@@ -237,7 +237,7 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
           class="px-4 py-1.5 rounded-md text-xs font-medium transition-colors"
           :class="
             activeTradingType === filter.value
-              ? 'bg-primary text-black'
+              ? 'bg-primary text-white'
               : 'text-secondary-text hover:text-primary-text'
           "
           @click="setTradingType(filter.value)"
@@ -257,7 +257,7 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
           class="px-4 py-1.5 rounded-md text-xs font-medium transition-colors"
           :class="
             activeAccountType === filter.value
-              ? 'bg-primary text-black'
+              ? 'bg-primary text-white'
               : 'text-secondary-text hover:text-primary-text'
           "
           @click="setAccountType(filter.value)"
@@ -297,6 +297,8 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
                 'Currency',
                 'Leverage',
                 'Balance',
+                'Equity',
+                'Credit',
                 'PnL',
                 'Status',
                 'Created',
@@ -480,6 +482,12 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
 
             <td class="px-3 py-4 text-xs text-primary-text tabular-nums">
               {{ formatMoney(acc.balance, acc.broker_currency ?? acc.currency) }}
+            </td>
+            <td class="px-3 py-4 text-xs text-primary-text tabular-nums">
+              {{ formatMoney(acc.equity, acc.broker_currency ?? acc.currency) }}
+            </td>
+            <td class="px-3 py-4 text-xs text-primary-text tabular-nums">
+              {{ formatMoney(acc.credit, acc.broker_currency ?? acc.currency) }}
             </td>
 
             <td class="px-3 py-4 text-nowrap">

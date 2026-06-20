@@ -4,7 +4,7 @@
     <!-- Header -->
     <div class="flex flex-wrap items-center justify-end gap-3 mb-6">
       <button
-        class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-black text-xs font-semibold transition-colors"
+        class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-colors"
         @click="dialogOpen = true"
       >
         <FolderPlus class="w-3.5 h-3.5" /> Create Category

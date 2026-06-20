@@ -10,7 +10,7 @@
       <button
         v-if="!hasMessage"
         :disabled="store.runLoading || store.loading"
-        class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-black text-xs font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+        class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
         @click="confirmOpen = true"
       >
         <Loader2 v-if="store.runLoading" class="w-3.5 h-3.5 animate-spin" />

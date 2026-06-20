@@ -57,6 +57,7 @@
       <table class="w-full border-collapse">
         <thead>
           <tr class="border-b border-primary-border">
+            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest pb-3 px-3">IB ID</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest pb-3 px-3">IB Name</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest pb-3 px-3">Referral Code</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest pb-3 px-3">Split</th>

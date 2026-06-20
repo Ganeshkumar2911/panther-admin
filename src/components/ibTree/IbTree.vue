@@ -27,9 +27,11 @@
         <div class="flex-1 min-w-0">
           <p class="text-sm font-medium text-primary-text truncate">{{ node.name }}</p>
           <div class="flex items-center gap-2 mt-0.5">
-            <span class="text-[10px] text-secondary-text">{{ node.referral_code || 'No referral' }}</span>
+            <span class="text-[10px] text-secondary-text">Ref: {{ node.referral_code || 'No referral' }}</span>
             <span class="text-[10px] text-secondary-text opacity-40">·</span>
             <span class="text-[10px] text-secondary-text">{{ node.children?.length ?? 0 }} sub-IB{{ node.children?.length !== 1 ? 's' : '' }}</span>
+            <span class="text-[10px] text-secondary-text opacity-40">·</span>
+            <span class="text-[10px] text-secondary-text">ID: {{ node.ib_id || '-' }}</span>
           </div>
         </div>
 

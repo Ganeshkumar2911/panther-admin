@@ -9,7 +9,7 @@
         :class="[
           'px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200',
           activeTab === tab.id
-            ? 'bg-primary text-black'
+            ? 'bg-primary text-white'
             : 'bg-card-background border border-primary-border text-primary-text hover:border-primary/50'
         ]"
       >
@@ -79,7 +79,7 @@
         </div>
 
         <button
-          class="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-primary hover:bg-primary-hover text-black text-xs font-medium transition-colors xl:flex-none"
+          class="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-medium transition-colors xl:flex-none"
           @click="dialogOpen = true"
         >
           <Plus class="w-3.5 h-3.5" /> New Ticket

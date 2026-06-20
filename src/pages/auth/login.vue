@@ -6,7 +6,7 @@ import apiRequest from '@/api/request'
 import authToken from '@/common/authToken'
 import urls from '@/api/urls'
 import { useRouter } from 'vue-router'
-import logo from '@/assets/logo.png'
+import logo from '@/assets/logo_dark.svg'
 
 const router = useRouter()
 const snackbar = useSnackbarStore()

@@ -4,66 +4,57 @@
 
 @theme {
     /* Core */
-    --color-background: #EFE1D1;
+    --color-background: #f5f7fb;
     --color-card-background: #ffffff;
 
     /* Primary */
-    --color-primary: #A78295;
-    --color-primary-hover: #8e6b7f;
+    --color-primary: #021a6c;
+    --color-primary-hover: #16308d;
 
     /* Secondary */
-    --color-secondary: #331D2C;
+    --color-secondary: #111827;
 
     /* Navbar */
-    --color-navbar: #331D2C;
+    --color-navbar: #111827;
 
     /* Text */
-    --color-primary-text: #331D2C;
-    --color-secondary-text: #6e5a66;
+    --color-primary-text: #111827;
+    --color-secondary-text: #6b7280;
 
     /* Border */
-    --color-primary-border: #e4d3c5;
+    --color-primary-border: #e5e7eb;
 
     /* Accent */
-    --color-accent: #3F2E3E;
+    --color-accent: #14b8a6;
 
     /* Status */
     --color-primary-green: #22c55e;
-    --color-primary-yellow: #eab308;
+    --color-primary-yellow: #f59e0b;
     --color-primary-red: #ef4444;
     --color-primary-blue: #3b82f6;
 }
 
 .dark {
-    /* Core */
-    --color-background: #140f13;
-    --color-card-background: #1f1720;
+    --color-background: #0f172a;
+    --color-card-background: #1e293b;
 
-    /* Primary */
-    --color-primary: #A78295;
-    --color-primary-hover: #c19bad;
+    --color-primary: #3b82f6;
+    --color-primary-hover: #60a5fa;
 
-    /* Secondary */
-    --color-secondary: #d8c7d0;
+    --color-secondary: #f8fafc;
+    --color-navbar: #020617;
 
-    /* Navbar */
-    --color-navbar: #000000;
+    --color-primary-text: #f8fafc;
+    --color-secondary-text: #94a3b8;
 
-    /* Text */
-    --color-primary-text: #f5edf1;
-    --color-secondary-text: #b6a6af;
+    --color-primary-border: #334155;
 
-    /* Border */
-    --color-primary-border: #2a1f28;
+    --color-accent: #14b8a6;
 
-    /* Accent */
-    --color-accent: #3F2E3E;
-
-    /* Status */
     --color-primary-green: #22c55e;
-    --color-primary-yellow: #eab308;
+    --color-primary-yellow: #f59e0b;
     --color-primary-red: #ef4444;
-    --color-primary-blue: #3b82f6;
+    --color-primary-blue: #60a5fa;
 }
 
 body{

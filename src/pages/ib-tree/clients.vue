@@ -15,7 +15,7 @@
     <div v-else class="bg-card-background border border-primary-border rounded-2xl p-5 mb-6">
       <div class="flex flex-wrap items-center justify-between gap-4">
         <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-base font-bold text-black shrink-0">
+          <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold shrink-0">
             {{ store.ib?.name?.charAt(0)?.toUpperCase() ?? 'I' }}
           </div>
           <div>

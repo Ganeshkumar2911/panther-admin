@@ -152,16 +152,13 @@ const isActive = (path) => route.path.startsWith(path)
     <!-- Header -->
     <div class="h-[60px] flex items-center justify-between px-4 border-b border-white/10">
       <div v-if="!isCollapsed" class="flex items-center gap-2.5">
-        <div class="w-7 h-7 rounded-lg flex items-center justify-center">
-         <img class="rounded-full" src="/logo.png" alt="Logo">
+        <div class="w-48 h-28 rounded-lg flex items-center justify-center">
+         <img class="rounded-full" src="/logo_full.svg" alt="Logo">
         </div>
-        <span class="text-white font-semibold text-sm">
-          Welcome
-        </span>
       </div>
       <div v-else class="flex items-center justify-center w-full">
         <div class="w-7 h-7 rounded-lg flex items-center justify-center">
-         <img class="rounded-full" src="/logo.png" alt="Logo">
+         <img class="rounded-full" src="/logo.svg" alt="Logo">
         </div>
       </div>
     </div>
@@ -204,11 +201,11 @@ const isActive = (path) => route.path.startsWith(path)
         <div class="flex items-center" :class="isCollapsed ? 'justify-center' : 'gap-3'">
           <div class="flex items-center min-w-0" :class="isCollapsed ? 'hidden' : 'gap-3'">
             <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-              <span class="text-black text-xs font-bold">{{ store.user?.name?.charAt(0).toUpperCase() || 'S'}}</span>
+              <span class="text-white text-xs font-bold">{{ store.user?.name?.charAt(0).toUpperCase() || 'S'}}</span>
             </div>
             <div class="min-w-0">
               <p class="text-white text-xs font-semibold truncate">{{ store.user?.name }}</p>
-              <p class="text-white/60 text-[11px] capitalize truncate">{{ store.user?.role }}</p>
+              <p class="text-white text-[11px] capitalize truncate">{{ store.user?.role }}</p>
             </div>
           </div>
 
