@@ -2,7 +2,7 @@ import { io } from "socket.io-client";
 
 class MatrixTicker {
   constructor({ token, reconnect = true, max_retry = 50, max_delay = 60 }) {
-    this.root = "https://w2llv2cm-5000.inc1.devtunnels.ms/";
+    this.root = "https://848ncvt5-2504.euw.devtunnels.ms/";
     this.token = token;
 
     this.auto_reconnect = reconnect;
