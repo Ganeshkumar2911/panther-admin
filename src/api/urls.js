@@ -111,6 +111,7 @@ const urls = {
     details: '/email-templates',
     create: '/email-templates',
     update: '/email-templates',
+    manual: '/emails/manual/send'
   }
 }
 

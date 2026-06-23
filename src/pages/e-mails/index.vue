@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 
 import EmailSettings from './EmailSettings.vue'
 import EmailTemplates from './EmailTemplates.vue'
-import EmailTriggerRules from './EmailTriggerRules.vue'
+// import EmailTriggerRules from './EmailTriggerRules.vue'
 
 const activeTab = ref('settings')
 
@@ -16,10 +16,10 @@ const tabs = [
     label: 'Email Templates',
     value: 'templates',
   },
-  {
-    label: 'Email Trigger Rules',
-    value: 'trigger-rules',
-  },
+  // {
+  //   label: 'Email Trigger Rules',
+  //   value: 'trigger-rules',
+  // },
 ]
 
 const activeComponent = computed(() => {

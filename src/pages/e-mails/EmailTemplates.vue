@@ -7,12 +7,20 @@
         <h1 class="text-2xl font-bold text-primary-text">Email Templates</h1>
         <p class="text-xs text-secondary-text mt-0.5">Manage transactional and marketing email templates</p>
       </div>
-      <button
-        class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-colors"
-        @click="openCreate"
-      >
-        <Plus class="w-3.5 h-3.5" /> Create Template
-      </button>
+      <div class="flex items-center gap-2">
+        <button
+          class="flex items-center gap-1.5 px-4 py-2 rounded-lg border border-primary-border text-xs text-secondary-text hover:text-primary-text hover:bg-background transition-colors"
+          @click="openTriggerPanel"
+        >
+          <Send class="w-3.5 h-3.5" /> Manual Trigger
+        </button>
+        <button
+          class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-colors"
+          @click="openCreate"
+        >
+          <Plus class="w-3.5 h-3.5" /> Create Template
+        </button>
+      </div>
     </div>
 
     <!-- Filters -->
@@ -146,12 +154,18 @@
       />
     </div>
 
-    <!-- Side Panel -->
+    <!-- Template Form Side Panel -->
     <EmailTemplateFormPanel
       :open="panel.open"
       :edit-data="panel.editData"
       @close="panel.open = false"
       @preview="(tpl) => { previewTemplate = tpl; previewOpen = true }"
+    />
+
+    <!-- Trigger Side Panel -->
+    <EmailTriggerPanel
+      :open="triggerPanelOpen"
+      @close="triggerPanelOpen = false"
     />
 
     <!-- Preview Dialog -->
@@ -165,21 +179,24 @@
 
 <script setup>
 import { onMounted, ref } from 'vue'
-import { Plus, Search, Eye, Pencil, Mail } from 'lucide-vue-next'
+import { Plus, Search, Eye, Pencil, Mail, Send } from 'lucide-vue-next'
 import { useEmailTemplatesStore } from '@/stores/emails/emailTemplates'
 import Pagination from '@/components/common/Pagination.vue'
 import EmailTemplateFormPanel from '@/components/emails/EmailTemplateFormPanel.vue'
 import EmailTemplatePreviewDialog from '@/components/emails/EmailTemplatePreviewDialog.vue'
+import EmailTriggerPanel from '@/components/emails/EmailTriggerPanel.vue'
 
 const store = useEmailTemplatesStore()
 
 const panel = ref({ open: false, editData: null })
+const triggerPanelOpen = ref(false)
 const previewOpen     = ref(false)
 const previewTemplate = ref(null)
 
 const openCreate = () => { panel.value = { open: true, editData: null } }
 const openEdit   = (tpl) => { panel.value = { open: true, editData: tpl } }
 const openPreview = (tpl) => { previewTemplate.value = tpl; previewOpen.value = true }
+const openTriggerPanel = () => { triggerPanelOpen.value = true }
 
 let searchTimer = null
 const onSearch = () => {

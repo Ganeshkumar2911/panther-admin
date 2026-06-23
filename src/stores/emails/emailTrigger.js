@@ -75,9 +75,9 @@ export const useEmailTriggerStore = defineStore(
 
       const successHandler = (res) => {
         templateOptions.value = (res?.data || []).map(template => ({
-          label: `${template.name} (${template.code})`,
-          value: template.code,
-          template,
+          label: template.name,
+          value: template.id,
+          ...template,
         }))
 
         searchTemplatesLoading.value = false
@@ -175,7 +175,7 @@ export const useEmailTriggerStore = defineStore(
       sendLoading.value = true
 
       const payload = {
-        email: selectedRecipients.value.map(item => item.email),
+        emails: selectedRecipients.value.map(item => item.email),
 
         template_code: selectedTemplate.value.code,
 
@@ -190,6 +190,10 @@ export const useEmailTriggerStore = defineStore(
           res?.message || 'Email sent successfully.',
           'success'
         )
+
+        if (onSuccessCallback) {
+          onSuccessCallback()
+        }
       }
 
       const failureHandler = (err) => {
@@ -205,7 +209,7 @@ export const useEmailTriggerStore = defineStore(
 
       apiRequest(
         urls.KEYS.POST,
-        urls.emailTrigger.template,
+        urls.emailTemplates.manual,
         {
           data: payload,
 
@@ -241,7 +245,7 @@ export const useEmailTriggerStore = defineStore(
       sendLoading.value = true
 
       const payload = {
-        email: selectedRecipients.value.map(item => item.email),
+        emails: selectedRecipients.value.map(item => item.email),
 
         subject: customEmail.subject,
 
@@ -259,6 +263,10 @@ export const useEmailTriggerStore = defineStore(
           res?.message || 'Email sent successfully.',
           'success'
         )
+
+        if (onSuccessCallback) {
+          onSuccessCallback()
+        }
       }
 
       const failureHandler = (err) => {
@@ -274,7 +282,7 @@ export const useEmailTriggerStore = defineStore(
 
       apiRequest(
         urls.KEYS.POST,
-        urls.emailTrigger.custom,
+        urls.emailTemplates.manual,
         {
           data: payload,
 
@@ -319,6 +327,16 @@ export const useEmailTriggerStore = defineStore(
       })
     }
 
+    // ─────────────────────────────────────
+    // Success Callback
+    // ─────────────────────────────────────
+
+    let onSuccessCallback = null
+
+    const setOnSuccessCallback = (callback) => {
+      onSuccessCallback = callback
+    }
+
     return {
       loading,
       sendLoading,
@@ -345,6 +363,8 @@ export const useEmailTriggerStore = defineStore(
       sendCustomEmail,
 
       reset,
+
+      setOnSuccessCallback,
     }
   }
 )

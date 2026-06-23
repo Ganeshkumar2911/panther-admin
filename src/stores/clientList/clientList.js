@@ -101,7 +101,7 @@ export const useClientListStore = defineStore('clientList', () => {
             ib.email ??
             `IB ${ib.ib_id ?? ib.id}`,
 
-          value: ib.ib_id ?? ib.id ?? ib.user_id,
+          value: ib.user_id ?? ib.ib_id ?? ib.id,
 
           email: ib.email,
         }))

@@ -20,7 +20,7 @@
       <!-- Recipients -->
       <div>
         <p class="text-xs text-secondary-text mb-1.5">Recipients</p>
-        <div class="border border-primary-border rounded-xl bg-background min-h-[44px] px-3 py-2 flex flex-wrap gap-1.5">
+        <div class="border border-primary-border rounded-lg bg-background min-h-[44px] px-3 py-2 flex flex-wrap gap-1.5">
           <span
             v-for="r in store.selectedRecipients"
             :key="r.email"
@@ -38,7 +38,7 @@
             class="text-xs bg-transparent outline-none text-primary-text placeholder:text-secondary-text min-w-32 flex-1"
             @input="onClientSearch"
             @focus="showClientDrop = true"
-            @blur="setTimeout(() => showClientDrop = false, 150)"
+            @blur="closeClientDropdown"
           />
         </div>
         <div v-if="showClientDrop && store.clientOptions.length" class="relative">
@@ -48,13 +48,19 @@
               <span class="text-xs text-secondary-text">Searching...</span>
             </div>
             <div
-              v-for="c in filteredClientOptions"
+              v-for="c in store.clientOptions"
               :key="c.id"
-              class="px-3 py-2.5 hover:bg-background cursor-pointer transition-colors"
-              @mousedown.prevent="addRecipient(c)"
+              :class="[
+                'px-3 py-2.5 transition-colors',
+                isClientSelected(c)
+                  ? 'opacity-50 cursor-not-allowed bg-background/50'
+                  : 'hover:bg-background cursor-pointer'
+              ]"
+              @mousedown.prevent="!isClientSelected(c) && addRecipient(c)"
             >
               <p class="text-xs font-medium text-primary-text">{{ c.name }}</p>
               <p class="text-[11px] text-secondary-text">{{ c.email }}</p>
+              <p v-if="isClientSelected(c)" class="text-[10px] text-secondary-text mt-0.5">Already selected</p>
             </div>
           </div>
         </div>
@@ -63,39 +69,14 @@
       <!-- Template Search -->
       <div>
         <p class="text-xs text-secondary-text mb-1.5">Template</p>
-        <div class="relative">
-          <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-secondary-text" />
-          <input
-            v-model="templateSearch"
-            type="text"
-            placeholder="Search templates..."
-            class="w-full pl-8 pr-3 py-2.5 rounded-xl bg-background border border-primary-border text-primary-text text-sm outline-none focus:border-primary transition-colors placeholder:text-secondary-text"
-            @input="onTemplateSearch"
-            @focus="showTemplateDrop = true"
-            @blur="setTimeout(() => showTemplateDrop = false, 150)"
-          />
-        </div>
-        <div v-if="showTemplateDrop && store.templateOptions.length" class="relative">
-          <div class="absolute z-30 w-full mt-1 bg-card-background border border-primary-border rounded-xl shadow-lg max-h-52 overflow-y-auto">
-            <div v-if="store.searchTemplatesLoading" class="flex items-center gap-2 px-3 py-2.5">
-              <Loader2 class="w-3.5 h-3.5 animate-spin text-secondary-text" />
-              <span class="text-xs text-secondary-text">Searching...</span>
-            </div>
-            <div
-              v-for="tpl in store.templateOptions"
-              :key="tpl.id"
-              class="px-3 py-2.5 hover:bg-background cursor-pointer transition-colors"
-              @mousedown.prevent="selectTemplate(tpl)"
-            >
-              <div class="flex items-center gap-2">
-                <p class="text-xs font-medium text-primary-text">{{ tpl.name }}</p>
-                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">{{ tpl.code }}</span>
-                <span class="text-[10px] px-1.5 py-0.5 rounded bg-background border border-primary-border text-secondary-text">{{ tpl.category }}</span>
-              </div>
-              <p class="text-[11px] text-secondary-text mt-0.5">{{ tpl.subject }}</p>
-            </div>
-          </div>
-        </div>
+        <BaseSelect
+          v-model="selectedTemplateId"
+          :options="store.templateOptions"
+          placeholder="Search and select a template..."
+          searchable
+          :isLoading="store.searchTemplatesLoading"
+          @search="onTemplateSearch"
+        />
       </div>
 
       <!-- Selected Template Preview -->
@@ -134,7 +115,7 @@
         </button>
         <button
           :disabled="store.sendLoading || !store.selectedRecipients.length || !store.selectedTemplate"
-          class="flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-black text-xs font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          class="flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           @click="store.sendTemplateEmail()"
         >
           <Loader2 v-if="store.sendLoading" class="w-3.5 h-3.5 animate-spin" />
@@ -168,19 +149,25 @@
             class="text-xs bg-transparent outline-none text-primary-text placeholder:text-secondary-text min-w-32 flex-1"
             @input="onClientSearch"
             @focus="showClientDrop = true"
-            @blur="setTimeout(() => showClientDrop = false, 150)"
+            @blur="closeClientDropdown"
           />
         </div>
         <div v-if="showClientDrop && store.clientOptions.length" class="relative">
           <div class="absolute z-30 w-full mt-1 bg-card-background border border-primary-border rounded-xl shadow-lg max-h-48 overflow-y-auto">
             <div
-              v-for="c in filteredClientOptions"
+              v-for="c in store.clientOptions"
               :key="c.id"
-              class="px-3 py-2.5 hover:bg-background cursor-pointer transition-colors"
-              @mousedown.prevent="addRecipient(c)"
+              :class="[
+                'px-3 py-2.5 transition-colors',
+                isClientSelected(c)
+                  ? 'opacity-50 cursor-not-allowed bg-background/50'
+                  : 'hover:bg-background cursor-pointer'
+              ]"
+              @mousedown.prevent="!isClientSelected(c) && addRecipient(c)"
             >
               <p class="text-xs font-medium text-primary-text">{{ c.name }}</p>
               <p class="text-[11px] text-secondary-text">{{ c.email }}</p>
+              <p v-if="isClientSelected(c)" class="text-[10px] text-secondary-text mt-0.5">Already selected</p>
             </div>
           </div>
         </div>
@@ -229,7 +216,7 @@
         </button>
         <button
           :disabled="store.sendLoading || !store.selectedRecipients.length || !store.customEmail.subject || !store.customEmail.body_html"
-          class="flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-black text-xs font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          class="flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           @click="store.sendCustomEmail()"
         >
           <Loader2 v-if="store.sendLoading" class="w-3.5 h-3.5 animate-spin" />
@@ -253,6 +240,7 @@ import { ref, computed } from 'vue'
 import { X, Search, Eye, Send, Loader2 } from 'lucide-vue-next'
 import { useEmailTriggerStore } from '@/stores/emails/emailTrigger'
 import EmailTemplatePreviewDialog from '@/components/emails/EmailTemplatePreviewDialog.vue'
+import BaseSelect from '@/components/common/BaseSelect.vue'
 
 const store = useEmailTriggerStore()
 
@@ -263,24 +251,31 @@ const tabs = [
 ]
 
 const clientSearch     = ref('')
-const templateSearch   = ref('')
-const showClientDrop   = ref(false)
-const showTemplateDrop = ref(false)
 const previewOpen      = ref(false)
 const previewData      = ref(null)
+const showClientDrop   = ref(false)
 
-const filteredClientOptions = computed(() =>
-  store.clientOptions.filter(c =>
-    !store.selectedRecipients.find(r => r.email === c.email)
-  )
-)
+const isClientSelected = (client) => {
+  return store.selectedRecipients.some(r => r.email === client.email)
+}
 
 const customVariables = computed(() =>
   store.parseVariables(store.customEmail?.body_html ?? '')
 )
 
+const selectedTemplateId = computed({
+  get: () => store.selectedTemplate?.id ?? null,
+  set: (id) => {
+    const template = store.templateOptions.find(t => t.id === id)
+    if (template) {
+      store.selectedTemplate = template
+    }
+  },
+})
+
 let clientTimer = null
 const onClientSearch = () => {
+  showClientDrop.value = true
   clearTimeout(clientTimer)
   clientTimer = setTimeout(() => {
     if (clientSearch.value.trim()) store.searchClients(clientSearch.value)
@@ -288,10 +283,10 @@ const onClientSearch = () => {
 }
 
 let templateTimer = null
-const onTemplateSearch = () => {
+const onTemplateSearch = (query) => {
   clearTimeout(templateTimer)
   templateTimer = setTimeout(() => {
-    if (templateSearch.value.trim()) store.searchTemplates(templateSearch.value)
+    if (query?.trim()) store.searchTemplates(query)
   }, 350)
 }
 
@@ -308,9 +303,7 @@ const removeRecipient = (r) => {
   if (idx !== -1) store.selectedRecipients.splice(idx, 1)
 }
 
-const selectTemplate = (tpl) => {
-  store.selectedTemplate  = tpl
-  templateSearch.value    = tpl.name
-  showTemplateDrop.value  = false
+const closeClientDropdown = () => {
+  setTimeout(() => showClientDrop.value = false, 150)
 }
 </script>
