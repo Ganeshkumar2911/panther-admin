@@ -2,24 +2,26 @@
 import { useRoute } from 'vue-router'
 import {
   LayoutDashboard,
-  User,
   Users,
-  Wallet,
+  LineChart,
+  ListTree,
   Trophy,
   GitPullRequestArrow,
-  ListTree,
-  RefreshCcw,
-  Ticket,
-  CreditCard,
+  Wallet,
+  Coins,
   TrendingUp,
   DollarSign,
-  Tickets,
+  CreditCard,
+  Handshake,
+  RefreshCcw,
   Settings,
+  Tickets,
   ChevronLeft,
   ChevronRight,
-  Handshake,
+  Mail
 } from 'lucide-vue-next'
 import { useProfileStore } from '@/stores/profile/profile'
+import Tooltip from '@/components/common/Tooltip.vue'
 
 const store = useProfileStore()
 
@@ -38,19 +40,15 @@ const emit = defineEmits(['close', 'toggle-collapse'])
 
 const route = useRoute()
 
-// ✅ Fetch profile on mount
-// onMounted(() => {
-//   if (!store.user) {
-//     store.fetchUserProfile()
-//   }
-// })
-
+// ✅ Logical navigation items with unique icons
 const navItems = [
+  // 1. Core Overview
   {
     label: 'Dashboard',
     to: '/dashboard',
     icon: LayoutDashboard,
   },
+  // 2. User & Network Administration
   {
     label: 'Clients',
     to: '/clients',
@@ -59,42 +57,34 @@ const navItems = [
   {
     label: 'Trading Accounts',
     to: '/trading-accounts',
-    icon: User,
-  },
-  {
-    label: 'Fund Manager',
-    to: '/fm-leaderboard',
-    icon: Trophy,
+    icon: LineChart,
   },
   {
     label: 'IB Network',
     to: '/ib-tree',
     icon: ListTree,
   },
+  // 3. Fund Management
+  {
+    label: 'Fund Manager',
+    to: '/fm-leaderboard',
+    icon: Trophy,
+  },
   {
     label: 'FM Requests',
     to: '/fm-request',
     icon: GitPullRequestArrow,
   },
-  {
-    label: 'Client Wallet',
-    to: '/client-wallet',
-    icon: CreditCard,
-  },
+  // 4. Finances & Wallets
   {
     label: 'My Wallet',
     to: '/my-wallet',
     icon: Wallet,
   },
   {
-    label: 'Payment Methods',
-    to: '/payment-methods',
-    icon: CreditCard,
-  },
-  {
-    label: 'Payment Requests',
-    to: '/payment-requests',
-    icon: Handshake,
+    label: 'Client Wallet',
+    to: '/client-wallet',
+    icon: Coins,
   },
   {
     label: 'FM Wallet',
@@ -106,11 +96,28 @@ const navItems = [
     to: '/ib-wallet',
     icon: DollarSign,
   },
+  // 5. Transactions & Cash Flow
+  {
+    label: 'Payment Methods',
+    to: '/payment-methods',
+    icon: CreditCard,
+  },
+  {
+    label: 'Payment Requests',
+    to: '/payment-requests',
+    icon: Handshake,
+  },
   {
     label: 'Settlements',
     to: '/settlements',
     icon: RefreshCcw,
   },
+  {
+    label: 'eMails',
+    to: '/e-mails',
+    icon: Mail,
+  },
+  // 6. System & Support
   {
     label: 'Group Config',
     to: '/group-config',
@@ -157,7 +164,7 @@ const isActive = (path) => route.path.startsWith(path)
         </div>
       </div>
       <div v-else class="flex items-center justify-center w-full">
-        <div class="w-7 h-7 rounded-lg flex items-center justify-center">
+        <div class="w-12 h-12 rounded-lg flex items-center justify-center">
          <img class="rounded-full" src="/logo.svg" alt="Logo">
         </div>
       </div>
@@ -165,33 +172,39 @@ const isActive = (path) => route.path.startsWith(path)
 
     <!-- Nav -->
     <nav class="flex-1 overflow-y-auto p-3 space-y-1 no-scrollbar">
-      <RouterLink
+      <Tooltip
         v-for="item in navItems"
         :key="item.to"
-        :to="item.to"
-        @click="$emit('close')"
-        class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
-               transition-all duration-200 group"
-        :class="[
-          isActive(item.to)
-            ? 'bg-primary text-white'
-            : 'text-white/70 hover:text-white hover:bg-white/10',
-          isCollapsed ? 'justify-center' : ''
-        ]"
-        :title="isCollapsed ? item.label : ''"
+        :text="item.label"
+        position="right"
+        :disabled="!isCollapsed"
+        :block="true"
       >
-        <component
-          :is="item.icon"
-          class="w-4 h-4 transition-transform group-hover:scale-110 flex-shrink-0"
-        />
-        <span v-if="!isCollapsed">{{ item.label }}</span>
+        <RouterLink
+          :to="item.to"
+          @click="$emit('close')"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
+                 transition-all duration-200 group"
+          :class="[
+            isActive(item.to)
+              ? 'bg-primary text-white'
+              : 'text-white/70 hover:text-white hover:bg-white/10',
+            isCollapsed ? 'justify-center' : ''
+          ]"
+        >
+          <component
+            :is="item.icon"
+            class="w-4 h-4 transition-transform group-hover:scale-110 flex-shrink-0"
+          />
+          <span v-if="!isCollapsed">{{ item.label }}</span>
 
-        <!-- Active dot -->
-        <span
-          v-if="isActive(item.to) && !isCollapsed"
-          class="ml-auto w-1.5 h-1.5 rounded-full bg-white"
-        />
-      </RouterLink>
+          <!-- Active dot -->
+          <span
+            v-if="isActive(item.to) && !isCollapsed"
+            class="ml-auto w-1.5 h-1.5 rounded-full bg-white"
+          />
+        </RouterLink>
+      </Tooltip>
     </nav>
 
     <!-- Footer -->
@@ -209,16 +222,29 @@ const isActive = (path) => route.path.startsWith(path)
             </div>
           </div>
 
+          <Tooltip
+            v-if="isCollapsed"
+            text="Expand"
+            position="right"
+          >
+            <button
+              @click="emit('toggle-collapse')"
+              class="flex items-center justify-center w-10 h-10 rounded-lg
+                     text-white/70 hover:text-white hover:bg-white/10
+                     transition-all duration-200"
+            >
+              <ChevronRight class="w-5 h-5" />
+            </button>
+          </Tooltip>
           <button
+            v-else
             @click="emit('toggle-collapse')"
             class="flex items-center justify-center w-10 h-10 rounded-lg
                    text-white/70 hover:text-white hover:bg-white/10
-                   transition-all duration-200"
-            :class="isCollapsed ? '' : 'ml-auto'"
-            :title="isCollapsed ? 'Expand' : 'Collapse'"
+                   transition-all duration-200 ml-auto"
+            title="Collapse"
           >
-            <ChevronRight v-if="isCollapsed" class="w-5 h-5" />
-            <ChevronLeft v-else class="w-5 h-5" />
+            <ChevronLeft class="w-5 h-5" />
           </button>
         </div>
       </div>

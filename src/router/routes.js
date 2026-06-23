@@ -38,6 +38,17 @@ const routes = [
                 }
             },
             {
+                path: 'client/details/:id',
+                name: 'client-details',
+                component: () => import('@/pages/client-details/index.vue'),
+                meta: {
+                    showBackButton: true,
+                    requiresAuth: true,
+                    title: 'Clients Details',
+                    description: 'View and manage client info.',
+                }
+            },
+            {
                 path: '/trading-accounts',
                 name: 'trading-accounts',
                 component: () => import('@/pages/trading-accounts/index.vue'),
@@ -242,6 +253,16 @@ const routes = [
                     title: 'Ticket Details',
                     description: 'View details of the support ticket.',
                     showBackButton: true,
+                }
+            },
+            {
+                path: '/e-mails',
+                name: 'mains',
+                component:  () => import('@/pages/e-mails/index.vue'),
+                meta :{
+                    requiresAuth: true,
+                    title: 'Email Management',
+                    description: 'Manage platfrom e-mails and templates'
                 }
             },
             {

@@ -1,10 +1,14 @@
 <script setup>
 import { onMounted, computed, ref } from 'vue'
-import { Search, Users } from 'lucide-vue-next'
+import { Search, Users, UserPen, Eye } from 'lucide-vue-next'
 import { useClientListStore } from '@/stores/clientList/clientList'
 import Pagination from '@/components/common/Pagination.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import ChangeIBDialog from '@/components/common/ChangeIBDialog.vue'
+import Tooltip from '@/components/common/Tooltip.vue'
+import { useRouter } from "vue-router";
+
+const router = useRouter();
 
 const store = useClientListStore()
 
@@ -36,6 +40,13 @@ const openChangeIBDialog = (client) => {
   changeIBDialogOpen.value = true
 }
 
+const openClientDepth = (client) => {
+
+  localStorage.setItem("active_client", JSON.stringify(client));
+  router.push(`/client/details/${client.id}`)
+
+}
+
 const closeChangeIBDialog = () => {
   changeIBDialogOpen.value = false
   selectedClientForChangeIB.value = null
@@ -43,6 +54,13 @@ const closeChangeIBDialog = () => {
 
 const handleChangeIBSuccess = () => {
   store.fetchClients(store.pagination.page)
+}
+
+const getKycClass = (status) => {
+  const s = (status || '').toLowerCase()
+  if (s === 'approved') return 'bg-green-500/10 text-green-700 border-green-500/20'
+  if (s === 'pending') return 'bg-yellow-500/10 text-yellow-700 border-yellow-500/20'
+  return 'bg-red-500/10 text-red-700 border-red-500/20'
 }
 
 onMounted(() => store.fetchClients())
@@ -97,16 +115,15 @@ onMounted(() => store.fetchClients())
         <thead>
           <tr class="border-b border-primary-border">
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Client</th>
+            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Contact</th>
+            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Address</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">IB</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Balance</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Trades</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Win Rate</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">PnL</th>
+            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">KYC Status</th>
+            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Doc Status</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Accounts</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Followings</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Last Active</th>
+            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Dates</th>
             <th class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Status</th>
-            <th class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Actions</th>
+            <th class="text-center text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Actions</th>
           </tr>
         </thead>
 
@@ -122,15 +139,15 @@ onMounted(() => store.fetchClients())
                 </div>
               </div>
             </td>
-            <td class="p-3"><div class="h-3 w-20 bg-card-background rounded" /></td>
-            <td class="p-3"><div class="h-3 w-16 bg-card-background rounded" /></td>
-            <td class="p-3"><div class="h-3 w-10 bg-card-background rounded" /></td>
-            <td class="p-3"><div class="h-3 w-12 bg-card-background rounded" /></td>
-            <td class="p-3"><div class="h-3 w-16 bg-card-background rounded" /></td>
-            <td class="p-3"><div class="h-3 w-8 bg-card-background rounded" /></td>
-            <td class="p-3"><div class="h-3 w-8 bg-card-background rounded" /></td>
-            <td class="p-3"><div class="h-3 w-20 bg-card-background rounded" /></td>
-            <td class="p-3 flex justify-end"><div class="h-5 w-14 bg-card-background rounded-full" /></td>
+            <td class="p-3"><div class="space-y-1.5"><div class="h-3 w-20 bg-card-background rounded" /><div class="h-2.5 w-24 bg-card-background rounded" /></div></td>
+            <td class="p-3"><div class="space-y-1.5"><div class="h-3 w-16 bg-card-background rounded" /><div class="h-2.5 w-20 bg-card-background rounded" /></div></td>
+            <td class="p-3"><div class="space-y-1.5"><div class="h-3 w-20 bg-card-background rounded" /><div class="h-2.5 w-24 bg-card-background rounded" /></div></td>
+            <td class="p-3"><div class="h-5 w-16 bg-card-background rounded-full" /></td>
+            <td class="p-3"><div class="h-5 w-16 bg-card-background rounded-full" /></td>
+            <td class="p-3"><div class="space-y-1.5"><div class="h-3 w-12 bg-card-background rounded" /><div class="h-2.5 w-16 bg-card-background rounded" /></div></td>
+            <td class="p-3"><div class="space-y-1.5"><div class="h-3 w-16 bg-card-background rounded" /><div class="h-2.5 w-20 bg-card-background rounded" /></div></td>
+            <td class="p-3 text-right"><div class="h-5 w-14 bg-card-background rounded-full ml-auto" /></td>
+            <td class="p-3 text-right"><div class="h-7 w-20 bg-card-background rounded-lg ml-auto" /></td>
           </tr>
         </tbody>
 
@@ -163,54 +180,118 @@ onMounted(() => store.fetchClients())
                 </div>
                 <div>
                   <p class="text-xs font-medium text-primary-text">{{ client.name }}</p>
-                  <p class="text-[11px] text-secondary-text">{{ client.email }}</p>
+                  <p class="text-[10px] text-secondary-text">ID: {{ client.id }}</p>
                 </div>
               </div>
             </td>
 
             <td class="p-3">
-              <p class="text-xs text-primary-text">{{ client.ib_name ?? '—' }}</p>
-              <p class="text-xs text-primary-text">{{ client.ib_email ?? '—' }}</p>
-              <p class="text-[11px] text-secondary-text">Ref. {{ client.ib_referral_code ?? '' }}</p>
-              <p class="text-[11px] text-secondary-text">ID: {{ client.ib_id ?? '' }}</p>
+              <p class="text-xs text-primary-text">{{ client.email ?? '—' }}</p>
+              <p class="text-[10px] text-secondary-text">{{ client.phone_number ?? '—' }}</p>
+              <p class="text-[10px] text-secondary-text" v-if="client.date_of_birth">DOB: {{ formatDate(client.date_of_birth) }}</p>
             </td>
-
-            <td class="p-3 text-xs text-primary-text tabular-nums">${{ formatNum(client.total_balance) }}</td>
-
-            <td class="p-3 text-xs text-primary-text">{{ client.total_trades }}</td>
-
-            <td class="p-3 text-xs text-primary-text">{{ client.win_rate }}%</td>
 
             <td class="p-3">
-              <span class="text-xs font-medium tabular-nums" :class="client.total_pnl >= 0 ? 'text-green-700' : 'text-red-600'">
-                {{ client.total_pnl >= 0 ? '+' : '' }}${{ formatNum(client.total_pnl) }}
-              </span>
+              <p class="text-xs text-primary-text">{{ client.address ?? '—' }}</p>
+              <p class="text-[10px] text-secondary-text">{{ client.city ?? '—' }}, {{ client.state ?? '—' }}</p>
+              <p class="text-[10px] text-secondary-text">{{ client.country ?? '—' }} {{ client.zip_code ? `(${client.zip_code})` : '' }}</p>
             </td>
 
-            <td class="p-3 text-xs text-primary-text">{{ client.active_accounts }}</td>
+            <td class="p-3">
+              <p class="text-xs text-primary-text">{{ client.ib_name ?? '—' }}</p>
+              <p class="text-[10px] text-secondary-text">{{ client.ib_email ?? '—' }}</p>
+              <p class="text-[10px] text-secondary-text" v-if="client.ib_id">
+                Ref: {{ client.ib_referral_code ?? '' }} (ID: {{ client.ib_id }})
+              </p>
+            </td>
 
-            <td class="p-3 text-xs text-primary-text">{{ client.active_followings }}</td>
+            <td class="p-3">
+              <span
+                class="text-[11px] font-medium px-2 py-0.5 rounded-full border capitalize block mb-1"
+                :class="getKycClass(client.kyc_status)"
+              >
+                {{ client.kyc_status || 'not started' }}
+              </span>
+              <p class="text-[10px] text-secondary-text">{{ client.verification_channel ?? '—' }}</p>
+              <p v-if="client.kyc_verified_at" class="text-[10px] text-secondary-text">✓ {{ formatDate(client.kyc_verified_at) }}</p>
+            </td>
 
-            <td class="p-3 text-xs text-secondary-text">{{ formatDate(client.last_activity) }}</td>
+            <td class="p-3">
+              <p class="text-xs text-primary-text mb-1 text-nowrap">
+                <span :class="client.docs_uploaded === 'True' ? 'text-green-600' : 'text-orange-600'">
+                  Docs: {{ client.docs_uploaded ?? '—' }}
+                </span>
+              </p>
+              <p class="text-xs text-primary-text mb-1">{{ client.doc_approved ?? '—' }}</p>
+              <p v-if="client.kyc_reject_reason" class="text-[10px] text-red-600">Reject: {{ client.kyc_reject_reason }}</p>
+              <p class="text-[10px] text-secondary-text">ID: {{ client.sumsub_applicant_id ?? '—' }}</p>
+            </td>
+
+            <td class="p-3 max-w-[200px]">
+              <div>
+                <span class="text-xs font-semibold text-primary-text block mb-1">
+                  {{ client.total_accounts || 0 }} Acct{{ (client.total_accounts || 0) !== 1 ? 's' : '' }}
+                </span>
+
+                <div
+                  v-if="client.account_numbers?.length"
+                  class="flex flex-wrap gap-1 mb-1 max-h-10 overflow-y-auto"
+                >
+                  <span
+                    v-for="num in client.account_numbers"
+                    :key="num"
+                    class="font-mono text-[9px] px-1 py-0.5 rounded bg-background border border-primary-border text-secondary-text"
+                  >
+                    {{ num }}
+                  </span>
+                </div>
+
+                <div
+                  v-if="client.account_types?.length"
+                  class="text-[9px] text-secondary-text capitalize truncate"
+                >
+                  {{ client.account_types.join(', ') }}
+                </div>
+              </div>
+            </td>
+
+            <td class="p-3">
+              <p class="text-[10px] text-nowrap text-secondary-text mb-1">Joined: {{ formatDate(client.created_at) }}</p>
+              <p class="text-[10px] text-nowrap text-secondary-text mb-1">Updated: {{ formatDate(client.updated_at) }}</p>
+              <p class="text-[10px] text-nowrap  text-secondary-text">Track: {{ client.tracking_id ?? '—' }}</p>
+            </td>
 
             <td class="p-3 text-right">
               <span
                 class="text-[11px] font-medium px-2 py-0.5 rounded-full border"
                 :class="client.is_active
-                  ? 'bg-primary-green/50 border-green-200'
+                  ? 'bg-green-500/10 text-green-700 border-green-500/20'
                   : 'bg-background text-secondary-text border-primary-border'"
               >
                 {{ client.is_active ? 'Active' : 'Inactive' }}
               </span>
             </td>
 
-            <td class="p-3 text-right">
-              <button
-                @click="openChangeIBDialog(client)"
-                class="text-xs font-medium px-3 py-1 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition"
-              >
-                Change IB
-              </button>
+            <td class="p-3 align-middle">
+              <div class="flex items-center justify-center gap-2 h-full">
+                <Tooltip text="Change IB" position="left">
+                  <button
+                    @click="openChangeIBDialog(client)"
+                    class="p-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition"
+                  >
+                    <UserPen class="w-4 h-4" />
+                  </button>
+                </Tooltip>
+
+                <Tooltip text="Client Depth" position="left">
+                  <button
+                    @click="openClientDepth(client)"
+                    class="p-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition"
+                  >
+                    <Eye class="w-4 h-4" />
+                  </button>
+                </Tooltip>
+              </div>
             </td>
           </tr>
         </tbody>
@@ -247,54 +328,113 @@ onMounted(() => store.fetchClients())
         v-else
         v-for="client in store.data"
         :key="client.id"
-        class="bg-card-background border border-primary-border rounded-2xl p-4"
+        class="bg-card-background border border-primary-border rounded-2xl p-4 space-y-3"
       >
-        <div class="flex items-center justify-between mb-3">
-          <div class="flex items-center gap-2.5">
-            <div class="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-xs font-medium text-black shrink-0">
+        <div class="flex items-start justify-between">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-xs font-medium text-white shrink-0">
               {{ client.name?.charAt(0).toUpperCase() }}
             </div>
-            <div>
-              <p class="text-sm font-medium text-primary-text">{{ client.name }}</p>
-              <p class="text-[11px] text-secondary-text">{{ client.email }}</p>
+            <div class="min-w-0">
+              <p class="text-sm font-medium text-primary-text truncate">{{ client.name }}</p>
+              <p class="text-[11px] text-secondary-text truncate">{{ client.email }}</p>
+              <p v-if="client.phone_number" class="text-[10px] text-secondary-text/80 truncate">{{ client.phone_number }}</p>
             </div>
           </div>
-          <span
-            class="text-[11px] font-medium px-2 py-0.5 rounded-full border"
-            :class="client.is_active
-              ? 'bg-primary-green/50 text-green-800 border-green-200'
-              : 'bg-background text-secondary-text border-primary-border'"
-          >
-            {{ client.is_active ? 'Active' : 'Inactive' }}
-          </span>
+          <div class="flex flex-col gap-1.5 items-end shrink-0">
+            <span
+              class="text-[10px] font-medium px-2 py-0.5 rounded-full border"
+              :class="client.is_active
+                ? 'bg-green-500/10 text-green-700 border-green-500/20'
+                : 'bg-background text-secondary-text border-primary-border'"
+            >
+              {{ client.is_active ? 'Active' : 'Inactive' }}
+            </span>
+            <span
+              class="text-[10px] font-medium px-2 py-0.5 rounded-full border capitalize"
+              :class="getKycClass(client.kyc_status)"
+            >
+              {{ client.kyc_status || 'not started' }}
+            </span>
+          </div>
         </div>
 
         <div class="grid grid-cols-2 gap-2 text-xs">
           <div class="bg-background rounded-lg px-3 py-2">
-            <p class="text-[10px] text-secondary-text mb-0.5">IB</p>
-            <p class="font-medium text-primary-text truncate">{{ client.ib_name ?? '—' }}</p>
+            <p class="text-[10px] text-secondary-text mb-0.5">Email</p>
+            <p class="font-medium text-primary-text text-[11px] truncate">{{ client.email ?? '—' }}</p>
           </div>
           <div class="bg-background rounded-lg px-3 py-2">
-            <p class="text-[10px] text-secondary-text mb-0.5">Balance</p>
-            <p class="font-medium text-primary-text">${{ formatNum(client.total_balance) }}</p>
+            <p class="text-[10px] text-secondary-text mb-0.5">Phone</p>
+            <p class="font-medium text-primary-text text-[11px] truncate">{{ client.phone_number ?? '—' }}</p>
           </div>
           <div class="bg-background rounded-lg px-3 py-2">
-            <p class="text-[10px] text-secondary-text mb-0.5">Trades</p>
-            <p class="font-medium text-primary-text">{{ client.total_trades }}</p>
+            <p class="text-[10px] text-secondary-text mb-0.5">Date of Birth</p>
+            <p class="font-medium text-primary-text text-[11px]">{{ client.date_of_birth ? formatDate(client.date_of_birth) : '—' }}</p>
           </div>
           <div class="bg-background rounded-lg px-3 py-2">
-            <p class="text-[10px] text-secondary-text mb-0.5">Win Rate</p>
-            <p class="font-medium text-primary-text">{{ client.win_rate }}%</p>
+            <p class="text-[10px] text-secondary-text mb-0.5">City</p>
+            <p class="font-medium text-primary-text text-[11px] truncate">{{ client.city ?? '—' }}</p>
+          </div>
+          <div class="bg-background rounded-lg px-3 py-2 col-span-2">
+            <p class="text-[10px] text-secondary-text mb-0.5">Address</p>
+            <p class="font-medium text-primary-text text-[11px] truncate">{{ client.address ?? '—' }}</p>
           </div>
           <div class="bg-background rounded-lg px-3 py-2">
-            <p class="text-[10px] text-secondary-text mb-0.5">PnL</p>
-            <p class="font-medium tabular-nums" :class="client.total_pnl >= 0 ? 'text-green-700' : 'text-red-600'">
-              {{ client.total_pnl >= 0 ? '+' : '' }}${{ formatNum(client.total_pnl) }}
+            <p class="text-[10px] text-secondary-text mb-0.5">State</p>
+            <p class="font-medium text-primary-text text-[11px]">{{ client.state ?? '—' }}</p>
+          </div>
+          <div class="bg-background rounded-lg px-3 py-2">
+            <p class="text-[10px] text-secondary-text mb-0.5">Zip Code</p>
+            <p class="font-medium text-primary-text text-[11px]">{{ client.zip_code ?? '—' }}</p>
+          </div>
+          <div class="bg-background rounded-lg px-3 py-2 col-span-2">
+            <p class="text-[10px] text-secondary-text mb-0.5">IB Information</p>
+            <p class="font-medium text-primary-text text-[11px] truncate">{{ client.ib_name ?? '—' }}</p>
+            <p class="text-[10px] text-secondary-text truncate">{{ client.ib_email ?? '—' }}</p>
+            <p class="text-[10px] text-secondary-text">Ref: {{ client.ib_referral_code ?? '—' }} | ID: {{ client.ib_id ?? '—' }}</p>
+          </div>
+          <div class="bg-background rounded-lg px-3 py-2 col-span-2">
+            <p class="text-[10px] text-secondary-text mb-0.5">KYC Information</p>
+            <p class="text-[10px] text-primary-text mb-1">Channel: {{ client.verification_channel ?? '—' }}</p>
+            <p v-if="client.kyc_verified_at" class="text-[10px] text-green-600 mb-1">✓ Verified: {{ formatDate(client.kyc_verified_at) }}</p>
+            <p v-if="client.kyc_reject_reason" class="text-[10px] text-red-600">Reject Reason: {{ client.kyc_reject_reason }}</p>
+          </div>
+          <div class="bg-background rounded-lg px-3 py-2 col-span-2">
+            <p class="text-[10px] text-secondary-text mb-0.5">Document Status</p>
+            <p class="text-[10px] text-primary-text mb-1">Uploaded: <span :class="client.docs_uploaded === 'True' ? 'text-green-600' : 'text-orange-600'">{{ client.docs_uploaded ?? '—' }}</span></p>
+            <p class="text-[10px] text-primary-text mb-1">Approved: {{ client.doc_approved ?? '—' }}</p>
+            <p class="text-[10px] text-secondary-text">SumSub ID: {{ client.sumsub_applicant_id ?? '—' }}</p>
+          </div>
+          <div class="bg-background rounded-lg px-3 py-2 col-span-2">
+            <p class="text-[10px] text-secondary-text mb-0.5">Accounts ({{ client.total_accounts || 0 }})</p>
+            <div class="flex flex-wrap gap-1 mt-1">
+              <span
+                v-for="num in client.account_numbers"
+                :key="num"
+                class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-card-background border border-primary-border text-secondary-text"
+              >
+                {{ num }}
+              </span>
+              <span v-if="!client.account_numbers?.length" class="text-secondary-text">—</span>
+            </div>
+            <p v-if="client.account_types?.length" class="text-[10px] text-secondary-text mt-1 capitalize">
+              Types: {{ client.account_types.join(', ') }}
             </p>
           </div>
-          <div class="bg-background rounded-lg px-3 py-2">
-            <p class="text-[10px] text-secondary-text mb-0.5">Last Active</p>
-            <p class="font-medium text-primary-text">{{ formatDate(client.last_activity) }}</p>
+          <div class="bg-background rounded-lg px-3 py-2 col-span-2">
+            <p class="text-[10px] text-secondary-text mb-0.5">Timeline</p>
+            <p class="text-[10px] text-primary-text">Joined: {{ formatDate(client.created_at) }}</p>
+            <p class="text-[10px] text-primary-text">Updated: {{ formatDate(client.updated_at) }}</p>
+            <p class="text-[10px] text-secondary-text">Tracking ID: {{ client.tracking_id ?? '—' }}</p>
+          </div>
+          <div class="bg-background rounded-lg px-3 py-2 col-span-2 flex items-center justify-center">
+            <button
+              @click="openChangeIBDialog(client)"
+              class="w-full text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition"
+            >
+              Change IB
+            </button>
           </div>
         </div>
       </div>

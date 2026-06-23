@@ -502,7 +502,7 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
             <td class="px-3 py-4">
               <span
                 class="text-[11px] font-medium px-2 py-1 rounded-full capitalize whitespace-nowrap"
-                :class="acc.is_active ? 'bg-primary-green/100 text-green-700' : 'bg-primary-red/100 text-red-700'"
+                :class="acc.is_active ? 'bg-primary-green/100' : 'bg-primary-red/100'"
               >
                 {{ acc.is_active ? 'Active' : 'Inactive' }}
               </span>

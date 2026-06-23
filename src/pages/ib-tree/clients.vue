@@ -118,7 +118,7 @@
           >
             <td class="px-4 py-3.5">
               <div class="flex items-center gap-2.5">
-                <div class="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-[10px] font-medium text-black shrink-0">
+                <div class="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-[10px] font-medium text-white shrink-0">
                   {{ client.name?.charAt(0)?.toUpperCase() }}
                 </div>
                 <div>

@@ -101,10 +101,17 @@ const urls = {
     list: '/payment-requests',
     approve: '/payment-requests/approve/',
     reject: '/payment-requests/reject/'
+  },
+  emailSettings: {
+    details: '/email-settings',
+    update: '/email-settings'
+  },
+  emailTemplates: {
+    list: '/email-templates',
+    details: '/email-templates',
+    create: '/email-templates',
+    update: '/email-templates',
   }
-
-
-
 }
 
 export default urls
