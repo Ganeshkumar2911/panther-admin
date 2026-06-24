@@ -1,26 +1,38 @@
 <template>
   <div>
     <!-- Header -->
-    <div class="flex items-center justify-between mb-6">
-      <div class="flex items-center gap-1 bg-card-background border border-primary-border rounded-lg p-1">
-        <button
-          class="px-3 py-1.5 rounded-md text-xs font-medium transition-colors"
-          :class="viewMode === 'table' ? 'bg-primary text-white' : 'text-secondary-text hover:text-primary-text'"
-          @click="viewMode = 'table'"
-        >
-          Table
-        </button>
-        <button
-          class="px-3 py-1.5 rounded-md text-xs font-medium transition-colors"
-          :class="viewMode === 'tree' ? 'bg-primary text-white' : 'text-secondary-text hover:text-primary-text'"
-          @click="viewMode = 'tree'"
-        >
-          Tree
-        </button>
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+      <div class="flex flex-col sm:flex-row sm:items-center gap-3 flex-1">
+        <div class="flex items-center gap-1 bg-card-background border border-primary-border rounded-lg p-1 shrink-0 self-start sm:self-auto">
+          <button
+            class="px-3 py-1.5 rounded-md text-xs font-medium transition-colors"
+            :class="viewMode === 'table' ? 'bg-primary text-white' : 'text-secondary-text hover:text-primary-text'"
+            @click="viewMode = 'table'"
+          >
+            Table
+          </button>
+          <button
+            class="px-3 py-1.5 rounded-md text-xs font-medium transition-colors"
+            :class="viewMode === 'tree' ? 'bg-primary text-white' : 'text-secondary-text hover:text-primary-text'"
+            @click="viewMode = 'tree'"
+          >
+            Tree
+          </button>
+        </div>
+
+        <div class="relative w-full sm:max-w-xs">
+          <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-secondary-text" />
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Search IB..."
+            class="w-full pl-8 pr-3 py-2 text-xs rounded-lg bg-card-background border border-primary-border text-primary-text outline-none focus:border-primary transition-colors placeholder:text-secondary-text"
+          />
+        </div>
       </div>
 
       <button
-        class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-medium transition-colors"
+        class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-medium transition-colors shrink-0 self-start md:self-auto"
         @click="openAdd"
       >
         <Plus class="w-3.5 h-3.5" /> Add IB
@@ -41,9 +53,18 @@
           </div>
         </div>
       </div>
+      <div v-else-if="filteredData.length === 0" class="py-16 text-center bg-card-background border border-primary-border rounded-xl">
+        <div class="flex flex-col items-center justify-center gap-3">
+          <div class="w-12 h-12 rounded-full bg-background border border-primary-border flex items-center justify-center mx-auto">
+            <Users class="w-5 h-5 text-secondary-text" />
+          </div>
+          <p class="text-sm font-semibold text-primary-text">No IBs found</p>
+          <p class="text-xs text-secondary-text">Try adjusting your search</p>
+        </div>
+      </div>
       <IbTree
         v-else
-        :items="store.data"
+        :items="filteredData"
         :expanded="expanded"
         @toggle="toggleRow"
         @edit="openEdit"
@@ -81,9 +102,23 @@
           </tr>
         </tbody>
 
+        <tbody v-else-if="filteredData.length === 0">
+          <tr>
+            <td colspan="6" class="py-16 text-center bg-card-background">
+              <div class="flex flex-col items-center justify-center gap-3">
+                <div class="w-12 h-12 rounded-full bg-background border border-primary-border flex items-center justify-center mx-auto">
+                  <Users class="w-5 h-5 text-secondary-text" />
+                </div>
+                <p class="text-sm font-semibold text-primary-text">No IBs found</p>
+                <p class="text-xs text-secondary-text">Try adjusting your search</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+
         <tbody v-else>
           <IbTreeRow
-            :nodes="store.data"
+            :nodes="filteredData"
             :expanded="expanded"
             @toggle="toggleRow"
             @add-sub="openAddSub"
@@ -111,8 +146,8 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
-import { Plus } from 'lucide-vue-next'
+import { onMounted, ref, computed, watch } from 'vue'
+import { Plus, Search, Users } from 'lucide-vue-next'
 import { useIbTreeStore } from '@/stores/ibTree/ibTree'
 import IbTreeRow from '@/components/ibTree/IbTreeRow.vue'
 import IbTree from '@/components/ibTree/IbTree.vue'
@@ -124,6 +159,8 @@ const expanded = ref({})
 const viewMode = ref('table')
 const dialog = ref({ open: false, editData: null, parentIbId: null })
 const transferDialog = ref({ open: false, ib: null })
+
+const searchQuery = ref('')
 
 const openAdd = () => { dialog.value = { open: true, editData: null, parentIbId: null } }
 const openAddSub = (id) => { dialog.value = { open: true, editData: null, parentIbId: id } }
@@ -137,6 +174,85 @@ const openTransferParent = (node) => {
 const onTransferSuccess = () => {
   store.fetchIbTree(true)
 }
+
+// Helper to find parent node IDs that should be expanded based on matching child nodes
+const getNodesToExpand = (nodes, query) => {
+  const ids = []
+  if (!query) return ids
+
+  const lowerQuery = query.toLowerCase()
+
+  const checkNode = (node) => {
+    const matchesSelf = (
+      node.name?.toLowerCase().includes(lowerQuery) ||
+      node.email?.toLowerCase().includes(lowerQuery) ||
+      node.referral_code?.toLowerCase().includes(lowerQuery) ||
+      String(node.ib_id).includes(lowerQuery)
+    )
+
+    let matchesAnyChild = false
+    if (node.children && node.children.length > 0) {
+      for (const child of node.children) {
+        if (checkNode(child)) {
+          matchesAnyChild = true
+        }
+      }
+    }
+
+    if (matchesAnyChild) {
+      ids.push(node.ib_id)
+    }
+
+    return matchesSelf || matchesAnyChild
+  }
+
+  for (const node of nodes) {
+    checkNode(node)
+  }
+
+  return ids
+}
+
+// Watch searchQuery and data to automatically expand matching branches
+watch([searchQuery, () => store.data], ([newQuery, newData]) => {
+  if (newQuery && newQuery.trim() && newData) {
+    const idsToExpand = getNodesToExpand(newData, newQuery)
+    idsToExpand.forEach(id => {
+      expanded.value[id] = true
+    })
+  }
+}, { deep: false })
+
+// Filter logic: if a node or any of its children match, keep it.
+// If a node matches, keep all its descendants.
+const filteredData = computed(() => {
+  if (!searchQuery.value.trim()) return store.data
+
+  const lowerQuery = searchQuery.value.toLowerCase().trim()
+
+  const filterNodes = (nodes, isParentMatched = false) => {
+    return nodes.reduce((acc, node) => {
+      const matchesSelf = isParentMatched || (
+        node.name?.toLowerCase().includes(lowerQuery) ||
+        node.email?.toLowerCase().includes(lowerQuery) ||
+        node.referral_code?.toLowerCase().includes(lowerQuery) ||
+        String(node.ib_id).includes(lowerQuery)
+      )
+
+      const filteredChildren = node.children ? filterNodes(node.children, matchesSelf) : []
+
+      if (matchesSelf || filteredChildren.length > 0) {
+        acc.push({
+          ...node,
+          children: filteredChildren
+        })
+      }
+      return acc
+    }, [])
+  }
+
+  return filterNodes(store.data)
+})
 
 onMounted(() => { store.fetchIbTree() })
 </script>

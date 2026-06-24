@@ -283,7 +283,7 @@ onMounted(() => {
                     item.status === 'approved',
                   'bg-yellow-50 text-yellow-800 border-yellow-200':
                     item.status === 'pending',
-                  'bg-primary-red/50 text-red-800 border-red-200':
+                  'bg-primary-red/50 border-red-200':
                     item.status === 'rejected',
                 }"
               >
