@@ -1,18 +1,25 @@
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { Mail, Lock, Eye, EyeOff, ArrowRight, Loader2 } from 'lucide-vue-next'
 import { useSnackbarStore } from '@/stores/snackbar/snackbar'
 import apiRequest from '@/api/request'
 import authToken from '@/common/authToken'
 import urls from '@/api/urls'
 import { useRouter } from 'vue-router'
-import logo from '@/assets/logo_dark.svg'
+import logoLight from '@/assets/logo_full.svg'
+import logoDark from '@/assets/logo_dark_full.png'
 
 const router = useRouter()
 const snackbar = useSnackbarStore()
 
 const loading = ref(false)
 const showPassword = ref(false)
+
+// Compute logo based on theme in localStorage
+const logo = computed(() => {
+  const theme = localStorage.getItem('theme')
+  return theme === 'light' ? logoDark : logoLight
+})
 
 const form = reactive({
   email: '',
@@ -105,7 +112,7 @@ const goToRegister = () => {
       <!-- Logo + Brand -->
       <div class="text-center mb-10">
         <div class="flex justify-center mb-4">
-          <img :src="logo" alt="Panther Capital" class="w-12 h-12 object-contain rounded-xl" />
+          <img :src="logo" alt="Panther Capital" class="w-56 h-12 object-contain rounded-xl" />
         </div>
 
         <h1 class="text-xl font-semibold text-primary-text tracking-wide">
@@ -119,7 +126,6 @@ const goToRegister = () => {
 
       <!-- Form -->
       <div
-        style="box-shadow: 0 2px 24px rgba(23,21,20,0.06)"
       >
 
         <!-- Email -->

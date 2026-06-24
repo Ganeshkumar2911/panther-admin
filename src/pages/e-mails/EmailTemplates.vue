@@ -129,7 +129,7 @@
         </div>
 
         <!-- Actions -->
-        <div class="flex gap-2 pt-1 mt-auto border-t border-primary-border">
+        <div class="flex gap-2 pt-2.5 mt-auto border-t border-primary-border">
           <button
             class="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary-border text-xs text-secondary-text hover:text-primary-text hover:bg-background transition-colors"
             @click="openPreview(tpl)"
