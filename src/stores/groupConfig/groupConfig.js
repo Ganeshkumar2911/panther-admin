@@ -69,7 +69,7 @@ export const useGroupConfigStore = defineStore(
 
     const pagination = reactive({
       page: 1,
-      per_page: 10,
+      per_page: 100,
       total_items: 0,
       total_pages: 1,
     })

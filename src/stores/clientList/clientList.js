@@ -20,6 +20,14 @@ export const useClientListStore = defineStore('clientList', () => {
     ib_id: '',
   })
 
+  const perPageOptions = [
+    { label: '10', value: 10 },
+    { label: '20', value: 20 },
+    { label: '30', value: 30 },
+    { label: '40', value: 40 },
+    { label: '50', value: 50 },
+  ]
+
   const ibOptions = ref([])
   const searchLoading = ref(false)
 
@@ -180,12 +188,19 @@ export const useClientListStore = defineStore('clientList', () => {
     error.value = null
   }
 
+  const updatePerPage = (newPerPage) => {
+    pagination.value.per_page = newPerPage
+    pagination.value.page = 1
+    fetchClients(1)
+  }
+
   return {
     data,
 
     pagination,
     filters,
 
+    perPageOptions,
     ibOptions,
     searchLoading,
 
@@ -193,6 +208,7 @@ export const useClientListStore = defineStore('clientList', () => {
     error,
 
     fetchClients,
+    updatePerPage,
 
     searchIbs,
 

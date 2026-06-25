@@ -52,19 +52,19 @@
           v-model="store.filters.search"
           type="text"
           placeholder="Search groups..."
-          class="w-full pl-8 pr-3 py-2 text-xs rounded-xl bg-card-background border border-primary-border text-primary-text outline-none focus:border-primary transition-colors placeholder:text-secondary-text"
+          class="w-full pl-8 pr-3 py-2 text-xs rounded-lg bg-card-background border border-primary-border text-primary-text outline-none focus:border-primary transition-colors placeholder:text-secondary-text"
           @input="onSearch"
         />
       </div> -->
 
       <!-- Status Tabs -->
-      <div class="flex items-center gap-1 bg-card-background border border-primary-border rounded-xl p-1">
+      <div class="flex items-center gap-1 bg-card-background border border-primary-border rounded-lg p-1">
         <button
           v-for="tab in tabs"
           :key="tab.value"
           class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
           :class="store.filters.status === tab.value
-            ? 'bg-primary text-black'
+            ? 'bg-primary text-white'
             : 'text-secondary-text hover:text-primary-text'"
           @click="switchTab(tab.value)"
         >
@@ -87,7 +87,7 @@
           <div class="h-8 bg-background rounded-lg" />
           <div class="h-8 bg-background rounded-lg" />
         </div>
-        <div class="h-8 bg-background rounded-xl" />
+        <div class="h-8 bg-background rounded-lg" />
       </div>
     </div>
 
@@ -142,26 +142,26 @@
 
         <!-- Meta Grid -->
         <div class="grid grid-cols-2 gap-2">
-          <div class="bg-background rounded-xl px-3 py-2">
+          <div class="bg-background rounded-lg px-3 py-2">
             <p class="text-[10px] text-secondary-text mb-0.5">Currency</p>
             <p class="text-xs font-semibold text-primary-text">{{ g.currency ?? '—' }}</p>
           </div>
-          <div class="bg-background rounded-xl px-3 py-2">
+          <div class="bg-background rounded-lg px-3 py-2">
             <p class="text-[10px] text-secondary-text mb-0.5">Badge</p>
             <p class="text-xs font-semibold text-primary-text">{{ g.badge ?? '—' }}</p>
           </div>
-          <div class="bg-background rounded-xl px-3 py-2">
+          <div class="bg-background rounded-lg px-3 py-2">
             <p class="text-[10px] text-secondary-text mb-0.5">Account Type</p>
             <p class="text-xs font-semibold text-primary-text capitalize">{{ g.account_type ?? '—' }}</p>
           </div>
-          <div class="bg-background rounded-xl px-3 py-2">
+          <div class="bg-background rounded-lg px-3 py-2">
             <p class="text-[10px] text-secondary-text mb-0.5">Category</p>
             <p class="text-xs font-semibold text-primary-text capitalize">{{ g.account_category ?? '—' }}</p>
           </div>
         </div>
 
         <!-- Margin Mode + Leverage -->
-        <div class="flex items-center justify-between px-3 py-2 bg-background rounded-xl">
+        <div class="flex items-center justify-between px-3 py-2 bg-background rounded-lg">
           <div>
             <p class="text-[10px] text-secondary-text mb-0.5">Margin Mode</p>
             <p class="text-xs font-medium text-primary-text capitalize">{{ g.margin_mode?.replace(/_/g, ' ') ?? '—' }}</p>
@@ -175,14 +175,14 @@
         <!-- Action -->
         <div v-if="!g.is_added">
           <button
-            class="w-full flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-black text-xs font-semibold transition-colors"
+            class="w-full flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-colors"
             @click="openAdd(g)"
           >
             <Plus class="w-3.5 h-3.5" /> Add Config
           </button>
         </div>
         <div v-else class="flex flex-col gap-2">
-          <div class="flex items-center gap-1.5 px-3 py-2 bg-background border border-primary-border rounded-xl">
+          <div class="flex items-center gap-1.5 px-3 py-2 bg-background border border-primary-border rounded-lg">
             <CheckCircle2 class="w-3.5 h-3.5 text-primary-green shrink-0" />
             <span class="text-[11px] text-secondary-text flex-1">Config #{{ g.config_id }}</span>
           </div>

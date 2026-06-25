@@ -103,6 +103,14 @@ onMounted(() => store.fetchClients())
           Clear
         </button>
 
+        <BaseSelect
+          :modelValue="store.pagination.per_page"
+          :options="store.perPageOptions"
+          placeholder="Per page..."
+          class="w-full sm:w-32 xl:w-32"
+          @update:modelValue="store.updatePerPage"
+        />
+
         <span class="rounded-lg px-3 py-2 text-xs font-medium text-secondary-text bg-background border border-primary-border sm:ml-auto sm:flex-none">
           {{ store.pagination.total_items }} clients
         </span>
