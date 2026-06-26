@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { BarChart2, RotateCcwKey, Search, Wallet as WalletIcon, DollarSign, ArrowDownUp, RefreshCw } from 'lucide-vue-next'
+import { BarChart2, RotateCcwKey, Search, X, Wallet as WalletIcon, DollarSign, ArrowDownUp, RefreshCw } from 'lucide-vue-next'
 import Pagination from '@/components/common/Pagination.vue'
 import ChangePasswordDialog from '@/components/trading-accounts/ChangePasswordDialog.vue'
 import DepositWithdrawalDialog from '@/components/trading-accounts/DepositWithdrawal.vue'
@@ -14,7 +14,7 @@ const router = useRouter()
 
 const tabs = [
   { label: 'All', value: 'all' },
-  { label: 'Client', value: 'client' },
+  // { label: 'Client', value: 'client' },
   { label: 'FM', value: 'fm' },
 ]
 
@@ -89,9 +89,14 @@ const handlePageChange = (page) => {
 }
 
 const setTradingType = (type) => {
-  store.setFilters({
+  const nextFilters = {
     trading_type: type,
-  })
+  }
+  // Reset account_subtype when trading_type is 'all'
+  if (type === 'all') {
+    nextFilters.account_subtype = 'all'
+  }
+  store.setFilters(nextFilters)
 }
 
 const setAccountType = (type) => {
@@ -107,6 +112,15 @@ const onSearch = () => {
       search_query: store.filters.search_query,
     })
   }, 1000)
+}
+
+const clearAllFilters = () => {
+  store.setFilters({
+    account_type: 'all',
+    trading_type: 'all',
+    account_subtype: 'all',
+    search_query: '',
+  })
 }
 
 const openChangePassword = (acc) => {
@@ -287,6 +301,17 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
           @input="onSearch"
         />
       </div>
+
+      <Tooltip v-if="hasActiveFilters" class="z-9999" text="Clear filters" position="left">
+        <button
+          type="button"
+          class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text transition-colors hover:text-primary-text hover:bg-background"
+          @click="clearAllFilters"
+        >
+          <X class="h-3.5 w-3.5" />
+        </button>
+      </Tooltip>
+
       <Tooltip class="z-9999" text="Refresh" position="right">
         <button
           type="button"
