@@ -68,6 +68,7 @@ export const useAccountsStore = defineStore('accounts', () => {
     apiRequest('get', urls.tradingAccounts.list, {
       params,
       isTokenRequired: true,
+      cancelPrevious: true,
       onSuccess: successHandler,
       onFailure: failureHandler,
     })

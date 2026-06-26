@@ -4,13 +4,37 @@ import router from "../router";
 
 // ─── Constants
 
-// const BASE_URL = "https://w2llv2cm-2504.inc1.devtunnels.ms/admin/"; 
-const BASE_URL = "https://848ncvt5-2504.euw.devtunnels.ms/admin/";
+const BASE_URL = "https://w2llv2cm-2504.inc1.devtunnels.ms/admin/"; 
+// const BASE_URL = "https://f7v2d03l-2504.inc1.devtunnels.ms/admin/"; 
+// const BASE_URL = "https://848ncvt5-2504.euw.devtunnels.ms/admin/";
 const DEFAULT_TIMEOUT = 30_000;
 const MAX_RETRY_ATTEMPTS = 2;
 const RETRYABLE_STATUS_CODES = [502, 503, 504];
 const NO_BODY_METHODS = ["get", "delete", "head", "options"];
 const ALLOWED_METHODS = ["get", "post", "patch", "put", "delete"];
+
+// ─── Request Deduplication (takeLatest)
+
+const pendingRequests = new Map();
+
+const generateRequestKey = (method, url) => {
+  return `${method.toUpperCase()}:${url}`;
+};
+
+const cancelPreviousRequest = (requestKey) => {
+  const existing = pendingRequests.get(requestKey);
+  if (existing) {
+    existing.abortController.abort();
+  }
+};
+
+const cleanupRequest = (requestKey, controller) => {
+  const current = pendingRequests.get(requestKey);
+
+  if (current?.abortController === controller) {
+    pendingRequests.delete(requestKey);
+  }
+};
 
 // ─── Axios Instance
 
@@ -57,6 +81,7 @@ axiosInstance.interceptors.response.use(
     // ── 401: مباشرة logout (no refresh)
     if (error.response?.status === 401) {
       authToken.removeToken();
+      localStorage.removeItem('role')
       router.push({ name: "login" });
       return Promise.reject(error);
     }
@@ -81,7 +106,7 @@ axiosInstance.interceptors.response.use(
 // ─── Global Error Handler 
 const handleError = (error) => {
   // Cancelled request — not an error
-  if (axios.isCancel(error)) {
+  if (error.code === "ERR_CANCELED") {
     console.warn("Request cancelled:", error.message);
     return;
   }
@@ -144,6 +169,7 @@ const apiRequest = (
     isTokenRequired = true,
     signal = null,       // ← use AbortController.signal per-request
     timeout = null,
+    cancelPrevious = false,
   } = {}
 ) => {
   if (!ALLOWED_METHODS.includes(method)) {
@@ -157,6 +183,16 @@ const apiRequest = (
   if (look_up_key !== null && look_up_key !== undefined) {
     url = `${url.replace(/\/$/, "")}/${look_up_key}`;
   }
+
+  let abortController = null;
+  let requestKey = null;
+
+  if (cancelPrevious) {
+    requestKey = generateRequestKey(method, url);
+    abortController = new AbortController();
+    cancelPreviousRequest(requestKey);
+    pendingRequests.set(requestKey, { abortController });
+  }
   const config = {
     method,
     url,
@@ -167,6 +203,7 @@ const apiRequest = (
     onDownloadProgress,
     isTokenRequired,
     ...(signal && { signal }),
+    signal: abortController?.signal || signal,
     ...(timeout != null && { timeout }),
   };
 
@@ -176,21 +213,30 @@ const apiRequest = (
   }
 
   return axiosInstance(config)
-    .then((response) => {
-      if (onSuccess) onSuccess(response.data);
-      return response.data;
-    })
-    .catch((error) => {
-      if (onFailure) {
-        // When caller handles failure themselves, don't re-throw
-        onFailure(error.response?.data ?? error);
-        return;
-      }
-      throw error; // Re-throw only when no handler is provided
-    })
-    .finally(() => {
-      if (onFinally) onFinally();
-    });
+  .then((response) => {
+    if (onSuccess) onSuccess(response.data);
+    return response.data;
+  })
+  .catch((error) => {
+    if (error.code === "ERR_CANCELED") {
+      console.warn("Request cancelled:", error.message);
+      throw error;
+    }
+
+    if (onFailure) {
+      onFailure(error.response?.data ?? error);
+      return;
+    }
+
+    throw error;
+  })
+  .finally(() => {
+    if (requestKey) {
+      cleanupRequest(requestKey, abortController);
+    }
+
+    if (onFinally) onFinally();
+  });
 };
 
 export { axiosInstance };

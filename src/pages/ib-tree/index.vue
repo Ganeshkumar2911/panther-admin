@@ -76,7 +76,7 @@
     <!-- Table View -->
     <div v-else class="w-full overflow-x-auto">
       <table class="w-full border-collapse">
-        <thead>
+        <!-- <thead>
           <tr class="border-b border-primary-border">
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest pb-3 px-3">IB ID</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest pb-3 px-3">IB Name</th>
@@ -85,7 +85,7 @@
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest pb-3 px-3">Level</th>
             <th class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-widest pb-3 px-3">Actions</th>
           </tr>
-        </thead>
+        </thead> -->
 
         <tbody v-if="store.isLoading">
           <tr v-for="n in 5" :key="n" class="border-b border-primary-border animate-pulse">
