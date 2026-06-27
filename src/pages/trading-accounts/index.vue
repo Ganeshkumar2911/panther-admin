@@ -1,10 +1,11 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { BarChart2, RotateCcwKey, Search, X, Wallet as WalletIcon, DollarSign, ArrowDownUp, RefreshCw } from 'lucide-vue-next'
+import { BarChart2, RotateCcwKey, Search, X, Wallet as WalletIcon, DollarSign, ArrowDownUp, RefreshCw, Plus, Pencil } from 'lucide-vue-next'
 import Pagination from '@/components/common/Pagination.vue'
 import ChangePasswordDialog from '@/components/trading-accounts/ChangePasswordDialog.vue'
 import DepositWithdrawalDialog from '@/components/trading-accounts/DepositWithdrawal.vue'
+import AddEditAccount from '@/components/trading-accounts/AddEditAccount.vue'
 import { useAccountsStore } from '@/stores/tradingAccounts/tradingAccounts'
 import { useProfileStore } from '@/stores/profile/profile'
 
@@ -40,6 +41,32 @@ const depositWithdrawalDialog = ref({
   account: null,
   mode: 'deposit', // 'deposit' or 'withdrawal'
 })
+
+const addEditAccountDialog = ref({
+  open: false,
+  editData: null,
+})
+
+const openAddAccount = () => {
+  addEditAccountDialog.value = {
+    open: true,
+    editData: null,
+  }
+}
+
+const openEditAccount = (acc) => {
+  addEditAccountDialog.value = {
+    open: true,
+    editData: acc,
+  }
+}
+
+const closeAddEditAccount = () => {
+  addEditAccountDialog.value = {
+    open: false,
+    editData: null,
+  }
+}
 
 let searchTimer = null
 
@@ -213,8 +240,19 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
 </script>
 
 <template>
-  <div class="px-4">
-        <!-- Summary Cards -->
+  <div class="px-4 pb-8">
+    <!-- Header -->
+    <div class="flex flex-wrap items-start justify-end gap-3 mb-6">
+      <button
+        class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all active:scale-95 cursor-pointer"
+        @click="openAddAccount"
+      >
+        <Plus class="w-3.5 h-3.5" />
+        Add Account
+      </button>
+    </div>
+
+    <!-- Summary Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
       <template v-if="store.loading">
         <div v-for="n in 3" :key="n" class="bg-card-background border border-primary-border rounded-xl p-4 animate-pulse space-y-2">
@@ -606,10 +644,20 @@ class="inline-flex items-center justify-center rounded-lg border border-primary-
                 <Tooltip v-if="acc.trading_type === 'real'" text="Change Password">
                   <button
                     type="button"
-class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text hover:text-primary-text hover:bg-background transition-colors"
+                    class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text hover:text-primary-text hover:bg-background transition-colors"
                     @click="setActiveCurrency(acc); openChangePassword(acc)"
                   >
                     <RotateCcwKey class="h-3.5 w-3.5" />
+                  </button>
+                </Tooltip>
+
+                <Tooltip v-if="acc.trading_type === 'copy_trading'" text="Edit Account">
+                  <button
+                    type="button"
+                    class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text hover:text-primary-text hover:bg-background transition-colors"
+                    @click="setActiveCurrency(acc); openEditAccount(acc)"
+                  >
+                    <Pencil class="h-3.5 w-3.5" />
                   </button>
                 </Tooltip>
               </div>
@@ -640,6 +688,12 @@ class="inline-flex items-center justify-center rounded-lg border border-primary-
       :mode="depositWithdrawalDialog.mode"
       @close="closeDepositWithdrawalDialog"
       @success="store.fetchAccounts(true)"
+    />
+
+    <AddEditAccount
+      :open="addEditAccountDialog.open"
+      :edit-data="addEditAccountDialog.editData"
+      @close="closeAddEditAccount"
     />
   </div>
 </template>

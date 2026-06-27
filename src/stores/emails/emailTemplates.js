@@ -67,6 +67,7 @@ export const useEmailTemplatesStore = defineStore(
       'IB',
       'MARKETING',
       'SYSTEM',
+      'TRADING_ACCOUNT',
     ]
 
     const codeOptions = {
@@ -104,6 +105,9 @@ export const useEmailTemplatesStore = defineStore(
         'LOGIN_ALERT',
         'SECURITY_ALERT',
       ],
+      TRADING_ACCOUNT: [
+        'TRADING_ACCOUNT_CREATED',
+      ]
     }
 
     // ─────────────────────────────────────

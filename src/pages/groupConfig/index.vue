@@ -73,153 +73,193 @@
       </div>
     </div>
 
-    <!-- Skeleton Cards -->
-    <div v-if="store.loading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div v-for="n in 6" :key="n" class="bg-card-background border border-primary-border rounded-2xl p-5 animate-pulse space-y-3">
-        <div class="flex items-center justify-between">
-          <div class="h-4 w-32 bg-background rounded" />
-          <div class="h-5 w-14 bg-background rounded-full" />
-        </div>
-        <div class="h-3 w-full bg-background rounded" />
-        <div class="grid grid-cols-2 gap-2">
-          <div class="h-8 bg-background rounded-lg" />
-          <div class="h-8 bg-background rounded-lg" />
-          <div class="h-8 bg-background rounded-lg" />
-          <div class="h-8 bg-background rounded-lg" />
-        </div>
-        <div class="h-8 bg-background rounded-lg" />
-      </div>
-    </div>
+    <!-- Table -->
+    <div class="w-full border border-primary-border rounded-lg overflow-x-auto bg-card-background">
+      <table class="w-full border-collapse">
+        <thead>
+          <tr class="border-b border-primary-border bg-card-background/50">
+            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3 whitespace-nowrap">Group / Label</th>
+            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3 whitespace-nowrap">Status</th>
+            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3 whitespace-nowrap">Currency</th>
+            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3 whitespace-nowrap">Leverage</th>
+            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3 whitespace-nowrap">Margin Mode</th>
+            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3 whitespace-nowrap">Account Type</th>
+            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3 whitespace-nowrap">Category</th>
+            <th class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3 whitespace-nowrap">Actions</th>
+          </tr>
+        </thead>
 
-    <!-- Empty State -->
-    <div v-else-if="store.records.length === 0" class="flex flex-col items-center gap-3 py-20">
-      <div class="w-14 h-14 rounded-2xl bg-card-background border border-primary-border flex items-center justify-center">
-        <Database class="w-6 h-6 text-secondary-text" />
-      </div>
-      <p class="text-sm font-semibold text-primary-text">No groups found</p>
-      <p class="text-xs text-secondary-text">Try adjusting your filters or search</p>
-    </div>
-
-    <!-- Group Cards -->
-    <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div
-        v-for="g in store.records"
-        :key="g.config_id ?? g.group"
-        class="bg-card-background border border-primary-border rounded-2xl p-5 flex flex-col gap-4 hover:border-primary/40 transition-all duration-200 group relative overflow-hidden"
-        :class="{ 'pt-8': g.is_default }"
-      >
-        <!-- Top accent line -->
-        <span class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-        <!-- Default Badge Ribbon -->
-        <div v-if="g.is_default" class="absolute -top-1.5 pt-2.5 -left-8 w-24 h-10 bg-gradient-to-r from-yellow-400 to-yellow-500 transform -rotate-45 flex items-center justify-center shadow-lg">
-          <span class="text-[9px] sm:text-[10px] md:text-[11px] lg:text-xs font-bold text-yellow-900">Default</span>
-        </div>
-
-        <!-- Card Header -->
-        <div class="flex items-start justify-between gap-2">
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-semibold text-primary-text truncate">
-              {{ g.label ?? extractGroupName(g.group) }}
-            </p>
-            <p class="text-[11px] text-secondary-text font-mono truncate mt-0.5">{{ g.group }}</p>
-          </div>
-          <div class="flex items-center gap-1.5 shrink-0">
-            <span
-              v-if="g.is_added"
-              class="text-[10px] font-semibold px-2 py-0.5 rounded-full border"
-              :class="g.is_active
-                ? 'bg-primary-green/10 text-primary-green border-primary-green/20'
-                : 'bg-primary-red/10 text-primary-red border-primary-red/20'"
-            >
-              {{ g.is_active ? 'Active' : 'Inactive' }}
-            </span>
-            <span v-else class="text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-primary-yellow/10 text-primary-yellow border-primary-yellow/20">
-              Not Added
-            </span>
-          </div>
-        </div>
-
-        <!-- Meta Grid -->
-        <div class="grid grid-cols-2 gap-2">
-          <div class="bg-background rounded-lg px-3 py-2">
-            <p class="text-[10px] text-secondary-text mb-0.5">Currency</p>
-            <p class="text-xs font-semibold text-primary-text">{{ g.currency ?? '—' }}</p>
-          </div>
-          <div class="bg-background rounded-lg px-3 py-2">
-            <p class="text-[10px] text-secondary-text mb-0.5">Badge</p>
-            <p class="text-xs font-semibold text-primary-text">{{ g.badge ?? '—' }}</p>
-          </div>
-          <div class="bg-background rounded-lg px-3 py-2">
-            <p class="text-[10px] text-secondary-text mb-0.5">Account Type</p>
-            <p class="text-xs font-semibold text-primary-text capitalize">{{ g.account_type ?? '—' }}</p>
-          </div>
-          <div class="bg-background rounded-lg px-3 py-2">
-            <p class="text-[10px] text-secondary-text mb-0.5">Category</p>
-            <p class="text-xs font-semibold text-primary-text capitalize">{{ g.account_category ?? '—' }}</p>
-          </div>
-        </div>
-
-        <!-- Margin Mode + Leverage -->
-        <div class="flex items-center justify-between px-3 py-2 bg-background rounded-lg">
-          <div>
-            <p class="text-[10px] text-secondary-text mb-0.5">Margin Mode</p>
-            <p class="text-xs font-medium text-primary-text capitalize">{{ g.margin_mode?.replace(/_/g, ' ') ?? '—' }}</p>
-          </div>
-          <div v-if="g.leverage" class="text-right">
-            <p class="text-[10px] text-secondary-text mb-0.5">Leverage</p>
-            <p class="text-xs font-semibold text-primary-text">1:{{ g.leverage }}</p>
-          </div>
-        </div>
-
-        <!-- Action -->
-        <div v-if="!g.is_added">
-          <button
-            class="w-full flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-colors"
-            @click="openAdd(g)"
+        <!-- Loading skeleton -->
+        <tbody v-if="store.loading">
+          <tr
+            v-for="n in 6"
+            :key="n"
+            class="border-b border-primary-border animate-pulse"
           >
-            <Plus class="w-3.5 h-3.5" /> Add Config
-          </button>
-        </div>
-        <div v-else class="flex flex-col gap-2">
-          <div class="flex items-center gap-1.5 px-3 py-2 bg-background border border-primary-border rounded-lg">
-            <CheckCircle2 class="w-3.5 h-3.5 text-primary-green shrink-0" />
-            <span class="text-[11px] text-secondary-text flex-1">Config #{{ g.config_id }}</span>
-          </div>
-          <div class="flex items-center justify-start ml-4 gap-2">
-            <Tooltip
-              v-if="!g.is_default"
-              text="Set as Default"
-            >
-              <button
-                @click="openSetDefaultConfirm(g)"
-                :disabled="store.actionLoading.id === g.config_id && store.actionLoading.type === 'set_default'"
-                class="p-2 rounded-lg hover:bg-primary-yellow/10 text-yellow-600 transition-colors disabled:opacity-50"
-              >
-                <Loader2
-                  v-if="store.actionLoading.id === g.config_id && store.actionLoading.type === 'set_default'"
-                  class="w-4 h-4 animate-spin"
-                />
-                <Star v-else class="w-4 h-4" />
-              </button>
-            </Tooltip>
+            <td class="px-3 py-4">
+              <div class="h-3.5 w-28 bg-background rounded mb-1.5" />
+              <div class="h-2.5 w-36 bg-background rounded" />
+            </td>
+            <td class="px-3 py-4">
+              <div class="h-5 w-14 bg-background rounded-full" />
+            </td>
+            <td class="px-3 py-4">
+              <div class="h-3.5 w-10 bg-background rounded" />
+            </td>
+            <td class="px-3 py-4">
+              <div class="h-3.5 w-12 bg-background rounded" />
+            </td>
+            <td class="px-3 py-4">
+              <div class="h-3.5 w-16 bg-background rounded" />
+            </td>
+            <td class="px-3 py-4">
+              <div class="h-3.5 w-16 bg-background rounded" />
+            </td>
+            <td class="px-3 py-4">
+              <div class="h-3.5 w-16 bg-background rounded" />
+            </td>
+            <td class="px-3 py-4">
+              <div class="flex justify-end gap-2">
+                <div class="h-7 w-20 bg-background rounded-lg" />
+              </div>
+            </td>
+          </tr>
+        </tbody>
 
-            <Tooltip text="Remove Configuration">
-              <button
-                @click="openDeconfigConfirm(g)"
-                :disabled="store.actionLoading.id === g.config_id && store.actionLoading.type === 'deconfig'"
-                class="p-2 rounded-lg hover:bg-primary-red/50 text-red-600 transition-colors disabled:opacity-50"
+        <!-- Empty State -->
+        <tbody v-else-if="store.records.length === 0">
+          <tr>
+            <td colspan="8" class="py-16 text-center">
+              <div class="flex flex-col items-center gap-3">
+                <div class="w-14 h-14 rounded-2xl bg-card-background border border-primary-border flex items-center justify-center">
+                  <Database class="w-6 h-6 text-secondary-text" />
+                </div>
+                <p class="text-sm font-semibold text-primary-text">No groups found</p>
+                <p class="text-xs text-secondary-text">Try adjusting your filters or search</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+
+        <!-- Data Rows -->
+        <tbody v-else>
+          <tr
+            v-for="g in store.records"
+            :key="g.config_id ?? g.group"
+            class="border-b border-primary-border last:border-none hover:bg-background/40 transition-colors"
+          >
+            <!-- Group / Label & Config ID & Default indicator -->
+            <td class="px-3 py-4">
+              <div class="flex items-center gap-2">
+                <Tooltip v-if="g.is_default" text="Default Group">
+                  <div class="shrink-0 text-yellow-500">
+                    <Star class="w-4 h-4 fill-current" />
+                  </div>
+                </Tooltip>
+                <div class="flex-1 min-w-0">
+                  <p class="text-xs font-semibold text-primary-text truncate">
+                    {{ g.label ?? extractGroupName(g.group) }}
+                  </p>
+                  <p class="text-[10px] text-secondary-text font-mono truncate mt-0.5">{{ g.group }}</p>
+                  <p v-if="g.config_id" class="text-[10px] text-primary-green font-medium mt-0.5">Config #{{ g.config_id }}</p>
+                </div>
+              </div>
+            </td>
+
+            <!-- Status -->
+            <td class="px-3 py-4 whitespace-nowrap">
+              <span
+                v-if="g.is_added"
+                class="text-[10px] font-semibold px-2 py-0.5 rounded-full border"
+                :class="g.is_active
+                  ? 'bg-primary-green/10 text-primary-green border-primary-green/20'
+                  : 'bg-primary-red/10 text-primary-red border-primary-red/20'"
               >
-                <Loader2
-                  v-if="store.actionLoading.id === g.config_id && store.actionLoading.type === 'deconfig'"
-                  class="w-4 h-4 animate-spin"
-                />
-                <Trash2 v-else class="w-4 h-4" />
-              </button>
-            </Tooltip>
-          </div>
-        </div>
-      </div>
+                {{ g.is_active ? 'Active' : 'Inactive' }}
+              </span>
+              <span v-else class="text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-primary-yellow/10 text-primary-yellow border-primary-yellow/20">
+                Not Added
+              </span>
+            </td>
+
+            <!-- Currency -->
+            <td class="px-3 py-4 text-xs text-primary-text whitespace-nowrap">
+              {{ g.currency ?? '—' }}
+            </td>
+
+            <!-- Leverage -->
+            <td class="px-3 py-4 text-xs text-primary-text whitespace-nowrap">
+              {{ g.leverage ? `1:${g.leverage}` : '—' }}
+            </td>
+
+            <!-- Margin Mode -->
+            <td class="px-3 py-4 text-xs text-primary-text whitespace-nowrap capitalize">
+              {{ g.margin_mode?.replace(/_/g, ' ') ?? '—' }}
+            </td>
+
+            <!-- Account Type / Badge -->
+            <td class="px-3 py-4 text-xs text-primary-text whitespace-nowrap capitalize">
+              {{ g.account_type ?? '—' }}
+              <span v-if="g.badge" class="ml-1 px-1.5 py-0.5 text-[9px] bg-background border border-primary-border rounded text-secondary-text uppercase font-semibold">
+                {{ g.badge }}
+              </span>
+            </td>
+
+            <!-- Category -->
+            <td class="px-3 py-4 text-xs text-primary-text whitespace-nowrap capitalize">
+              {{ g.account_category ?? '—' }}
+            </td>
+
+            <!-- Actions -->
+            <td class="px-3 py-4">
+              <div class="flex items-center justify-end gap-2">
+                <!-- Add Config -->
+                <button
+                  v-if="!g.is_added"
+                  class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all active:scale-95 cursor-pointer"
+                  @click="openAdd(g)"
+                >
+                  <Plus class="w-3 h-3" /> Add Config
+                </button>
+
+                <!-- Added Actions -->
+                <template v-else>
+                  <Tooltip
+                    v-if="!g.is_default"
+                    text="Set as Default"
+                  >
+                    <button
+                      @click="openSetDefaultConfirm(g)"
+                      :disabled="store.actionLoading.id === g.config_id && store.actionLoading.type === 'set_default'"
+                      class="p-1.5 rounded-lg hover:bg-yellow-500/10 text-yellow-600 transition-colors disabled:opacity-50 cursor-pointer"
+                    >
+                      <Loader2
+                        v-if="store.actionLoading.id === g.config_id && store.actionLoading.type === 'set_default'"
+                        class="w-3.5 h-3.5 animate-spin"
+                      />
+                      <Star v-else class="w-3.5 h-3.5" />
+                    </button>
+                  </Tooltip>
+
+                  <Tooltip text="Remove Configuration">
+                    <button
+                      @click="openDeconfigConfirm(g)"
+                      :disabled="store.actionLoading.id === g.config_id && store.actionLoading.type === 'deconfig'"
+                      class="p-1.5 rounded-lg hover:bg-primary-red/10 text-primary-red transition-colors disabled:opacity-50 cursor-pointer"
+                    >
+                      <Loader2
+                        v-if="store.actionLoading.id === g.config_id && store.actionLoading.type === 'deconfig'"
+                        class="w-3.5 h-3.5 animate-spin"
+                      />
+                      <Trash2 v-else class="w-3.5 h-3.5" />
+                    </button>
+                  </Tooltip>
+                </template>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <!-- Pagination -->
@@ -255,7 +295,7 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { Search, RefreshCw, Plus, CheckCircle2, Database, Star, Trash2 } from 'lucide-vue-next'
+import { Search, RefreshCw, Plus, CheckCircle2, Database, Star, Trash2, Loader2 } from 'lucide-vue-next'
 import { useGroupConfigStore } from '@/stores/groupConfig/groupConfig'
 import Pagination from '@/components/common/Pagination.vue'
 import AddGroupConfigDialog from '@/components/groupConfig/AddGroupConfigDialog.vue'
