@@ -218,6 +218,53 @@ export const usePaymentMethodsStore = defineStore(
     }
 
     // ─────────────────────────────────────
+    // Create Payment Method
+    // ─────────────────────────────────────
+
+    const createPaymentMethod = (payload) => {
+      updateLoading.value = true
+
+      return new Promise((resolve, reject) => {
+        const successHandler = (res) => {
+          snackbar.show(
+            res?.message || 'Payment method created successfully.',
+            'success'
+          )
+
+          updateLoading.value = false
+
+          fetchPaymentMethods(true)
+          resolve(res)
+        }
+
+        const failureHandler = (err) => {
+          updateLoading.value = false
+
+          error.value = err
+
+          snackbar.show(
+            err?.message || 'Failed to create payment method.',
+            'error'
+          )
+          reject(err)
+        }
+
+        apiRequest(
+          urls.KEYS.POST,
+          urls.paymentMethods.create,
+          {
+            data: payload,
+
+            isTokenRequired: true,
+
+            onSuccess: successHandler,
+            onFailure: failureHandler,
+          }
+        )
+      })
+    }
+
+    // ─────────────────────────────────────
     // Pagination
     // ─────────────────────────────────────
 
@@ -283,6 +330,7 @@ export const usePaymentMethodsStore = defineStore(
       fetchPaymentMethods,
       syncWallets,
       updatePaymentMethod,
+      createPaymentMethod,
 
       setPage,
 

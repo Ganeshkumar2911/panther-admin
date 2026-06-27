@@ -93,6 +93,7 @@ const urls = {
     create: '/group-config',
   },
   paymentMethods: {
+    create: '/payments/payment-methods',
     list: '/payments/payment-methods',
     syncWallets: '/payments/sync-wallets',
     update: '/payments/payment-methods',

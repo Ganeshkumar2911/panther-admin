@@ -185,6 +185,7 @@ const handleSubmit = () => {
             placeholder="0.00"
             class="w-full px-3 py-2.5 rounded-lg bg-background border border-primary-border text-primary-text text-sm outline-none focus:border-primary transition-colors placeholder:text-secondary-text"
           />
+          <p class="text-xs text-primary-text mt-1.5">Please Enter the Amount in Dollers</p>
         </div>
         <div>
           <p class="text-xs text-secondary-text mb-1.5">Description</p>

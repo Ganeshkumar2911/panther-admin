@@ -302,7 +302,7 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
         />
       </div>
 
-      <Tooltip v-if="hasActiveFilters" class="z-9999" text="Clear filters" position="left">
+      <Tooltip v-if="hasActiveFilters"  text="Clear filters" position="left">
         <button
           type="button"
           class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text transition-colors hover:text-primary-text hover:bg-background"
@@ -312,7 +312,7 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
         </button>
       </Tooltip>
 
-      <Tooltip class="z-9999" text="Refresh" position="right">
+      <Tooltip text="Refresh" position="right">
         <button
           type="button"
           :disabled="isRefreshing || store.loading"

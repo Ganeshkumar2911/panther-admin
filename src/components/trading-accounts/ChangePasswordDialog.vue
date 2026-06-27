@@ -21,6 +21,7 @@ const loading = ref(false)
 const accountNumber = computed(() => props.account?.account_number ?? '—')
 const accountType = computed(() => props.account?.trading_type ?? '—')
 const platform = computed(() => props.account?.platform ?? '—')
+const userID = computed(() => props.account?.user_id ?? '—')
 
 const passwordError = computed(() => {
   if (!newPassword.value) return ''
@@ -83,6 +84,7 @@ const submitChangePassword = () => {
     data: {
       trading_account_id: props.account.id,
       new_password: newPassword.value,
+      user_id: userID.value
     },
     isTokenRequired: true,
     onSuccess: successHandler,

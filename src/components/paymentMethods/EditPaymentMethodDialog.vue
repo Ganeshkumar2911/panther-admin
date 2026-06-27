@@ -11,7 +11,9 @@
       <div class="px-6 py-4 border-b border-primary-border flex items-center justify-between">
         <div class="flex items-center gap-2">
           <Wallet class="w-4 h-4 text-primary" />
-          <h2 class="text-sm font-semibold text-primary-text">Edit Payment Method</h2>
+          <h2 class="text-sm font-semibold text-primary-text">
+            {{ isEdit ? 'Edit Payment Method' : 'Create Payment Method' }}
+          </h2>
         </div>
         <button
           class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-background transition-colors"
@@ -22,44 +24,186 @@
         </button>
       </div>
 
-      <!-- Scrollable Form Body -->
-      <div class="px-6 py-5 space-y-4 max-h-[70vh] overflow-y-auto no-scrollbar">
-        <!-- Read-Only Context Info -->
-        <div class="grid grid-cols-2 gap-3 bg-background/40 p-3 rounded-xl border border-primary-border/30">
-          <div>
-            <p class="text-[10px] text-secondary-text uppercase tracking-wider mb-0.5">Wallet ID / Address</p>
-            <p class="text-xs font-mono text-primary-text truncate" :title="paymentMethod?.wallet_id">
-              {{ paymentMethod?.wallet_id || '—' }}
-            </p>
-          </div>
-          <div>
-            <p class="text-[10px] text-secondary-text uppercase tracking-wider mb-0.5">Currency / Type</p>
-            <p class="text-xs font-semibold text-primary-text capitalize">
-              {{ paymentMethod?.currency_id || '—' }} ({{ paymentMethod?.wallet_type === 1 ? 'Crypto' : 'Fiat' }})
-            </p>
-          </div>
-          <!-- <div class="col-span-2 pt-2 border-t border-primary-border/20">
-            <p class="text-[10px] text-secondary-text uppercase tracking-wider mb-0.5">Confirmed Balance</p>
-            <p class="text-sm font-bold text-primary-green">
-              {{ formatNum(paymentMethod?.balance_confirmed) }} <span class="text-xs font-normal text-secondary-text">{{ paymentMethod?.currency_id }}</span>
-            </p>
-          </div> -->
-        </div>
+      <!-- Tabs (Top area, disabled/read-only in Edit mode) -->
+      <div class="px-6 pt-3 flex border-b border-primary-border bg-background/10 gap-2">
+        <button
+          v-for="tab in [
+            { id: 'bank', label: 'Bank Transfer' },
+            { id: 'upi', label: 'UPI' },
+            { id: 'crypto', label: 'Crypto' }
+          ]"
+          :key="tab.id"
+          type="button"
+          :disabled="isEdit"
+          @click="activeTab = tab.id"
+          class="pb-2 px-2 text-xs font-semibold border-b-2 transition-all focus:outline-none"
+          :class="[
+            activeTab === tab.id
+              ? 'border-primary text-primary'
+              : 'border-transparent text-secondary-text hover:text-primary-text',
+            isEdit ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'
+          ]"
+        >
+          {{ tab.label }}
+        </button>
+      </div>
 
+      <!-- Scrollable Form Body -->
+      <div class="px-6 py-5 space-y-4 max-h-[60vh] overflow-y-auto no-scrollbar">
         <!-- Validation Error Message -->
         <p v-if="validationError" class="text-primary-red text-xs bg-primary-red/10 border border-primary-red/20 px-3 py-2 rounded-lg">
           {{ validationError }}
         </p>
 
+        <!-- Read-Only Context Info (Edit mode only) -->
+        <div v-if="isEdit" class="grid grid-cols-2 gap-3 bg-background/40 p-3 rounded-xl border border-primary-border/30">
+          <div>
+            <p class="text-[10px] text-secondary-text uppercase tracking-wider mb-0.5">Gateway / Method Type</p>
+            <p class="text-xs font-semibold text-primary-text capitalize">
+              {{ paymentMethod?.gateway || '—' }} ({{ paymentMethod?.method_type || '—' }})
+            </p>
+          </div>
+          <div v-if="paymentMethod?.wallet_id">
+            <p class="text-[10px] text-secondary-text uppercase tracking-wider mb-0.5">Wallet ID</p>
+            <p class="text-xs font-mono text-primary-text truncate" :title="paymentMethod?.wallet_id">
+              {{ paymentMethod?.wallet_id }}
+            </p>
+          </div>
+        </div>
+
         <!-- Wallet Label -->
         <div>
-          <label class="block text-xs font-medium text-secondary-text mb-1.5">Wallet Label</label>
+          <label class="block text-xs font-medium text-secondary-text mb-1.5">Wallet Label <span class="text-primary-red">*</span></label>
           <input
             v-model="form.wallet_label"
             type="text"
-            placeholder="e.g. USDT Tron Wallet"
+            placeholder="e.g. HDFC Current Account, Coinsbuy Wallet"
             :disabled="submitting"
-            class="w-full px-3 py-2.5 rounded-lg bg-background border border-primary-border text-primary-text text-sm outline-none focus:border-primary transition-colors placeholder:text-secondary-text disabled:opacity-50"
+            class="w-full px-3 py-2 rounded-lg bg-background border border-primary-border text-primary-text text-xs outline-none focus:border-primary transition-colors placeholder:text-secondary-text disabled:opacity-50"
+          />
+        </div>
+
+        <!-- BANK TRANSFER FIELDS -->
+        <div v-if="activeTab === 'bank'" class="space-y-4 pt-2">
+          <h3 class="text-xs font-semibold uppercase tracking-wider text-secondary-text border-b border-primary-border/50 pb-1.5">Bank Account Details</h3>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-secondary-text mb-1.5">Bank Name <span class="text-primary-red">*</span></label>
+              <input
+                v-model="form.bank_name"
+                type="text"
+                placeholder="e.g. HDFC Bank"
+                :disabled="submitting"
+                class="w-full px-3 py-2 rounded-lg bg-background border border-primary-border text-primary-text text-xs outline-none focus:border-primary transition-colors placeholder:text-secondary-text disabled:opacity-50"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-secondary-text mb-1.5">Account Name <span class="text-primary-red">*</span></label>
+              <input
+                v-model="form.account_name"
+                type="text"
+                placeholder="e.g. Panther Capital Pvt Ltd"
+                :disabled="submitting"
+                class="w-full px-3 py-2 rounded-lg bg-background border border-primary-border text-primary-text text-xs outline-none focus:border-primary transition-colors placeholder:text-secondary-text disabled:opacity-50"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-secondary-text mb-1.5">Account Number <span class="text-primary-red">*</span></label>
+              <input
+                v-model="form.account_number"
+                type="text"
+                placeholder="e.g. 123456789012"
+                :disabled="submitting"
+                class="w-full px-3 py-2 rounded-lg bg-background border border-primary-border text-primary-text text-xs outline-none focus:border-primary transition-colors placeholder:text-secondary-text disabled:opacity-50"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-secondary-text mb-1.5">IFSC Code <span class="text-primary-red">*</span></label>
+              <input
+                v-model="form.ifsc_code"
+                type="text"
+                placeholder="e.g. HDFC0001234"
+                :disabled="submitting"
+                class="w-full px-3 py-2 rounded-lg bg-background border border-primary-border text-primary-text text-xs outline-none focus:border-primary transition-colors placeholder:text-secondary-text disabled:opacity-50"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-secondary-text mb-1.5">Branch Name</label>
+              <input
+                v-model="form.branch_name"
+                type="text"
+                placeholder="e.g. Mumbai"
+                :disabled="submitting"
+                class="w-full px-3 py-2 rounded-lg bg-background border border-primary-border text-primary-text text-xs outline-none focus:border-primary transition-colors placeholder:text-secondary-text disabled:opacity-50"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-secondary-text mb-1.5">SWIFT Code</label>
+              <input
+                v-model="form.swift_code"
+                type="text"
+                placeholder="e.g. HDFCINBB"
+                :disabled="submitting"
+                class="w-full px-3 py-2 rounded-lg bg-background border border-primary-border text-primary-text text-xs outline-none focus:border-primary transition-colors placeholder:text-secondary-text disabled:opacity-50"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- UPI FIELDS -->
+        <div v-if="activeTab === 'upi'" class="space-y-4 pt-2">
+          <h3 class="text-xs font-semibold uppercase tracking-wider text-secondary-text border-b border-primary-border/50 pb-1.5">UPI Details</h3>
+          
+          <div>
+            <label class="block text-xs font-medium text-secondary-text mb-1.5">UPI ID <span class="text-primary-red">*</span></label>
+            <input
+              v-model="form.upi_id"
+              type="text"
+              placeholder="e.g. panther@hdfcbank"
+              :disabled="submitting"
+              class="w-full px-3 py-2 rounded-lg bg-background border border-primary-border text-primary-text text-xs outline-none focus:border-primary transition-colors placeholder:text-secondary-text disabled:opacity-50"
+            />
+          </div>
+        </div>
+
+        <!-- CRYPTO FIELDS -->
+        <div v-if="activeTab === 'crypto'" class="space-y-4 pt-2">
+          <h3 class="text-xs font-semibold uppercase tracking-wider text-secondary-text border-b border-primary-border/50 pb-1.5">Crypto Details</h3>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-secondary-text mb-1.5">Wallet ID / ID <span class="text-primary-red">*</span></label>
+              <input
+                v-model="form.wallet_id"
+                type="text"
+                placeholder="e.g. 1491"
+                :disabled="submitting"
+                class="w-full px-3 py-2 rounded-lg bg-background border border-primary-border text-primary-text text-xs outline-none focus:border-primary transition-colors placeholder:text-secondary-text disabled:opacity-50"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-secondary-text mb-1.5">Wallet Address (optional)</label>
+              <input
+                v-model="form.wallet_address"
+                type="text"
+                placeholder="e.g. 0x71C... or T..."
+                :disabled="submitting"
+                class="w-full px-3 py-2 rounded-lg bg-background border border-primary-border text-primary-text text-xs outline-none focus:border-primary transition-colors placeholder:text-secondary-text disabled:opacity-50"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Remarks -->
+        <div>
+          <label class="block text-xs font-medium text-secondary-text mb-1.5">Remarks</label>
+          <textarea
+            v-model="form.remarks"
+            rows="2"
+            placeholder="Enter payment method notes or remarks..."
+            :disabled="submitting"
+            class="w-full px-3 py-2.5 rounded-lg bg-background border border-primary-border text-primary-text text-xs outline-none focus:border-primary transition-colors placeholder:text-secondary-text disabled:opacity-50 resize-none"
           />
         </div>
 
@@ -186,8 +330,8 @@
             </div>
           </div>
 
-          <!-- Is Active Toggle -->
-          <div class="flex items-center justify-between p-4 bg-background/20 rounded-xl border border-primary-border/30">
+          <!-- Is Active Toggle (Edit mode only) -->
+          <div v-if="isEdit" class="flex items-center justify-between p-4 bg-background/20 rounded-xl border border-primary-border/30">
             <div>
               <p class="text-xs font-semibold text-primary-text">Active Status</p>
               <p class="text-[10px] text-secondary-text mt-0.5">Control whether this payment method is visible and usable</p>
@@ -223,7 +367,7 @@
           @click="submit"
         >
           <Loader2 v-if="submitting" class="w-3.5 h-3.5 animate-spin" />
-          <span>{{ submitting ? 'Saving...' : 'Save Changes' }}</span>
+          <span>{{ submitting ? 'Saving...' : (isEdit ? 'Save Changes' : 'Create') }}</span>
         </button>
       </div>
     </div>
@@ -245,8 +389,12 @@ const store = usePaymentMethodsStore()
 
 const submitting = ref(false)
 const validationError = ref('')
+const activeTab = ref('bank') // 'bank', 'upi', 'crypto'
+
+const isEdit = computed(() => !!props.paymentMethod)
 
 const form = ref({
+  // Common:
   wallet_label: '',
   minimum_deposit_amount: 0,
   maximum_withdrawal_amount: 0,
@@ -254,32 +402,110 @@ const form = ref({
   enable_withdrawal: true,
   is_default_deposit: false,
   is_default_withdrawal: false,
-  is_active: true
+  remarks: '',
+  is_active: true,
+
+  // Bank:
+  bank_name: '',
+  account_name: '',
+  account_number: '',
+  ifsc_code: '',
+  branch_name: '',
+  swift_code: '',
+
+  // UPI:
+  upi_id: '',
+
+  // Crypto:
+  wallet_id: '',
+  wallet_address: '',
 })
 
-// Populate form when the dialog opens or the selected payment method changes
+// Populate form when the dialog opens or when the mode changes
 watch(() => props.open, (newVal) => {
-  if (newVal && props.paymentMethod) {
+  if (newVal) {
     validationError.value = ''
-    form.value = {
-      wallet_label: props.paymentMethod.wallet_label ?? '',
-      minimum_deposit_amount: props.paymentMethod.minimum_deposit_amount ?? 0,
-      maximum_withdrawal_amount: props.paymentMethod.maximum_withdrawal_amount ?? 0,
-      enable_deposit: props.paymentMethod.enable_deposit ?? true,
-      enable_withdrawal: props.paymentMethod.enable_withdrawal ?? true,
-      is_default_deposit: props.paymentMethod.is_default_deposit ?? false,
-      is_default_withdrawal: props.paymentMethod.is_default_withdrawal ?? false,
-      is_active: props.paymentMethod.is_active ?? true
+    if (props.paymentMethod) {
+      // Edit mode: determine active tab from paymentMethod payload properties
+      const type = props.paymentMethod.method_type || props.paymentMethod.gateway || 'crypto'
+      activeTab.value = type === 'coinsbuy' ? 'crypto' : type
+      
+      form.value = {
+        wallet_label: props.paymentMethod.wallet_label ?? '',
+        minimum_deposit_amount: props.paymentMethod.minimum_deposit_amount ?? 0,
+        maximum_withdrawal_amount: props.paymentMethod.maximum_withdrawal_amount ?? 0,
+        enable_deposit: props.paymentMethod.enable_deposit ?? true,
+        enable_withdrawal: props.paymentMethod.enable_withdrawal ?? true,
+        is_default_deposit: props.paymentMethod.is_default_deposit ?? false,
+        is_default_withdrawal: props.paymentMethod.is_default_withdrawal ?? false,
+        remarks: props.paymentMethod.remarks ?? '',
+        is_active: props.paymentMethod.is_active ?? true,
+
+        // Bank fields:
+        bank_name: props.paymentMethod.bank_name ?? '',
+        account_name: props.paymentMethod.account_name ?? '',
+        account_number: props.paymentMethod.account_number ?? '',
+        ifsc_code: props.paymentMethod.ifsc_code ?? '',
+        branch_name: props.paymentMethod.branch_name ?? '',
+        swift_code: props.paymentMethod.swift_code ?? '',
+
+        // UPI fields:
+        upi_id: props.paymentMethod.upi_id ?? '',
+
+        // Crypto fields:
+        wallet_id: props.paymentMethod.wallet_id ?? '',
+        wallet_address: props.paymentMethod.wallet_address ?? '',
+      }
+    } else {
+      // Create mode: defaults
+      activeTab.value = 'bank'
+      form.value = {
+        wallet_label: '',
+        minimum_deposit_amount: 0,
+        maximum_withdrawal_amount: 0,
+        enable_deposit: true,
+        enable_withdrawal: true,
+        is_default_deposit: false,
+        is_default_withdrawal: false,
+        remarks: '',
+        is_active: true,
+
+        // Bank fields:
+        bank_name: '',
+        account_name: '',
+        account_number: '',
+        ifsc_code: '',
+        branch_name: '',
+        swift_code: '',
+
+        // UPI fields:
+        upi_id: '',
+
+        // Crypto fields:
+        wallet_id: '',
+        wallet_address: '',
+      }
     }
   }
 }, { immediate: true })
 
 const isValid = computed(() => {
-  return (
-    form.value.wallet_label.trim() !== '' &&
-    form.value.minimum_deposit_amount >= 0 &&
-    form.value.maximum_withdrawal_amount >= 0
-  )
+  if (!form.value.wallet_label.trim()) return false
+  if (form.value.minimum_deposit_amount < 0 || form.value.maximum_withdrawal_amount < 0) return false
+
+  if (activeTab.value === 'bank') {
+    return (
+      form.value.bank_name.trim() !== '' &&
+      form.value.account_name.trim() !== '' &&
+      form.value.account_number.trim() !== '' &&
+      form.value.ifsc_code.trim() !== ''
+    )
+  } else if (activeTab.value === 'upi') {
+    return form.value.upi_id.trim() !== ''
+  } else if (activeTab.value === 'crypto') {
+    return form.value.wallet_id.trim() !== ''
+  }
+  return false
 })
 
 const handleClose = () => {
@@ -287,13 +513,9 @@ const handleClose = () => {
   emit('close')
 }
 
-const formatNum = (val) => {
-  return (val ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 })
-}
-
 const submit = async () => {
   if (!isValid.value) {
-    validationError.value = 'Please provide a valid wallet label and non-negative limit values.'
+    validationError.value = 'Please provide all required fields correctly.'
     return
   }
 
@@ -301,24 +523,70 @@ const submit = async () => {
   submitting.value = true
 
   try {
-    const payload = {
-      wallet_label: form.value.wallet_label.trim(),
-      minimum_deposit_amount: Number(form.value.minimum_deposit_amount),
-      maximum_withdrawal_amount: Number(form.value.maximum_withdrawal_amount),
-      enable_deposit: form.value.enable_deposit,
-      enable_withdrawal: form.value.enable_withdrawal,
-      is_default_deposit: form.value.is_default_deposit,
-      is_default_withdrawal: form.value.is_default_withdrawal,
-      is_active: form.value.is_active
+    let payload = {}
+
+    // Construct payload based on selected gateway/method
+    if (activeTab.value === 'bank') {
+      payload = {
+        gateway: 'bank',
+        method_type: 'bank',
+        wallet_label: form.value.wallet_label.trim(),
+        bank_name: form.value.bank_name.trim(),
+        account_name: form.value.account_name.trim(),
+        account_number: form.value.account_number.trim(),
+        ifsc_code: form.value.ifsc_code.trim(),
+        branch_name: form.value.branch_name.trim(),
+        swift_code: form.value.swift_code.trim(),
+        minimum_deposit_amount: Number(form.value.minimum_deposit_amount),
+        maximum_withdrawal_amount: Number(form.value.maximum_withdrawal_amount),
+        enable_deposit: form.value.enable_deposit,
+        enable_withdrawal: form.value.enable_withdrawal,
+        is_default_deposit: form.value.is_default_deposit,
+        is_default_withdrawal: form.value.is_default_withdrawal,
+        remarks: form.value.remarks.trim()
+      }
+    } else if (activeTab.value === 'upi') {
+      payload = {
+        gateway: 'upi',
+        method_type: 'upi',
+        wallet_label: form.value.wallet_label.trim(),
+        upi_id: form.value.upi_id.trim(),
+        minimum_deposit_amount: Number(form.value.minimum_deposit_amount),
+        maximum_withdrawal_amount: Number(form.value.maximum_withdrawal_amount),
+        enable_deposit: form.value.enable_deposit,
+        enable_withdrawal: form.value.enable_withdrawal,
+        is_default_deposit: form.value.is_default_deposit,
+        is_default_withdrawal: form.value.is_default_withdrawal,
+        remarks: form.value.remarks.trim()
+      }
+    } else if (activeTab.value === 'crypto') {
+      payload = {
+        gateway: 'coinsbuy',
+        method_type: 'crypto',
+        wallet_id: form.value.wallet_id.trim(),
+        wallet_label: form.value.wallet_label.trim(),
+        wallet_address: form.value.wallet_address.trim() || null,
+        minimum_deposit_amount: Number(form.value.minimum_deposit_amount),
+        maximum_withdrawal_amount: Number(form.value.maximum_withdrawal_amount),
+        enable_deposit: form.value.enable_deposit,
+        enable_withdrawal: form.value.enable_withdrawal,
+        is_default_deposit: form.value.is_default_deposit,
+        is_default_withdrawal: form.value.is_default_withdrawal,
+        remarks: form.value.remarks.trim()
+      }
     }
-    
-    // Call store action (which now returns a Promise)
-    await store.updatePaymentMethod(props.paymentMethod.id, payload)
-    
-    // Success: close the dialog
+
+    if (isEdit.value) {
+      payload.is_active = form.value.is_active
+      await store.updatePaymentMethod(props.paymentMethod.id, payload)
+    } else {
+      payload.is_active = true
+      await store.createPaymentMethod(payload)
+    }
+
     emit('close')
   } catch (error) {
-    console.error('Failed to update payment method:', error)
+    console.error('Failed to save payment method:', error)
     validationError.value = error?.message || 'An error occurred while saving changes.'
   } finally {
     submitting.value = false

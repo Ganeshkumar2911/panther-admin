@@ -132,6 +132,8 @@
           <thead>
             <tr class="border-b border-primary-border">
               <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">IB User ID</th>
+              <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">IB Name</th>
+              <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">IB email</th>
               <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Trade ID</th>
               <th class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Commission</th>
             </tr>
@@ -152,6 +154,8 @@
               class="border-b border-primary-border last:border-none hover:bg-background transition-colors"
             >
               <td class="p-3 text-xs font-medium text-primary-text">#{{ ib.ib_user_id }}</td>
+              <td class="p-3 text-xs font-medium text-primary-text">{{ ib.ib_name }}</td>
+              <td class="p-3 text-xs font-medium text-primary-text">{{ ib.ib_email }}</td>
               <td class="p-3 text-xs text-secondary-text">#{{ ib.trade_id }}</td>
               <td class="p-3 text-right text-xs font-semibold text-primary-green tabular-nums">${{ fmt(ib.commission) }}</td>
             </tr>

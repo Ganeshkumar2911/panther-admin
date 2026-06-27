@@ -76,7 +76,7 @@
             <input
               v-model.number="form.leverage"
               type="number"
-              placeholder="500"
+              placeholder="eg. 500"
               :disabled="store.createLoading"
               class="w-full px-3 py-2.5 rounded-lg bg-background border border-primary-border text-primary-text text-sm outline-none focus:border-primary transition-colors placeholder:text-secondary-text disabled:opacity-50"
             />
