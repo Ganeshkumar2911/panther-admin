@@ -116,29 +116,29 @@
 
           <div class="flex items-center gap-3">
             <button
-              class="w-8 h-8 flex items-center justify-center rounded-xl bg-background border border-primary-border hover:border-primary/40 transition-all hover:shadow-sm group/edit"
+              class="w-8 h-8 flex items-center justify-center rounded-lg bg-background border border-primary-border hover:border-primary/40 transition-all hover:shadow-sm group/edit"
               @click="handleOpenEdit(record)"
             >
               <Pencil class="w-3.5 h-3.5 text-secondary-text group-hover/edit:text-primary transition-colors" />
             </button>
 
-            <button
-              class="relative w-9 h-4.5 rounded-full transition-all duration-200 focus:outline-none"
-              :class="record.is_active ? 'bg-primary shadow-lg shadow-primary/20' : 'bg-background border border-primary-border'"
-              :disabled="store.updateLoading && togglingId === record.id"
-              @click="toggleActive(record)"
-            >
-              <span
-                class="absolute top-0.5 left-0.5 w-3.5 h-3.5 rounded-full transition-transform duration-200"
-                :class="[
-                  record.is_active ? 'translate-x-4.5 bg-black' : 'translate-x-0 bg-secondary-text',
-                  store.updateLoading && togglingId === record.id ? 'opacity-0' : 'opacity-100'
-                ]"
-              />
-              <Loader2
-                v-if="store.updateLoading && togglingId === record.id"
-                class="absolute inset-0 m-auto w-3 h-3 text-secondary-text animate-spin"
-              />
+           <button
+            type="button"
+            :disabled="store.updateLoading && togglingId === record.id"
+            @click="toggleActive(record)"
+            class="relative w-11 h-6 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 focus:outline-none"
+            :class="record.is_active ? 'bg-primary' : 'bg-primary-border'"
+          >
+            <span
+              v-if="!(store.updateLoading && togglingId === record.id)"
+              class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform duration-200"
+              :class="record.is_active ? 'translate-x-5' : 'translate-x-0'"
+            />
+
+            <Loader2
+              v-else
+              class="absolute inset-0 m-auto w-4 h-4 text-white animate-spin"
+            />
             </button>
           </div>
         </div>
@@ -178,14 +178,10 @@
         </div>
 
         <!-- Transaction Limits -->
-        <div class="grid grid-cols-3 gap-2 pt-4 border-t border-primary-border/50">
+        <div class="grid grid-cols-2 gap-2 pt-4 border-t border-primary-border/50">
           <div class="text-center p-2 rounded-xl bg-background/30 border border-primary-border/20">
             <p class="text-[9px] text-secondary-text mb-0.5">Min Deposit</p>
             <p class="text-[11px] font-semibold text-primary-text truncate">{{ formatShortNum(record.minimum_deposit_amount) }}</p>
-          </div>
-          <div class="text-center p-2 rounded-xl bg-background/30 border border-primary-border/20">
-            <p class="text-[9px] text-secondary-text mb-0.5">Min Transfer</p>
-            <p class="text-[11px] font-semibold text-primary-text truncate">{{ formatShortNum(record.minimal_transfer_amount) }}</p>
           </div>
           <div class="text-center p-2 rounded-xl bg-background/30 border border-primary-border/20">
             <p class="text-[9px] text-secondary-text mb-0.5">Max Withdraw</p>

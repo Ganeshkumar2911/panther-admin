@@ -26,12 +26,18 @@
         <!-- Info -->
         <div class="flex-1 min-w-0">
           <p class="text-sm font-medium text-primary-text truncate">{{ node.name }}</p>
-          <div class="flex items-center gap-2 mt-0.5">
+          <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5">
             <span class="text-[10px] text-secondary-text">Ref: {{ node.referral_code || 'No referral' }}</span>
             <span class="text-[10px] text-secondary-text opacity-40">·</span>
             <span class="text-[10px] text-secondary-text">{{ node.children?.length ?? 0 }} sub-IB{{ node.children?.length !== 1 ? 's' : '' }}</span>
             <span class="text-[10px] text-secondary-text opacity-40">·</span>
             <span class="text-[10px] text-secondary-text">ID: {{ node.ib_id || '-' }}</span>
+          </div>
+          <div v-if="node.level > 0 && node.parent_ib_id" class="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1 text-[10px] text-secondary-text bg-background/50 border border-primary-border/20 px-2 py-0.5 rounded-lg w-fit">
+            <span class="font-semibold text-primary-text text-[9px] uppercase tracking-wider">Parent:</span>
+            <span class="font-medium text-primary-text">{{ node.parent_name || '—' }} ({{ node.parent_email || '—' }})</span>
+            <span class="text-secondary-text/40">|</span>
+            <span class="font-mono">ID: {{ node.parent_ib_id }}</span>
           </div>
         </div>
 

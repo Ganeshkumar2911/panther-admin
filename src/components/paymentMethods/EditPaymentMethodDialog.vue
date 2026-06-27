@@ -67,7 +67,7 @@
         <div class="space-y-4 pt-2">
           <h3 class="text-xs font-semibold uppercase tracking-wider text-secondary-text border-b border-primary-border/50 pb-1.5">Transaction Limits</h3>
           
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <!-- Min Deposit -->
             <div>
               <label class="block text-[11px] font-medium text-secondary-text mb-1.5">Min Deposit</label>
@@ -81,28 +81,6 @@
                   :disabled="submitting"
                   class="w-full pl-3 pr-2 py-2 rounded-lg bg-background border border-primary-border text-primary-text text-xs outline-none focus:border-primary transition-colors disabled:opacity-50"
                 />
-                <!-- <span class="absolute right-3 top-2.5 text-[9px] font-bold text-secondary-text pointer-events-none">
-                  {{ paymentMethod?.currency_id }}
-                </span> -->
-              </div>
-            </div>
-
-            <!-- Min Transfer -->
-            <div>
-              <label class="block text-[11px] font-medium text-secondary-text mb-1.5">Min Transfer</label>
-              <div class="relative">
-                <input
-                  v-model.number="form.minimal_transfer_amount"
-                  type="number"
-                  step="any"
-                  min="0"
-                  placeholder="0.00"
-                  :disabled="submitting"
-                  class="w-full pl-3 pr-2 py-2 rounded-lg bg-background border border-primary-border text-primary-text text-xs outline-none focus:border-primary transition-colors disabled:opacity-50"
-                />
-                <!-- <span class="absolute right-3 top-2.5 text-[9px] font-bold text-secondary-text pointer-events-none">
-                  {{ paymentMethod?.currency_id }}
-                </span> -->
               </div>
             </div>
 
@@ -119,11 +97,113 @@
                   :disabled="submitting"
                   class="w-full pl-3 pr-2 py-2 rounded-lg bg-background border border-primary-border text-primary-text text-xs outline-none focus:border-primary transition-colors disabled:opacity-50"
                 />
-                <!-- <span class="absolute right-3 top-2.5 text-[9px] font-bold text-secondary-text pointer-events-none">
-                  {{ paymentMethod?.currency_id }}
-                </span> -->
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- Configuration Section -->
+        <div class="space-y-4 pt-2">
+          <h3 class="text-xs font-semibold uppercase tracking-wider text-secondary-text border-b border-primary-border/50 pb-1.5">Configuration</h3>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Deposit settings group -->
+            <div class="space-y-4 p-4 bg-background/20 rounded-xl border border-primary-border/30">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-secondary-text block">Deposit Settings</span>
+              
+              <!-- Enable Deposit -->
+              <div class="flex items-center justify-between">
+                <span class="text-xs text-primary-text font-medium">Enable Deposit</span>
+                <button
+                  type="button"
+                  :disabled="submitting"
+                  @click="form.enable_deposit = !form.enable_deposit"
+                  class="relative w-11 h-6 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 focus:outline-none"
+                  :class="form.enable_deposit ? 'bg-primary' : 'bg-primary-border'"
+                >
+                  <span
+                    class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform duration-200"
+                    :class="form.enable_deposit ? 'translate-x-5' : 'translate-x-0'"
+                  />
+                </button>
+              </div>
+
+              <!-- Default Deposit -->
+              <div class="flex items-center justify-between">
+                <span class="text-xs text-primary-text font-medium">Default Deposit</span>
+                <button
+                  type="button"
+                  :disabled="submitting"
+                  @click="form.is_default_deposit = !form.is_default_deposit"
+                  class="relative w-11 h-6 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 focus:outline-none"
+                  :class="form.is_default_deposit ? 'bg-primary' : 'bg-primary-border'"
+                >
+                  <span
+                    class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform duration-200"
+                    :class="form.is_default_deposit ? 'translate-x-5' : 'translate-x-0'"
+                  />
+                </button>
+              </div>
+            </div>
+
+            <!-- Withdrawal settings group -->
+            <div class="space-y-4 p-4 bg-background/20 rounded-xl border border-primary-border/30">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-secondary-text block">Withdrawal Settings</span>
+
+              <!-- Enable Withdrawal -->
+              <div class="flex items-center justify-between">
+                <span class="text-xs text-primary-text font-medium">Enable Withdrawal</span>
+                <button
+                  type="button"
+                  :disabled="submitting"
+                  @click="form.enable_withdrawal = !form.enable_withdrawal"
+                  class="relative w-11 h-6 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 focus:outline-none"
+                  :class="form.enable_withdrawal ? 'bg-primary' : 'bg-primary-border'"
+                >
+                  <span
+                    class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform duration-200"
+                    :class="form.enable_withdrawal ? 'translate-x-5' : 'translate-x-0'"
+                  />
+                </button>
+              </div>
+
+              <!-- Default Withdrawal -->
+              <div class="flex items-center justify-between">
+                <span class="text-xs text-primary-text font-medium">Default Withdrawal</span>
+                <button
+                  type="button"
+                  :disabled="submitting"
+                  @click="form.is_default_withdrawal = !form.is_default_withdrawal"
+                  class="relative w-11 h-6 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 focus:outline-none"
+                  :class="form.is_default_withdrawal ? 'bg-primary' : 'bg-primary-border'"
+                >
+                  <span
+                    class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform duration-200"
+                    :class="form.is_default_withdrawal ? 'translate-x-5' : 'translate-x-0'"
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Is Active Toggle -->
+          <div class="flex items-center justify-between p-4 bg-background/20 rounded-xl border border-primary-border/30">
+            <div>
+              <p class="text-xs font-semibold text-primary-text">Active Status</p>
+              <p class="text-[10px] text-secondary-text mt-0.5">Control whether this payment method is visible and usable</p>
+            </div>
+            <button
+              type="button"
+              :disabled="submitting"
+              @click="form.is_active = !form.is_active"
+              class="relative w-11 h-6 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 focus:outline-none"
+              :class="form.is_active ? 'bg-primary-green' : 'bg-primary-border'"
+            >
+              <span
+                class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform duration-200"
+                :class="form.is_active ? 'translate-x-5' : 'translate-x-0'"
+              />
+            </button>
           </div>
         </div>
       </div>
@@ -169,8 +249,12 @@ const validationError = ref('')
 const form = ref({
   wallet_label: '',
   minimum_deposit_amount: 0,
-  minimal_transfer_amount: 0,
-  maximum_withdrawal_amount: 0
+  maximum_withdrawal_amount: 0,
+  enable_deposit: true,
+  enable_withdrawal: true,
+  is_default_deposit: false,
+  is_default_withdrawal: false,
+  is_active: true
 })
 
 // Populate form when the dialog opens or the selected payment method changes
@@ -180,8 +264,12 @@ watch(() => props.open, (newVal) => {
     form.value = {
       wallet_label: props.paymentMethod.wallet_label ?? '',
       minimum_deposit_amount: props.paymentMethod.minimum_deposit_amount ?? 0,
-      minimal_transfer_amount: props.paymentMethod.minimal_transfer_amount ?? 0,
-      maximum_withdrawal_amount: props.paymentMethod.maximum_withdrawal_amount ?? 0
+      maximum_withdrawal_amount: props.paymentMethod.maximum_withdrawal_amount ?? 0,
+      enable_deposit: props.paymentMethod.enable_deposit ?? true,
+      enable_withdrawal: props.paymentMethod.enable_withdrawal ?? true,
+      is_default_deposit: props.paymentMethod.is_default_deposit ?? false,
+      is_default_withdrawal: props.paymentMethod.is_default_withdrawal ?? false,
+      is_active: props.paymentMethod.is_active ?? true
     }
   }
 }, { immediate: true })
@@ -190,7 +278,6 @@ const isValid = computed(() => {
   return (
     form.value.wallet_label.trim() !== '' &&
     form.value.minimum_deposit_amount >= 0 &&
-    form.value.minimal_transfer_amount >= 0 &&
     form.value.maximum_withdrawal_amount >= 0
   )
 })
@@ -217,8 +304,12 @@ const submit = async () => {
     const payload = {
       wallet_label: form.value.wallet_label.trim(),
       minimum_deposit_amount: Number(form.value.minimum_deposit_amount),
-      minimal_transfer_amount: Number(form.value.minimal_transfer_amount),
-      maximum_withdrawal_amount: Number(form.value.maximum_withdrawal_amount)
+      maximum_withdrawal_amount: Number(form.value.maximum_withdrawal_amount),
+      enable_deposit: form.value.enable_deposit,
+      enable_withdrawal: form.value.enable_withdrawal,
+      is_default_deposit: form.value.is_default_deposit,
+      is_default_withdrawal: form.value.is_default_withdrawal,
+      is_active: form.value.is_active
     }
     
     // Call store action (which now returns a Promise)

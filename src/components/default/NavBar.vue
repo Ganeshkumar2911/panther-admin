@@ -159,13 +159,13 @@ const isActive = (path) => route.path.startsWith(path)
     <!-- Header -->
     <div class="h-[60px] flex items-center justify-between px-4 border-b border-white/10">
       <div v-if="!isCollapsed" class="flex items-center gap-2.5">
-        <div class="w-48 h-28 rounded-lg flex items-center justify-center">
-         <img class="rounded-full" src="/logo_full.svg" alt="Logo">
+        <div class="w-48 h-28 flex items-center justify-center">
+         <img src="/logo_full.svg" alt="Logo">
         </div>
       </div>
       <div v-else class="flex items-center justify-center w-full">
         <div class="w-12 h-12 rounded-lg flex items-center justify-center">
-         <img class="rounded-full" src="/logo.svg" alt="Logo">
+         <img src="/logo.svg" alt="Logo">
         </div>
       </div>
     </div>

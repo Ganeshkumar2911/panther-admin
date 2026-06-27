@@ -81,7 +81,12 @@ const flatRows = computed(() => flattenTree(props.nodes))
 
           <!-- Parent IB -->
           <td class="px-4 py-3 align-middle text-primary-text">
-            {{ node.parent_ib_id ?? '—' }}
+            <div v-if="node.level > 0 && node.parent_ib_id">
+              <div class="font-medium text-primary-text">{{ node.parent_name || '—' }}</div>
+              <div class="text-[10px] text-secondary-text mt-0.5">{{ node.parent_email || '—' }}</div>
+              <div class="text-[10px] font-mono text-secondary-text uppercase mt-0.5">ID: {{ node.parent_ib_id }}</div>
+            </div>
+            <div v-else class="text-secondary-text">—</div>
           </td>
 
           <!-- Split -->
