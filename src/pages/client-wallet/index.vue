@@ -96,17 +96,16 @@
     </div>
 
     <!-- Table -->
-    <div class="w-full border border-primary-border rounded-xl overflow-x-auto">
+    <div class="w-full border border-primary-border rounded-xl overflow-x-auto bg-card-background">
       <table class="w-full border-collapse">
         <thead>
-          <tr class="border-b border-primary-border">
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Client</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Account</th>
+          <tr class="border-b border-primary-border bg-card-background/50">
+            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">ID / Reference</th>
+            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Trading Account</th>
+            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Payment Method</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Type</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Amount</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Bal. Before</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Bal. After</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Description</th>
+            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Status</th>
             <th class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Date</th>
           </tr>
         </thead>
@@ -115,30 +114,33 @@
         <tbody v-if="store.loading">
           <tr v-for="n in 8" :key="n" class="border-b border-primary-border animate-pulse">
             <td class="p-3">
-              <div class="space-y-1.5">
-                <div class="h-3 w-20 bg-card-background rounded" />
-                <div class="h-2.5 w-28 bg-card-background rounded" />
-              </div>
+              <div class="h-3.5 w-12 bg-background rounded mb-1.5" />
+              <div class="h-2.5 w-24 bg-background rounded" />
             </td>
-            <td class="p-3"><div class="h-3 w-16 bg-card-background rounded" /></td>
-            <td class="p-3"><div class="h-5 w-16 bg-card-background rounded-full" /></td>
-            <td class="p-3"><div class="h-3 w-14 bg-card-background rounded" /></td>
-            <td class="p-3"><div class="h-3 w-16 bg-card-background rounded" /></td>
-            <td class="p-3"><div class="h-3 w-16 bg-card-background rounded" /></td>
-            <td class="p-3"><div class="h-3 w-32 bg-card-background rounded" /></td>
-            <td class="p-3 flex justify-end"><div class="h-3 w-20 bg-card-background rounded" /></td>
+            <td class="p-3">
+              <div class="h-3.5 w-28 bg-background rounded mb-1.5" />
+              <div class="h-2.5 w-16 bg-background rounded" />
+            </td>
+            <td class="p-3">
+              <div class="h-3.5 w-16 bg-background rounded mb-1.5" />
+              <div class="h-2.5 w-12 bg-background rounded" />
+            </td>
+            <td class="p-3"><div class="h-5 w-16 bg-background rounded-full" /></td>
+            <td class="p-3"><div class="h-3.5 w-14 bg-background rounded" /></td>
+            <td class="p-3"><div class="h-5 w-16 bg-background rounded-full" /></td>
+            <td class="p-3 flex justify-end"><div class="h-3.5 w-20 bg-background rounded" /></td>
           </tr>
         </tbody>
 
         <!-- Empty -->
         <tbody v-else-if="store.data.length === 0">
           <tr>
-            <td colspan="8" class="py-16 text-center">
+            <td colspan="7" class="py-16 text-center">
               <div class="flex flex-col items-center gap-3">
                 <div class="w-12 h-12 rounded-full bg-card-background flex items-center justify-center">
                   <BookOpen class="w-5 h-5 text-secondary-text" />
                 </div>
-                <p class="text-sm font-medium text-primary-text">No ledger entries found</p>
+                <p class="text-sm font-semibold text-primary-text">No ledger entries found</p>
                 <p class="text-xs text-secondary-text">Try adjusting your filters</p>
               </div>
             </td>
@@ -149,37 +151,51 @@
         <tbody v-else>
           <tr
             v-for="entry in store.data"
-            :key="entry.ledger_id"
-            class="border-b border-primary-border last:border-none hover:bg-card-background transition-colors"
+            :key="entry.payment_id"
+            class="border-b border-primary-border last:border-none hover:bg-background/40 transition-colors"
           >
+            <!-- ID / Reference -->
             <td class="p-3">
-              <p class="text-xs font-medium text-primary-text">{{ entry.client_name }}</p>
-              <p class="text-[11px] text-secondary-text">{{ entry.client_email }}</p>
+              <p class="text-xs font-semibold text-primary-text">#{{ entry.payment_id }}</p>
+              <p v-if="entry.txid" class="text-[10px] text-secondary-text font-mono truncate max-w-[150px]" :title="entry.txid">TXID: {{ entry.txid }}</p>
+              <p v-else-if="entry.external_payment_id" class="text-[10px] text-secondary-text truncate max-w-[150px]">Ext: {{ entry.external_payment_id }}</p>
             </td>
 
+            <!-- Trading Account -->
             <td class="p-3">
-              <p class="text-xs text-primary-text">#{{ entry.account_number }}</p>
-              <p class="text-[11px] text-secondary-text">{{ entry.broker_label ?? '—' }}</p>
+              <p class="text-xs font-medium text-primary-text">#{{ entry.account_number }} · {{ entry.broker_label ?? '—' }}</p>
+              <p class="text-[10px] text-secondary-text">Client: {{ entry.client_name }}</p>
             </td>
 
+            <!-- Payment Method -->
+            <td class="p-3">
+              <p class="text-xs font-medium text-primary-text capitalize">{{ entry.method ?? '—' }}</p>
+              <p class="text-[10px] text-secondary-text capitalize">via {{ entry.gateway ?? '—' }}</p>
+            </td>
+
+            <!-- Type -->
             <td class="p-3">
               <span class="text-[11px] font-medium px-2 py-0.5 rounded-full border capitalize" :class="typeClass(entry.type)">
                 {{ formatType(entry.type) }}
               </span>
             </td>
 
+            <!-- Amount -->
             <td class="p-3">
               <span class="text-xs font-medium tabular-nums" :class="amountClass(entry.type, entry.amount)">
-                {{ entry.amount >= 0 ? '+' : '' }}${{ formatNum(Math.abs(entry.amount)) }}
+                {{ entry.type === 'deposit' ? '+' : '-' }}{{ formatMoney(entry.amount, entry.currency) }}
               </span>
             </td>
 
-            <td class="p-3 text-xs text-secondary-text tabular-nums">${{ formatNum(entry.balance_before) }}</td>
-            <td class="p-3 text-xs text-primary-text tabular-nums">${{ formatNum(entry.balance_after) }}</td>
+            <!-- Status -->
+            <td class="p-3">
+              <span class="text-[11px] font-medium px-2 py-0.5 rounded-full border capitalize" :class="statusClass(entry.payment_status ?? entry.approval_status)">
+                {{ entry.payment_status ?? entry.approval_status ?? '—' }}
+              </span>
+            </td>
 
-            <td class="p-3 text-xs text-secondary-text max-w-[160px] truncate">{{ entry.description ?? '—' }}</td>
-
-            <td class="p-3 text-xs text-secondary-text text-right">{{ formatDate(entry.created_at) }}</td>
+            <!-- Date -->
+            <td class="p-3 text-xs text-secondary-text text-right whitespace-nowrap">{{ formatDate(entry.created_at) }}</td>
           </tr>
         </tbody>
       </table>
@@ -310,10 +326,10 @@ const formatDate = (val) => new Date(val).toLocaleDateString('en-GB', { day: '2-
 const formatType = (t) => t?.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) ?? '—'
 
 const typeClass = (type) => ({
-  deposit:    'bg-primary-green/50 border-green-200',
-  withdrawal: 'bg-primary-red/50 border-red-200',
-  trade_pnl:  'bg-primary-blue/50 border-blue-200',
-  fee_paid:   'bg-yellow-50 border-yellow-200',
+  deposit:    'bg-primary-green/10 text-primary-green border-primary-green/20',
+  withdrawal: 'bg-primary-red/10 text-primary-red border-primary-red/20',
+  trade_pnl:  'bg-primary-blue/10 text-primary-blue border-primary-blue/20',
+  fee_paid:   'bg-yellow-500/10 text-yellow-600 border-yellow-500/20',
 }[type] ?? 'bg-background text-secondary-text border-primary-border')
 
 const amountClass = (type, amount) => {
@@ -321,6 +337,28 @@ const amountClass = (type, amount) => {
   if (type === 'withdrawal') return 'text-red-700'
   if (type === 'trade_pnl') return amount >= 0 ? 'text-green-700' : 'text-red-700'
   return 'text-secondary-text'
+}
+
+const statusClass = (status) => {
+  switch (status?.toLowerCase()) {
+    case 'success':
+    case 'approved':
+    case 'completed':
+      return 'bg-primary-green/10 text-primary-green border-primary-green/20'
+    case 'failed':
+    case 'rejected':
+      return 'bg-primary-red/10 text-primary-red border-primary-red/20'
+    case 'pending':
+    case 'processing':
+      return 'bg-primary-yellow/10 text-primary-yellow border-primary-yellow/20'
+    default:
+      return 'bg-background text-secondary-text border-primary-border'
+  }
+}
+
+const formatMoney = (amount, currency) => {
+  if (!currency) return `$${formatNum(amount)}`
+  return /^[A-Z]{3}$/.test(currency) ? `${currency} ${formatNum(amount)}` : `${currency}${formatNum(amount)}`
 }
 
 </script>
