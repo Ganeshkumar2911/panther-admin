@@ -120,6 +120,7 @@ const handleMouseLeave = () => {
   position: relative;
   display: inline-block;
 }
+
 .tooltip-wrapper.block {
   display: block;
   width: 100%;
@@ -133,11 +134,13 @@ const handleMouseLeave = () => {
   opacity: 0;
   transition: opacity 0.15s ease;
 }
+
 .tooltip-popup[style] {
   opacity: 1;
 }
 
 .tooltip-content {
+  position: relative;
   background: rgba(0, 0, 0, 0.9);
   color: #fff;
   padding: 6px 12px;
@@ -148,19 +151,41 @@ const handleMouseLeave = () => {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
-/* Optional arrow */
+/* Default arrow (center) */
 .tooltip-content::after {
   content: "";
   position: absolute;
-  left: 50%;
-  bottom: -4px;
   width: 8px;
   height: 8px;
   background: rgba(0, 0, 0, 0.9);
+  left: 50%;
+  bottom: -4px;
   transform: translateX(-50%) rotate(45deg);
 }
 
-/* Position specific arrows */
+/* START */
+.tooltip-popup.position-start .tooltip-content::after {
+  left: 16px;
+  bottom: -4px;
+  transform: rotate(45deg);
+}
+
+/* CENTER */
+.tooltip-popup.position-center .tooltip-content::after {
+  left: 50%;
+  bottom: -4px;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+/* END */
+.tooltip-popup.position-end .tooltip-content::after {
+  left: auto;
+  right: 16px;
+  bottom: -4px;
+  transform: rotate(45deg);
+}
+
+/* RIGHT */
 .tooltip-popup.position-right .tooltip-content::after {
   left: -4px;
   top: 50%;
@@ -168,6 +193,7 @@ const handleMouseLeave = () => {
   transform: translateY(-50%) rotate(45deg);
 }
 
+/* LEFT */
 .tooltip-popup.position-left .tooltip-content::after {
   left: auto;
   right: -4px;
@@ -176,10 +202,11 @@ const handleMouseLeave = () => {
   transform: translateY(-50%) rotate(45deg);
 }
 
+/* BOTTOM */
 .tooltip-popup.position-bottom .tooltip-content::after {
   left: 50%;
-  bottom: auto;
   top: -4px;
+  bottom: auto;
   transform: translateX(-50%) rotate(45deg);
 }
 

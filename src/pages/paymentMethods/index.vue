@@ -111,11 +111,11 @@
                 </button>
               </div>
             </div>
-            <div v-else class="flex items-center gap-1.5 group cursor-pointer" @click="startEdit(record)">
+            <div v-else class="flex items-center gap-1.5 group/label cursor-pointer" @click="startEdit(record)">
               <p class="text-sm font-semibold text-primary-text truncate">{{ record.wallet_label || 'Untitled Wallet' }}</p>
               <Pencil class="w-3 h-3 text-secondary-text opacity-0 group-hover/label:opacity-100 transition-opacity shrink-0" />
             </div>
-            <p class="text-[10px] font-mono text-secondary-text mt-0.5 uppercase">ID: {{ record.wallet_id }}</p>
+            <p class="text-[10px] font-mono text-secondary-text mt-0.5 uppercase">System ID: #{{ record.id }}</p>
           </div>
 
           <div class="flex items-center gap-3">
@@ -169,15 +169,75 @@
           </div>
         </div> -->
 
-        <!-- Meta Grid -->
-        <div class="grid grid-cols-2 gap-3">
-          <div class="space-y-1">
-            <p class="text-[10px] text-secondary-text">Currency ID</p>
-            <p class="text-xs font-medium text-primary-text">{{ record.currency_id }}</p>
+        <!-- Dynamic Details Area -->
+        <div class="bg-background/25 rounded-xl p-3.5 border border-primary-border/40 space-y-2.5 text-xs">
+          <!-- Method Type Badge & Indicator -->
+          <div class="flex items-center justify-between pb-2 border-b border-primary-border/20">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-secondary-text">Payment Gateway</span>
+            <span
+              class="text-[9px] font-semibold px-2 py-0.5 rounded-full border uppercase"
+              :class="[
+                (record.method_type || record.gateway) === 'bank'
+                  ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                  : (record.method_type || record.gateway) === 'upi'
+                  ? 'bg-purple-500/10 text-purple-400 border-purple-500/20'
+                  : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+              ]"
+            >
+              {{ record.method_type || record.gateway || 'crypto' }}
+            </span>
           </div>
-          <div class="space-y-1">
-            <p class="text-[10px] text-secondary-text">Wallet Type</p>
-            <p class="text-xs font-medium text-primary-text capitalize">{{ record.wallet_type === 1 ? 'Crypto' : record.wallet_type }}</p>
+
+          <!-- Bank Fields -->
+          <div v-if="(record.method_type || record.gateway) === 'bank'" class="grid grid-cols-2 gap-2 text-[11px]">
+            <div>
+              <p class="text-[9px] text-secondary-text uppercase">Bank Name</p>
+              <p class="font-medium text-primary-text truncate" :title="record.bank_name">{{ record.bank_name }}</p>
+            </div>
+            <div>
+              <p class="text-[9px] text-secondary-text uppercase">Account Holder</p>
+              <p class="font-medium text-primary-text truncate" :title="record.account_name">{{ record.account_name }}</p>
+            </div>
+            <div class="col-span-2">
+              <p class="text-[9px] text-secondary-text uppercase">Account Number</p>
+              <p class="font-mono font-medium text-primary-text truncate" :title="record.account_number">{{ record.account_number }}</p>
+            </div>
+            <div>
+              <p class="text-[9px] text-secondary-text uppercase">IFSC Code</p>
+              <p class="font-mono font-medium text-primary-text">{{ record.ifsc_code }}</p>
+            </div>
+            <div v-if="record.swift_code">
+              <p class="text-[9px] text-secondary-text uppercase">SWIFT Code</p>
+              <p class="font-mono font-medium text-primary-text">{{ record.swift_code }}</p>
+            </div>
+          </div>
+
+          <!-- UPI Fields -->
+          <div v-else-if="(record.method_type || record.gateway) === 'upi'" class="space-y-1 text-[11px]">
+            <div>
+              <p class="text-[9px] text-secondary-text uppercase">UPI ID / VPA</p>
+              <p class="font-mono font-medium text-primary-text break-all select-all">{{ record.upi_id }}</p>
+            </div>
+          </div>
+
+          <!-- Crypto Fields -->
+          <div v-else class="grid grid-cols-2 gap-2 text-[11px]">
+            <div>
+              <p class="text-[9px] text-secondary-text uppercase">Wallet ID</p>
+              <p class="font-mono font-medium text-primary-text truncate" :title="record.wallet_id">{{ record.wallet_id || '—' }}</p>
+            </div>
+            <div>
+              <p class="text-[9px] text-secondary-text uppercase">Confirmed Balance</p>
+              <p class="font-semibold text-primary-green truncate">{{ formatNum(record.balance_confirmed) }}</p>
+            </div>
+            <div v-if="record.wallet_address" class="col-span-2">
+              <p class="text-[9px] text-secondary-text uppercase">Wallet Address</p>
+              <p class="font-mono font-medium text-primary-text truncate" :title="record.wallet_address">{{ record.wallet_address }}</p>
+            </div>
+            <div v-if="record.balance_pending > 0" class="col-span-2">
+              <p class="text-[9px] text-secondary-text uppercase">Pending Balance</p>
+              <p class="font-medium text-secondary-text truncate">{{ formatNum(record.balance_pending) }}</p>
+            </div>
           </div>
         </div>
 

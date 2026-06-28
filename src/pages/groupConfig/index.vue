@@ -212,7 +212,7 @@
 
             <!-- Actions -->
             <td class="px-3 py-4">
-              <div class="flex items-center justify-end gap-2">
+              <div class="flex items-center justify-center gap-2">
                 <!-- Add Config -->
                 <button
                   v-if="!g.is_added"

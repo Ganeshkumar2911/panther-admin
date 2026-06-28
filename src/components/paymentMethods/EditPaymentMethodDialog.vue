@@ -1,55 +1,62 @@
 <template>
-  <div
-    v-if="open"
-    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
-  >
+  <Transition name="slide">
     <div
-      class="bg-card-background rounded-2xl border border-primary-border w-full max-w-lg overflow-hidden shadow-xl"
-      @click.stop
+      v-if="open"
+      class="fixed inset-0 z-40 flex"
     >
-      <!-- Header -->
-      <div class="px-6 py-4 border-b border-primary-border flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <Wallet class="w-4 h-4 text-primary" />
-          <h2 class="text-sm font-semibold text-primary-text">
-            {{ isEdit ? 'Edit Payment Method' : 'Create Payment Method' }}
-          </h2>
+      <!-- Backdrop -->
+      <div class="flex-1 bg-black/40" @click="handleClose" />
+
+      <!-- Panel -->
+      <div
+        class="w-full max-w-xl bg-card-background border-l border-primary-border flex flex-col h-full overflow-hidden"
+      >
+        <!-- Header -->
+        <div class="px-6 py-4 border-b border-primary-border flex items-center justify-between shrink-0">
+          <div class="flex items-center gap-2">
+            <Wallet class="w-4 h-4 text-primary" />
+            <div>
+              <h2 class="text-sm font-semibold text-primary-text">
+                {{ isEdit ? 'Edit Payment Method' : 'Create Payment Method' }}
+              </h2>
+              <p class="text-[11px] text-secondary-text mt-0.5">{{ isEdit ? `Editing: ${form.wallet_label}` : 'Fill in the details below' }}</p>
+            </div>
+          </div>
+          <button
+            class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-background transition-colors"
+            @click="handleClose"
+            :disabled="submitting"
+          >
+            <X class="w-4 h-4 text-secondary-text" />
+          </button>
         </div>
-        <button
-          class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-background transition-colors"
-          @click="handleClose"
-          :disabled="submitting"
-        >
-          <X class="w-4 h-4 text-secondary-text" />
-        </button>
-      </div>
 
-      <!-- Tabs (Top area, disabled/read-only in Edit mode) -->
-      <div class="px-6 pt-3 flex border-b border-primary-border bg-background/10 gap-2">
-        <button
-          v-for="tab in [
-            { id: 'bank', label: 'Bank Transfer' },
-            { id: 'upi', label: 'UPI' },
-            { id: 'crypto', label: 'Crypto' }
-          ]"
-          :key="tab.id"
-          type="button"
-          :disabled="isEdit"
-          @click="activeTab = tab.id"
-          class="pb-2 px-2 text-xs font-semibold border-b-2 transition-all focus:outline-none"
-          :class="[
-            activeTab === tab.id
-              ? 'border-primary text-primary'
-              : 'border-transparent text-secondary-text hover:text-primary-text',
-            isEdit ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'
-          ]"
-        >
-          {{ tab.label }}
-        </button>
-      </div>
+        <!-- Tabs (Top area, disabled/read-only in Edit mode) -->
+        <div class="px-6 pt-3 flex border-b border-primary-border bg-background/10 gap-2 shrink-0">
+          <button
+            v-for="tab in [
+              { id: 'bank', label: 'Bank Transfer' },
+              { id: 'upi', label: 'UPI' },
+              { id: 'crypto', label: 'Crypto' }
+            ]"
+            :key="tab.id"
+            type="button"
+            :disabled="isEdit"
+            @click="activeTab = tab.id"
+            class="pb-2 px-2 text-xs font-semibold border-b-2 transition-all focus:outline-none"
+            :class="[
+              activeTab === tab.id
+                ? 'border-primary text-primary'
+                : 'border-transparent text-secondary-text hover:text-primary-text',
+              isEdit ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'
+            ]"
+          >
+            {{ tab.label }}
+          </button>
+        </div>
 
-      <!-- Scrollable Form Body -->
-      <div class="px-6 py-5 space-y-4 max-h-[60vh] overflow-y-auto no-scrollbar">
+        <!-- Scrollable Form Body -->
+        <div class="flex-1 overflow-y-auto px-6 py-5 space-y-4 no-scrollbar">
         <!-- Validation Error Message -->
         <p v-if="validationError" class="text-primary-red text-xs bg-primary-red/10 border border-primary-red/20 px-3 py-2 rounded-lg">
           {{ validationError }}
@@ -353,7 +360,7 @@
       </div>
 
       <!-- Action Buttons -->
-      <div class="px-6 py-4 border-t border-primary-border flex gap-3 bg-background/10">
+      <div class="px-6 py-4 border-t border-primary-border flex gap-3 shrink-0 bg-card-background">
         <button
           :disabled="submitting"
           class="flex-1 px-4 py-2.5 rounded-lg text-xs font-semibold text-secondary-text border border-primary-border hover:bg-background hover:text-primary-text transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
@@ -372,6 +379,7 @@
       </div>
     </div>
   </div>
+  </Transition>
 </template>
 
 <script setup>
@@ -595,6 +603,9 @@ const submit = async () => {
 </script>
 
 <style scoped>
+.slide-enter-active, .slide-leave-active { transition: transform 0.25s ease; }
+.slide-enter-from, .slide-leave-to { transform: translateX(100%); }
+
 /* Remove scrollbar for Chrome, Safari and Opera */
 .no-scrollbar::-webkit-scrollbar {
   display: none;

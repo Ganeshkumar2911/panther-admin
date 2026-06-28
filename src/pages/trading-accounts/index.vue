@@ -641,7 +641,7 @@ class="inline-flex items-center justify-center rounded-lg border border-primary-
                   </button>
                 </Tooltip>
 
-                <Tooltip v-if="acc.trading_type === 'real'" text="Change Password">
+                <Tooltip v-if="acc.trading_type === 'real'" text="Change Password" position="end">
                   <button
                     type="button"
                     class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text hover:text-primary-text hover:bg-background transition-colors"
