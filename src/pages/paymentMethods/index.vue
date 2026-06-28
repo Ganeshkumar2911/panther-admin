@@ -3,14 +3,14 @@
 
     <!-- Header -->
     <div class="flex flex-wrap items-start justify-end gap-3 mb-6">
-      <button
+      <!-- <button
         :disabled="store.syncLoading"
         class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-card-background border border-primary-border hover:bg-background text-primary-text text-xs font-semibold transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
         @click="store.syncWallets()"
       >
         <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': store.syncLoading }" />
         {{ store.syncLoading ? 'Syncing...' : 'Sync Wallets' }}
-      </button>
+      </button> -->
 
       <button
         class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all active:scale-95"
@@ -226,10 +226,10 @@
               <p class="text-[9px] text-secondary-text uppercase">Wallet ID</p>
               <p class="font-mono font-medium text-primary-text truncate" :title="record.wallet_id">{{ record.wallet_id || '—' }}</p>
             </div>
-            <div>
+            <!-- <div>
               <p class="text-[9px] text-secondary-text uppercase">Confirmed Balance</p>
               <p class="font-semibold text-primary-green truncate">{{ formatNum(record.balance_confirmed) }}</p>
-            </div>
+            </div> -->
             <div v-if="record.wallet_address" class="col-span-2">
               <p class="text-[9px] text-secondary-text uppercase">Wallet Address</p>
               <p class="font-mono font-medium text-primary-text truncate" :title="record.wallet_address">{{ record.wallet_address }}</p>

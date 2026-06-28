@@ -83,6 +83,7 @@
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3 whitespace-nowrap">Currency</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3 whitespace-nowrap">Leverage</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3 whitespace-nowrap">Margin Mode</th>
+            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3 whitespace-nowrap">Badge</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3 whitespace-nowrap">Account Type</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3 whitespace-nowrap">Category</th>
             <th class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3 whitespace-nowrap">Actions</th>
@@ -199,10 +200,12 @@
 
             <!-- Account Type / Badge -->
             <td class="px-3 py-4 text-xs text-primary-text whitespace-nowrap capitalize">
-              {{ g.account_type ?? '—' }}
               <span v-if="g.badge" class="ml-1 px-1.5 py-0.5 text-[9px] bg-background border border-primary-border rounded text-secondary-text uppercase font-semibold">
                 {{ g.badge }}
               </span>
+            </td>
+            <td class="px-3 py-4 text-xs text-primary-text text-center whitespace-nowrap capitalize">
+              {{ g.account_type ?? '—' }}
             </td>
 
             <!-- Category -->
@@ -241,7 +244,7 @@
                     </button>
                   </Tooltip>
 
-                  <Tooltip text="Remove Configuration">
+                  <Tooltip text="Remove Configuration" position="end">
                     <button
                       @click="openDeconfigConfirm(g)"
                       :disabled="store.actionLoading.id === g.config_id && store.actionLoading.type === 'deconfig'"
