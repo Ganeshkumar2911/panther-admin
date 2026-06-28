@@ -110,7 +110,7 @@ const goToRegister = () => {
       <!-- Logo + Brand -->
       <div class="text-center mb-7">
         <div class="flex justify-center mb-5">
-          <img :src="logoLight" alt="Panther Capitals" class="h-10 object-contain" />
+          <img src="/panther-logo.svg" alt="Panther Capitals" class="h-15 object-contain" />
         </div>
         <h1 class="text-2xl font-semibold text-white mb-1.5">
           Login
