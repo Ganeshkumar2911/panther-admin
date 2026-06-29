@@ -29,6 +29,7 @@ const urls = {
   clientList: {
     list: '/client-list',
     changeIB: '/client/change-ib',
+    changeStatus: '/users/status',
   },
   clientLedger: {
     list: '/ledger/clients',

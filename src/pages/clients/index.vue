@@ -1,10 +1,11 @@
 <script setup>
 import { onMounted, computed, ref } from 'vue'
-import { Search, Users, UserPen, Eye } from 'lucide-vue-next'
+import { Search, Users, UserPen, Eye, UserX, UserCheck } from 'lucide-vue-next'
 import { useClientListStore } from '@/stores/clientList/clientList'
 import Pagination from '@/components/common/Pagination.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import ChangeIBDialog from '@/components/common/ChangeIBDialog.vue'
+import ChangeStatusDialog from '@/components/common/ChangeStatusDialog.vue'
 import Tooltip from '@/components/common/Tooltip.vue'
 import { useRouter } from "vue-router";
 
@@ -17,6 +18,9 @@ let ibSearchTimer = null
 
 const changeIBDialogOpen = ref(false)
 const selectedClientForChangeIB = ref(null)
+
+const changeStatusDialogOpen = ref(false)
+const selectedClientForChangeStatus = ref(null)
 
 const onSearch = () => {
   clearTimeout(searchTimer)
@@ -53,6 +57,20 @@ const closeChangeIBDialog = () => {
 }
 
 const handleChangeIBSuccess = () => {
+  store.fetchClients(store.pagination.page)
+}
+
+const openChangeStatusDialog = (client) => {
+  selectedClientForChangeStatus.value = client
+  changeStatusDialogOpen.value = true
+}
+
+const closeChangeStatusDialog = () => {
+  changeStatusDialogOpen.value = false
+  selectedClientForChangeStatus.value = null
+}
+
+const handleChangeStatusSuccess = () => {
   store.fetchClients(store.pagination.page)
 }
 
@@ -270,14 +288,17 @@ onMounted(() => store.fetchClients())
             </td>
 
             <td class="p-3 text-right">
-              <span
-                class="text-[11px] font-medium px-2 py-0.5 rounded-full border"
-                :class="client.is_active
-                  ? 'bg-green-500/10 text-green-700 border-green-500/20'
-                  : 'bg-background text-secondary-text border-primary-border'"
-              >
-                {{ client.is_active ? 'Active' : 'Inactive' }}
-              </span>
+              <Tooltip :text="`Click to ${client.is_active ? 'deactivate' : 'activate'}`" position="left">
+                <button
+                  @click="openChangeStatusDialog(client)"
+                  class="text-[11px] font-medium px-2 py-0.5 rounded-full border transition-all duration-200 cursor-pointer focus:outline-none hover:scale-105 active:scale-95"
+                  :class="client.is_active
+                    ? 'bg-green-500/10 text-green-700 border-green-500/20 hover:bg-green-500/20'
+                    : 'bg-background text-secondary-text border-primary-border hover:bg-secondary-text/10'"
+                >
+                  {{ client.is_active ? 'Active' : 'Inactive' }}
+                </button>
+              </Tooltip>
             </td>
 
             <td class="p-3 align-middle">
@@ -288,6 +309,19 @@ onMounted(() => store.fetchClients())
                     class="p-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition"
                   >
                     <UserPen class="w-4 h-4" />
+                  </button>
+                </Tooltip>
+
+                <Tooltip :text="client.is_active ? 'Deactivate Client' : 'Activate Client'" position="left">
+                  <button
+                    @click="openChangeStatusDialog(client)"
+                    class="p-2 rounded-lg transition"
+                    :class="client.is_active
+                      ? 'bg-red-500/10 text-red-600 hover:bg-red-500/20'
+                      : 'bg-green-500/10 text-green-600 hover:bg-green-500/20'"
+                  >
+                    <UserX v-if="client.is_active" class="w-4 h-4" />
+                    <UserCheck v-else class="w-4 h-4" />
                   </button>
                 </Tooltip>
 
@@ -350,14 +384,15 @@ onMounted(() => store.fetchClients())
             </div>
           </div>
           <div class="flex flex-col gap-1.5 items-end shrink-0">
-            <span
-              class="text-[10px] font-medium px-2 py-0.5 rounded-full border"
+            <button
+              class="text-[10px] font-medium px-2 py-0.5 rounded-full border transition-all duration-200 cursor-pointer focus:outline-none hover:scale-105 active:scale-95"
               :class="client.is_active
-                ? 'bg-green-500/10 text-green-700 border-green-500/20'
-                : 'bg-background text-secondary-text border-primary-border'"
+                ? 'bg-green-500/10 text-green-700 border-green-500/20 hover:bg-green-500/20'
+                : 'bg-background text-secondary-text border-primary-border hover:bg-secondary-text/10'"
+              @click="openChangeStatusDialog(client)"
             >
               {{ client.is_active ? 'Active' : 'Inactive' }}
-            </span>
+            </button>
             <span
               class="text-[10px] font-medium px-2 py-0.5 rounded-full border capitalize"
               :class="getKycClass(client.kyc_status)"
@@ -436,12 +471,21 @@ onMounted(() => store.fetchClients())
             <p class="text-[10px] text-primary-text">Updated: {{ formatDate(client.updated_at) }}</p>
             <p class="text-[10px] text-secondary-text">Tracking ID: {{ client.tracking_id ?? '—' }}</p>
           </div>
-          <div class="bg-background rounded-lg px-3 py-2 col-span-2 flex items-center justify-center">
+          <div class="bg-background rounded-lg px-3 py-2 col-span-2 flex items-center justify-center gap-2">
             <button
               @click="openChangeIBDialog(client)"
-              class="w-full text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition"
+              class="flex-1 text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition"
             >
               Change IB
+            </button>
+            <button
+              @click="openChangeStatusDialog(client)"
+              class="flex-1 text-xs font-medium py-1.5 rounded-lg transition animate-all duration-200"
+              :class="client.is_active
+                ? 'bg-red-500/10 text-red-600 hover:bg-red-500/20'
+                : 'bg-green-500/10 text-green-600 hover:bg-green-500/20'"
+            >
+              Change Status
             </button>
           </div>
         </div>
@@ -462,6 +506,14 @@ onMounted(() => store.fetchClients())
       :client="selectedClientForChangeIB || {}"
       @close="closeChangeIBDialog"
       @success="handleChangeIBSuccess"
+    />
+
+    <!-- Change Status Dialog -->
+    <ChangeStatusDialog
+      :open="changeStatusDialogOpen"
+      :client="selectedClientForChangeStatus || {}"
+      @close="closeChangeStatusDialog"
+      @success="handleChangeStatusSuccess"
     />
 
   </div>
