@@ -214,7 +214,7 @@ const submit = () => {
   if (!isValid.value) return
 
   if (isEdit.value) {
-    const { code, ...payload } = form.value
+    const payload = form.value
     store.updateTemplate(props.editData.id, payload)
   } else {
     store.createTemplate({ ...form.value, is_active: true })

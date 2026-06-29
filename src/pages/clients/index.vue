@@ -291,14 +291,14 @@ onMounted(() => store.fetchClients())
                   </button>
                 </Tooltip>
 
-                <!-- <Tooltip text="Client Depth" position="left">
+                <Tooltip text="Client Depth" position="left">
                   <button
                     @click="openClientDepth(client)"
                     class="p-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition"
                   >
                     <Eye class="w-4 h-4" />
                   </button>
-                </Tooltip> -->
+                </Tooltip>
               </div>
             </td>
           </tr>

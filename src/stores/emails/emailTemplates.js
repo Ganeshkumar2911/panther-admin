@@ -76,6 +76,8 @@ export const useEmailTemplatesStore = defineStore(
         'PASSWORD_RESET',
         'WELCOME_EMAIL',
         'EMAIL_VERIFICATION',
+        'PASSWORD_RESET_EMAIL',
+        'RESET_PASSWORD_SUCCESSFUL',
       ],
 
       KYC: [
