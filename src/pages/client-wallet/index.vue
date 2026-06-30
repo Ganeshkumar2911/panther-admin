@@ -183,7 +183,7 @@
             <!-- Amount -->
             <td class="p-3">
               <span class="text-xs font-medium tabular-nums" :class="amountClass(entry.type, entry.amount)">
-                {{ entry.type === 'deposit' ? '+' : '-' }}{{ formatMoney(entry.amount, entry.currency) }}
+                {{ entry.type === 'deposit' ? '+' : '-' }}{{ formatMoney(entry.amount, entry.broker_currency) }}
               </span>
             </td>
 
