@@ -92,6 +92,16 @@
         >
           Clear
         </button>
+
+        <!-- Reload -->
+        <button
+          class="rounded-lg p-2 text-secondary-text hover:bg-background hover:text-primary-text transition-colors sm:flex-none flex items-center justify-center border border-primary-border hover:border-primary-border"
+          @click="refresh"
+          title="Refresh"
+          :disabled="store.loading"
+        >
+          <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': store.loading }" />
+        </button>
       </div>
     </div>
 
@@ -214,7 +224,7 @@
 
 <script setup>
 import { onMounted, ref, computed } from 'vue'
-import { BookOpen } from 'lucide-vue-next'
+import { BookOpen, RefreshCw } from 'lucide-vue-next'
 import { useClientLedgerStore } from '@/stores/clientLedger/clientLedger'
 import Pagination from '@/components/common/Pagination.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
@@ -315,6 +325,10 @@ const applyDateFilters = () => {
 const clearFilters = () => {
   filters.value = { client_id: null, account_id: null, type: null, from_date: '', to_date: '' }
   applyFilters()
+}
+
+const refresh = () => {
+  store.fetchLedger(true)
 }
 
 const handlePageChange = (page) => {

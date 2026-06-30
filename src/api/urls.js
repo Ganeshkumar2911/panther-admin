@@ -30,6 +30,7 @@ const urls = {
     list: '/client-list',
     changeIB: '/client/change-ib',
     changeStatus: '/users/status',
+    update: '/client/update',
   },
   clientLedger: {
     list: '/ledger/clients',

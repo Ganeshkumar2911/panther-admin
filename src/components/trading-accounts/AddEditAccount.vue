@@ -30,7 +30,7 @@
                 class="py-4 text-xs font-semibold transition-all duration-150 border-b-2 cursor-pointer flex items-center justify-center gap-2"
                 :class="
                   mode === 'copy_trading'
-                    ? 'border-primary text-black font-bold'
+                    ? 'border-primary text-primary font-bold'
                     : 'border-primary-border text-secondary-text hover:text-primary-text'
                 "
               >
@@ -44,7 +44,7 @@
                 class="py-4 text-xs font-semibold transition-all duration-150 border-b-2 cursor-pointer flex items-center justify-center gap-2"
                 :class="
                   mode === 'real'
-                    ? 'border-primary text-black font-bold'
+                    ? 'border-primary text-primary font-bold'
                     : 'border-primary-border text-secondary-text hover:text-primary-text'
                 "
               >

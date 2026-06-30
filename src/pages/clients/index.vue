@@ -1,11 +1,12 @@
 <script setup>
 import { onMounted, computed, ref } from 'vue'
-import { Search, Users, UserPen, Eye, UserX, UserCheck } from 'lucide-vue-next'
+import { Search, Users, UserPen, Eye, UserX, UserCheck, Pencil } from 'lucide-vue-next'
 import { useClientListStore } from '@/stores/clientList/clientList'
 import Pagination from '@/components/common/Pagination.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import ChangeIBDialog from '@/components/common/ChangeIBDialog.vue'
 import ChangeStatusDialog from '@/components/common/ChangeStatusDialog.vue'
+import EditClientDialog from '@/components/common/EditClientDialog.vue'
 import Tooltip from '@/components/common/Tooltip.vue'
 import { useRouter } from "vue-router";
 
@@ -21,6 +22,9 @@ const selectedClientForChangeIB = ref(null)
 
 const changeStatusDialogOpen = ref(false)
 const selectedClientForChangeStatus = ref(null)
+
+const editClientDialogOpen = ref(false)
+const selectedClientForEdit = ref(null)
 
 const onSearch = () => {
   clearTimeout(searchTimer)
@@ -71,6 +75,20 @@ const closeChangeStatusDialog = () => {
 }
 
 const handleChangeStatusSuccess = () => {
+  store.fetchClients(store.pagination.page)
+}
+
+const openEditClientDialog = (client) => {
+  selectedClientForEdit.value = client
+  editClientDialogOpen.value = true
+}
+
+const closeEditClientDialog = () => {
+  editClientDialogOpen.value = false
+  selectedClientForEdit.value = null
+}
+
+const handleEditClientSuccess = () => {
   store.fetchClients(store.pagination.page)
 }
 
@@ -146,6 +164,7 @@ onMounted(() => store.fetchClients())
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">IB</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">KYC Status</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Doc Status</th>
+            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Sumsub ID</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Accounts</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Dates</th>
             <th class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Status</th>
@@ -170,6 +189,7 @@ onMounted(() => store.fetchClients())
             <td class="p-3"><div class="space-y-1.5"><div class="h-3 w-20 bg-card-background rounded" /><div class="h-2.5 w-24 bg-card-background rounded" /></div></td>
             <td class="p-3"><div class="h-5 w-16 bg-card-background rounded-full" /></td>
             <td class="p-3"><div class="h-5 w-16 bg-card-background rounded-full" /></td>
+            <td class="p-3"><div class="h-5 w-20 bg-card-background rounded" /></td>
             <td class="p-3"><div class="space-y-1.5"><div class="h-3 w-12 bg-card-background rounded" /><div class="h-2.5 w-16 bg-card-background rounded" /></div></td>
             <td class="p-3"><div class="space-y-1.5"><div class="h-3 w-16 bg-card-background rounded" /><div class="h-2.5 w-20 bg-card-background rounded" /></div></td>
             <td class="p-3 text-right"><div class="h-5 w-14 bg-card-background rounded-full ml-auto" /></td>
@@ -180,7 +200,7 @@ onMounted(() => store.fetchClients())
         <!-- Empty -->
         <tbody v-else-if="store.data.length === 0">
           <tr>
-            <td colspan="10" class="py-16 text-center">
+            <td colspan="11" class="py-16 text-center">
               <div class="flex flex-col items-center gap-3">
                 <div class="w-12 h-12 rounded-full bg-card-background flex items-center justify-center">
                   <Users class="w-5 h-5 text-secondary-text" />
@@ -250,7 +270,10 @@ onMounted(() => store.fetchClients())
               </p>
               <p class="text-xs text-primary-text mb-1">{{ client.doc_approved ?? '—' }}</p>
               <p v-if="client.kyc_reject_reason" class="text-[10px] text-red-600">Reject: {{ client.kyc_reject_reason }}</p>
-              <p class="text-[10px] text-secondary-text">ID: {{ client.sumsub_applicant_id ?? '—' }}</p>
+            </td>
+
+            <td class="p-3">
+              <p class="text-xs font-mono text-primary-text">{{ client.sumsub_applicant_id ?? '—' }}</p>
             </td>
 
             <td class="p-3 max-w-[200px]">
@@ -303,6 +326,15 @@ onMounted(() => store.fetchClients())
 
             <td class="p-3 align-middle">
               <div class="flex items-center justify-center gap-2 h-full">
+                <Tooltip text="Edit Client" position="left">
+                  <button
+                    @click="openEditClientDialog(client)"
+                    class="p-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition"
+                  >
+                    <Pencil class="w-4 h-4" />
+                  </button>
+                </Tooltip>
+
                 <Tooltip text="Change IB" position="left">
                   <button
                     @click="openChangeIBDialog(client)"
@@ -325,14 +357,14 @@ onMounted(() => store.fetchClients())
                   </button>
                 </Tooltip>
 
-                <!-- <Tooltip text="Client Depth" position="left">
+                <Tooltip text="Client Depth" position="left">
                   <button
                     @click="openClientDepth(client)"
                     class="p-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition"
                   >
                     <Eye class="w-4 h-4" />
                   </button>
-                </Tooltip> -->
+                </Tooltip>
               </div>
             </td>
           </tr>
@@ -473,6 +505,12 @@ onMounted(() => store.fetchClients())
           </div>
           <div class="bg-background rounded-lg px-3 py-2 col-span-2 flex items-center justify-center gap-2">
             <button
+              @click="openEditClientDialog(client)"
+              class="flex-1 text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition"
+            >
+              Edit
+            </button>
+            <button
               @click="openChangeIBDialog(client)"
               class="flex-1 text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition"
             >
@@ -485,7 +523,7 @@ onMounted(() => store.fetchClients())
                 ? 'bg-red-500/10 text-red-600 hover:bg-red-500/20'
                 : 'bg-green-500/10 text-green-600 hover:bg-green-500/20'"
             >
-              Change Status
+              Status
             </button>
           </div>
         </div>
@@ -514,6 +552,14 @@ onMounted(() => store.fetchClients())
       :client="selectedClientForChangeStatus || {}"
       @close="closeChangeStatusDialog"
       @success="handleChangeStatusSuccess"
+    />
+
+    <!-- Edit Client Dialog -->
+    <EditClientDialog
+      :open="editClientDialogOpen"
+      :client="selectedClientForEdit || {}"
+      @close="closeEditClientDialog"
+      @success="handleEditClientSuccess"
     />
 
   </div>
