@@ -18,7 +18,8 @@ import {
   Tickets,
   ChevronLeft,
   ChevronRight,
-  Mail
+  Mail,
+  Cpu
 } from 'lucide-vue-next'
 import { useProfileStore } from '@/stores/profile/profile'
 import Tooltip from '@/components/common/Tooltip.vue'
@@ -122,6 +123,11 @@ const navItems = [
     label: 'Group Config',
     to: '/group-config',
     icon: Settings,
+  },
+  {
+    label: 'Company Integrations',
+    to: '/company-integrations',
+    icon: Cpu,
   },
   {
     label: 'Tickets',

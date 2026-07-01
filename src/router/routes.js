@@ -286,6 +286,16 @@ const routes = [
                     showBackButton: true,
                 }
             },
+            {
+                path: '/company-integrations',
+                name: 'company-integrations',
+                component: () => import('@/pages/companyIntegrations/index.vue'),
+                meta: {
+                    requiresAuth: true,
+                    title: 'Company Integrations',
+                    description: 'Manage external provider integrations.',
+                }
+            },
         ]
     }
 ]

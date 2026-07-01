@@ -31,6 +31,8 @@ const urls = {
     changeIB: '/client/change-ib',
     changeStatus: '/users/status',
     update: '/client/update',
+    createIB: '/create-ib',
+    create: '/client/create',
   },
   clientLedger: {
     list: '/ledger/clients',
@@ -116,6 +118,11 @@ const urls = {
     create: '/email-templates',
     update: '/email-templates',
     manual: '/emails/manual/send'
+  },
+  integrations: {
+    list: '/company-integrations',
+    create: '/company-integrations',
+    update: '/company-integrations',
   }
 }
 

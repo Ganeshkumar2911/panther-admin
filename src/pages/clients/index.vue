@@ -1,12 +1,13 @@
 <script setup>
 import { onMounted, computed, ref } from 'vue'
-import { Search, Users, UserPen, Eye, UserX, UserCheck, Pencil } from 'lucide-vue-next'
+import { Search, Users, UserPen, Eye, UserX, UserCheck, Pencil, UserPlus, Plus } from 'lucide-vue-next'
 import { useClientListStore } from '@/stores/clientList/clientList'
 import Pagination from '@/components/common/Pagination.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import ChangeIBDialog from '@/components/common/ChangeIBDialog.vue'
 import ChangeStatusDialog from '@/components/common/ChangeStatusDialog.vue'
-import EditClientDialog from '@/components/common/EditClientDialog.vue'
+import ClientDialog from '@/components/common/ClientDialog.vue'
+import MakeIBDialog from '@/components/common/MakeIBDialog.vue'
 import Tooltip from '@/components/common/Tooltip.vue'
 import { useRouter } from "vue-router";
 
@@ -20,11 +21,16 @@ let ibSearchTimer = null
 const changeIBDialogOpen = ref(false)
 const selectedClientForChangeIB = ref(null)
 
+const makeIBDialogOpen = ref(false)
+const selectedClientForMakeIB = ref(null)
+
 const changeStatusDialogOpen = ref(false)
 const selectedClientForChangeStatus = ref(null)
 
 const editClientDialogOpen = ref(false)
 const selectedClientForEdit = ref(null)
+
+const createClientDialogOpen = ref(false)
 
 const onSearch = () => {
   clearTimeout(searchTimer)
@@ -64,6 +70,20 @@ const handleChangeIBSuccess = () => {
   store.fetchClients(store.pagination.page)
 }
 
+const openMakeIBDialog = (client) => {
+  selectedClientForMakeIB.value = client
+  makeIBDialogOpen.value = true
+}
+
+const closeMakeIBDialog = () => {
+  makeIBDialogOpen.value = false
+  selectedClientForMakeIB.value = null
+}
+
+const handleMakeIBSuccess = () => {
+  store.fetchClients(store.pagination.page)
+}
+
 const openChangeStatusDialog = (client) => {
   selectedClientForChangeStatus.value = client
   changeStatusDialogOpen.value = true
@@ -90,6 +110,18 @@ const closeEditClientDialog = () => {
 
 const handleEditClientSuccess = () => {
   store.fetchClients(store.pagination.page)
+}
+
+const openCreateClientDialog = () => {
+  createClientDialogOpen.value = true
+}
+
+const closeCreateClientDialog = () => {
+  createClientDialogOpen.value = false
+}
+
+const handleCreateClientSuccess = () => {
+  store.fetchClients(1)
 }
 
 const getKycClass = (status) => {
@@ -150,6 +182,14 @@ onMounted(() => store.fetchClients())
         <span class="rounded-lg px-3 py-2 text-xs font-medium text-secondary-text bg-background border border-primary-border sm:ml-auto sm:flex-none">
           {{ store.pagination.total_items }} clients
         </span>
+
+        <button
+          class="flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all active:scale-95 cursor-pointer sm:flex-none"
+          @click="openCreateClientDialog"
+        >
+          <Plus class="w-3.5 h-3.5" />
+          Add Client
+        </button>
       </div>
     </div>
 
@@ -344,6 +384,15 @@ onMounted(() => store.fetchClients())
                   </button>
                 </Tooltip>
 
+                <Tooltip text="Make IB" position="left" v-if="client.is_ib === false">
+                  <button
+                    @click="openMakeIBDialog(client)"
+                    class="p-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition animate-all duration-200"
+                  >
+                    <UserPlus class="w-4 h-4" />
+                  </button>
+                </Tooltip>
+
                 <Tooltip :text="client.is_active ? 'Deactivate Client' : 'Activate Client'" position="left">
                   <button
                     @click="openChangeStatusDialog(client)"
@@ -517,6 +566,13 @@ onMounted(() => store.fetchClients())
               Change IB
             </button>
             <button
+              v-if="client.is_ib === false"
+              @click="openMakeIBDialog(client)"
+              class="flex-1 text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition animate-all duration-200"
+            >
+              Make IB
+            </button>
+            <button
               @click="openChangeStatusDialog(client)"
               class="flex-1 text-xs font-medium py-1.5 rounded-lg transition animate-all duration-200"
               :class="client.is_active
@@ -555,11 +611,27 @@ onMounted(() => store.fetchClients())
     />
 
     <!-- Edit Client Dialog -->
-    <EditClientDialog
+    <ClientDialog
       :open="editClientDialogOpen"
-      :client="selectedClientForEdit || {}"
+      :client="selectedClientForEdit"
       @close="closeEditClientDialog"
       @success="handleEditClientSuccess"
+    />
+
+    <!-- Make IB Dialog -->
+    <MakeIBDialog
+      :open="makeIBDialogOpen"
+      :client="selectedClientForMakeIB || {}"
+      @close="closeMakeIBDialog"
+      @success="handleMakeIBSuccess"
+    />
+
+    <!-- Create Client Dialog -->
+    <ClientDialog
+      :open="createClientDialogOpen"
+      :client="null"
+      @close="closeCreateClientDialog"
+      @success="handleCreateClientSuccess"
     />
 
   </div>

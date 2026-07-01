@@ -11,11 +11,14 @@
       <!-- Header -->
       <div class="px-6 py-4 border-b border-primary-border flex items-center justify-between bg-card-background shrink-0">
         <div class="flex items-center gap-2">
-          <UserPen class="w-4 h-4 text-primary" />
-          <h2 class="text-sm font-semibold text-primary-text">Edit Client Details</h2>
+          <UserPen v-if="isEditMode" class="w-4 h-4 text-primary" />
+          <UserPlus v-else class="w-4 h-4 text-primary" />
+          <h2 class="text-sm font-semibold text-primary-text">
+            {{ isEditMode ? 'Edit Client Details' : 'Create New Client' }}
+          </h2>
         </div>
         <button
-          class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-background transition-colors"
+          class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-background transition-colors cursor-pointer focus:outline-none"
           @click="closeDialog"
         >
           <X class="w-4 h-4 text-secondary-text" />
@@ -24,18 +27,23 @@
 
       <!-- Body (Scrollable) -->
       <div class="flex-1 overflow-y-auto p-6 space-y-4 bg-card-background">
-        <!-- Client Info Header -->
-        <div class="bg-background border border-primary-border rounded-xl px-4 py-3">
+        <!-- Client Info Header / Help Notice -->
+        <div v-if="isEditMode" class="bg-background border border-primary-border rounded-xl px-4 py-3 shrink-0">
           <p class="text-[10px] uppercase tracking-wide text-secondary-text mb-1 font-medium">Client Reference</p>
           <p class="text-xs font-semibold text-primary-text">{{ client.name || '—' }} (ID: {{ client.id }})</p>
           <p class="text-[10px] text-secondary-text mt-0.5">{{ client.email || '—' }}</p>
+        </div>
+        <div v-else class="bg-primary/5 border border-primary/10 rounded-xl px-4 py-3 flex gap-2 shrink-0">
+          <div class="text-[11px] text-secondary-text leading-relaxed">
+            Fill in the details below to register a new client. After registration, the client can be activated and structured as needed.
+          </div>
         </div>
 
         <!-- Form fields stack -->
         <div class="space-y-4">
           <!-- Name -->
           <div class="flex flex-col gap-1">
-            <label class="text-secondary-text text-[11px] font-medium">Full Name</label>
+            <label class="text-secondary-text text-[11px] font-medium">Full Name <span class="text-red-500">*</span></label>
             <input
               v-model="form.name"
               type="text"
@@ -46,7 +54,7 @@
 
           <!-- Email -->
           <div class="flex flex-col gap-1">
-            <label class="text-secondary-text text-[11px] font-medium">Email</label>
+            <label class="text-secondary-text text-[11px] font-medium">Email <span class="text-red-500">*</span></label>
             <input
               v-model="form.email"
               type="email"
@@ -89,14 +97,14 @@
           </div>
 
           <!-- Date of Birth -->
-          <!-- <div class="flex flex-col gap-1">
+          <div class="flex flex-col gap-1">
             <label class="text-secondary-text text-[11px] font-medium">Date of Birth</label>
             <input
               v-model="form.date_of_birth"
               type="date"
               class="w-full bg-background border border-primary-border rounded-lg px-3 py-2 text-primary-text text-xs outline-none focus:border-primary transition-colors"
             />
-          </div> -->
+          </div>
 
           <!-- Address -->
           <div class="flex flex-col gap-1">
@@ -148,18 +156,18 @@
       <div class="px-6 py-4 border-t border-primary-border flex gap-3 bg-card-background shrink-0">
         <button
           :disabled="isSubmitting"
-          class="flex-1 px-4 py-2.5 rounded-lg text-xs font-medium text-secondary-text border border-primary-border hover:bg-background hover:text-primary-text transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          class="flex-1 px-4 py-2.5 rounded-lg text-xs font-medium text-secondary-text border border-primary-border hover:bg-background hover:text-primary-text transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
           @click="closeDialog"
         >
           Cancel
         </button>
         <button
-          :disabled="isSubmitting"
-          class="flex-1 px-4 py-2.5 rounded-lg text-xs font-medium text-white bg-primary hover:bg-primary-hover transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+          :disabled="!isValid || isSubmitting"
+          class="flex-1 px-4 py-2.5 rounded-lg text-xs font-medium text-white bg-primary hover:bg-primary-hover transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
           @click="handleSubmit"
         >
           <Loader2 v-if="isSubmitting" class="w-3.5 h-3.5 animate-spin" />
-          <span>{{ isSubmitting ? 'Saving...' : 'Save Changes' }}</span>
+          <span>{{ isSubmitting ? (isEditMode ? 'Saving...' : 'Creating...') : (isEditMode ? 'Save Changes' : 'Create Client') }}</span>
         </button>
       </div>
     </div>
@@ -167,8 +175,8 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
-import { X, Loader2, UserPen } from 'lucide-vue-next'
+import { ref, watch, computed } from 'vue'
+import { X, Loader2, UserPen, UserPlus } from 'lucide-vue-next'
 import apiRequest from '@/api/request'
 import urls from '@/api/urls'
 import { useSnackbarStore } from '@/stores/snackbar/snackbar'
@@ -176,7 +184,7 @@ import BaseSelect from '@/components/common/BaseSelect.vue'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
-  client: { type: Object, default: () => ({}) },
+  client: { type: Object, default: null },
 })
 
 const emit = defineEmits(['close', 'success'])
@@ -184,12 +192,14 @@ const emit = defineEmits(['close', 'success'])
 const snackbar = useSnackbarStore()
 const isSubmitting = ref(false)
 
+const isEditMode = computed(() => !!props.client?.id)
+
 const form = ref({
   name: '',
   email: '',
   phone_number: '',
   date_of_birth: '',
-  kyc_status: '',
+  kyc_status: 'not started',
   address: '',
   city: '',
   state: '',
@@ -197,7 +207,13 @@ const form = ref({
   country: '',
 })
 
-// Helper to format date of birth to YYYY-MM-DD
+const isValid = computed(() => {
+  return (
+    form.value.name && form.value.name.trim().length > 0 &&
+    form.value.email && form.value.email.trim().length > 0
+  )
+})
+
 const formatDateForInput = (val) => {
   if (!val) return ''
   const d = new Date(val)
@@ -209,54 +225,87 @@ const formatDateForInput = (val) => {
 watch(
   () => [props.open, props.client?.id],
   ([isOpen]) => {
-    if (isOpen && props.client) {
-      form.value.name = props.client.name ?? ''
-      form.value.email = props.client.email ?? ''
-      form.value.phone_number = props.client.phone_number ?? ''
-      form.value.date_of_birth = formatDateForInput(props.client.date_of_birth)
-      form.value.kyc_status = props.client.kyc_status ?? 'not started'
-      form.value.address = props.client.address ?? ''
-      form.value.city = props.client.city ?? ''
-      form.value.state = props.client.state ?? ''
-      form.value.zip_code = props.client.zip_code ?? ''
-      form.value.country = props.client.country ?? ''
+    if (isOpen) {
+      if (props.client && props.client.id) {
+        // Edit mode
+        form.value.name = props.client.name ?? ''
+        form.value.email = props.client.email ?? ''
+        form.value.phone_number = props.client.phone_number ?? ''
+        form.value.date_of_birth = formatDateForInput(props.client.date_of_birth)
+        form.value.kyc_status = props.client.kyc_status ?? 'not started'
+        form.value.address = props.client.address ?? ''
+        form.value.city = props.client.city ?? ''
+        form.value.state = props.client.state ?? ''
+        form.value.zip_code = props.client.zip_code ?? ''
+        form.value.country = props.client.country ?? ''
+      } else {
+        // Create mode
+        form.value.name = ''
+        form.value.email = ''
+        form.value.phone_number = ''
+        form.value.date_of_birth = ''
+        form.value.kyc_status = 'not started'
+        form.value.address = ''
+        form.value.city = ''
+        form.value.state = ''
+        form.value.zip_code = ''
+        form.value.country = ''
+      }
+      isSubmitting.value = false
     }
   },
   { immediate: true }
 )
 
 const handleSubmit = () => {
-  if (!props.client?.id) return
+  if (!isValid.value) return
   isSubmitting.value = true
 
   const payload = {
-    name: form.value.name,
-    email: form.value.email,
-    phone_number: form.value.phone_number,
+    name: form.value.name.trim(),
+    email: form.value.email.trim(),
+    phone_number: form.value.phone_number?.trim() || null,
     date_of_birth: form.value.date_of_birth || null,
     kyc_status: form.value.kyc_status,
-    address: form.value.address,
-    city: form.value.city,
-    state: form.value.state,
-    zip_code: form.value.zip_code,
-    country: form.value.country,
+    address: form.value.address?.trim() || null,
+    city: form.value.city?.trim() || null,
+    state: form.value.state?.trim() || null,
+    zip_code: form.value.zip_code?.trim() || null,
+    country: form.value.country || null,
   }
 
-  apiRequest(urls.KEYS.PUT, urls.clientList.update, {
-    look_up_key: props.client.id,
-    data: payload,
-    isTokenRequired: true,
-    onSuccess: () => {
-      snackbar.show('Client details updated successfully.', 'success')
-      isSubmitting.value = false
-      emit('success')
-      closeDialog()
-    },
-    onFailure: (err) => {
-      snackbar.show(err?.message || 'Failed to update client details.', 'error')
-      isSubmitting.value = false
-    },
-  })
+  if (isEditMode.value) {
+    apiRequest(urls.KEYS.PUT, urls.clientList.update, {
+      look_up_key: props.client.id,
+      data: payload,
+      isTokenRequired: true,
+      onSuccess: () => {
+        snackbar.show('Client details updated successfully.', 'success')
+        isSubmitting.value = false
+        emit('success')
+        closeDialog()
+      },
+      onFailure: (err) => {
+        snackbar.show(err?.message || 'Failed to update client details.', 'error')
+        isSubmitting.value = false
+      },
+    })
+  } else {
+    apiRequest(urls.KEYS.POST, urls.clientList.create, {
+      data: payload,
+      isTokenRequired: true,
+      onSuccess: () => {
+        snackbar.show('Client created successfully.', 'success')
+        isSubmitting.value = false
+        emit('success')
+        closeDialog()
+      },
+      onFailure: (err) => {
+        snackbar.show(err?.message || 'Failed to create client.', 'error')
+        isSubmitting.value = false
+      },
+    })
+  }
 }
 
 const closeDialog = () => {
