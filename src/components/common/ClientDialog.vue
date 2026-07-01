@@ -63,6 +63,27 @@
             />
           </div>
 
+          <!-- Password (Only in Create Mode) -->
+          <div v-if="!isEditMode" class="flex flex-col gap-1">
+            <label class="text-secondary-text text-[11px] font-medium">Password <span class="text-red-500">*</span></label>
+            <div class="relative flex items-center">
+              <input
+                v-model="form.password"
+                :type="showPassword ? 'text' : 'password'"
+                class="w-full bg-background border border-primary-border rounded-lg pl-3 pr-10 py-2 text-primary-text text-xs outline-none focus:border-primary transition-colors font-mono"
+                placeholder="Enter password"
+              />
+              <button
+                type="button"
+                @click="showPassword = !showPassword"
+                class="absolute right-3 text-secondary-text hover:text-primary-text transition-colors focus:outline-none cursor-pointer"
+              >
+                <Eye v-if="!showPassword" class="w-3.5 h-3.5" />
+                <EyeOff v-else class="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+
           <!-- Phone Number -->
           <div class="flex flex-col gap-1">
             <label class="text-secondary-text text-[11px] font-medium">Phone Number</label>
@@ -71,6 +92,20 @@
               type="text"
               class="w-full bg-background border border-primary-border rounded-lg px-3 py-2 text-primary-text text-xs outline-none focus:border-primary transition-colors"
               placeholder="Phone Number"
+            />
+          </div>
+
+          <!-- Select IB (Only in Create Mode) -->
+          <div v-if="!isEditMode" class="flex flex-col gap-1">
+            <label class="text-secondary-text text-[11px] font-medium">Select IB</label>
+            <BaseSelect
+              v-model="form.ib_user_id"
+              :options="ibOptions"
+              :isLoading="searchLoading"
+              placeholder="Search IB..."
+              searchable
+              @search="onIbSearch"
+              variant="surface"
             />
           </div>
 
@@ -176,7 +211,7 @@
 
 <script setup>
 import { ref, watch, computed } from 'vue'
-import { X, Loader2, UserPen, UserPlus } from 'lucide-vue-next'
+import { X, Loader2, UserPen, UserPlus, Eye, EyeOff } from 'lucide-vue-next'
 import apiRequest from '@/api/request'
 import urls from '@/api/urls'
 import { useSnackbarStore } from '@/stores/snackbar/snackbar'
@@ -194,10 +229,14 @@ const isSubmitting = ref(false)
 
 const isEditMode = computed(() => !!props.client?.id)
 
+const showPassword = ref(false)
+
 const form = ref({
   name: '',
   email: '',
+  password: '',
   phone_number: '',
+  ib_user_id: null,
   date_of_birth: '',
   kyc_status: 'not started',
   address: '',
@@ -208,10 +247,15 @@ const form = ref({
 })
 
 const isValid = computed(() => {
-  return (
+  const basicValid =
     form.value.name && form.value.name.trim().length > 0 &&
     form.value.email && form.value.email.trim().length > 0
-  )
+
+  if (isEditMode.value) {
+    return basicValid
+  } else {
+    return basicValid && form.value.password && form.value.password.trim().length > 0
+  }
 })
 
 const formatDateForInput = (val) => {
@@ -230,7 +274,9 @@ watch(
         // Edit mode
         form.value.name = props.client.name ?? ''
         form.value.email = props.client.email ?? ''
+        form.value.password = ''
         form.value.phone_number = props.client.phone_number ?? ''
+        form.value.ib_user_id = props.client.ib_user_id ?? props.client.ib_id ?? null
         form.value.date_of_birth = formatDateForInput(props.client.date_of_birth)
         form.value.kyc_status = props.client.kyc_status ?? 'not started'
         form.value.address = props.client.address ?? ''
@@ -242,7 +288,9 @@ watch(
         // Create mode
         form.value.name = ''
         form.value.email = ''
+        form.value.password = ''
         form.value.phone_number = ''
+        form.value.ib_user_id = null
         form.value.date_of_birth = ''
         form.value.kyc_status = 'not started'
         form.value.address = ''
@@ -251,11 +299,55 @@ watch(
         form.value.zip_code = ''
         form.value.country = ''
       }
+      newIbOptions.value = []
+      searchLoading.value = false
+      showPassword.value = false
       isSubmitting.value = false
     }
   },
   { immediate: true }
 )
+
+const newIbOptions = ref([])
+const searchLoading = ref(false)
+let ibSearchTimer = null
+
+const ibOptions = computed(() => {
+  return [
+    { label: 'None', value: null },
+    ...newIbOptions.value
+  ]
+})
+
+const onIbSearch = (query) => {
+  clearTimeout(ibSearchTimer)
+  ibSearchTimer = setTimeout(() => searchIbs(query), 350)
+}
+
+const searchIbs = (query = '') => {
+  if (!query.trim()) {
+    newIbOptions.value = []
+    return
+  }
+  searchLoading.value = true
+
+  apiRequest(urls.KEYS.GET, urls.ibLedger.allIbs, {
+    params: { search: query.trim() },
+    isTokenRequired: true,
+    onSuccess: (res) => {
+      newIbOptions.value = (res?.data || []).map((ib) => ({
+        label: ib.label_name ?? ib.name ?? ib.ib_name ?? ib.email ?? `IB ${ib.ib_id ?? ib.id}`,
+        value: ib.ib_id ?? ib.id ?? ib.user_id,
+      }))
+      searchLoading.value = false
+    },
+    onFailure: (err) => {
+      newIbOptions.value = []
+      searchLoading.value = false
+      snackbar.show(err?.message || 'Failed to fetch IBs.', 'error')
+    },
+  })
+}
 
 const handleSubmit = () => {
   if (!isValid.value) return
@@ -291,8 +383,13 @@ const handleSubmit = () => {
       },
     })
   } else {
+    const createPayload = {
+      ...payload,
+      ib_user_id: form.value.ib_user_id,
+      password: form.value.password.trim(),
+    }
     apiRequest(urls.KEYS.POST, urls.clientList.create, {
-      data: payload,
+      data: createPayload,
       isTokenRequired: true,
       onSuccess: () => {
         snackbar.show('Client created successfully.', 'success')
