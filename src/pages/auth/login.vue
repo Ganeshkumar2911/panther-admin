@@ -102,10 +102,8 @@ const goToRegister = () => {
     </div>
 
     <!-- Card -->
-    <div
-      class="relative w-full max-w-[440px] rounded-2xl border border-white/10 p-8 py-10"
-      style="background: #FFFFFF1A; backdrop-filter: blur(134px);"
-    >
+    <div class="relative w-full max-w-[440px] rounded-2xl border border-white/10 p-8 py-10"
+      style="background: #FFFFFF1A; backdrop-filter: blur(134px);">
 
       <!-- Logo + Brand -->
       <div class="text-center mb-7">
@@ -113,7 +111,7 @@ const goToRegister = () => {
           <img src="/panther-logo.svg" alt="Panther Capitals" class="h-15 object-contain" />
         </div>
         <h1 class="text-2xl font-semibold text-white mb-1.5">
-          Login
+          Admin Login
         </h1>
         <p class="text-sm text-white/60">
           login to continue to your workspace
@@ -126,14 +124,9 @@ const goToRegister = () => {
         <!-- Email -->
         <div class="mb-4">
           <label class="block text-sm font-medium text-white mb-1.5">Email address</label>
-          <input
-            v-model="form.email"
-            type="email"
-            placeholder="you@example.com"
+          <input v-model="form.email" type="email" placeholder="you@example.com"
             class="w-full px-4 py-2.5 rounded-lg border border-white/20 bg-white/10 text-white placeholder-white/30 text-sm outline-none focus:border-white/40 transition-colors"
-            :class="{ 'border-red-400': errors.email }"
-            @focus="clearError('email')"
-          />
+            :class="{ 'border-red-400': errors.email }" @focus="clearError('email')" />
           <p v-if="errors.email" class="text-xs mt-1.5 text-red-400">{{ errors.email }}</p>
         </div>
 
@@ -141,20 +134,13 @@ const goToRegister = () => {
         <div class="mb-2">
           <label class="block text-sm font-medium text-white mb-1.5">Password</label>
           <div class="relative">
-            <input
-              v-model="form.password"
-              :type="showPassword ? 'text' : 'password'"
-              placeholder="••••••••"
+            <input v-model="form.password" :type="showPassword ? 'text' : 'password'" placeholder="••••••••"
               class="w-full px-4 pr-10 py-2.5 rounded-lg border border-white/20 bg-white/10 text-white placeholder-white/40 text-sm outline-none focus:border-white/40 transition-colors"
-              :class="{ 'border-red-400': errors.password }"
-              @focus="clearError('password')"
-              @keyup.enter="handleLogin"
-            />
-            <button
-              type="button"
+              :class="{ 'border-red-400': errors.password }" @focus="clearError('password')"
+              @keyup.enter="handleLogin" />
+            <button type="button"
               class="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white/80 transition-colors"
-              @click="showPassword = !showPassword"
-            >
+              @click="showPassword = !showPassword">
               <EyeOff v-if="showPassword" :size="15" />
               <Eye v-else :size="15" />
             </button>
@@ -170,13 +156,9 @@ const goToRegister = () => {
         </div>
 
         <!-- Button -->
-        <button
-          type="button"
-          :disabled="loading"
+        <button type="button" :disabled="loading"
           class="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold text-black transition-opacity hover:opacity-90 disabled:opacity-60"
-          style="background: linear-gradient(180deg, #E0CA3C 0%, #FFE74D 100%);"
-          @click="handleLogin"
-        >
+          style="background: linear-gradient(180deg, #E0CA3C 0%, #FFE74D 100%);" @click="handleLogin">
           <Loader2 v-if="loading" :size="16" class="animate-spin" />
           <span>{{ loading ? 'Logging in…' : 'Submit' }}</span>
         </button>
@@ -193,7 +175,9 @@ const goToRegister = () => {
 
       <!-- Disclaimer -->
       <p class="text-center text-[11px] text-white/40 mt-5 leading-relaxed px-2">
-        Panther Capitals Ltd we don't offer services to residents of certain countries, including: Syria, North Korea, Iran, Iraq, Mauritius, USA, Canada, Sudan, Myanmar, Yemen, Afghanistan, Vanuatu, and those within the European Economic Area (EEA).
+        Panther Capitals Ltd we don't offer services to residents of certain countries, including: Syria, North Korea,
+        Iran, Iraq, Mauritius, USA, Canada, Sudan, Myanmar, Yemen, Afghanistan, Vanuatu, and those within the European
+        Economic Area (EEA).
       </p>
 
       <!-- Footer Links -->
