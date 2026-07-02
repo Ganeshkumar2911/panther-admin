@@ -335,7 +335,7 @@ const onClientSearch = (q) => {
   clientTimer = setTimeout(async () => {
     const res = await store.fetchAllClients(q)
     const data = res?.data || res || []
-    clientOptions.value = (data || []).map(c => ({ label: c.name || c.email, value: c.id }))
+    clientOptions.value = (data || []).map(c => ({ label: c.label || c.email, value: c.value }))
   }, 350)
 }
 

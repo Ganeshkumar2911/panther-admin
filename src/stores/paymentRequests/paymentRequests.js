@@ -355,12 +355,7 @@ export const usePaymentRequestsStore = defineStore(
     ) => {
       return new Promise((resolve, reject) => {
         const successHandler = (res) => {
-          const accounts = (res?.data || []).map(
-            (account) => ({
-              label: `#${account.account_number}`,
-              value: account.account_id,
-            })
-          )
+          const accounts = res?.data
 
           resolve(accounts)
         }
