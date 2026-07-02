@@ -85,6 +85,25 @@
         >
           Clear
         </button>
+
+                 <Tooltip text="Refresh" position="right">
+          <button
+            type="button"
+            :disabled="store.loading"
+            class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text transition-colors hover:text-primary-text hover:bg-background disabled:opacity-60 disabled:cursor-not-allowed"
+            @click="
+              () => {
+                store.fetchRequests(true);
+              }
+            "
+          >
+      <RefreshCw
+      class="h-3.5 w-3.5"
+      :class="{ 'animate-spin': store.loading }"
+    />
+            
+          </button>
+        </Tooltip>
       </div>
     </div>
 
@@ -291,7 +310,7 @@
 
 <script setup>
 import { onMounted, computed, ref } from 'vue'
-import { Receipt, Check, X } from 'lucide-vue-next'
+import { Receipt, Check, X,RefreshCw } from 'lucide-vue-next'
 import { usePaymentRequestsStore } from '@/stores/paymentRequests/paymentRequests'
 import Pagination from '@/components/common/Pagination.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
