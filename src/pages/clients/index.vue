@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, computed, ref } from 'vue'
-import { Search, Users, UserPen, Eye, UserX, UserCheck, Pencil, UserPlus, Plus } from 'lucide-vue-next'
+import { Search, Users, UserPen, Eye, UserX, UserCheck, Pencil, UserPlus, Plus,RefreshCw } from 'lucide-vue-next'
 import { useClientListStore } from '@/stores/clientList/clientList'
 import Pagination from '@/components/common/Pagination.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
@@ -178,6 +178,24 @@ onMounted(() => store.fetchClients())
           class="w-full sm:w-32 xl:w-32"
           @update:modelValue="store.updatePerPage"
         />
+             <Tooltip text="Refresh" position="right">
+          <button
+            type="button"
+            :disabled="store.loading"
+            class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text transition-colors hover:text-primary-text hover:bg-background disabled:opacity-60 disabled:cursor-not-allowed"
+            @click="
+              () => {
+                store.fetchClients();
+              }
+            "
+          >
+      <RefreshCw
+      class="h-3.5 w-3.5"
+      :class="{ 'animate-spin': store.loading }"
+    />
+            
+          </button>
+        </Tooltip>
 
         <span class="rounded-lg px-3 py-2 text-xs font-medium text-secondary-text bg-background border border-primary-border sm:ml-auto sm:flex-none">
           {{ store.pagination.total_items }} clients

@@ -57,6 +57,24 @@
             @change="applyFilters"
           />
         </div>
+         <Tooltip text="Refresh" position="right">
+          <button
+            type="button"
+            :disabled="store.loading"
+            class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text transition-colors hover:text-primary-text hover:bg-background disabled:opacity-60 disabled:cursor-not-allowed"
+            @click="
+              ()=>{
+                store.fetchAdminLedger(true)
+              }
+            "
+          >
+      <RefreshCw
+      class="h-3.5 w-3.5"
+      :class="{ 'animate-spin': store.loading }"
+      />
+      
+    </button>
+  </Tooltip>
 
         <!-- Clear -->
         <button
@@ -162,6 +180,7 @@ import { BookOpen } from 'lucide-vue-next'
 import { useAdminLedgerStore } from '@/stores/adminLedger/adminLedger'
 import Pagination from '@/components/common/Pagination.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
+import { RefreshCw } from 'lucide-vue-next'
 
 const store = useAdminLedgerStore()
 

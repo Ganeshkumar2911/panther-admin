@@ -6,6 +6,7 @@ import Pagination from "@/components/common/Pagination.vue";
 import Tooltip from "@/components/common/Tooltip.vue";
 import FmRequestActionDialog from "@/components/fmRequest/FmRequestActionDialog.vue";
 import AddEditFundManager from "@/components/fundManager/AddEditFundManager.vue";
+import { RefreshCw } from 'lucide-vue-next'
 
 const store = useFmRequestStore();
 const activeStatus = ref(null);
@@ -70,6 +71,14 @@ const handleEditFundManager = (item) => {
 const handleFundManagerSuccess = () => {
   fundManagerDialogOpen.value = false;
 };
+const handleRefresh = () => {
+  store.fetchFmRequests(
+    true,
+    store.pagination.page,
+    activeStatus.value,
+    store.search
+  )
+}
 
 const formatMoney = (value, currency = "USD") => {
   const amount = Number(value ?? 0);
@@ -98,13 +107,32 @@ onMounted(() => {
 <template>
   <div>
     <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
-      <FmRequestFilters
+  <div class="flex items-center gap-2">
+
+        <FmRequestFilters
         :filters="store.filters?.status ?? []"
         :active-status="activeStatus"
         :search="store.search"
         @filter="onFilter"
         @search="onSearch"
       />
+       <Tooltip text="Refresh" position="right">
+          <button
+            type="button"
+            :disabled="store.loading"
+            class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text transition-colors hover:text-primary-text hover:bg-background disabled:opacity-60 disabled:cursor-not-allowed"
+            @click="
+              handleRefresh
+            "
+          >
+      <RefreshCw
+      class="h-3.5 w-3.5"
+      :class="{ 'animate-spin': store.loading }"
+      />
+      
+    </button>
+  </Tooltip>
+</div>
       <button
         @click="handleAddFundManager"
         class="px-4 py-2 rounded-xl text-sm font-medium bg-primary text-background
