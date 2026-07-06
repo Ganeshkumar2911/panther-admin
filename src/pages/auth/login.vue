@@ -8,7 +8,7 @@ import urls from '@/api/urls'
 import { useRouter } from 'vue-router'
 import logoLight from '@/assets/logo_full.svg'
 // import logoDark from '@/assets/logo_dark_full.png'
-import bgImage from '@/assets/auth-bg.png'
+import bgImage from '@/assets/Login-img.jpeg'
 
 const router = useRouter()
 const snackbar = useSnackbarStore()
@@ -93,102 +93,195 @@ const goToRegister = () => {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
+  <div class="min-h-screen flex bg-[#0A0A0A]">
 
-    <!-- Background Image -->
-    <div class="absolute inset-0 bg-black/95">
-      <img :src="bgImage" alt="" class="w-full h-full object-cover" />
-      <div class="absolute inset-0 bg-black/20" />
-    </div>
+    <!-- LEFT SIDE -->
+   <div class="hidden lg:flex lg:w-1/2 pl-4 pt-4">
+  <div
+    class="w-full h-[calc(100vh-24px)] overflow-hidden
+           rounded-tr-3xl rounded-tl-3xl rounded-br-3xl rounded-bl-none
+           shadow-2xl"
+  >
+    <img
+      :src="bgImage"
+      alt="Login Background"
+      class="w-full h-full object-cover"
+    />
+  </div>
+</div>
 
-    <!-- Card -->
-    <div class="relative w-full max-w-[440px] rounded-2xl border border-white/10 p-8 py-10"
-      style="background: #FFFFFF1A; backdrop-filter: blur(134px);">
+    <!-- RIGHT SIDE -->
+    <div
+      class="w-full lg:w-1/2 flex items-center justify-center px-6 py-10 bg-[#0A0A0A]"
+    >
+      <div class="w-full max-w-md">
 
-      <!-- Logo + Brand -->
-      <div class="text-center mb-7">
-        <div class="flex justify-center mb-5">
-          <img src="/panther-logo.svg" alt="Panther Capitals" class="h-15 object-contain" />
+        <!-- Logo -->
+        <div class="text-center mb-8">
+          <div class="flex justify-center mb-6">
+            <img
+              src="/logo_full.svg"
+              alt="Panther Capitals"
+              class="h-12 object-contain"
+            />
+          </div>
+
+          <h1 class="text-2xl font-semibold text-white">
+            Admin Login
+          </h1>
+
+          <p class="mt-2 text-sm text-white/60">
+            Login to continue to your workspace
+          </p>
         </div>
-        <h1 class="text-2xl font-semibold text-white mb-1.5">
-          Admin Login
-        </h1>
-        <p class="text-sm text-white/60">
-          login to continue to your workspace
-        </p>
-      </div>
 
-      <!-- Form -->
-      <div>
+        <!-- Form -->
+        <div>
 
-        <!-- Email -->
-        <div class="mb-4">
-          <label class="block text-sm font-medium text-white mb-1.5">Email address</label>
-          <input v-model="form.email" type="email" placeholder="you@example.com"
-            class="w-full px-4 py-2.5 rounded-lg border border-white/20 bg-white/10 text-white placeholder-white/30 text-sm outline-none focus:border-white/40 transition-colors"
-            :class="{ 'border-red-400': errors.email }" @focus="clearError('email')" />
-          <p v-if="errors.email" class="text-xs mt-1.5 text-red-400">{{ errors.email }}</p>
-        </div>
+          <!-- Email -->
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-white mb-2">
+              Email Address
+            </label>
 
-        <!-- Password -->
-        <div class="mb-2">
-          <label class="block text-sm font-medium text-white mb-1.5">Password</label>
-          <div class="relative">
-            <input v-model="form.password" :type="showPassword ? 'text' : 'password'" placeholder="••••••••"
-              class="w-full px-4 pr-10 py-2.5 rounded-lg border border-white/20 bg-white/10 text-white placeholder-white/40 text-sm outline-none focus:border-white/40 transition-colors"
-              :class="{ 'border-red-400': errors.password }" @focus="clearError('password')"
-              @keyup.enter="handleLogin" />
-            <button type="button"
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white/80 transition-colors"
-              @click="showPassword = !showPassword">
-              <EyeOff v-if="showPassword" :size="15" />
-              <Eye v-else :size="15" />
+            <input
+              v-model="form.email"
+              type="email"
+              placeholder="you@example.com"
+              class="w-full rounded-lg border border-white/15 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/40 focus:border-primary outline-none transition"
+              :class="{ 'border-red-500': errors.email }"
+              @focus="clearError('email')"
+            />
+
+            <p
+              v-if="errors.email"
+              class="text-xs text-red-400 mt-1"
+            >
+              {{ errors.email }}
+            </p>
+          </div>
+
+          <!-- Password -->
+          <div class="mb-2">
+            <label class="block text-sm font-medium text-white mb-2">
+              Password
+            </label>
+
+            <div class="relative">
+
+              <input
+                v-model="form.password"
+                :type="showPassword ? 'text' : 'password'"
+                placeholder="••••••••"
+                class="w-full rounded-lg border border-white/15 bg-white/5 px-4 py-3 pr-11 text-sm text-white placeholder:text-white/40 focus:border-primary outline-none transition"
+                :class="{ 'border-red-500': errors.password }"
+                @focus="clearError('password')"
+                @keyup.enter="handleLogin"
+              />
+
+              <button
+                type="button"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition"
+                @click="showPassword = !showPassword"
+              >
+                <EyeOff
+                  v-if="showPassword"
+                  :size="18"
+                />
+
+                <Eye
+                  v-else
+                  :size="18"
+                />
+              </button>
+
+            </div>
+
+            <p
+              v-if="errors.password"
+              class="text-xs text-red-400 mt-1"
+            >
+              {{ errors.password }}
+            </p>
+          </div>
+
+          <!-- Forgot -->
+          <div class="flex justify-end mb-6">
+            <button
+              class="text-xs text-primary hover:underline"
+            >
+              Forgot Password?
             </button>
           </div>
-          <p v-if="errors.password" class="text-xs mt-1.5 text-red-400">{{ errors.password }}</p>
-        </div>
 
-        <!-- Forgot Password -->
-        <div class="flex justify-end mb-5">
-          <button class="text-xs text-white/70 hover:text-white transition-colors">
-            Forgot Password?
+          <!-- Login -->
+          <button
+            type="button"
+            :disabled="loading"
+            @click="handleLogin"
+            class="w-full flex items-center justify-center gap-2 rounded-lg py-3 text-sm font-semibold text-black transition hover:opacity-90 disabled:opacity-60"
+            style="background: linear-gradient(180deg, #E0CA3C 0%, #FFE74D 100%)"
+          >
+            <Loader2
+              v-if="loading"
+              class="animate-spin"
+              :size="18"
+            />
+
+            <span>
+              {{ loading ? "Logging in..." : "Login" }}
+            </span>
           </button>
+
         </div>
 
-        <!-- Button -->
-        <button type="button" :disabled="loading"
-          class="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold text-black transition-opacity hover:opacity-90 disabled:opacity-60"
-          style="background: linear-gradient(180deg, #E0CA3C 0%, #FFE74D 100%);" @click="handleLogin">
-          <Loader2 v-if="loading" :size="16" class="animate-spin" />
-          <span>{{ loading ? 'Logging in…' : 'Submit' }}</span>
-        </button>
+        <!-- Footer -->
+        <div class="mt-8">
+
+          <!-- <p class="text-center text-sm text-white/70">
+            Don't have an account?
+
+            <button
+              class="text-primary font-semibold ml-1 hover:underline"
+              @click="goToRegister"
+            >
+              Sign Up
+            </button>
+          </p> -->
+
+          <p
+            class="mt-6 text-center text-[11px] leading-5 text-white/40"
+          >
+            Panther Capitals Ltd we don't offer services to residents of
+            certain countries, including: Syria, North Korea, Iran, Iraq,
+            Mauritius, USA, Canada, Sudan, Myanmar, Yemen, Afghanistan,
+            Vanuatu, and those within the European Economic Area (EEA).
+          </p>
+
+          <div
+            class="mt-5 flex items-center justify-center gap-2"
+          >
+            <button class="text-[11px] text-white/50 hover:text-white">
+              Terms & Conditions
+            </button>
+
+            <span class="text-white/20">|</span>
+
+            <button class="text-[11px] text-white/50 hover:text-white">
+              Privacy Policy
+            </button>
+
+            <span class="text-white/20">|</span>
+
+            <button class="text-[11px] text-white/50 hover:text-white">
+              Risk Disclosure
+            </button>
+          </div>
+
+        </div>
 
       </div>
-
-      <!-- Footer -->
-      <p class="text-center text-sm text-white/70 mt-5">
-        Don't have an account?
-        <button class="text-white font-semibold ml-1 hover:underline" @click="goToRegister">
-          Sign Up
-        </button>
-      </p>
-
-      <!-- Disclaimer -->
-      <p class="text-center text-[11px] text-white/40 mt-5 leading-relaxed px-2">
-        Panther Capitals Ltd we don't offer services to residents of certain countries, including: Syria, North Korea,
-        Iran, Iraq, Mauritius, USA, Canada, Sudan, Myanmar, Yemen, Afghanistan, Vanuatu, and those within the European
-        Economic Area (EEA).
-      </p>
-
-      <!-- Footer Links -->
-      <div class="flex items-center justify-center gap-2 mt-4">
-        <button class="text-[11px] text-white/50 hover:text-white transition-colors">Terms & Condition</button>
-        <span class="text-white/20 text-xs">|</span>
-        <button class="text-[11px] text-white/50 hover:text-white transition-colors">Privacy Policy</button>
-        <span class="text-white/20 text-xs">|</span>
-        <button class="text-[11px] text-white/50 hover:text-white transition-colors">Risk Disclosure</button>
-      </div>
-
     </div>
+
   </div>
 </template>
