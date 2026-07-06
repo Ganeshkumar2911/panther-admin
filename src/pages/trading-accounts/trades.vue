@@ -1,6 +1,56 @@
 <template>
   <div class="px-4">
     <!-- Summary Cards -->
+      <div v-if="activeAccount" class="bg-card-background border border-primary-border rounded-xl p-4 mb-6 flex flex-wrap items-center gap-8 shadow-sm">
+      <div>
+        <p class="text-[10px] uppercase tracking-widest text-secondary-text mb-1 font-semibold">Account</p>
+        <p class="text-sm font-bold text-primary-text">#{{ activeAccount.account_number }}</p>
+      </div>
+      <div>
+        <p class="text-[10px] uppercase tracking-widest text-secondary-text mb-1 font-semibold">Broker</p>
+        <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-primary text-black">{{ activeAccount.broker }}</span>
+      </div>
+      <div>
+        <p class="text-[10px] uppercase tracking-widest text-secondary-text mb-1 font-semibold">Type</p>
+        <span class="text-[10px] font-bold px-2 py-0.5 rounded border border-primary-border text-secondary-text capitalize">{{ activeAccount.account_type }}</span>
+      </div>
+        <div>
+        <p class="text-[10px] uppercase tracking-widest text-secondary-text mb-1 font-semibold">Entity</p>
+        <span class="text-[10px] font-bold px-2 py-0.5 rounded border border-primary-border text-secondary-text capitalize">{{ activeAccount.entity_type }}</span>
+      </div>
+      <div>
+        <p class="text-[10px] uppercase tracking-widest text-secondary-text mb-1 font-semibold">Trading</p>
+        <span class="text-[10px] font-bold px-2 py-0.5 rounded border border-primary-border text-secondary-text capitalize">{{ activeAccount.trading_type }}</span>
+      </div>
+        <div>
+        <p class="text-[10px] uppercase tracking-widest text-secondary-text mb-1 font-semibold">Currency</p>
+        <p class="text-sm font-bold text-primary-text">{{ activeAccount.currency }}</p>
+      </div>
+      <div v-if="activeAccount.broker_leverage">
+        <p class="text-[10px] uppercase tracking-widest text-secondary-text mb-1 font-semibold">Leverage</p>
+        <p class="text-sm font-bold text-primary-text">1:{{ activeAccount.broker_leverage }}</p>
+      </div>
+      <div>
+        <p class="text-[10px] uppercase tracking-widest text-secondary-text mb-1 font-semibold">Balance</p>
+        <p class="text-sm font-bold text-primary-text tabular-nums">{{ formatNum(activeAccount.balance) }} {{ currencyDisplay }}</p>
+      </div>
+      <!-- <div>
+        <p class="text-[10px] uppercase tracking-widest text-secondary-text mb-1 font-semibold">PnL</p>
+        <p class="text-sm font-bold tabular-nums" :class="(activeAccount.pnl ?? 0) >= 0 ? 'text-green-700' : 'text-red-700'">
+          {{ (activeAccount.pnl ?? 0) >= 0 ? '+' : '' }}{{ formatNum(activeAccount.pnl) }} {{ currencyDisplay }}
+        </p>
+      </div> -->
+       <div>
+        <p class="text-[10px] uppercase tracking-widest text-secondary-text mb-1 font-semibold">Equity</p>
+        <p class="text-sm font-bold text-primary-text tabular-nums">{{ activeAccount.equity }}</p>
+      </div>
+       <div>
+        <p class="text-[10px] uppercase tracking-widest text-secondary-text mb-1 font-semibold">Credit</p>
+        <p class="text-sm font-bold text-primary-text tabular-nums">{{ activeAccount.credit }}</p>
+      </div>
+    </div>
+
+
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
       <template v-if="store.loading">
         <div
@@ -314,6 +364,9 @@ const pnlValue = (trade) => {
   const val = Number(raw);
   return Number.isFinite(val) ? val : 0;
 };
+const activeAccount = JSON.parse(
+  localStorage.getItem('active_account')
+)
 
 const lastTickerPriceText = (trade) => {
   const quote = tickerStore?.getLastPrice?.(trade?.symbol);
