@@ -29,6 +29,25 @@
             class="w-full pl-8 pr-3 py-2 text-xs rounded-lg bg-card-background border border-primary-border text-primary-text outline-none focus:border-primary transition-colors placeholder:text-secondary-text"
           />
         </div>
+         <Tooltip text="Refresh" position="right">
+          <button
+            type="button"
+            :disabled="store.loading"
+            class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text transition-colors hover:text-primary-text hover:bg-background disabled:opacity-60 disabled:cursor-not-allowed"
+            @click="
+              () => {
+                store.fetchIbTree(true);
+              }
+            "
+          >
+      <RefreshCw
+      class="h-3.5 w-3.5"
+      :class="{ 'animate-spin': store.loading }"
+    />
+            
+          </button>
+        </Tooltip>
+
       </div>
 
       <button
@@ -147,7 +166,7 @@
 
 <script setup>
 import { onMounted, ref, computed, watch } from 'vue'
-import { Plus, Search, Users } from 'lucide-vue-next'
+import { Plus, Search, Users,RefreshCw } from 'lucide-vue-next'
 import { useIbTreeStore } from '@/stores/ibTree/ibTree'
 import IbTreeRow from '@/components/ibTree/IbTreeRow.vue'
 import IbTree from '@/components/ibTree/IbTree.vue'

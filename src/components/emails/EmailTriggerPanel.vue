@@ -39,9 +39,38 @@
 
           <!-- ── Tab 1: Use Existing Template ── -->
           <div v-if="activeTab === 'template'" class="space-y-5">
+            <!-- toggle to shoot email to every one  -->
+
+            <div class="flex items-center justify-between mb-4">
+  <div>
+    <p class="text-sm font-medium text-primary-text">
+      Send to All Clients
+    </p>
+    <p class="text-[11px] text-secondary-text">
+      Send this email to every client.
+    </p>
+  </div>
+
+  <label class="relative inline-flex items-center cursor-pointer">
+    <input
+      v-model="sendToAll"
+      type="checkbox"
+      class="sr-only peer"
+    />
+
+    <div
+      class="w-11 h-6 bg-background rounded-full peer
+             peer-checked:bg-primary
+             after:absolute after:left-[2px] after:top-[2px]
+             after:h-5 after:w-5 after:rounded-full
+             after:bg-white after:transition-all
+             peer-checked:after:translate-x-5"
+    ></div>
+  </label>
+</div>
 
             <!-- Recipients -->
-            <div>
+            <div v-if="!sendToAll">
               <p class="text-xs text-secondary-text mb-1.5">Recipients</p>
               <div class="border border-primary-border rounded-xl bg-background min-h-[44px] px-3 py-2 flex flex-wrap gap-1.5">
                 <span
@@ -137,9 +166,12 @@
                 <Eye class="w-3.5 h-3.5" /> Preview
               </button>
               <button
-                :disabled="store.sendLoading || !store.selectedRecipients.length || !store.selectedTemplate"
-                class="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-                @click="store.sendTemplateEmail()"
+  :disabled="
+    store.sendLoading ||
+    (!sendToAll && !store.selectedRecipients.length) ||
+    !store.selectedTemplate
+  "                class="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                @click="store.sendTemplateEmail(sendToAll)"
               >
                 <Loader2 v-if="store.sendLoading" class="w-3.5 h-3.5 animate-spin" />
                 <Send v-else class="w-3.5 h-3.5" />
@@ -151,8 +183,38 @@
           <!-- ── Tab 2: Custom Email ── -->
           <div v-if="activeTab === 'custom'" class="space-y-5">
 
+            <!-- toggle to shoot email to every one  -->
+
+            <div class="flex items-center justify-between mb-4">
+  <div>
+    <p class="text-sm font-medium text-primary-text">
+      Send to All Clients
+    </p>
+    <p class="text-[11px] text-secondary-text">
+      Send this email to every client.
+    </p>
+  </div>
+
+  <label class="relative inline-flex items-center cursor-pointer">
+    <input
+      v-model="sendToAll"
+      type="checkbox"
+      class="sr-only peer"
+    />
+
+    <div
+      class="w-11 h-6 bg-background rounded-full peer
+             peer-checked:bg-primary
+             after:absolute after:left-[2px] after:top-[2px]
+             after:h-5 after:w-5 after:rounded-full
+             after:bg-white after:transition-all
+             peer-checked:after:translate-x-5"
+    ></div>
+  </label>
+</div>
+
             <!-- Recipients -->
-            <div>
+            <div v-if="!sendToAll">
               <p class="text-xs text-secondary-text mb-1.5">Recipients</p>
               <div class="border border-primary-border rounded-xl bg-background min-h-[44px] px-3 py-2 flex flex-wrap gap-1.5">
                 <span
@@ -238,9 +300,13 @@
                 <Eye class="w-3.5 h-3.5" /> Preview
               </button>
               <button
-                :disabled="store.sendLoading || !store.selectedRecipients.length || !store.customEmail.subject || !store.customEmail.body_html"
-                class="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-                @click="store.sendCustomEmail()"
+:disabled="
+  store.sendLoading ||
+  (!sendToAll && !store.selectedRecipients.length) ||
+  !store.customEmail.subject ||
+  !store.customEmail.body_html
+"                class="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                @click="store.sendCustomEmail(sendToAll)"
               >
                 <Loader2 v-if="store.sendLoading" class="w-3.5 h-3.5 animate-spin" />
                 <Send v-else class="w-3.5 h-3.5" />
@@ -263,7 +329,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed,watch } from 'vue'
 import { X, Search, Eye, Send, Loader2 } from 'lucide-vue-next'
 import { useEmailTriggerStore } from '@/stores/emails/emailTrigger'
 import EmailTemplatePreviewDialog from './EmailTemplatePreviewDialog.vue'
@@ -286,7 +352,16 @@ const clientSearch = ref('')
 const previewOpen = ref(false)
 const previewData = ref(null)
 const showClientDrop = ref(false)
+const sendToAll = ref(false)
 
+
+watch(sendToAll, (enabled) => {
+  if (enabled) {
+    store.selectedRecipients = []
+    clientSearch.value = ''
+    showClientDrop.value = false
+  }
+})
 const isClientSelected = (client) => {
   return store.selectedRecipients.some(r => r.email === client.email)
 }

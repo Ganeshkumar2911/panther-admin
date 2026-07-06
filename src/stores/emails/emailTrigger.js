@@ -161,21 +161,25 @@ export const useEmailTriggerStore = defineStore(
     // Send Existing Template
     // ─────────────────────────────────────
 
-    const sendTemplateEmail = () => {
+    const sendTemplateEmail = (sendToAll = false) => {
       if (!selectedTemplate.value) {
         snackbar.show('Please select a template.', 'error')
         return
       }
 
-      if (!selectedRecipients.value.length) {
-        snackbar.show('Please select recipients.', 'error')
-        return
-      }
+    if (!sendToAll && !selectedRecipients.value.length) {
+    snackbar.show('Please select recipients.', 'error')
+    return
+  }
 
       sendLoading.value = true
 
       const payload = {
-        emails: selectedRecipients.value.map(item => item.email),
+        // emails: selectedRecipients.value.map(item => item.email),
+         emails: sendToAll
+    ? 'ALL'
+    : selectedRecipients.value.map(item => item.email),
+
 
         template_code: selectedTemplate.value.code,
 
@@ -226,7 +230,7 @@ export const useEmailTriggerStore = defineStore(
     // Send Custom Email
     // ─────────────────────────────────────
 
-    const sendCustomEmail = () => {
+    const sendCustomEmail = (sendToAll = false) => {
       if (!customEmail.subject) {
         snackbar.show('Subject is required.', 'error')
         return
@@ -237,15 +241,18 @@ export const useEmailTriggerStore = defineStore(
         return
       }
 
-      if (!selectedRecipients.value.length) {
-        snackbar.show('Please select recipients.', 'error')
-        return
-      }
+      if (!sendToAll && !selectedRecipients.value.length) {
+    snackbar.show('Please select recipients.', 'error')
+    return
+  }
 
       sendLoading.value = true
 
       const payload = {
-        emails: selectedRecipients.value.map(item => item.email),
+         emails: sendToAll
+    ? 'ALL'
+    : selectedRecipients.value.map(item => item.email),
+
 
         subject: customEmail.subject,
 

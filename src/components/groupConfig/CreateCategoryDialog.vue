@@ -41,7 +41,7 @@
                 v-for="t in ['demo', 'live']"
                 :key="t"
                 class="px-4 py-1.5 rounded-md text-xs font-medium capitalize transition-colors"
-                :class="form.account_type === t ? 'bg-primary text-black' : 'text-secondary-text hover:text-primary-text'"
+                :class="form.account_type === t ? 'bg-primary text-white' : 'text-secondary-text hover:text-primary-text'"
                 @click="form.account_type = t"
               >
                 {{ t }}

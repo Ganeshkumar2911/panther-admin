@@ -228,6 +228,23 @@ const setActiveCurrency = (acc) => {
   }
 }
 
+const setActiveAccount = (acc) => {
+  try {
+    localStorage.setItem(
+      'active_account',
+      JSON.stringify(acc)
+    )
+
+    const currency = acc?.broker_currency ?? acc?.currency
+
+    if (currency) {
+      localStorage.setItem('active_currency', currency)
+    }
+  } catch (err) {
+    console.error(err)
+  }
+}
+
 onMounted(() => {
   if (!profile.user) {
     profile.fetchUserProfile()
@@ -386,7 +403,7 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
                 'Balance',
                 'Equity',
                 'Credit',
-                'PnL',
+                // 'PnL',
                 'Status',
                 'Created',
                 'Actions',
@@ -577,14 +594,14 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
               {{ formatMoney(acc.credit, acc.broker_currency ?? acc.currency) }}
             </td>
 
-            <td class="px-3 py-4 text-nowrap">
+            <!-- <td class="px-3 py-4 text-nowrap">
               <span
                 class="text-xs tabular-nums"
                 :class="Number(acc.pnl ?? 0) >= 0 ? 'text-green-700' : 'text-red-700'"
               >
                 {{ Number(acc.pnl ?? 0) >= 0 ? '+' : '' }}{{ formatMoney(acc.pnl, acc.broker_currency ?? acc.currency) }}
               </span>
-            </td>
+            </td> -->
 
             <td class="px-3 py-4">
               <span
@@ -605,7 +622,7 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
                   <button
                     type="button"
                     class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text hover:text-primary-text hover:bg-background transition-colors"
-                    @click="setActiveCurrency(acc); router.push(`/account/trade/${getAccountId(acc)}`)"
+                    @click="setActiveAccount(acc); router.push(`/account/trade/${getAccountId(acc)}`)"
                   >
                     <BarChart2 class="h-3.5 w-3.5" />
                   </button>
@@ -615,7 +632,7 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
                   <button
                     type="button"
 class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text hover:text-primary-text hover:bg-background transition-colors"
-                    @click="setActiveCurrency(acc); router.push(`/account/transactions/${getAccountId(acc)}`)"
+                    @click="setActiveAccount(acc); router.push(`/account/transactions/${getAccountId(acc)}`)"
                   >
                     <WalletIcon class="h-3.5 w-3.5" />
                   </button>
