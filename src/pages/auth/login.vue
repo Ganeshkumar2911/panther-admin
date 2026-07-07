@@ -173,7 +173,7 @@ const goToRegister = () => {
                 v-model="form.password"
                 :type="showPassword ? 'text' : 'password'"
                 placeholder="••••••••"
-                class="w-full rounded-lg border border-white/15 bg-white/5 px-4 py-3 pr-11 text-sm text-white placeholder:text-white/40 focus:border-primary outline-none transition"
+                class="w-full mb-4 rounded-lg border border-white/15 bg-white/5 px-4 py-3 pr-11 text-sm text-white placeholder:text-white/40 focus:border-primary outline-none transition"
                 :class="{ 'border-red-500': errors.password }"
                 @focus="clearError('password')"
                 @keyup.enter="handleLogin"
@@ -206,13 +206,13 @@ const goToRegister = () => {
           </div>
 
           <!-- Forgot -->
-          <div class="flex justify-end mb-6">
+          <!--   <div class="flex justify-end mb-6">
             <button
               class="text-xs text-primary hover:underline"
             >
               Forgot Password?
             </button>
-          </div>
+          </div> -->
 
           <!-- Login -->
           <button

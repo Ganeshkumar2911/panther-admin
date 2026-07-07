@@ -89,14 +89,24 @@
               </span>
             </td>
             <td class="p-3">
-              <div class="flex items-center justify-center">
-                <button
-                  @click="handleOpenEdit(record)"
-                  class="p-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer"
-                  title="Edit Integration"
-                >
-                  <Pencil class="w-3.5 h-3.5" />
-                </button>
+              <div class="flex items-center justify-center gap-2">
+                <Tooltip text="Manual Fetch" position="top">
+                  <button
+                    @click="handleConfirmRun(record)"
+                    class="p-2 rounded-lg bg-green-500/10 text-green-600 hover:bg-green-500/20 transition cursor-pointer flex items-center justify-center"
+                  >
+                    <Play class="w-3.5 h-3.5" />
+                  </button>
+                </Tooltip>
+
+                <Tooltip text="Edit Integration" position="top">
+                  <button
+                    @click="handleOpenEdit(record)"
+                    class="p-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer flex items-center justify-center"
+                  >
+                    <Pencil class="w-3.5 h-3.5" />
+                  </button>
+                </Tooltip>
               </div>
             </td>
           </tr>
@@ -120,20 +130,38 @@
       @close="closeModal"
       @success="handleSuccess"
     />
+
+    <!-- Confirmation Dialog for manual fetch -->
+    <ConfirmationDialog
+      :open="showRunConfirm"
+      title="Manual Fetch Confirmation"
+      :message="`Are you sure you want to run the manual fetch for integration provider '${runRecord?.provider}' (URL: ${runRecord?.base_url})?`"
+      confirm-text="Run Fetch"
+      cancel-text="Cancel"
+      :loading="store.isRunning"
+      type="info"
+      @confirm="handleRunIntegration"
+      @cancel="closeRunConfirm"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { Cpu, Plus, Pencil } from 'lucide-vue-next'
+import { Cpu, Plus, Pencil, Play } from 'lucide-vue-next'
 import { useCompanyIntegrationsStore } from '@/stores/companyIntegrations/companyIntegrations'
 import Pagination from '@/components/common/Pagination.vue'
 import IntegrationDialog from '@/components/common/IntegrationDialog.vue'
+import Tooltip from '@/components/common/Tooltip.vue'
+import ConfirmationDialog from '@/components/common/ConfirmationDialog.vue'
 
 const store = useCompanyIntegrationsStore()
 
 const showModal = ref(false)
 const selectedRecord = ref(null)
+
+const showRunConfirm = ref(false)
+const runRecord = ref(null)
 
 const handlePageChange = (page) => {
   store.pagination.page = page
@@ -153,6 +181,22 @@ const handleOpenEdit = (record) => {
 const closeModal = () => {
   showModal.value = false
   selectedRecord.value = null
+}
+
+const handleConfirmRun = (record) => {
+  runRecord.value = record
+  showRunConfirm.value = true
+}
+
+const closeRunConfirm = () => {
+  showRunConfirm.value = false
+  runRecord.value = null
+}
+
+const handleRunIntegration = async () => {
+  if (!runRecord.value) return
+  await store.runIntegration(runRecord.value.id)
+  closeRunConfirm()
 }
 
 const handleSuccess = () => {
