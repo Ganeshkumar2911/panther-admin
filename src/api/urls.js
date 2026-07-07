@@ -123,6 +123,7 @@ const urls = {
     list: '/company-integrations',
     create: '/company-integrations',
     update: '/company-integrations',
+    run: '/company-integrations/run',
   }
 }
 
