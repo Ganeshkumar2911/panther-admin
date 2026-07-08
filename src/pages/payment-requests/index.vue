@@ -276,7 +276,7 @@
             <td class="px-3 py-3.5">
               <div class="space-y-0.5">
                 <p class="text-xs font-medium text-primary-text">
-                  {{ req.trading_account_number || "—" }}
+                  {{ req.trading_account_number || "IB Wallet Withdrawal" }}
                 </p>
                 <!-- <p class="text-[11px] text-secondary-text">Account ID {{ req.trading_account_id }}</p> -->
                 <p

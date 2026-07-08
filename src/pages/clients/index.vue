@@ -4,6 +4,7 @@ import { Search, Users, UserPen, Eye, UserX, UserCheck, Pencil, UserPlus, Plus,R
 import { useClientListStore } from '@/stores/clientList/clientList'
 import Pagination from '@/components/common/Pagination.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
+import DropdownMenu from '@/components/common/DropdownMenu.vue'
 import ChangeIBDialog from '@/components/common/ChangeIBDialog.vue'
 import ChangeStatusDialog from '@/components/common/ChangeStatusDialog.vue'
 import ClientDialog from '@/components/common/ClientDialog.vue'
@@ -48,6 +49,32 @@ const handlePageChange = (page) => store.fetchClients(page)
 
 const formatNum = (val) => (val ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 const formatDate = (val) => val ? new Date(val).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
+
+function getRowActions(client) {
+  return [
+    { action: 'edit', label: 'Edit Client', icon: Pencil },
+    { action: 'changeIB', label: 'Change IB', icon: UserPen },
+    { action: 'makeIB', label: 'Make IB', icon: UserPlus, hidden: client.is_ib === true },
+    { divider: true },
+    {
+      action: 'toggleStatus',
+      label: client.is_active ? 'Deactivate Client' : 'Activate Client',
+      icon: client.is_active ? UserX : UserCheck,
+      danger: client.is_active,
+    },
+    { action: 'depth', label: 'Client Depth', icon: Eye },
+  ]
+}
+
+function onMenuSelect(item, client) {
+  switch (item.action) {
+    case 'edit': return openEditClientDialog(client)
+    case 'changeIB': return openChangeIBDialog(client)
+    case 'makeIB': return openMakeIBDialog(client)
+    case 'toggleStatus': return openChangeStatusDialog(client)
+    case 'depth': return openClientDepth(client)
+  }
+}
 
 const openChangeIBDialog = (client) => {
   selectedClientForChangeIB.value = client
@@ -365,7 +392,7 @@ onMounted(() => store.fetchClients())
             <td class="p-3">
               <p class="text-[10px] text-nowrap text-secondary-text mb-1">Joined: {{ formatDate(client.created_at) }}</p>
               <p class="text-[10px] text-nowrap text-secondary-text mb-1">Updated: {{ formatDate(client.updated_at) }}</p>
-              <p class="text-[10px] text-nowrap  text-secondary-text">Track: {{ client.tracking_id ?? '—' }}</p>
+              <p class="text-[10px] text-nowrap  text-secondary-text">Tracking ID: {{ client.tracking_id ?? '—' }}</p>
             </td>
 
             <td class="p-3 text-right">
@@ -382,57 +409,11 @@ onMounted(() => store.fetchClients())
               </Tooltip>
             </td>
 
-            <td class="p-3 align-middle">
-              <div class="flex items-center justify-center gap-2 h-full">
-                <Tooltip text="Edit Client" position="left">
-                  <button
-                    @click="openEditClientDialog(client)"
-                    class="p-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition"
-                  >
-                    <Pencil class="w-4 h-4" />
-                  </button>
-                </Tooltip>
-
-                <Tooltip text="Change IB" position="left">
-                  <button
-                    @click="openChangeIBDialog(client)"
-                    class="p-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition"
-                  >
-                    <UserPen class="w-4 h-4" />
-                  </button>
-                </Tooltip>
-
-                <Tooltip text="Make IB" position="left" v-if="client.is_ib === false">
-                  <button
-                    @click="openMakeIBDialog(client)"
-                    class="p-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition animate-all duration-200"
-                  >
-                    <UserPlus class="w-4 h-4" />
-                  </button>
-                </Tooltip>
-
-                <Tooltip :text="client.is_active ? 'Deactivate Client' : 'Activate Client'" position="left">
-                  <button
-                    @click="openChangeStatusDialog(client)"
-                    class="p-2 rounded-lg transition"
-                    :class="client.is_active
-                      ? 'bg-red-500/10 text-red-600 hover:bg-red-500/20'
-                      : 'bg-green-500/10 text-green-600 hover:bg-green-500/20'"
-                  >
-                    <UserX v-if="client.is_active" class="w-4 h-4" />
-                    <UserCheck v-else class="w-4 h-4" />
-                  </button>
-                </Tooltip>
-
-                <Tooltip text="Client Depth" position="left">
-                  <button
-                    @click="openClientDepth(client)"
-                    class="p-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition"
-                  >
-                    <Eye class="w-4 h-4" />
-                  </button>
-                </Tooltip>
-              </div>
+            <td class="p-3 align-middle text-center">
+              <DropdownMenu
+                :items="getRowActions(client)"
+                @select="(item) => onMenuSelect(item, client)"
+              />
             </td>
           </tr>
         </tbody>
