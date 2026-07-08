@@ -113,7 +113,7 @@ export const useTicketsStore = defineStore("tickets", () => {
   };
 
   // ─── Update Ticket Status ───────────────────────────────
-  const updateTicketStatus = (id, payload, onDone) => {
+  const updateTicketStatus = async (id, payload, onDone) => {
     if (!id) return;
 
     actionLoading.value = true;
