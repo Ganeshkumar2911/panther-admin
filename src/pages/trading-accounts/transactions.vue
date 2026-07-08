@@ -18,14 +18,14 @@
         />
       </div>
     </div> -->
- <div v-if="activeAccount" class="bg-card-background border border-primary-border rounded-xl p-4 mb-6 flex flex-wrap items-center gap-8 shadow-sm">
+ <div v-if="activeAccount" class="bg-card-background border border-primary-border rounded-xl p-4 mb-6 flex flex-wrap items-center gap-8">
       <div>
         <p class="text-[10px] uppercase tracking-widest text-secondary-text mb-1 font-semibold">Account</p>
         <p class="text-sm font-bold text-primary-text">#{{ activeAccount.account_number }}</p>
       </div>
       <div>
         <p class="text-[10px] uppercase tracking-widest text-secondary-text mb-1 font-semibold">Broker</p>
-        <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-primary text-black">{{ activeAccount.broker }}</span>
+        <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-primary text-white">{{ activeAccount.broker }}</span>
       </div>
       <div>
         <p class="text-[10px] uppercase tracking-widest text-secondary-text mb-1 font-semibold">Type</p>
