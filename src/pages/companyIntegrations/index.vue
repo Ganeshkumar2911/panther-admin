@@ -53,7 +53,7 @@
             <th class="p-3">Company ID</th>
             <th class="p-3">Provider</th>
             <th class="p-3">Base URL</th>
-            <th class="p-3">Created / Updated</th>
+            <th class="p-3">Details & Schedule</th>
             <th class="p-3">Status</th>
             <th class="p-3 text-center">Actions</th>
           </tr>
@@ -74,9 +74,29 @@
             <td class="p-3 text-xs text-primary-text max-w-xs truncate" :title="record.base_url">
               {{ record.base_url }}
             </td>
-            <td class="p-3 text-[10px] text-secondary-text space-y-0.5">
-              <div>Created: {{ formatDate(record.created_at) }}</div>
-              <div>Updated: {{ formatDate(record.updated_at) }}</div>
+            <td class="p-3 text-[10px] text-secondary-text space-y-1">
+              <div><span class="font-medium text-primary-text/80">Created:</span> {{ formatDate(record.created_at) }}</div>
+              <div><span class="font-medium text-primary-text/80">Updated:</span> {{ formatDate(record.updated_at) }}</div>
+              <div>
+                <span class="font-medium text-primary-text/80">Last Run:</span>
+                <span :class="record.last_run_at ? '' : 'italic text-secondary-text/60'">
+                  {{ record.last_run_at ? formatDate(record.last_run_at) : 'Never run' }}
+                </span>
+              </div>
+              <div class="flex items-center gap-1.5 mt-0.5">
+                <span class="font-medium text-primary-text/80">Scheduler:</span>
+                <span
+                  class="px-1.5 py-0.25 rounded-full text-[9px] font-semibold"
+                  :class="record.scheduler_enabled
+                    ? 'bg-green-500/10 text-green-700'
+                    : 'bg-secondary-text/10 text-secondary-text'"
+                >
+                  {{ record.scheduler_enabled ? `Active (${record.scheduler_time || '—'})` : 'Inactive' }}
+                </span>
+              </div>
+              <div v-if="record.report_user_id">
+                <span class="font-medium text-primary-text/80">Report User ID:</span> {{ record.report_user_id }}
+              </div>
             </td>
             <td class="p-3">
               <span
