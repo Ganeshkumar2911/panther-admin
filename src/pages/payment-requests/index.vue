@@ -40,6 +40,7 @@
           v-model="store.filters.user_id"
           :options="clientOptions"
           placeholder="All Clients"
+          :allow-all="true"
           searchable
           class="w-full sm:w-40 xl:w-40"
           @search="onClientSearch"
@@ -51,6 +52,7 @@
           v-model="store.filters.trading_account_id"
           :options="accountOptions"
           placeholder="All Accounts"
+          :allow-all="true"
           searchable
           class="w-full sm:w-44 xl:w-44"
           @search="onAccountSearch"
@@ -62,6 +64,7 @@
           v-model="store.filters.type"
           :options="typeOptions"
           placeholder="All Types"
+          :allow-all="true"
           class="w-full sm:w-36 xl:w-36"
           @update:modelValue="store.applyFilters()"
         />
@@ -71,6 +74,7 @@
           v-model="store.filters.approval_status"
           :options="statusOptions"
           placeholder="All Statuses"
+          :allow-all="true"
           class="w-full sm:w-36 xl:w-36"
           @update:modelValue="store.applyFilters()"
         />
@@ -342,7 +346,11 @@
                 </span> -->
                 <span
                   class="text-[11px] font-semibold px-2 py-0.5 rounded-full border capitalize"
-                  :class="approvalStatusClass(req.approval_status)"
+                  :class="[
+                    approvalStatusClass(req.approval_status),
+                    req.approval_status === 'pending' ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''
+                  ]"
+                  @click="req.approval_status === 'pending' && openChangeStatusDialog(req)"
                 >
                   {{ req.approval_status }}
                 </span>
@@ -424,6 +432,13 @@
       @close="closeConfirmDialog"
       @confirm="handleConfirm"
     />
+
+    <ChangePaymentStatusDialog
+      :open="changeStatusDialog.open"
+      :request="changeStatusDialog.request"
+      @close="closeChangeStatusDialog"
+      @success="handleStatusChangeSuccess"
+    />
   </div>
 </template>
 
@@ -434,6 +449,7 @@ import { usePaymentRequestsStore } from "@/stores/paymentRequests/paymentRequest
 import Pagination from "@/components/common/Pagination.vue";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import PaymentRequestConfirmDialog from "@/components/paymentRequests/PaymentRequestConfirmDialog.vue";
+import ChangePaymentStatusDialog from "@/components/paymentRequests/ChangePaymentStatusDialog.vue";
 import { formatDate } from "@/utils/timeFormatter";
 
 const store = usePaymentRequestsStore();
@@ -446,6 +462,29 @@ const confirmDialog = ref({
   action: "approve",
   request: null,
 });
+
+const changeStatusDialog = ref({
+  open: false,
+  request: null,
+});
+
+const openChangeStatusDialog = (request) => {
+  changeStatusDialog.value = {
+    open: true,
+    request,
+  };
+};
+
+const closeChangeStatusDialog = () => {
+  changeStatusDialog.value = {
+    open: false,
+    request: null,
+  };
+};
+
+const handleStatusChangeSuccess = () => {
+  store.fetchRequests(true);
+};
 
 let clientTimer = null;
 let accountTimer = null;
