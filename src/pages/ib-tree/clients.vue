@@ -64,7 +64,7 @@
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-4 py-3">Client</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-4 py-3">KYC</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-4 py-3">Wallet</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-4 py-3">PnL</th>
+            <!-- <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-4 py-3">PnL</th> -->
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-4 py-3">Accounts</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-4 py-3">Followings</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-4 py-3">Joined</th>
@@ -136,11 +136,11 @@
 
             <td class="px-4 py-3.5 text-xs text-primary-text tabular-nums">${{ fmt(client.wallet_balance) }}</td>
 
-            <td class="px-4 py-3.5">
+            <!-- <td class="px-4 py-3.5">
               <span class="text-xs font-medium tabular-nums" :class="client.total_pnl >= 0 ? 'text-primary-green' : 'text-primary-red'">
                 {{ client.total_pnl >= 0 ? '+' : '' }}${{ fmt(client.total_pnl) }}
               </span>
-            </td>
+            </td> -->
 
             <td class="px-4 py-3.5 text-xs text-primary-text">{{ client.trading_accounts }}</td>
             <td class="px-4 py-3.5 text-xs text-primary-text">{{ client.active_followings }}</td>

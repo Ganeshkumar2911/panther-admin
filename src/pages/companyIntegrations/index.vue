@@ -151,15 +151,11 @@
       @success="handleSuccess"
     />
 
-    <!-- Confirmation Dialog for manual fetch -->
-    <ConfirmationDialog
+    <!-- Manual Fetch Dialog with date picker -->
+    <ManualFetchDialog
       :open="showRunConfirm"
-      title="Manual Fetch Confirmation"
-      :message="`Are you sure you want to run the manual fetch for integration provider '${runRecord?.provider}' (URL: ${runRecord?.base_url})?`"
-      confirm-text="Run Fetch"
-      cancel-text="Cancel"
+      :record="runRecord"
       :loading="store.isRunning"
-      type="info"
       @confirm="handleRunIntegration"
       @cancel="closeRunConfirm"
     />
@@ -173,7 +169,7 @@ import { useCompanyIntegrationsStore } from '@/stores/companyIntegrations/compan
 import Pagination from '@/components/common/Pagination.vue'
 import IntegrationDialog from '@/components/common/IntegrationDialog.vue'
 import Tooltip from '@/components/common/Tooltip.vue'
-import ConfirmationDialog from '@/components/common/ConfirmationDialog.vue'
+import ManualFetchDialog from '@/components/common/ManualFetchDialog.vue'
 
 const store = useCompanyIntegrationsStore()
 
@@ -213,9 +209,9 @@ const closeRunConfirm = () => {
   runRecord.value = null
 }
 
-const handleRunIntegration = async () => {
+const handleRunIntegration = async (payload) => {
   if (!runRecord.value) return
-  await store.runIntegration(runRecord.value.id)
+  await store.runIntegration(runRecord.value.id, payload)
   closeRunConfirm()
 }
 

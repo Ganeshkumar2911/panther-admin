@@ -22,7 +22,7 @@ const defaultSummary = () => ({
 
 const defaultFilters = () => ({
   type: null,
-  ib_id: null,
+  user_id: null,
   from_date: null,
   to_date: null,
 })
@@ -102,7 +102,7 @@ export const useIbWalletStore = defineStore('ibWallet', () => {
         per_page: pagination.value.per_page,
 
         type: filters.type,
-        ib_id: filters.ib_id,
+        user_id: filters.user_id,
         from_date: filters.from_date,
         to_date: filters.to_date,
       }),
@@ -128,8 +128,8 @@ export const useIbWalletStore = defineStore('ibWallet', () => {
     return new Promise((resolve, reject) => {
       const successHandler = (res) => {
         const options = (res?.data || []).map((ib) => ({
-          label: ib.label_name ?? ib.name ?? ib.ib_name ?? ib.email ?? `IB ${ib.ib_id ?? ib.id}`,
-          value: ib.ib_id ?? ib.id ?? ib.user_id,
+          label: ib.label_name ?? ib.name ?? ib.ib_name ?? ib.email ?? `IB ${ib.user_id ?? ib.id}`,
+          value: ib.user_id ?? ib.id ?? ib.user_id,
           email: ib.email,
         }))
 

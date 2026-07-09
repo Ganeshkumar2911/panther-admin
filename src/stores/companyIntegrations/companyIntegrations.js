@@ -190,7 +190,7 @@ export const useCompanyIntegrationsStore = defineStore(
 
     const isRunning = ref(false)
 
-    const runIntegration = (id) => {
+    const runIntegration = (id, payload = {}) => {
       isRunning.value = true
 
       const successHandler = (res) => {
@@ -212,6 +212,7 @@ export const useCompanyIntegrationsStore = defineStore(
         urls.integrations.run,
         {
           look_up_key: id,
+          data: payload,
 
           isTokenRequired: true,
 

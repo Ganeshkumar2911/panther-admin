@@ -448,6 +448,7 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
                 'Trading',
                 'Type',
                 'Role',
+                'Acc. Category',
                 'Broker',
                 'Server',
                 'Currency',
@@ -613,6 +614,10 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
                 {{ acc.account_role }}
               </span>
               <span v-else class="text-xs text-secondary-text">—</span>
+            </td>
+
+             <td class="px-3 py-4 text-xs text-primary-text whitespace-nowrap">
+              {{ acc.account_category ?? '—' }}
             </td>
 
             <td class="px-3 py-4">
