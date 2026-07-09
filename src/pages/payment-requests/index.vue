@@ -40,7 +40,6 @@
           v-model="store.filters.user_id"
           :options="clientOptions"
           placeholder="All Clients"
-          :allow-all="true"
           searchable
           class="w-full sm:w-40 xl:w-40"
           @search="onClientSearch"
@@ -52,7 +51,6 @@
           v-model="store.filters.trading_account_id"
           :options="accountOptions"
           placeholder="All Accounts"
-          :allow-all="true"
           searchable
           class="w-full sm:w-44 xl:w-44"
           @search="onAccountSearch"
@@ -65,6 +63,7 @@
           :options="typeOptions"
           placeholder="All Types"
           :allow-all="true"
+          all-label="All Types"
           class="w-full sm:w-36 xl:w-36"
           @update:modelValue="store.applyFilters()"
         />
@@ -75,6 +74,7 @@
           :options="statusOptions"
           placeholder="All Statuses"
           :allow-all="true"
+          all-label="All Statuses"
           class="w-full sm:w-36 xl:w-36"
           @update:modelValue="store.applyFilters()"
         />
