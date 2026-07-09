@@ -54,7 +54,7 @@
         class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-medium transition-colors shrink-0 self-start md:self-auto"
         @click="openAdd"
       >
-        <Plus class="w-3.5 h-3.5" /> Add IB
+        <Plus class="w-3.5 h-3.5" /> Add Master IB
       </button>
     </div>
 

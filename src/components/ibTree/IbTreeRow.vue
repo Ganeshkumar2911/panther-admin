@@ -1,7 +1,10 @@
 <script setup>
 import { computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { Pencil, Plus, ArrowLeftRight, Users } from 'lucide-vue-next'
-import Tooltip from '@/components/common/Tooltip.vue'
+import DropdownMenu from '@/components/common/DropdownMenu.vue'
+
+const router = useRouter()
 
 const props = defineProps({
   nodes: { type: Array, default: () => [] },
@@ -21,6 +24,29 @@ function flattenTree(nodes, result = []) {
 }
 
 const flatRows = computed(() => flattenTree(props.nodes))
+
+const getActions = (node) => [
+  {
+    label: 'View Clients',
+    icon: Users,
+    handler: () => router.push(`/ib-clients/${node.ib_id}`),
+  },
+  {
+    label: 'Transfer Parent',
+    icon: ArrowLeftRight,
+    handler: () => emit('transfer-parent', node),
+  },
+  {
+    label: 'Edit IB',
+    icon: Pencil,
+    handler: () => emit('edit', node),
+  },
+  {
+    label: 'Add Sub-IB',
+    icon: Plus,
+    handler: () => emit('add-sub', node.ib_id),
+  },
+]
 </script>
 
 <template>
@@ -105,42 +131,8 @@ const flatRows = computed(() => flattenTree(props.nodes))
 
           <!-- Actions -->
           <td class="px-4 py-3 align-middle text-right">
-            <div class="flex items-center justify-end gap-1">
-              <Tooltip text="View Clients">
-                <button
-                  class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-background transition-colors"
-                  @click="$router.push(`/ib-clients/${node.ib_id}`)"
-                >
-                  <Users class="w-3.5 h-3.5 text-secondary-text" />
-                </button>
-              </Tooltip>
-
-              <Tooltip text="Transfer Parent">
-                <button
-                  class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-background transition-colors"
-                  @click="emit('transfer-parent', node)"
-                >
-                  <ArrowLeftRight class="w-3.5 h-3.5 text-secondary-text" />
-                </button>
-              </Tooltip>
-
-              <Tooltip text="Edit IB">
-                <button
-                  class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-background transition-colors"
-                  @click="emit('edit', node)"
-                >
-                  <Pencil class="w-3.5 h-3.5 text-secondary-text" />
-                </button>
-              </Tooltip>
-
-              <Tooltip text="Add Sub-IB" position="end">
-                <button
-                  class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-background transition-colors"
-                  @click="emit('add-sub', node.ib_id)"
-                >
-                  <Plus class="w-3.5 h-3.5 text-secondary-text" />
-                </button>
-              </Tooltip>
+            <div class="flex items-center justify-end">
+              <DropdownMenu :items="getActions(node)" position="bottom-end" />
             </div>
           </td>
         </tr>

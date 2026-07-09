@@ -15,8 +15,8 @@
           <p class="text-2xl font-medium text-primary-text">{{ store.summary.total_records ?? 0 }}</p>
         </div>
         <div class="bg-card-background border border-primary-border rounded-xl p-4">
-          <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-1">Total Deposit</p>
-          <p class="text-2xl font-medium text-green-700">+${{ formatNum(store.summary.total_deposit) }}</p>
+          <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-1">Total Affiliate Commission</p>
+          <p class="text-2xl font-medium text-green-700">+${{ formatNum(store.summary.total_affiliate_commission) }}</p>
         </div>
         <div class="bg-card-background border border-primary-border rounded-xl p-4">
           <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-1">Total Withdrawal</p>
@@ -39,7 +39,7 @@
 
         <!-- IB Filter -->
         <BaseSelect
-          v-model="store.filters.ib_id"
+          v-model="store.filters.user_id"
           :options="store.ibOptions"
           :isLoading="store.searchLoading"
           placeholder="Search IB..."
@@ -77,11 +77,24 @@
         <!-- Clear -->
         <button
           v-if="hasFilters"
-          class="rounded-lg px-3 py-2 text-xs font-medium text-secondary-text hover:bg-background hover:text-primary-text transition-colors sm:flex-none"
+          class="rounded-lg px-3 py-2 text-xs font-medium text-secondary-text hover:bg-background hover:text-primary-text transition-colors sm:flex-none cursor-pointer"
           @click="clearFilters"
         >
           Clear
         </button>
+
+        
+          <Tooltip text="Refresh List">
+            <button
+              class="p-2 rounded-lg border border-primary-border text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer"
+              @click="store.fetchIbWallet(true)"
+              :disabled="store.loading"
+              title="Refresh List"
+            >
+              <RotateCw class="w-3.5 h-3.5" :class="{ 'animate-spin': store.loading }" />
+            </button>
+          </Tooltip>
+        
       </div>
     </div>
 
@@ -98,6 +111,7 @@
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Bal. After</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Reference</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Description</th>
+            <th class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Aff. comm. Date</th>
             <th class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Date</th>
           </tr>
         </thead>
@@ -168,9 +182,14 @@
 
             <td class="p-3 text-xs text-secondary-text">{{ entry.reference_id ?? '—' }}</td>
 
-            <td class="p-3 text-xs text-secondary-text max-w-[160px] truncate">{{ entry.description ?? '—' }}</td>
+            <td class="p-3 text-xs text-secondary-text max-w-[160px] truncate">{{ parseDescription(entry.description).text }}</td>
 
-            <td class="p-3 text-xs text-secondary-text text-right">{{ formatDate(entry.created_at) }}</td>
+            <td class="p-3 text-xs text-secondary-text text-right">
+              {{ parseDescription(entry.description).date ? formatDate(parseDescription(entry.description).date) : '_' }}
+            </td>
+            <td class="p-3 text-xs text-secondary-text text-right">
+              {{ formatDate(entry.created_at) }}
+            </td>
           </tr>
         </tbody>
       </table>
@@ -189,10 +208,11 @@
 
 <script setup>
 import { onMounted, onBeforeUnmount, computed } from 'vue'
-import { Wallet } from 'lucide-vue-next'
+import { Wallet, RotateCw } from 'lucide-vue-next'
 import { useIbWalletStore } from '@/stores/ibLedger/ibLedger'
 import Pagination from '@/components/common/Pagination.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
+import Tooltip from '@/components/common/Tooltip.vue'
 
 const store = useIbWalletStore()
 let ibSearchTimer = null
@@ -215,7 +235,7 @@ const onIbSearch = (query) => {
 }
 
 const hasFilters = computed(() =>
-  store.filters.ib_id || store.filters.type || store.filters.from_date || store.filters.to_date
+  store.filters.user_id || store.filters.type || store.filters.from_date || store.filters.to_date
 )
 
 const applyFilters = () => {
@@ -234,6 +254,18 @@ const handlePageChange = (page) => {
 const formatNum = (val) => (val ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 const formatDate = (val) => val ? new Date(val).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
 const formatType = (t) => t?.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) ?? '—'
+
+const parseDescription = (desc) => {
+  if (!desc) return { text: '—', date: null }
+  const dateRegex = /\b\d{4}-\d{2}-\d{2}\b/
+  const match = desc.match(dateRegex)
+  if (match) {
+    const date = match[0]
+    const text = desc.replace(dateRegex, '').replace(/\s+/g, ' ').trim()
+    return { text: text || '—', date }
+  }
+  return { text: desc, date: null }
+}
 
 const typeClass = (type) => ({
   deposit:       'bg-primary-green/50 border-green-200',
