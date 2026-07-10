@@ -390,7 +390,7 @@
 
             <td class="px-3 py-3.5">
               <div class="flex items-center justify-end gap-1.5">
-                <template v-if="req.approval_status === 'pending'">
+                <template v-if="req.approval_status === 'pending' && profileStore.user?.user_id !== 785">
                   <button
                     class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border bg-primary-green/10 text-primary-green border-primary-green/20 hover:bg-primary-green/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     @click="openConfirmDialog('approve', req)"
@@ -446,6 +446,7 @@
 import { onMounted, computed, ref } from "vue";
 import { Receipt, Check, X, RefreshCw } from "lucide-vue-next";
 import { usePaymentRequestsStore } from "@/stores/paymentRequests/paymentRequests";
+import { useProfileStore } from "@/stores/profile/profile";
 import Pagination from "@/components/common/Pagination.vue";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import PaymentRequestConfirmDialog from "@/components/paymentRequests/PaymentRequestConfirmDialog.vue";
@@ -453,6 +454,7 @@ import ChangePaymentStatusDialog from "@/components/paymentRequests/ChangePaymen
 import { formatDate } from "@/utils/timeFormatter";
 
 const store = usePaymentRequestsStore();
+const profileStore = useProfileStore();
 
 // ── Client / Account search options (populated from store methods) ──
 const clientOptions = ref([]);
