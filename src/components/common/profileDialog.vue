@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import { LogOut, ClipboardList, Clock, CheckCircle2, AlertCircle } from 'lucide-vue-next'
 import { useProfileStore } from '@/stores/profile/profile'
+import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 import authToken from '@/common/authToken'
 
@@ -15,6 +16,7 @@ const props = defineProps({
 const emit = defineEmits(['close'])
 
 const profileStore = useProfileStore()
+const authStore = useAuthStore()
 const router = useRouter()
 
 // ─── Role Detection ─────────────────────────────────
@@ -76,8 +78,7 @@ async function submitFmRegistration() {
 
 // ─── Helpers ────────────────────────────────────────
 function logout() {
-  authToken.removeToken()
-  router.push({ name: 'login' })
+  authStore.logout()
 }
 
 function closeDialog() {
