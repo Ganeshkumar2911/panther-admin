@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, computed, ref } from 'vue'
-import { Search, Users, UserPen, Eye, UserX, UserCheck, Pencil, UserPlus, Plus,RefreshCw } from 'lucide-vue-next'
+import { Search, Users, UserPen, Eye, UserX, UserCheck, Pencil, UserPlus, Plus, RefreshCw, Trash2 } from 'lucide-vue-next'
 import { useClientListStore } from '@/stores/clientList/clientList'
 import Pagination from '@/components/common/Pagination.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
@@ -9,6 +9,7 @@ import ChangeIBDialog from '@/components/common/ChangeIBDialog.vue'
 import ChangeStatusDialog from '@/components/common/ChangeStatusDialog.vue'
 import ClientDialog from '@/components/common/ClientDialog.vue'
 import MakeIBDialog from '@/components/common/MakeIBDialog.vue'
+import DeleteClientDialog from '@/components/common/DeleteClientDialog.vue'
 import Tooltip from '@/components/common/Tooltip.vue'
 import { useRouter } from "vue-router";
 
@@ -33,6 +34,9 @@ const selectedClientForEdit = ref(null)
 
 const createClientDialogOpen = ref(false)
 
+const deleteClientDialogOpen = ref(false)
+const selectedClientForDelete = ref(null)
+
 const onSearch = () => {
   clearTimeout(searchTimer)
   searchTimer = setTimeout(() => store.applyFilters(), 400)
@@ -51,7 +55,7 @@ const formatNum = (val) => (val ?? 0).toLocaleString('en-US', { minimumFractionD
 const formatDate = (val) => val ? new Date(val).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
 
 function getRowActions(client) {
-  return [
+  const actions = [
     { action: 'edit', label: 'Edit Client', icon: Pencil },
     { action: 'changeIB', label: 'Change IB', icon: UserPen },
     { action: 'makeIB', label: 'Make IB', icon: UserPlus, hidden: client.is_ib === true },
@@ -64,6 +68,15 @@ function getRowActions(client) {
     },
     { action: 'depth', label: 'Client Depth', icon: Eye },
   ]
+
+  if (client.kyc_status === 'pending') {
+    actions.push(
+      { divider: true },
+      { action: 'delete', label: 'Delete Client', icon: Trash2, danger: true }
+    )
+  }
+
+  return actions
 }
 
 function onMenuSelect(item, client) {
@@ -73,7 +86,22 @@ function onMenuSelect(item, client) {
     case 'makeIB': return openMakeIBDialog(client)
     case 'toggleStatus': return openChangeStatusDialog(client)
     case 'depth': return openClientDepth(client)
+    case 'delete': return openDeleteClientDialog(client)
   }
+}
+
+const openDeleteClientDialog = (client) => {
+  selectedClientForDelete.value = client
+  deleteClientDialogOpen.value = true
+}
+
+const closeDeleteClientDialog = () => {
+  deleteClientDialogOpen.value = false
+  selectedClientForDelete.value = null
+}
+
+const handleDeleteSuccess = () => {
+  store.fetchClients(store.pagination.page)
 }
 
 const openChangeIBDialog = (client) => {
@@ -580,6 +608,13 @@ onMounted(() => store.fetchClients())
             >
               Status
             </button>
+            <button
+              v-if="client.kyc_status === 'pending'"
+              @click="openDeleteClientDialog(client)"
+              class="flex-1 text-xs font-medium py-1.5 rounded-lg bg-red-500/10 text-red-600 hover:bg-red-500/20 transition animate-all duration-200"
+            >
+              Delete
+            </button>
           </div>
         </div>
       </div>
@@ -631,6 +666,14 @@ onMounted(() => store.fetchClients())
       :client="null"
       @close="closeCreateClientDialog"
       @success="handleCreateClientSuccess"
+    />
+
+    <!-- Delete Client Dialog -->
+    <DeleteClientDialog
+      :open="deleteClientDialogOpen"
+      :client="selectedClientForDelete || {}"
+      @close="closeDeleteClientDialog"
+      @success="handleDeleteSuccess"
     />
 
   </div>

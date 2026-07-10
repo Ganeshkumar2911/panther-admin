@@ -33,6 +33,7 @@ const urls = {
     update: '/client/update',
     createIB: '/create-ib',
     create: '/client/create',
+    delete: '/clients',
   },
   clientLedger: {
     list: '/ledger/clients',

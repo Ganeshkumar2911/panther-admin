@@ -83,6 +83,7 @@ axiosInstance.interceptors.response.use(
     if (error.response?.status === 401) {
       authToken.removeToken();
       localStorage.removeItem('role')
+      localStorage.removeItem('lastActivityTimestamp')
       router.push({ name: "login" });
       return Promise.reject(error);
     }
