@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { BarChart2, RotateCcwKey, Search, X, Wallet as WalletIcon, DollarSign, ArrowDownUp, RefreshCw, Plus, Pencil } from 'lucide-vue-next'
 import Pagination from '@/components/common/Pagination.vue'
 import DropdownMenu from '@/components/common/DropdownMenu.vue'
@@ -13,6 +13,7 @@ import { useProfileStore } from '@/stores/profile/profile'
 const store = useAccountsStore()
 const profile = useProfileStore()
 const router = useRouter()
+const route = useRoute()
 
 const tabs = [
   { label: 'All', value: 'all' },
@@ -302,7 +303,14 @@ onMounted(() => {
     profile.fetchUserProfile()
   }
 
-  store.fetchAccounts()
+  const querySearch = route.query.search
+  if (querySearch) {
+    store.setFilters({
+      search_query: String(querySearch).trim()
+    })
+  } else {
+    store.fetchAccounts()
+  }
 })
 
 onBeforeUnmount(() => clearTimeout(searchTimer))
