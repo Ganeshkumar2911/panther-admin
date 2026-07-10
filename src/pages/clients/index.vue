@@ -104,6 +104,10 @@ const handleDeleteSuccess = () => {
   store.fetchClients(store.pagination.page)
 }
 
+const goToTradingAccount = (accountNumber) => {
+  router.push({ path: '/trading-accounts', query: { search: accountNumber } })
+}
+
 const openChangeIBDialog = (client) => {
   selectedClientForChangeIB.value = client
   changeIBDialogOpen.value = true
@@ -402,7 +406,8 @@ onMounted(() => store.fetchClients())
                   <span
                     v-for="num in client.account_numbers"
                     :key="num"
-                    class="font-mono text-[9px] px-1 py-0.5 rounded bg-background border border-primary-border text-secondary-text"
+                    @click="goToTradingAccount(num)"
+                    class="font-mono text-[9px] px-1 py-0.5 rounded bg-background border border-primary-border text-secondary-text cursor-pointer hover:bg-primary-hover/10 hover:text-primary transition-all duration-150"
                   >
                     {{ num }}
                   </span>
@@ -563,7 +568,8 @@ onMounted(() => store.fetchClients())
               <span
                 v-for="num in client.account_numbers"
                 :key="num"
-                class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-card-background border border-primary-border text-secondary-text"
+                @click="goToTradingAccount(num)"
+                class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-card-background border border-primary-border text-secondary-text cursor-pointer hover:bg-primary-hover/10 hover:text-primary transition-all duration-150"
               >
                 {{ num }}
               </span>
