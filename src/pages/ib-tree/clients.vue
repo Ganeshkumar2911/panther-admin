@@ -63,8 +63,10 @@
           <tr>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-4 py-3">Client</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-4 py-3">KYC</th>
+            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-4 py-3">IB</th>
+            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-4 py-3">Referral Link</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-4 py-3">Wallet</th>
-            <!-- <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-4 py-3">PnL</th> -->
+            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-4 py-3">PnL</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-4 py-3">Accounts</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-4 py-3">Followings</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-4 py-3">Joined</th>
@@ -85,6 +87,18 @@
               </div>
             </td>
             <td class="px-4 py-3.5"><div class="h-5 w-16 bg-background rounded-full" /></td>
+            <td class="px-4 py-3.5">
+              <div class="space-y-1.5">
+                <div class="h-3 w-20 bg-background rounded" />
+                <div class="h-2.5 w-24 bg-background rounded" />
+              </div>
+            </td>
+            <td class="px-4 py-3.5">
+              <div class="space-y-1.5">
+                <div class="h-4 w-16 bg-background rounded-full" />
+                <div class="h-2.5 w-20 bg-background rounded" />
+              </div>
+            </td>
             <td class="px-4 py-3.5"><div class="h-3 w-16 bg-background rounded" /></td>
             <td class="px-4 py-3.5"><div class="h-3 w-16 bg-background rounded" /></td>
             <td class="px-4 py-3.5"><div class="h-3 w-8 bg-background rounded" /></td>
@@ -97,7 +111,7 @@
         <!-- Empty -->
         <tbody v-else-if="store.records.length === 0">
           <tr>
-            <td colspan="8" class="py-20 text-center bg-card-background">
+            <td colspan="10" class="py-20 text-center bg-card-background">
               <div class="flex flex-col items-center gap-3">
                 <div class="w-12 h-12 rounded-full bg-background flex items-center justify-center">
                   <Users class="w-5 h-5 text-secondary-text" />
@@ -134,13 +148,40 @@
               </span>
             </td>
 
+            <td class="px-4 py-3.5">
+              <div v-if="client.owner_ib" class="space-y-0.5">
+                <p class="text-xs font-medium text-primary-text">{{ client.owner_ib.name }}</p>
+                <p class="text-[10px] text-secondary-text">{{ client.owner_ib.email }}</p>
+                <p class="text-[10px] text-secondary-text">
+                  ID: {{ client.owner_ib.ib_id }} · Ref: {{ client.owner_ib.referral_code }} · L{{ client.owner_ib.level }}
+                </p>
+              </div>
+              <span v-else class="text-xs text-secondary-text/50">—</span>
+            </td>
+
+            <td class="px-4 py-3.5">
+              <div v-if="client.referral_link" class="space-y-1">
+                <span
+                  class="inline-flex items-center gap-0.5 text-[9px] font-bold bg-primary-blue/10 text-primary-blue border border-primary-blue/20 px-1.5 py-0.5 rounded-full select-all"
+                  :title="client.referral_link.name"
+                >
+                  <Link2 class="w-2.5 h-2.5 shrink-0" />
+                  <span>{{ client.referral_link.code }}</span>
+                </span>
+                <p class="text-[10px] text-primary-text truncate max-w-[120px]" :title="client.referral_link.name">
+                  {{ client.referral_link.name }}
+                </p>
+              </div>
+              <span v-else class="text-xs text-secondary-text/50">—</span>
+            </td>
+
             <td class="px-4 py-3.5 text-xs text-primary-text tabular-nums">${{ fmt(client.wallet_balance) }}</td>
 
-            <!-- <td class="px-4 py-3.5">
+            <td class="px-4 py-3.5">
               <span class="text-xs font-medium tabular-nums" :class="client.total_pnl >= 0 ? 'text-primary-green' : 'text-primary-red'">
                 {{ client.total_pnl >= 0 ? '+' : '' }}${{ fmt(client.total_pnl) }}
               </span>
-            </td> -->
+            </td>
 
             <td class="px-4 py-3.5 text-xs text-primary-text">{{ client.trading_accounts }}</td>
             <td class="px-4 py-3.5 text-xs text-primary-text">{{ client.active_followings }}</td>
@@ -234,6 +275,21 @@
             <p class="text-[10px] text-secondary-text mb-0.5">Accounts / Following</p>
             <p class="font-medium text-primary-text">{{ client.trading_accounts }} / {{ client.active_followings }}</p>
           </div>
+          <div v-if="client.owner_ib" class="bg-background rounded-xl px-3 py-2 col-span-2">
+            <p class="text-[10px] text-secondary-text mb-0.5">Owner IB</p>
+            <p class="font-medium text-primary-text">{{ client.owner_ib.name }} (L{{ client.owner_ib.level }})</p>
+            <p class="text-[10px] text-secondary-text">{{ client.owner_ib.email }} · Ref: {{ client.owner_ib.referral_code }}</p>
+          </div>
+          <div v-if="client.referral_link" class="bg-background rounded-xl px-3 py-2 col-span-2">
+            <p class="text-[10px] text-secondary-text mb-0.5">Referral Link</p>
+            <div class="flex items-center gap-1.5 mt-0.5">
+              <span class="inline-flex items-center gap-0.5 text-[9px] font-bold bg-primary-blue/10 text-primary-blue border border-primary-blue/20 px-1.5 py-0.5 rounded-full select-all">
+                <Link2 class="w-2.5 h-2.5 shrink-0" />
+                <span>{{ client.referral_link.code }}</span>
+              </span>
+              <span class="text-xs text-primary-text">{{ client.referral_link.name }}</span>
+            </div>
+          </div>
           <div class="bg-background rounded-xl px-3 py-2 col-span-2">
             <p class="text-[10px] text-secondary-text mb-0.5">Joined</p>
             <p class="font-medium text-primary-text">{{ formatDate(client.joined_at) }}</p>
@@ -256,7 +312,7 @@
 <script setup>
 import { onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { Search, Users } from 'lucide-vue-next'
+import { Search, Users, Link2 } from 'lucide-vue-next'
 import { useIbClientsStore } from '@/stores/ibTree/ibClients'
 import Pagination from '@/components/common/Pagination.vue'
 
