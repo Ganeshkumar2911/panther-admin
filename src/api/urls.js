@@ -47,6 +47,7 @@ const urls = {
   ibLedger: {
     list: '/ledger/ib',
     allIbs: '/search/ib',
+    update: '/ledger/ib/update',
   },
   adminLedger: {
     list: '/ledger/admin',
