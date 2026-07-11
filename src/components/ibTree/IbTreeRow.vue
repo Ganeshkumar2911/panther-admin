@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { Pencil, Plus, ArrowLeftRight, Users } from 'lucide-vue-next'
+import { Pencil, Plus, ArrowLeftRight, Users, Link } from 'lucide-vue-next'
 import DropdownMenu from '@/components/common/DropdownMenu.vue'
 
 const router = useRouter()
@@ -30,6 +30,11 @@ const getActions = (node) => [
     label: 'View Clients',
     icon: Users,
     handler: () => router.push(`/ib-clients/${node.ib_id}`),
+  },
+  {
+    label: 'Referral Links',
+    icon: Link,
+    handler: () => router.push(`/ib-referral-links/${node.ib_id}`),
   },
   {
     label: 'Transfer Parent',

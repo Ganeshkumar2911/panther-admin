@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, computed, ref } from 'vue'
-import { Search, Users, UserPen, Eye, UserX, UserCheck, Pencil, UserPlus, Plus, RefreshCw, Trash2 } from 'lucide-vue-next'
+import { Search, Users, UserPen, Eye, UserX, UserCheck, Pencil, UserPlus, Plus, RefreshCw, Trash2, Link2 } from 'lucide-vue-next'
 import { useClientListStore } from '@/stores/clientList/clientList'
 import Pagination from '@/components/common/Pagination.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
@@ -279,6 +279,7 @@ onMounted(() => store.fetchClients())
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Contact</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Address</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">IB</th>
+            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Referral Campaign</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">KYC Status</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Doc Status</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Sumsub ID</th>
@@ -304,6 +305,7 @@ onMounted(() => store.fetchClients())
             <td class="p-3"><div class="space-y-1.5"><div class="h-3 w-20 bg-card-background rounded" /><div class="h-2.5 w-24 bg-card-background rounded" /></div></td>
             <td class="p-3"><div class="space-y-1.5"><div class="h-3 w-16 bg-card-background rounded" /><div class="h-2.5 w-20 bg-card-background rounded" /></div></td>
             <td class="p-3"><div class="space-y-1.5"><div class="h-3 w-20 bg-card-background rounded" /><div class="h-2.5 w-24 bg-card-background rounded" /></div></td>
+            <td class="p-3"><div class="space-y-1.5"><div class="h-3 w-16 bg-card-background rounded" /><div class="h-2.5 w-20 bg-card-background rounded" /></div></td>
             <td class="p-3"><div class="h-5 w-16 bg-card-background rounded-full" /></td>
             <td class="p-3"><div class="h-5 w-16 bg-card-background rounded-full" /></td>
             <td class="p-3"><div class="h-5 w-20 bg-card-background rounded" /></td>
@@ -317,7 +319,7 @@ onMounted(() => store.fetchClients())
         <!-- Empty -->
         <tbody v-else-if="store.data.length === 0">
           <tr>
-            <td colspan="11" class="py-16 text-center">
+            <td colspan="12" class="py-16 text-center">
               <div class="flex flex-col items-center gap-3">
                 <div class="w-12 h-12 rounded-full bg-card-background flex items-center justify-center">
                   <Users class="w-5 h-5 text-secondary-text" />
@@ -366,6 +368,23 @@ onMounted(() => store.fetchClients())
               <p class="text-[10px] text-secondary-text" v-if="client.ib_id">
                 Ref: {{ client.ib_referral_code ?? '' }} (ID: {{ client.ib_id }})
               </p>
+            </td>
+
+            <!-- Referral Link Column -->
+            <td class="p-3">
+              <div v-if="client.referral_link_code" class="space-y-1">
+                <span
+                  class="inline-flex items-center gap-0.5 text-[9px] font-bold bg-primary-blue/10 text-primary-blue border border-primary-blue/20 px-1.5 py-0.5 rounded-full select-all"
+                  :title="client.referral_link_name"
+                >
+                  <Link2 class="w-2.5 h-2.5 shrink-0" />
+                  <span>{{ client.referral_link_code }}</span>
+                </span>
+                <p class="text-[10px] text-primary-text truncate max-w-[120px]" :title="client.referral_link_name">
+                  {{ client.referral_link_name }}
+                </p>
+              </div>
+              <span v-else class="text-xs text-secondary-text/50">—</span>
             </td>
 
             <td class="p-3">
@@ -549,6 +568,16 @@ onMounted(() => store.fetchClients())
             <p class="font-medium text-primary-text text-[11px] truncate">{{ client.ib_name ?? '—' }}</p>
             <p class="text-[10px] text-secondary-text truncate">{{ client.ib_email ?? '—' }}</p>
             <p class="text-[10px] text-secondary-text">Ref: {{ client.ib_referral_code ?? '—' }} | ID: {{ client.ib_id ?? '—' }}</p>
+          </div>
+          <div class="bg-background rounded-lg px-3 py-2 col-span-2" v-if="client.referral_link_code">
+            <p class="text-[10px] text-secondary-text mb-0.5">Referral Campaign</p>
+            <div class="flex items-center gap-1.5 mt-0.5">
+              <span class="inline-flex items-center gap-0.5 text-[9px] font-bold bg-primary-blue/10 text-primary-blue border border-primary-blue/20 px-2 py-0.5 rounded-full">
+                <Link2 class="w-2.5 h-2.5 shrink-0" />
+                <span>{{ client.referral_link_code }}</span>
+              </span>
+              <span class="text-[10px] text-primary-text font-medium truncate">{{ client.referral_link_name }}</span>
+            </div>
           </div>
           <div class="bg-background rounded-lg px-3 py-2 col-span-2">
             <p class="text-[10px] text-secondary-text mb-0.5">KYC Information</p>

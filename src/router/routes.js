@@ -214,6 +214,17 @@ const routes = [
                 }
             },
             {
+                path: '/ib-referral-links/:id',
+                name: 'ib-referral-links',
+                component: () => import('@/pages/ib-tree/referral-links.vue'),
+                meta: {
+                    requiresAuth: true,
+                    title: 'Referral Links',
+                    description: 'Manage and track referral campaigns for this partner.',
+                    showBackButton: true,
+                }
+            },
+            {
                 path: '/tickets',
                 name: 'tickets',
                 component: () => import('@/pages/tickets/index.vue'),

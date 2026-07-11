@@ -60,6 +60,11 @@ const urls = {
     transfer: '/ib-transfer',
     clients: '/ibs/clients/',
   },
+  referralLinks: {
+    list: '/ibs/referral-links',
+    create: '/ibs/referral-links',
+    update: '/referral-links',
+  },
   fm: {
     list: '/fund_managers',
     create: '/fund_managers/create',
