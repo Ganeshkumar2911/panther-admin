@@ -19,7 +19,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Mail,
-  Cpu
+  Cpu,
+  ClipboardList
 } from 'lucide-vue-next'
 import { useProfileStore } from '@/stores/profile/profile'
 import Tooltip from '@/components/common/Tooltip.vue'
@@ -128,6 +129,11 @@ const navItems = [
     label: 'Company Integrations',
     to: '/company-integrations',
     icon: Cpu,
+  },
+  {
+    label: 'Audit Logs',
+    to: '/audit-logs',
+    icon: ClipboardList,
   },
   {
     label: 'Tickets',
