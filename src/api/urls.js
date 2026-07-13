@@ -67,6 +67,9 @@ const urls = {
     create: '/ibs/referral-links',
     update: '/referral-links',
   },
+  auditLogs: {
+    list: '/audit-logs',
+  },
   fm: {
     list: '/fund_managers',
     create: '/fund_managers/create',
