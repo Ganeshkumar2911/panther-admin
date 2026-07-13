@@ -225,7 +225,7 @@
             <!-- Status -->
             <td class="p-3">
               <span class="text-[11px] font-medium px-2 py-0.5 rounded-full border capitalize" :class="statusClass(entry.payment_status ?? entry.approval_status)">
-                {{ entry.payment_status ?? entry.approval_status ?? '—' }}
+                {{ entry.approval_status ?? entry.payment_status ?? '—' }}
               </span>
             </td>
 

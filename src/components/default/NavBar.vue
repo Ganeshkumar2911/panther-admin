@@ -20,10 +20,10 @@ import {
   ChevronRight,
   Mail,
   Cpu,
-  ClipboardList,
-} from "lucide-vue-next";
-import { useProfileStore } from "@/stores/profile/profile";
-import Tooltip from "@/components/common/Tooltip.vue";
+  ClipboardList
+} from 'lucide-vue-next'
+import { useProfileStore } from '@/stores/profile/profile'
+import Tooltip from '@/components/common/Tooltip.vue'
 
 const store = useProfileStore();
 
@@ -136,13 +136,13 @@ const navItems = [
     icon: Cpu,
   },
   {
-    label: "Audit Logs",
-    to: "/audit-logs",
+    label: 'Audit Logs',
+    to: '/audit-logs',
     icon: ClipboardList,
   },
   {
-    label: "Tickets",
-    to: "/tickets",
+    label: 'Tickets',
+    to: '/tickets',
     icon: Tickets,
   },
 ];
