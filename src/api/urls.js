@@ -34,6 +34,7 @@ const urls = {
     createIB: '/create-ib',
     create: '/client/create',
     delete: '/clients',
+    updateReferralLink: '/clients/referral-link',
   },
   clientLedger: {
     list: '/ledger/clients',
