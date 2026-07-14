@@ -11,6 +11,7 @@ import ClientDialog from '@/components/common/ClientDialog.vue'
 import MakeIBDialog from '@/components/common/MakeIBDialog.vue'
 import DeleteClientDialog from '@/components/common/DeleteClientDialog.vue'
 import Tooltip from '@/components/common/Tooltip.vue'
+import UpdateReferralLinkDrawer from '@/components/common/UpdateReferralLinkDrawer.vue'
 import { useRouter } from "vue-router";
 
 const router = useRouter();
@@ -37,6 +38,9 @@ const createClientDialogOpen = ref(false)
 const deleteClientDialogOpen = ref(false)
 const selectedClientForDelete = ref(null)
 
+const updateReferralLinkDrawerOpen = ref(false)
+const selectedClientForReferralLink = ref(null)
+
 const onSearch = () => {
   clearTimeout(searchTimer)
   searchTimer = setTimeout(() => store.applyFilters(), 400)
@@ -59,6 +63,7 @@ function getRowActions(client) {
     { action: 'edit', label: 'Edit Client', icon: Pencil },
     { action: 'changeIB', label: 'Change IB', icon: UserPen },
     { action: 'makeIB', label: 'Make IB', icon: UserPlus, hidden: client.is_ib === true },
+    { action: 'updateReferralLink', label: 'Update Referral Link', icon: Link2 },
     { divider: true },
     {
       action: 'toggleStatus',
@@ -84,6 +89,7 @@ function onMenuSelect(item, client) {
     case 'edit': return openEditClientDialog(client)
     case 'changeIB': return openChangeIBDialog(client)
     case 'makeIB': return openMakeIBDialog(client)
+    case 'updateReferralLink': return openUpdateReferralLinkDrawer(client)
     case 'toggleStatus': return openChangeStatusDialog(client)
     case 'depth': return openClientDepth(client)
     case 'delete': return openDeleteClientDialog(client)
@@ -181,6 +187,20 @@ const closeCreateClientDialog = () => {
 
 const handleCreateClientSuccess = () => {
   store.fetchClients(1)
+}
+
+const openUpdateReferralLinkDrawer = (client) => {
+  selectedClientForReferralLink.value = client
+  updateReferralLinkDrawerOpen.value = true
+}
+
+const closeUpdateReferralLinkDrawer = () => {
+  updateReferralLinkDrawerOpen.value = false
+  selectedClientForReferralLink.value = null
+}
+
+const handleUpdateReferralLinkSuccess = () => {
+  store.fetchClients(store.pagination.page)
 }
 
 const getKycClass = (status) => {
@@ -614,29 +634,35 @@ onMounted(() => store.fetchClients())
             <p class="text-[10px] text-primary-text">Updated: {{ formatDate(client.updated_at) }}</p>
             <p class="text-[10px] text-secondary-text">Tracking ID: {{ client.tracking_id ?? '—' }}</p>
           </div>
-          <div class="bg-background rounded-lg px-3 py-2 col-span-2 flex items-center justify-center gap-2">
+          <div class="bg-background rounded-lg px-3 py-2 col-span-2 flex flex-wrap items-center justify-center gap-2">
             <button
               @click="openEditClientDialog(client)"
-              class="flex-1 text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition"
+              class="flex-1 min-w-[70px] text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition"
             >
               Edit
             </button>
             <button
               @click="openChangeIBDialog(client)"
-              class="flex-1 text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition"
+              class="flex-1 min-w-[80px] text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition"
             >
               Change IB
             </button>
             <button
               v-if="client.is_ib === false"
               @click="openMakeIBDialog(client)"
-              class="flex-1 text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition animate-all duration-200"
+              class="flex-1 min-w-[80px] text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition animate-all duration-200"
             >
               Make IB
             </button>
             <button
+              @click="openUpdateReferralLinkDrawer(client)"
+              class="flex-1 min-w-[100px] text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition"
+            >
+              Referral Link
+            </button>
+            <button
               @click="openChangeStatusDialog(client)"
-              class="flex-1 text-xs font-medium py-1.5 rounded-lg transition animate-all duration-200"
+              class="flex-1 min-w-[70px] text-xs font-medium py-1.5 rounded-lg transition animate-all duration-200"
               :class="client.is_active
                 ? 'bg-red-500/10 text-red-600 hover:bg-red-500/20'
                 : 'bg-green-500/10 text-green-600 hover:bg-green-500/20'"
@@ -646,7 +672,7 @@ onMounted(() => store.fetchClients())
             <button
               v-if="client.kyc_status === 'pending'"
               @click="openDeleteClientDialog(client)"
-              class="flex-1 text-xs font-medium py-1.5 rounded-lg bg-red-500/10 text-red-600 hover:bg-red-500/20 transition animate-all duration-200"
+              class="flex-1 min-w-[70px] text-xs font-medium py-1.5 rounded-lg bg-red-500/10 text-red-600 hover:bg-red-500/20 transition animate-all duration-200"
             >
               Delete
             </button>
@@ -709,6 +735,14 @@ onMounted(() => store.fetchClients())
       :client="selectedClientForDelete || {}"
       @close="closeDeleteClientDialog"
       @success="handleDeleteSuccess"
+    />
+
+    <!-- Update Referral Link Drawer -->
+    <UpdateReferralLinkDrawer
+      :open="updateReferralLinkDrawerOpen"
+      :client="selectedClientForReferralLink || {}"
+      @close="closeUpdateReferralLinkDrawer"
+      @success="handleUpdateReferralLinkSuccess"
     />
 
   </div>
