@@ -4,10 +4,10 @@ import router from "../router";
 
 // ─── Constants
 
-// const BASE_URL = "https://w2llv2cm-2504.inc1.devtunnels.ms/admin/"; 
-// const BASE_URL = "https://f7v2d03l-2504.inc1.devtunnels.ms/admin/"; 
-// const BASE_URL = "https://848ncvt5-2504.euw.devtunnels.ms/admin/";
-const BASE_URL = "https://1pz4zm0b-2504.euw.devtunnels.ms/admin/";
+// const BASE_URL = "https://w2llv2cm-2504.inc1.devtunnels.ms/admin/";
+// const BASE_URL = "https://f7v2d03l-2504.inc1.devtunnels.ms/admin/";
+const BASE_URL = "https://848ncvt5-2504.euw.devtunnels.ms/admin/";
+// const BASE_URL = "https://1pz4zm0b-2504.euw.devtunnels.ms/admin/";
 const DEFAULT_TIMEOUT = 2 * 60 * 1000;
 const MAX_RETRY_ATTEMPTS = 2;
 const RETRYABLE_STATUS_CODES = [502, 503, 504];
@@ -56,7 +56,7 @@ axiosInstance.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 // ─── Response Interceptor
@@ -82,8 +82,8 @@ axiosInstance.interceptors.response.use(
     // ── 401: مباشرة logout (no refresh)
     if (error.response?.status === 401) {
       authToken.removeToken();
-      localStorage.removeItem('role')
-      localStorage.removeItem('lastActivityTimestamp')
+      localStorage.removeItem("role");
+      localStorage.removeItem("lastActivityTimestamp");
       router.push({ name: "login" });
       return Promise.reject(error);
     }
@@ -102,10 +102,10 @@ axiosInstance.interceptors.response.use(
 
     handleError(error);
     return Promise.reject(error);
-  }
+  },
 );
 
-// ─── Global Error Handler 
+// ─── Global Error Handler
 const handleError = (error) => {
   // Cancelled request — not an error
   if (error.code === "ERR_CANCELED") {
@@ -169,14 +169,14 @@ const apiRequest = (
     onUploadProgress = null,
     onDownloadProgress = null,
     isTokenRequired = true,
-    signal = null,       // ← use AbortController.signal per-request
+    signal = null, // ← use AbortController.signal per-request
     timeout = null,
     cancelPrevious = false,
-  } = {}
+  } = {},
 ) => {
   if (!ALLOWED_METHODS.includes(method)) {
     throw new Error(
-      `Method "${method}" is not allowed. Use one of: ${ALLOWED_METHODS.join(", ")}`
+      `Method "${method}" is not allowed. Use one of: ${ALLOWED_METHODS.join(", ")}`,
     );
   }
   if (!url) {
@@ -215,30 +215,30 @@ const apiRequest = (
   }
 
   return axiosInstance(config)
-  .then((response) => {
-    if (onSuccess) onSuccess(response.data);
-    return response.data;
-  })
-  .catch((error) => {
-    if (error.code === "ERR_CANCELED") {
-      console.warn("Request cancelled:", error.message);
+    .then((response) => {
+      if (onSuccess) onSuccess(response.data);
+      return response.data;
+    })
+    .catch((error) => {
+      if (error.code === "ERR_CANCELED") {
+        console.warn("Request cancelled:", error.message);
+        throw error;
+      }
+
+      if (onFailure) {
+        onFailure(error.response?.data ?? error);
+        return;
+      }
+
       throw error;
-    }
+    })
+    .finally(() => {
+      if (requestKey) {
+        cleanupRequest(requestKey, abortController);
+      }
 
-    if (onFailure) {
-      onFailure(error.response?.data ?? error);
-      return;
-    }
-
-    throw error;
-  })
-  .finally(() => {
-    if (requestKey) {
-      cleanupRequest(requestKey, abortController);
-    }
-
-    if (onFinally) onFinally();
-  });
+      if (onFinally) onFinally();
+    });
 };
 
 export { axiosInstance };
