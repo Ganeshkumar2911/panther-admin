@@ -166,6 +166,7 @@
 
 <script setup>
 import { onMounted, ref, computed, watch } from 'vue'
+import { storeToRefs } from 'pinia'
 import { Plus, Search, Users,RefreshCw } from 'lucide-vue-next'
 import { useIbTreeStore } from '@/stores/ibTree/ibTree'
 import IbTreeRow from '@/components/ibTree/IbTreeRow.vue'
@@ -174,12 +175,11 @@ import IbDialog from '@/components/ibTree/IbDialog.vue'
 import TransferIbDialog from '@/components/ibTree/TransferIbDialog.vue'
 
 const store = useIbTreeStore()
+const { searchQuery } = storeToRefs(store)
 const expanded = ref({})
 const viewMode = ref('table')
 const dialog = ref({ open: false, editData: null, parentIbId: null })
 const transferDialog = ref({ open: false, ib: null })
-
-const searchQuery = ref('')
 
 const openAdd = () => { dialog.value = { open: true, editData: null, parentIbId: null } }
 const openAddSub = (id) => { dialog.value = { open: true, editData: null, parentIbId: id } }

@@ -218,7 +218,7 @@
         <div class="space-y-4 pt-2">
           <h3 class="text-xs font-semibold uppercase tracking-wider text-secondary-text border-b border-primary-border/50 pb-1.5">Transaction Limits</h3>
           
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <!-- Min Deposit -->
             <div>
               <label class="block text-[11px] font-medium text-secondary-text mb-1.5">Min Deposit</label>
@@ -247,6 +247,20 @@
                   placeholder="0.00"
                   :disabled="submitting"
                   class="w-full pl-3 pr-2 py-2 rounded-lg bg-background border border-primary-border text-primary-text text-xs outline-none focus:border-primary transition-colors disabled:opacity-50"
+                />
+              </div>
+            </div>
+
+            <!-- Max Withdrawals Per Day -->
+            <div>
+              <label class="block text-[11px] font-medium text-secondary-text mb-1.5">Max Withdrawals / Day</label>
+              <div class="relative">
+                <input
+                  v-model="form.maximum_withdrawals_per_day"
+                  type="text"
+                  placeholder="Unlimited"
+                  :disabled="submitting"
+                  class="w-full px-3 py-2 rounded-lg bg-background border border-primary-border text-primary-text text-xs outline-none focus:border-primary transition-colors disabled:opacity-50"
                 />
               </div>
             </div>
@@ -356,6 +370,60 @@
               />
             </button>
           </div>
+
+          <!-- Withdrawal Notification Emails -->
+          <div class="space-y-3 p-4 bg-background/20 rounded-xl border border-primary-border/30">
+            <div>
+              <p class="text-xs font-semibold text-primary-text">Withdrawal Notification Emails</p>
+              <p class="text-[10px] text-secondary-text mt-0.5">Alerts will be sent to these emails upon withdrawal requests</p>
+            </div>
+
+            <!-- Input and button -->
+            <div class="flex gap-2">
+              <input
+                v-model="newEmailInput"
+                type="text"
+                placeholder="e.g. finance@panther.capital"
+                :disabled="submitting"
+                class="flex-1 px-3 py-2 rounded-lg bg-background border border-primary-border text-primary-text text-xs outline-none focus:border-primary transition-colors placeholder:text-secondary-text disabled:opacity-50"
+                @keydown.enter.prevent="addEmail"
+              />
+              <button
+                type="button"
+                @click="addEmail"
+                :disabled="submitting || !newEmailInput.trim()"
+                class="px-4 py-2 bg-primary hover:bg-primary-hover text-white text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer disabled:opacity-50"
+              >
+                <Plus class="w-3 h-3" /> Add
+              </button>
+            </div>
+
+            <!-- Input error message -->
+            <p v-if="emailInputError" class="text-primary-red text-[11px] font-medium leading-none">
+              {{ emailInputError }}
+            </p>
+
+            <!-- Tags container -->
+            <div v-if="form.withdraw_notification_emails?.length" class="flex flex-wrap gap-1.5 pt-1">
+              <div
+                v-for="(email, idx) in form.withdraw_notification_emails"
+                :key="email"
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-background border border-primary-border text-primary-text text-xs font-medium"
+              >
+                <span class="truncate max-w-[200px]">{{ email }}</span>
+                <button
+                  type="button"
+                  @click="removeEmail(idx)"
+                  class="w-4 h-4 flex items-center justify-center rounded-full hover:bg-primary-red/10 text-secondary-text hover:text-primary-red transition-colors focus:outline-none shrink-0"
+                >
+                  <X class="w-2.5 h-2.5" />
+                </button>
+              </div>
+            </div>
+            <p v-else class="text-[11px] text-secondary-text italic text-center py-2">
+              No notification emails added yet.
+            </p>
+          </div>
         </div>
       </div>
 
@@ -384,7 +452,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { Wallet, X, Loader2 } from 'lucide-vue-next'
+import { Wallet, X, Loader2, Plus } from 'lucide-vue-next'
 import { usePaymentMethodsStore } from '@/stores/paymentMethods/paymentMethods'
 
 const props = defineProps({
@@ -401,17 +469,47 @@ const activeTab = ref('bank') // 'bank', 'upi', 'crypto'
 
 const isEdit = computed(() => !!props.paymentMethod)
 
+const newEmailInput = ref('')
+const emailInputError = ref('')
+
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+const addEmail = () => {
+  const email = newEmailInput.value.trim()
+  if (!email) return
+
+  if (!emailRegex.test(email)) {
+    emailInputError.value = 'Please enter a valid email address.'
+    return
+  }
+
+  if (form.value.withdraw_notification_emails.includes(email)) {
+    emailInputError.value = 'This email has already been added.'
+    return
+  }
+
+  form.value.withdraw_notification_emails.push(email)
+  newEmailInput.value = ''
+  emailInputError.value = ''
+}
+
+const removeEmail = (index) => {
+  form.value.withdraw_notification_emails.splice(index, 1)
+}
+
 const form = ref({
   // Common:
   wallet_label: '',
   minimum_deposit_amount: 0,
   maximum_withdrawal_amount: 0,
+  maximum_withdrawals_per_day: null,
   enable_deposit: true,
   enable_withdrawal: true,
   is_default_deposit: false,
   is_default_withdrawal: false,
   remarks: '',
   is_active: true,
+  withdraw_notification_emails: [],
 
   // Bank:
   bank_name: '',
@@ -442,12 +540,14 @@ watch(() => props.open, (newVal) => {
         wallet_label: props.paymentMethod.wallet_label ?? '',
         minimum_deposit_amount: props.paymentMethod.minimum_deposit_amount ?? 0,
         maximum_withdrawal_amount: props.paymentMethod.maximum_withdrawal_amount ?? 0,
+        maximum_withdrawals_per_day: props.paymentMethod.maximum_withdrawals_per_day ?? null,
         enable_deposit: props.paymentMethod.enable_deposit ?? true,
         enable_withdrawal: props.paymentMethod.enable_withdrawal ?? true,
         is_default_deposit: props.paymentMethod.is_default_deposit ?? false,
         is_default_withdrawal: props.paymentMethod.is_default_withdrawal ?? false,
         remarks: props.paymentMethod.remarks ?? '',
         is_active: props.paymentMethod.is_active ?? true,
+        withdraw_notification_emails: props.paymentMethod.withdraw_notification_emails ?? [],
 
         // Bank fields:
         bank_name: props.paymentMethod.bank_name ?? '',
@@ -471,12 +571,14 @@ watch(() => props.open, (newVal) => {
         wallet_label: '',
         minimum_deposit_amount: 0,
         maximum_withdrawal_amount: 0,
+        maximum_withdrawals_per_day: null,
         enable_deposit: true,
         enable_withdrawal: true,
         is_default_deposit: false,
         is_default_withdrawal: false,
         remarks: '',
         is_active: true,
+        withdraw_notification_emails: [],
 
         // Bank fields:
         bank_name: '',
@@ -500,6 +602,10 @@ watch(() => props.open, (newVal) => {
 const isValid = computed(() => {
   if (!form.value.wallet_label.trim()) return false
   if (form.value.minimum_deposit_amount < 0 || form.value.maximum_withdrawal_amount < 0) return false
+  if (form.value.maximum_withdrawals_per_day !== null && form.value.maximum_withdrawals_per_day !== '') {
+    const val = Number(form.value.maximum_withdrawals_per_day)
+    if (isNaN(val) || val < 0) return false
+  }
 
   if (activeTab.value === 'bank') {
     return (
@@ -547,11 +653,15 @@ const submit = async () => {
         swift_code: form.value.swift_code.trim(),
         minimum_deposit_amount: Number(form.value.minimum_deposit_amount),
         maximum_withdrawal_amount: Number(form.value.maximum_withdrawal_amount),
+        maximum_withdrawals_per_day: form.value.maximum_withdrawals_per_day !== null && form.value.maximum_withdrawals_per_day !== ''
+          ? Number(form.value.maximum_withdrawals_per_day)
+          : null,
         enable_deposit: form.value.enable_deposit,
         enable_withdrawal: form.value.enable_withdrawal,
         is_default_deposit: form.value.is_default_deposit,
         is_default_withdrawal: form.value.is_default_withdrawal,
-        remarks: form.value.remarks.trim()
+        remarks: form.value.remarks.trim(),
+        withdraw_notification_emails: form.value.withdraw_notification_emails || []
       }
     } else if (activeTab.value === 'upi') {
       payload = {
@@ -561,11 +671,15 @@ const submit = async () => {
         upi_id: form.value.upi_id.trim(),
         minimum_deposit_amount: Number(form.value.minimum_deposit_amount),
         maximum_withdrawal_amount: Number(form.value.maximum_withdrawal_amount),
+        maximum_withdrawals_per_day: form.value.maximum_withdrawals_per_day !== null && form.value.maximum_withdrawals_per_day !== ''
+          ? Number(form.value.maximum_withdrawals_per_day)
+          : null,
         enable_deposit: form.value.enable_deposit,
         enable_withdrawal: form.value.enable_withdrawal,
         is_default_deposit: form.value.is_default_deposit,
         is_default_withdrawal: form.value.is_default_withdrawal,
-        remarks: form.value.remarks.trim()
+        remarks: form.value.remarks.trim(),
+        withdraw_notification_emails: form.value.withdraw_notification_emails || []
       }
     } else if (activeTab.value === 'crypto') {
       payload = {
@@ -576,11 +690,15 @@ const submit = async () => {
         wallet_address: form.value.wallet_address.trim() || null,
         minimum_deposit_amount: Number(form.value.minimum_deposit_amount),
         maximum_withdrawal_amount: Number(form.value.maximum_withdrawal_amount),
+        maximum_withdrawals_per_day: form.value.maximum_withdrawals_per_day !== null && form.value.maximum_withdrawals_per_day !== ''
+          ? Number(form.value.maximum_withdrawals_per_day)
+          : null,
         enable_deposit: form.value.enable_deposit,
         enable_withdrawal: form.value.enable_withdrawal,
         is_default_deposit: form.value.is_default_deposit,
         is_default_withdrawal: form.value.is_default_withdrawal,
-        remarks: form.value.remarks.trim()
+        remarks: form.value.remarks.trim(),
+        withdraw_notification_emails: form.value.withdraw_notification_emails || []
       }
     }
 

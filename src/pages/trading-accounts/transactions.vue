@@ -292,6 +292,7 @@ import { useRoute } from 'vue-router'
 import { Search, Receipt, ArrowUpRight, ArrowDownLeft } from 'lucide-vue-next'
 import { useAccountTransactionsStore } from '@/stores/tradingAccounts/transactions'
 import Pagination from '@/components/common/Pagination.vue'
+import { formatDate } from "@/utils/timeFormatter";
 
 const store = useAccountTransactionsStore()
 const route = useRoute()
@@ -318,7 +319,7 @@ const formatMoney = (amount) => {
   const num = formatNum(amount)
   return activeCurrency.value === 'USC' ? `USC ${num}` : `$${num}`
 }
-const formatDate = (val) => val ? new Date(val).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
+// const formatDate = (val) => formatDate(val)
 const formatType = (t) => t?.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) ?? '—'
 
 const typeClass = (type) => ({

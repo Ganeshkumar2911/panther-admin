@@ -1,12 +1,5 @@
 Here is the updated code cleaned up and aligned precisely with your project's strict theme rules.
 
-### Key Improvements Made:
-
-* **Theme Integration:** Swapped custom styling variants like `rounded-lg` on cards with your defined `rounded-xl`, fixed buttons to respect `text-black` (for `bg-primary`), and used your exact **Status Pills** configuration.
-* **Visual Polish:** Cleaned up inconsistent inner spacing. Layout structural rules like grid gaps, cards, and sub-headers now mirror your summary card patterns and typography specifications.
-* **Layout Hierarchy:** Added a neat dashboard header configuration that leverages your specific `text-secondary-text` styles.
-
-```vue
 <template>
   <div class="min-h-screen bg-background">
     <main class="max-w-screen-2xl mx-auto px-4 sm:px-6 py-8">
@@ -145,5 +138,3 @@ async function handleSubmit(payload) {
   dialogOpen.value = false
 }
 </script>
-
-```

@@ -71,7 +71,7 @@ function getRowActions(client) {
       icon: client.is_active ? UserX : UserCheck,
       danger: client.is_active,
     },
-    { action: 'depth', label: 'Client Depth', icon: Eye },
+    // { action: 'depth', label: 'Client Depth', icon: Eye },
   ]
 
   if (client.kyc_status === 'pending') {
