@@ -9,7 +9,7 @@
           v-model="filters.entity"
           :options="entityOptions"
           placeholder="All Entities"
-          class="w-full sm:w-48"
+          class="w-full sm:w-56 xl:w-56"
           @update:modelValue="applyFilters"
         />
 
@@ -18,7 +18,7 @@
           v-model="filters.module"
           :options="moduleOptions"
           placeholder="All Modules"
-          class="w-full sm:w-48"
+          class="w-full sm:w-56 xl:w-56"
           @update:modelValue="applyFilters"
         />
 
@@ -29,7 +29,7 @@
           :isLoading="isSearchingUsers"
           placeholder="Search User..."
           searchable
-          class="w-full "
+          class="w-full sm:w-72 xl:w-72"
           @search="onUserSearch"
           @update:modelValue="applyFilters"
         />
@@ -39,7 +39,7 @@
           v-model="store.pagination.per_page"
           :options="perPageOptions"
           placeholder="Per Page"
-          class="w-full"
+          class="w-full sm:w-28 xl:w-28"
           @update:modelValue="handlePerPageChange"
         />
 
