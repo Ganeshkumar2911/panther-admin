@@ -37,9 +37,10 @@ const urls = {
     updateReferralLink: '/clients/referral-link',
   },
   clientLedger: {
-    list: "/ledger/clients",
-    allClients: "/search/clients",
-    allAccounts: "/search/accounts",
+    list: '/ledger/clients',
+    allClients: '/search/clients',
+    allAccounts: '/search/accounts',
+    internalTransfers: '/ledger/internal-transfers',
   },
   fmLedger: {
     list: "/ledger/fms",
