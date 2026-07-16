@@ -131,10 +131,10 @@
             :key="log.id"
             class="border-b border-primary-border last:border-none hover:bg-card-background transition-colors"
           >
-            <!-- User / IP -->
             <td class="p-3">
-              <p class="text-xs font-semibold text-primary-text">{{ log.name || 'Anonymous' }}</p>
-              <p class="text-[10px] text-secondary-text font-mono mt-0.5">IP: {{ log.ip_address || '—' }}</p>
+              <p class="text-xs font-semibold text-primary-text">{{ log.user?.name || log.name || 'Anonymous' }}</p>
+              <p v-if="log.user?.email || log.email" class="text-[11px] text-secondary-text mt-0.5">{{ log.user?.email || log.email }}</p>
+              <p class="text-[10px] text-secondary-text font-mono mt-1">IP: {{ log.ip_address || '—' }}</p>
             </td>
 
             <!-- Module / Entity -->
@@ -220,8 +220,9 @@
       >
         <div class="flex items-start justify-between">
           <div class="space-y-0.5">
-            <p class="font-bold text-primary-text text-xs">{{ log.name || 'Anonymous' }}</p>
-            <p class="text-[10px] text-secondary-text font-mono">IP: {{ log.ip_address }}</p>
+            <p class="font-bold text-primary-text text-xs">{{ log.user?.name || log.name || 'Anonymous' }}</p>
+            <p v-if="log.user?.email || log.email" class="text-[11px] text-secondary-text mt-0.5">{{ log.user?.email || log.email }}</p>
+            <p class="text-[10px] text-secondary-text font-mono mt-0.5">IP: {{ log.ip_address }}</p>
           </div>
           <span
             class="text-[10px] font-semibold px-2 py-0.5 rounded-full border capitalize"
@@ -289,6 +290,7 @@ import { useAuditLogsStore } from '@/stores/auditLogs/auditLogs'
 import Pagination from '@/components/common/Pagination.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import AuditLogDetailDrawer from '@/components/common/AuditLogDetailDrawer.vue'
+import { formatDate } from '@/utils/timeFormatter'
 
 const store = useAuditLogsStore()
 
@@ -427,17 +429,6 @@ const getStatusClass = (status) => {
   return 'bg-yellow-500/10 text-yellow-700 border-yellow-500/20'
 }
 
-const formatDate = (val) => {
-  if (!val) return '—'
-  return new Date(val).toLocaleDateString('en-GB', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  })
-}
 
 const parseUserAgent = (ua) => {
   if (!ua) return 'Unknown'
