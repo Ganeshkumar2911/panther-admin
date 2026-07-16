@@ -13,6 +13,7 @@ import DeleteClientDialog from '@/components/common/DeleteClientDialog.vue'
 import Tooltip from '@/components/common/Tooltip.vue'
 import UpdateReferralLinkDrawer from '@/components/common/UpdateReferralLinkDrawer.vue'
 import { useRouter } from "vue-router";
+import { useGoToTradingAccount } from '@/composables/useGoToTradingAccount'
 
 const router = useRouter();
 
@@ -110,9 +111,7 @@ const handleDeleteSuccess = () => {
   store.fetchClients(store.pagination.page)
 }
 
-const goToTradingAccount = (accountNumber) => {
-  router.push({ path: '/trading-accounts', query: { search: accountNumber } })
-}
+const { goToTradingAccount } = useGoToTradingAccount()
 
 const openChangeIBDialog = (client) => {
   selectedClientForChangeIB.value = client
