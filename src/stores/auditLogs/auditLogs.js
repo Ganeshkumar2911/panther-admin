@@ -104,14 +104,19 @@ export const useAuditLogsStore = defineStore('auditLogs', () => {
   const searchClients = (query = '') => {
     return new Promise((resolve, reject) => {
       apiRequest(urls.KEYS.GET, urls.clientLedger.allClients, {
-        params: query ? { search: query } : {},
+        params: query ? { find_all: true, search: query } : {},
         isTokenRequired: true,
         onSuccess: (res) => {
-          const list = (res?.data || []).map((c) => ({
-            label: c.name || c.email || `User ${c.id}`,
-            value: c.id,
-            email: c.email,
-          }))
+          const list = (res?.data || []).map((c) => {
+            const name = c.name ? c.name.trim() : ''
+            const email = c.email ? c.email.trim() : ''
+            const label = name && email ? `${name} (${email})` : (name || email || `User ${c.id}`)
+            return {
+              label,
+              value: c.id,
+              email: c.email,
+            }
+          })
           resolve(list)
         },
         onFailure: (err) => {
