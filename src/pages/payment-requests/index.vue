@@ -286,7 +286,7 @@
                 <p
                   class="text-[11px] text-secondary-text capitalize font-medium"
                 >
-                  {{ req.account_type }} {{ req.currency }}
+                  {{ req.account_type }} {{ req.broker_currency }}
                 </p>
               </div>
             </td>
