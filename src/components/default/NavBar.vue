@@ -19,18 +19,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Mail,
-<<<<<<< Updated upstream
-  Cpu
-} from 'lucide-vue-next'
-import { useProfileStore } from '@/stores/profile/profile'
-import Tooltip from '@/components/common/Tooltip.vue'
-=======
   Cpu,
   ClipboardList,
 } from "lucide-vue-next";
 import { useProfileStore } from "@/stores/profile/profile";
 import Tooltip from "@/components/common/Tooltip.vue";
->>>>>>> Stashed changes
 
 const store = useProfileStore();
 
@@ -143,10 +136,6 @@ const navItems = [
     icon: Cpu,
   },
   {
-<<<<<<< Updated upstream
-    label: 'Tickets',
-    to: '/tickets',
-=======
     label: "Audit Logs",
     to: "/audit-logs",
     icon: ClipboardList,
@@ -154,7 +143,6 @@ const navItems = [
   {
     label: "Tickets",
     to: "/tickets",
->>>>>>> Stashed changes
     icon: Tickets,
   },
 ];

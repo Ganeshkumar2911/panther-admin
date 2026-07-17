@@ -27,14 +27,6 @@ const urls = {
     groups: "/account-groups",
   },
   clientList: {
-<<<<<<< Updated upstream
-    list: '/client-list',
-    changeIB: '/client/change-ib',
-    changeStatus: '/users/status',
-    update: '/client/update',
-    createIB: '/create-ib',
-    create: '/client/create',
-=======
     list: "/client-list",
     changeIB: "/client/change-ib",
     changeStatus: "/users/status",
@@ -43,7 +35,6 @@ const urls = {
     create: "/client/create",
     delete: "/clients",
     updateReferralLink: "/clients/referral-link",
->>>>>>> Stashed changes
   },
   clientLedger: {
     list: "/ledger/clients",
@@ -55,14 +46,9 @@ const urls = {
     allFundManagers: "/search/fm",
   },
   ibLedger: {
-<<<<<<< Updated upstream
-    list: '/ledger/ib',
-    allIbs: '/search/ib',
-=======
     list: "/ledger/ib",
     allIbs: "/search/ib",
     update: "/ledger/ib/update",
->>>>>>> Stashed changes
   },
   adminLedger: {
     list: "/ledger/admin",
@@ -75,8 +61,6 @@ const urls = {
     transfer: "/ib-transfer",
     clients: "/ibs/clients/",
   },
-<<<<<<< Updated upstream
-=======
   referralLinks: {
     list: "/ibs/referral-links",
     create: "/ibs/referral-links",
@@ -85,7 +69,6 @@ const urls = {
   auditLogs: {
     list: "/audit-logs",
   },
->>>>>>> Stashed changes
   fm: {
     list: "/fund_managers",
     create: "/fund_managers/create",
@@ -148,13 +131,6 @@ const urls = {
     manual: "/emails/manual/send",
   },
   integrations: {
-<<<<<<< Updated upstream
-    list: '/company-integrations',
-    create: '/company-integrations',
-    update: '/company-integrations',
-  }
-}
-=======
     list: "/company-integrations",
     create: "/company-integrations",
     update: "/company-integrations",
@@ -175,6 +151,5 @@ const urls = {
     delete: "/delete-bot",
   },
 };
->>>>>>> Stashed changes
 
 export default urls;

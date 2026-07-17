@@ -164,7 +164,7 @@
                         <span
                           class="text-xs font-medium"
                           :class="
-                            actionValue.SUCCESS
+                            actionValue.SUCCESS === true
                               ? 'text-green-600'
                               : 'text-red-600'
                           "
@@ -176,14 +176,14 @@
                     <td class="px-4 py-3">
                       <div class="flex items-center gap-2">
                         <X
-                          v-if="actionValue.FAILED"
+                          v-if="actionValue.FAILED === false"
                           class="w-4 h-4 text-red-500"
                         />
                         <Check v-else class="w-4 h-4 text-green-500" />
                         <span
                           class="text-xs font-medium"
                           :class="
-                            actionValue.FAILED
+                            actionValue.FAILED === false
                               ? 'text-red-600'
                               : 'text-green-600'
                           "
