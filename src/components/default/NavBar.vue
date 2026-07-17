@@ -1,5 +1,5 @@
 <script setup>
-import { useRoute } from 'vue-router'
+import { useRoute } from "vue-router";
 import {
   LayoutDashboard,
   Users,
@@ -19,12 +19,20 @@ import {
   ChevronLeft,
   ChevronRight,
   Mail,
+<<<<<<< Updated upstream
   Cpu
 } from 'lucide-vue-next'
 import { useProfileStore } from '@/stores/profile/profile'
 import Tooltip from '@/components/common/Tooltip.vue'
+=======
+  Cpu,
+  ClipboardList,
+} from "lucide-vue-next";
+import { useProfileStore } from "@/stores/profile/profile";
+import Tooltip from "@/components/common/Tooltip.vue";
+>>>>>>> Stashed changes
 
-const store = useProfileStore()
+const store = useProfileStore();
 
 defineProps({
   isOpen: {
@@ -35,109 +43,124 @@ defineProps({
     type: Boolean,
     default: false,
   },
-})
+});
 
-const emit = defineEmits(['close', 'toggle-collapse'])
+const emit = defineEmits(["close", "toggle-collapse"]);
 
-const route = useRoute()
+const route = useRoute();
 
 // ✅ Logical navigation items with unique icons
 const navItems = [
   // 1. Core Overview
   {
-    label: 'Dashboard',
-    to: '/dashboard',
+    label: "Dashboard",
+    to: "/dashboard",
     icon: LayoutDashboard,
   },
   // 2. User & Network Administration
   {
-    label: 'Clients',
-    to: '/clients',
+    label: "Clients",
+    to: "/clients",
     icon: Users,
   },
   {
-    label: 'Trading Accounts',
-    to: '/trading-accounts',
+    label: "Trading Accounts",
+    to: "/trading-accounts",
     icon: LineChart,
   },
   {
-    label: 'IB Network',
-    to: '/ib-tree',
+    label: "IB Network",
+    to: "/ib-tree",
     icon: ListTree,
   },
   // 3. Fund Management
   {
-    label: 'Fund Manager',
-    to: '/fm-leaderboard',
+    label: "Fund Manager",
+    to: "/fm-leaderboard",
     icon: Trophy,
   },
   {
-    label: 'FM Requests',
-    to: '/fm-request',
+    label: "FM Requests",
+    to: "/fm-request",
     icon: GitPullRequestArrow,
   },
   // 4. Finances & Wallets
   {
-    label: 'My Wallet',
-    to: '/my-wallet',
+    label: "My Wallet",
+    to: "/my-wallet",
     icon: Wallet,
   },
   {
-    label: 'Client Wallet',
-    to: '/client-wallet',
+    label: "Client Wallet",
+    to: "/client-wallet",
     icon: Coins,
   },
   {
-    label: 'FM Wallet',
-    to: '/fm-wallet',
+    label: "FM Wallet",
+    to: "/fm-wallet",
     icon: TrendingUp,
   },
   {
-    label: 'IB Wallet',
-    to: '/ib-wallet',
+    label: "IB Wallet",
+    to: "/ib-wallet",
     icon: DollarSign,
   },
   // 5. Transactions & Cash Flow
   {
-    label: 'Payment Methods',
-    to: '/payment-methods',
+    label: "Payment Methods",
+    to: "/payment-methods",
     icon: CreditCard,
   },
   {
-    label: 'Payment Requests',
-    to: '/payment-requests',
+    label: "Payment Requests",
+    to: "/payment-requests",
     icon: Handshake,
   },
   {
-    label: 'Settlements',
-    to: '/settlements',
+    label: "Settlements",
+    to: "/settlements",
     icon: RefreshCcw,
   },
   {
-    label: 'eMails',
-    to: '/e-mails',
+    label: "eMails",
+    to: "/e-mails",
     icon: Mail,
+  },
+  {
+    label: "Telegram",
+    to: "/telegram",
+    icon: ClipboardList,
   },
   // 6. System & Support
   {
-    label: 'Group Config',
-    to: '/group-config',
+    label: "Group Config",
+    to: "/group-config",
     icon: Settings,
   },
   {
-    label: 'Company Integrations',
-    to: '/company-integrations',
+    label: "Company Integrations",
+    to: "/company-integrations",
     icon: Cpu,
   },
   {
+<<<<<<< Updated upstream
     label: 'Tickets',
     to: '/tickets',
+=======
+    label: "Audit Logs",
+    to: "/audit-logs",
+    icon: ClipboardList,
+  },
+  {
+    label: "Tickets",
+    to: "/tickets",
+>>>>>>> Stashed changes
     icon: Tickets,
   },
-]
+];
 
 // ✅ Active Route Check
-const isActive = (path) => route.path.startsWith(path)
+const isActive = (path) => route.path.startsWith(path);
 </script>
 
 <template>
@@ -152,26 +175,24 @@ const isActive = (path) => route.path.startsWith(path)
 
   <!-- Sidebar -->
   <aside
-    class="fixed top-0 left-0 z-40 h-full
-           bg-navbar text-white border-r border-white/10
-           flex flex-col
-           transition-all duration-300 ease-in-out
-           -translate-x-full md:translate-x-0"
+    class="fixed top-0 left-0 z-40 h-full bg-navbar text-white border-r border-white/10 flex flex-col transition-all duration-300 ease-in-out -translate-x-full md:translate-x-0"
     :class="[
       { 'translate-x-0': isOpen },
-      isCollapsed ? 'w-[80px]' : 'w-[240px]'
+      isCollapsed ? 'w-[80px]' : 'w-[240px]',
     ]"
   >
     <!-- Header -->
-    <div class="h-[60px] flex items-center justify-between px-4 border-b border-white/10">
+    <div
+      class="h-[60px] flex items-center justify-between px-4 border-b border-white/10"
+    >
       <div v-if="!isCollapsed" class="flex items-center gap-2.5">
         <div class="w-48 h-28 flex items-center justify-center">
-         <img src="/panther-logo.svg" alt="Logo">
+          <img src="/panther-logo.svg" alt="Logo" />
         </div>
       </div>
       <div v-else class="flex items-center justify-center w-full">
         <div class="w-12 h-12 rounded-lg flex items-center justify-center">
-         <img src="/panther-fav.svg" alt="Logo">
+          <img src="/panther-fav.svg" alt="Logo" />
         </div>
       </div>
     </div>
@@ -189,13 +210,12 @@ const isActive = (path) => route.path.startsWith(path)
         <RouterLink
           :to="item.to"
           @click="$emit('close')"
-          class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
-                 transition-all duration-200 group"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group"
           :class="[
             isActive(item.to)
               ? 'bg-primary text-white'
               : 'text-white/70 hover:text-white hover:bg-white/10',
-            isCollapsed ? 'justify-center' : ''
+            isCollapsed ? 'justify-center' : '',
           ]"
         >
           <component
@@ -217,27 +237,35 @@ const isActive = (path) => route.path.startsWith(path)
     <div class="border-t border-white/10">
       <!-- User Info -->
       <div class="p-4">
-        <div class="flex items-center" :class="isCollapsed ? 'justify-center' : 'gap-3'">
-          <div class="flex items-center min-w-0" :class="isCollapsed ? 'hidden' : 'gap-3'">
-            <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-              <span class="text-white text-xs font-bold">{{ store.user?.name?.charAt(0).toUpperCase() || 'S'}}</span>
+        <div
+          class="flex items-center"
+          :class="isCollapsed ? 'justify-center' : 'gap-3'"
+        >
+          <div
+            class="flex items-center min-w-0"
+            :class="isCollapsed ? 'hidden' : 'gap-3'"
+          >
+            <div
+              class="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0"
+            >
+              <span class="text-white text-xs font-bold">{{
+                store.user?.name?.charAt(0).toUpperCase() || "S"
+              }}</span>
             </div>
             <div class="min-w-0">
-              <p class="text-white text-xs font-semibold truncate">{{ store.user?.name }}</p>
-              <p class="text-white text-[11px] capitalize truncate">{{ store.user?.role }}</p>
+              <p class="text-white text-xs font-semibold truncate">
+                {{ store.user?.name }}
+              </p>
+              <p class="text-white text-[11px] capitalize truncate">
+                {{ store.user?.role }}
+              </p>
             </div>
           </div>
 
-          <Tooltip
-            v-if="isCollapsed"
-            text="Expand"
-            position="right"
-          >
+          <Tooltip v-if="isCollapsed" text="Expand" position="right">
             <button
               @click="emit('toggle-collapse')"
-              class="flex items-center justify-center w-10 h-10 rounded-lg
-                     text-white/70 hover:text-white hover:bg-white/10
-                     transition-all duration-200"
+              class="flex items-center justify-center w-10 h-10 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-all duration-200"
             >
               <ChevronRight class="w-5 h-5" />
             </button>
@@ -245,9 +273,7 @@ const isActive = (path) => route.path.startsWith(path)
           <button
             v-else
             @click="emit('toggle-collapse')"
-            class="flex items-center justify-center w-10 h-10 rounded-lg
-                   text-white/70 hover:text-white hover:bg-white/10
-                   transition-all duration-200 ml-auto"
+            class="flex items-center justify-center w-10 h-10 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-all duration-200 ml-auto"
             title="Collapse"
           >
             <ChevronLeft class="w-5 h-5" />
