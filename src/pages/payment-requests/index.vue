@@ -390,7 +390,7 @@
 
             <td class="px-3 py-3.5">
               <div class="flex items-center justify-end gap-1.5">
-                <template v-if="req.approval_status === 'pending' && profileStore.user?.user_id !== 785">
+                <template v-if="req.approval_status === 'pending'">
                   <button
                     class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border bg-primary-green/10 text-primary-green border-primary-green/20 hover:bg-primary-green/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     @click="openConfirmDialog('approve', req)"

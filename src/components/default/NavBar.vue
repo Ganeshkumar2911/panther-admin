@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   LayoutDashboard,
@@ -130,17 +131,31 @@ const navItems = [
     to: '/company-integrations',
     icon: Cpu,
   },
-  // {
-  //   label: 'Audit Logs',
-  //   to: '/audit-logs',
-  //   icon: ClipboardList,
-  // },
+  {
+    label: 'Audit Logs',
+    to: '/audit-logs',
+    icon: ClipboardList,
+  },
   {
     label: 'Tickets',
     to: '/tickets',
     icon: Tickets,
   },
 ]
+
+// ✅ Filter navigation items based on profile user_id
+const filteredNavItems = computed(() => {
+  const userId = store.user?.user_id || store.user?.id
+  const restrictedLabels = ['Group Config', 'Payment Methods', 'Audit Logs']
+
+  return navItems.filter((item) => {
+    if (restrictedLabels.includes(item.label)) {
+      // These tabs are ONLY visible to user 819
+      return Number(userId) === 819
+    }
+    return true
+  })
+})
 
 // ✅ Active Route Check
 const isActive = (path) => route.path.startsWith(path)
@@ -185,7 +200,7 @@ const isActive = (path) => route.path.startsWith(path)
     <!-- Nav -->
     <nav class="flex-1 overflow-y-auto p-3 space-y-1 no-scrollbar">
       <Tooltip
-        v-for="item in navItems"
+        v-for="item in filteredNavItems"
         :key="item.to"
         :text="item.label"
         position="right"
