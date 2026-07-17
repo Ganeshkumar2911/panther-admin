@@ -4,10 +4,10 @@ import router from "../router";
 
 // ─── Constants
 
-// const BASE_URL = "https://w2llv2cm-2504.inc1.devtunnels.ms/admin/";
-// const BASE_URL = "https://f7v2d03l-2504.inc1.devtunnels.ms/admin/";
-// const BASE_URL = "https://848ncvt5-2504.euw.devtunnels.ms/admin/";
-const BASE_URL = "https://1pz4zm0b-2504.euw.devtunnels.ms/admin/";
+// const BASE_URL = "https://w2llv2cm-2504.inc1.devtunnels.ms/admin/"; 
+// const BASE_URL = "https://f7v2d03l-2504.inc1.devtunnels.ms/admin/"; 
+const BASE_URL = "https://848ncvt5-2504.euw.devtunnels.ms/admin/";
+// const BASE_URL = "https://1pz4zm0b-2504.euw.devtunnels.ms/admin/";
 const DEFAULT_TIMEOUT = 2 * 60 * 1000;
 const MAX_RETRY_ATTEMPTS = 2;
 const RETRYABLE_STATUS_CODES = [502, 503, 504];
@@ -37,6 +37,25 @@ const cleanupRequest = (requestKey, controller) => {
   }
 };
 
+const getBaseUrl = () => {
+  if (typeof window === "undefined") return BASE_URL;
+  let url = localStorage.getItem("custom_base_url");
+  if (!url) return BASE_URL;
+
+  url = url.trim();
+  if (!url.endsWith("/")) {
+    url += "/";
+  }
+  if (!url.endsWith("/admin/")) {
+    if (url.endsWith("admin/")) {
+      // already ends with admin/
+    } else {
+      url += "admin/";
+    }
+  }
+  return url;
+};
+
 // ─── Axios Instance
 
 const axiosInstance = axios.create({
@@ -48,6 +67,8 @@ const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(
   (config) => {
+    config.baseURL = getBaseUrl();
+
     if (config.isTokenRequired !== false) {
       const { accessToken } = authToken.getToken();
       if (accessToken) {
