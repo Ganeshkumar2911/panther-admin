@@ -130,11 +130,11 @@ const navItems = [
     to: '/company-integrations',
     icon: Cpu,
   },
-  {
-    label: 'Audit Logs',
-    to: '/audit-logs',
-    icon: ClipboardList,
-  },
+  // {
+  //   label: 'Audit Logs',
+  //   to: '/audit-logs',
+  //   icon: ClipboardList,
+  // },
   {
     label: 'Tickets',
     to: '/tickets',
