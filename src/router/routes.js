@@ -322,6 +322,16 @@ const routes = [
                     description: 'Track and view system modifications and events.',
                 }
             },
+            {
+                path: '/banners',
+                name: 'banners',
+                component: () => import('@/pages/banners/index.vue'),
+                meta: {
+                    requiresAuth: true,
+                    title: 'Banners',
+                    description: 'Manage and view promotional banners and groups.',
+                }
+            },
         ]
     }
 ]

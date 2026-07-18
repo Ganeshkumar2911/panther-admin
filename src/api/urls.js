@@ -136,6 +136,17 @@ const urls = {
     create: '/company-integrations',
     update: '/company-integrations',
     run: '/company-integrations/run',
+  },
+  banners: {
+    listGroups: '/group/banners',
+    createGroup: '/create-banner-group',
+    updateGroup: '/update-banner-group',
+    deleteGroup: '/delete-banner-group',
+    toggleGroup: '/toggle-banner-group',
+    createBanner: '/create-banner',
+    updateBanner: '/update-banner',
+    deleteBanner: '/delete-banner',
+    toggleBanner: '/toggle-banner',
   }
 }
 

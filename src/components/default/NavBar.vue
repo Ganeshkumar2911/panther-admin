@@ -21,7 +21,8 @@ import {
   ChevronRight,
   Mail,
   Cpu,
-  ClipboardList
+  ClipboardList,
+  Image
 } from 'lucide-vue-next'
 import { useProfileStore } from '@/stores/profile/profile'
 import Tooltip from '@/components/common/Tooltip.vue'
@@ -141,6 +142,11 @@ const navItems = [
     to: '/tickets',
     icon: Tickets,
   },
+  {
+    label: 'Banners',
+    to: '/banners',
+    icon: Image,
+  },
 ]
 
 // ✅ Filter navigation items based on profile user_id
@@ -166,7 +172,7 @@ const isActive = (path) => route.path.startsWith(path)
   <Transition name="fade">
     <div
       v-if="isOpen"
-      class="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm md:hidden"
+      class="fixed inset-0 z-30 bg-black/40 md:hidden"
       @click="$emit('close')"
     />
   </Transition>
