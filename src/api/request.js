@@ -105,6 +105,7 @@ axiosInstance.interceptors.response.use(
       authToken.removeToken();
       localStorage.removeItem('role')
       localStorage.removeItem('lastActivityTimestamp')
+      localStorage.removeItem('custom_base_url')
       router.push({ name: "login" });
       return Promise.reject(error);
     }

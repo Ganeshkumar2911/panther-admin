@@ -7,8 +7,9 @@ export const useAuthStore = defineStore('auth', () => {
     // Clear auth credentials
     authToken.removeToken()
     
-    // Clear inactivity tracking key
+    // Clear stored session-specific values
     localStorage.removeItem('lastActivityTimestamp')
+    localStorage.removeItem('custom_base_url')
     
     // Redirect to login page and reload to reset all Pinia states
     router.push({ name: 'login' }).then(() => {
