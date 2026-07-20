@@ -137,17 +137,6 @@ const urls = {
     update: "/company-integrations",
     run: "/company-integrations/run",
   },
-  banners: {
-    listGroups: "/group/banners",
-    createGroup: "/create-banner-group",
-    updateGroup: "/update-banner-group",
-    deleteGroup: "/delete-banner-group",
-    toggleGroup: "/toggle-banner-group",
-    createBanner: "/create-banner",
-    updateBanner: "/update-banner",
-    deleteBanner: "/delete-banner",
-    toggleBanner: "/toggle-banner",
-  },
   rbac: {
     roles: {
       list: "/rbac/roles",
@@ -160,7 +149,7 @@ const urls = {
     staff: {
       list: "/rbac/users",
       create: "/rbac/users",
-      updateRole: "/rbac/users/roles",
+      updateRole: "/rbac/users/role",
       updateStatus: "/rbac/users/status",
       delete: "/rbac/users",
     },

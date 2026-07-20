@@ -22,7 +22,6 @@ import {
   Mail,
   Cpu,
   ClipboardList,
-  Image,
   ShieldCheck
 } from 'lucide-vue-next'
 import { useProfileStore } from '@/stores/profile/profile'
@@ -142,11 +141,6 @@ const navItems = [
     label: 'Tickets',
     to: '/tickets',
     icon: Tickets,
-  },
-  {
-    label: 'Banners',
-    to: '/banners',
-    icon: Image,
   },
   {
     label: 'Access Control',
