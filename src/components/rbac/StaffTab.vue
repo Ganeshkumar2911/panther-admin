@@ -13,7 +13,8 @@
         />
       </div>
       <button
-        class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-colors"
+        v-if="hasPermission('team_management.create')"
+        class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-colors cursor-pointer"
         @click="dialogOpen = true"
       >
         <Plus class="w-3.5 h-3.5" /> Add Staff
@@ -175,12 +176,14 @@ import { onMounted, ref, computed } from 'vue'
 import { Search, Plus, Users, Trash2, Loader2, ShieldCheck } from 'lucide-vue-next'
 import { useRbacStaffStore } from '@/stores/rbac/staff'
 import { useRbacRolesStore } from '@/stores/rbac/roles'
+import { usePermissionCheck } from '@/composables/usePermissionCheck'
 import Pagination from '@/components/common/Pagination.vue'
 import StaffDialog from './StaffDialog.vue'
 import UserPermissionDrawer from './UserPermissionDrawer.vue'
 
 const staffStore = useRbacStaffStore()
 const rolesStore = useRbacRolesStore()
+const { hasPermission } = usePermissionCheck()
 
 const roleOptions = computed(() =>
   rolesStore.records.map((role) => ({

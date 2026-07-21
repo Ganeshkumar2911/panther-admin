@@ -379,7 +379,7 @@ onMounted(() => store.fetchClients())
 
             <td class="p-3">
               <p class="text-xs text-primary-text">{{ client.email ?? '—' }}</p>
-              <p class="text-[10px] text-secondary-text">{{ client.phone_number ?? '—' }}</p>
+              <p v-if="hasPermission('client.view_number')" class="text-[10px] text-secondary-text">{{ client.phone_number ?? '—' }}</p>
               <p class="text-[10px] text-secondary-text" v-if="client.date_of_birth">DOB: {{ formatDate(client.date_of_birth) }}</p>
             </td>
 
@@ -567,7 +567,7 @@ onMounted(() => store.fetchClients())
             <p class="text-[10px] text-secondary-text mb-0.5">Email</p>
             <p class="font-medium text-primary-text text-[11px] truncate">{{ client.email ?? '—' }}</p>
           </div>
-          <div class="bg-background rounded-lg px-3 py-2">
+          <div v-if="hasPermission('client.view_number')" class="bg-background rounded-lg px-3 py-2">
             <p class="text-[10px] text-secondary-text mb-0.5">Phone</p>
             <p class="font-medium text-primary-text text-[11px] truncate">{{ client.phone_number ?? '—' }}</p>
           </div>

@@ -66,11 +66,16 @@ const handleLogin = () => {
 
   loading.value = true
 
-  const successHandler = (res) => {
-    loading.value = false
+  const successHandler = async (res) => {
     authToken.setToken(res.access_token)
-    useMyPermissionsStore().fetchMyPermissions(true)
-    router.push('/dashboard') // ✅ direct navigation
+    const myPermissionsStore = useMyPermissionsStore()
+    try {
+      await myPermissionsStore.fetchMyPermissions(true)
+    } catch (_) {
+      // ignore
+    }
+    loading.value = false
+    router.push(myPermissionsStore.firstAllowedPath)
   }
 
   const failureHandler = (err) => {

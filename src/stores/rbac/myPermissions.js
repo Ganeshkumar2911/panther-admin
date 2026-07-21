@@ -2,6 +2,7 @@ import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import apiRequest from '@/api/request'
 import urls from '@/api/urls'
+import { navItems } from '@/config/navItems'
 
 export const useMyPermissionsStore = defineStore('myPermissions', () => {
   const permissions = ref({})
@@ -39,6 +40,12 @@ export const useMyPermissionsStore = defineStore('myPermissions', () => {
     return true
   }
 
+  // Find the first navigation path the user has permission to access
+  const firstAllowedPath = computed(() => {
+    const allowed = navItems.find((item) => hasPermission(item.permission))
+    return allowed ? allowed.to : '/dashboard'
+  })
+
   // Check if user has ANY of the given permission codes
   const hasAnyPermission = (codes = []) => {
     if (!codes || codes.length === 0) return true
@@ -60,28 +67,33 @@ export const useMyPermissionsStore = defineStore('myPermissions', () => {
 
   // Fetch logged-in user permissions
   const fetchMyPermissions = (force = false) => {
-    if (isFetched.value && !force) return
+    if (isFetched.value && !force) return Promise.resolve(permissions.value)
 
     loading.value = true
     error.value = null
 
-    const successHandler = (res) => {
-      permissions.value = res?.data?.permissions || res?.data || {}
-      userId.value = res?.data?.user_id || null
-      loading.value = false
-      isFetched.value = true
-    }
+    return new Promise((resolve, reject) => {
+      const successHandler = (res) => {
+        permissions.value = res?.data?.permissions || res?.data || {}
+        userId.value = res?.data?.user_id || null
+        loading.value = false
+        isFetched.value = true
+        resolve(permissions.value)
+      }
 
-    const failureHandler = (err) => {
-      loading.value = false
-      error.value = err
-      console.error('Failed to fetch user permissions:', err)
-    }
+      const failureHandler = (err) => {
+        loading.value = false
+        error.value = err
+        isFetched.value = true
+        console.error('Failed to fetch user permissions:', err)
+        reject(err)
+      }
 
-    apiRequest(urls.KEYS.GET, urls.rbac.userPermissions.me, {
-      isTokenRequired: true,
-      onSuccess: successHandler,
-      onFailure: failureHandler,
+      apiRequest(urls.KEYS.GET, urls.rbac.userPermissions.me, {
+        isTokenRequired: true,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+      })
     })
   }
 
@@ -100,6 +112,7 @@ export const useMyPermissionsStore = defineStore('myPermissions', () => {
     isFetched,
     error,
     userCodes,
+    firstAllowedPath,
 
     // Helpers
     hasPermission,
