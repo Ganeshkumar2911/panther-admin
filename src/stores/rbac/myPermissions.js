@@ -23,22 +23,39 @@ export const useMyPermissionsStore = defineStore('myPermissions', () => {
     return codes
   })
 
-  // Helper method: check if user has a specific permission code
-  const hasPermission = (code) => {
-    if (!code) return true
-    return userCodes.value.has(code)
+  // Check if user has a specific permission code, an array of codes (ANY), or custom function
+  const hasPermission = (codeOrCodes) => {
+    if (!codeOrCodes) return true
+    if (typeof codeOrCodes === 'string') {
+      return userCodes.value.has(codeOrCodes)
+    }
+    if (Array.isArray(codeOrCodes)) {
+      if (codeOrCodes.length === 0) return true
+      return codeOrCodes.some((code) => userCodes.value.has(code))
+    }
+    if (typeof codeOrCodes === 'function') {
+      return codeOrCodes(userCodes.value)
+    }
+    return true
   }
 
-  // Helper method: check if user has ANY of the given permission codes
+  // Check if user has ANY of the given permission codes
   const hasAnyPermission = (codes = []) => {
     if (!codes || codes.length === 0) return true
     return codes.some((code) => userCodes.value.has(code))
   }
 
-  // Helper method: check if user has ALL of the given permission codes
+  // Check if user has ALL of the given permission codes
   const hasAllPermissions = (codes = []) => {
     if (!codes || codes.length === 0) return true
     return codes.every((code) => userCodes.value.has(code))
+  }
+
+  // Check if user has ANY permission in a given module (e.g. 'client', 'email', 'kyc')
+  const hasModulePermission = (moduleName) => {
+    if (!moduleName) return true
+    const moduleList = permissions.value[moduleName]
+    return Array.isArray(moduleList) && moduleList.length > 0
   }
 
   // Fetch logged-in user permissions
@@ -88,6 +105,7 @@ export const useMyPermissionsStore = defineStore('myPermissions', () => {
     hasPermission,
     hasAnyPermission,
     hasAllPermissions,
+    hasModulePermission,
 
     // Actions
     fetchMyPermissions,

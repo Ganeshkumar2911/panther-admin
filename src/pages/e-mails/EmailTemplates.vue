@@ -9,13 +9,15 @@
       </div>
       <div class="flex items-center gap-2">
         <button
-          class="flex items-center gap-1.5 px-4 py-2 rounded-lg border border-primary-border text-xs text-secondary-text hover:text-primary-text hover:bg-background transition-colors"
+          v-if="hasPermission('email.template_manual_trigger')"
+          class="flex items-center gap-1.5 px-4 py-2 rounded-lg border border-primary-border text-xs text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer"
           @click="openTriggerPanel"
         >
           <Send class="w-3.5 h-3.5" /> Manual Trigger
         </button>
         <button
-          class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-colors"
+          v-if="hasPermission('email.template_update')"
+          class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-colors cursor-pointer"
           @click="openCreate"
         >
           <Plus class="w-3.5 h-3.5" /> Create Template
@@ -82,7 +84,8 @@
         <p class="text-xs text-secondary-text mt-1">Create your first email template to get started</p>
       </div>
       <button
-        class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-colors"
+        v-if="hasPermission('email.template_update')"
+        class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-colors cursor-pointer"
         @click="openCreate"
       >
         <Plus class="w-3.5 h-3.5" /> Create Template
@@ -129,15 +132,17 @@
         </div>
 
         <!-- Actions -->
-        <div class="flex gap-2 pt-2.5 mt-auto border-t border-primary-border">
+        <div v-if="hasPermission('email.template_view') || hasPermission('email.template_update')" class="flex gap-2 pt-2.5 mt-auto border-t border-primary-border">
           <button
-            class="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary-border text-xs text-secondary-text hover:text-primary-text hover:bg-background transition-colors"
+            v-if="hasPermission('email.template_view')"
+            class="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary-border text-xs text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer"
             @click="openPreview(tpl)"
           >
             <Eye class="w-3.5 h-3.5" /> Preview
           </button>
           <button
-            class="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-colors"
+            v-if="hasPermission('email.template_update')"
+            class="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-colors cursor-pointer"
             @click="openEdit(tpl)"
           >
             <Pencil class="w-3.5 h-3.5" /> Edit
@@ -185,8 +190,10 @@ import Pagination from '@/components/common/Pagination.vue'
 import EmailTemplateFormPanel from '@/components/emails/EmailTemplateFormPanel.vue'
 import EmailTemplatePreviewDialog from '@/components/emails/EmailTemplatePreviewDialog.vue'
 import EmailTriggerPanel from '@/components/emails/EmailTriggerPanel.vue'
+import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
 const store = useEmailTemplatesStore()
+const { hasPermission } = usePermissionCheck()
 
 const panel = ref({ open: false, editData: null })
 const triggerPanelOpen = ref(false)

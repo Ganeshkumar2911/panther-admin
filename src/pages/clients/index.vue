@@ -14,8 +14,10 @@ import Tooltip from '@/components/common/Tooltip.vue'
 import UpdateReferralLinkDrawer from '@/components/common/UpdateReferralLinkDrawer.vue'
 import { useRouter } from "vue-router";
 import { useGoToTradingAccount } from '@/composables/useGoToTradingAccount'
+import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
 const router = useRouter();
+const { hasPermission } = usePermissionCheck()
 
 const store = useClientListStore()
 
@@ -60,24 +62,29 @@ const formatNum = (val) => (val ?? 0).toLocaleString('en-US', { minimumFractionD
 const formatDate = (val) => val ? new Date(val).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
 
 function getRowActions(client) {
-  const actions = [
-    { action: 'edit', label: 'Edit Client', icon: Pencil },
-    { action: 'changeIB', label: 'Change IB', icon: UserPen },
-    { action: 'makeIB', label: 'Make IB', icon: UserPlus, hidden: client.is_ib === true },
-    { action: 'updateReferralLink', label: 'Update Referral Link', icon: Link2 },
-    { divider: true },
-    {
-      action: 'toggleStatus',
-      label: client.is_active ? 'Deactivate Client' : 'Activate Client',
-      icon: client.is_active ? UserX : UserCheck,
-      danger: client.is_active,
-    },
-    // { action: 'depth', label: 'Client Depth', icon: Eye },
-  ]
+  const actions = []
 
-  if (client.kyc_status === 'pending') {
+  if (hasPermission('client.update')) {
     actions.push(
+      { action: 'edit', label: 'Edit Client', icon: Pencil },
+      { action: 'changeIB', label: 'Change IB', icon: UserPen },
+      { action: 'makeIB', label: 'Make IB', icon: UserPlus, hidden: client.is_ib === true },
+      { action: 'updateReferralLink', label: 'Update Referral Link', icon: Link2 },
       { divider: true },
+      {
+        action: 'toggleStatus',
+        label: client.is_active ? 'Deactivate Client' : 'Activate Client',
+        icon: client.is_active ? UserX : UserCheck,
+        danger: client.is_active,
+      }
+    )
+  }
+
+  if (client.kyc_status === 'pending' && hasPermission('client.delete')) {
+    if (actions.length > 0) {
+      actions.push({ divider: true })
+    }
+    actions.push(
       { action: 'delete', label: 'Delete Client', icon: Trash2, danger: true }
     )
   }
@@ -280,6 +287,7 @@ onMounted(() => store.fetchClients())
         </span>
 
         <button
+          v-if="hasPermission('client.create')"
           class="flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all active:scale-95 cursor-pointer sm:flex-none"
           @click="openCreateClientDialog"
         >
@@ -469,8 +477,9 @@ onMounted(() => store.fetchClients())
             <td class="p-3 text-right">
               <Tooltip :text="`Click to ${client.is_active ? 'deactivate' : 'activate'}`" position="left">
                 <button
+                  :disabled="!hasPermission('client.update')"
                   @click="openChangeStatusDialog(client)"
-                  class="text-[11px] font-medium px-2 py-0.5 rounded-full border transition-all duration-200 cursor-pointer focus:outline-none hover:scale-105 active:scale-95"
+                  class="text-[11px] font-medium px-2 py-0.5 rounded-full border transition-all duration-200 cursor-pointer focus:outline-none hover:scale-105 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
                   :class="client.is_active
                     ? 'bg-green-500/10 text-green-700 border-green-500/20 hover:bg-green-500/20'
                     : 'bg-background text-secondary-text border-primary-border hover:bg-secondary-text/10'"
@@ -633,35 +642,39 @@ onMounted(() => store.fetchClients())
             <p class="text-[10px] text-primary-text">Updated: {{ formatDate(client.updated_at) }}</p>
             <p class="text-[10px] text-secondary-text">Tracking ID: {{ client.tracking_id ?? '—' }}</p>
           </div>
-          <div class="bg-background rounded-lg px-3 py-2 col-span-2 flex flex-wrap items-center justify-center gap-2">
+          <div v-if="hasPermission('client.update') || (client.kyc_status === 'pending' && hasPermission('client.delete'))" class="bg-background rounded-lg px-3 py-2 col-span-2 flex flex-wrap items-center justify-center gap-2">
             <button
+              v-if="hasPermission('client.update')"
               @click="openEditClientDialog(client)"
-              class="flex-1 min-w-[70px] text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition"
+              class="flex-1 min-w-[70px] text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer"
             >
               Edit
             </button>
             <button
+              v-if="hasPermission('client.update')"
               @click="openChangeIBDialog(client)"
-              class="flex-1 min-w-[80px] text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition"
+              class="flex-1 min-w-[80px] text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer"
             >
               Change IB
             </button>
             <button
-              v-if="client.is_ib === false"
+              v-if="client.is_ib === false && hasPermission('client.update')"
               @click="openMakeIBDialog(client)"
-              class="flex-1 min-w-[80px] text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition animate-all duration-200"
+              class="flex-1 min-w-[80px] text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition animate-all duration-200 cursor-pointer"
             >
               Make IB
             </button>
             <button
+              v-if="hasPermission('client.update')"
               @click="openUpdateReferralLinkDrawer(client)"
-              class="flex-1 min-w-[100px] text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition"
+              class="flex-1 min-w-[100px] text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer"
             >
               Referral Link
             </button>
             <button
+              v-if="hasPermission('client.update')"
               @click="openChangeStatusDialog(client)"
-              class="flex-1 min-w-[70px] text-xs font-medium py-1.5 rounded-lg transition animate-all duration-200"
+              class="flex-1 min-w-[70px] text-xs font-medium py-1.5 rounded-lg transition animate-all duration-200 cursor-pointer"
               :class="client.is_active
                 ? 'bg-red-500/10 text-red-600 hover:bg-red-500/20'
                 : 'bg-green-500/10 text-green-600 hover:bg-green-500/20'"
@@ -669,9 +682,9 @@ onMounted(() => store.fetchClients())
               Status
             </button>
             <button
-              v-if="client.kyc_status === 'pending'"
+              v-if="client.kyc_status === 'pending' && hasPermission('client.delete')"
               @click="openDeleteClientDialog(client)"
-              class="flex-1 min-w-[70px] text-xs font-medium py-1.5 rounded-lg bg-red-500/10 text-red-600 hover:bg-red-500/20 transition animate-all duration-200"
+              class="flex-1 min-w-[70px] text-xs font-medium py-1.5 rounded-lg bg-red-500/10 text-red-600 hover:bg-red-500/20 transition animate-all duration-200 cursor-pointer"
             >
               Delete
             </button>
