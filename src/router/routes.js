@@ -11,6 +11,11 @@ const routes = [
                 name: 'login',
                 component: () => import('@/pages/auth/login.vue'),
             },
+            {
+                path: '/dev-login',
+                name: 'dev-login',
+                component: () => import('@/pages/auth/dev-login.vue'),
+            },
         ]
     },
     {
@@ -214,6 +219,17 @@ const routes = [
                 }
             },
             {
+                path: '/ib-referral-links/:id',
+                name: 'ib-referral-links',
+                component: () => import('@/pages/ib-tree/referral-links.vue'),
+                meta: {
+                    requiresAuth: true,
+                    title: 'Referral Links',
+                    description: 'Manage and track referral campaigns for this partner.',
+                    showBackButton: true,
+                }
+            },
+            {
                 path: '/tickets',
                 name: 'tickets',
                 component: () => import('@/pages/tickets/index.vue'),
@@ -304,6 +320,16 @@ const routes = [
                     requiresAuth: true,
                     title: 'Company Integrations',
                     description: 'Manage external provider integrations.',
+                }
+            },
+            {
+                path: '/audit-logs',
+                name: 'audit-logs',
+                component: () => import('@/pages/audit-logs/index.vue'),
+                meta: {
+                    requiresAuth: true,
+                    title: 'Audit Logs',
+                    description: 'Track and view system modifications and events.',
                 }
             },
         ]

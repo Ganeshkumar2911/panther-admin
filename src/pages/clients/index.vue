@@ -1,15 +1,19 @@
 <script setup>
 import { onMounted, computed, ref } from 'vue'
-import { Search, Users, UserPen, Eye, UserX, UserCheck, Pencil, UserPlus, Plus,RefreshCw } from 'lucide-vue-next'
+import { Search, Users, UserPen, Eye, UserX, UserCheck, Pencil, UserPlus, Plus, RefreshCw, Trash2, Link2 } from 'lucide-vue-next'
 import { useClientListStore } from '@/stores/clientList/clientList'
 import Pagination from '@/components/common/Pagination.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
+import DropdownMenu from '@/components/common/DropdownMenu.vue'
 import ChangeIBDialog from '@/components/common/ChangeIBDialog.vue'
 import ChangeStatusDialog from '@/components/common/ChangeStatusDialog.vue'
 import ClientDialog from '@/components/common/ClientDialog.vue'
 import MakeIBDialog from '@/components/common/MakeIBDialog.vue'
+import DeleteClientDialog from '@/components/common/DeleteClientDialog.vue'
 import Tooltip from '@/components/common/Tooltip.vue'
+import UpdateReferralLinkDrawer from '@/components/common/UpdateReferralLinkDrawer.vue'
 import { useRouter } from "vue-router";
+import { useGoToTradingAccount } from '@/composables/useGoToTradingAccount'
 
 const router = useRouter();
 
@@ -32,6 +36,12 @@ const selectedClientForEdit = ref(null)
 
 const createClientDialogOpen = ref(false)
 
+const deleteClientDialogOpen = ref(false)
+const selectedClientForDelete = ref(null)
+
+const updateReferralLinkDrawerOpen = ref(false)
+const selectedClientForReferralLink = ref(null)
+
 const onSearch = () => {
   clearTimeout(searchTimer)
   searchTimer = setTimeout(() => store.applyFilters(), 400)
@@ -48,6 +58,60 @@ const handlePageChange = (page) => store.fetchClients(page)
 
 const formatNum = (val) => (val ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 const formatDate = (val) => val ? new Date(val).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
+
+function getRowActions(client) {
+  const actions = [
+    { action: 'edit', label: 'Edit Client', icon: Pencil },
+    { action: 'changeIB', label: 'Change IB', icon: UserPen },
+    { action: 'makeIB', label: 'Make IB', icon: UserPlus, hidden: client.is_ib === true },
+    { action: 'updateReferralLink', label: 'Update Referral Link', icon: Link2 },
+    { divider: true },
+    {
+      action: 'toggleStatus',
+      label: client.is_active ? 'Deactivate Client' : 'Activate Client',
+      icon: client.is_active ? UserX : UserCheck,
+      danger: client.is_active,
+    },
+    // { action: 'depth', label: 'Client Depth', icon: Eye },
+  ]
+
+  if (client.kyc_status === 'pending') {
+    actions.push(
+      { divider: true },
+      { action: 'delete', label: 'Delete Client', icon: Trash2, danger: true }
+    )
+  }
+
+  return actions
+}
+
+function onMenuSelect(item, client) {
+  switch (item.action) {
+    case 'edit': return openEditClientDialog(client)
+    case 'changeIB': return openChangeIBDialog(client)
+    case 'makeIB': return openMakeIBDialog(client)
+    case 'updateReferralLink': return openUpdateReferralLinkDrawer(client)
+    case 'toggleStatus': return openChangeStatusDialog(client)
+    case 'depth': return openClientDepth(client)
+    case 'delete': return openDeleteClientDialog(client)
+  }
+}
+
+const openDeleteClientDialog = (client) => {
+  selectedClientForDelete.value = client
+  deleteClientDialogOpen.value = true
+}
+
+const closeDeleteClientDialog = () => {
+  deleteClientDialogOpen.value = false
+  selectedClientForDelete.value = null
+}
+
+const handleDeleteSuccess = () => {
+  store.fetchClients(store.pagination.page)
+}
+
+const { goToTradingAccount } = useGoToTradingAccount()
 
 const openChangeIBDialog = (client) => {
   selectedClientForChangeIB.value = client
@@ -122,6 +186,20 @@ const closeCreateClientDialog = () => {
 
 const handleCreateClientSuccess = () => {
   store.fetchClients(1)
+}
+
+const openUpdateReferralLinkDrawer = (client) => {
+  selectedClientForReferralLink.value = client
+  updateReferralLinkDrawerOpen.value = true
+}
+
+const closeUpdateReferralLinkDrawer = () => {
+  updateReferralLinkDrawerOpen.value = false
+  selectedClientForReferralLink.value = null
+}
+
+const handleUpdateReferralLinkSuccess = () => {
+  store.fetchClients(store.pagination.page)
 }
 
 const getKycClass = (status) => {
@@ -220,6 +298,7 @@ onMounted(() => store.fetchClients())
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Contact</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Address</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">IB</th>
+            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Referral Campaign</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">KYC Status</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Doc Status</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Sumsub ID</th>
@@ -245,6 +324,7 @@ onMounted(() => store.fetchClients())
             <td class="p-3"><div class="space-y-1.5"><div class="h-3 w-20 bg-card-background rounded" /><div class="h-2.5 w-24 bg-card-background rounded" /></div></td>
             <td class="p-3"><div class="space-y-1.5"><div class="h-3 w-16 bg-card-background rounded" /><div class="h-2.5 w-20 bg-card-background rounded" /></div></td>
             <td class="p-3"><div class="space-y-1.5"><div class="h-3 w-20 bg-card-background rounded" /><div class="h-2.5 w-24 bg-card-background rounded" /></div></td>
+            <td class="p-3"><div class="space-y-1.5"><div class="h-3 w-16 bg-card-background rounded" /><div class="h-2.5 w-20 bg-card-background rounded" /></div></td>
             <td class="p-3"><div class="h-5 w-16 bg-card-background rounded-full" /></td>
             <td class="p-3"><div class="h-5 w-16 bg-card-background rounded-full" /></td>
             <td class="p-3"><div class="h-5 w-20 bg-card-background rounded" /></td>
@@ -258,7 +338,7 @@ onMounted(() => store.fetchClients())
         <!-- Empty -->
         <tbody v-else-if="store.data.length === 0">
           <tr>
-            <td colspan="11" class="py-16 text-center">
+            <td colspan="12" class="py-16 text-center">
               <div class="flex flex-col items-center gap-3">
                 <div class="w-12 h-12 rounded-full bg-card-background flex items-center justify-center">
                   <Users class="w-5 h-5 text-secondary-text" />
@@ -309,6 +389,23 @@ onMounted(() => store.fetchClients())
               </p>
             </td>
 
+            <!-- Referral Link Column -->
+            <td class="p-3">
+              <div v-if="client.referral_link_code" class="space-y-1">
+                <span
+                  class="inline-flex items-center gap-0.5 text-[9px] font-bold bg-primary-blue/10 text-primary-blue border border-primary-blue/20 px-1.5 py-0.5 rounded-full select-all"
+                  :title="client.referral_link_name"
+                >
+                  <Link2 class="w-2.5 h-2.5 shrink-0" />
+                  <span>{{ client.referral_link_code }}</span>
+                </span>
+                <p class="text-[10px] text-primary-text truncate max-w-[120px]" :title="client.referral_link_name">
+                  {{ client.referral_link_name }}
+                </p>
+              </div>
+              <span v-else class="text-xs text-secondary-text/50">—</span>
+            </td>
+
             <td class="p-3">
               <span
                 class="text-[11px] font-medium px-2 py-0.5 rounded-full border capitalize block mb-1"
@@ -347,7 +444,8 @@ onMounted(() => store.fetchClients())
                   <span
                     v-for="num in client.account_numbers"
                     :key="num"
-                    class="font-mono text-[9px] px-1 py-0.5 rounded bg-background border border-primary-border text-secondary-text"
+                    @click="goToTradingAccount(num)"
+                    class="font-mono text-[9px] px-1 py-0.5 rounded bg-background border border-primary-border text-secondary-text cursor-pointer hover:bg-primary-hover/10 hover:text-primary transition-all duration-150"
                   >
                     {{ num }}
                   </span>
@@ -365,7 +463,7 @@ onMounted(() => store.fetchClients())
             <td class="p-3">
               <p class="text-[10px] text-nowrap text-secondary-text mb-1">Joined: {{ formatDate(client.created_at) }}</p>
               <p class="text-[10px] text-nowrap text-secondary-text mb-1">Updated: {{ formatDate(client.updated_at) }}</p>
-              <p class="text-[10px] text-nowrap  text-secondary-text">Track: {{ client.tracking_id ?? '—' }}</p>
+              <p class="text-[10px] text-nowrap  text-secondary-text">Tracking ID: {{ client.tracking_id ?? '—' }}</p>
             </td>
 
             <td class="p-3 text-right">
@@ -382,57 +480,11 @@ onMounted(() => store.fetchClients())
               </Tooltip>
             </td>
 
-            <td class="p-3 align-middle">
-              <div class="flex items-center justify-center gap-2 h-full">
-                <Tooltip text="Edit Client" position="left">
-                  <button
-                    @click="openEditClientDialog(client)"
-                    class="p-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition"
-                  >
-                    <Pencil class="w-4 h-4" />
-                  </button>
-                </Tooltip>
-
-                <Tooltip text="Change IB" position="left">
-                  <button
-                    @click="openChangeIBDialog(client)"
-                    class="p-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition"
-                  >
-                    <UserPen class="w-4 h-4" />
-                  </button>
-                </Tooltip>
-
-                <Tooltip text="Make IB" position="left" v-if="client.is_ib === false">
-                  <button
-                    @click="openMakeIBDialog(client)"
-                    class="p-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition animate-all duration-200"
-                  >
-                    <UserPlus class="w-4 h-4" />
-                  </button>
-                </Tooltip>
-
-                <Tooltip :text="client.is_active ? 'Deactivate Client' : 'Activate Client'" position="left">
-                  <button
-                    @click="openChangeStatusDialog(client)"
-                    class="p-2 rounded-lg transition"
-                    :class="client.is_active
-                      ? 'bg-red-500/10 text-red-600 hover:bg-red-500/20'
-                      : 'bg-green-500/10 text-green-600 hover:bg-green-500/20'"
-                  >
-                    <UserX v-if="client.is_active" class="w-4 h-4" />
-                    <UserCheck v-else class="w-4 h-4" />
-                  </button>
-                </Tooltip>
-
-                <Tooltip text="Client Depth" position="left">
-                  <button
-                    @click="openClientDepth(client)"
-                    class="p-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition"
-                  >
-                    <Eye class="w-4 h-4" />
-                  </button>
-                </Tooltip>
-              </div>
+            <td class="p-3 align-middle text-center">
+              <DropdownMenu
+                :items="getRowActions(client)"
+                @select="(item) => onMenuSelect(item, client)"
+              />
             </td>
           </tr>
         </tbody>
@@ -536,6 +588,16 @@ onMounted(() => store.fetchClients())
             <p class="text-[10px] text-secondary-text truncate">{{ client.ib_email ?? '—' }}</p>
             <p class="text-[10px] text-secondary-text">Ref: {{ client.ib_referral_code ?? '—' }} | ID: {{ client.ib_id ?? '—' }}</p>
           </div>
+          <div class="bg-background rounded-lg px-3 py-2 col-span-2" v-if="client.referral_link_code">
+            <p class="text-[10px] text-secondary-text mb-0.5">Referral Campaign</p>
+            <div class="flex items-center gap-1.5 mt-0.5">
+              <span class="inline-flex items-center gap-0.5 text-[9px] font-bold bg-primary-blue/10 text-primary-blue border border-primary-blue/20 px-2 py-0.5 rounded-full">
+                <Link2 class="w-2.5 h-2.5 shrink-0" />
+                <span>{{ client.referral_link_code }}</span>
+              </span>
+              <span class="text-[10px] text-primary-text font-medium truncate">{{ client.referral_link_name }}</span>
+            </div>
+          </div>
           <div class="bg-background rounded-lg px-3 py-2 col-span-2">
             <p class="text-[10px] text-secondary-text mb-0.5">KYC Information</p>
             <p class="text-[10px] text-primary-text mb-1">Channel: {{ client.verification_channel ?? '—' }}</p>
@@ -554,7 +616,8 @@ onMounted(() => store.fetchClients())
               <span
                 v-for="num in client.account_numbers"
                 :key="num"
-                class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-card-background border border-primary-border text-secondary-text"
+                @click="goToTradingAccount(num)"
+                class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-card-background border border-primary-border text-secondary-text cursor-pointer hover:bg-primary-hover/10 hover:text-primary transition-all duration-150"
               >
                 {{ num }}
               </span>
@@ -570,34 +633,47 @@ onMounted(() => store.fetchClients())
             <p class="text-[10px] text-primary-text">Updated: {{ formatDate(client.updated_at) }}</p>
             <p class="text-[10px] text-secondary-text">Tracking ID: {{ client.tracking_id ?? '—' }}</p>
           </div>
-          <div class="bg-background rounded-lg px-3 py-2 col-span-2 flex items-center justify-center gap-2">
+          <div class="bg-background rounded-lg px-3 py-2 col-span-2 flex flex-wrap items-center justify-center gap-2">
             <button
               @click="openEditClientDialog(client)"
-              class="flex-1 text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition"
+              class="flex-1 min-w-[70px] text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition"
             >
               Edit
             </button>
             <button
               @click="openChangeIBDialog(client)"
-              class="flex-1 text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition"
+              class="flex-1 min-w-[80px] text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition"
             >
               Change IB
             </button>
             <button
               v-if="client.is_ib === false"
               @click="openMakeIBDialog(client)"
-              class="flex-1 text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition animate-all duration-200"
+              class="flex-1 min-w-[80px] text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition animate-all duration-200"
             >
               Make IB
             </button>
             <button
+              @click="openUpdateReferralLinkDrawer(client)"
+              class="flex-1 min-w-[100px] text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition"
+            >
+              Referral Link
+            </button>
+            <button
               @click="openChangeStatusDialog(client)"
-              class="flex-1 text-xs font-medium py-1.5 rounded-lg transition animate-all duration-200"
+              class="flex-1 min-w-[70px] text-xs font-medium py-1.5 rounded-lg transition animate-all duration-200"
               :class="client.is_active
                 ? 'bg-red-500/10 text-red-600 hover:bg-red-500/20'
                 : 'bg-green-500/10 text-green-600 hover:bg-green-500/20'"
             >
               Status
+            </button>
+            <button
+              v-if="client.kyc_status === 'pending'"
+              @click="openDeleteClientDialog(client)"
+              class="flex-1 min-w-[70px] text-xs font-medium py-1.5 rounded-lg bg-red-500/10 text-red-600 hover:bg-red-500/20 transition animate-all duration-200"
+            >
+              Delete
             </button>
           </div>
         </div>
@@ -650,6 +726,22 @@ onMounted(() => store.fetchClients())
       :client="null"
       @close="closeCreateClientDialog"
       @success="handleCreateClientSuccess"
+    />
+
+    <!-- Delete Client Dialog -->
+    <DeleteClientDialog
+      :open="deleteClientDialogOpen"
+      :client="selectedClientForDelete || {}"
+      @close="closeDeleteClientDialog"
+      @success="handleDeleteSuccess"
+    />
+
+    <!-- Update Referral Link Drawer -->
+    <UpdateReferralLinkDrawer
+      :open="updateReferralLinkDrawerOpen"
+      :client="selectedClientForReferralLink || {}"
+      @close="closeUpdateReferralLinkDrawer"
+      @success="handleUpdateReferralLinkSuccess"
     />
 
   </div>

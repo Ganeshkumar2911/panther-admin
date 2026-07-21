@@ -1,8 +1,9 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { BarChart2, RotateCcwKey, Search, X, Wallet as WalletIcon, DollarSign, ArrowDownUp, RefreshCw, Plus, Pencil } from 'lucide-vue-next'
 import Pagination from '@/components/common/Pagination.vue'
+import DropdownMenu from '@/components/common/DropdownMenu.vue'
 import ChangePasswordDialog from '@/components/trading-accounts/ChangePasswordDialog.vue'
 import DepositWithdrawalDialog from '@/components/trading-accounts/DepositWithdrawal.vue'
 import AddEditAccount from '@/components/trading-accounts/AddEditAccount.vue'
@@ -12,6 +13,7 @@ import { useProfileStore } from '@/stores/profile/profile'
 const store = useAccountsStore()
 const profile = useProfileStore()
 const router = useRouter()
+const route = useRoute()
 
 const tabs = [
   { label: 'All', value: 'all' },
@@ -245,12 +247,70 @@ const setActiveAccount = (acc) => {
   }
 }
 
+function getRowActions(acc) {
+  return [
+    { action: 'trades', label: 'View Trades', icon: BarChart2 },
+    { action: 'transactions', label: 'View Transactions', icon: WalletIcon },
+    { divider: true },
+    { action: 'deposit', label: 'Deposit', icon: DollarSign },
+    { action: 'withdraw', label: 'Withdraw', icon: ArrowDownUp },
+    {
+      action: 'changePassword',
+      label: 'Change Password',
+      icon: RotateCcwKey,
+      hidden: acc.trading_type !== 'real',
+    },
+    {
+      action: 'editAccount',
+      label: 'Edit Account',
+      icon: Pencil,
+      hidden: acc.trading_type !== 'copy_trading',
+    },
+  ]
+}
+
+function onMenuSelect(item, acc) {
+  switch (item.action) {
+    case 'trades':
+      setActiveAccount(acc)
+      router.push(`/account/trade/${getAccountId(acc)}`)
+      break
+    case 'transactions':
+      setActiveAccount(acc)
+      router.push(`/account/transactions/${getAccountId(acc)}`)
+      break
+    case 'deposit':
+      setActiveCurrency(acc)
+      openDepositWithdrawalDialog(acc, 'deposit')
+      break
+    case 'withdraw':
+      setActiveCurrency(acc)
+      openDepositWithdrawalDialog(acc, 'withdrawal')
+      break
+    case 'changePassword':
+      setActiveCurrency(acc)
+      openChangePassword(acc)
+      break
+    case 'editAccount':
+      setActiveCurrency(acc)
+      openEditAccount(acc)
+      break
+  }
+}
+
 onMounted(() => {
   if (!profile.user) {
     profile.fetchUserProfile()
   }
 
-  store.fetchAccounts()
+  const querySearch = route.query.search
+  if (querySearch) {
+    store.setFilters({
+      search_query: String(querySearch).trim()
+    })
+  } else {
+    store.fetchAccounts()
+  }
 })
 
 onBeforeUnmount(() => clearTimeout(searchTimer))
@@ -396,6 +456,7 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
                 'Trading',
                 'Type',
                 'Role',
+                'Acc. Category',
                 'Broker',
                 'Server',
                 'Currency',
@@ -563,6 +624,10 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
               <span v-else class="text-xs text-secondary-text">—</span>
             </td>
 
+             <td class="px-3 py-4 text-xs text-primary-text whitespace-nowrap">
+              {{ acc.account_category ?? '—' }}
+            </td>
+
             <td class="px-3 py-4">
               <p class="text-xs font-medium text-primary-text whitespace-nowrap">
                 {{ acc.broker_label ?? acc.broker ?? '—' }}
@@ -616,68 +681,11 @@ onBeforeUnmount(() => clearTimeout(searchTimer))
               {{ formatDate(acc.created_at) }}
             </td>
 
-            <td class="px-3 py-4">
-              <div class="flex items-center justify-end gap-2">
-                <Tooltip text="View Trades">
-                  <button
-                    type="button"
-                    class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text hover:text-primary-text hover:bg-background transition-colors"
-                    @click="setActiveAccount(acc); router.push(`/account/trade/${getAccountId(acc)}`)"
-                  >
-                    <BarChart2 class="h-3.5 w-3.5" />
-                  </button>
-                </Tooltip>
-
-                <Tooltip text="View Transactions">
-                  <button
-                    type="button"
-class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text hover:text-primary-text hover:bg-background transition-colors"
-                    @click="setActiveAccount(acc); router.push(`/account/transactions/${getAccountId(acc)}`)"
-                  >
-                    <WalletIcon class="h-3.5 w-3.5" />
-                  </button>
-                </Tooltip>
-
-                <Tooltip text="Deposit">
-                  <button
-                    type="button"
-class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text hover:text-primary-text hover:bg-background transition-colors"
-                    @click="setActiveCurrency(acc); openDepositWithdrawalDialog(acc, 'deposit')"
-                  >
-                    <DollarSign class="h-3.5 w-3.5" />
-                  </button>
-                </Tooltip>
-
-                <Tooltip text="Withdraw">
-                  <button
-                    type="button"
-class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text hover:text-primary-text hover:bg-background transition-colors"
-                    @click="setActiveCurrency(acc); openDepositWithdrawalDialog(acc, 'withdrawal')"
-                  >
-                    <ArrowDownUp class="h-3.5 w-3.5" />
-                  </button>
-                </Tooltip>
-
-                <Tooltip v-if="acc.trading_type === 'real'" text="Change Password" position="end">
-                  <button
-                    type="button"
-                    class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text hover:text-primary-text hover:bg-background transition-colors"
-                    @click="setActiveCurrency(acc); openChangePassword(acc)"
-                  >
-                    <RotateCcwKey class="h-3.5 w-3.5" />
-                  </button>
-                </Tooltip>
-
-                <Tooltip v-if="acc.trading_type === 'copy_trading'" text="Edit Account">
-                  <button
-                    type="button"
-                    class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text hover:text-primary-text hover:bg-background transition-colors"
-                    @click="setActiveCurrency(acc); openEditAccount(acc)"
-                  >
-                    <Pencil class="h-3.5 w-3.5" />
-                  </button>
-                </Tooltip>
-              </div>
+            <td class="px-3 py-4 text-right">
+              <DropdownMenu
+                :items="getRowActions(acc)"
+                @select="(item) => onMenuSelect(item, acc)"
+              />
             </td>
           </tr>
         </tbody>

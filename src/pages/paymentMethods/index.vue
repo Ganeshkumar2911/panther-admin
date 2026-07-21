@@ -242,7 +242,7 @@
         </div>
 
         <!-- Transaction Limits -->
-        <div class="grid grid-cols-2 gap-2 pt-4 border-t border-primary-border/50">
+        <div class="grid grid-cols-3 gap-2 pt-4 border-t border-primary-border/50">
           <div class="text-center p-2 rounded-xl bg-background/30 border border-primary-border/20">
             <p class="text-[9px] text-secondary-text mb-0.5">Min Deposit</p>
             <p class="text-[11px] font-semibold text-primary-text truncate">{{ formatShortNum(record.minimum_deposit_amount) }}</p>
@@ -250,6 +250,10 @@
           <div class="text-center p-2 rounded-xl bg-background/30 border border-primary-border/20">
             <p class="text-[9px] text-secondary-text mb-0.5">Max Withdraw</p>
             <p class="text-[11px] font-semibold text-primary-text truncate">{{ formatShortNum(record.maximum_withdrawal_amount) }}</p>
+          </div>
+          <div class="text-center p-2 rounded-xl bg-background/30 border border-primary-border/20">
+            <p class="text-[9px] text-secondary-text mb-0.5">Max WD / Day</p>
+            <p class="text-[11px] font-semibold text-primary-text truncate">{{ record.maximum_withdrawals_per_day ?? '—' }}</p>
           </div>
         </div>
 

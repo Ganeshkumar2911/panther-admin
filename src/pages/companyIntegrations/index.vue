@@ -53,7 +53,7 @@
             <th class="p-3">Company ID</th>
             <th class="p-3">Provider</th>
             <th class="p-3">Base URL</th>
-            <th class="p-3">Created / Updated</th>
+            <th class="p-3">Details & Schedule</th>
             <th class="p-3">Status</th>
             <th class="p-3 text-center">Actions</th>
           </tr>
@@ -74,9 +74,29 @@
             <td class="p-3 text-xs text-primary-text max-w-xs truncate" :title="record.base_url">
               {{ record.base_url }}
             </td>
-            <td class="p-3 text-[10px] text-secondary-text space-y-0.5">
-              <div>Created: {{ formatDate(record.created_at) }}</div>
-              <div>Updated: {{ formatDate(record.updated_at) }}</div>
+            <td class="p-3 text-[10px] text-secondary-text space-y-1">
+              <div><span class="font-medium text-primary-text/80">Created:</span> {{ formatDate(record.created_at) }}</div>
+              <div><span class="font-medium text-primary-text/80">Updated:</span> {{ formatDate(record.updated_at) }}</div>
+              <div>
+                <span class="font-medium text-primary-text/80">Last Run:</span>
+                <span :class="record.last_run_at ? '' : 'italic text-secondary-text/60'">
+                  {{ record.last_run_at ? formatDate(record.last_run_at) : 'Never run' }}
+                </span>
+              </div>
+              <div class="flex items-center gap-1.5 mt-0.5">
+                <span class="font-medium text-primary-text/80">Scheduler:</span>
+                <span
+                  class="px-1.5 py-0.25 rounded-full text-[9px] font-semibold"
+                  :class="record.scheduler_enabled
+                    ? 'bg-green-500/10 text-green-700'
+                    : 'bg-secondary-text/10 text-secondary-text'"
+                >
+                  {{ record.scheduler_enabled ? `Active (${record.scheduler_time || '—'})` : 'Inactive' }}
+                </span>
+              </div>
+              <div v-if="record.report_user_id">
+                <span class="font-medium text-primary-text/80">Report User ID:</span> {{ record.report_user_id }}
+              </div>
             </td>
             <td class="p-3">
               <span
@@ -89,14 +109,24 @@
               </span>
             </td>
             <td class="p-3">
-              <div class="flex items-center justify-center">
-                <button
-                  @click="handleOpenEdit(record)"
-                  class="p-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer"
-                  title="Edit Integration"
-                >
-                  <Pencil class="w-3.5 h-3.5" />
-                </button>
+              <div class="flex items-center justify-center gap-2">
+                <Tooltip text="Manual Fetch" position="top">
+                  <button
+                    @click="handleConfirmRun(record)"
+                    class="p-2 rounded-lg bg-green-500/10 text-green-600 hover:bg-green-500/20 transition cursor-pointer flex items-center justify-center"
+                  >
+                    <Play class="w-3.5 h-3.5" />
+                  </button>
+                </Tooltip>
+
+                <Tooltip text="Edit Integration" position="top">
+                  <button
+                    @click="handleOpenEdit(record)"
+                    class="p-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer flex items-center justify-center"
+                  >
+                    <Pencil class="w-3.5 h-3.5" />
+                  </button>
+                </Tooltip>
               </div>
             </td>
           </tr>
@@ -120,20 +150,34 @@
       @close="closeModal"
       @success="handleSuccess"
     />
+
+    <!-- Manual Fetch Dialog with date picker -->
+    <ManualFetchDialog
+      :open="showRunConfirm"
+      :record="runRecord"
+      :loading="store.isRunning"
+      @confirm="handleRunIntegration"
+      @cancel="closeRunConfirm"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { Cpu, Plus, Pencil } from 'lucide-vue-next'
+import { Cpu, Plus, Pencil, Play } from 'lucide-vue-next'
 import { useCompanyIntegrationsStore } from '@/stores/companyIntegrations/companyIntegrations'
 import Pagination from '@/components/common/Pagination.vue'
 import IntegrationDialog from '@/components/common/IntegrationDialog.vue'
+import Tooltip from '@/components/common/Tooltip.vue'
+import ManualFetchDialog from '@/components/common/ManualFetchDialog.vue'
 
 const store = useCompanyIntegrationsStore()
 
 const showModal = ref(false)
 const selectedRecord = ref(null)
+
+const showRunConfirm = ref(false)
+const runRecord = ref(null)
 
 const handlePageChange = (page) => {
   store.pagination.page = page
@@ -153,6 +197,22 @@ const handleOpenEdit = (record) => {
 const closeModal = () => {
   showModal.value = false
   selectedRecord.value = null
+}
+
+const handleConfirmRun = (record) => {
+  runRecord.value = record
+  showRunConfirm.value = true
+}
+
+const closeRunConfirm = () => {
+  showRunConfirm.value = false
+  runRecord.value = null
+}
+
+const handleRunIntegration = async (payload) => {
+  if (!runRecord.value) return
+  await store.runIntegration(runRecord.value.id, payload)
+  closeRunConfirm()
 }
 
 const handleSuccess = () => {

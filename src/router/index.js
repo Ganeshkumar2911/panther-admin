@@ -11,7 +11,7 @@ router.beforeEach((to, from) => {
   const token = authToken.getToken().accessToken
   const isAuthenticated = Boolean(token)
 
-  const publicRoutes = ['login', 'register']
+  const publicRoutes = ['login', 'register', 'dev-login']
   const isPublicRoute = publicRoutes.includes(to.name)
 
   // 🔹 Redirect "/" → dashboard (if logged in) or login

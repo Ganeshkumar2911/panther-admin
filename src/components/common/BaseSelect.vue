@@ -228,15 +228,21 @@ onBeforeUnmount(() => {
             :key="option.value ?? '__all__'"
             role="option"
             :aria-selected="isSelected(option)"
-            @click="select(option)"
-            class="flex items-center justify-between px-4 py-2.5 text-sm cursor-pointer text-primary-text hover:bg-background transition-colors duration-100"
+            :aria-disabled="option.disabled"
+            @click="option.disabled ? null : select(option)"
+            :class="[
+              'flex items-center justify-between px-4 py-2.5 text-sm transition-colors duration-100',
+              option.disabled
+                ? 'opacity-40 cursor-not-allowed'
+                : 'cursor-pointer text-primary-text hover:bg-background'
+            ]"
           >
-            <span :class="isSelected(option) ? 'text-primary font-medium' : ''">
+            <span :class="isSelected(option) && !option.disabled ? 'text-primary font-medium' : ''">
               {{ option.label }}
             </span>
 
             <Check
-              v-if="isSelected(option)"
+              v-if="isSelected(option) && !option.disabled"
               :size="14"
               class="text-primary flex-shrink-0"
             />

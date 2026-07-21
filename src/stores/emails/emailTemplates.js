@@ -92,6 +92,7 @@ export const useEmailTemplatesStore = defineStore(
         'WITHDRAWAL_REQUESTED',
         'WITHDRAWAL_APPROVED',
         'WITHDRAWAL_REJECTED',
+        'NEW_WITHDRAWAL_REQUEST',
       ],
 
       FM: [

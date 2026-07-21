@@ -39,6 +39,25 @@ const cleanupRequest = (requestKey, controller) => {
   }
 };
 
+const getBaseUrl = () => {
+  if (typeof window === "undefined") return BASE_URL;
+  let url = localStorage.getItem("custom_base_url");
+  if (!url) return BASE_URL;
+
+  url = url.trim();
+  if (!url.endsWith("/")) {
+    url += "/";
+  }
+  if (!url.endsWith("/admin/")) {
+    if (url.endsWith("admin/")) {
+      // already ends with admin/
+    } else {
+      url += "admin/";
+    }
+  }
+  return url;
+};
+
 // ─── Axios Instance
 
 const axiosInstance = axios.create({
@@ -50,6 +69,8 @@ const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(
   (config) => {
+    config.baseURL = getBaseUrl();
+
     if (config.isTokenRequired !== false) {
       const { accessToken } = authToken.getToken();
       if (accessToken) {
@@ -84,7 +105,9 @@ axiosInstance.interceptors.response.use(
     // ── 401: مباشرة logout (no refresh)
     if (error.response?.status === 401) {
       authToken.removeToken();
-      localStorage.removeItem("role");
+      localStorage.removeItem('role')
+      localStorage.removeItem('lastActivityTimestamp')
+      localStorage.removeItem('custom_base_url')
       router.push({ name: "login" });
       return Promise.reject(error);
     }

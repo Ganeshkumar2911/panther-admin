@@ -184,16 +184,59 @@ export const useCompanyIntegrationsStore = defineStore(
       )
     }
 
+    // ─────────────────────────────────────
+    // Run Integration Manually
+    // ─────────────────────────────────────
+
+    const isRunning = ref(false)
+
+    const runIntegration = (id, payload = {}) => {
+      isRunning.value = true
+
+      const successHandler = (res) => {
+        snackbar.show(
+          res?.message || 'Manual fetch completed/initiated successfully.',
+          'success'
+        )
+      }
+
+      const failureHandler = (err) => {
+        snackbar.show(
+          err?.message || 'Failed to trigger manual fetch.',
+          'error'
+        )
+      }
+
+      return apiRequest(
+        urls.KEYS.POST,
+        urls.integrations.run,
+        {
+          look_up_key: id,
+          data: payload,
+
+          isTokenRequired: true,
+
+          onSuccess: successHandler,
+          onFailure: failureHandler,
+          onFinally: () => {
+            isRunning.value = false
+          },
+        }
+      )
+    }
+
     return {
       records,
       loading,
       isSubmitting,
+      isRunning,
       error,
       isFetched,
       pagination,
       fetchIntegrations,
       createIntegration,
       updateIntegration,
+      runIntegration,
     }
   }
 )

@@ -18,14 +18,14 @@
         />
       </div>
     </div> -->
- <div v-if="activeAccount" class="bg-card-background border border-primary-border rounded-xl p-4 mb-6 flex flex-wrap items-center gap-8 shadow-sm">
+ <div v-if="activeAccount" class="bg-card-background border border-primary-border rounded-xl p-4 mb-6 flex flex-wrap items-center gap-8">
       <div>
         <p class="text-[10px] uppercase tracking-widest text-secondary-text mb-1 font-semibold">Account</p>
         <p class="text-sm font-bold text-primary-text">#{{ activeAccount.account_number }}</p>
       </div>
       <div>
         <p class="text-[10px] uppercase tracking-widest text-secondary-text mb-1 font-semibold">Broker</p>
-        <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-primary text-black">{{ activeAccount.broker }}</span>
+        <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-primary text-white">{{ activeAccount.broker }}</span>
       </div>
       <div>
         <p class="text-[10px] uppercase tracking-widest text-secondary-text mb-1 font-semibold">Type</p>
@@ -292,6 +292,7 @@ import { useRoute } from 'vue-router'
 import { Search, Receipt, ArrowUpRight, ArrowDownLeft } from 'lucide-vue-next'
 import { useAccountTransactionsStore } from '@/stores/tradingAccounts/transactions'
 import Pagination from '@/components/common/Pagination.vue'
+import { formatDate } from "@/utils/timeFormatter";
 
 const store = useAccountTransactionsStore()
 const route = useRoute()
@@ -318,7 +319,7 @@ const formatMoney = (amount) => {
   const num = formatNum(amount)
   return activeCurrency.value === 'USC' ? `USC ${num}` : `$${num}`
 }
-const formatDate = (val) => val ? new Date(val).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
+// const formatDate = (val) => formatDate(val)
 const formatType = (t) => t?.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) ?? '—'
 
 const typeClass = (type) => ({

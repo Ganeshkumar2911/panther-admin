@@ -30,7 +30,9 @@
               class="text-[11px] font-medium px-2 py-0.5 rounded-full border transition-opacity"
               :class="[
                 statusClass(store.detail.status),
-                store.detail.status !== 'closed' ? 'cursor-pointer hover:opacity-80' : 'cursor-not-allowed opacity-60'
+                store.detail.status !== 'closed'
+                  ? 'cursor-pointer hover:opacity-80'
+                  : 'cursor-not-allowed opacity-60',
               ]"
               @click="openStatusDialog"
               :disabled="store.detail.status === 'closed'"
@@ -48,6 +50,12 @@
             >
           </p>
         </div>
+        <button
+          @click="openStatusDialog"
+          class="flex items-center hover:cursor-pointer gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-btn-text-primary text-xs font-medium transition-colors"
+        >
+          Update Ticket
+        </button>
       </div>
 
       <!-- Description -->
@@ -81,7 +89,7 @@
             </span>
           </div>
           <button
-            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-black text-xs font-medium transition-colors"
+            class="flex items-center gap-1.5 hover:cursor-pointer px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-btn-text-primary text-xs font-medium transition-colors"
             @click="openDialog('attachment')"
           >
             <Plus class="w-3 h-3" /> Add
@@ -145,7 +153,7 @@
             </span>
           </div>
           <button
-            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-black text-xs font-medium transition-colors"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-btn-text-primary hover:cursor-pointer text-xs font-medium transition-colors"
             @click="openDialog('comment')"
           >
             <Plus class="w-3 h-3" /> Add
@@ -199,7 +207,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref, computed } from "vue";
+import { onMounted, ref, computed, watch } from "vue";
 import { useRoute } from "vue-router";
 import {
   Paperclip,
@@ -236,17 +244,23 @@ const formatDate = (val) =>
     year: "numeric",
   });
 
-const priorityClass = (p) => ({
-  high:   'bg-primary-red/20 text-primary-red border border-primary-red/30',
-  medium: 'bg-primary-yellow/20 text-primary-yellow border border-primary-yellow/30',
-  low:    'bg-primary-green/20 text-primary-green border border-primary-green/30',
-}[p] ?? 'bg-primary-border/20 text-secondary-text border border-primary-border')
+const priorityClass = (p) =>
+  ({
+    high: "bg-primary-red/20 text-primary-red border border-primary-red/30",
+    medium:
+      "bg-primary-yellow/20 text-primary-yellow border border-primary-yellow/30",
+    low: "bg-primary-green/20 text-primary-green border border-primary-green/30",
+  })[p] ??
+  "bg-primary-border/20 text-secondary-text border border-primary-border";
 
-const statusClass = (s) => ({
-  open:    'bg-primary-green/20 text-primary-green border border-primary-green/30',
-  pending: 'bg-primary-yellow/20 text-primary-yellow border border-primary-yellow/30',
-  closed:  'bg-primary-red/20 text-primary-red border border-primary-red/30',
-}[s] ?? 'bg-primary-border/20 text-secondary-text border border-primary-border')
+const statusClass = (s) =>
+  ({
+    open: "bg-primary-green/20 text-primary-green border border-primary-green/30",
+    pending:
+      "bg-primary-yellow/20 text-primary-yellow border border-primary-yellow/30",
+    closed: "bg-primary-red/20 text-primary-red border border-primary-red/30",
+  })[s] ??
+  "bg-primary-border/20 text-secondary-text border border-primary-border";
 
 onMounted(() => store.fetchTicketDetail(ticketId.value));
 </script>
