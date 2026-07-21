@@ -15,13 +15,13 @@
           </p>
         </div>
       </div>
-      <button
+      <!-- <button
         @click="showAddPanel = true"
         class="rounded-lg border-2 bg-primary text-white px-4 py-2 transition-all flex items-center justify-center gap-2 font-medium text-xs"
       >
         <Plus class="w-4 h-4" />
         Add New Configuration
-      </button>
+      </button> -->
     </div>
 
     <!-- Module Cards -->
@@ -45,15 +45,15 @@
             </div>
           </div>
           <div class="flex items-center gap-2">
-            <button
+            <!-- <button
               @click="openEditModule(moduleKey)"
               class="text-secondary-text hover:text-primary transition-colors p-2 hover:bg-primary/10 rounded-lg"
             >
               <Pencil class="w-4 h-4" />
-            </button>
+            </button> -->
             <button
               @click="toggleModule(moduleKey)"
-              class="text-secondary-text hover:text-primary-text transition-colors"
+              class="text-secondary-text cursor-pointer hover:text-primary-text transition-colors"
             >
               <ChevronDown
                 class="w-5 h-5 transition-transform"
@@ -104,19 +104,24 @@
                     </span>
                   </span>
                 </div>
-                <button
+                <!-- <button
                   @click="openEdit(moduleKey, entityKey)"
                   class="text-secondary-text hover:text-primary transition-colors p-2 hover:bg-primary/10 rounded-lg"
                 >
                   <Pencil class="w-4 h-4" />
-                </button>
-                <ChevronDown
-                  class="w-4 h-4 transition-transform"
-                  :class="{
-                    'rotate-180': expandedEntities[`${moduleKey}-${entityKey}`],
-                  }"
+                </button> -->
+                <button
                   @click="toggleEntity(moduleKey, entityKey)"
-                />
+                  class="text-secondary-text hover:text-white transition-colors p-2 hover:bg-primary/10 rounded-lg"
+                >
+                  <ChevronDown
+                    class="w-5 h-5 transition-transform"
+                    :class="{
+                      'rotate-180':
+                        expandedEntities[`${moduleKey}-${entityKey}`],
+                    }"
+                  />
+                </button>
               </div>
             </div>
 
@@ -156,25 +161,90 @@
                     </td>
                     <td class="px-4 py-3">
                       <div class="flex items-center gap-2">
-                        <Check
-                          v-if="actionValue.SUCCESS"
-                          class="w-4 h-4 text-green-500"
-                        />
-                        <X v-else class="w-4 h-4 text-red-500" />
-                        <span
-                          class="text-xs font-medium"
+                        <button
+                          @click="
+                            handleEditConfiguration({
+                              moduleKey,
+                              entityKey,
+                              actionKey,
+                              status: 'SUCCESS',
+                              value: !actionValue.SUCCESS,
+                            })
+                          "
+                          :disabled="
+                            store.toggleAction.toggleField ===
+                              `${moduleKey}-${entityKey}-${actionKey}-SUCCESS` &&
+                            store.toggleAction.togglePending
+                          "
+                          class="relative w-10 h-5 rounded-full transition-colors flex-shrink-0 disabled:opacity-50"
                           :class="
                             actionValue.SUCCESS === true
-                              ? 'text-green-600'
-                              : 'text-red-600'
+                              ? 'bg-primary-green'
+                              : 'bg-primary-border'
                           "
                         >
-                          {{ actionValue.SUCCESS ? "true" : "false" }}
-                        </span>
+                          <span
+                            class="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform duration-200"
+                            :class="
+                              actionValue.SUCCESS === true
+                                ? 'translate-x-5'
+                                : 'translate-x-0'
+                            "
+                          />
+                        </button>
+
+                        <!-- <div>
+                          <Check
+                            v-if="actionValue.SUCCESS"
+                            class="w-4 h-4 text-green-500"
+                          />
+                          <X v-else class="w-4 h-4 text-red-500" />
+                          <span
+                            class="text-xs font-medium"
+                            :class="
+                              actionValue.SUCCESS === true
+                                ? 'text-green-600'
+                                : 'text-red-600'
+                            "
+                          >
+                            {{ actionValue.SUCCESS ? "true" : "false" }}
+                          </span>
+                        </div> -->
                       </div>
                     </td>
                     <td class="px-4 py-3">
-                      <div class="flex items-center gap-2">
+                      <button
+                        @click="
+                          handleEditConfiguration({
+                            moduleKey,
+                            entityKey,
+                            actionKey,
+                            status: 'FAILED',
+                            value: !actionValue.FAILED,
+                          })
+                        "
+                        :disabled="
+                          store.toggleAction.toggleField ===
+                            `${moduleKey}-${entityKey}-${actionKey}-FAILED` &&
+                          store.toggleAction.togglePending
+                        "
+                        class="relative w-10 h-5 rounded-full transition-colors flex-shrink-0 disabled:opacity-50"
+                        :class="
+                          actionValue.FAILED === true
+                            ? 'bg-primary-green'
+                            : 'bg-primary-border'
+                        "
+                      >
+                        <span
+                          class="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform duration-200"
+                          :class="
+                            actionValue.FAILED === true
+                              ? 'translate-x-5'
+                              : 'translate-x-0'
+                          "
+                        />
+                      </button>
+                      <!-- <div class="flex items-center gap-2">
                         <X
                           v-if="actionValue.FAILED === false"
                           class="w-4 h-4 text-red-500"
@@ -190,7 +260,7 @@
                         >
                           {{ actionValue.FAILED ? "true" : "false" }}
                         </span>
-                      </div>
+                      </div> -->
                     </td>
                   </tr>
                 </tbody>
@@ -202,14 +272,14 @@
     </div>
 
     <!-- Add Configuration Panel -->
-    <AddConfigurationPanel
+    <!-- <AddConfigurationPanel
       :open="showAddPanel"
       @close="showAddPanel = false"
       @submit="handleAddConfiguration"
-    />
+    /> -->
 
     <!-- Edit Configuration Panel -->
-    <ConfigurationEditPanel
+    <!-- <ConfigurationEditPanel
       v-if="editingConfig"
       :open="showEditPanel"
       :module-key="editingConfig.moduleKey"
@@ -217,7 +287,7 @@
       :actions="editingConfig.actions"
       @close="closeEditPanel"
       @submit="handleEditConfiguration"
-    />
+    /> -->
   </div>
 </template>
 
@@ -282,7 +352,9 @@ const openEditModule = (moduleKey) => {
 };
 
 watchEffect(() => {
-  console.log(configurations.value);
+  // console.log(configurations.value);
+  console.log(store.toggleAction.togglePending);
+  console.log(store.actionLoading.actionField);
 });
 
 const closeEditPanel = () => {
@@ -295,9 +367,13 @@ const handleAddConfiguration = (newConfig) => {
   showAddPanel.value = false;
 };
 
+watchEffect(() => {
+  console.log("toggle : ", store.actionLoading.actionField);
+});
+
 const handleEditConfiguration = (updatedConfig) => {
-  store.updateAuditLogConfiguration(updatedConfig);
-  closeEditPanel();
+  store.toggleAuditLogAction(updatedConfig);
+  // closeEditPanel();
 };
 
 onMounted(() => {

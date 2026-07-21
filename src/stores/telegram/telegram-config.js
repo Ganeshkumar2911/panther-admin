@@ -12,9 +12,18 @@ export const useTelegramConfigurationStore = defineStore(
     const snackbar = useSnackbarStore();
 
     const data = ref([]);
+    const isFetched = ref(false);
+
     const auditLogData = ref(emptyAuditLogData);
     const loading = ref(false);
-    const actionLoading = ref(false);
+    const actionLoading = ref({
+      actionPending: false,
+      actionField: "",
+    });
+    const toggleAction = ref({
+      togglePending: false,
+      toggleField: "",
+    });
     const deleteLoading = ref(false);
 
     const showModal = ref(false);
@@ -119,7 +128,9 @@ export const useTelegramConfigurationStore = defineStore(
     // was always called, which immediately returns {} for
     // anything that isn't an array — so auditLogData stayed
     // empty forever and the UI showed nothing.
-    const fetchConfigurations = () => {
+    const fetchConfigurations = (force = false) => {
+      if (isFetched.value && !force) return;
+
       loading.value = true;
 
       apiRequest(urls.KEYS.GET, urls.telegram_config.list, {
@@ -273,6 +284,9 @@ export const useTelegramConfigurationStore = defineStore(
     const updateAuditLogConfiguration = async (updatedConfig) => {
       const { moduleKey, entityKey, actions } = updatedConfig;
 
+      alert("clicked");
+      console.log("config", updatedConfig);
+
       const original = auditLogData.value?.[moduleKey]?.[entityKey] || {};
       const requests = [];
 
@@ -330,6 +344,51 @@ export const useTelegramConfigurationStore = defineStore(
       }
     };
 
+    const toggleAuditLogAction = async ({
+      moduleKey,
+      entityKey,
+      actionKey,
+      status,
+      value,
+    }) => {
+      toggleAction.value.toggleField = `${moduleKey}-${entityKey}-${actionKey}-${status}`;
+      toggleAction.value.togglePending = true;
+
+      const payload = {
+        module: moduleKey,
+        entity: entityKey,
+        action: actionKey,
+        status,
+        value: String(value),
+      };
+
+      const successHandler = () => {
+        const successHandler = () => {
+          auditLogData.value[moduleKey][entityKey][actionKey][status] = value;
+
+          toggleAction.value.togglePending = false;
+          toggleAction.value.toggleField = "";
+
+          snackbar.show("Configuration updated successfully", "success");
+        };
+      };
+
+      const failureHandler = (err) => {
+        toggleAction.value.toggleField = "";
+        toggleAction.value.togglePending = false;
+        snackbar.show(err?.message || "Something went wrong.", "error");
+      };
+
+      // await updateConfigurationRequest();
+
+      apiRequest(urls.KEYS.PUT, urls.telegram_config.update, {
+        data: payload,
+        isTokenRequired: true,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+      });
+    };
+
     const openAdd = () => {
       editingData.value = null;
       showModal.value = true;
@@ -369,11 +428,13 @@ export const useTelegramConfigurationStore = defineStore(
       deleteConfiguration,
       addConfiguration,
       updateAuditLogConfiguration,
+      toggleAuditLogAction,
 
       openAdd,
       openEdit,
       closeModal,
       submit,
+      toggleAction,
     };
   },
 );
