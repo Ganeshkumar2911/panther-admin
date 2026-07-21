@@ -160,40 +160,40 @@
                       {{ actionKey }}
                     </td>
                     <td class="px-4 py-3">
-                      <div class="flex items-center gap-2">
-                        <button
-                          @click="
-                            handleEditConfiguration({
-                              moduleKey,
-                              entityKey,
-                              actionKey,
-                              status: 'SUCCESS',
-                              value: !actionValue.SUCCESS,
-                            })
-                          "
-                          :disabled="
-                            store.toggleAction.toggleField ===
-                              `${moduleKey}-${entityKey}-${actionKey}-SUCCESS` &&
-                            store.toggleAction.togglePending
-                          "
-                          class="relative w-10 h-5 rounded-full transition-colors flex-shrink-0 disabled:opacity-50"
+                      <!-- <div class="flex items-center gap-2"> -->
+                      <button
+                        @click="
+                          handleEditConfiguration({
+                            moduleKey,
+                            entityKey,
+                            actionKey,
+                            status: 'SUCCESS',
+                            value: !actionValue.SUCCESS,
+                          })
+                        "
+                        :disabled="
+                          store.toggleAction.toggleField ===
+                            `${moduleKey}-${entityKey}-${actionKey}-SUCCESS` &&
+                          store.toggleAction.togglePending
+                        "
+                        class="relative w-10 h-5 rounded-full transition-colors flex-shrink-0 disabled:opacity-50"
+                        :class="
+                          actionValue.SUCCESS === true
+                            ? 'bg-primary-green'
+                            : 'bg-primary-border'
+                        "
+                      >
+                        <span
+                          class="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform duration-200"
                           :class="
                             actionValue.SUCCESS === true
-                              ? 'bg-primary-green'
-                              : 'bg-primary-border'
+                              ? 'translate-x-5'
+                              : 'translate-x-0'
                           "
-                        >
-                          <span
-                            class="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform duration-200"
-                            :class="
-                              actionValue.SUCCESS === true
-                                ? 'translate-x-5'
-                                : 'translate-x-0'
-                            "
-                          />
-                        </button>
+                        />
+                      </button>
 
-                        <!-- <div>
+                      <!-- <div>
                           <Check
                             v-if="actionValue.SUCCESS"
                             class="w-4 h-4 text-green-500"
@@ -210,7 +210,7 @@
                             {{ actionValue.SUCCESS ? "true" : "false" }}
                           </span>
                         </div> -->
-                      </div>
+                      <!-- </div> -->
                     </td>
                     <td class="px-4 py-3">
                       <button

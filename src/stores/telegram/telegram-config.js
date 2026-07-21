@@ -16,10 +16,7 @@ export const useTelegramConfigurationStore = defineStore(
 
     const auditLogData = ref(emptyAuditLogData);
     const loading = ref(false);
-    const actionLoading = ref({
-      actionPending: false,
-      actionField: "",
-    });
+    const actionLoading = ref(false);
     const toggleAction = ref({
       togglePending: false,
       toggleField: "",
@@ -129,8 +126,6 @@ export const useTelegramConfigurationStore = defineStore(
     // anything that isn't an array — so auditLogData stayed
     // empty forever and the UI showed nothing.
     const fetchConfigurations = (force = false) => {
-      if (isFetched.value && !force) return;
-
       loading.value = true;
 
       apiRequest(urls.KEYS.GET, urls.telegram_config.list, {
@@ -363,14 +358,12 @@ export const useTelegramConfigurationStore = defineStore(
       };
 
       const successHandler = () => {
-        const successHandler = () => {
-          auditLogData.value[moduleKey][entityKey][actionKey][status] = value;
+        auditLogData.value[moduleKey][entityKey][actionKey][status] = value;
 
-          toggleAction.value.togglePending = false;
-          toggleAction.value.toggleField = "";
+        toggleAction.value.togglePending = false;
+        toggleAction.value.toggleField = "";
 
-          snackbar.show("Configuration updated successfully", "success");
-        };
+        snackbar.show("Configuration updated successfully", "success");
       };
 
       const failureHandler = (err) => {
