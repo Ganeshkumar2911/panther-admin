@@ -153,6 +153,11 @@ const urls = {
       updateStatus: "/rbac/users/status",
       delete: "/rbac/users",
     },
+    userPermissions: {
+      me: "/rbac/me/permissions",
+      all: "/rbac/permissions",
+      manage: "/rbac/users/permissions",
+    },
   },
 };
 

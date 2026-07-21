@@ -231,8 +231,8 @@ const apiRequest = (
     ...(timeout != null && { timeout }),
   };
 
-  // Do not send a body for methods that don't support it
-  if (!NO_BODY_METHODS.includes(method)) {
+  // Do not send a body for methods that don't support it (unless data payload is explicitly provided)
+  if (!NO_BODY_METHODS.includes(method) || (method === "delete" && data && Object.keys(data).length > 0)) {
     config.data = data;
   }
 

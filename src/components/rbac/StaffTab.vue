@@ -107,13 +107,22 @@
             </td>
 
             <td class="px-4 py-3.5 text-right group-last:rounded-br-2xl">
-              <button
-                :disabled="staffStore.actionLoading"
-                class="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-semibold border bg-primary-red/10 text-primary-red border-primary-red/20 hover:bg-primary-red/20 transition-colors ml-auto disabled:opacity-50"
-                @click="confirmDelete(staff)"
-              >
-                <Trash2 class="w-3 h-3" /> Delete
-              </button>
+              <div class="flex items-center justify-end gap-2">
+                <button
+                  class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-colors cursor-pointer"
+                  @click="openPermissionsDrawer(staff)"
+                >
+                  <ShieldCheck class="w-3.5 h-3.5" /> Permissions
+                </button>
+
+                <button
+                  :disabled="staffStore.actionLoading"
+                  class="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-semibold border bg-primary-red/10 text-primary-red border-primary-red/20 hover:bg-primary-red/20 transition-colors disabled:opacity-50 cursor-pointer"
+                  @click="confirmDelete(staff)"
+                >
+                  <Trash2 class="w-3 h-3" /> Delete
+                </button>
+              </div>
             </td>
           </tr>
         </tbody>
@@ -151,16 +160,24 @@
     </div>
 
     <StaffDialog :open="dialogOpen" @close="dialogOpen = false" />
+
+    <!-- User Permission Drawer -->
+    <UserPermissionDrawer
+      :open="permissionDrawerOpen"
+      :staff="permissionStaff"
+      @close="permissionDrawerOpen = false"
+    />
   </div>
 </template>
 
 <script setup>
 import { onMounted, ref, computed } from 'vue'
-import { Search, Plus, Users, Trash2, Loader2 } from 'lucide-vue-next'
+import { Search, Plus, Users, Trash2, Loader2, ShieldCheck } from 'lucide-vue-next'
 import { useRbacStaffStore } from '@/stores/rbac/staff'
 import { useRbacRolesStore } from '@/stores/rbac/roles'
 import Pagination from '@/components/common/Pagination.vue'
 import StaffDialog from './StaffDialog.vue'
+import UserPermissionDrawer from './UserPermissionDrawer.vue'
 
 const staffStore = useRbacStaffStore()
 const rolesStore = useRbacRolesStore()
@@ -172,8 +189,16 @@ const roleOptions = computed(() =>
   }))
 )
 
-const dialogOpen   = ref(false)
+const dialogOpen = ref(false)
 const deleteTarget = ref(null)
+
+const permissionDrawerOpen = ref(false)
+const permissionStaff = ref(null)
+
+const openPermissionsDrawer = (staff) => {
+  permissionStaff.value = staff
+  permissionDrawerOpen.value = true
+}
 
 const confirmDelete = (staff) => { deleteTarget.value = staff }
 const executeDelete = () => {

@@ -152,7 +152,7 @@ const navItems = [
 // ✅ Filter navigation items based on profile user_id
 const filteredNavItems = computed(() => {
   const userId = store.user?.user_id || store.user?.id
-  const restrictedLabels = ['Group Config', 'Payment Methods', 'Audit Logs']
+  const restrictedLabels = []
 
   return navItems.filter((item) => {
     if (restrictedLabels.includes(item.label)) {
