@@ -6,6 +6,7 @@ import apiRequest from '@/api/request'
 import authToken from '@/common/authToken'
 import urls from '@/api/urls'
 import { useRouter } from 'vue-router'
+import { useMyPermissionsStore } from '@/stores/rbac/myPermissions'
 import logoLight from '@/assets/logo_full.svg'
 // import logoDark from '@/assets/logo_dark_full.png'
 import bgImage from '@/assets/Login-img.jpeg'
@@ -68,6 +69,7 @@ const handleLogin = () => {
   const successHandler = (res) => {
     loading.value = false
     authToken.setToken(res.access_token)
+    useMyPermissionsStore().fetchMyPermissions(true)
     router.push('/dashboard') // ✅ direct navigation
   }
 

@@ -6,6 +6,7 @@ import apiRequest from '@/api/request'
 import authToken from '@/common/authToken'
 import urls from '@/api/urls'
 import { useRouter } from 'vue-router'
+import { useMyPermissionsStore } from '@/stores/rbac/myPermissions'
 import bgImage from '@/assets/Login-img.jpeg'
 
 const router = useRouter()
@@ -95,6 +96,7 @@ const handleLogin = () => {
   const successHandler = (res) => {
     loading.value = false
     authToken.setToken(res.access_token)
+    useMyPermissionsStore().fetchMyPermissions(true)
     snackbar.show('Connected to target host successfully.', 'success')
     router.push('/dashboard')
   }
