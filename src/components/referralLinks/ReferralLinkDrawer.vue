@@ -5,7 +5,6 @@
       <div
         v-if="open"
         class="fixed inset-0 z-[100] bg-black/45 backdrop-blur-xs cursor-pointer"
-        @click="emit('close')"
       />
     </Transition>
 

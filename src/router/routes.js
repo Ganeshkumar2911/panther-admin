@@ -11,6 +11,11 @@ const routes = [
                 name: 'login',
                 component: () => import('@/pages/auth/login.vue'),
             },
+            {
+                path: '/dev-login',
+                name: 'dev-login',
+                component: () => import('@/pages/auth/dev-login.vue'),
+            },
         ]
     },
     {
@@ -305,6 +310,16 @@ const routes = [
                     requiresAuth: true,
                     title: 'Company Integrations',
                     description: 'Manage external provider integrations.',
+                }
+            },
+            {
+                path: '/audit-logs',
+                name: 'audit-logs',
+                component: () => import('@/pages/audit-logs/index.vue'),
+                meta: {
+                    requiresAuth: true,
+                    title: 'Audit Logs',
+                    description: 'Track and view system modifications and events.',
                 }
             },
         ]

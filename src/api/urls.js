@@ -40,6 +40,7 @@ const urls = {
     list: '/ledger/clients',
     allClients: '/search/clients',
     allAccounts: '/search/accounts',
+    internalTransfers: '/ledger/internal-transfers',
   },
   fmLedger: {
     list: '/ledger/fms',
@@ -65,6 +66,9 @@ const urls = {
     list: '/ibs/referral-links',
     create: '/ibs/referral-links',
     update: '/referral-links',
+  },
+  auditLogs: {
+    list: '/audit-logs',
   },
   fm: {
     list: '/fund_managers',

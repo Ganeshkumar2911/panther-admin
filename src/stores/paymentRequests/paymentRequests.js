@@ -155,7 +155,7 @@ export const usePaymentRequestsStore = defineStore(
 
             ...cleanFilters(),
           },
-
+          cancelPrevious: true,
           isTokenRequired: true,
 
           onSuccess: successHandler,
