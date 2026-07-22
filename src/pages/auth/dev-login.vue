@@ -6,6 +6,7 @@ import apiRequest from '@/api/request'
 import authToken from '@/common/authToken'
 import urls from '@/api/urls'
 import { useRouter } from 'vue-router'
+import { useMyPermissionsStore } from '@/stores/rbac/myPermissions'
 import bgImage from '@/assets/Login-img.jpeg'
 
 const router = useRouter()
@@ -92,11 +93,17 @@ const handleLogin = () => {
   // Save the custom URL first so the login request hits this URL
   localStorage.setItem('custom_base_url', form.baseUrl.trim())
 
-  const successHandler = (res) => {
-    loading.value = false
+  const successHandler = async (res) => {
     authToken.setToken(res.access_token)
+    const myPermissionsStore = useMyPermissionsStore()
+    try {
+      await myPermissionsStore.fetchMyPermissions(true)
+    } catch (_) {
+      // ignore
+    }
+    loading.value = false
     snackbar.show('Connected to target host successfully.', 'success')
-    router.push('/dashboard')
+    router.push(myPermissionsStore.firstAllowedPath)
   }
 
   const failureHandler = (err) => {

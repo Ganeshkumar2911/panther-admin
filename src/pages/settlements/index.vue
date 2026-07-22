@@ -130,8 +130,9 @@
 
             <td class="p-3 text-right">
               <button
+                v-if="hasPermission('settlement.trades')"
                 @click="goToTrade(row.settlement_id)"
-                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary-border text-xs text-secondary-text hover:text-primary-text hover:bg-background transition-colors ml-auto"
+                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary-border text-xs text-secondary-text hover:text-primary-text hover:bg-background transition-colors ml-auto cursor-pointer"
               >
                 <BarChart2 class="w-3.5 h-3.5" /> Trades
               </button>
@@ -160,10 +161,11 @@ import { useSettlementsStore } from '@/stores/settlements/settlements'
 import Pagination from '@/components/common/Pagination.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import { BarChart2 } from 'lucide-vue-next'
+import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
 const router = useRouter()
-
 const store = useSettlementsStore()
+const { hasPermission } = usePermissionCheck()
 
 const filters = ref({ fm_id: null, status: null, from_date: '', to_date: '' })
 

@@ -12,7 +12,8 @@
       />
 
       <button
-        class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all active:scale-95"
+        v-if="hasPermission('payment_methods.create')"
+        class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all active:scale-95 cursor-pointer"
         @click="handleOpenCreate"
       >
         <Plus class="w-3.5 h-3.5" />
@@ -87,7 +88,7 @@
         <!-- Header: Label + Active Toggle -->
         <div class="flex items-center justify-between gap-3">
           <div class="flex-1 min-w-0">
-            <div v-if="editingId === record.id" class="flex items-center gap-1.5">
+            <div v-if="editingId === record.id && hasPermission('payment_methods.update')" class="flex items-center gap-1.5">
               <input
                 v-model="editingLabel"
                 ref="labelInput"
@@ -98,38 +99,45 @@
               />
               <div class="flex items-center gap-1">
                 <button
-                  class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-background transition-colors"
+                  class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-background transition-colors cursor-pointer"
                   :disabled="store.updateLoading"
                   @click="saveLabel(record)"
                 >
                   <Loader2 v-if="store.updateLoading && savingId === record.id" class="w-3.5 h-3.5 text-secondary-text animate-spin" />
                   <Check v-else class="w-3.5 h-3.5 text-primary-green" />
                 </button>
-                <button class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-background transition-colors" @click="cancelEdit">
+                <button class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-background transition-colors cursor-pointer" @click="cancelEdit">
                   <X class="w-3.5 h-3.5 text-secondary-text" />
                 </button>
               </div>
             </div>
-            <div v-else class="flex items-center gap-1.5 group/label cursor-pointer" @click="startEdit(record)">
+            <div
+              v-else
+              class="flex items-center gap-1.5 group/label"
+              :class="hasPermission('payment_methods.update') ? 'cursor-pointer' : ''"
+              @click="hasPermission('payment_methods.update') && startEdit(record)"
+            >
               <p class="text-sm font-semibold text-primary-text truncate">{{ record.wallet_label || 'Untitled Wallet' }}</p>
-              <Pencil class="w-3 h-3 text-secondary-text opacity-0 group-hover/label:opacity-100 transition-opacity shrink-0" />
+              <Pencil v-if="hasPermission('payment_methods.update')" class="w-3 h-3 text-secondary-text opacity-0 group-hover/label:opacity-100 transition-opacity shrink-0" />
             </div>
             <p class="text-[10px] font-mono text-secondary-text mt-0.5 uppercase">System ID: #{{ record.id }}</p>
           </div>
 
           <div class="flex items-center gap-3">
             <button
-              class="w-8 h-8 flex items-center justify-center rounded-lg bg-background border border-primary-border hover:border-primary/40 transition-all hover:shadow-sm group/edit"
+              v-if="hasPermission('payment_methods.update')"
+              class="w-8 h-8 flex items-center justify-center rounded-lg bg-background border border-primary-border hover:border-primary/40 transition-all hover:shadow-sm group/edit cursor-pointer"
               @click="handleOpenEdit(record)"
             >
               <Pencil class="w-3.5 h-3.5 text-secondary-text group-hover/edit:text-primary transition-colors" />
             </button>
 
            <button
+            v-if="hasPermission('payment_methods.update')"
             type="button"
             :disabled="store.updateLoading && togglingId === record.id"
             @click="toggleActive(record)"
-            class="relative w-11 h-6 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 focus:outline-none"
+            class="relative w-11 h-6 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 focus:outline-none cursor-pointer"
             :class="record.is_active ? 'bg-primary' : 'bg-primary-border'"
           >
             <span
@@ -290,8 +298,10 @@ import { usePaymentMethodsStore } from '@/stores/paymentMethods/paymentMethods'
 import Pagination from '@/components/common/Pagination.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import EditPaymentMethodDialog from '@/components/paymentMethods/EditPaymentMethodDialog.vue'
+import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
 const store = usePaymentMethodsStore()
+const { hasPermission } = usePermissionCheck()
 
 // ── Edit label state ──
 const editingId    = ref(null)

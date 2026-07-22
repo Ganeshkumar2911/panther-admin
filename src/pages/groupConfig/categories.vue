@@ -11,7 +11,8 @@
         @update:modelValue="store.updatePerPage"
       />
       <button
-        class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-colors"
+        v-if="hasPermission('group.group_update')"
+        class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-colors cursor-pointer"
         @click="dialogOpen = true"
       >
         <FolderPlus class="w-3.5 h-3.5" /> Create Category
@@ -119,7 +120,8 @@
 
             <td class="p-3 text-right">
               <button
-                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary-border text-xs text-secondary-text hover:text-primary-text hover:bg-background transition-colors ml-auto"
+                v-if="hasPermission('group.group_view')"
+                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary-border text-xs text-secondary-text hover:text-primary-text hover:bg-background transition-colors ml-auto cursor-pointer"
                 @click="viewGroups(cat)"
               >
                 <Eye class="w-3.5 h-3.5" /> View Groups
@@ -150,9 +152,11 @@ import { useGroupCategoriesStore } from '@/stores/groupConfig/groupCategories'
 import Pagination from '@/components/common/Pagination.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import CreateCategoryDialog from '@/components/groupConfig/CreateCategoryDialog.vue'
+import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
 const store      = useGroupCategoriesStore()
 const router     = useRouter()
+const { hasPermission } = usePermissionCheck()
 const dialogOpen = ref(false)
 
 let searchTimer = null

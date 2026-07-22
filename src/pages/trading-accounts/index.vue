@@ -14,18 +14,19 @@ import {
   Pencil,
 } from "lucide-vue-next";
 import Pagination from "@/components/common/Pagination.vue";
-import BaseSelect from "@/components/common/BaseSelect.vue";
 import DropdownMenu from "@/components/common/DropdownMenu.vue";
 import ChangePasswordDialog from "@/components/trading-accounts/ChangePasswordDialog.vue";
 import DepositWithdrawalDialog from "@/components/trading-accounts/DepositWithdrawal.vue";
 import AddEditAccount from "@/components/trading-accounts/AddEditAccount.vue";
 import { useAccountsStore } from "@/stores/tradingAccounts/tradingAccounts";
 import { useProfileStore } from "@/stores/profile/profile";
+import { usePermissionCheck } from "@/composables/usePermissionCheck";
 
 const store = useAccountsStore();
 const profile = useProfileStore();
 const router = useRouter();
 const route = useRoute();
+const { hasPermission } = usePermissionCheck();
 
 const tabs = [
   { label: "All", value: "all" },
@@ -263,25 +264,38 @@ const setActiveAccount = (acc) => {
 };
 
 function getRowActions(acc) {
-  return [
-    { action: "trades", label: "View Trades", icon: BarChart2 },
-    { action: "transactions", label: "View Transactions", icon: WalletIcon },
-    { divider: true },
-    { action: "deposit", label: "Deposit", icon: DollarSign },
-    { action: "withdraw", label: "Withdraw", icon: ArrowDownUp },
-    {
-      action: "changePassword",
-      label: "Change Password",
-      icon: RotateCcwKey,
-      hidden: acc.trading_type !== "real",
-    },
-    {
-      action: "editAccount",
-      label: "Edit Account",
-      icon: Pencil,
-      hidden: acc.trading_type !== "copy_trading",
-    },
-  ];
+  const actions = [];
+
+  if (hasPermission("trading_account.view")) {
+    actions.push(
+      { action: "trades", label: "View Trades", icon: BarChart2 },
+      { action: "transactions", label: "View Transactions", icon: WalletIcon },
+    );
+  }
+
+  if (hasPermission("trading_account.update")) {
+    if (actions.length > 0) {
+      actions.push({ divider: true });
+    }
+    actions.push(
+      { action: "deposit", label: "Deposit", icon: DollarSign },
+      { action: "withdraw", label: "Withdraw", icon: ArrowDownUp },
+      {
+        action: "changePassword",
+        label: "Change Password",
+        icon: RotateCcwKey,
+        hidden: acc.trading_type !== "real",
+      },
+      {
+        action: "editAccount",
+        label: "Edit Account",
+        icon: Pencil,
+        hidden: acc.trading_type !== "copy_trading",
+      },
+    );
+  }
+
+  return actions;
 }
 
 function onMenuSelect(item, acc) {
@@ -336,6 +350,7 @@ onBeforeUnmount(() => clearTimeout(searchTimer));
     <!-- Header -->
     <div class="flex flex-wrap items-start justify-end gap-3 mb-6">
       <button
+        v-if="hasPermission('trading_account.create')"
         class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all active:scale-95 cursor-pointer"
         @click="openAddAccount"
       >
@@ -382,9 +397,13 @@ onBeforeUnmount(() => clearTimeout(searchTimer));
       </template>
     </div>
     <!-- Filters -->
-    <div class="mb-5 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3">
+    <div
+      class="mb-5 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3"
+    >
       <!-- Tabs Container (Scrollable) -->
-      <div class="flex items-center gap-3 flex-nowrap whitespace-nowrap overflow-x-auto no-scrollbar py-0.5">
+      <div
+        class="flex items-center gap-3 flex-nowrap whitespace-nowrap overflow-x-auto no-scrollbar py-0.5"
+      >
         <div
           class="flex items-center gap-1 bg-card-background border border-primary-border rounded-lg p-1 w-fit flex-nowrap whitespace-nowrap"
         >

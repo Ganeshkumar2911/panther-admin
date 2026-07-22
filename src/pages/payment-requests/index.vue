@@ -347,18 +347,13 @@
 
             <td class="px-3 py-3.5">
               <div class="flex flex-col gap-1.5 items-start">
-                <!-- <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full border capitalize"
-                  :class="paymentStatusClass(req.payment_status)"
-                >
-                  {{ req.payment_status }}
-                </span> -->
                 <span
-                  class="text-[11px] font-semibold px-2 py-0.5 rounded-full border capitalize"
+                  class="text-[11px] font-medium px-2 py-0.5 rounded-full capitalize"
                   :class="[
                     approvalStatusClass(req.approval_status),
-                    req.approval_status === 'pending' ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''
+                    req.approval_status === 'pending' && (hasPermission('payment_requests.approve') || hasPermission('payment_requests.reject')) ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''
                   ]"
-                  @click="req.approval_status === 'pending' && openChangeStatusDialog(req)"
+                  @click="req.approval_status === 'pending' && (hasPermission('payment_requests.approve') || hasPermission('payment_requests.reject')) && openChangeStatusDialog(req)"
                 >
                   {{ req.approval_status }}
                 </span>
@@ -400,14 +395,16 @@
               <div class="flex items-center justify-end gap-1.5">
                 <template v-if="req.approval_status === 'pending'">
                   <button
-                    class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border bg-primary-green/10 text-primary-green border-primary-green/20 hover:bg-primary-green/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    v-if="hasPermission('payment_requests.approve')"
+                    class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border bg-primary-green/10 text-primary-green border-primary-green/20 hover:bg-primary-green/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                     @click="openConfirmDialog('approve', req)"
                   >
                     <Check class="w-3 h-3" />
                     Approve
                   </button>
                   <button
-                    class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border bg-primary-red/10 text-primary-red border-primary-red/20 hover:bg-primary-red/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    v-if="hasPermission('payment_requests.reject')"
+                    class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border bg-primary-red/10 text-primary-red border-primary-red/20 hover:bg-primary-red/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                     @click="openConfirmDialog('reject', req)"
                   >
                     <X class="w-3 h-3" />
@@ -460,9 +457,11 @@ import BaseSelect from "@/components/common/BaseSelect.vue";
 import PaymentRequestConfirmDialog from "@/components/paymentRequests/PaymentRequestConfirmDialog.vue";
 import ChangePaymentStatusDialog from "@/components/paymentRequests/ChangePaymentStatusDialog.vue";
 import { formatDate } from "@/utils/timeFormatter";
+import { usePermissionCheck } from "@/composables/usePermissionCheck";
 
 const store = usePaymentRequestsStore();
 const profileStore = useProfileStore();
+const { hasPermission } = usePermissionCheck();
 
 // ── Client / Account search options (populated from store methods) ──
 const clientOptions = ref([]);
