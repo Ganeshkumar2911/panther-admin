@@ -106,6 +106,17 @@
       </template>
     </div>
 
+    <!-- Filter bar -->
+    <div class="flex items-center justify-end gap-3 mb-4">
+      <BaseSelect
+        :modelValue="store.pagination.per_page"
+        :options="store.perPageOptions"
+        placeholder="Per page..."
+        class="w-full sm:w-32 xl:w-32"
+        @update:modelValue="(val) => store.updatePerPage(route.params.id, val)"
+      />
+    </div>
+
     <!-- Desktop Table -->
     <div class="hidden md:block border border-primary-border rounded-2xl overflow-hidden">
       <table class="w-full border-collapse">
@@ -292,6 +303,7 @@ import { useRoute } from 'vue-router'
 import { Search, Receipt, ArrowUpRight, ArrowDownLeft } from 'lucide-vue-next'
 import { useAccountTransactionsStore } from '@/stores/tradingAccounts/transactions'
 import Pagination from '@/components/common/Pagination.vue'
+import BaseSelect from '@/components/common/BaseSelect.vue'
 import { formatDate } from "@/utils/timeFormatter";
 
 const store = useAccountTransactionsStore()

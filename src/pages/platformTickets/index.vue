@@ -45,6 +45,13 @@
           class="w-32"
           @update:modelValue="store.applyFilters()"
         />
+        <BaseSelect
+          :modelValue="store.pagination.per_page"
+          :options="store.perPageOptions"
+          placeholder="Per Page"
+          class="w-28"
+          @update:modelValue="store.updatePerPage"
+        />
 
         <button
           v-if="hasFilters"

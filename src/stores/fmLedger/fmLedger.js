@@ -3,6 +3,7 @@ import { ref, reactive } from 'vue'
 import apiRequest from '@/api/request'
 import urls from '@/api/urls'
 import { useSnackbarStore } from '@/stores/snackbar/snackbar'
+import { perPageOptions } from '@/constants/pagination'
 
 export const useFmLedgerStore = defineStore('fmLedger', () => {
   const snackbar = useSnackbarStore()
@@ -152,6 +153,13 @@ export const useFmLedgerStore = defineStore('fmLedger', () => {
     fetchLedger(true)
   }
 
+  const updatePerPage = (newPerPage) => {
+    pagination.per_page = Number(newPerPage)
+    pagination.page = 1
+    isFetched.value = false
+    fetchLedger(true)
+  }
+
   // ─── Reset ─────────────────────────────────────────────
   const reset = () => {
     data.value      = []
@@ -192,6 +200,7 @@ export const useFmLedgerStore = defineStore('fmLedger', () => {
     error,
     pagination,
     summary,
+    perPageOptions,
 
     filters,
     filterOptions,
@@ -201,6 +210,7 @@ export const useFmLedgerStore = defineStore('fmLedger', () => {
 
     fetchLedger,
     applyFilters,
+    updatePerPage,
     setPage,
     reset,
 

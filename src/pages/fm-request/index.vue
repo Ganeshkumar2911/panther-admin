@@ -3,6 +3,7 @@ import { onMounted, ref } from "vue";
 import { useFmRequestStore } from "@/stores/fmRequest/fmRequest";
 import FmRequestFilters from "@/components/fmRequest/FmRequestFilters.vue";
 import Pagination from "@/components/common/Pagination.vue";
+import BaseSelect from "@/components/common/BaseSelect.vue";
 import Tooltip from "@/components/common/Tooltip.vue";
 import FmRequestActionDialog from "@/components/fmRequest/FmRequestActionDialog.vue";
 import AddEditFundManager from "@/components/fundManager/AddEditFundManager.vue";
@@ -106,7 +107,7 @@ onMounted(() => {
 
 <template>
   <div>
-    <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+    <div class="flex flex-wrap items-center justify-between gap- mb-6">
   <div class="flex items-center gap-2">
 
         <FmRequestFilters
@@ -115,6 +116,13 @@ onMounted(() => {
         :search="store.search"
         @filter="onFilter"
         @search="onSearch"
+      />
+      <BaseSelect
+        :modelValue="store.pagination.per_page"
+        :options="store.perPageOptions"
+        placeholder="Per page..."
+            class="w-28 sm:w-32"
+        @update:modelValue="(val) => store.updatePerPage(val, activeStatus)"
       />
        <Tooltip text="Refresh" position="right">
           <button
@@ -132,7 +140,7 @@ onMounted(() => {
       
     </button>
   </Tooltip>
-</div>
+    </div>
       <button
         @click="handleAddFundManager"
         class="px-4 py-2 rounded-xl text-sm font-medium bg-primary text-background

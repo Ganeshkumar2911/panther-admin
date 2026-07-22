@@ -3,6 +3,7 @@ import { reactive, ref } from 'vue'
 import apiRequest from '@/api/request'
 import urls from '@/api/urls'
 import { useSnackbarStore } from '@/stores/snackbar/snackbar'
+import { perPageOptions } from '@/constants/pagination'
 
 const defaultPagination = () => ({
   page: 1,
@@ -168,6 +169,14 @@ export const useIbWalletStore = defineStore('ibWallet', () => {
     fetchIbWallet(true)
   }
 
+  const updatePerPage = (newPerPage) => {
+    pagination.value.per_page = Number(newPerPage)
+    pagination.value.page = 1
+    isFetched.value = false
+
+    fetchIbWallet(true)
+  }
+
   const resetFilters = () => {
     Object.assign(filters, defaultFilters())
 
@@ -219,6 +228,7 @@ export const useIbWalletStore = defineStore('ibWallet', () => {
     error,
 
     pagination,
+    perPageOptions,
 
     filters,
     filterOptions,
@@ -229,6 +239,7 @@ export const useIbWalletStore = defineStore('ibWallet', () => {
     searchIbs,
 
     setFilters,
+    updatePerPage,
     resetFilters,
 
     setPage,

@@ -3,6 +3,7 @@ import { reactive, ref } from 'vue'
 import apiRequest from '@/api/request'
 import urls from '@/api/urls'
 import { useSnackbarStore } from '@/stores/snackbar/snackbar'
+import { perPageOptions } from '@/constants/pagination'
 
 const defaultPagination = () => ({
   page: 1,
@@ -65,16 +66,17 @@ export const useAdminLedgerStore = defineStore('adminLedger', () => {
     const successHandler = (res) => {
       data.value = res?.data || []
 
-      summary.value = {
-        ...defaultSummary(),
-        ...(res?.summary || {}),
+      if (res?.summary) {
+        summary.value = res.summary
       }
 
-      pagination.value =
-        res?.pagination || defaultPagination()
+      if (res?.pagination) {
+        pagination.value = res.pagination
+      }
 
-      filterOptions.types =
-        res?.filters?.types || []
+      if (res?.filters?.types) {
+        filterOptions.types = res.filters.types
+      }
 
       loading.value = false
       isFetched.value = true
@@ -85,33 +87,37 @@ export const useAdminLedgerStore = defineStore('adminLedger', () => {
       error.value = err
 
       snackbar.show(
-        err?.message || 'Failed to fetch admin ledger.',
+        err?.message || 'Failed to fetch my wallet ledger data',
         'error'
       )
     }
 
-    apiRequest(urls.KEYS.GET, urls.adminLedger.list, {
-      params: cleanFilters({
-        page: pagination.value.page,
-        per_page: pagination.value.per_page,
+    const params = cleanFilters({
+      page: pagination.value.page,
+      per_page: pagination.value.per_page,
+      ...filters,
+    })
 
-        type: filters.type,
-      }),
-
+    apiRequest('get', urls.adminLedger.list, {
+      params,
       isTokenRequired: true,
       onSuccess: successHandler,
       onFailure: failureHandler,
     })
   }
 
-  // ─── Filters ────────────────────────────────────────
-  const setFilters = (payload = {}) => {
-    Object.assign(filters, payload)
+  // ─── Filters & Pagination Actions ───────────────────
+  const setFilters = (nextFilters = {}) => {
+    Object.assign(filters, nextFilters)
 
     pagination.value.page = 1
 
-    isFetched.value = false
+    fetchAdminLedger(true)
+  }
 
+  const updatePerPage = (newPerPage) => {
+    pagination.value.per_page = Number(newPerPage)
+    pagination.value.page = 1
     fetchAdminLedger(true)
   }
 
@@ -120,16 +126,11 @@ export const useAdminLedgerStore = defineStore('adminLedger', () => {
 
     pagination.value.page = 1
 
-    isFetched.value = false
-
     fetchAdminLedger(true)
   }
 
-  // ─── Pagination ─────────────────────────────────────
-  const setPage = (page = 1) => {
+  const setPage = (page) => {
     pagination.value.page = page
-
-    isFetched.value = false
 
     fetchAdminLedger(true)
   }
@@ -163,6 +164,7 @@ export const useAdminLedgerStore = defineStore('adminLedger', () => {
     error,
 
     pagination,
+    perPageOptions,
 
     filters,
     filterOptions,
@@ -170,6 +172,7 @@ export const useAdminLedgerStore = defineStore('adminLedger', () => {
     fetchAdminLedger,
 
     setFilters,
+    updatePerPage,
     resetFilters,
 
     setPage,

@@ -71,6 +71,14 @@
           {{ tab.label }}
         </button>
       </div>
+
+      <BaseSelect
+        :modelValue="store.pagination.per_page"
+        :options="store.perPageOptions"
+        placeholder="Per page..."
+        class="w-32"
+        @update:modelValue="store.updatePerPage"
+      />
     </div>
 
     <!-- Table -->
@@ -301,6 +309,7 @@ import { useRoute } from 'vue-router'
 import { Search, RefreshCw, Plus, CheckCircle2, Database, Star, Trash2, Loader2 } from 'lucide-vue-next'
 import { useGroupConfigStore } from '@/stores/groupConfig/groupConfig'
 import Pagination from '@/components/common/Pagination.vue'
+import BaseSelect from '@/components/common/BaseSelect.vue'
 import AddGroupConfigDialog from '@/components/groupConfig/AddGroupConfigDialog.vue'
 import ConfirmationDialog from '@/components/common/ConfirmationDialog.vue'
 

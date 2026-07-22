@@ -3,6 +3,13 @@
 
     <!-- Header -->
     <div class="flex flex-wrap items-center justify-end gap-3 mb-6">
+      <BaseSelect
+        :modelValue="store.pagination.per_page"
+        :options="store.perPageOptions"
+        placeholder="Per page..."
+        class="w-32"
+        @update:modelValue="store.updatePerPage"
+      />
       <button
         class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-colors"
         @click="dialogOpen = true"
@@ -141,6 +148,7 @@ import { useRouter } from 'vue-router'
 import { Search, FolderPlus, FolderOpen, Eye, Layers } from 'lucide-vue-next'
 import { useGroupCategoriesStore } from '@/stores/groupConfig/groupCategories'
 import Pagination from '@/components/common/Pagination.vue'
+import BaseSelect from '@/components/common/BaseSelect.vue'
 import CreateCategoryDialog from '@/components/groupConfig/CreateCategoryDialog.vue'
 
 const store      = useGroupCategoriesStore()
