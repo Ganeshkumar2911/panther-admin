@@ -83,14 +83,14 @@
 
         <!-- Role -->
         <div>
-          <p class="text-xs font-medium text-secondary-text mb-1.5">Assigned Role <span class="text-primary-red">*</span></p>
-          <select
+          <p class="text-xs font-medium text-secondary-text mb-1.5">Assigned Role</p>
+          <BaseSelect
             v-model="form.role_id"
-            class="w-full px-3 py-2.5 rounded-lg bg-background border border-primary-border text-primary-text text-sm outline-none focus:border-primary transition-colors cursor-pointer"
-          >
-            <option value="" disabled>Select role</option>
-            <option v-for="role in rolesStore.records" :key="role.id" :value="role.id">{{ role.name }}</option>
-          </select>
+            :options="roleOptions"
+            variant="surface"
+            placeholder="Select role"
+            searchable
+          />
         </div>
       </div>
 
@@ -120,6 +120,7 @@ import { ref, computed, watch } from 'vue'
 import { X, Loader2, Info, Eye, EyeOff } from 'lucide-vue-next'
 import { useRbacStaffStore } from '@/stores/rbac/staff'
 import { useRbacRolesStore } from '@/stores/rbac/roles'
+import BaseSelect from '@/components/common/BaseSelect.vue'
 
 const props = defineProps({ open: { type: Boolean, default: false } })
 const emit = defineEmits(['close'])
@@ -129,7 +130,14 @@ const rolesStore = useRbacRolesStore()
 
 const showPassword = ref(false)
 
-const form = ref({ first_name: '', last_name: '', email: '', password: '', role_id: '' })
+const form = ref({ first_name: '', last_name: '', email: '', password: '', role_id: null })
+
+const roleOptions = computed(() =>
+  rolesStore.records.map((role) => ({
+    label: role.name,
+    value: role.id,
+  }))
+)
 
 // Regex validation rules
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -152,15 +160,14 @@ const isValid = computed(() => {
     form.value.email.trim() !== '' &&
     emailRegex.test(form.value.email) &&
     form.value.password !== '' &&
-    strongPasswordRegex.test(form.value.password) &&
-    form.value.role_id !== ''
+    strongPasswordRegex.test(form.value.password)
   )
 })
 
 watch(() => props.open, (val) => {
   if (val) {
     showPassword.value = false
-    form.value = { first_name: '', last_name: '', email: '', password: '', role_id: '' }
+    form.value = { first_name: '', last_name: '', email: '', password: '', role_id: null }
   }
 })
 
