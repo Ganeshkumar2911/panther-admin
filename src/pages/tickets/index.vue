@@ -1,13 +1,13 @@
 <template>
   <div class="px-4">
     <!-- Tab Toggle -->
-    <div class="flex gap-2 mb-6">
+    <div v-if="tabs.length > 1" class="flex gap-2 mb-6">
       <button
         v-for="tab in tabs"
         :key="tab.id"
         @click="activeTab = tab.id"
         :class="[
-          'px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200',
+          'px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer',
           activeTab === tab.id
             ? 'bg-primary text-white'
             : 'bg-card-background border border-primary-border text-primary-text hover:border-primary/50'
@@ -79,7 +79,8 @@
         </div>
 
         <button
-          class="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-medium transition-colors xl:flex-none"
+          v-if="hasPermission('ticket.create')"
+          class="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-medium transition-colors xl:flex-none cursor-pointer"
           @click="dialogOpen = true"
         >
           <Plus class="w-3.5 h-3.5" /> New Ticket
@@ -332,7 +333,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref, computed } from 'vue'
+import { onMounted, ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { Search, Plus, Eye, Ticket as TicketIcon } from 'lucide-vue-next'
 import { useTicketsStore } from '@/stores/tickets/tickets'
@@ -340,18 +341,35 @@ import { usePlatfromTicketsStore } from '@/stores/platformTickets/platformTicket
 import Pagination from '@/components/common/Pagination.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import CreateTicketDialog from '@/components/tickets/CreateTicketDialog.vue'
+import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
 const router = useRouter()
 const yourTicketsStore = useTicketsStore()
 const platformTicketsStore = usePlatfromTicketsStore()
+const { hasPermission } = usePermissionCheck()
+
+const allTabs = [
+  { id: 'your-tickets', label: 'Your Tickets', permission: 'ticket.view' },
+  { id: 'platform-tickets', label: 'Platform Tickets', permission: 'ticket.platform_view' },
+]
+
+const tabs = computed(() => {
+  return allTabs.filter(tab => hasPermission(tab.permission))
+})
 
 const activeTab = ref('your-tickets')
-const dialogOpen = ref(false)
 
-const tabs = [
-  { id: 'your-tickets', label: 'Your Tickets' },
-  { id: 'platform-tickets', label: 'Platform Tickets' },
-]
+watch(
+  tabs,
+  (newTabs) => {
+    if (newTabs.length > 0 && !newTabs.some(t => t.id === activeTab.value)) {
+      activeTab.value = newTabs[0].id
+    }
+  },
+  { immediate: true }
+)
+
+const dialogOpen = ref(false)
 
 // Your Tickets filters
 const yourTicketsFilters = ref({ search: '', status: null, priority: null, from_date: '', to_date: '' })

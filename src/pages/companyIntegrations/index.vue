@@ -13,6 +13,7 @@
       </div> -->
 
       <button
+        v-if="hasPermission('company_integration.create')"
         class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all active:scale-95 cursor-pointer"
         @click="handleOpenCreate"
       >
@@ -109,7 +110,7 @@
               </span>
             </td>
             <td class="p-3">
-              <div class="flex items-center justify-center gap-2">
+              <div v-if="hasPermission('company_integration.update')" class="flex items-center justify-center gap-2">
                 <Tooltip text="Manual Fetch" position="top">
                   <button
                     @click="handleConfirmRun(record)"
@@ -170,8 +171,10 @@ import Pagination from '@/components/common/Pagination.vue'
 import IntegrationDialog from '@/components/common/IntegrationDialog.vue'
 import Tooltip from '@/components/common/Tooltip.vue'
 import ManualFetchDialog from '@/components/common/ManualFetchDialog.vue'
+import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
 const store = useCompanyIntegrationsStore()
+const { hasPermission } = usePermissionCheck()
 
 const showModal = ref(false)
 const selectedRecord = ref(null)

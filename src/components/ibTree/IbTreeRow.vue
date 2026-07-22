@@ -4,7 +4,10 @@ import { useRouter } from 'vue-router'
 import { Pencil, Plus, ArrowLeftRight, Users, Link } from 'lucide-vue-next'
 import DropdownMenu from '@/components/common/DropdownMenu.vue'
 
+import { usePermissionCheck } from '@/composables/usePermissionCheck'
+
 const router = useRouter()
+const { hasPermission } = usePermissionCheck()
 
 const props = defineProps({
   nodes: { type: Array, default: () => [] },
@@ -25,33 +28,48 @@ function flattenTree(nodes, result = []) {
 
 const flatRows = computed(() => flattenTree(props.nodes))
 
-const getActions = (node) => [
-  {
-    label: 'View Clients',
-    icon: Users,
-    handler: () => router.push(`/ib-clients/${node.ib_id}`),
-  },
-  {
-    label: 'Referral Links',
-    icon: Link,
-    handler: () => router.push(`/ib-referral-links/${node.ib_id}`),
-  },
-  {
-    label: 'Transfer Parent',
-    icon: ArrowLeftRight,
-    handler: () => emit('transfer-parent', node),
-  },
-  {
-    label: 'Edit IB',
-    icon: Pencil,
-    handler: () => emit('edit', node),
-  },
-  {
-    label: 'Add Sub-IB',
-    icon: Plus,
-    handler: () => emit('add-sub', node.ib_id),
-  },
-]
+const getActions = (node) => {
+  const actions = [
+    {
+      label: 'View Clients',
+      icon: Users,
+      handler: () => router.push(`/ib-clients/${node.ib_id}`),
+    },
+  ]
+
+  if (hasPermission('ib.referal_link_view')) {
+    actions.push({
+      label: 'Referral Links',
+      icon: Link,
+      handler: () => router.push(`/ib-referral-links/${node.ib_id}`),
+    })
+  }
+
+  if (hasPermission('ib.update')) {
+    actions.push(
+      {
+        label: 'Transfer Parent',
+        icon: ArrowLeftRight,
+        handler: () => emit('transfer-parent', node),
+      },
+      {
+        label: 'Edit IB',
+        icon: Pencil,
+        handler: () => emit('edit', node),
+      }
+    )
+  }
+
+  if (hasPermission('ib.create')) {
+    actions.push({
+      label: 'Add Sub-IB',
+      icon: Plus,
+      handler: () => emit('add-sub', node.ib_id),
+    })
+  }
+
+  return actions
+}
 </script>
 
 <template>

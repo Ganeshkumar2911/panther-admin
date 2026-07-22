@@ -336,6 +336,16 @@ const routes = [
           description: "Track and view system modifications and events.",
         },
       },
+      {
+        path: "/rbac",
+        name: "rbac",
+        component: () => import("@/pages/rbac/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Access Control",
+          description: "Manage staff accounts, roles, and permissions.",
+        },
+      },
     ],
   },
 ];

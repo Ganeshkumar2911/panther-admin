@@ -21,12 +21,16 @@ import {
   ChevronRight,
   Mail,
   Cpu,
-  ClipboardList
+  ClipboardList,
+  ShieldCheck
 } from 'lucide-vue-next'
 import { useProfileStore } from '@/stores/profile/profile'
+import { useMyPermissionsStore } from '@/stores/rbac/myPermissions'
 import Tooltip from '@/components/common/Tooltip.vue'
+import { navItems } from '@/config/navItems'
 
-const store = useProfileStore();
+const store = useProfileStore()
+const myPermissionsStore = useMyPermissionsStore()
 
 defineProps({
   isOpen: {
@@ -43,120 +47,11 @@ const emit = defineEmits(["close", "toggle-collapse"]);
 
 const route = useRoute();
 
-// ✅ Logical navigation items with unique icons
-const navItems = [
-  // 1. Core Overview
-  {
-    label: "Dashboard",
-    to: "/dashboard",
-    icon: LayoutDashboard,
-  },
-  // 2. User & Network Administration
-  {
-    label: "Clients",
-    to: "/clients",
-    icon: Users,
-  },
-  {
-    label: "Trading Accounts",
-    to: "/trading-accounts",
-    icon: LineChart,
-  },
-  {
-    label: "IB Network",
-    to: "/ib-tree",
-    icon: ListTree,
-  },
-  // 3. Fund Management
-  {
-    label: "Fund Manager",
-    to: "/fm-leaderboard",
-    icon: Trophy,
-  },
-  {
-    label: "FM Requests",
-    to: "/fm-request",
-    icon: GitPullRequestArrow,
-  },
-  // 4. Finances & Wallets
-  {
-    label: "My Wallet",
-    to: "/my-wallet",
-    icon: Wallet,
-  },
-  {
-    label: "Client Wallet",
-    to: "/client-wallet",
-    icon: Coins,
-  },
-  {
-    label: "FM Wallet",
-    to: "/fm-wallet",
-    icon: TrendingUp,
-  },
-  {
-    label: "IB Wallet",
-    to: "/ib-wallet",
-    icon: DollarSign,
-  },
-  // 5. Transactions & Cash Flow
-  {
-    label: "Payment Methods",
-    to: "/payment-methods",
-    icon: CreditCard,
-  },
-  {
-    label: "Payment Requests",
-    to: "/payment-requests",
-    icon: Handshake,
-  },
-  {
-    label: "Settlements",
-    to: "/settlements",
-    icon: RefreshCcw,
-  },
-  {
-    label: "eMails",
-    to: "/e-mails",
-    icon: Mail,
-  },
-  {
-    label: "Telegram",
-    to: "/telegram",
-    icon: ClipboardList,
-  },
-  // 6. System & Support
-  {
-    label: "Group Config",
-    to: "/group-config",
-    icon: Settings,
-  },
-  {
-    label: "Company Integrations",
-    to: "/company-integrations",
-    icon: Cpu,
-  },
-  {
-    label: 'Audit Logs',
-    to: '/audit-logs',
-    icon: ClipboardList,
-  },
-  {
-    label: 'Tickets',
-    to: '/tickets',
-    icon: Tickets,
-  },
-]
-
-// ✅ Filter navigation items based on profile user_id
+// ✅ Filter navigation items dynamically based on user permission codes
 const filteredNavItems = computed(() => {
-  const userId = store.user?.user_id || store.user?.id
-  const restrictedLabels = ['Group Config', 'Payment Methods', 'Audit Logs']
-
   return navItems.filter((item) => {
-    if (restrictedLabels.includes(item.label)) {
-      // These tabs are ONLY visible to user 819
-      return Number(userId) === 819
+    if (item.permission) {
+      return myPermissionsStore.hasPermission(item.permission)
     }
     return true
   })

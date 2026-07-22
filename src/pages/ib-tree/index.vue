@@ -51,7 +51,8 @@
       </div>
 
       <button
-        class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-medium transition-colors shrink-0 self-start md:self-auto"
+        v-if="hasPermission('ib.create')"
+        class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-medium transition-colors shrink-0 self-start md:self-auto cursor-pointer"
         @click="openAdd"
       >
         <Plus class="w-3.5 h-3.5" /> Add Master IB
@@ -173,8 +174,10 @@ import IbTreeRow from '@/components/ibTree/IbTreeRow.vue'
 import IbTree from '@/components/ibTree/IbTree.vue'
 import IbDialog from '@/components/ibTree/IbDialog.vue'
 import TransferIbDialog from '@/components/ibTree/TransferIbDialog.vue'
+import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
 const store = useIbTreeStore()
+const { hasPermission } = usePermissionCheck()
 const { searchQuery } = storeToRefs(store)
 const expanded = ref({})
 const viewMode = ref('table')
