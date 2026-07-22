@@ -94,7 +94,7 @@ export const useMyPermissionsStore = defineStore('myPermissions', () => {
         reject(err)
       }
 
-      apiRequest(urls.KEYS.GET, urls.rbac.userPermissions.me, {
+      apiRequest(urls.KEYS.GET, urls?.rbac?.userPermissions?.me, {
         isTokenRequired: true,
         onSuccess: successHandler,
         onFailure: failureHandler,

@@ -166,27 +166,27 @@ const urls = {
     update: "/update/configrations",
     run: "/company-integrations/run",
     delete: "/delete-bot",
-    rbac: {
-      roles: {
-        list: "/rbac/roles",
-        create: "/rbac/roles",
-        update: "/rbac/roles",
-        delete: "/rbac/roles",
-        permissions: "/rbac/permissions",
-        assignPermissions: "/rbac/roles/permissions",
-      },
-      staff: {
-        list: "/rbac/users",
-        create: "/rbac/users",
-        updateRole: "/rbac/users/role",
-        updateStatus: "/rbac/users/status",
-        delete: "/rbac/users",
-      },
-      userPermissions: {
-        me: "/rbac/me/permissions",
-        all: "/rbac/permissions",
-        manage: "/rbac/users/permissions",
-      },
+  },
+  rbac: {
+    roles: {
+      list: "/rbac/roles",
+      create: "/rbac/roles",
+      update: "/rbac/roles",
+      delete: "/rbac/roles",
+      permissions: "/rbac/permissions",
+      assignPermissions: "/rbac/roles/permissions",
+    },
+    staff: {
+      list: "/rbac/users",
+      create: "/rbac/users",
+      updateRole: "/rbac/users/role",
+      updateStatus: "/rbac/users/status",
+      delete: "/rbac/users",
+    },
+    userPermissions: {
+      me: "/rbac/me/permissions",
+      all: "/rbac/permissions",
+      manage: "/rbac/users/permissions",
     },
   },
 };

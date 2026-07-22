@@ -1,6 +1,6 @@
 <script setup>
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed } from "vue";
+import { useRoute } from "vue-router";
 import {
   LayoutDashboard,
   Users,
@@ -22,15 +22,15 @@ import {
   Mail,
   Cpu,
   ClipboardList,
-  ShieldCheck
-} from 'lucide-vue-next'
-import { useProfileStore } from '@/stores/profile/profile'
-import { useMyPermissionsStore } from '@/stores/rbac/myPermissions'
-import Tooltip from '@/components/common/Tooltip.vue'
-import { navItems } from '@/config/navItems'
+  ShieldCheck,
+} from "lucide-vue-next";
+import { useProfileStore } from "@/stores/profile/profile";
+import { useMyPermissionsStore } from "@/stores/rbac/myPermissions";
+import Tooltip from "@/components/common/Tooltip.vue";
+import { navItems } from "@/config/navItems";
 
-const store = useProfileStore()
-const myPermissionsStore = useMyPermissionsStore()
+const store = useProfileStore();
+const myPermissionsStore = useMyPermissionsStore();
 
 defineProps({
   isOpen: {
@@ -51,11 +51,11 @@ const route = useRoute();
 const filteredNavItems = computed(() => {
   return navItems.filter((item) => {
     if (item.permission) {
-      return myPermissionsStore.hasPermission(item.permission)
+      return myPermissionsStore.hasPermission(item.permission);
     }
-    return true
-  })
-})
+    return true;
+  });
+});
 
 // ✅ Active Route Check
 const isActive = (path) => route.path.startsWith(path);

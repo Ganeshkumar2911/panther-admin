@@ -4,10 +4,12 @@ import router from "../router";
 
 // ─── Constants
 
-const BASE_URL = "https://1pz4zm0b-2504.euw.devtunnels.ms/admin/";
+// const BASE_URL = "https://1pz4zm0b-2504.euw.devtunnels.ms/admin/";
 // const BASE_URL = "https://f7v2d03l-2504.inc1.devtunnels.ms/admin/";
-// const BASE_URL = "https://848ncvt5-2504.euw.devtunnels.ms/admin/";
-// const BASE_URL = "https://zpj8dpf6-2504.inc1.devtunnels.ms/admin/";
+// const BASE_URL = "https://848ncvt5-2504.euw.devtunnels.ms/admin/"; // staging
+// const BASE_URL = "https://1pz4zm0b-2504.euw.devtunnels.ms/admin/";   // main url
+// const BASE_URL = "https://ls01t281-5001.inc1.devtunnels.ms/admin/"; // lokesh url
+const BASE_URL = "https://zpj8dpf6-2504.inc1.devtunnels.ms/admin/"; // vaibhav url
 const DEFAULT_TIMEOUT = 2 * 60 * 1000;
 const MAX_RETRY_ATTEMPTS = 2;
 const RETRYABLE_STATUS_CODES = [502, 503, 504];
