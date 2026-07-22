@@ -24,7 +24,7 @@
             />
           </div>
           <div>
-            <p class="text-xs font-medium text-secondary-text mb-1.5">Last Name</p>
+            <p class="text-xs font-medium text-secondary-text mb-1.5">Last Name <span class="text-primary-red">*</span></p>
             <input
               v-model="form.last_name"
               type="text"
@@ -148,6 +148,7 @@ const isPasswordValid = computed(() => {
 const isValid = computed(() => {
   return (
     form.value.first_name.trim() !== '' &&
+    form.value.last_name.trim() !== '' &&
     form.value.email.trim() !== '' &&
     emailRegex.test(form.value.email) &&
     form.value.password !== '' &&

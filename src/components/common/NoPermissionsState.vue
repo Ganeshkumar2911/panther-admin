@@ -1,5 +1,6 @@
 <script setup>
-import { ShieldAlert, RefreshCw } from 'lucide-vue-next'
+import { ref, onUnmounted } from 'vue'
+import { ShieldAlert, RefreshCw, Loader2 } from 'lucide-vue-next'
 
 defineProps({
   title: {
@@ -13,6 +14,36 @@ defineProps({
 })
 
 const emit = defineEmits(['retry'])
+
+const isLoading = ref(false)
+const countdown = ref(0)
+let timer = null
+
+const handleRetry = () => {
+  if (isLoading.value || countdown.value > 0) return
+
+  isLoading.value = true
+  emit('retry')
+
+  // Keep loader spinning for a brief moment then start 10s retry countdown
+  setTimeout(() => {
+    isLoading.value = false
+    countdown.value = 10
+
+    clearInterval(timer)
+    timer = setInterval(() => {
+      countdown.value -= 1
+      if (countdown.value <= 0) {
+        clearInterval(timer)
+        timer = null
+      }
+    }, 1000)
+  }, 1000)
+}
+
+onUnmounted(() => {
+  if (timer) clearInterval(timer)
+})
 </script>
 
 <template>
@@ -30,11 +61,18 @@ const emit = defineEmits(['retry'])
     </p>
 
     <button
-      @click="emit('retry')"
-      class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-medium bg-primary text-white hover:bg-primary/90 transition-colors shadow-sm cursor-pointer"
+      :disabled="isLoading || countdown > 0"
+      @click="handleRetry"
+      class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-medium bg-primary text-white hover:bg-primary/90 transition-colors shadow-sm cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
     >
-      <RefreshCw class="w-4 h-4" />
-      <span>Refresh Permissions</span>
+      <Loader2 v-if="isLoading" class="w-4 h-4 animate-spin" />
+      <RefreshCw v-else class="w-4 h-4" />
+      <span>
+        <template v-if="isLoading">Refreshing...</template>
+        <template v-else-if="countdown > 0">Retry in {{ countdown }}s</template>
+        <template v-else>Refresh Permissions</template>
+      </span>
     </button>
   </div>
 </template>
+

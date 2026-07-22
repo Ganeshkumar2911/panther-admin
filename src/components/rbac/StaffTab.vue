@@ -70,7 +70,7 @@
           <tr
             v-for="staff in staffStore.records"
             :key="staff.id"
-            class="border-b border-primary-border last:border-none bg-card-background hover:bg-background transition-colors relative hover:z-20 focus-within:z-30 group"
+            class="border-b border-primary-border last:border-none bg-card-background hover:bg-background transition-colors group"
           >
             <td class="px-4 py-3.5 group-last:rounded-bl-2xl">
               <div class="flex items-center gap-2.5">
@@ -83,7 +83,7 @@
 
             <td class="px-4 py-3.5 text-xs text-secondary-text">{{ staff.email }}</td>
 
-            <td class="px-4 py-3.5 relative z-30">
+            <td class="px-4 py-3.5">
               <BaseSelect
                 :model-value="staff.role_id"
                 :options="roleOptions"
