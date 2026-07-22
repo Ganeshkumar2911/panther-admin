@@ -84,6 +84,17 @@
             </div>
           </div>
 
+          <!-- Tracking ID (Only in Edit Mode) -->
+          <div v-if="isEditMode" class="flex flex-col gap-1">
+            <label class="text-secondary-text text-[11px] font-medium">Tracking ID</label>
+            <input
+              v-model="form.tracking_id"
+              type="text"
+              class="w-full bg-background border border-primary-border rounded-lg px-3 py-2 text-primary-text text-xs outline-none focus:border-primary transition-colors"
+              placeholder="Tracking ID"
+            />
+          </div>
+
           <!-- Phone Number -->
           <div class="flex flex-col gap-1">
             <label class="text-secondary-text text-[11px] font-medium">Phone Number</label>
@@ -236,6 +247,7 @@ const form = ref({
   email: '',
   password: '',
   phone_number: '',
+  tracking_id: '',
   ib_user_id: null,
   date_of_birth: '',
   kyc_status: 'not started',
@@ -276,6 +288,7 @@ watch(
         form.value.email = props.client.email ?? ''
         form.value.password = ''
         form.value.phone_number = props.client.phone_number ?? ''
+        form.value.tracking_id = props.client.tracking_id ?? ''
         form.value.ib_user_id = props.client.ib_user_id ?? props.client.ib_id ?? null
         form.value.date_of_birth = formatDateForInput(props.client.date_of_birth)
         form.value.kyc_status = props.client.kyc_status ?? 'not started'
@@ -290,6 +303,7 @@ watch(
         form.value.email = ''
         form.value.password = ''
         form.value.phone_number = ''
+        form.value.tracking_id = ''
         form.value.ib_user_id = null
         form.value.date_of_birth = ''
         form.value.kyc_status = 'not started'
@@ -367,9 +381,13 @@ const handleSubmit = () => {
   }
 
   if (isEditMode.value) {
+    const editPayload = {
+      ...payload,
+      tracking_id: form.value.tracking_id?.trim() || null,
+    }
     apiRequest(urls.KEYS.PUT, urls.clientList.update, {
       look_up_key: props.client.id,
-      data: payload,
+      data: editPayload,
       isTokenRequired: true,
       onSuccess: () => {
         snackbar.show('Client details updated successfully.', 'success')

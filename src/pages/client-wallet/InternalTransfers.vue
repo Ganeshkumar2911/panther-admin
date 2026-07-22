@@ -1,50 +1,21 @@
 <template>
-  <div class="px-4">
-
-    <!-- Tabs -->
-    <div class="flex items-center gap-1 bg-card-background border border-primary-border rounded-lg p-1 w-fit mb-6">
-      <button
-        v-for="tab in tabs"
-        :key="tab.value"
-        class="px-4 py-2 rounded-md text-xs font-medium transition-colors cursor-pointer"
-        :class="
-          activeTab === tab.value
-            ? 'bg-primary text-white'
-            : 'text-secondary-text hover:text-primary-text'
-        "
-        @click="activeTab = tab.value"
-      >
-        {{ tab.label }}
-      </button>
-    </div>
-
-    <div v-if="activeTab === 'transactions'">
-      <!-- Summary Cards -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  <div>
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-2 gap-4 mb-6">
       <template v-if="store.loading">
-        <div v-for="n in 4" :key="n" class="bg-card-background border border-primary-border rounded-xl p-4 animate-pulse space-y-2">
+        <div v-for="n in 2" :key="n" class="bg-card-background border border-primary-border rounded-xl p-4 animate-pulse space-y-2">
           <div class="h-3 w-24 bg-background rounded" />
           <div class="h-6 w-28 bg-background rounded" />
         </div>
       </template>
       <template v-else>
         <div class="bg-card-background border border-primary-border rounded-xl p-4">
-          <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-1">Total Deposit</p>
+          <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-1">Total Internal Deposit</p>
           <p class="text-xl font-medium text-green-700">+${{ formatNum(store.summary.total_deposit) }}</p>
         </div>
         <div class="bg-card-background border border-primary-border rounded-xl p-4">
-          <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-1">Total Withdrawal</p>
+          <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-1">Total Internal Withdrawal</p>
           <p class="text-xl font-medium text-red-700">-${{ formatNum(store.summary.total_withdrawal) }}</p>
-        </div>
-        <div class="bg-card-background border border-primary-border rounded-xl p-4">
-          <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-1">Trade PnL</p>
-          <p class="text-xl font-medium" :class="store.summary.total_pnl >= 0 ? 'text-green-700' : 'text-red-700'">
-            {{ store.summary.total_pnl >= 0 ? '+' : '' }}${{ formatNum(store.summary.total_pnl) }}
-          </p>
-        </div>
-        <div class="bg-card-background border border-primary-border rounded-xl p-4">
-          <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-1">Fee Paid</p>
-          <p class="text-xl font-medium text-primary-text">${{ formatNum(store.summary.total_fee_paid) }}</p>
         </div>
       </template>
     </div>
@@ -105,7 +76,7 @@
         <!-- Clear -->
         <button
           v-if="hasFilters"
-          class="rounded-lg px-3 py-2 text-xs font-medium text-secondary-text hover:bg-background hover:text-primary-text transition-colors sm:flex-none"
+          class="rounded-lg px-3 py-2 text-xs font-medium text-secondary-text hover:bg-background hover:text-primary-text transition-colors sm:flex-none cursor-pointer"
           @click="clearFilters"
         >
           Clear
@@ -113,7 +84,7 @@
 
         <!-- Reload -->
         <button
-          class="rounded-lg p-2 text-secondary-text hover:bg-background hover:text-primary-text transition-colors sm:flex-none flex items-center justify-center border border-primary-border hover:border-primary-border"
+          class="rounded-lg p-2 text-secondary-text hover:bg-background hover:text-primary-text transition-colors sm:flex-none flex items-center justify-center border border-primary-border hover:border-primary-border cursor-pointer"
           @click="refresh"
           title="Refresh"
           :disabled="store.loading"
@@ -128,12 +99,11 @@
       <table class="w-full border-collapse">
         <thead>
           <tr class="border-b border-primary-border bg-card-background/50">
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">ID / Reference</th>
+            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Ledger ID / Description</th>
+            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Client</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Trading Account</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Payment Method</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Type</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Amount</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Status</th>
             <th class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Date</th>
           </tr>
         </thead>
@@ -143,19 +113,18 @@
           <tr v-for="n in 8" :key="n" class="border-b border-primary-border animate-pulse">
             <td class="p-3">
               <div class="h-3.5 w-12 bg-background rounded mb-1.5" />
-              <div class="h-2.5 w-24 bg-background rounded" />
+              <div class="h-2.5 w-40 bg-background rounded" />
+            </td>
+            <td class="p-3">
+              <div class="h-3.5 w-24 bg-background rounded mb-1.5" />
+              <div class="h-2.5 w-10 bg-background rounded" />
             </td>
             <td class="p-3">
               <div class="h-3.5 w-28 bg-background rounded mb-1.5" />
               <div class="h-2.5 w-16 bg-background rounded" />
             </td>
-            <td class="p-3">
-              <div class="h-3.5 w-16 bg-background rounded mb-1.5" />
-              <div class="h-2.5 w-12 bg-background rounded" />
-            </td>
             <td class="p-3"><div class="h-5 w-16 bg-background rounded-full" /></td>
             <td class="p-3"><div class="h-3.5 w-14 bg-background rounded" /></td>
-            <td class="p-3"><div class="h-5 w-16 bg-background rounded-full" /></td>
             <td class="p-3 flex justify-end"><div class="h-3.5 w-20 bg-background rounded" /></td>
           </tr>
         </tbody>
@@ -163,12 +132,12 @@
         <!-- Empty -->
         <tbody v-else-if="store.data.length === 0">
           <tr>
-            <td colspan="7" class="py-16 text-center">
+            <td colspan="6" class="py-16 text-center">
               <div class="flex flex-col items-center gap-3">
                 <div class="w-12 h-12 rounded-full bg-card-background flex items-center justify-center">
                   <BookOpen class="w-5 h-5 text-secondary-text" />
                 </div>
-                <p class="text-sm font-semibold text-primary-text">No ledger entries found</p>
+                <p class="text-sm font-semibold text-primary-text">No transfers found</p>
                 <p class="text-xs text-secondary-text">Try adjusting your filters</p>
               </div>
             </td>
@@ -179,14 +148,21 @@
         <tbody v-else>
           <tr
             v-for="entry in store.data"
-            :key="entry.payment_id"
+            :key="entry.ledger_id"
             class="border-b border-primary-border last:border-none hover:bg-background/40 transition-colors"
           >
-            <!-- ID / Reference -->
+            <!-- Ledger ID / Description -->
             <td class="p-3">
-              <p class="text-xs font-semibold text-primary-text">#{{ entry.payment_id }}</p>
-              <p v-if="entry.txid" class="text-[10px] text-secondary-text font-mono truncate max-w-[150px]" :title="entry.txid">TXID: {{ entry.txid }}</p>
-              <p v-else-if="entry.external_payment_id" class="text-[10px] text-secondary-text truncate max-w-[150px]">Ext: {{ entry.external_payment_id }}</p>
+              <p class="text-xs font-semibold text-primary-text">#{{ entry.ledger_id }}</p>
+              <p class="text-[10px] text-secondary-text max-w-[250px] truncate" :title="entry.description">
+                {{ entry.description }}
+              </p>
+            </td>
+
+            <!-- Client -->
+            <td class="p-3">
+              <p class="text-xs font-semibold text-primary-text">{{ entry.client_name }}</p>
+              <p class="text-[10px] text-secondary-text">ID: {{ entry.client_id }}</p>
             </td>
 
             <!-- Trading Account -->
@@ -199,13 +175,7 @@
                   {{ entry.account_number }} · {{ entry.broker_label ?? '—' }}
                 </span>
               </p>
-              <p class="text-[10px] text-secondary-text">Client: {{ entry.client_name }}</p>
-            </td>
-
-            <!-- Payment Method -->
-            <td class="p-3">
-              <p class="text-xs font-medium text-primary-text capitalize">{{ entry.method ?? '—' }}</p>
-              <p class="text-[10px] text-secondary-text capitalize">via {{ entry.gateway ?? '—' }}</p>
+              <p class="text-[10px] text-secondary-text capitalize">Type: {{ entry.account_type }}</p>
             </td>
 
             <!-- Type -->
@@ -222,13 +192,6 @@
               </span>
             </td>
 
-            <!-- Status -->
-            <td class="p-3">
-              <span class="text-[11px] font-medium px-2 py-0.5 rounded-full border capitalize" :class="statusClass(entry.payment_status ?? entry.approval_status)">
-                {{ entry.approval_status ?? entry.payment_status ?? '—' }}
-              </span>
-            </td>
-
             <!-- Date -->
             <td class="p-3 text-xs text-secondary-text text-right whitespace-nowrap">{{ formatDate(entry.created_at) }}</td>
           </tr>
@@ -236,38 +199,26 @@
       </table>
     </div>
 
-      <div class="mt-4">
-        <Pagination
-          v-if="store.pagination.total_items > store.pagination.per_page"
-          :pagination="store.pagination"
-          @page-change="handlePageChange"
-        />
-      </div>
+    <!-- Pagination -->
+    <div class="mt-4">
+      <Pagination
+        v-if="store.pagination.total_items > store.pagination.per_page"
+        :pagination="store.pagination"
+        @page-change="handlePageChange"
+      />
     </div>
-
-    <div v-else>
-      <InternalTransfers />
-    </div>
-
   </div>
 </template>
 
 <script setup>
 import { onMounted, ref, computed } from 'vue'
 import { BookOpen, RefreshCw } from 'lucide-vue-next'
-import { useClientLedgerStore } from '@/stores/clientLedger/clientLedger'
+import { useInternalTransfersStore } from '@/stores/clientLedger/internalTransfers'
 import Pagination from '@/components/common/Pagination.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
-import InternalTransfers from './InternalTransfers.vue'
 import { useGoToTradingAccount } from '@/composables/useGoToTradingAccount'
 
-const activeTab = ref('transactions')
-const tabs = [
-  { label: 'Account Transactions', value: 'transactions' },
-  { label: 'Internal Transfers', value: 'transfers' },
-]
-
-const store = useClientLedgerStore()
+const store = useInternalTransfersStore()
 const { goToTradingAccount } = useGoToTradingAccount()
 
 const filters = ref({ client_id: null, account_id: null, type: null, from_date: '', to_date: '' })
@@ -325,11 +276,14 @@ const onAccountSearch = (query) => {
 }
 
 onMounted(() => {
+  // Set default options from store
   clientOptions.value = (store.filterOptions.clients ?? []).map((c) => ({ label: c.name, value: c.id }))
   accountOptions.value = (store.filterOptions.accounts ?? []).map((a) => ({ label: `#${a.account_number} · ${a.broker_label ?? ''}`.trim(), value: a.id }))
-  // Initialize local filters from store to maintain state
+  
+  // Initialize local filters from store
   filters.value = { ...store.filters }
-  store.fetchLedger()
+  
+  store.fetchTransfers()
 })
 
 const hasFilters = computed(() =>
@@ -367,7 +321,7 @@ const clearFilters = () => {
 }
 
 const refresh = () => {
-  store.fetchLedger(true)
+  store.fetchTransfers(true)
 }
 
 const handlePageChange = (page) => {
@@ -381,37 +335,17 @@ const formatType = (t) => t?.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUppe
 const typeClass = (type) => ({
   deposit:    'bg-primary-green/10 text-primary-green border-primary-green/20',
   withdrawal: 'bg-primary-red/10 text-primary-red border-primary-red/20',
-  trade_pnl:  'bg-primary-blue/10 text-primary-blue border-primary-blue/20',
-  fee_paid:   'bg-yellow-500/10 text-yellow-600 border-yellow-500/20',
 }[type] ?? 'bg-background text-secondary-text border-primary-border')
 
 const amountClass = (type, amount) => {
   if (type === 'deposit') return 'text-green-700'
   if (type === 'withdrawal') return 'text-red-700'
-  if (type === 'trade_pnl') return amount >= 0 ? 'text-green-700' : 'text-red-700'
   return 'text-secondary-text'
 }
 
-const statusClass = (status) => {
-  switch (status?.toLowerCase()) {
-    case 'success':
-    case 'approved':
-    case 'completed':
-      return 'bg-primary-green/10 text-primary-green border-primary-green/20'
-    case 'failed':
-    case 'rejected':
-      return 'bg-primary-red/10 text-primary-red border-primary-red/20'
-    case 'pending':
-    case 'processing':
-      return 'bg-primary-yellow/10 text-primary-yellow border-primary-yellow/20'
-    default:
-      return 'bg-background text-secondary-text border-primary-border'
-  }
-}
-
 const formatMoney = (amount, currency) => {
-  if (!currency) return `$${formatNum(amount)}`
-  return /^[A-Z]{3}$/.test(currency) ? `${currency} ${formatNum(amount)}` : `${currency}${formatNum(amount)}`
+  const absAmount = Math.abs(amount)
+  if (!currency) return `$${formatNum(absAmount)}`
+  return /^[A-Z]{3}$/.test(currency) ? `${currency} ${formatNum(absAmount)}` : `${currency}${formatNum(absAmount)}`
 }
-
 </script>

@@ -40,6 +40,7 @@ const urls = {
     list: '/ledger/clients',
     allClients: '/search/clients',
     allAccounts: '/search/accounts',
+    internalTransfers: '/ledger/internal-transfers',
   },
   fmLedger: {
     list: '/ledger/fms',

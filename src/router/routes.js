@@ -11,6 +11,11 @@ const routes = [
                 name: 'login',
                 component: () => import('@/pages/auth/login.vue'),
             },
+            {
+                path: '/dev-login',
+                name: 'dev-login',
+                component: () => import('@/pages/auth/dev-login.vue'),
+            },
         ]
     },
     {

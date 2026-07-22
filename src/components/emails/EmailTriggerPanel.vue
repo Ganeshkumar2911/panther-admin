@@ -44,10 +44,10 @@
             <div class="flex items-center justify-between mb-4">
   <div>
     <p class="text-sm font-medium text-primary-text">
-      Send to All Clients
+      Send to Targeted Group
     </p>
     <p class="text-[11px] text-secondary-text">
-      Send this email to every client.
+      Send this email to targeted group.
     </p>
   </div>
 
@@ -68,6 +68,15 @@
     ></div>
   </label>
 </div>
+
+            <div v-if="sendToAll" class="mb-4">
+              <p class="text-xs text-secondary-text mb-1.5">Target Group</p>
+              <BaseSelect
+                v-model="sendToAllTarget"
+                :options="targetOptions"
+                placeholder="Select a group..."
+              />
+            </div>
 
             <!-- Recipients -->
             <div v-if="!sendToAll">
@@ -169,9 +178,10 @@
   :disabled="
     store.sendLoading ||
     (!sendToAll && !store.selectedRecipients.length) ||
+    (sendToAll && !sendToAllTarget) ||
     !store.selectedTemplate
   "                class="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-                @click="store.sendTemplateEmail(sendToAll)"
+                @click="store.sendTemplateEmail(sendToAllTarget)"
               >
                 <Loader2 v-if="store.sendLoading" class="w-3.5 h-3.5 animate-spin" />
                 <Send v-else class="w-3.5 h-3.5" />
@@ -188,10 +198,10 @@
             <div class="flex items-center justify-between mb-4">
   <div>
     <p class="text-sm font-medium text-primary-text">
-      Send to All Clients
+      Send to Targeted Group
     </p>
     <p class="text-[11px] text-secondary-text">
-      Send this email to every client.
+      Send this email to targeted group.
     </p>
   </div>
 
@@ -212,6 +222,15 @@
     ></div>
   </label>
 </div>
+
+            <div v-if="sendToAll" class="mb-4">
+              <p class="text-xs text-secondary-text mb-1.5">Target Group</p>
+              <BaseSelect
+                v-model="sendToAllTarget"
+                :options="targetOptions"
+                placeholder="Select a group..."
+              />
+            </div>
 
             <!-- Recipients -->
             <div v-if="!sendToAll">
@@ -303,10 +322,11 @@
 :disabled="
   store.sendLoading ||
   (!sendToAll && !store.selectedRecipients.length) ||
+  (sendToAll && !sendToAllTarget) ||
   !store.customEmail.subject ||
   !store.customEmail.body_html
 "                class="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-                @click="store.sendCustomEmail(sendToAll)"
+                @click="store.sendCustomEmail(sendToAllTarget)"
               >
                 <Loader2 v-if="store.sendLoading" class="w-3.5 h-3.5 animate-spin" />
                 <Send v-else class="w-3.5 h-3.5" />
@@ -353,13 +373,31 @@ const previewOpen = ref(false)
 const previewData = ref(null)
 const showClientDrop = ref(false)
 const sendToAll = ref(false)
+const sendToAllTarget = ref(null)
 
+const targetOptions = [
+  { label: 'All', value: 'ALL' },
+  { label: 'Active Clients', value: 'ACTIVE_CLIENTS' },
+  { label: 'Inactive Clients', value: 'INACTIVE_CLIENTS' },
+  { label: 'FM', value: 'FM' },
+  { label: 'IB', value: 'IB' },
+]
+
+watch(() => props.open, (isOpen) => {
+  if (!isOpen) {
+    sendToAll.value = false
+    sendToAllTarget.value = null
+  }
+})
 
 watch(sendToAll, (enabled) => {
   if (enabled) {
     store.selectedRecipients = []
     clientSearch.value = ''
     showClientDrop.value = false
+    sendToAllTarget.value = null
+  } else {
+    sendToAllTarget.value = null
   }
 })
 const isClientSelected = (client) => {
