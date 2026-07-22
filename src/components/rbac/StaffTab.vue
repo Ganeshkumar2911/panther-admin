@@ -89,7 +89,7 @@
                 :options="roleOptions"
                 variant="surface"
                 placeholder="Select role"
-                @update:model-value="(val) => staffStore.updateStaffRole(staff.id, Number(val))"
+                @update:model-value="(val) => handleRoleSelect(staff, val)"
               />
             </td>
 
@@ -168,6 +168,17 @@
       :staff="permissionStaff"
       @close="permissionDrawerOpen = false"
     />
+
+    <!-- Role Change Confirmation Dialog -->
+    <RoleChangeConfirmDialog
+      :open="roleChangeTarget !== null"
+      :staff-name="roleChangeTarget?.staff?.name || ''"
+      :current-role-name="roleChangeTarget?.currentRoleName || ''"
+      :new-role-name="roleChangeTarget?.newRoleName || ''"
+      :loading="staffStore.actionLoading"
+      @close="roleChangeTarget = null"
+      @confirm="executeRoleChange"
+    />
   </div>
 </template>
 
@@ -180,6 +191,7 @@ import { usePermissionCheck } from '@/composables/usePermissionCheck'
 import Pagination from '@/components/common/Pagination.vue'
 import StaffDialog from './StaffDialog.vue'
 import UserPermissionDrawer from './UserPermissionDrawer.vue'
+import RoleChangeConfirmDialog from './RoleChangeConfirmDialog.vue'
 
 const staffStore = useRbacStaffStore()
 const rolesStore = useRbacRolesStore()
@@ -197,6 +209,35 @@ const deleteTarget = ref(null)
 
 const permissionDrawerOpen = ref(false)
 const permissionStaff = ref(null)
+
+const roleChangeTarget = ref(null)
+
+const handleRoleSelect = (staff, newRoleIdVal) => {
+  const newRoleId = Number(newRoleIdVal)
+  if (Number(staff.role_id) === newRoleId) {
+    // Feature 1: Selected existing role again -> skip API call
+    return
+  }
+
+  // Feature 2: Open confirmation dialog before updating
+  const currentRole = roleOptions.value.find((r) => Number(r.value) === Number(staff.role_id))
+  const newRole = roleOptions.value.find((r) => Number(r.value) === newRoleId)
+
+  roleChangeTarget.value = {
+    staff,
+    newRoleId,
+    currentRoleName: currentRole?.label || '',
+    newRoleName: newRole?.label || '',
+  }
+}
+
+const executeRoleChange = () => {
+  if (!roleChangeTarget.value) return
+  const { staff, newRoleId } = roleChangeTarget.value
+  staffStore.updateStaffRole(staff.id, newRoleId, () => {
+    roleChangeTarget.value = null
+  })
+}
 
 const openPermissionsDrawer = (staff) => {
   permissionStaff.value = staff
