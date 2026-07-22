@@ -50,6 +50,9 @@ router.beforeEach(async (to, from) => {
   if (isAuthenticated) {
     const matchedNavItem = navItems.find((item) => item.to === to.path)
     if (matchedNavItem && !myPermissionsStore.hasPermission(matchedNavItem.permission)) {
+      if (myPermissionsStore.hasNoPermissions) {
+        return true
+      }
       return { path: targetDefaultPath }
     }
   }
