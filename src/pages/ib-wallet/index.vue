@@ -20,7 +20,7 @@
         </div>
         <div class="bg-card-background border border-primary-border rounded-xl p-4">
           <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-1">Total Withdrawal</p>
-          <p class="text-2xl font-medium text-red-700">-${{ formatNum(store.summary.total_withdrawal) }}</p>
+          <p class="text-2xl font-medium text-red-700">${{ formatNum(store.summary.total_withdrawal) }}</p>
         </div>
         <div class="bg-card-background border border-primary-border rounded-xl p-4">
           <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-1">Total IB Fee</p>
@@ -96,6 +96,16 @@
           </Tooltip>
         
       </div>
+
+      <!-- Update Ledger Action Button -->
+      <button
+        class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all active:scale-95 cursor-pointer self-start xl:self-auto shrink-0"
+        @click="openUpdateLedgerDialog"
+      >
+        <Plus class="w-3.5 h-3.5" />
+        Update IB Ledger
+      </button>
+
     </div>
 
     <!-- Table -->
@@ -203,19 +213,41 @@
       />
     </div>
 
+    <!-- Update Ledger Dialog -->
+    <UpdateLedgerDialog
+      :open="updateLedgerDialogOpen"
+      @close="closeUpdateLedgerDialog"
+      @success="handleUpdateSuccess"
+    />
+
   </div>
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount, computed } from 'vue'
-import { Wallet, RotateCw } from 'lucide-vue-next'
+import { onMounted, onBeforeUnmount, computed, ref } from 'vue'
+import { Wallet, RotateCw, Plus } from 'lucide-vue-next'
 import { useIbWalletStore } from '@/stores/ibLedger/ibLedger'
 import Pagination from '@/components/common/Pagination.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import Tooltip from '@/components/common/Tooltip.vue'
+import UpdateLedgerDialog from '@/components/ib-wallet/UpdateLedgerDialog.vue'
 
 const store = useIbWalletStore()
 let ibSearchTimer = null
+
+const updateLedgerDialogOpen = ref(false)
+
+const openUpdateLedgerDialog = () => {
+  updateLedgerDialogOpen.value = true
+}
+
+const closeUpdateLedgerDialog = () => {
+  updateLedgerDialogOpen.value = false
+}
+
+const handleUpdateSuccess = () => {
+  store.fetchIbWallet(true)
+}
 
 const typeOptions = computed(() =>
   (store.filterOptions?.types ?? []).map((t) => ({ label: formatType(t), value: t }))
@@ -274,6 +306,7 @@ const typeClass = (type) => ({
   fm_fee:        'bg-yellow-50 text-yellow-800 border-yellow-200',
   broker_fee:    'bg-yellow-50 text-yellow-800 border-yellow-200',
   trade_pnl:     'bg-primary-blue/50 border-blue-200',
+  commission:     'bg-primary-blue/50 border-blue-200',
   fee_paid:      'bg-yellow-50 text-yellow-800 border-yellow-200',
 }[type] ?? 'bg-background text-secondary-text border-primary-border')
 

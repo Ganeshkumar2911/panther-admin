@@ -131,6 +131,9 @@ export const useIbWalletStore = defineStore('ibWallet', () => {
           label: ib.label_name ?? ib.name ?? ib.ib_name ?? ib.email ?? `IB ${ib.user_id ?? ib.id}`,
           value: ib.user_id ?? ib.id ?? ib.user_id,
           email: ib.email,
+          available_balance: ib.available_balance ?? 0.0,
+          ib_id: ib.ib_id,
+          referral_code: ib.referral_code,
         }))
 
         ibOptions.value = options

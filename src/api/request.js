@@ -105,9 +105,9 @@ axiosInstance.interceptors.response.use(
     // ── 401: مباشرة logout (no refresh)
     if (error.response?.status === 401) {
       authToken.removeToken();
-      localStorage.removeItem("role");
-      localStorage.removeItem("lastActivityTimestamp");
-      localStorage.removeItem("custom_base_url");
+      localStorage.removeItem('role')
+      localStorage.removeItem('lastActivityTimestamp')
+      localStorage.removeItem('custom_base_url')
       router.push({ name: "login" });
       return Promise.reject(error);
     }

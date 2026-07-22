@@ -47,9 +47,9 @@ const urls = {
     allFundManagers: "/search/fm",
   },
   ibLedger: {
-    list: "/ledger/ib",
-    allIbs: "/search/ib",
-    update: "/ledger/ib/update",
+    list: '/ledger/ib',
+    allIbs: '/search/ib',
+    update: '/ledger/ib/update',
   },
   adminLedger: {
     list: "/ledger/admin",
@@ -69,6 +69,14 @@ const urls = {
   },
   auditLogs: {
     list: "/audit-logs",
+  },
+  referralLinks: {
+    list: '/ibs/referral-links',
+    create: '/ibs/referral-links',
+    update: '/referral-links',
+  },
+  auditLogs: {
+    list: '/audit-logs',
   },
   referralLinks: {
     list: '/ibs/referral-links',
