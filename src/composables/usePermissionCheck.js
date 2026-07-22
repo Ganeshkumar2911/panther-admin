@@ -11,6 +11,7 @@ export function usePermissionCheck() {
     hasAnyPermission: store.hasAnyPermission,
     hasAllPermissions: store.hasAllPermissions,
     hasModulePermission: store.hasModulePermission,
+    hasNoPermissions: store.hasNoPermissions,
     userCodes: store.userCodes,
     permissions: store.permissions,
     loading: store.loading,

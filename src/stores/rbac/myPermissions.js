@@ -24,6 +24,11 @@ export const useMyPermissionsStore = defineStore('myPermissions', () => {
     return codes
   })
 
+  const hasNoPermissions = computed(() => {
+    return isFetched.value && userCodes.value.size === 0
+  })
+
+
   // Check if user has a specific permission code, an array of codes (ANY), or custom function
   const hasPermission = (codeOrCodes) => {
     if (!codeOrCodes) return true
@@ -112,6 +117,7 @@ export const useMyPermissionsStore = defineStore('myPermissions', () => {
     isFetched,
     error,
     userCodes,
+    hasNoPermissions,
     firstAllowedPath,
 
     // Helpers

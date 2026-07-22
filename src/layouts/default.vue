@@ -3,7 +3,10 @@ import { ref, onMounted } from 'vue'
 import { useProfileStore } from '@/stores/profile/profile'
 import NavBar from '@/components/default/NavBar.vue'
 import TopBar from '@/components/default/TopBar.vue'
+import NoPermissionsState from '@/components/common/NoPermissionsState.vue'
 import { useTickerStore } from '@/stores/ws/ticker'
+import { usePermissionCheck } from '@/composables/usePermissionCheck'
+import { useMyPermissionsStore } from '@/stores/rbac/myPermissions'
 
 const SIDEBAR_COLLAPSED_KEY = 'panther_sidebar_collapsed'
 const storedSidebarCollapsed =
@@ -12,8 +15,9 @@ const storedSidebarCollapsed =
 const sidebarOpen = ref(false)
 const isSidebarCollapsed = ref(storedSidebarCollapsed)
 const profileStore = useProfileStore()
-// const kycStore = useKycStore()
 const tickerStore = useTickerStore()
+const permissionsStore = useMyPermissionsStore()
+const { hasNoPermissions } = usePermissionCheck()
 
 const setSidebarCollapsed = (value) => {
   isSidebarCollapsed.value = value
@@ -22,6 +26,10 @@ const setSidebarCollapsed = (value) => {
 
 const toggleSidebarCollapsed = () => {
   setSidebarCollapsed(!isSidebarCollapsed.value)
+}
+
+const handleRetry = () => {
+  permissionsStore.fetchMyPermissions(true)
 }
 
 onMounted(async () => {
@@ -55,7 +63,8 @@ onMounted(async () => {
 
       <!-- Router View Area -->
       <main class="flex-1 overflow-y-auto no-scrollbar bg-background p-4 lg:p-6">
-        <router-view />
+        <NoPermissionsState v-if="hasNoPermissions" @retry="handleRetry" />
+        <router-view v-else />
       </main>
 
     </div>
