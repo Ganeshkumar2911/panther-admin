@@ -115,14 +115,6 @@
                 >
                   <ShieldCheck class="w-3.5 h-3.5" /> Permissions
                 </button>
-
-                <button
-                  :disabled="staffStore.actionLoading"
-                  class="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-semibold border bg-primary-red/10 text-primary-red border-primary-red/20 hover:bg-primary-red/20 transition-colors disabled:opacity-50 cursor-pointer"
-                  @click="confirmDelete(staff)"
-                >
-                  <Trash2 class="w-3 h-3" /> Delete
-                </button>
               </div>
             </td>
           </tr>
@@ -136,28 +128,6 @@
         :pagination="staffStore.pagination"
         @page-change="staffStore.changePage"
       />
-    </div>
-
-    <!-- Delete Confirm -->
-    <div v-if="deleteTarget" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" @click="deleteTarget = null">
-      <div class="bg-card-background rounded-2xl border border-primary-border w-full max-w-sm p-6" @click.stop>
-        <div class="w-10 h-10 rounded-full bg-primary-red/10 flex items-center justify-center mb-4">
-          <Trash2 class="w-4 h-4 text-primary-red" />
-        </div>
-        <p class="text-sm font-semibold text-primary-text mb-1">Delete Staff</p>
-        <p class="text-xs text-secondary-text mb-5">Are you sure you want to delete <strong>{{ deleteTarget.name }}</strong>? This action cannot be undone.</p>
-        <div class="flex gap-3">
-          <button class="flex-1 px-4 py-2.5 rounded-lg text-xs font-medium text-secondary-text border border-primary-border hover:bg-background transition-colors" @click="deleteTarget = null">Cancel</button>
-          <button
-            :disabled="staffStore.actionLoading"
-            class="flex-1 px-4 py-2.5 rounded-lg text-xs font-medium text-white bg-primary-red hover:opacity-90 transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
-            @click="executeDelete"
-          >
-            <Loader2 v-if="staffStore.actionLoading" class="w-3.5 h-3.5 animate-spin" />
-            <span>{{ staffStore.actionLoading ? 'Deleting...' : 'Delete' }}</span>
-          </button>
-        </div>
-      </div>
     </div>
 
     <StaffDialog :open="dialogOpen" @close="dialogOpen = false" />
@@ -184,7 +154,7 @@
 
 <script setup>
 import { onMounted, ref, computed } from 'vue'
-import { Search, Plus, Users, Trash2, Loader2, ShieldCheck } from 'lucide-vue-next'
+import { Search, Plus, Users, Loader2, ShieldCheck } from 'lucide-vue-next'
 import { useRbacStaffStore } from '@/stores/rbac/staff'
 import { useRbacRolesStore } from '@/stores/rbac/roles'
 import { usePermissionCheck } from '@/composables/usePermissionCheck'
@@ -205,7 +175,6 @@ const roleOptions = computed(() =>
 )
 
 const dialogOpen = ref(false)
-const deleteTarget = ref(null)
 
 const permissionDrawerOpen = ref(false)
 const permissionStaff = ref(null)
@@ -242,11 +211,6 @@ const executeRoleChange = () => {
 const openPermissionsDrawer = (staff) => {
   permissionStaff.value = staff
   permissionDrawerOpen.value = true
-}
-
-const confirmDelete = (staff) => { deleteTarget.value = staff }
-const executeDelete = () => {
-  staffStore.deleteStaff(deleteTarget.value.id, () => { deleteTarget.value = null })
 }
 
 let searchTimer = null
