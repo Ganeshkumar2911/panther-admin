@@ -99,6 +99,7 @@
 
       <!-- Update Ledger Action Button -->
       <button
+        v-if="hasPermission('ib_wallet.update')"
         class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all active:scale-95 cursor-pointer self-start xl:self-auto shrink-0"
         @click="openUpdateLedgerDialog"
       >
@@ -231,8 +232,10 @@ import Pagination from '@/components/common/Pagination.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import Tooltip from '@/components/common/Tooltip.vue'
 import UpdateLedgerDialog from '@/components/ib-wallet/UpdateLedgerDialog.vue'
+import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
 const store = useIbWalletStore()
+const { hasPermission } = usePermissionCheck()
 let ibSearchTimer = null
 
 const updateLedgerDialogOpen = ref(false)

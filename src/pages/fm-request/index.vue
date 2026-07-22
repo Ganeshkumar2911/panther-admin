@@ -7,8 +7,10 @@ import Tooltip from "@/components/common/Tooltip.vue";
 import FmRequestActionDialog from "@/components/fmRequest/FmRequestActionDialog.vue";
 import AddEditFundManager from "@/components/fundManager/AddEditFundManager.vue";
 import { RefreshCw } from 'lucide-vue-next'
+import { usePermissionCheck } from "@/composables/usePermissionCheck";
 
 const store = useFmRequestStore();
+const { hasPermission } = usePermissionCheck();
 const activeStatus = ref(null);
 
 const dialogOpen = ref(false);
@@ -133,13 +135,13 @@ onMounted(() => {
     </button>
   </Tooltip>
 </div>
-      <button
+      <!-- <button
         @click="handleAddFundManager"
         class="px-4 py-2 rounded-xl text-sm font-medium bg-primary text-background
                hover:bg-primary-hover transition-all cursor-pointer whitespace-nowrap"
       >
         + Add Fund Manager
-      </button>
+      </button> -->
     </div>
 
     <div class="w-full overflow-x-auto">
@@ -320,10 +322,10 @@ onMounted(() => {
             </td>
             <td class="px-3 py-3.5">
               <div
-                v-if="item.status === 'pending'"
+                v-if="item.status === 'pending' && (hasPermission('fm_request.approve') || hasPermission('fm_request.reject'))"
                 class="flex justify-center gap-2"
               >
-                <Tooltip text="Accept">
+                <Tooltip v-if="hasPermission('fm_request.approve')" text="Accept">
                   <button
                     class="inline-flex items-center justify-center w-8 h-8 border border-gray-300 rounded bg-gray-100 text-green-500 cursor-pointer transition-all duration-200 hover:bg-primary-green/50 hover:border-green-500"
                     @click="handleAccept(item)"
@@ -342,7 +344,7 @@ onMounted(() => {
                     </svg>
                   </button>
                 </Tooltip>
-                <Tooltip text="Reject">
+                <Tooltip v-if="hasPermission('fm_request.reject')" text="Reject">
                   <button
                     class="inline-flex items-center justify-center w-8 h-8 border border-gray-300 rounded bg-gray-100 text-red-500 cursor-pointer transition-all duration-200 hover:bg-primary-red/50 hover:border-red-500"
                     @click="handleReject(item)"

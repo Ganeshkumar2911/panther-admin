@@ -218,7 +218,7 @@
               <div class="flex items-center justify-center gap-2">
                 <!-- Add Config -->
                 <button
-                  v-if="!g.is_added"
+                  v-if="!g.is_added && hasPermission('group.group_update')"
                   class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all active:scale-95 cursor-pointer"
                   @click="openAdd(g)"
                 >
@@ -226,9 +226,9 @@
                 </button>
 
                 <!-- Added Actions -->
-                <template v-else>
+                <template v-else-if="g.is_added">
                   <Tooltip
-                    v-if="!g.is_default"
+                    v-if="!g.is_default && hasPermission('group.group_update')"
                     text="Set as Default"
                   >
                     <button
@@ -244,7 +244,7 @@
                     </button>
                   </Tooltip>
 
-                  <Tooltip text="Remove Configuration" position="end">
+                  <Tooltip v-if="hasPermission('group.group_delete')" text="Remove Configuration" position="end">
                     <button
                       @click="openDeconfigConfirm(g)"
                       :disabled="store.actionLoading.id === g.config_id && store.actionLoading.type === 'deconfig'"
@@ -303,9 +303,11 @@ import { useGroupConfigStore } from '@/stores/groupConfig/groupConfig'
 import Pagination from '@/components/common/Pagination.vue'
 import AddGroupConfigDialog from '@/components/groupConfig/AddGroupConfigDialog.vue'
 import ConfirmationDialog from '@/components/common/ConfirmationDialog.vue'
+import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
 const store = useGroupConfigStore()
 const route = useRoute()
+const { hasPermission } = usePermissionCheck()
 const refreshing = ref(false)
 const dialog = ref({ open: false, group: null })
 

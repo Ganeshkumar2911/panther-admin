@@ -146,7 +146,8 @@
 
             <td class="p-3 text-right">
               <button
-                class="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-primary-border text-xs text-secondary-text hover:text-primary-text hover:bg-background transition-colors ml-auto"
+                v-if="hasPermission('ticket.platform_view')"
+                class="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-primary-border text-xs text-secondary-text hover:text-primary-text hover:bg-background transition-colors ml-auto cursor-pointer"
                 @click="router.push(`/ticket/${ticket.id}`)"
               >
                 <Eye class="w-3.5 h-3.5" /> View
@@ -175,9 +176,11 @@ import { Search, Plus, Eye, Ticket as TicketIcon } from 'lucide-vue-next'
 import { usePlatfromTicketsStore } from '@/stores/platformTickets/platformTickets'
 import Pagination from '@/components/common/Pagination.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
+import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
 const store = usePlatfromTicketsStore()
 const router = useRouter()
+const { hasPermission } = usePermissionCheck()
 
 let searchTimer = null
 const onSearch = () => {
