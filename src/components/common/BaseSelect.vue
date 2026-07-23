@@ -1,6 +1,8 @@
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, nextTick, useAttrs } from 'vue'
 import { ChevronDown, Check, Search } from 'lucide-vue-next'
+
+const attrs = useAttrs()
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 const props = defineProps({
@@ -33,7 +35,41 @@ const props = defineProps({
     default: false,
   },
 
-  // ✅ NEW
+  // Search Mode Props
+  localSearch: {
+    type: Boolean,
+    default: false,
+  },
+  clientSearch: {
+    type: Boolean,
+    default: false,
+  },
+  local: {
+    type: Boolean,
+    default: false,
+  },
+  client: {
+    type: Boolean,
+    default: false,
+  },
+  frontend: {
+    type: Boolean,
+    default: false,
+  },
+  remoteSearch: {
+    type: Boolean,
+    default: false,
+  },
+  remote: {
+    type: Boolean,
+    default: false,
+  },
+  searchMode: {
+    type: String,
+    default: null, // 'remote' | 'local' | null
+  },
+
+  // Variant
   variant: {
     type: String,
     default: 'default', // 'default' | 'surface'
@@ -54,10 +90,44 @@ const dropdownStyle = ref({})
 // ─── Computed ─────────────────────────────────────────────────────────────────
 const allOption = computed(() => ({ label: props.allLabel, value: null }))
 
-const filteredOptions = computed(() => {
+const baseOptions = computed(() => {
   return props.allowAll
     ? [allOption.value, ...props.options]
     : props.options
+})
+
+const isLocalSearch = computed(() => {
+  if (props.localSearch || props.clientSearch || props.local || props.client || props.frontend || props.searchMode === 'local') {
+    return true
+  }
+  if (props.remoteSearch || props.remote || props.searchMode === 'remote') {
+    return false
+  }
+  // If parent provided @search event handler, assume remote API search
+  if (attrs.onSearch) {
+    return false
+  }
+  // Otherwise default to frontend local filtering
+  return true
+})
+
+const filteredOptions = computed(() => {
+  if (!isLocalSearch.value || !searchQuery.value || !searchQuery.value.trim()) {
+    return baseOptions.value
+  }
+
+  const query = searchQuery.value.toLowerCase().trim()
+  return baseOptions.value.filter((option) => {
+    const labelStr = (option.label ?? '').toString().toLowerCase()
+    if (labelStr.includes(query)) return true
+
+    if (option.value !== null && option.value !== undefined) {
+      const valStr = option.value.toString().toLowerCase()
+      if (valStr.includes(query)) return true
+    }
+
+    return false
+  })
 })
 
 const selectedLabel = computed(() => {
@@ -76,7 +146,7 @@ const isPlaceholder = computed(
     (!props.allowAll && props.modelValue === null)
 )
 
-// ✅ Background control
+// Background control
 const triggerBgClass = computed(() => {
   return props.variant === 'surface'
     ? 'bg-background'

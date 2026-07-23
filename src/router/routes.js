@@ -336,6 +336,17 @@ const routes = [
           description: "Manage staff accounts, roles, and permissions.",
         },
       },
+      {
+        path: "/rbac-modules",
+        name: "rbac-modules",
+        component: () => import("@/pages/rbac-modules/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "RBAC Modules",
+          description:
+            "Manage dynamic resources, actions, and permissions mappings.",
+        },
+      },
     ],
   },
 ];

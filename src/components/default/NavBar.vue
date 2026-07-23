@@ -58,7 +58,10 @@ const filteredNavItems = computed(() => {
 })
 
 // ✅ Active Route Check
-const isActive = (path) => route.path.startsWith(path)
+const isActive = (path) => {
+  if (route.path === path) return true
+  return route.path.startsWith(path + '/')
+}
 </script>
 
 <template>

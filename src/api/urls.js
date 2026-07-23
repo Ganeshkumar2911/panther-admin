@@ -158,6 +158,23 @@ const urls = {
       all: "/rbac/permissions",
       manage: "/rbac/users/permissions",
     },
+    resources: {
+      list: "/rbac/resources",
+      create: "/rbac/resources",
+      update: "/rbac/resources",
+      delete: "/rbac/resources",
+    },
+    actions: {
+      list: "/rbac/actions",
+      create: "/rbac/actions",
+      update: "/rbac/actions",
+      delete: "/rbac/actions",
+    },
+    permissionsMapping: {
+      list: "/rbac/permissions_mapping",
+      create: "/rbac/permissions_mapping",
+      delete: "/rbac/permissions_mapping",
+    },
   },
 };
 
