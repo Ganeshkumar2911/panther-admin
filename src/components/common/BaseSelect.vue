@@ -134,7 +134,7 @@ const selectedLabel = computed(() => {
   if (props.modelValue === null || props.modelValue === undefined) {
     return props.allowAll ? props.allLabel : null
   }
-  const found = props.options.find(o => o.value === props.modelValue)
+  const found = props.options?.find(o => String(o.value) === String(props.modelValue))
   return found ? found.label : null
 })
 
@@ -201,7 +201,7 @@ function isSelected(option) {
   if (option.value === null) {
     return props.modelValue === null || props.modelValue === undefined
   }
-  return props.modelValue === option.value
+  return String(props.modelValue) === String(option.value)
 }
 
 // ─── Outside click ────────────────────────────────────────────────────────────

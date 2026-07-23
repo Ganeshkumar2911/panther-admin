@@ -3,6 +3,7 @@ import { ref, reactive } from 'vue'
 import apiRequest from '@/api/request'
 import urls from '@/api/urls'
 import { useSnackbarStore } from '@/stores/snackbar/snackbar'
+import { perPageOptions } from '@/constants/pagination'
 
 export const useSettlementTradesStore = defineStore('settlementTrades', () => {
   // ─── Snackbar ────────────────────────────────────────
@@ -97,6 +98,12 @@ export const useSettlementTradesStore = defineStore('settlementTrades', () => {
     fetchTrades(id)
   }
 
+  const updatePerPage = (id, newPerPage) => {
+    pagination.per_page = Number(newPerPage)
+    pagination.page = 1
+    fetchTrades(id)
+  }
+
   // ─── Reset ───────────────────────────────────────────
   const reset = () => {
     records.value = []
@@ -134,9 +141,12 @@ export const useSettlementTradesStore = defineStore('settlementTrades', () => {
     settlement,
     summary,
     pagination,
+    perPageOptions,
 
     fetchTrades,
     setPage,
+    updatePerPage,
     reset,
   }
 })
+

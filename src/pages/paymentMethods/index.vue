@@ -3,14 +3,13 @@
 
     <!-- Header -->
     <div class="flex flex-wrap items-start justify-end gap-3 mb-6">
-      <!-- <button
-        :disabled="store.syncLoading"
-        class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-card-background border border-primary-border hover:bg-background text-primary-text text-xs font-semibold transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
-        @click="store.syncWallets()"
-      >
-        <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': store.syncLoading }" />
-        {{ store.syncLoading ? 'Syncing...' : 'Sync Wallets' }}
-      </button> -->
+      <BaseSelect
+        :modelValue="store.pagination.per_page"
+        :options="store.perPageOptions"
+        placeholder="Per page..."
+        class="w-32"
+        @update:modelValue="store.updatePerPage"
+      />
 
       <button
         v-if="hasPermission('payment_methods.create')"
@@ -297,6 +296,7 @@ import { onMounted, ref, computed, nextTick } from 'vue'
 import { RefreshCw, Wallet, Pencil, Check, X, Loader2, Settings2, Plus } from 'lucide-vue-next'
 import { usePaymentMethodsStore } from '@/stores/paymentMethods/paymentMethods'
 import Pagination from '@/components/common/Pagination.vue'
+import BaseSelect from '@/components/common/BaseSelect.vue'
 import EditPaymentMethodDialog from '@/components/paymentMethods/EditPaymentMethodDialog.vue'
 import { usePermissionCheck } from '@/composables/usePermissionCheck'
 

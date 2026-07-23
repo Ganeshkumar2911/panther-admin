@@ -4,6 +4,7 @@ import { ref } from "vue";
 import apiRequest from "@/api/request";
 import urls from "@/api/urls";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
+import { perPageOptions } from "@/constants/pagination";
 
 export const useFmRequestStore = defineStore("fmRequest", () => {
   const data = ref([]);
@@ -63,73 +64,65 @@ export const useFmRequestStore = defineStore("fmRequest", () => {
     });
   };
 
-  // ─── Replace acceptRequest with this
-  const acceptRequest = (id, formData, message = null) => {
+  const acceptRequest = (id) => {
     isSubmitting.value = true;
 
     const successHandler = () => {
-      snackbar.show("Request accepted", "success");
       isSubmitting.value = false;
+      snackbar.show("Request accepted successfully.", "success");
       fetchFmRequests(true);
     };
 
     const failureHandler = (err) => {
-      snackbar.show(err?.error || "Something went wrong.", "error");
       isSubmitting.value = false;
+      snackbar.show(err?.error || "Failed to accept request.", "error");
     };
 
-    // Build payload: include all form data even if empty
-    const payload = {
-      ...formData,
-    };
-    
-    // Only add message if it exists
-    if (message) {
-      payload.message = message;
-    }
-
-    apiRequest("post", urls.fm.acceptRequest, {
+    apiRequest(urls.KEYS.POST, urls.fm.acceptRequest, {
       look_up_key: id,
-      data: payload,
       isTokenRequired: true,
       onSuccess: successHandler,
       onFailure: failureHandler,
     });
   };
 
-  const rejectRequest = (id, reason) => {
+  const rejectRequest = (id) => {
     isSubmitting.value = true;
 
     const successHandler = () => {
-      snackbar.show("Request rejected", "success");
       isSubmitting.value = false;
+      snackbar.show("Request rejected successfully.", "success");
       fetchFmRequests(true);
     };
 
     const failureHandler = (err) => {
-      snackbar.show(err?.error || "Something went wrong.", "error");
       isSubmitting.value = false;
+      snackbar.show(err?.error || "Failed to reject request.", "error");
     };
 
-    apiRequest("post", urls.fm.rejectRequest, {
+    apiRequest(urls.KEYS.POST, urls.fm.rejectRequest, {
       look_up_key: id,
-      data: {
-        reason,
-      },
       isTokenRequired: true,
       onSuccess: successHandler,
       onFailure: failureHandler,
     });
   };
 
-  const setSearch = (val, status = null) => {
-    search.value = val;
-
+  const setSearch = (query, status = null) => {
+    search.value = query;
     clearTimeout(debounceTimer);
+
     debounceTimer = setTimeout(() => {
       isFetched.value = false;
       fetchFmRequests(true, 1, status, search.value);
     }, 400);
+  };
+
+  const updatePerPage = (newPerPage, status = null) => {
+    pagination.value.per_page = Number(newPerPage);
+    pagination.value.page = 1;
+    isFetched.value = false;
+    fetchFmRequests(true, 1, status, search.value);
   };
 
   const reset = () => {
@@ -153,12 +146,14 @@ export const useFmRequestStore = defineStore("fmRequest", () => {
     filters,
     pagination,
     search,
+    perPageOptions,
     isLoading,
     error,
     isFetched,
     isSubmitting,
     fetchFmRequests,
     setSearch,
+    updatePerPage,
     reset,
     acceptRequest,
     rejectRequest,

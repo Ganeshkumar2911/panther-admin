@@ -68,6 +68,14 @@
             />
           </div>
 
+          <BaseSelect
+            :modelValue="store.pagination.per_page"
+            :options="store.perPageOptions"
+            placeholder="Per Page"
+            class="w-full sm:w-28 xl:w-28"
+            @update:modelValue="(val) => store.updatePerPage(val, yourTicketsFilters)"
+          />
+
           <!-- Clear -->
           <button
             v-if="hasYourTicketsFilters"
@@ -220,6 +228,13 @@
             placeholder="Sort"
             class="w-full sm:w-32 xl:w-36"
             @update:modelValue="platformTicketsStore.applyFilters()"
+          />
+          <BaseSelect
+            :modelValue="platformTicketsStore.pagination.per_page"
+            :options="platformTicketsStore.perPageOptions"
+            placeholder="Per Page"
+            class="w-full sm:w-28 xl:w-28"
+            @update:modelValue="platformTicketsStore.updatePerPage"
           />
 
           <button

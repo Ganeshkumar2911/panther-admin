@@ -24,6 +24,18 @@
         </div>
       </template>
     </div>
+
+    <!-- Filter bar -->
+    <div class="flex items-center gap-3 mb-4">
+      <BaseSelect
+        :modelValue="store.pagination.per_page"
+        :options="store.perPageOptions"
+        placeholder="Per page..."
+          class="w-28 sm:w-32"
+        @update:modelValue="store.updatePerPage"
+      />
+    </div>
+
     <!-- Table -->
     <div class="w-full border border-primary-border rounded-xl overflow-x-auto">
       <table class="w-full border-collapse">

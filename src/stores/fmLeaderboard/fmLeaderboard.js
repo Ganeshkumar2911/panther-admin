@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import apiRequest from '@/api/request'
 import urls from '@/api/urls'
 import { useSnackbarStore } from '@/stores/snackbar/snackbar'
+import { perPageOptions } from '@/constants/pagination'
 
 export const useFmLeaderboardStore = defineStore('fmLeaderboard', () => {
   const data = ref([])
@@ -48,6 +49,13 @@ export const useFmLeaderboardStore = defineStore('fmLeaderboard', () => {
     })
   }
 
+  const updatePerPage = (newPerPage) => {
+    pagination.value.per_page = Number(newPerPage)
+    pagination.value.page = 1
+    isFetched.value = false
+    fetchFmLeaderboard(true, 1)
+  }
+
   const createFundManager = (formData) => {
     return new Promise((resolve) => {
       isSubmitting.value = true
@@ -61,9 +69,8 @@ export const useFmLeaderboardStore = defineStore('fmLeaderboard', () => {
       }
 
       const failureHandler = (err) => {
-        snackbar.show(err?.error || 'Something went wrong.', 'error')
         isSubmitting.value = false
-        resolve()
+        snackbar.show(err?.error || 'Something went wrong.', 'error')
       }
 
       apiRequest(urls.KEYS.POST, urls.fm.create, {
@@ -88,13 +95,11 @@ export const useFmLeaderboardStore = defineStore('fmLeaderboard', () => {
       }
 
       const failureHandler = (err) => {
-        snackbar.show(err?.error || 'Something went wrong.', 'error')
         isSubmitting.value = false
-        resolve()
+        snackbar.show(err?.error || 'Something went wrong.', 'error')
       }
 
-      apiRequest(urls.KEYS.POST, urls.fm.edit, {
-        look_up_key: id,
+      apiRequest(urls.KEYS.POST, `${urls.fm.edit}/${id}`, {
         data: formData,
         isTokenRequired: true,
         onSuccess: successHandler,
@@ -124,7 +129,9 @@ export const useFmLeaderboardStore = defineStore('fmLeaderboard', () => {
     isFetched,
     isSubmitting,
     pagination,
+    perPageOptions,
     fetchFmLeaderboard,
+    updatePerPage,
     createFundManager,
     editFundManager,
     reset,

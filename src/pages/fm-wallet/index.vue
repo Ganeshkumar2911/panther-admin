@@ -151,6 +151,15 @@ onMounted(() => {
             @change="applyDateFilters"
           />
         </div>
+
+        <BaseSelect
+          :modelValue="store.pagination.per_page"
+          :options="store.perPageOptions"
+          placeholder="Per Page"
+          class="w-full sm:w-28 xl:w-28"
+          @update:modelValue="store.updatePerPage"
+        />
+
  <Tooltip text="Refresh" position="right">
           <button
             type="button"
