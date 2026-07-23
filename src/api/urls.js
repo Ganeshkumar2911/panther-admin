@@ -11,6 +11,7 @@ const urls = {
   auth: {
     login: "/login",
     profile: "/profile",
+    updateProfile: "/user/update_profile",
   },
   dashboard: {
     list: "/dashboard",
