@@ -44,6 +44,14 @@
         <h1 class="text-base font-semibold text-primary-text">Clients</h1>
         <p class="text-xs text-secondary-text mt-0.5">Clients referred under this IB</p>
       </div>
+
+      <BaseSelect
+        :modelValue="store.pagination.per_page"
+        :options="store.perPageOptions"
+        placeholder="Per page..."
+        class="w-full sm:w-32 xl:w-32"
+        @update:modelValue="(val) => store.updatePerPage(route.params.id, val)"
+      />
       <!-- <div class="relative">
         <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-secondary-text" />
         <input
@@ -315,6 +323,7 @@ import { useRoute } from 'vue-router'
 import { Search, Users, Link2 } from 'lucide-vue-next'
 import { useIbClientsStore } from '@/stores/ibTree/ibClients'
 import Pagination from '@/components/common/Pagination.vue'
+import BaseSelect from '@/components/common/BaseSelect.vue'
 
 const store = useIbClientsStore()
 const route = useRoute()

@@ -3,6 +3,7 @@ import { reactive, ref } from "vue";
 import apiRequest from "@/api/request";
 import urls from "@/api/urls";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
+import { perPageOptions } from "@/constants/pagination";
 
 export const usePlatfromTicketsStore = defineStore("platfromTickets", () => {
   // ─── List State ────────────────────────────────────────
@@ -127,6 +128,12 @@ export const usePlatfromTicketsStore = defineStore("platfromTickets", () => {
         snackbar.show(err?.message || "Something went wrong.", "error");
       },
     });
+  };
+
+  const updatePerPage = (newPerPage) => {
+    pagination.value.per_page = Number(newPerPage);
+    pagination.value.page = 1;
+    fetchTickets(true, 1);
   };
 
   // ─── Fetch Ticket Detail ───────────────────────────────
@@ -309,6 +316,7 @@ export const usePlatfromTicketsStore = defineStore("platfromTickets", () => {
     pagination,
     filters,
     filterOptions,
+    perPageOptions,
 
     isLoading,
     detailLoading,
@@ -319,6 +327,7 @@ export const usePlatfromTicketsStore = defineStore("platfromTickets", () => {
     // list
     fetchTickets,
     changePage,
+    updatePerPage,
 
     // detail
     fetchTicketDetail,

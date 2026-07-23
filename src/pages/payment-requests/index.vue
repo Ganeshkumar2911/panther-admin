@@ -97,6 +97,14 @@
           />
         </div>
 
+        <BaseSelect
+          :modelValue="store.pagination.per_page"
+          :options="store.perPageOptions"
+          placeholder="Per page..."
+          class="w-full sm:w-32 xl:w-32"
+          @update:modelValue="store.updatePerPage"
+        />
+
         <!-- Clear -->
         <button
           v-if="hasFilters"

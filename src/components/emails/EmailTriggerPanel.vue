@@ -58,14 +58,20 @@
       class="sr-only peer"
     />
 
-    <div
-      class="w-11 h-6 bg-background rounded-full peer
-             peer-checked:bg-primary
-             after:absolute after:left-[2px] after:top-[2px]
-             after:h-5 after:w-5 after:rounded-full
-             after:bg-white after:transition-all
-             peer-checked:after:translate-x-5"
-    ></div>
+<div
+  class="relative w-11 h-6 rounded-full
+         bg-gray-300 dark:bg-gray-700
+         shadow-inner
+         transition-colors duration-200
+         peer peer-checked:bg-primary
+         after:absolute after:left-[2px] after:top-[2px]
+         after:w-5 after:h-5
+         after:rounded-full
+         after:bg-white
+         after:shadow-md
+         after:transition-transform after:duration-200
+         peer-checked:after:translate-x-5"
+></div>
   </label>
 </div>
 
@@ -213,13 +219,19 @@
     />
 
     <div
-      class="w-11 h-6 bg-background rounded-full peer
-             peer-checked:bg-primary
-             after:absolute after:left-[2px] after:top-[2px]
-             after:h-5 after:w-5 after:rounded-full
-             after:bg-white after:transition-all
-             peer-checked:after:translate-x-5"
-    ></div>
+  class="relative w-11 h-6 rounded-full
+         bg-gray-300 dark:bg-gray-700
+         shadow-inner
+         transition-colors duration-200
+         peer peer-checked:bg-primary
+         after:absolute after:left-[2px] after:top-[2px]
+         after:w-5 after:h-5
+         after:rounded-full
+         after:bg-white
+         after:shadow-md
+         after:transition-transform after:duration-200
+         peer-checked:after:translate-x-5"
+></div>
   </label>
 </div>
 
@@ -376,11 +388,11 @@ const sendToAll = ref(false)
 const sendToAllTarget = ref(null)
 
 const targetOptions = [
-  { label: 'All', value: 'ALL' },
+  { label: 'All Clients', value: 'ALL' },
   { label: 'Active Clients', value: 'ACTIVE_CLIENTS' },
   { label: 'Inactive Clients', value: 'INACTIVE_CLIENTS' },
-  { label: 'FM', value: 'FM' },
-  { label: 'IB', value: 'IB' },
+  { label: 'All FM', value: 'FM' },
+  { label: 'All IB', value: 'IB' },
 ]
 
 watch(() => props.open, (isOpen) => {

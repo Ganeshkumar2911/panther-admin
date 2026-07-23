@@ -3,6 +3,7 @@ import { ref, reactive } from 'vue'
 import apiRequest from '@/api/request'
 import urls from '@/api/urls'
 import { useSnackbarStore } from '@/stores/snackbar/snackbar'
+import { perPageOptions } from '@/constants/pagination'
 
 export const useSettlementsStore = defineStore('settlement', () => {
   // ─── Snackbar ─────────────────────────────────────────
@@ -59,69 +60,52 @@ export const useSettlementsStore = defineStore('settlement', () => {
     })
   }
 
-  // ─── Fetch Settlements ────────────────────────────────
-  const fetchSettlements = (force = false) => {
-    if (isFetched.value && !force) return
-
+  // ─── Actions ──────────────────────────────────────────
+  const fetchSettlements = (page = pagination.page) => {
+    pagination.page = page
     loading.value = true
-
-    const successHandler = (res) => {
-      const payload = res?.data || {}
-
-      records.value = payload?.records || []
-
-      Object.assign(summary, {
-        broker_net: payload?.summary?.broker_net || 0,
-        ib_pool: payload?.summary?.ib_pool || 0,
-        total_fees: payload?.summary?.total_fees || 0,
-      })
-
-      Object.assign(pagination, {
-        page: res?.pagination?.page || 1,
-        per_page: res?.pagination?.per_page || 10,
-        total_items: res?.pagination?.total_items || 0,
-        total_pages: res?.pagination?.total_pages || 1,
-      })
-
-      loading.value = false
-      isFetched.value = true
-    }
-
-    const failureHandler = (err) => {
-      loading.value = false
-      error.value = err
-
-      snackbar.show(
-        err?.message || 'Failed to fetch settlements.',
-        'error'
-      )
-    }
+    error.value = null
 
     apiRequest(urls.KEYS.GET, urls.settlements.list, {
       params: buildParams(),
       isTokenRequired: true,
-      onSuccess: successHandler,
-      onFailure: failureHandler,
+      onSuccess: (res) => {
+        records.value = res?.data || []
+
+        if (res?.pagination) {
+          Object.assign(pagination, res.pagination)
+        }
+
+        if (res?.summary) {
+          Object.assign(summary, res.summary)
+        }
+
+        loading.value = false
+        isFetched.value = true
+      },
+      onFailure: (err) => {
+        loading.value = false
+        error.value = err
+        snackbar.show(err?.message || 'Failed to fetch settlements', 'error')
+      },
     })
   }
 
-  // ─── Pagination ──────────────────────────────────────
   const setPage = (page) => {
-    pagination.page = page
-    isFetched.value = false
-
-    fetchSettlements(true)
+    fetchSettlements(page)
   }
 
-  // ─── Apply Filters ───────────────────────────────────
-  const applyFilters = () => {
+  const updatePerPage = (newPerPage) => {
+    pagination.per_page = Number(newPerPage)
     pagination.page = 1
-    isFetched.value = false
-
-    fetchSettlements(true)
+    fetchSettlements(1)
   }
 
-  // ─── Reset ───────────────────────────────────────────
+  const applyFilters = () => {
+    fetchSettlements(1)
+  }
+
+  // ─── Reset ────────────────────────────────────────────
   const reset = () => {
     records.value = []
     loading.value = false
@@ -159,9 +143,11 @@ export const useSettlementsStore = defineStore('settlement', () => {
     summary,
     pagination,
     filters,
+    perPageOptions,
 
     fetchSettlements,
     setPage,
+    updatePerPage,
     applyFilters,
     reset,
   }

@@ -3,6 +3,7 @@ import { ref, reactive } from 'vue'
 import apiRequest from '@/api/request'
 import urls from '@/api/urls'
 import { useSnackbarStore } from '@/stores/snackbar/snackbar'
+import { perPageOptions } from '@/constants/pagination'
 
 export const useAccountTradesStore = defineStore('accountTrades', () => {
   const snackbar = useSnackbarStore()
@@ -78,6 +79,12 @@ export const useAccountTradesStore = defineStore('accountTrades', () => {
     fetchTrades(accountId.value, side.value)
   }
 
+  const updatePerPage = (newPerPage) => {
+    pagination.per_page = Number(newPerPage)
+    pagination.page = 1
+    fetchTrades(accountId.value, side.value)
+  }
+
   const setSide = (nextSide) => {
     side.value = nextSide || null
     pagination.page = 1
@@ -113,10 +120,13 @@ export const useAccountTradesStore = defineStore('accountTrades', () => {
     pagination,
     summary,
     side,
+    perPageOptions,
 
     fetchTrades,
     setPage,
+    updatePerPage,
     setSide,
     reset,
   }
 })
+
