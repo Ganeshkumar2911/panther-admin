@@ -70,14 +70,24 @@ export const useSettlementsStore = defineStore('settlement', () => {
       params: buildParams(),
       isTokenRequired: true,
       onSuccess: (res) => {
-        records.value = res?.data || []
+        const dataObj = res?.data
 
-        if (res?.pagination) {
-          Object.assign(pagination, res.pagination)
+        if (Array.isArray(dataObj)) {
+          records.value = dataObj
+        } else if (dataObj && Array.isArray(dataObj.records)) {
+          records.value = dataObj.records
+        } else {
+          records.value = []
         }
 
-        if (res?.summary) {
-          Object.assign(summary, res.summary)
+        const summaryData = dataObj?.summary || res?.summary
+        if (summaryData) {
+          Object.assign(summary, summaryData)
+        }
+
+        const paginationData = res?.pagination || dataObj?.pagination
+        if (paginationData) {
+          Object.assign(pagination, paginationData)
         }
 
         loading.value = false

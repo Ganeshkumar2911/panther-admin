@@ -74,9 +74,9 @@
         </tbody>
 
         <!-- Empty -->
-        <tbody v-else-if="store.records.length === 0">
+        <tbody v-else-if="!store.records || store.records.length === 0">
           <tr>
-            <td colspan="10" class="py-16 text-center">
+            <td colspan="12" class="py-16 text-center">
               <div class="flex flex-col items-center gap-3">
                 <div class="w-12 h-12 rounded-full bg-card-background flex items-center justify-center">
                   <ReceiptText class="w-5 h-5 text-secondary-text" />
