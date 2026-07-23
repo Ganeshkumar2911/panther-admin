@@ -8,12 +8,20 @@ import urls from '@/api/urls'
 import { useRouter } from 'vue-router'
 import { useMyPermissionsStore } from '@/stores/rbac/myPermissions'
 import bgImage from '@/assets/Login-img.jpeg'
+import BaseSelect from '@/components/common/BaseSelect.vue'
 
 const router = useRouter()
 const snackbar = useSnackbarStore()
 
 const loading = ref(false)
 const showPassword = ref(false)
+
+const presetUrls = [
+  { label: 'https://zpj8dpf6-2504.inc1.devtunnels.ms', value: 'https://zpj8dpf6-2504.inc1.devtunnels.ms' },
+  { label: 'https://1pz4zm0b-2504.euw.devtunnels.ms', value: 'https://1pz4zm0b-2504.euw.devtunnels.ms' },
+  { label: 'https://848ncvt5-2504.euw.devtunnels.ms', value: 'https://848ncvt5-2504.euw.devtunnels.ms' },
+  { label: 'https://ls01t281-5001.inc1.devtunnels.ms', value: 'https://ls01t281-5001.inc1.devtunnels.ms' },
+]
 
 const form = reactive({
   email: '',
@@ -185,16 +193,29 @@ const handleLogin = () => {
               </button>
             </div>
 
-            <div class="relative">
-              <input
+            <!-- Preset Dropdown + Custom Input -->
+            <div class="space-y-2">
+              <BaseSelect
                 v-model="form.baseUrl"
-                type="text"
-                placeholder="https://f7v2d03l-2504.inc1.devtunnels.ms"
-                class="w-full rounded-lg border border-white/15 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/40 focus:border-primary outline-none transition"
-                :class="{ 'border-red-500': errors.baseUrl }"
-                @focus="clearError('baseUrl')"
-                @keyup.enter="handleLogin"
+                :options="presetUrls"
+                placeholder="Select environment preset..."
+                searchable
+                local-search
+                variant="surface"
+                @update:modelValue="clearError('baseUrl')"
               />
+
+              <div class="relative">
+                <input
+                  v-model="form.baseUrl"
+                  type="text"
+                  placeholder="Or enter custom URL..."
+                  class="w-full rounded-lg border border-white/15 bg-white/5 px-4 py-2.5 text-sm text-white placeholder:text-white/40 focus:border-primary outline-none transition"
+                  :class="{ 'border-red-500': errors.baseUrl }"
+                  @focus="clearError('baseUrl')"
+                  @keyup.enter="handleLogin"
+                />
+              </div>
             </div>
 
             <p
@@ -250,15 +271,8 @@ const handleLogin = () => {
                 class="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition cursor-pointer"
                 @click="showPassword = !showPassword"
               >
-                <EyeOff
-                  v-if="showPassword"
-                  :size="18"
-                />
-
-                <Eye
-                  v-else
-                  :size="18"
-                />
+                <EyeOff v-if="showPassword" class="w-4 h-4" />
+                <Eye v-else class="w-4 h-4" />
               </button>
             </div>
 
@@ -270,44 +284,19 @@ const handleLogin = () => {
             </p>
           </div>
 
-          <!-- Login -->
+          <!-- Submit -->
           <button
             type="button"
-            :disabled="loading"
             @click="handleLogin"
-            class="w-full flex items-center justify-center gap-2 rounded-lg py-3 text-sm font-semibold text-black transition hover:opacity-90 disabled:opacity-60 cursor-pointer"
-            style="background: linear-gradient(180deg, #E0CA3C 0%, #FFE74D 100%)"
+            :disabled="loading"
+            class="w-full rounded-lg bg-primary py-3 text.sm font-medium text-white hover:bg-primary-hover transition disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
           >
-            <Loader2
-              v-if="loading"
-              class="animate-spin"
-              :size="18"
-            />
-
-            <span>
-              {{ loading ? "Connecting & Logging in..." : "Login to Environment" }}
-            </span>
+            <Loader2 v-if="loading" class="w-4 h-4 animate-spin" />
+            <span>{{ loading ? 'Connecting...' : 'Connect to Environment' }}</span>
           </button>
 
         </div>
-
-        <!-- Footer -->
-        <div class="mt-8">
-          <p class="text-center text-xs text-white/40">
-            Note: This dynamic override targets the backend API environment directly. Verify the base URL before signing in.
-          </p>
-
-          <div
-            class="mt-5 flex items-center justify-center gap-2"
-          >
-            <router-link to="/login" class="text-xs text-amber-500 hover:underline">
-              Back to Standard Login
-            </router-link>
-          </div>
-        </div>
-
       </div>
     </div>
-
   </div>
 </template>
