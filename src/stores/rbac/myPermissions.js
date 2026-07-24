@@ -70,19 +70,23 @@ export const useMyPermissionsStore = defineStore('myPermissions', () => {
     return Array.isArray(moduleList) && moduleList.length > 0
   }
 
+  let inFlightPromise = null
+
   // Fetch logged-in user permissions
   const fetchMyPermissions = (force = false) => {
     if (isFetched.value && !force) return Promise.resolve(permissions.value)
+    if (loading.value && inFlightPromise) return inFlightPromise
 
     loading.value = true
     error.value = null
 
-    return new Promise((resolve, reject) => {
+    inFlightPromise = new Promise((resolve, reject) => {
       const successHandler = (res) => {
         permissions.value = res?.data?.permissions || res?.data || {}
         userId.value = res?.data?.user_id || null
         loading.value = false
         isFetched.value = true
+        inFlightPromise = null
         resolve(permissions.value)
       }
 
@@ -90,6 +94,7 @@ export const useMyPermissionsStore = defineStore('myPermissions', () => {
         loading.value = false
         error.value = err
         isFetched.value = true
+        inFlightPromise = null
         console.error('Failed to fetch user permissions:', err)
         reject(err)
       }
@@ -100,6 +105,8 @@ export const useMyPermissionsStore = defineStore('myPermissions', () => {
         onFailure: failureHandler,
       })
     })
+
+    return inFlightPromise
   }
 
   const reset = () => {
@@ -108,6 +115,7 @@ export const useMyPermissionsStore = defineStore('myPermissions', () => {
     loading.value = false
     isFetched.value = false
     error.value = null
+    inFlightPromise = null
   }
 
   return {

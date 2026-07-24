@@ -4,6 +4,7 @@ import { ref, reactive } from "vue";
 import apiRequest from "@/api/request";
 import urls from "@/api/urls";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
+import { downloadFile } from "@/utils/downloadFile";
 
 export const useClientListStore = defineStore("clientList", () => {
   const data = ref([]);
@@ -211,24 +212,27 @@ export const useClientListStore = defineStore("clientList", () => {
         status: filters.user_status,
         client_type: filters.user_type,
       },
-      responseType: "blob",
+
       isTokenRequired: true,
 
       onSuccess: (res) => {
-        const blob = new Blob([res], { type: "text/csv" });
+        const downloaded = downloadFile(res?.download_url);
+        if (!downloaded) {
+          snackbar.show("Download URL not found.", "error");
+          return;
+        }
 
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement("a");
-
-        link.href = url;
-        link.download = "clients.csv";
-        link.click();
-
-        window.URL.revokeObjectURL(url);
+        snackbar.show(
+          res?.message || "Export completed successfully.",
+          "success",
+        );
       },
 
       onFailure: (err) => {
-        snackbar.show(err?.message || "Failed to export clients.", "error");
+        snackbar.show(
+          err?.message || "Failed to export admin ledger.",
+          "error",
+        );
       },
 
       onFinally: () => {

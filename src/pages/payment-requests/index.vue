@@ -131,6 +131,17 @@
             />
           </button>
         </Tooltip>
+
+        <Tooltip text="Export" position="left">
+          <button
+            type="button"
+            :disabled="store.isExporting"
+            class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text transition-colors hover:text-primary-text hover:bg-background disabled:opacity-60 disabled:cursor-not-allowed"
+            @click="store.exportRequests"
+          >
+            <FolderUp class="h-3.5 w-3.5" />
+          </button>
+        </Tooltip>
       </div>
     </div>
 
@@ -351,9 +362,18 @@
                   class="text-[11px] font-medium px-2 py-0.5 rounded-full capitalize"
                   :class="[
                     approvalStatusClass(req.approval_status),
-                    req.approval_status === 'pending' && (hasPermission('payment_requests.approve') || hasPermission('payment_requests.reject')) ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''
+                    req.approval_status === 'pending' &&
+                    (hasPermission('payment_requests.approve') ||
+                      hasPermission('payment_requests.reject'))
+                      ? 'cursor-pointer hover:opacity-80 transition-opacity'
+                      : '',
                   ]"
-                  @click="req.approval_status === 'pending' && (hasPermission('payment_requests.approve') || hasPermission('payment_requests.reject')) && openChangeStatusDialog(req)"
+                  @click="
+                    req.approval_status === 'pending' &&
+                    (hasPermission('payment_requests.approve') ||
+                      hasPermission('payment_requests.reject')) &&
+                    openChangeStatusDialog(req)
+                  "
                 >
                   {{ req.approval_status }}
                 </span>
@@ -449,7 +469,7 @@
 
 <script setup>
 import { onMounted, computed, ref } from "vue";
-import { Receipt, Check, X, RefreshCw } from "lucide-vue-next";
+import { Receipt, Check, X, RefreshCw, FolderUp } from "lucide-vue-next";
 import { usePaymentRequestsStore } from "@/stores/paymentRequests/paymentRequests";
 import { useProfileStore } from "@/stores/profile/profile";
 import Pagination from "@/components/common/Pagination.vue";

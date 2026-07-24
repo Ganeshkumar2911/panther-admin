@@ -90,6 +90,7 @@
             variant="surface"
             placeholder="Select role"
             searchable
+            local-search
           />
         </div>
       </div>

@@ -5,18 +5,9 @@ import apiRequest from "@/api/request";
 import urls from "@/api/urls";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
 import { perPageOptions } from "@/constants/pagination";
+import { downloadFile } from "@/utils/downloadFile";
 
 export const useFmRequestStore = defineStore("fmRequest", () => {
-  const clientTypes = [
-    { label: "Client", value: "client" },
-    { label: "IB", value: "ib" },
-    { label: "FM", value: "fm" },
-  ];
-
-  const userStatus = [
-    { label: "Active", value: "active" },
-    { label: "Inactive", value: "inactive" },
-  ];
   const data = ref([]);
   const filters = ref({});
   const pagination = ref({
@@ -78,30 +69,32 @@ export const useFmRequestStore = defineStore("fmRequest", () => {
   const exportFmRequests = (status = null, searchQuery = "") => {
     isExporting.value = true;
 
-    apiRequest(urls.KEYS.GET, urls.fm.exportRequests, {
+    apiRequest(urls.KEYS.GET, urls.fm.exportFMRequest, {
       params: {
         status,
         search: searchQuery,
       },
 
-      responseType: "blob",
       isTokenRequired: true,
 
       onSuccess: (res) => {
-        const blob = new Blob([res], { type: "text/csv" });
+        const downloaded = downloadFile(res?.download_url);
+        if (!downloaded) {
+          snackbar.show("Download URL not found.", "error");
+          return;
+        }
 
-        const url = window.URL.createObjectURL(blob);
-
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = "fm-requests.csv";
-        link.click();
-
-        window.URL.revokeObjectURL(url);
+        snackbar.show(
+          res?.message || "Export completed successfully.",
+          "success",
+        );
       },
 
       onFailure: (err) => {
-        snackbar.show(err?.error || "Failed to export requests.", "error");
+        snackbar.show(
+          err?.message || "Failed to export admin ledger.",
+          "error",
+        );
       },
 
       onFinally: () => {

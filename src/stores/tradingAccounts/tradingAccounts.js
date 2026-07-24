@@ -4,18 +4,9 @@ import apiRequest from "@/api/request";
 import urls from "@/api/urls";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
 import { perPageOptions } from "@/constants/pagination";
+import { downloadFile } from "@/utils/downloadFile";
 
 export const useAccountsStore = defineStore("accounts", () => {
-  const clientTypes = [
-    { label: "Client", value: "client" },
-    { label: "IB", value: "ib" },
-    { label: "FM", value: "fm" },
-  ];
-
-  const accountStatus = [
-    { label: "Active", value: "active" },
-    { label: "Inactive", value: "inactive" },
-  ];
   const snackbar = useSnackbarStore();
 
   const data = ref([]);
@@ -41,8 +32,6 @@ export const useAccountsStore = defineStore("accounts", () => {
     trading_type: "all",
     account_subtype: "all",
     search_query: "",
-    client_type: "client",
-    status: "active",
   });
 
   const activeType = computed(() => filters.account_type);
@@ -52,8 +41,6 @@ export const useAccountsStore = defineStore("accounts", () => {
 
     apiRequest("get", urls.tradingAccounts.export, {
       params: {
-        client_type: filters.client_type,
-        status: filters.status,
         ...(filters.account_type !== "all"
           ? { account_type: filters.account_type }
           : {}),
@@ -68,26 +55,26 @@ export const useAccountsStore = defineStore("accounts", () => {
           : {}),
       },
 
-      responseType: "blob",
       isTokenRequired: true,
 
       onSuccess: (res) => {
-        const blob = new Blob([res], {
-          type: "text/csv",
-        });
+        const downloaded = downloadFile(res?.download_url);
+        if (!downloaded) {
+          snackbar.show("Download URL not found.", "error");
+          return;
+        }
 
-        const url = window.URL.createObjectURL(blob);
-
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = "trading-accounts.csv";
-        link.click();
-
-        window.URL.revokeObjectURL(url);
+        snackbar.show(
+          res?.message || "Export completed successfully.",
+          "success",
+        );
       },
 
       onFailure: (err) => {
-        snackbar.show(err?.message || "Failed to export accounts.", "error");
+        snackbar.show(
+          err?.message || "Failed to export admin ledger.",
+          "error",
+        );
       },
 
       onFinally: () => {
@@ -208,8 +195,6 @@ export const useAccountsStore = defineStore("accounts", () => {
     activeType,
     perPageOptions,
     isExporting,
-    clientTypes,
-    accountStatus,
 
     fetchAccounts,
     setType,
@@ -217,7 +202,6 @@ export const useAccountsStore = defineStore("accounts", () => {
     setPage,
     updatePerPage,
     reset,
-
     exportAccounts,
   };
 });

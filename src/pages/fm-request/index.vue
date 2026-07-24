@@ -142,13 +142,10 @@ onMounted(() => {
           <button
             type="button"
             :disabled="store.isExporting"
-            class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text transition-colors hover:text-primary-text hover:bg-background disabled:opacity-60 disabled:cursor-not-allowed"
+            class="inline-flex cursor-pointer items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text transition-colors hover:text-primary-text hover:bg-background disabled:opacity-60 disabled:cursor-not-allowed"
             @click="store.exportFmRequests(activeStatus, store.search)"
           >
-            <FolderUp
-              class="h-3.5 w-3.5"
-              :class="{ 'animate-spin': store.isExporting }"
-            />
+            <FolderUp class="h-3.5 w-3.5" />
           </button>
         </Tooltip>
       </div>

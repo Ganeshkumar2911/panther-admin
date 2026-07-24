@@ -25,7 +25,7 @@ const urls = {
     deposit: "/accounts/deposit",
     withdraw: "/accounts/withdraw",
     groups: "/account-groups",
-    export: "/accounts/export",
+    export: "/export/accounts/export",
   },
   clientList: {
     list: "/client-list",
@@ -36,25 +36,29 @@ const urls = {
     create: "/client/create",
     delete: "/clients",
     updateReferralLink: "/clients/referral-link",
-    export: "/client-list/export",
+    export: "/export/client-list/export",
   },
   clientLedger: {
     list: "/ledger/clients",
     allClients: "/search/clients",
     allAccounts: "/search/accounts",
     internalTransfers: "/ledger/internal-transfers",
+    export: "/export/clients-ledger/export",
   },
   fmLedger: {
     list: "/ledger/fms",
     allFundManagers: "/search/fm",
+    export: "/export/fm-ledger/export",
   },
   ibLedger: {
     list: "/ledger/ib",
     allIbs: "/search/ib",
     update: "/ledger/ib/update",
+    export: "/export/ledger/ib/export",
   },
   adminLedger: {
     list: "/ledger/admin",
+    export: "/export/platform-ledger/export",
   },
   ibTree: {
     list: "/ib-network",
@@ -63,6 +67,7 @@ const urls = {
     delete: "/ib/delete",
     transfer: "/ib-transfer",
     clients: "/ibs/clients/",
+    export: "/export/ib-network/export",
   },
   referralLinks: {
     list: "/ibs/referral-links",
@@ -71,6 +76,7 @@ const urls = {
   },
   auditLogs: {
     list: "/audit-logs",
+    export: "/export/audit-logs",
   },
   fm: {
     list: "/fund_managers",
@@ -81,11 +87,13 @@ const urls = {
     rejectRequest: "/fm/requests/reject",
     settlementPreview: "/settlement/preview",
     settlementRun: "/settlement/run",
-    export: "/fund_managers/export",
+    export: "/export/fund_managers/export",
+    exportFMRequest: "/export/fm/requests/export",
   },
   settlements: {
     list: "/settlements",
     trades: "/settlements/trades",
+    export: "/export/settlements/export",
   },
   tickets: {
     list: "/support/tickets",
@@ -94,6 +102,7 @@ const urls = {
     comment: "/support/tickets/comments",
     attachment: "/support/tickets/attachments",
     updateStatus: "/support/tickets/status",
+    export: "/export/tickets/export",
   },
   platformTickets: {
     list: "/support/tickets/platform",
@@ -102,6 +111,7 @@ const urls = {
     comment: "/support/tickets/comments",
     attachment: "/support/tickets/attachments",
     updateStatus: "/support/tickets/status",
+    export: "/export/tickets/platform/export",
   },
   groupConfig: {
     list: "/mt5/groups",
@@ -122,6 +132,7 @@ const urls = {
     list: "/payment-requests",
     approve: "/payment-requests/approve/",
     reject: "/payment-requests/reject/",
+    export: "/export/payment-requests/export",
   },
   emailSettings: {
     details: "/email-settings",
@@ -161,9 +172,26 @@ const urls = {
       all: "/rbac/permissions",
       manage: "/rbac/users/permissions",
     },
-    myWallets : {
-      export : " /fm/requests/export"
-    }
+    resources: {
+      list: "/rbac/resources",
+      create: "/rbac/resources",
+      update: "/rbac/resources",
+      delete: "/rbac/resources",
+    },
+    actions: {
+      list: "/rbac/actions",
+      create: "/rbac/actions",
+      update: "/rbac/actions",
+      delete: "/rbac/actions",
+    },
+    permissionsMapping: {
+      list: "/rbac/permissions_mapping",
+      create: "/rbac/permissions_mapping",
+      delete: "/rbac/permissions_mapping",
+    },
+  },
+  myWallets: {
+    export: " /fm/requests/export",
   },
 };
 

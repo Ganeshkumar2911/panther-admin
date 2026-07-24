@@ -226,7 +226,7 @@ const goToRegister = () => {
             type="button"
             :disabled="loading"
             @click="handleLogin"
-            class="w-full flex items-center justify-center gap-2 rounded-lg py-3 text-sm font-semibold text-black transition hover:opacity-90 disabled:opacity-60"
+            class="w-full flex items-center justify-center gap-2 rounded-lg py-3 text-sm font-semibold text-black transition hover:opacity-90 hover:cursor-pointer  disabled:opacity-60"
             style="background: linear-gradient(180deg, #E0CA3C 0%, #FFE74D 100%)"
           >
             <Loader2

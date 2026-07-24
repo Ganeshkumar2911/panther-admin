@@ -4,6 +4,7 @@ import apiRequest from "@/api/request";
 import urls from "@/api/urls";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
 import { perPageOptions } from "@/constants/pagination";
+import { downloadFile } from "@/utils/downloadFile";
 
 export const useTicketsStore = defineStore("tickets", () => {
   // ─── State ─────────────────────────────────────────────
@@ -12,7 +13,7 @@ export const useTicketsStore = defineStore("tickets", () => {
   const actionLoading = ref(false);
   const error = ref(null);
   const isFetched = ref(false);
-
+  const isExporting = ref(false);
   const pagination = ref({
     page: 1,
     per_page: 10,
@@ -62,6 +63,38 @@ export const useTicketsStore = defineStore("tickets", () => {
       isTokenRequired: true,
       onSuccess: successHandler,
       onFailure: failureHandler,
+    });
+  };
+
+  const exportTickets = (filters = {}) => {
+    isExporting.value = true;
+
+    apiRequest(urls.KEYS.GET, urls.tickets.export, {
+      params: cleanFilters(filters),
+
+      isTokenRequired: true,
+
+      onSuccess: (res) => {
+        const downloaded = downloadFile(res?.download_url);
+
+        if (!downloaded) {
+          snackbar.show("Download URL not found.", "error");
+          return;
+        }
+
+        snackbar.show(
+          res?.message || "Tickets exported successfully.",
+          "success",
+        );
+      },
+
+      onFailure: (err) => {
+        snackbar.show(err?.message || "Failed to export tickets.", "error");
+      },
+
+      onFinally: () => {
+        isExporting.value = false;
+      },
     });
   };
 
@@ -226,6 +259,9 @@ export const useTicketsStore = defineStore("tickets", () => {
     // NEW
     detail,
     detailLoading,
+
+    isExporting,
+    exportTickets,
 
     fetchTickets,
     updatePerPage,

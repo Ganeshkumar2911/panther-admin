@@ -28,6 +28,7 @@ export const usePlatfromTicketsStore = defineStore("platfromTickets", () => {
   // ─── Detail State ──────────────────────────────────────
   const detail = ref(null);
   const detailLoading = ref(false);
+  const isExporting = ref(false);
 
   const isLoading = ref(false);
   const actionLoading = ref(false);
@@ -226,6 +227,47 @@ export const usePlatfromTicketsStore = defineStore("platfromTickets", () => {
     });
   };
 
+  const exportTickets = () => {
+    isExporting.value = true;
+
+    apiRequest(urls.KEYS.GET, urls.platformTickets.export, {
+      params: cleanFilters({
+        search: filters.search,
+        filter: filters.filter,
+        status: filters.status,
+        priority: filters.priority,
+        sort: filters.sort,
+      }),
+
+      isTokenRequired: true,
+
+      onSuccess: (res) => {
+        const downloaded = downloadFile(res?.download_url);
+
+        if (!downloaded) {
+          snackbar.show("Download URL not found.", "error");
+          return;
+        }
+
+        snackbar.show(
+          res?.message || "Platform tickets exported successfully.",
+          "success",
+        );
+      },
+
+      onFailure: (err) => {
+        snackbar.show(
+          err?.message || "Failed to export platform tickets.",
+          "error",
+        );
+      },
+
+      onFinally: () => {
+        isExporting.value = false;
+      },
+    });
+  };
+
   // ─── Add Attachment ────────────────────────────────────
   const addAttachment = (id, formData, onDone) => {
     if (!id) return;
@@ -324,6 +366,9 @@ export const usePlatfromTicketsStore = defineStore("platfromTickets", () => {
     error,
     isFetched,
 
+    isExporting,
+    exportTickets,
+
     // list
     fetchTickets,
     changePage,
@@ -334,7 +379,6 @@ export const usePlatfromTicketsStore = defineStore("platfromTickets", () => {
     addComment,
     addAttachment,
     updateTicketStatus,
-
 
     // filters
     setFilters,

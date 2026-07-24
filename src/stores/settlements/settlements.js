@@ -1,32 +1,34 @@
-import { defineStore } from 'pinia'
-import { ref, reactive } from 'vue'
-import apiRequest from '@/api/request'
-import urls from '@/api/urls'
-import { useSnackbarStore } from '@/stores/snackbar/snackbar'
-import { perPageOptions } from '@/constants/pagination'
+import { defineStore } from "pinia";
+import { ref, reactive } from "vue";
+import apiRequest from "@/api/request";
+import urls from "@/api/urls";
+import { useSnackbarStore } from "@/stores/snackbar/snackbar";
+import { perPageOptions } from "@/constants/pagination";
+import { downloadFile } from "@/utils/downloadFile";
 
-export const useSettlementsStore = defineStore('settlement', () => {
+export const useSettlementsStore = defineStore("settlement", () => {
   // ─── Snackbar ─────────────────────────────────────────
-  const snackbar = useSnackbarStore()
+  const snackbar = useSnackbarStore();
 
   // ─── State ────────────────────────────────────────────
-  const records = ref([])
-  const loading = ref(false)
-  const isFetched = ref(false)
-  const error = ref(null)
+  const records = ref([]);
+  const loading = ref(false);
+  const isFetched = ref(false);
+  const error = ref(null);
+  const isExporting = ref(false);
 
   const summary = reactive({
     broker_net: 0,
     ib_pool: 0,
     total_fees: 0,
-  })
+  });
 
   const pagination = reactive({
     page: 1,
     per_page: 10,
     total_items: 0,
     total_pages: 1,
-  })
+  });
 
   // ─── Filters ──────────────────────────────────────────
   const filters = reactive({
@@ -34,19 +36,16 @@ export const useSettlementsStore = defineStore('settlement', () => {
     status: null,
     from_date: null,
     to_date: null,
-  })
+  });
 
   // ─── Helpers ──────────────────────────────────────────
   const cleanFilters = (payload = {}) => {
     return Object.fromEntries(
       Object.entries(payload).filter(
-        ([, value]) =>
-          value !== null &&
-          value !== undefined &&
-          value !== ''
-      )
-    )
-  }
+        ([, value]) => value !== null && value !== undefined && value !== "",
+      ),
+    );
+  };
 
   const buildParams = () => {
     return cleanFilters({
@@ -57,81 +56,128 @@ export const useSettlementsStore = defineStore('settlement', () => {
       status: filters.status,
       from_date: filters.from_date,
       to_date: filters.to_date,
-    })
-  }
+    });
+  };
+
+  const exportSettlements = () => {
+    isExporting.value = true;
+
+    apiRequest(urls.KEYS.GET, urls.settlements.export, {
+      params: cleanFilters({
+        fm_id: filters.fm_id,
+        status: filters.status,
+        from_date: filters.from_date,
+        to_date: filters.to_date,
+      }),
+
+      isTokenRequired: true,
+
+      onSuccess: (res) => {
+        const downloaded = downloadFile(res?.download_url);
+
+        if (!downloaded) {
+          snackbar.show("Download URL not found.", "error");
+          return;
+        }
+
+        snackbar.show(
+          res?.message || "Export completed successfully.",
+          "success",
+        );
+      },
+
+      onFailure: (err) => {
+        snackbar.show(err?.message || "Failed to export settlements.", "error");
+      },
+
+      onFinally: () => {
+        isExporting.value = false;
+      },
+    });
+  };
 
   // ─── Actions ──────────────────────────────────────────
   const fetchSettlements = (page = pagination.page) => {
-    pagination.page = page
-    loading.value = true
-    error.value = null
+    pagination.page = page;
+    loading.value = true;
+    error.value = null;
 
     apiRequest(urls.KEYS.GET, urls.settlements.list, {
       params: buildParams(),
       isTokenRequired: true,
       onSuccess: (res) => {
-        records.value = res?.data || []
+        const dataObj = res?.data;
 
-        if (res?.pagination) {
-          Object.assign(pagination, res.pagination)
+        if (Array.isArray(dataObj)) {
+          records.value = dataObj;
+        } else if (dataObj && Array.isArray(dataObj.records)) {
+          records.value = dataObj.records;
+        } else {
+          records.value = [];
         }
 
-        if (res?.summary) {
-          Object.assign(summary, res.summary)
+        const summaryData = dataObj?.summary || res?.summary;
+        if (summaryData) {
+          Object.assign(summary, summaryData);
         }
 
-        loading.value = false
-        isFetched.value = true
+        const paginationData = res?.pagination || dataObj?.pagination;
+        if (paginationData) {
+          Object.assign(pagination, paginationData);
+        }
+
+        loading.value = false;
+        isFetched.value = true;
       },
       onFailure: (err) => {
-        loading.value = false
-        error.value = err
-        snackbar.show(err?.message || 'Failed to fetch settlements', 'error')
+        loading.value = false;
+        error.value = err;
+        snackbar.show(err?.message || "Failed to fetch settlements", "error");
       },
-    })
-  }
+    });
+  };
 
   const setPage = (page) => {
-    fetchSettlements(page)
-  }
+    fetchSettlements(page);
+  };
 
   const updatePerPage = (newPerPage) => {
-    pagination.per_page = Number(newPerPage)
-    pagination.page = 1
-    fetchSettlements(1)
-  }
+    pagination.per_page = Number(newPerPage);
+    pagination.page = 1;
+    fetchSettlements(1);
+  };
 
   const applyFilters = () => {
-    fetchSettlements(1)
-  }
+    fetchSettlements(1);
+  };
 
   // ─── Reset ────────────────────────────────────────────
   const reset = () => {
-    records.value = []
-    loading.value = false
-    isFetched.value = false
-    error.value = null
+    records.value = [];
+    loading.value = false;
+    isFetched.value = false;
+    error.value = null;
 
     Object.assign(summary, {
       broker_net: 0,
       ib_pool: 0,
       total_fees: 0,
-    })
+    });
 
     Object.assign(pagination, {
       page: 1,
       per_page: 10,
       total_items: 0,
       total_pages: 1,
-    })
+    });
 
     Object.assign(filters, {
       fm_id: null,
       status: null,
       from_date: null,
       to_date: null,
-    })
-  }
+    });
+  };
 
   // ─── Expose ──────────────────────────────────────────
   return {
@@ -145,10 +191,13 @@ export const useSettlementsStore = defineStore('settlement', () => {
     filters,
     perPageOptions,
 
+    isExporting,
+    exportSettlements,
+
     fetchSettlements,
     setPage,
     updatePerPage,
     applyFilters,
     reset,
-  }
-})
+  };
+});

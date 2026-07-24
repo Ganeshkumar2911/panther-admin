@@ -1,90 +1,92 @@
-import { defineStore } from 'pinia'
-import { ref, reactive } from 'vue'
-import apiRequest from '@/api/request'
-import urls from '@/api/urls'
-import { useSnackbarStore } from '@/stores/snackbar/snackbar'
-import { perPageOptions } from '@/constants/pagination'
+import { defineStore } from "pinia";
+import { ref, reactive } from "vue";
+import apiRequest from "@/api/request";
+import urls from "@/api/urls";
+import { useSnackbarStore } from "@/stores/snackbar/snackbar";
+import { perPageOptions } from "@/constants/pagination";
+import { downloadFile } from "@/utils/downloadFile";
 
-export const useClientLedgerStore = defineStore('clientLedger', () => {
-  const snackbar = useSnackbarStore()
+export const useClientLedgerStore = defineStore("clientLedger", () => {
+  const snackbar = useSnackbarStore();
 
   // ─── State ─────────────────────────────────────────────
-  const data        = ref([])
-  const loading     = ref(false)
-  const isFetched   = ref(false)
-  const error       = ref(null)
+  const data = ref([]);
+  const loading = ref(false);
+  const isFetched = ref(false);
+  const error = ref(null);
+  const isExporting = ref(false);
 
   const summary = ref({
-    total_deposit:    0,
+    total_deposit: 0,
     total_withdrawal: 0,
-    total_trade_pnl:  0,
-    total_fee_paid:   0,
-  })
+    total_trade_pnl: 0,
+    total_fee_paid: 0,
+  });
 
   const pagination = reactive({
     page: 1,
     per_page: 10,
     total_items: 0,
     total_pages: 0,
-  })
+  });
 
   // ✅ Filters (selected values)
   const filters = reactive({
-    client_id:  null,
+    client_id: null,
     account_id: null,
-    type:       null,
-    from_date:  '',
-    to_date:    '',
-  })
+    type: null,
+    from_date: "",
+    to_date: "",
+  });
 
   // ✅ Filter options (from API)
   const filterOptions = ref({
-    clients:  [],
-    ibs:      [],
+    clients: [],
+    ibs: [],
     accounts: [],
-    types:    [],
-  })
+    types: [],
+  });
 
   // ─── Helpers ───────────────────────────────────────────
   const cleanFilters = () =>
     Object.fromEntries(
       Object.entries(filters).filter(
-        ([, v]) => v !== null && v !== '' && v !== undefined
-      )
-    )
+        ([, v]) => v !== null && v !== "" && v !== undefined,
+      ),
+    );
 
   // ─── Fetch Ledger ──────────────────────────────────────
   const fetchLedger = (force = false) => {
-    if (isFetched.value && !force) return
+    if (isFetched.value && !force) return;
 
-    loading.value = true
+    loading.value = true;
 
     const successHandler = (res) => {
-      data.value = res?.data || []
+      data.value = res?.data || [];
 
       if (res?.pagination) {
-        Object.assign(pagination, res.pagination)
+        Object.assign(pagination, res.pagination);
       }
 
       if (res?.summary) {
-        summary.value = res.summary
+        summary.value = res.summary;
       }
 
       if (res?.filters) {
-        filterOptions.value = res.filters
+        filterOptions.value = res.filters;
       }
 
-      isFetched.value = true
-      loading.value   = false
-    }
+      isFetched.value = true;
+      loading.value = false;
+    };
 
     const failureHandler = (err) => {
-      loading.value = false
-      error.value   = err
-      snackbar.show(err?.message || 'Failed to fetch ledger', 'error')
-    }
+      loading.value = false;
+      error.value = err;
+      snackbar.show(err?.message || "Failed to fetch ledger", "error");
+    };
 
-    apiRequest('get', urls.clientLedger.list, {
+    apiRequest("get", urls.clientLedger.list, {
       params: {
         page: pagination.page,
         per_page: pagination.per_page,
@@ -93,128 +95,160 @@ export const useClientLedgerStore = defineStore('clientLedger', () => {
       isTokenRequired: true,
       onSuccess: successHandler,
       onFailure: failureHandler,
-    })
-  }
+    });
+  };
+
+  const exportLedger = () => {
+    isExporting.value = true;
+
+    apiRequest("get", urls.clientLedger.export, {
+      params: cleanFilters(),
+
+      isTokenRequired: true,
+
+      onSuccess: (res) => {
+        const downloaded = downloadFile(res?.download_url);
+
+        if (!downloaded) {
+          snackbar.show("Download URL not found.", "error");
+          return;
+        }
+
+        snackbar.show(
+          res?.message || "Export completed successfully.",
+          "success",
+        );
+      },
+
+      onFailure: (err) => {
+        snackbar.show(err?.message || "Failed to export ledger.", "error");
+      },
+
+      onFinally: () => {
+        isExporting.value = false;
+      },
+    });
+  };
 
   // ─── Apply Filters ─────────────────────────────────────
   const applyFilters = (newFilters) => {
     if (newFilters) {
-      Object.assign(filters, newFilters)
+      Object.assign(filters, newFilters);
     }
-    pagination.page = 1
-    isFetched.value = false
-    fetchLedger(true)
-  }
+    pagination.page = 1;
+    isFetched.value = false;
+    fetchLedger(true);
+  };
 
   // ─── Update Per Page ───────────────────────────────────
   const updatePerPage = (newPerPage) => {
-    pagination.per_page = Number(newPerPage)
-    pagination.page = 1
-    isFetched.value = false
-    fetchLedger(true)
-  }
+    pagination.per_page = Number(newPerPage);
+    pagination.page = 1;
+    isFetched.value = false;
+    fetchLedger(true);
+  };
 
   // ─── Reset Filters ─────────────────────────────────────
   const resetFilters = () => {
     Object.assign(filters, {
-      client_id:  null,
+      client_id: null,
       account_id: null,
-      type:       null,
-      from_date:  '',
-      to_date:    '',
-    })
+      type: null,
+      from_date: "",
+      to_date: "",
+    });
 
-    applyFilters()
-  }
+    applyFilters();
+  };
 
   // ─── Pagination ────────────────────────────────────────
   const setPage = (page) => {
-    pagination.page = page
-    isFetched.value = false
-    fetchLedger(true)
-  }
+    pagination.page = page;
+    isFetched.value = false;
+    fetchLedger(true);
+  };
 
   // ─── Reset ─────────────────────────────────────────────
   const reset = () => {
-    data.value      = []
-    loading.value   = false
-    isFetched.value = false
-    error.value     = null
+    data.value = [];
+    loading.value = false;
+    isFetched.value = false;
+    error.value = null;
 
     summary.value = {
-      total_deposit:    0,
+      total_deposit: 0,
       total_withdrawal: 0,
-      total_trade_pnl:  0,
-      total_fee_paid:   0,
-    }
+      total_trade_pnl: 0,
+      total_fee_paid: 0,
+    };
 
     Object.assign(pagination, {
       page: 1,
       per_page: 10,
       total_items: 0,
       total_pages: 0,
-    })
+    });
 
-    resetFilters()
-  }
+    resetFilters();
+  };
 
   // ─── Fetch All Clients ────────────────────────────────
-  const fetchAllClients = (searchQuery = '') => {
+  const fetchAllClients = (searchQuery = "") => {
     return new Promise((resolve, reject) => {
       const successHandler = (res) => {
-        const clientList = (res?.data || []).map(c => ({
+        const clientList = (res?.data || []).map((c) => ({
           label: c.name,
           value: c.id,
           email: c.email,
-        }))
-        resolve(clientList)
-      }
+        }));
+        resolve(clientList);
+      };
 
       const failureHandler = (err) => {
-        snackbar.show(err?.message || 'Failed to fetch clients', 'error')
-        reject(err)
-      }
+        snackbar.show(err?.message || "Failed to fetch clients", "error");
+        reject(err);
+      };
 
-      apiRequest('get', urls.clientLedger.allClients, {
+      apiRequest("get", urls.clientLedger.allClients, {
         params: searchQuery ? { search: searchQuery } : {},
         isTokenRequired: true,
         onSuccess: successHandler,
         onFailure: failureHandler,
-      })
-    })
-  }
+      });
+    });
+  };
 
   // ─── Fetch All Accounts ────────────────────────────────
-  const fetchAllAccounts = (searchQuery = '', clientId = null) => {
+  const fetchAllAccounts = (searchQuery = "", clientId = null) => {
     return new Promise((resolve, reject) => {
       const successHandler = (res) => {
-        const accountList = (res?.data || []).map(a => ({
-          label: `#${a.account_number} · ${a.broker_label || ''}`.trim(),
+        const accountList = (res?.data || []).map((a) => ({
+          label: `#${a.account_number} · ${a.broker_label || ""}`.trim(),
           value: a.account_id,
           accountNumber: a.account_number,
           brokerLabel: a.broker_label,
           clientName: a.client_name,
-        }))
-        resolve(accountList)
-      }
+        }));
+        resolve(accountList);
+      };
 
       const failureHandler = (err) => {
-        snackbar.show(err?.message || 'Failed to fetch accounts', 'error')
-        reject(err)
-      }
+        snackbar.show(err?.message || "Failed to fetch accounts", "error");
+        reject(err);
+      };
 
-      const params = {}
-      if (searchQuery) params.search = searchQuery
-      if (clientId) params.client_id = clientId
+      const params = {};
+      if (searchQuery) params.search = searchQuery;
+      if (clientId) params.client_id = clientId;
 
-      apiRequest('get', urls.clientLedger.allAccounts, {
+      apiRequest("get", urls.clientLedger.allAccounts, {
         params,
         isTokenRequired: true,
         onSuccess: successHandler,
         onFailure: failureHandler,
-      })
-    })
-  }
+      });
+    });
+  };
 
   return {
     data,
@@ -228,6 +262,9 @@ export const useClientLedgerStore = defineStore('clientLedger', () => {
     filters,
     filterOptions,
 
+    isExporting,
+    exportLedger,
+
     fetchLedger,
     applyFilters,
     updatePerPage,
@@ -236,5 +273,5 @@ export const useClientLedgerStore = defineStore('clientLedger', () => {
     reset,
     fetchAllClients,
     fetchAllAccounts,
-  }
-})
+  };
+});
