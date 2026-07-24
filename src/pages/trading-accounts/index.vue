@@ -12,6 +12,7 @@ import {
   RefreshCw,
   Plus,
   Pencil,
+  FolderUp,
 } from "lucide-vue-next";
 import Pagination from "@/components/common/Pagination.vue";
 import DropdownMenu from "@/components/common/DropdownMenu.vue";
@@ -487,6 +488,20 @@ onBeforeUnmount(() => clearTimeout(searchTimer));
           @update:modelValue="store.updatePerPage"
         />
 
+        <BaseSelect
+          v-model="store.filters.client_type"
+          :options="store.clientTypes"
+          placeholder="Client Type"
+          class="w-36"
+        />
+
+        <BaseSelect
+          v-model="store.filters.status"
+          :options="store.accountStatus"
+          placeholder="Status"
+          class="w-36"
+        />
+
         <Tooltip v-if="hasActiveFilters" text="Clear filters" position="left">
           <button
             type="button"
@@ -516,6 +531,29 @@ onBeforeUnmount(() => clearTimeout(searchTimer));
               v-else
               class="h-3.5 w-3.5"
               :class="store.loading ? 'animate-spin' : ''"
+            />
+          </button>
+        </Tooltip>
+
+        <Tooltip text="Export" position="right">
+          <button
+            type="button"
+            :disabled="store.isExporting"
+            @click="store.exportAccounts"
+            class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text transition-colors hover:text-primary-text hover:bg-background disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+          >
+            <span
+              v-if="isRefreshing"
+              class="inline-flex items-center justify-center"
+            >
+              <span
+                class="w-3.5 h-3.5 border-2 border-secondary-text border-t-transparent rounded-full animate-spin"
+              />
+            </span>
+            <FolderUp
+              v-else
+              class="h-3.5 w-3.5"
+              :class="{ 'animate-spin': store.isExporting }"
             />
           </button>
         </Tooltip>

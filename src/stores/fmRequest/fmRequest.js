@@ -7,6 +7,16 @@ import { useSnackbarStore } from "@/stores/snackbar/snackbar";
 import { perPageOptions } from "@/constants/pagination";
 
 export const useFmRequestStore = defineStore("fmRequest", () => {
+  const clientTypes = [
+    { label: "Client", value: "client" },
+    { label: "IB", value: "ib" },
+    { label: "FM", value: "fm" },
+  ];
+
+  const userStatus = [
+    { label: "Active", value: "active" },
+    { label: "Inactive", value: "inactive" },
+  ];
   const data = ref([]);
   const filters = ref({});
   const pagination = ref({
@@ -23,6 +33,7 @@ export const useFmRequestStore = defineStore("fmRequest", () => {
   const error = ref(null);
   const isFetched = ref(false);
   const isSubmitting = ref(false);
+  const isExporting = ref(false);
 
   const snackbar = useSnackbarStore();
 
@@ -61,6 +72,41 @@ export const useFmRequestStore = defineStore("fmRequest", () => {
       isTokenRequired: true,
       onSuccess: successHandler,
       onFailure: failureHandler,
+    });
+  };
+
+  const exportFmRequests = (status = null, searchQuery = "") => {
+    isExporting.value = true;
+
+    apiRequest(urls.KEYS.GET, urls.fm.exportRequests, {
+      params: {
+        status,
+        search: searchQuery,
+      },
+
+      responseType: "blob",
+      isTokenRequired: true,
+
+      onSuccess: (res) => {
+        const blob = new Blob([res], { type: "text/csv" });
+
+        const url = window.URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "fm-requests.csv";
+        link.click();
+
+        window.URL.revokeObjectURL(url);
+      },
+
+      onFailure: (err) => {
+        snackbar.show(err?.error || "Failed to export requests.", "error");
+      },
+
+      onFinally: () => {
+        isExporting.value = false;
+      },
     });
   };
 
@@ -151,6 +197,8 @@ export const useFmRequestStore = defineStore("fmRequest", () => {
     error,
     isFetched,
     isSubmitting,
+    isExporting,
+    exportFmRequests,
     fetchFmRequests,
     setSearch,
     updatePerPage,

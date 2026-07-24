@@ -7,7 +7,7 @@ import BaseSelect from "@/components/common/BaseSelect.vue";
 import Tooltip from "@/components/common/Tooltip.vue";
 import FmRequestActionDialog from "@/components/fmRequest/FmRequestActionDialog.vue";
 import AddEditFundManager from "@/components/fundManager/AddEditFundManager.vue";
-import { RefreshCw } from "lucide-vue-next";
+import { FolderUp, RefreshCw } from "lucide-vue-next";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 
 const store = useFmRequestStore();
@@ -135,6 +135,19 @@ onMounted(() => {
             <RefreshCw
               class="h-3.5 w-3.5"
               :class="{ 'animate-spin': store.loading }"
+            />
+          </button>
+        </Tooltip>
+        <Tooltip text="Export" position="right">
+          <button
+            type="button"
+            :disabled="store.isExporting"
+            class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text transition-colors hover:text-primary-text hover:bg-background disabled:opacity-60 disabled:cursor-not-allowed"
+            @click="store.exportFmRequests(activeStatus, store.search)"
+          >
+            <FolderUp
+              class="h-3.5 w-3.5"
+              :class="{ 'animate-spin': store.isExporting }"
             />
           </button>
         </Tooltip>

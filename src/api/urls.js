@@ -25,6 +25,7 @@ const urls = {
     deposit: "/accounts/deposit",
     withdraw: "/accounts/withdraw",
     groups: "/account-groups",
+    export: "/accounts/export",
   },
   clientList: {
     list: "/client-list",
@@ -35,6 +36,7 @@ const urls = {
     create: "/client/create",
     delete: "/clients",
     updateReferralLink: "/clients/referral-link",
+    export: "/client-list/export",
   },
   clientLedger: {
     list: "/ledger/clients",
@@ -79,6 +81,7 @@ const urls = {
     rejectRequest: "/fm/requests/reject",
     settlementPreview: "/settlement/preview",
     settlementRun: "/settlement/run",
+    export: "/fund_managers/export",
   },
   settlements: {
     list: "/settlements",
@@ -158,6 +161,9 @@ const urls = {
       all: "/rbac/permissions",
       manage: "/rbac/users/permissions",
     },
+    myWallets : {
+      export : " /fm/requests/export"
+    }
   },
 };
 
