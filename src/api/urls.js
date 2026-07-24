@@ -11,6 +11,7 @@ const urls = {
   auth: {
     login: "/login",
     profile: "/profile",
+    updateProfile: "/user/update_profile",
   },
   dashboard: {
     list: "/dashboard",
@@ -26,6 +27,7 @@ const urls = {
     withdraw: "/accounts/withdraw",
     groups: "/account-groups",
     export: "/export/accounts/export",
+    toggleTrading: "/account/toggle-trading",
   },
   clientList: {
     list: "/client-list",

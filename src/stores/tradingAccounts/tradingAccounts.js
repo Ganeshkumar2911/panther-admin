@@ -31,6 +31,7 @@ export const useAccountsStore = defineStore("accounts", () => {
     account_type: "all",
     trading_type: "all",
     account_subtype: "all",
+    is_active: "all",
     search_query: "",
   });
 
@@ -124,6 +125,14 @@ export const useAccountsStore = defineStore("accounts", () => {
       ...(filters.account_subtype !== "all"
         ? { account_subtype: filters.account_subtype }
         : {}),
+      ...(filters.is_active !== "all" &&
+      filters.is_active !== null &&
+      filters.is_active !== undefined
+        ? {
+            is_active:
+              filters.is_active === "true" || filters.is_active === true,
+          }
+        : {}),
       ...(filters.search_query?.trim()
         ? { search_query: filters.search_query.trim() }
         : {}),
@@ -176,6 +185,7 @@ export const useAccountsStore = defineStore("accounts", () => {
     filters.account_type = "all";
     filters.trading_type = "all";
     filters.account_subtype = "all";
+    filters.is_active = "all";
     filters.search_query = "";
   };
 
