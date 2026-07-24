@@ -69,11 +69,11 @@
           </div>
 
           <BaseSelect
-            :modelValue="store.pagination.per_page"
-            :options="store.perPageOptions"
+            :modelValue="yourTicketsStore.pagination.per_page"
+            :options="yourTicketsStore.perPageOptions"
             placeholder="Per Page"
             class="w-full sm:w-28 xl:w-28"
-            @update:modelValue="(val) => store.updatePerPage(val, yourTicketsFilters)"
+            @update:modelValue="(val) => yourTicketsStore.updatePerPage(val, yourTicketsFilters)"
           />
 
           <!-- Clear -->
