@@ -12,12 +12,14 @@ import {
   RefreshCw,
   Plus,
   Pencil,
+  Power,
 } from "lucide-vue-next";
 import Pagination from "@/components/common/Pagination.vue";
 import DropdownMenu from "@/components/common/DropdownMenu.vue";
 import ChangePasswordDialog from "@/components/trading-accounts/ChangePasswordDialog.vue";
 import DepositWithdrawalDialog from "@/components/trading-accounts/DepositWithdrawal.vue";
 import AddEditAccount from "@/components/trading-accounts/AddEditAccount.vue";
+import ToggleTradingDialog from "@/components/trading-accounts/ToggleTradingDialog.vue";
 import { useAccountsStore } from "@/stores/tradingAccounts/tradingAccounts";
 import { useProfileStore } from "@/stores/profile/profile";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
@@ -46,6 +48,12 @@ const accountTypeFilters = [
   { label: "Live", value: "live" },
 ];
 
+const statusOptions = [
+  { label: "All Statuses", value: "all" },
+  { label: "Active", value: "true" },
+  { label: "Inactive", value: "false" },
+];
+
 const changePasswordDialog = ref({
   open: false,
   account: null,
@@ -60,6 +68,11 @@ const depositWithdrawalDialog = ref({
 const addEditAccountDialog = ref({
   open: false,
   editData: null,
+});
+
+const toggleTradingDialog = ref({
+  open: false,
+  account: null,
 });
 
 const openAddAccount = () => {
@@ -108,6 +121,7 @@ const hasActiveFilters = computed(
     activeTab.value !== "all" ||
     activeTradingType.value !== "all" ||
     activeAccountType.value !== "all" ||
+    (store.filters.is_active !== "all" && store.filters.is_active !== null && store.filters.is_active !== undefined) ||
     Boolean(store.filters.search_query?.trim()),
 );
 
@@ -165,6 +179,7 @@ const clearAllFilters = () => {
     account_type: "all",
     trading_type: "all",
     account_subtype: "all",
+    is_active: "all",
     search_query: "",
   });
 };
@@ -205,6 +220,20 @@ const closeDepositWithdrawalDialog = () => {
     open: false,
     account: null,
     mode: "deposit",
+  };
+};
+
+const openToggleTrading = (acc) => {
+  toggleTradingDialog.value = {
+    open: true,
+    account: acc,
+  };
+};
+
+const closeToggleTrading = () => {
+  toggleTradingDialog.value = {
+    open: false,
+    account: null,
   };
 };
 
@@ -292,6 +321,11 @@ function getRowActions(acc) {
         icon: Pencil,
         hidden: acc.trading_type !== "copy_trading",
       },
+      {
+        action: "toggleTrading",
+        label: acc.is_active ? "Disable Trading" : "Enable Trading",
+        icon: Power,
+      },
     );
   }
 
@@ -323,6 +357,10 @@ function onMenuSelect(item, acc) {
     case "editAccount":
       setActiveCurrency(acc);
       openEditAccount(acc);
+      break;
+    case "toggleTrading":
+      setActiveCurrency(acc);
+      openToggleTrading(acc);
       break;
   }
 }
@@ -478,6 +516,14 @@ onBeforeUnmount(() => clearTimeout(searchTimer));
             @input="onSearch"
           />
         </div>
+
+        <BaseSelect
+          :modelValue="store.filters.is_active"
+          :options="statusOptions"
+          placeholder="Status"
+          class="w-32 sm:w-36"
+          @update:modelValue="(val) => store.setFilters({ is_active: val })"
+        />
 
         <BaseSelect
           :modelValue="store.pagination.per_page"
@@ -756,14 +802,16 @@ onBeforeUnmount(() => clearTimeout(searchTimer));
             </td> -->
 
             <td class="px-3 py-4">
-              <span
-                class="text-[11px] font-medium px-2 py-1 rounded-full capitalize whitespace-nowrap"
+              <button
+                type="button"
+                class="text-[11px] font-medium px-2.5 py-1 rounded-full capitalize whitespace-nowrap text-white transition-all hover:opacity-80 active:scale-95 cursor-pointer flex items-center gap-1"
                 :class="
                   acc.is_active ? 'bg-primary-green/100' : 'bg-primary-red/100'
                 "
+                @click="openToggleTrading(acc)"
               >
                 {{ acc.is_active ? "Active" : "Inactive" }}
-              </span>
+              </button>
             </td>
 
             <td class="px-3 py-4 text-xs text-secondary-text">
@@ -808,6 +856,13 @@ onBeforeUnmount(() => clearTimeout(searchTimer));
       :open="addEditAccountDialog.open"
       :edit-data="addEditAccountDialog.editData"
       @close="closeAddEditAccount"
+    />
+
+    <ToggleTradingDialog
+      :open="toggleTradingDialog.open"
+      :account="toggleTradingDialog.account"
+      @close="closeToggleTrading"
+      @success="store.fetchAccounts(true)"
     />
   </div>
 </template>

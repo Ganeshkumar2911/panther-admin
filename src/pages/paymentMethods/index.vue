@@ -2,18 +2,18 @@
   <div class="px-4 pb-8">
 
     <!-- Header -->
-    <div class="flex flex-wrap items-start justify-end gap-3 mb-6">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
       <BaseSelect
         :modelValue="store.pagination.per_page"
         :options="store.perPageOptions"
         placeholder="Per page..."
-        class="w-32"
+        class="w-28 sm:w-32"
         @update:modelValue="store.updatePerPage"
       />
 
       <button
         v-if="hasPermission('payment_methods.create')"
-        class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all active:scale-95 cursor-pointer"
+        class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all active:scale-95 cursor-pointer ml-auto"
         @click="handleOpenCreate"
       >
         <Plus class="w-3.5 h-3.5" />

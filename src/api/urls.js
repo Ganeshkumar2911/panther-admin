@@ -26,6 +26,7 @@ const urls = {
     deposit: "/accounts/deposit",
     withdraw: "/accounts/withdraw",
     groups: "/account-groups",
+    toggleTrading: "/account/toggle-trading",
   },
   clientList: {
     list: "/client-list",
