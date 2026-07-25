@@ -351,9 +351,17 @@
                   class="text-[11px] font-medium px-2 py-0.5 rounded-full capitalize"
                   :class="[
                     approvalStatusClass(req.approval_status),
-                    req.approval_status === 'pending' && (hasPermission('payment_requests.approve') || hasPermission('payment_requests.reject')) ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''
+                    req.approval_status === 'pending' &&
+                    (hasPermission('payment_requests.approve') ||
+                      hasPermission('payment_requests.reject'))
+                      ? 'cursor-pointer hover:opacity-80 transition-opacity'
+                      : '',
                   ]"
-                  @click="req.approval_status === 'pending' && (hasPermission('payment_requests.approve') || hasPermission('payment_requests.reject')) && openChangeStatusDialog(req)"
+                  @click="
+                    req.approval_status === 'pending' &&
+                    (hasPermission('payment_requests.approve') ||
+                      hasPermission('payment_requests.reject'))
+                  "
                 >
                   {{ req.approval_status }}
                 </span>
@@ -516,7 +524,7 @@ const onAccountSearch = (q) => {
     const res = await store.fetchAllAccounts(q);
     const data = res?.data || res || [];
     accountOptions.value = (data || []).map((a) => ({
-      label: `#${a.account_number} · ${a.broker_label ?? ""}`.trim(),
+      label: `#${a.account_number} · ${a.client_name ?? ""}`.trim(),
       value: a.account_id,
     }));
   }, 350);
