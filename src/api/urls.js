@@ -11,6 +11,7 @@ const urls = {
   auth: {
     login: "/login",
     profile: "/profile",
+    updateProfile: "/user/update_profile",
   },
   dashboard: {
     list: "/dashboard",
@@ -25,6 +26,7 @@ const urls = {
     deposit: "/accounts/deposit",
     withdraw: "/accounts/withdraw",
     groups: "/account-groups",
+    toggleTrading: "/account/toggle-trading",
   },
   clientList: {
     list: "/client-list",
@@ -187,6 +189,23 @@ const urls = {
       me: "/rbac/me/permissions",
       all: "/rbac/permissions",
       manage: "/rbac/users/permissions",
+    },
+    resources: {
+      list: "/rbac/resources",
+      create: "/rbac/resources",
+      update: "/rbac/resources",
+      delete: "/rbac/resources",
+    },
+    actions: {
+      list: "/rbac/actions",
+      create: "/rbac/actions",
+      update: "/rbac/actions",
+      delete: "/rbac/actions",
+    },
+    permissionsMapping: {
+      list: "/rbac/permissions_mapping",
+      create: "/rbac/permissions_mapping",
+      delete: "/rbac/permissions_mapping",
     },
   },
 };

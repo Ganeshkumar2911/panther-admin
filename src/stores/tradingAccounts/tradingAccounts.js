@@ -3,6 +3,8 @@ import { computed, reactive, ref } from 'vue'
 import apiRequest from '@/api/request'
 import urls from '@/api/urls'
 import { useSnackbarStore } from '@/stores/snackbar/snackbar'
+import { perPageOptions } from '@/constants/pagination'
+
 
 export const useAccountsStore = defineStore('accounts', () => {
   const snackbar = useSnackbarStore()
@@ -28,6 +30,7 @@ export const useAccountsStore = defineStore('accounts', () => {
     account_type: 'all',
     trading_type: 'all',
     account_subtype: 'all',
+    is_active: 'all',
     search_query: '',
   })
 
@@ -40,7 +43,13 @@ export const useAccountsStore = defineStore('accounts', () => {
       data.value = res?.data || []
 
       if (res?.pagination) {
+        const currentPerPage = pagination.per_page
         Object.assign(pagination, res.pagination)
+        if (!pagination.per_page) {
+          pagination.per_page = Number(currentPerPage) || 10
+        } else {
+          pagination.per_page = Number(pagination.per_page)
+        }
       }
 
       if (res?.summary) {
@@ -62,6 +71,9 @@ export const useAccountsStore = defineStore('accounts', () => {
       ...(filters.account_type !== 'all' ? { account_type: filters.account_type } : {}),
       ...(filters.trading_type !== 'all' ? { trading_type: filters.trading_type } : {}),
       ...(filters.account_subtype !== 'all' ? { account_subtype: filters.account_subtype } : {}),
+      ...(filters.is_active !== 'all' && filters.is_active !== null && filters.is_active !== undefined
+        ? { is_active: filters.is_active === 'true' || filters.is_active === true }
+        : {}),
       ...(filters.search_query?.trim() ? { search_query: filters.search_query.trim() } : {}),
     }
 
@@ -112,7 +124,14 @@ export const useAccountsStore = defineStore('accounts', () => {
     filters.account_type = 'all'
     filters.trading_type = 'all'
     filters.account_subtype = 'all'
+    filters.is_active = 'all'
     filters.search_query = ''
+  }
+
+  const updatePerPage = (newPerPage) => {
+    pagination.per_page = Number(newPerPage)
+    pagination.page = 1
+    fetchAccounts()
   }
 
   return {
@@ -123,11 +142,14 @@ export const useAccountsStore = defineStore('accounts', () => {
     summary,
     filters,
     activeType,
+    perPageOptions,
 
     fetchAccounts,
     setType,
     setFilters,
     setPage,
+    updatePerPage,
     reset,
   }
 })
+

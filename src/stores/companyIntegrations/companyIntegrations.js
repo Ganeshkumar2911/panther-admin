@@ -5,6 +5,7 @@ import apiRequest from '@/api/request'
 import urls from '@/api/urls'
 
 import { useSnackbarStore } from '@/stores/snackbar/snackbar'
+import { perPageOptions } from '@/constants/pagination'
 
 export const useCompanyIntegrationsStore = defineStore(
   'companyIntegrations',
@@ -225,6 +226,12 @@ export const useCompanyIntegrationsStore = defineStore(
       )
     }
 
+    const updatePerPage = (newPerPage) => {
+      pagination.per_page = Number(newPerPage)
+      pagination.page = 1
+      fetchIntegrations(true)
+    }
+
     return {
       records,
       loading,
@@ -233,7 +240,9 @@ export const useCompanyIntegrationsStore = defineStore(
       error,
       isFetched,
       pagination,
+      perPageOptions,
       fetchIntegrations,
+      updatePerPage,
       createIntegration,
       updateIntegration,
       runIntegration,

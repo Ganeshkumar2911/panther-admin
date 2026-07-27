@@ -5,6 +5,7 @@ import apiRequest from '@/api/request'
 import urls from '@/api/urls'
 
 import { useSnackbarStore } from '@/stores/snackbar/snackbar'
+import { perPageOptions } from '@/constants/pagination'
 
 export const useIbClientsStore = defineStore(
   'ibClients',
@@ -62,7 +63,11 @@ export const useIbClientsStore = defineStore(
     // Fetch Clients
     // ─────────────────────────────────────
 
-    const fetchClients = (ibId) => {
+    const fetchClients = (ibId = ib.id) => {
+      if (!ibId) return
+
+      ib.id = ibId
+
       loading.value = true
 
       error.value = null
@@ -126,7 +131,7 @@ export const useIbClientsStore = defineStore(
     // Filters
     // ─────────────────────────────────────
 
-    const applyFilters = () => {
+    const applyFilters = (ibId = ib.id) => {
       pagination.page = 1
 
       fetchClients(ibId)
@@ -139,7 +144,7 @@ export const useIbClientsStore = defineStore(
     const setPage = (page) => {
       pagination.page = page
 
-      fetchClients(ibId)
+      fetchClients(ib.id)
     }
 
     // ─────────────────────────────────────
@@ -177,6 +182,12 @@ export const useIbClientsStore = defineStore(
     // Return
     // ─────────────────────────────────────
 
+    const updatePerPage = (ibId, newPerPage) => {
+      pagination.per_page = Number(newPerPage)
+      pagination.page = 1
+      fetchClients(ibId || ib.id, 1)
+    }
+
     return {
       // state
       records,
@@ -190,6 +201,7 @@ export const useIbClientsStore = defineStore(
       filters,
 
       pagination,
+      perPageOptions,
 
       // methods
       fetchClients,
@@ -197,6 +209,7 @@ export const useIbClientsStore = defineStore(
       applyFilters,
 
       setPage,
+      updatePerPage,
 
       reset,
     }

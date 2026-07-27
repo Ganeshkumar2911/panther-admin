@@ -70,7 +70,7 @@
           <tr
             v-for="staff in staffStore.records"
             :key="staff.id"
-            class="border-b border-primary-border last:border-none bg-card-background hover:bg-background transition-colors relative hover:z-20 focus-within:z-30 group"
+            class="border-b border-primary-border last:border-none bg-card-background hover:bg-background transition-colors group"
           >
             <td class="px-4 py-3.5 group-last:rounded-bl-2xl">
               <div class="flex items-center gap-2.5">
@@ -83,13 +83,15 @@
 
             <td class="px-4 py-3.5 text-xs text-secondary-text">{{ staff.email }}</td>
 
-            <td class="px-4 py-3.5 relative z-30">
+            <td class="px-4 py-3.5">
               <BaseSelect
                 :model-value="staff.role_id"
                 :options="roleOptions"
                 variant="surface"
                 placeholder="Select role"
-                @update:model-value="(val) => staffStore.updateStaffRole(staff.id, Number(val))"
+                searchable
+                local-search
+                @update:model-value="(val) => handleRoleSelect(staff, val)"
               />
             </td>
 
@@ -147,10 +149,10 @@
         <p class="text-sm font-semibold text-primary-text mb-1">Delete Staff</p>
         <p class="text-xs text-secondary-text mb-5">Are you sure you want to delete <strong>{{ deleteTarget.name }}</strong>? This action cannot be undone.</p>
         <div class="flex gap-3">
-          <button class="flex-1 px-4 py-2.5 rounded-lg text-xs font-medium text-secondary-text border border-primary-border hover:bg-background transition-colors" @click="deleteTarget = null">Cancel</button>
+          <button class="flex-1 px-4 py-2.5 rounded-lg text-xs font-medium text-secondary-text border border-primary-border hover:bg-background transition-colors cursor-pointer" @click="deleteTarget = null">Cancel</button>
           <button
             :disabled="staffStore.actionLoading"
-            class="flex-1 px-4 py-2.5 rounded-lg text-xs font-medium text-white bg-primary-red hover:opacity-90 transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
+            class="flex-1 px-4 py-2.5 rounded-lg text-xs font-medium text-white bg-primary-red hover:opacity-90 transition-colors flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
             @click="executeDelete"
           >
             <Loader2 v-if="staffStore.actionLoading" class="w-3.5 h-3.5 animate-spin" />
@@ -168,6 +170,17 @@
       :staff="permissionStaff"
       @close="permissionDrawerOpen = false"
     />
+
+    <!-- Role Change Confirmation Dialog -->
+    <RoleChangeConfirmDialog
+      :open="roleChangeTarget !== null"
+      :staff-name="roleChangeTarget?.staff?.name || ''"
+      :current-role-name="roleChangeTarget?.currentRoleName || ''"
+      :new-role-name="roleChangeTarget?.newRoleName || ''"
+      :loading="staffStore.actionLoading"
+      @close="roleChangeTarget = null"
+      @confirm="executeRoleChange"
+    />
   </div>
 </template>
 
@@ -180,6 +193,7 @@ import { usePermissionCheck } from '@/composables/usePermissionCheck'
 import Pagination from '@/components/common/Pagination.vue'
 import StaffDialog from './StaffDialog.vue'
 import UserPermissionDrawer from './UserPermissionDrawer.vue'
+import RoleChangeConfirmDialog from './RoleChangeConfirmDialog.vue'
 
 const staffStore = useRbacStaffStore()
 const rolesStore = useRbacRolesStore()
@@ -197,6 +211,35 @@ const deleteTarget = ref(null)
 
 const permissionDrawerOpen = ref(false)
 const permissionStaff = ref(null)
+
+const roleChangeTarget = ref(null)
+
+const handleRoleSelect = (staff, newRoleIdVal) => {
+  const newRoleId = Number(newRoleIdVal)
+  if (Number(staff.role_id) === newRoleId) {
+    // Feature 1: Selected existing role again -> skip API call
+    return
+  }
+
+  // Feature 2: Open confirmation dialog before updating
+  const currentRole = roleOptions.value.find((r) => Number(r.value) === Number(staff.role_id))
+  const newRole = roleOptions.value.find((r) => Number(r.value) === newRoleId)
+
+  roleChangeTarget.value = {
+    staff,
+    newRoleId,
+    currentRoleName: currentRole?.label || '',
+    newRoleName: newRole?.label || '',
+  }
+}
+
+const executeRoleChange = () => {
+  if (!roleChangeTarget.value) return
+  const { staff, newRoleId } = roleChangeTarget.value
+  staffStore.updateStaffRole(staff.id, newRoleId, () => {
+    roleChangeTarget.value = null
+  })
+}
 
 const openPermissionsDrawer = (staff) => {
   permissionStaff.value = staff

@@ -15,8 +15,12 @@
       </button>
     </div>
 
-    <StaffTab v-if="activeTab === 'staff' && hasPermission(['team_management.view', 'team_management.create', 'team_management.role_manage', 'team_management.role_view'])" />
-    <RolesTab v-if="activeTab === 'roles' && hasPermission('team_management.role_manage')" />
+    <StaffTab
+      v-if="activeTab === 'staff' && hasPermission(['team_management.view', 'team_management.create', 'team_management.role_manage', 'team_management.role_view'])"
+    />
+    <RolesTab
+      v-if="activeTab === 'roles' && hasPermission(['team_management.role_manage', 'role.manage'])"
+    />
   </div>
 </template>
 
@@ -37,7 +41,7 @@ const allTabs = [
   {
     label: 'Roles',
     value: 'roles',
-    permission: 'team_management.role_manage',
+    permission: ['team_management.role_manage', 'role.manage'],
   },
 ]
 

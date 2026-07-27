@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import apiRequest from '@/api/request'
 import urls from '@/api/urls'
 import { useSnackbarStore } from '@/stores/snackbar/snackbar'
+import { perPageOptions } from '@/constants/pagination'
 
 export const useAccountTransactionsStore = defineStore('accountTransactions', () => {
   const data = ref([])
@@ -114,6 +115,13 @@ export const useAccountTransactionsStore = defineStore('accountTransactions', ()
     fetchTransactions(accountId, 1)
   }
 
+  const updatePerPage = (accountId, newPerPage) => {
+    filters.value.per_page = Number(newPerPage)
+    pagination.value.per_page = Number(newPerPage)
+    filters.value.page = 1
+    fetchTransactions(accountId, 1)
+  }
+
   // ─── Reset Store ─────────────────────────────────────
   const reset = () => {
     data.value = []
@@ -147,6 +155,7 @@ export const useAccountTransactionsStore = defineStore('accountTransactions', ()
     data,
     pagination,
     summary,
+    perPageOptions,
 
     filters,
 
@@ -154,6 +163,7 @@ export const useAccountTransactionsStore = defineStore('accountTransactions', ()
 
     fetchTransactions,
     applyFilters,
+    updatePerPage,
     reset,
   }
 })

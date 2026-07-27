@@ -18,6 +18,7 @@ import {
   Cpu,
   ClipboardList,
   ShieldCheck,
+  Layers,
 } from "lucide-vue-next";
 
 export const navItems = [
@@ -152,5 +153,11 @@ export const navItems = [
       "team_management.role_manage",
       "team_management.role_view",
     ],
+  },
+  {
+    label: "RBAC Modules",
+    to: "/rbac-modules",
+    icon: Layers,
+    permission: ["xtention_dev.view"],
   },
 ];

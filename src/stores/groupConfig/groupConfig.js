@@ -8,6 +8,7 @@ import apiRequest from '@/api/request'
 import urls from '@/api/urls'
 
 import { useSnackbarStore } from '@/stores/snackbar/snackbar'
+import { perPageOptions } from '@/constants/pagination'
 
 export const useGroupConfigStore = defineStore(
   'groupConfig',
@@ -391,6 +392,12 @@ export const useGroupConfigStore = defineStore(
     // Return
     // ─────────────────────────────────────
 
+    const updatePerPage = (newPerPage) => {
+      pagination.per_page = Number(newPerPage)
+      pagination.page = 1
+      fetchGroups()
+    }
+
     return {
       // state
       records,
@@ -405,6 +412,7 @@ export const useGroupConfigStore = defineStore(
       filters,
       summary,
       pagination,
+      perPageOptions,
 
       // methods
       fetchGroups,
@@ -417,6 +425,7 @@ export const useGroupConfigStore = defineStore(
 
       applyFilters,
       setPage,
+      updatePerPage,
       setStatus,
 
       actionLoading,

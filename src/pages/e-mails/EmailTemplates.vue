@@ -47,6 +47,14 @@
         @update:modelValue="store.applyFilters()"
       />
 
+      <BaseSelect
+        :modelValue="store.pagination.per_page"
+        :options="store.perPageOptions"
+        placeholder="Per Page"
+        class="w-full sm:w-28 xl:w-28"
+        @update:modelValue="store.updatePerPage"
+      />
+
       <button
         v-if="store.filters.search || store.filters.category"
         class="text-xs text-secondary-text hover:text-primary-text transition-colors px-2 py-2"
