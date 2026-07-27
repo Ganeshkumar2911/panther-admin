@@ -1,205 +1,307 @@
 <template>
   <Teleport to="body">
-    <div
-      class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
-    >
+    <Transition name="modal">
       <div
-        class="bg-card-background border border-primary-border rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+        v-if="open"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs transition-all duration-300"
       >
-        <!-- Header -->
         <div
-          class="sticky top-0 bg-card-background border-b border-primary-border px-6 py-5 flex items-center justify-between"
+          class="bg-card-background border border-primary-border rounded-2xl shadow-2xl w-full max-h-[90vh] overflow-hidden flex flex-col transform transition-all duration-300"
+          :class="maxWidth"
+          @click.stop
         >
-          <div>
-            <h2 class="text-lg font-semibold text-primary-text">
-              {{ title }}
-            </h2>
-            <p v-if="description" class="sub-text text-secondary-text mt-0.5">
-              {{ description }}
-            </p>
-          </div>
-          <button
-            @click="$emit('close')"
-            class="p-2 rounded-lg text-secondary-text hover:bg-background hover:text-primary-text transition-colors"
+          <!-- Header -->
+          <div
+            class="px-6 py-4 border-b border-primary-border flex items-center justify-between bg-card-background shrink-0"
           >
-            <X class="w-5 h-5" />
-          </button>
-        </div>
-
-        <!-- Form -->
-        <div class="p-6 space-y-6">
-          <div v-for="field in fields" :key="field.model" class="space-y-2">
-            <label
-              v-if="!['checkbox', 'radio'].includes(field.type)"
-              class="text-[11px] font-semibold uppercase tracking-widest text-secondary-text"
+            <div class="flex items-center gap-3">
+              <div
+                v-if="icon || defaultIcon"
+                class="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0"
+              >
+                <component
+                  :is="icon || defaultIcon"
+                  class="w-4.5 h-4.5 text-primary"
+                />
+              </div>
+              <div>
+                <h2 class="text-sm font-semibold text-primary-text">
+                  {{ title }}
+                </h2>
+                <p
+                  v-if="description"
+                  class="text-xs text-secondary-text mt-0.5"
+                >
+                  {{ description }}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              @click="$emit('close')"
+              class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-background text-secondary-text hover:text-primary-text transition-colors cursor-pointer focus:outline-none"
+              title="Close"
             >
-              {{ field.label }}
-              <span v-if="field.required" class="text-red-500">*</span>
-            </label>
-            <!-- Text input -->
-            <input
-              v-if="field.type === 'text'"
-              v-model="form[field.model]"
-              type="text"
-              :placeholder="field.placeholder"
-              class="input-field px-4 py-2.5 w-full"
-            />
+              <X class="w-4 h-4" />
+            </button>
+          </div>
 
-            <!-- Radio -->
+          <!-- Form Body -->
+          <div
+            class="flex-1 overflow-y-auto px-6 py-5 space-y-4 bg-card-background"
+          >
             <div
-              v-else-if="field.type === 'radio'"
-              class="flex flex-wrap gap-4"
+              v-for="field in fields"
+              :key="field.model"
+              class="flex flex-col gap-1.5"
             >
+              <!-- Label (for non-switch / non-checkbox) -->
               <label
-                v-for="opt in field.options"
-                :key="opt.value"
-                class="flex items-center gap-2 text-sm text-primary-text cursor-pointer"
+                v-if="!['checkbox', 'radio', 'switch'].includes(field.type)"
+                class="text-secondary-text text-[11px] font-semibold"
+              >
+                {{ field.label }}
+                <span v-if="field.required" class="text-red-500">*</span>
+              </label>
+
+              <!-- Text / Email / Number input -->
+              <input
+                v-if="
+                  ['text', 'email', 'number'].includes(field.type || 'text')
+                "
+                v-model="form[field.model]"
+                :type="field.type || 'text'"
+                :placeholder="field.placeholder"
+                :disabled="field.disabled"
+                class="w-full bg-background border border-primary-border rounded-lg px-3 py-2 text-primary-text text-xs outline-none focus:border-primary transition-colors placeholder:text-secondary-text disabled:opacity-60"
+              />
+
+              <!-- Password input with Eye Toggle -->
+              <div
+                v-else-if="field.type === 'password'"
+                class="relative flex items-center"
               >
                 <input
-                  type="radio"
-                  :name="field.model"
-                  :value="opt.value"
                   v-model="form[field.model]"
-                  class="accent-primary"
+                  :type="showPassword[field.model] ? 'text' : 'password'"
+                  :placeholder="field.placeholder"
+                  :disabled="field.disabled"
+                  class="w-full bg-background border border-primary-border rounded-lg pl-3 pr-10 py-2 text-primary-text text-xs outline-none focus:border-primary transition-colors placeholder:text-secondary-text font-mono disabled:opacity-60"
                 />
-                {{ opt.label }}
-              </label>
-            </div>
+                <button
+                  type="button"
+                  @click="togglePassword(field.model)"
+                  class="absolute right-3 text-secondary-text hover:text-primary-text transition-colors focus:outline-none cursor-pointer"
+                >
+                  <Eye v-if="!showPassword[field.model]" class="w-3.5 h-3.5" />
+                  <EyeOff v-else class="w-3.5 h-3.5" />
+                </button>
+              </div>
 
-            <!-- Checkbox (single) -->
-            <div
-              v-else-if="field.type === 'checkbox-group'"
-              class="flex flex-wrap gap-6"
-            >
-              <label
-                v-for="option in field.options"
-                :key="option.value"
-                class="flex items-center gap-2 cursor-pointer text-sm text-primary-text"
+              <!-- Radio -->
+              <div
+                v-else-if="field.type === 'radio'"
+                class="flex flex-wrap gap-4 pt-1"
               >
-                <input
-                  type="checkbox"
-                  :value="option.value"
-                  v-model="form[field.model]"
-                  class="accent-primary"
-                />
-                {{ option.label }}
-              </label>
-            </div>
+                <label
+                  v-for="opt in field.options"
+                  :key="opt.value"
+                  class="flex items-center gap-2 text-xs text-primary-text cursor-pointer"
+                >
+                  <input
+                    type="radio"
+                    :name="field.model"
+                    :value="opt.value"
+                    v-model="form[field.model]"
+                    class="accent-primary w-3.5 h-3.5"
+                  />
+                  {{ opt.label }}
+                </label>
+              </div>
 
-            <!-- Textarea -->
-            <textarea
-              v-else-if="field.type === 'textarea'"
-              v-model="form[field.model]"
-              :placeholder="field.placeholder"
-              :rows="field.rows || 3"
-              class="input-field px-4 py-2.5 w-full"
-            />
-
-            <!-- Select -->
-            <!-- <select
-              v-else-if="field.type === 'select'"
-              v-model="form[field.model]"
-              class="input-field px-4 py-2.5 w-full"
-            >
-              <option value="" disabled>
-                {{ field.placeholder || "Select an option" }}
-              </option>
-              <option
-                v-for="opt in field.options"
-                :key="opt.value"
-                :value="opt.value"
+              <!-- Checkbox Group -->
+              <div
+                v-else-if="field.type === 'checkbox-group'"
+                class="flex flex-wrap gap-4 pt-1"
               >
-                {{ opt.label }}
-              </option>
-            </select> -->
+                <label
+                  v-for="option in field.options"
+                  :key="option.value"
+                  class="flex items-center gap-2 cursor-pointer text-xs text-primary-text"
+                >
+                  <input
+                    type="checkbox"
+                    :value="option.value"
+                    v-model="form[field.model]"
+                    class="accent-primary w-3.5 h-3.5 rounded"
+                  />
+                  {{ option.label }}
+                </label>
+              </div>
 
-            <BaseSelect
-              v-else-if="field.type === 'select'"
-              v-model="form[field.model]"
-              :options="field.options"
-              :placeholder="field.placeholder || 'Select an option'"
-              :searchable="field.searchable || false"
-              :allow-all="field.allowAll || false"
-              :all-label="field.allLabel || 'All'"
-              :is-loading="field.isLoading || false"
-              :variant="field.variant || 'default'"
-            />
+              <!-- Switch / Toggle -->
+              <div
+                v-else-if="field.type === 'switch'"
+                class="flex items-center justify-between p-3.5 bg-background border border-primary-border rounded-xl"
+              >
+                <div>
+                  <span class="text-xs font-semibold text-primary-text">{{
+                    field.label
+                  }}</span>
+                  <p
+                    v-if="field.hint"
+                    class="text-[10px] text-secondary-text mt-0.5"
+                  >
+                    {{ field.hint }}
+                  </p>
+                </div>
+                <label
+                  class="relative inline-flex items-center cursor-pointer select-none"
+                >
+                  <input
+                    v-model="form[field.model]"
+                    type="checkbox"
+                    class="sr-only peer"
+                  />
+                  <div
+                    class="w-9 h-5 bg-background border border-primary-border rounded-full peer peer-focus:outline-none peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-secondary-text after:border-primary-border after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary peer-checked:after:bg-white"
+                  />
+                </label>
+              </div>
 
-            <p v-if="field.hint" class="text-[11px] text-secondary-text">
-              {{ field.hint }}
-            </p>
-            <p v-if="errors[field.model]" class="text-[11px] text-red-500">
-              {{ errors[field.model] }}
-            </p>
+              <!-- Textarea -->
+              <textarea
+                v-else-if="field.type === 'textarea'"
+                v-model="form[field.model]"
+                :placeholder="field.placeholder"
+                :rows="field.rows || 3"
+                :disabled="field.disabled"
+                class="w-full bg-background border border-primary-border rounded-lg px-3 py-2 text-primary-text text-xs outline-none focus:border-primary transition-colors placeholder:text-secondary-text resize-y disabled:opacity-60"
+              />
+
+              <!-- Select -->
+              <BaseSelect
+                v-else-if="field.type === 'select'"
+                v-model="form[field.model]"
+                :options="field.options"
+                :placeholder="field.placeholder || 'Select an option'"
+                :searchable="field.searchable || false"
+                :allow-all="field.allowAll || false"
+                :all-label="field.allLabel || 'All'"
+                :is-loading="field.isLoading || false"
+                :variant="field.variant || 'default'"
+                :disabled="field.disabled"
+              />
+
+              <p
+                v-if="field.hint && field.type !== 'switch'"
+                class="text-[10px] text-secondary-text leading-relaxed"
+              >
+                {{ field.hint }}
+              </p>
+              <p
+                v-if="errors[field.model]"
+                class="text-[11px] text-red-500 font-medium"
+              >
+                {{ errors[field.model] }}
+              </p>
+            </div>
           </div>
-        </div>
 
-        <!-- Footer -->
-        <div
-          class="sticky bottom-0 bg-card-background border-t border-primary-border px-6 py-4 flex items-center justify-end gap-3"
-        >
-          <button
-            @click="$emit('close')"
-            class="border border-primary-border bg-card-background text-primary-text hover:bg-background transition-colors rounded-lg px-5 py-2.5 font-medium text-sm"
+          <!-- Footer -->
+          <div
+            class="px-6 py-4 border-t border-primary-border flex items-center justify-end gap-3 bg-card-background shrink-0"
           >
-            {{ cancelText }}
-          </button>
-          <button
-            @click="submit"
-            :disabled="loading"
-            class="bg-primary text-white hover:bg-primary-hover transition-colors rounded-lg px-5 py-2.5 font-medium text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Loader2 v-if="loading" class="w-4 h-4 animate-spin" />
-            <Save v-else class="w-4 h-4" />
-            {{ loading ? "Saving..." : submitText }}
-          </button>
+            <button
+              type="button"
+              @click="$emit('close')"
+              :disabled="loading"
+              class="px-4 py-2.5 rounded-lg text-xs font-semibold text-secondary-text border border-primary-border hover:bg-background hover:text-primary-text transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+            >
+              {{ cancelText }}
+            </button>
+            <button
+              type="button"
+              @click="submit"
+              :disabled="loading"
+              class="px-4 py-2.5 rounded-lg text-xs font-semibold text-white bg-primary hover:bg-primary-hover transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+            >
+              <Loader2 v-if="loading" class="w-3.5 h-3.5 animate-spin" />
+              <Save v-else class="w-3.5 h-3.5" />
+              <span>{{ loading ? "Saving..." : submitText }}</span>
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </Transition>
   </Teleport>
 </template>
 
 <script setup>
-import { ref, watch } from "vue";
-import { X, Save, Loader2 } from "lucide-vue-next";
+import { ref, watch, computed } from "vue";
+import { X, Save, Loader2, Eye, EyeOff, Sliders } from "lucide-vue-next";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 
 /**
- * FIELD CONFIG (only text / textarea / select for now)
+ * FIELD CONFIG EXAMPLE:
  * {
- *   type: "text" | "textarea" | "select",
+ *   type: "text" | "password" | "number" | "email" | "textarea" | "select" | "radio" | "checkbox-group" | "switch",
  *   label: "Bot ID",
  *   model: "bot_id",              // key inside form object
  *   placeholder: "Enter Bot ID",
  *   required: true,
+ *   disabled: false,
  *   rows: 4,                      // textarea only
- *   options: [{ label, value }],  // select only
+ *   options: [{ label, value }],  // select / radio / checkbox-group
  *   hint: "helper text"
  * }
  */
 
 const props = defineProps({
+  open: { type: Boolean, default: true },
   title: { type: String, default: "" },
   description: { type: String, default: "" },
+  icon: { type: [Object, Function, String], default: null },
+  maxWidth: { type: String, default: "max-w-lg" },
   fields: { type: Array, required: true },
   modelValue: { type: Object, default: () => ({}) },
   loading: { type: Boolean, default: false },
   submitText: { type: String, default: "Save" },
   cancelText: { type: String, default: "Cancel" },
+  closeOnBackdrop: { type: Boolean, default: true },
 });
 
 const emit = defineEmits(["close", "submit", "update:modelValue"]);
 
+const defaultIcon = computed(() => Sliders);
+
 function buildDefaultForm() {
   const base = {};
   props.fields.forEach((f) => {
-    base[f.model] = "";
+    if (f.type === "checkbox-group") {
+      base[f.model] = Array.isArray(f.defaultValue) ? f.defaultValue : [];
+    } else if (f.type === "switch") {
+      base[f.model] = f.defaultValue ?? false;
+    } else {
+      base[f.model] = f.defaultValue ?? "";
+    }
   });
   return base;
 }
 
 const form = ref({ ...buildDefaultForm(), ...props.modelValue });
 const errors = ref({});
+const showPassword = ref({});
+
+function togglePassword(key) {
+  showPassword.value[key] = !showPassword.value[key];
+}
+
+function handleBackdropClick() {
+  if (props.closeOnBackdrop && !props.loading) {
+    emit("close");
+  }
+}
 
 watch(
   () => props.modelValue,
@@ -207,13 +309,22 @@ watch(
     form.value = { ...buildDefaultForm(), ...(val || {}) };
     errors.value = {};
   },
+  { deep: true },
 );
 
 function validate() {
   const newErrors = {};
   props.fields.forEach((f) => {
-    if (f.required && !form.value[f.model]) {
-      newErrors[f.model] = `${f.label || f.model} is required`;
+    if (f.required) {
+      const val = form.value[f.model];
+      if (
+        val === undefined ||
+        val === null ||
+        val === "" ||
+        (Array.isArray(val) && val.length === 0)
+      ) {
+        newErrors[f.model] = `${f.label || f.model} is required`;
+      }
     }
   });
   errors.value = newErrors;
@@ -226,3 +337,16 @@ function submit() {
   emit("submit", { ...form.value });
 }
 </script>
+
+<style scoped>
+.modal-enter-active,
+.modal-leave-active {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+  transform: scale(0.96);
+}
+</style>
