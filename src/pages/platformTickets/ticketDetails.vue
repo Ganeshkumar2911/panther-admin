@@ -30,10 +30,10 @@
               class="text-[11px] font-medium px-2 py-0.5 rounded-full border transition-opacity"
               :class="[
                 statusClass(store.detail.status),
-                store.detail.status !== 'closed' ? 'cursor-pointer hover:opacity-80' : 'cursor-not-allowed opacity-60'
+                store.detail.status !== 'closed' && hasPermission('ticket.platform_update') ? 'cursor-pointer hover:opacity-80' : 'cursor-not-allowed opacity-60'
               ]"
               @click="openStatusDialog"
-              :disabled="store.detail.status === 'closed'"
+              :disabled="store.detail.status === 'closed' || !hasPermission('ticket.platform_update')"
             >
               {{ store.detail.status }}
             </button>
@@ -145,7 +145,8 @@
             </span>
           </div>
           <button
-            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-black text-xs font-medium transition-colors"
+            v-if="hasPermission('ticket.platform_update')"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-black text-xs font-medium transition-colors cursor-pointer"
             @click="openDialog('comment')"
           >
             <Plus class="w-3 h-3" /> Add
@@ -211,9 +212,11 @@ import {
 import { usePlatfromTicketsStore } from "@/stores/platformTickets/platformTickets";
 import TicketActionDialog from "@/components/platformTickets/TicketActionDialog.vue";
 import TicketStatusDialog from "@/components/platformTickets/TicketStatusDialog.vue";
+import { usePermissionCheck } from "@/composables/usePermissionCheck";
 
 const store = usePlatfromTicketsStore();
 const route = useRoute();
+const { hasPermission } = usePermissionCheck();
 
 const ticketId = computed(() => route.params.id);
 const dialog = ref({ open: false, mode: "comment" });

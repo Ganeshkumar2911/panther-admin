@@ -1,18 +1,17 @@
 <template>
   <div class="px-4 pb-8">
     <!-- Header -->
-    <div class="flex items-center justify-end gap-3 mb-6">
-      <!-- <div class="flex items-center gap-2.5">
-         <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-          <Cpu class="w-5 h-5" />
-        </div>
-        <div>
-          <h1 class="text-base font-bold text-primary-text">Company Integrations</h1>
-          <p class="text-xs text-secondary-text mt-0.5">Manage external system connections and API providers</p>
-        </div>
-      </div> -->
+    <div class="flex items-center justify-between gap-3 mb-6">
+      <BaseSelect
+        :modelValue="store.pagination.per_page"
+        :options="store.perPageOptions"
+        placeholder="Per page..."
+          class="w-28 sm:w-32"
+        @update:modelValue="store.updatePerPage"
+      />
 
       <button
+        v-if="hasPermission('company_integration.create')"
         class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all active:scale-95 cursor-pointer"
         @click="handleOpenCreate"
       >
@@ -109,7 +108,7 @@
               </span>
             </td>
             <td class="p-3">
-              <div class="flex items-center justify-center gap-2">
+              <div v-if="hasPermission('company_integration.update')" class="flex items-center justify-center gap-2">
                 <Tooltip text="Manual Fetch" position="top">
                   <button
                     @click="handleConfirmRun(record)"
@@ -167,11 +166,14 @@ import { ref, onMounted } from 'vue'
 import { Cpu, Plus, Pencil, Play } from 'lucide-vue-next'
 import { useCompanyIntegrationsStore } from '@/stores/companyIntegrations/companyIntegrations'
 import Pagination from '@/components/common/Pagination.vue'
+import BaseSelect from '@/components/common/BaseSelect.vue'
 import IntegrationDialog from '@/components/common/IntegrationDialog.vue'
 import Tooltip from '@/components/common/Tooltip.vue'
 import ManualFetchDialog from '@/components/common/ManualFetchDialog.vue'
+import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
 const store = useCompanyIntegrationsStore()
+const { hasPermission } = usePermissionCheck()
 
 const showModal = ref(false)
 const selectedRecord = ref(null)

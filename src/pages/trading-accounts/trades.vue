@@ -1,38 +1,93 @@
 <template>
   <div class="px-4">
     <!-- Summary Cards -->
-      <div v-if="activeAccount" class="bg-card-background border border-primary-border rounded-xl p-4 mb-6 flex flex-wrap items-center gap-8">
+    <div
+      v-if="activeAccount"
+      class="bg-card-background border border-primary-border rounded-xl p-4 mb-6 flex flex-wrap items-center gap-8"
+    >
       <div>
-        <p class="text-[10px] uppercase tracking-widest text-secondary-text mb-1 font-semibold">Account</p>
-        <p class="text-sm font-bold text-primary-text">#{{ activeAccount.account_number }}</p>
-      </div>
-      <div>
-        <p class="text-[10px] uppercase tracking-widest text-secondary-text mb-1 font-semibold">Broker</p>
-        <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-primary text-white">{{ activeAccount.broker }}</span>
-      </div>
-      <div>
-        <p class="text-[10px] uppercase tracking-widest text-secondary-text mb-1 font-semibold">Type</p>
-        <span class="text-[10px] font-bold px-2 py-0.5 rounded border border-primary-border text-secondary-text capitalize">{{ activeAccount.account_type }}</span>
-      </div>
-        <div>
-        <p class="text-[10px] uppercase tracking-widest text-secondary-text mb-1 font-semibold">Entity</p>
-        <span class="text-[10px] font-bold px-2 py-0.5 rounded border border-primary-border text-secondary-text capitalize">{{ activeAccount.entity_type }}</span>
+        <p
+          class="text-[10px] uppercase tracking-widest text-secondary-text mb-1 font-semibold"
+        >
+          Account
+        </p>
+        <p class="text-sm font-bold text-primary-text">
+          #{{ activeAccount.account_number }}
+        </p>
       </div>
       <div>
-        <p class="text-[10px] uppercase tracking-widest text-secondary-text mb-1 font-semibold">Trading</p>
-        <span class="text-[10px] font-bold px-2 py-0.5 rounded border border-primary-border text-secondary-text capitalize">{{ activeAccount.trading_type }}</span>
+        <p
+          class="text-[10px] uppercase tracking-widest text-secondary-text mb-1 font-semibold"
+        >
+          Broker
+        </p>
+        <span
+          class="text-[10px] font-bold px-2 py-0.5 rounded bg-primary text-white"
+          >{{ activeAccount.broker }}</span
+        >
       </div>
-        <div>
-        <p class="text-[10px] uppercase tracking-widest text-secondary-text mb-1 font-semibold">Currency</p>
-        <p class="text-sm font-bold text-primary-text">{{ activeAccount.currency }}</p>
+      <div>
+        <p
+          class="text-[10px] uppercase tracking-widest text-secondary-text mb-1 font-semibold"
+        >
+          Type
+        </p>
+        <span
+          class="text-[10px] font-bold px-2 py-0.5 rounded border border-primary-border text-secondary-text capitalize"
+          >{{ activeAccount.account_type }}</span
+        >
+      </div>
+      <div>
+        <p
+          class="text-[10px] uppercase tracking-widest text-secondary-text mb-1 font-semibold"
+        >
+          Entity
+        </p>
+        <span
+          class="text-[10px] font-bold px-2 py-0.5 rounded border border-primary-border text-secondary-text capitalize"
+          >{{ activeAccount.entity_type }}</span
+        >
+      </div>
+      <div>
+        <p
+          class="text-[10px] uppercase tracking-widest text-secondary-text mb-1 font-semibold"
+        >
+          Trading
+        </p>
+        <span
+          class="text-[10px] font-bold px-2 py-0.5 rounded border border-primary-border text-secondary-text capitalize"
+          >{{ activeAccount.trading_type }}</span
+        >
+      </div>
+      <div>
+        <p
+          class="text-[10px] uppercase tracking-widest text-secondary-text mb-1 font-semibold"
+        >
+          Currency
+        </p>
+        <p class="text-sm font-bold text-primary-text">
+          {{ activeAccount.currency }}
+        </p>
       </div>
       <div v-if="activeAccount.broker_leverage">
-        <p class="text-[10px] uppercase tracking-widest text-secondary-text mb-1 font-semibold">Leverage</p>
-        <p class="text-sm font-bold text-primary-text">1:{{ activeAccount.broker_leverage }}</p>
+        <p
+          class="text-[10px] uppercase tracking-widest text-secondary-text mb-1 font-semibold"
+        >
+          Leverage
+        </p>
+        <p class="text-sm font-bold text-primary-text">
+          1:{{ activeAccount.broker_leverage }}
+        </p>
       </div>
       <div>
-        <p class="text-[10px] uppercase tracking-widest text-secondary-text mb-1 font-semibold">Balance</p>
-        <p class="text-sm font-bold text-primary-text tabular-nums">{{ formatNum(activeAccount.balance) }} {{ currencyDisplay }}</p>
+        <p
+          class="text-[10px] uppercase tracking-widest text-secondary-text mb-1 font-semibold"
+        >
+          Balance
+        </p>
+        <p class="text-sm font-bold text-primary-text tabular-nums">
+          {{ formatNum(activeAccount.balance) }} {{ currencyDisplay }}
+        </p>
       </div>
       <!-- <div>
         <p class="text-[10px] uppercase tracking-widest text-secondary-text mb-1 font-semibold">PnL</p>
@@ -40,16 +95,27 @@
           {{ (activeAccount.pnl ?? 0) >= 0 ? '+' : '' }}{{ formatNum(activeAccount.pnl) }} {{ currencyDisplay }}
         </p>
       </div> -->
-       <div>
-        <p class="text-[10px] uppercase tracking-widest text-secondary-text mb-1 font-semibold">Equity</p>
-        <p class="text-sm font-bold text-primary-text tabular-nums">{{ activeAccount.equity }}</p>
+      <div>
+        <p
+          class="text-[10px] uppercase tracking-widest text-secondary-text mb-1 font-semibold"
+        >
+          Equity
+        </p>
+        <p class="text-sm font-bold text-primary-text tabular-nums">
+          {{ activeAccount.equity }}
+        </p>
       </div>
-       <div>
-        <p class="text-[10px] uppercase tracking-widest text-secondary-text mb-1 font-semibold">Credit</p>
-        <p class="text-sm font-bold text-primary-text tabular-nums">{{ activeAccount.credit }}</p>
+      <div>
+        <p
+          class="text-[10px] uppercase tracking-widest text-secondary-text mb-1 font-semibold"
+        >
+          Credit
+        </p>
+        <p class="text-sm font-bold text-primary-text tabular-nums">
+          {{ activeAccount.credit }}
+        </p>
       </div>
     </div>
-
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
       <template v-if="store.loading">
@@ -88,51 +154,63 @@
             class="text-2xl font-medium"
             :class="
               store.summary.total_pnl >= 0 ? 'text-green-700' : 'text-red-700'
-            ">
-            {{ store.summary.total_pnl >= 0 ? "+" : "" }}{{ formatMoney(store.summary.total_pnl) }}
+            "
+          >
+            {{ store.summary.total_pnl >= 0 ? "+" : ""
+            }}{{ formatMoney(store.summary.total_pnl) }}
           </p>
         </div>
       </template>
     </div>
 
     <!-- Positions Tabs -->
-    <div class="flex items-center gap-2 mb-4">
-      <button
-        type="button"
-        class="px-3 py-1.5 text-xs font-medium rounded-full border transition-colors"
-        :class="
-          store.side == null
-            ? 'bg-primary-text text-background border-primary-text'
-            : 'bg-card-background text-secondary-text border-primary-border hover:text-primary-text'
-        "
-        @click="handleSideChange(null)"
-      >
-        All
-      </button>
-      <button
-        type="button"
-        class="px-3 py-1.5 text-xs font-medium rounded-full border transition-colors"
-        :class="
-          store.side === 'open'
-            ? 'bg-primary-text text-background border-primary-text'
-            : 'bg-card-background text-secondary-text border-primary-border hover:text-primary-text'
-        "
-        @click="handleSideChange('open')"
-      >
-        Open
-      </button>
-      <button
-        type="button"
-        class="px-3 py-1.5 text-xs font-medium rounded-full border transition-colors"
-        :class="
-          store.side === 'closed'
-            ? 'bg-primary-text text-background border-primary-text'
-            : 'bg-card-background text-secondary-text border-primary-border hover:text-primary-text'
-        "
-        @click="handleSideChange('closed')"
-      >
-        Closed
-      </button>
+    <div class="flex items-center justify-between gap-2 mb-4">
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          class="px-3 py-1.5 text-xs font-medium rounded-full border transition-colors"
+          :class="
+            store.side == null
+              ? 'bg-primary-text text-background border-primary-text'
+              : 'bg-card-background text-secondary-text border-primary-border hover:text-primary-text'
+          "
+          @click="handleSideChange(null)"
+        >
+          All
+        </button>
+        <button
+          type="button"
+          class="px-3 py-1.5 text-xs font-medium rounded-full border transition-colors"
+          :class="
+            store.side === 'open'
+              ? 'bg-primary-text text-background border-primary-text'
+              : 'bg-card-background text-secondary-text border-primary-border hover:text-primary-text'
+          "
+          @click="handleSideChange('open')"
+        >
+          Open
+        </button>
+        <button
+          type="button"
+          class="px-3 py-1.5 text-xs font-medium rounded-full border transition-colors"
+          :class="
+            store.side === 'closed'
+              ? 'bg-primary-text text-background border-primary-text'
+              : 'bg-card-background text-secondary-text border-primary-border hover:text-primary-text'
+          "
+          @click="handleSideChange('closed')"
+        >
+          Closed
+        </button>
+      </div>
+
+      <BaseSelect
+        :modelValue="store.pagination.per_page"
+        :options="store.perPageOptions"
+        placeholder="Per page..."
+        class="w-full sm:w-32 xl:w-32"
+        @update:modelValue="store.updatePerPage"
+      />
     </div>
 
     <!-- Table -->
@@ -284,19 +362,11 @@
             </td>
 
             <td class="p-3 text-xs text-primary-text tabular-nums">
-              {{
-                trade.entry_price != null
-                  ? Number(trade.entry_price)
-                  : "—"
-              }}
+              {{ trade.entry_price != null ? Number(trade.entry_price) : "—" }}
             </td>
 
             <td class="p-3 text-xs text-primary-text tabular-nums">
-              {{
-                trade.exit_price != null
-                  ? formatNum(trade.exit_price)
-                  : "—"
-              }}
+              {{ trade.exit_price != null ? formatNum(trade.exit_price) : "—" }}
             </td>
 
             <td class="p-3 text-xs text-primary-text tabular-nums">
@@ -306,9 +376,12 @@
             <td class="p-3">
               <span
                 class="text-xs tabular-nums font-medium"
-                :class="pnlValue(trade) >= 0 ? 'text-green-700' : 'text-red-700'"
+                :class="
+                  pnlValue(trade) >= 0 ? 'text-green-700' : 'text-red-700'
+                "
               >
-                {{ pnlValue(trade) >= 0 ? "+" : "" }}{{ formatMoney(pnlValue(trade)) }}
+                {{ pnlValue(trade) >= 0 ? "+" : ""
+                }}{{ formatMoney(pnlValue(trade)) }}
               </span>
             </td>
 
@@ -349,30 +422,31 @@ import { useRoute } from "vue-router";
 import { BarChart2 } from "lucide-vue-next";
 import { useAccountTradesStore } from "@/stores/tradingAccounts/accountsTrades";
 import Pagination from "@/components/common/Pagination.vue";
-import { livePNL } from '@/utils/livePNL'
-import { useTickerStore } from '@/stores/ws/ticker'
+import BaseSelect from "@/components/common/BaseSelect.vue";
+import { livePNL } from "@/utils/livePNL";
+import { useTickerStore } from "@/stores/ws/ticker";
 
-const activeCurrency = ref(localStorage.getItem('active_currency') || 'USD')
+const activeCurrency = ref(localStorage.getItem("active_currency") || "USD");
 const store = useAccountTradesStore();
 const route = useRoute();
 const accountId = route.params.id;
-const tickerStore = useTickerStore()
+const tickerStore = useTickerStore();
 
-const isOpenTrade = (trade) => String(trade?.status ?? "").toUpperCase() === "OPEN";
+const isOpenTrade = (trade) =>
+  String(trade?.status ?? "").toUpperCase() === "OPEN";
 const pnlValue = (trade) => {
   const raw = isOpenTrade(trade) ? livePNL(trade) : trade?.pnl;
   const val = Number(raw);
   return Number.isFinite(val) ? val : 0;
 };
-const activeAccount = JSON.parse(
-  localStorage.getItem('active_account')
-)
+const activeAccount = JSON.parse(localStorage.getItem("active_account"));
 
 const lastTickerPriceText = (trade) => {
   const quote = tickerStore?.getLastPrice?.(trade?.symbol);
   if (quote == null) return "—";
 
-  if (typeof quote === "number") return Number.isFinite(quote) ? formatNum(quote) : "—";
+  if (typeof quote === "number")
+    return Number.isFinite(quote) ? formatNum(quote) : "—";
 
   const side = String(trade?.type ?? "").toUpperCase();
   const raw = side === "BUY" ? quote?.bid : quote?.ask;
@@ -394,9 +468,9 @@ const formatNum = (val) =>
     maximumFractionDigits: 5,
   });
 const formatMoney = (amount) => {
-  const num = formatNum(amount)
-  return activeCurrency.value === 'USC' ? `USC ${num}` : `$${num}`
-}
+  const num = formatNum(amount);
+  return activeCurrency.value === "USC" ? `USC ${num}` : `$${num}`;
+};
 const formatDate = (val) =>
   new Date(val).toLocaleDateString("en-GB", {
     day: "2-digit",
@@ -405,12 +479,18 @@ const formatDate = (val) =>
   });
 
 // update ticker subscriptions based on symbols present in the trade list
-watch(() => store.data, (newData) => {
-  if (newData && newData.length > 0) {
-    const uniqueSymbols = [...new Set(newData.map(trade => trade.symbol))].filter(Boolean);
-    tickerStore.updateTickerList(uniqueSymbols);
-  }
-}, { deep: true });
+watch(
+  () => store.data,
+  (newData) => {
+    if (newData && newData.length > 0) {
+      const uniqueSymbols = [
+        ...new Set(newData.map((trade) => trade.symbol)),
+      ].filter(Boolean);
+      tickerStore.updateTickerList(uniqueSymbols);
+    }
+  },
+  { deep: true },
+);
 
 onMounted(() => store.fetchTrades(accountId, store.side));
 </script>

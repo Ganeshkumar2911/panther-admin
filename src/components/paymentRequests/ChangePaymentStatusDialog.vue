@@ -88,11 +88,20 @@ import apiRequest from '@/api/request'
 import urls from '@/api/urls'
 import { useSnackbarStore } from '@/stores/snackbar/snackbar'
 import BaseSelect from '@/components/common/BaseSelect.vue'
+import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
-const statusOptions = [
-  { label: 'Approved', value: 'approved' },
-  { label: 'Rejected', value: 'rejected' },
-]
+const { hasPermission } = usePermissionCheck()
+
+const statusOptions = computed(() => {
+  const opts = []
+  if (hasPermission('payment_requests.approve')) {
+    opts.push({ label: 'Approved', value: 'approved' })
+  }
+  if (hasPermission('payment_requests.reject')) {
+    opts.push({ label: 'Rejected', value: 'rejected' })
+  }
+  return opts
+})
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -106,10 +115,12 @@ const isSubmitting = ref(false)
 const selectedStatus = ref('pending')
 
 watch(
-  () => props.request,
-  (newVal) => {
-    if (newVal) {
-      selectedStatus.value = newVal.approval_status === 'pending' ? 'approved' : newVal.approval_status
+  () => [props.request, statusOptions.value],
+  ([newVal, opts]) => {
+    if (newVal && opts && opts.length > 0) {
+      if (!opts.some(o => o.value === selectedStatus.value)) {
+        selectedStatus.value = opts[0].value
+      }
     }
   },
   { immediate: true }

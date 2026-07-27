@@ -57,34 +57,43 @@
         <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
           <Tooltip text="View Clients">
             <button
-              class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-card-background border border-transparent hover:border-primary-border transition-colors"
-              @click="$router.push(`/ib-clients/${node.ib_id}`)"
+              class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-card-background border border-transparent hover:border-primary-border transition-colors cursor-pointer"
+              @click.stop="$router.push(`/ib-clients/${node.ib_id}`)"
             >
               <Users class="w-3.5 h-3.5 text-secondary-text" />
             </button>
           </Tooltip>
 
-          <Tooltip text="Transfer Parent">
+          <Tooltip v-if="hasPermission('ib.referal_link_view')" text="Referral Links">
             <button
-              class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-card-background border border-transparent hover:border-primary-border transition-colors"
+              class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-card-background border border-transparent hover:border-primary-border transition-colors cursor-pointer"
+              @click.stop="$router.push(`/ib-referral-links/${node.ib_id}`)"
+            >
+              <Link class="w-3.5 h-3.5 text-secondary-text" />
+            </button>
+          </Tooltip>
+
+          <Tooltip v-if="hasPermission('ib.update')" text="Transfer Parent">
+            <button
+              class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-card-background border border-transparent hover:border-primary-border transition-colors cursor-pointer"
               @click.stop="emit('transfer-parent', node)"
             >
               <ArrowLeftRight class="w-3.5 h-3.5 text-secondary-text" />
             </button>
           </Tooltip>
 
-          <Tooltip text="Edit IB">
+          <Tooltip v-if="hasPermission('ib.update')" text="Edit IB">
             <button
-              class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-card-background border border-transparent hover:border-primary-border transition-colors"
+              class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-card-background border border-transparent hover:border-primary-border transition-colors cursor-pointer"
               @click.stop="emit('edit', node)"
             >
               <Pencil class="w-3.5 h-3.5 text-secondary-text" />
             </button>
           </Tooltip>
 
-          <Tooltip text="Add Sub-IB">
+          <Tooltip v-if="hasPermission('ib.create')" text="Add Sub-IB">
             <button
-              class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-card-background border border-transparent hover:border-primary-border transition-colors"
+              class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-card-background border border-transparent hover:border-primary-border transition-colors cursor-pointer"
               @click.stop="emit('add-sub', node.ib_id)"
             >
               <Plus class="w-3.5 h-3.5 text-secondary-text" />
@@ -114,8 +123,11 @@
 </template>
 
 <script setup>
-import { ChevronRight, Minus, Pencil, Plus, ArrowLeftRight, Users } from 'lucide-vue-next'
+import { ChevronRight, Minus, Pencil, Plus, ArrowLeftRight, Users, Link } from 'lucide-vue-next'
 import Tooltip from '@/components/common/Tooltip.vue'
+import { usePermissionCheck } from '@/composables/usePermissionCheck'
+
+const { hasPermission } = usePermissionCheck()
 
 defineProps({
   items: { type: Array, default: () => [] },

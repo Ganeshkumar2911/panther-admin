@@ -24,6 +24,18 @@
         </div>
       </template>
     </div>
+
+    <!-- Filter bar -->
+    <div class="flex items-center gap-3 mb-4">
+      <BaseSelect
+        :modelValue="store.pagination.per_page"
+        :options="store.perPageOptions"
+        placeholder="Per page..."
+          class="w-28 sm:w-32"
+        @update:modelValue="store.updatePerPage"
+      />
+    </div>
+
     <!-- Table -->
     <div class="w-full border border-primary-border rounded-xl overflow-x-auto">
       <table class="w-full border-collapse">
@@ -62,9 +74,9 @@
         </tbody>
 
         <!-- Empty -->
-        <tbody v-else-if="store.records.length === 0">
+        <tbody v-else-if="!store.records || store.records.length === 0">
           <tr>
-            <td colspan="10" class="py-16 text-center">
+            <td colspan="12" class="py-16 text-center">
               <div class="flex flex-col items-center gap-3">
                 <div class="w-12 h-12 rounded-full bg-card-background flex items-center justify-center">
                   <ReceiptText class="w-5 h-5 text-secondary-text" />
@@ -118,8 +130,9 @@
 
             <td class="p-3 text-right">
               <button
+                v-if="hasPermission('settlement.trades')"
                 @click="goToTrade(row.settlement_id)"
-                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary-border text-xs text-secondary-text hover:text-primary-text hover:bg-background transition-colors ml-auto"
+                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary-border text-xs text-secondary-text hover:text-primary-text hover:bg-background transition-colors ml-auto cursor-pointer"
               >
                 <BarChart2 class="w-3.5 h-3.5" /> Trades
               </button>
@@ -148,10 +161,11 @@ import { useSettlementsStore } from '@/stores/settlements/settlements'
 import Pagination from '@/components/common/Pagination.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import { BarChart2 } from 'lucide-vue-next'
+import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
 const router = useRouter()
-
 const store = useSettlementsStore()
+const { hasPermission } = usePermissionCheck()
 
 const filters = ref({ fm_id: null, status: null, from_date: '', to_date: '' })
 

@@ -3,6 +3,7 @@ import { ref, reactive } from 'vue'
 import apiRequest from '@/api/request'
 import urls from '@/api/urls'
 import { useSnackbarStore } from '@/stores/snackbar/snackbar'
+import { perPageOptions } from '@/constants/pagination'
 
 export const useInternalTransfersStore = defineStore('internalTransfers', () => {
   const snackbar = useSnackbarStore()
@@ -98,6 +99,14 @@ export const useInternalTransfersStore = defineStore('internalTransfers', () => 
     if (newFilters) {
       Object.assign(filters, newFilters)
     }
+    pagination.page = 1
+    isFetched.value = false
+    fetchTransfers(true)
+  }
+
+  // ─── Update Per Page ──────────────────────────────────
+  const updatePerPage = (newPerPage) => {
+    pagination.per_page = Number(newPerPage)
     pagination.page = 1
     isFetched.value = false
     fetchTransfers(true)
@@ -210,12 +219,14 @@ export const useInternalTransfersStore = defineStore('internalTransfers', () => 
     error,
     pagination,
     summary,
+    perPageOptions,
 
     filters,
     filterOptions,
 
     fetchTransfers,
     applyFilters,
+    updatePerPage,
     resetFilters,
     setPage,
     reset,

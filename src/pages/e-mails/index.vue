@@ -1,34 +1,45 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 
 import EmailSettings from './EmailSettings.vue'
 import EmailTemplates from './EmailTemplates.vue'
-// import EmailTriggerRules from './EmailTriggerRules.vue'
+import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
-const activeTab = ref('settings')
+const { hasPermission } = usePermissionCheck()
 
-const tabs = [
+const allTabs = [
   {
     label: 'Email Settings',
     value: 'settings',
+    permission: ['email.manage', 'email.view', 'email.update'],
   },
   {
     label: 'Email Templates',
     value: 'templates',
+    permission: ['email.template_view', 'email.template_update', 'email.template_manual_trigger'],
   },
-  // {
-  //   label: 'Email Trigger Rules',
-  //   value: 'trigger-rules',
-  // },
 ]
+
+const tabs = computed(() => {
+  return allTabs.filter(tab => hasPermission(tab.permission))
+})
+
+const activeTab = ref('settings')
+
+watch(
+  tabs,
+  (newTabs) => {
+    if (newTabs.length > 0 && !newTabs.some(t => t.value === activeTab.value)) {
+      activeTab.value = newTabs[0].value
+    }
+  },
+  { immediate: true }
+)
 
 const activeComponent = computed(() => {
   switch (activeTab.value) {
     case 'templates':
       return EmailTemplates
-
-    case 'trigger-rules':
-      return EmailTriggerRules
 
     default:
       return EmailSettings

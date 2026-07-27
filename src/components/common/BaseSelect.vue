@@ -1,6 +1,8 @@
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, nextTick, useAttrs } from 'vue'
 import { ChevronDown, Check, Search } from 'lucide-vue-next'
+
+const attrs = useAttrs()
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 const props = defineProps({
@@ -33,7 +35,41 @@ const props = defineProps({
     default: false,
   },
 
-  // ✅ NEW
+  // Search Mode Props
+  localSearch: {
+    type: Boolean,
+    default: false,
+  },
+  clientSearch: {
+    type: Boolean,
+    default: false,
+  },
+  local: {
+    type: Boolean,
+    default: false,
+  },
+  client: {
+    type: Boolean,
+    default: false,
+  },
+  frontend: {
+    type: Boolean,
+    default: false,
+  },
+  remoteSearch: {
+    type: Boolean,
+    default: false,
+  },
+  remote: {
+    type: Boolean,
+    default: false,
+  },
+  searchMode: {
+    type: String,
+    default: null, // 'remote' | 'local' | null
+  },
+
+  // Variant
   variant: {
     type: String,
     default: 'default', // 'default' | 'surface'
@@ -49,21 +85,56 @@ const searchQuery = ref('')
 const triggerRef = ref(null)
 const dropdownRef = ref(null)
 const searchRef = ref(null)
+const dropdownStyle = ref({})
 
 // ─── Computed ─────────────────────────────────────────────────────────────────
 const allOption = computed(() => ({ label: props.allLabel, value: null }))
 
-const filteredOptions = computed(() => {
+const baseOptions = computed(() => {
   return props.allowAll
     ? [allOption.value, ...props.options]
     : props.options
+})
+
+const isLocalSearch = computed(() => {
+  if (props.localSearch || props.clientSearch || props.local || props.client || props.frontend || props.searchMode === 'local') {
+    return true
+  }
+  if (props.remoteSearch || props.remote || props.searchMode === 'remote') {
+    return false
+  }
+  // If parent provided @search event handler, assume remote API search
+  if (attrs.onSearch) {
+    return false
+  }
+  // Otherwise default to frontend local filtering
+  return true
+})
+
+const filteredOptions = computed(() => {
+  if (!isLocalSearch.value || !searchQuery.value || !searchQuery.value.trim()) {
+    return baseOptions.value
+  }
+
+  const query = searchQuery.value.toLowerCase().trim()
+  return baseOptions.value.filter((option) => {
+    const labelStr = (option.label ?? '').toString().toLowerCase()
+    if (labelStr.includes(query)) return true
+
+    if (option.value !== null && option.value !== undefined) {
+      const valStr = option.value.toString().toLowerCase()
+      if (valStr.includes(query)) return true
+    }
+
+    return false
+  })
 })
 
 const selectedLabel = computed(() => {
   if (props.modelValue === null || props.modelValue === undefined) {
     return props.allowAll ? props.allLabel : null
   }
-  const found = props.options.find(o => o.value === props.modelValue)
+  const found = props.options?.find(o => String(o.value) === String(props.modelValue))
   return found ? found.label : null
 })
 
@@ -75,7 +146,7 @@ const isPlaceholder = computed(
     (!props.allowAll && props.modelValue === null)
 )
 
-// ✅ Background control
+// Background control
 const triggerBgClass = computed(() => {
   return props.variant === 'surface'
     ? 'bg-background'
@@ -88,14 +159,31 @@ const dropdownBgClass = computed(() => {
     : 'bg-card-background'
 })
 
+// ─── Position Calculation ─────────────────────────────────────────────────────
+function updatePosition() {
+  if (!triggerRef.value) return
+  const rect = triggerRef.value.getBoundingClientRect()
+  dropdownStyle.value = {
+    position: 'fixed',
+    top: `${rect.bottom + 6}px`,
+    left: `${rect.left}px`,
+    width: `${rect.width}px`,
+    zIndex: 9999,
+  }
+}
+
 // ─── Methods ──────────────────────────────────────────────────────────────────
 function toggle() {
   isOpen.value = !isOpen.value
   if (isOpen.value) {
     searchQuery.value = ''
-    if (props.searchable) {
-      setTimeout(() => searchRef.value?.focus(), 60)
-    }
+    updatePosition()
+    nextTick(() => {
+      updatePosition()
+      if (props.searchable) {
+        searchRef.value?.focus()
+      }
+    })
   }
 }
 
@@ -113,7 +201,7 @@ function isSelected(option) {
   if (option.value === null) {
     return props.modelValue === null || props.modelValue === undefined
   }
-  return props.modelValue === option.value
+  return String(props.modelValue) === String(option.value)
 }
 
 // ─── Outside click ────────────────────────────────────────────────────────────
@@ -128,7 +216,13 @@ function handleOutsideClick(event) {
   }
 }
 
-// ─── Keyboard ─────────────────────────────────────────────────────────────────
+// ─── Scroll & Keyboard ────────────────────────────────────────────────────────
+function handleScrollOrResize() {
+  if (isOpen.value) {
+    updatePosition()
+  }
+}
+
 function handleKeydown(event) {
   if (event.key === 'Escape') close()
 }
@@ -136,11 +230,15 @@ function handleKeydown(event) {
 onMounted(() => {
   document.addEventListener('mousedown', handleOutsideClick)
   document.addEventListener('keydown', handleKeydown)
+  window.addEventListener('scroll', handleScrollOrResize, true)
+  window.addEventListener('resize', handleScrollOrResize)
 })
 
 onBeforeUnmount(() => {
   document.removeEventListener('mousedown', handleOutsideClick)
   document.removeEventListener('keydown', handleKeydown)
+  window.removeEventListener('scroll', handleScrollOrResize, true)
+  window.removeEventListener('resize', handleScrollOrResize)
 })
 </script>
 
@@ -176,80 +274,83 @@ onBeforeUnmount(() => {
     </button>
 
     <!-- Dropdown -->
-    <Transition name="dropdown">
-      <div
-        v-if="isOpen"
-        ref="dropdownRef"
-        role="listbox"
-        :class="[
-          'absolute top-full left-0 z-50 mt-2 w-full max-h-56 flex flex-col rounded-lg overflow-hidden border border-primary-border shadow-md',
-          dropdownBgClass
-        ]"
-      >
-        <!-- Search -->
+    <Teleport to="body">
+      <Transition name="dropdown">
         <div
-          v-if="searchable"
-          class="shrink-0 px-3 py-2 border-b border-primary-border"
+          v-if="isOpen"
+          ref="dropdownRef"
+          role="listbox"
+          :style="dropdownStyle"
+          :class="[
+            'max-h-56 flex flex-col rounded-lg overflow-hidden border border-primary-border shadow-lg',
+            dropdownBgClass
+          ]"
         >
-          <div class="relative flex items-center">
-            <Search
-              :size="14"
-              class="absolute left-2.5 text-secondary-text pointer-events-none"
-            />
-            <input
-              ref="searchRef"
-              v-model="searchQuery"
-              type="text"
-              placeholder="Search..."
-              class="w-full pl-8 pr-3 py-1.5 text-sm rounded-md bg-background text-primary-text placeholder:text-secondary-text focus:outline-none"
-              @input="emit('search', searchQuery)"
-            />
+          <!-- Search -->
+          <div
+            v-if="searchable"
+            class="shrink-0 px-3 py-2 border-b border-primary-border"
+          >
+            <div class="relative flex items-center">
+              <Search
+                :size="14"
+                class="absolute left-2.5 text-secondary-text pointer-events-none"
+              />
+              <input
+                ref="searchRef"
+                v-model="searchQuery"
+                type="text"
+                placeholder="Search..."
+                class="w-full pl-8 pr-3 py-1.5 text-sm rounded-md bg-background text-primary-text placeholder:text-secondary-text focus:outline-none"
+                @input="emit('search', searchQuery)"
+              />
+            </div>
           </div>
+
+          <!-- Options -->
+          <ul class="flex-1 min-h-0 overflow-y-auto py-1">
+            <li
+              v-if="isLoading"
+              class="px-4 py-3 text-sm text-secondary-text text-center italic"
+            >
+              Loading...
+            </li>
+
+            <li
+              v-else-if="filteredOptions.length === 0"
+              class="px-4 py-3 text-sm text-secondary-text text-center italic"
+            >
+              No options found
+            </li>
+
+            <li
+              v-for="option in filteredOptions"
+              :key="option.value ?? '__all__'"
+              role="option"
+              :aria-selected="isSelected(option)"
+              :aria-disabled="option.disabled"
+              @click="option.disabled ? null : select(option)"
+              :class="[
+                'flex items-center justify-between px-4 py-2.5 text-sm transition-colors duration-100',
+                option.disabled
+                  ? 'opacity-40 cursor-not-allowed'
+                  : 'cursor-pointer text-primary-text hover:bg-background'
+              ]"
+            >
+              <span :class="isSelected(option) && !option.disabled ? 'text-primary font-medium' : ''">
+                {{ option.label }}
+              </span>
+
+              <Check
+                v-if="isSelected(option) && !option.disabled"
+                :size="14"
+                class="text-primary flex-shrink-0"
+              />
+            </li>
+          </ul>
         </div>
-
-        <!-- Options -->
-        <ul class="flex-1 min-h-0 overflow-y-auto py-1">
-          <li
-            v-if="isLoading"
-            class="px-4 py-3 text-sm text-secondary-text text-center italic"
-          >
-            Loading...
-          </li>
-
-          <li
-            v-else-if="filteredOptions.length === 0"
-            class="px-4 py-3 text-sm text-secondary-text text-center italic"
-          >
-            No options found
-          </li>
-
-          <li
-            v-for="option in filteredOptions"
-            :key="option.value ?? '__all__'"
-            role="option"
-            :aria-selected="isSelected(option)"
-            :aria-disabled="option.disabled"
-            @click="option.disabled ? null : select(option)"
-            :class="[
-              'flex items-center justify-between px-4 py-2.5 text-sm transition-colors duration-100',
-              option.disabled
-                ? 'opacity-40 cursor-not-allowed'
-                : 'cursor-pointer text-primary-text hover:bg-background'
-            ]"
-          >
-            <span :class="isSelected(option) && !option.disabled ? 'text-primary font-medium' : ''">
-              {{ option.label }}
-            </span>
-
-            <Check
-              v-if="isSelected(option) && !option.disabled"
-              :size="14"
-              class="text-primary flex-shrink-0"
-            />
-          </li>
-        </ul>
-      </div>
-    </Transition>
+      </Transition>
+    </Teleport>
 
   </div>
 </template>

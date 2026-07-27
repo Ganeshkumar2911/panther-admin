@@ -2,7 +2,8 @@
   <div>
     <div class="flex items-center justify-end mb-6">
       <button
-        class="flex items-center gap-1.5 px-3 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg text-xs font-medium transition-colors"
+        v-if="hasPermission('fund_manager.create')"
+        class="flex items-center gap-1.5 px-3 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg text-xs font-medium transition-colors cursor-pointer"
         @click="handleAdd"
       >
         <Plus class="w-3.5 h-3.5" /> Add
@@ -48,8 +49,9 @@
       </p>
 
       <button 
+        v-if="hasPermission('fund_manager.create')"
         @click="handleAdd"
-        class="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white shadow"
+        class="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white shadow cursor-pointer"
       >
         <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
@@ -133,15 +135,17 @@
                 <span class="text-xs text-primary-text">{{ formatDate(item.created_at) }}</span>
               </div>
             </div>
-            <div class="flex justify-end px-4 py-2.5">
+            <div v-if="hasPermission('fund_manager.view_seletement') || hasPermission('fund_manager.update')" class="flex justify-end px-4 py-2.5">
               <button
-                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-medium transition-colors mr-2"
+                v-if="hasPermission('fund_manager.view_seletement')"
+                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-medium transition-colors mr-2 cursor-pointer"
                 @click.stop="handleSettlement(item)"
               >
                 Settlement
               </button>
               <button
-                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-medium transition-colors"
+                v-if="hasPermission('fund_manager.update')"
+                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-medium transition-colors cursor-pointer"
                 @click="handleEdit(item)"
               >
                 <Edit class="w-3 h-3" /> Edit
@@ -177,8 +181,10 @@ import { CalendarDays, Edit, Plus, ChevronDown, UserRoundPlus } from 'lucide-vue
 import { useFmLeaderboardStore } from '@/stores/fmLeaderboard/fmLeaderboard'
 import Pagination from '@/components/common/Pagination.vue'
 import AddEditFundManager from '@/components/fundManager/AddEditFundManager.vue'
+import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
 const store = useFmLeaderboardStore()
+const { hasPermission } = usePermissionCheck()
 const dialogOpen = ref(false)
 const dialogMode = ref('add')
 const selectedItem = ref(null)

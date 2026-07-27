@@ -33,6 +33,17 @@
       </template>
     </div>
 
+    <!-- Filter bar -->
+    <div class="flex items-center justify-end gap-3 mb-4">
+      <BaseSelect
+        :modelValue="store.pagination.per_page"
+        :options="store.perPageOptions"
+        placeholder="Per page..."
+        class="w-32"
+        @update:modelValue="(val) => store.updatePerPage(settlementId, val)"
+      />
+    </div>
+
     <!-- Table -->
     <div class="w-full border border-primary-border rounded-xl overflow-x-auto">
       <table class="w-full border-collapse">
@@ -154,6 +165,7 @@ import { useRoute } from 'vue-router'
 import { BarChart2 } from 'lucide-vue-next'
 import { useSettlementTradesStore } from '@/stores/settlements/settlementTrades'
 import Pagination from '@/components/common/Pagination.vue'
+import BaseSelect from '@/components/common/BaseSelect.vue'
 
 const store = useSettlementTradesStore()
 const route = useRoute()

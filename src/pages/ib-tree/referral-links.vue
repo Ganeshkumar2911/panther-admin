@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-end gap-4">
       <!-- Action buttons -->
-      <div class="flex items-center gap-2.5 self-start sm:self-auto">
+      <div v-if="hasPermission('ib.referal_link_create')" class="flex items-center gap-2.5 self-start sm:self-auto">
         <button
           class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
           @click="openCreateDrawer"
@@ -52,6 +52,7 @@
         </p>
       </div>
       <button
+        v-if="hasPermission('ib.referal_link_create')"
         class="px-5 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-colors cursor-pointer inline-flex items-center gap-2 shadow-md hover:shadow-lg hover:-translate-y-0.5 transform transition"
         @click="openCreateDrawer"
       >
@@ -164,6 +165,7 @@
                   </button>
 
                   <button
+                    v-if="hasPermission('ib.referal_link_update')"
                     class="p-1.5 rounded bg-background border border-primary-border text-secondary-text hover:text-primary-text hover:bg-primary-border/20 transition cursor-pointer"
                     title="Edit Campaign"
                     @click="openEditDrawer(item)"
@@ -221,10 +223,12 @@ import { useIbReferralLinksStore } from '@/stores/ibTree/ibReferralLinks'
 import { useSnackbarStore } from '@/stores/snackbar/snackbar'
 import ReferralLinkDrawer from '@/components/referralLinks/ReferralLinkDrawer.vue'
 import ReferralLinkDetailsModal from '@/components/referralLinks/ReferralLinkDetailsModal.vue'
+import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
 const route = useRoute()
 const store = useIbReferralLinksStore()
 const snackbar = useSnackbarStore()
+const { hasPermission } = usePermissionCheck()
 
 // Route IB ID
 const ibId = computed(() => route.params.id)

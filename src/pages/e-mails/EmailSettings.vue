@@ -28,8 +28,9 @@ Here is the updated code cleaned up and aligned precisely with your project's st
           <p class="text-xs text-secondary-text">Configure your email provider to start sending notifications</p>
         </div>
         <button
+          v-if="hasPermission('email.update')"
           @click="openDialog"
-          class="bg-primary text-white hover:bg-primary-hover transition-colors rounded-lg px-4 py-2 text-sm font-medium flex items-center justify-center gap-2 mt-2"
+          class="bg-primary text-white hover:bg-primary-hover transition-colors rounded-lg px-4 py-2 text-sm font-medium flex items-center justify-center gap-2 mt-2 cursor-pointer"
         >
           <Settings class="w-4 h-4 text-white" />
           Configure Email Settings
@@ -95,8 +96,9 @@ Here is the updated code cleaned up and aligned precisely with your project's st
             </div>
             
             <button
+              v-if="hasPermission('email.update')"
               @click="openDialog"
-              class="border border-primary-border bg-primary text-white transition-colors rounded-lg px-4 py-2 text-sm font-medium flex items-center gap-2"
+              class="border border-primary-border bg-primary text-white transition-colors rounded-lg px-4 py-2 text-sm font-medium flex items-center gap-2 cursor-pointer"
             >
               <Pencil class="w-4 h-4 text-white" />
               Edit Settings
@@ -123,8 +125,10 @@ import { ref, onMounted } from 'vue'
 import { Mail, Pencil, Settings } from 'lucide-vue-next'
 import { useEmailSettingsStore } from '@/stores/emails/emailSettings'
 import EmailSettingsDialog from '@/components/emails/EmailSettingsDialog.vue'
+import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
 const store = useEmailSettingsStore()
+const { hasPermission } = usePermissionCheck()
 const dialogOpen = ref(false)
 
 onMounted(() => store.fetchSettings())

@@ -5,6 +5,7 @@ import apiRequest from '@/api/request'
 import urls from '@/api/urls'
 
 import { useSnackbarStore } from '@/stores/snackbar/snackbar'
+import { perPageOptions } from '@/constants/pagination'
 
 export const usePaymentRequestsStore = defineStore(
   'paymentRequests',
@@ -55,6 +56,12 @@ export const usePaymentRequestsStore = defineStore(
       total_items: 0,
       total_pages: 1,
     })
+
+    const updatePerPage = (newPerPage) => {
+      pagination.per_page = Number(newPerPage)
+      pagination.page = 1
+      fetchRequests(1)
+    }
 
     // ─────────────────────────────────────
     // Filters
@@ -455,6 +462,7 @@ export const usePaymentRequestsStore = defineStore(
       summary,
       pagination,
       filters,
+      perPageOptions,
 
       // methods
       fetchRequests,
@@ -466,6 +474,7 @@ export const usePaymentRequestsStore = defineStore(
       resetFilters,
 
       setPage,
+      updatePerPage,
 
       fetchAllClients,
       fetchAllAccounts,

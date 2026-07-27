@@ -30,12 +30,12 @@
               class="text-[11px] font-medium px-2 py-0.5 rounded-full border transition-opacity"
               :class="[
                 statusClass(store.detail.status),
-                store.detail.status !== 'closed'
+                store.detail.status !== 'closed' && hasPermission(['ticket.update', 'ticket.close', 'ticket.assign'])
                   ? 'cursor-pointer hover:opacity-80'
                   : 'cursor-not-allowed opacity-60',
               ]"
               @click="openStatusDialog"
-              :disabled="store.detail.status === 'closed'"
+              :disabled="store.detail.status === 'closed' || !hasPermission(['ticket.update', 'ticket.close', 'ticket.assign'])"
             >
               {{ store.detail.status }}
             </button>
@@ -51,6 +51,7 @@
           </p>
         </div>
         <button
+          v-if="hasPermission(['ticket.update', 'ticket.close', 'ticket.assign'])"
           @click="openStatusDialog"
           class="flex items-center hover:cursor-pointer gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-btn-text-primary text-xs font-medium transition-colors"
         >
@@ -89,6 +90,7 @@
             </span>
           </div>
           <button
+            v-if="hasPermission('ticket.update')"
             class="flex items-center gap-1.5 hover:cursor-pointer px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-btn-text-primary text-xs font-medium transition-colors"
             @click="openDialog('attachment')"
           >
@@ -153,6 +155,7 @@
             </span>
           </div>
           <button
+            v-if="hasPermission('ticket.update')"
             class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-btn-text-primary hover:cursor-pointer text-xs font-medium transition-colors"
             @click="openDialog('comment')"
           >
@@ -219,9 +222,11 @@ import {
 import { useTicketsStore } from "@/stores/tickets/tickets";
 import TicketActionDialog from "@/components/tickets/TicketActionDialog.vue";
 import TicketStatusDialog from "@/components/tickets/TicketStatusDialog.vue";
+import { usePermissionCheck } from "@/composables/usePermissionCheck";
 
 const store = useTicketsStore();
 const route = useRoute();
+const { hasPermission } = usePermissionCheck();
 
 const ticketId = computed(() => route.params.id);
 const dialog = ref({ open: false, mode: "comment" });

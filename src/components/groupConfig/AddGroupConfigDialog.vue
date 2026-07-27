@@ -46,7 +46,7 @@
               :key="t"
               disabled
               class="px-4 py-1.5 rounded-md text-xs font-medium capitalize transition-colors"
-              :class="props.group?.account_type === t ? 'bg-primary text-black' : 'text-secondary-text'"
+              :class="props.group?.account_type === t ? 'bg-primary text-white' : 'text-secondary-text'"
             >
               {{ t }}
             </button>

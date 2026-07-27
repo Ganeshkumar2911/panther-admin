@@ -3,6 +3,7 @@ import { ref } from "vue";
 import apiRequest from "@/api/request";
 import urls from "@/api/urls";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
+import { perPageOptions } from "@/constants/pagination";
 
 export const useTicketsStore = defineStore("tickets", () => {
   // ─── State ─────────────────────────────────────────────
@@ -64,6 +65,12 @@ export const useTicketsStore = defineStore("tickets", () => {
     });
   };
 
+  const updatePerPage = (newPerPage, filters = {}) => {
+    pagination.value.per_page = Number(newPerPage);
+    pagination.value.page = 1;
+    fetchTickets(true, 1, filters);
+  };
+
   // ─── Create Ticket ─────────────────────────────────────
   const createTicket = (formData, onDone) => {
     actionLoading.value = true;
@@ -101,11 +108,10 @@ export const useTicketsStore = defineStore("tickets", () => {
 
     const failureHandler = (err) => {
       detailLoading.value = false;
-      snackbar.show(err?.message || "Something went wrong.", "error");
+      snackbar.show(err?.message || "Failed to fetch ticket.", "error");
     };
 
-    apiRequest(urls.KEYS.GET, urls.tickets.detail, {
-      look_up_key: id,
+    apiRequest(urls.KEYS.GET, `${urls.tickets.detail}/${id}`, {
       isTokenRequired: true,
       onSuccess: successHandler,
       onFailure: failureHandler,
@@ -113,34 +119,23 @@ export const useTicketsStore = defineStore("tickets", () => {
   };
 
   // ─── Update Ticket Status ───────────────────────────────
-  const updateTicketStatus = async (id, payload, onDone) => {
-    if (!id) return;
-
+  const updateTicketStatus = (id, status) => {
     actionLoading.value = true;
 
     const successHandler = () => {
       actionLoading.value = false;
-
-      snackbar.show("Ticket status updated.", "success");
-
-      // refresh detail page data
-      fetchTicketDetail(id);
-
-      // refresh listing if needed
+      snackbar.show("Status updated successfully.", "success");
       fetchTickets(true);
-
-      onDone?.();
+      fetchTicketDetail(id);
     };
 
     const failureHandler = (err) => {
       actionLoading.value = false;
-
-      snackbar.show(err?.message || "Something went wrong.", "error");
+      snackbar.show(err?.message || "Failed to update status.", "error");
     };
 
-    apiRequest(urls.KEYS.PATCH, urls.tickets.updateStatus, {
-      look_up_key: id,
-      data: payload,
+    apiRequest(urls.KEYS.POST, `${urls.tickets.updateStatus}/${id}`, {
+      data: { status },
       isTokenRequired: true,
       onSuccess: successHandler,
       onFailure: failureHandler,
@@ -148,9 +143,7 @@ export const useTicketsStore = defineStore("tickets", () => {
   };
 
   // ─── Add Comment ───────────────────────────────────────
-  const addComment = (id, payload, onDone) => {
-    if (!id) return;
-
+  const addComment = (id, message, onDone) => {
     actionLoading.value = true;
 
     const successHandler = () => {
@@ -162,12 +155,11 @@ export const useTicketsStore = defineStore("tickets", () => {
 
     const failureHandler = (err) => {
       actionLoading.value = false;
-      snackbar.show(err?.message || "Something went wrong.", "error");
+      snackbar.show(err?.message || "Failed to add comment.", "error");
     };
 
-    apiRequest(urls.KEYS.POST, urls.tickets.comment, {
-      look_up_key: id,
-      data: payload,
+    apiRequest(urls.KEYS.POST, `${urls.tickets.addComment}/${id}`, {
+      data: { message },
       isTokenRequired: true,
       onSuccess: successHandler,
       onFailure: failureHandler,
@@ -175,25 +167,25 @@ export const useTicketsStore = defineStore("tickets", () => {
   };
 
   // ─── Add Attachment ────────────────────────────────────
-  const addAttachment = (id, formData, onDone) => {
-    if (!id) return;
-
+  const addAttachment = (id, file, onDone) => {
     actionLoading.value = true;
+
+    const formData = new FormData();
+    formData.append("file", file);
 
     const successHandler = () => {
       actionLoading.value = false;
-      snackbar.show("Attachment uploaded.", "success");
+      snackbar.show("Attachment added.", "success");
       fetchTicketDetail(id);
       onDone?.();
     };
 
     const failureHandler = (err) => {
       actionLoading.value = false;
-      snackbar.show(err?.message || "Something went wrong.", "error");
+      snackbar.show(err?.message || "Failed to upload attachment.", "error");
     };
 
-    apiRequest(urls.KEYS.POST, urls.tickets.attachment, {
-      look_up_key: id,
+    apiRequest(urls.KEYS.POST, `${urls.tickets.addAttachment}/${id}`, {
       data: formData,
       isTokenRequired: true,
       onSuccess: successHandler,
@@ -229,12 +221,14 @@ export const useTicketsStore = defineStore("tickets", () => {
     error,
     isFetched,
     pagination,
+    perPageOptions,
 
     // NEW
     detail,
     detailLoading,
 
     fetchTickets,
+    updatePerPage,
     createTicket,
     updateTicketStatus,
 

@@ -1,9 +1,11 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watchEffect } from 'vue'
+import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { RefreshCw, CalendarDays, X } from 'lucide-vue-next'
 
 import { useDashboardStore } from '@/stores/dashboard/dashboard'
+import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
 import OverviewSection      from '@/components/dashboard/OverviewSection.vue'
 import RevenueIntelligence  from '@/components/dashboard/RevenueIntelligence.vue'
@@ -13,9 +15,17 @@ import WalletSection        from '@/components/dashboard/WalletSection.vue'
 import SettlementSection    from '@/components/dashboard/SettlementSection.vue'
 import RecentActivitySection from '@/components/dashboard/RecentActivitySection.vue'
 
-// ─── Store ────────────────────────────────────────────────────────
+// ─── Store & Permissions ──────────────────────────────────────────
+const router = useRouter()
 const store = useDashboardStore()
 const { dashboard, dashboardLoading, revenueLoading, dashboardFilters } = storeToRefs(store)
+const { hasPermission, isFetched, firstAllowedPath } = usePermissionCheck()
+
+watchEffect(() => {
+  if (isFetched.value && !hasPermission('analytics.view')) {
+    router.replace(firstAllowedPath.value)
+  }
+})
 
 // ─── Date filter local refs ──────────────────────────────────────
 const startDate = ref('')
@@ -52,8 +62,10 @@ function refreshAll() {
 
 // ─── Lifecycle ───────────────────────────────────────────────────
 onMounted(() => {
-  store.fetchDashboard()
-  store.fetchRevenueAnalytics()
+  if (hasPermission('analytics.view')) {
+    store.fetchDashboard()
+    store.fetchRevenueAnalytics()
+  }
 })
 </script>
 

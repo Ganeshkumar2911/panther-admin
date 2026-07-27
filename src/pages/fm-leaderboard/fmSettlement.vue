@@ -8,9 +8,9 @@
         <p class="text-xs text-secondary-text mt-0.5">Review trades before running settlement</p>
       </div>
       <button
-        v-if="!hasMessage"
+        v-if="!hasMessage && hasPermission('fund_manager.run_seletement')"
         :disabled="store.runLoading || store.loading"
-        class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+        class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
         @click="confirmOpen = true"
       >
         <Loader2 v-if="store.runLoading" class="w-3.5 h-3.5 animate-spin" />
@@ -257,8 +257,10 @@ import { onMounted, computed, ref } from 'vue'
 import { PlayCircle, ReceiptText, Users, GitBranch, Loader2 } from 'lucide-vue-next'
 import { useRunSettlementStore } from '@/stores/fmLeaderboard/runSettlement'
 import RunSettlementConfirm from '@/components/fundManager/RunSettlementConfirm.vue'
+import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
 const store = useRunSettlementStore()
+const { hasPermission } = usePermissionCheck()
 const confirmOpen = ref(false)
 
 const hasMessage = computed(() => !!store.settlement?.message)
