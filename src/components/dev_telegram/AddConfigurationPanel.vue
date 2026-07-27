@@ -44,7 +44,7 @@
                 v-model="form.module"
                 type="text"
                 placeholder="e.g., AUTH, PAYMENT, USER_MANAGEMENT"
-                class="w-full h-10 rounded-lg border border-primary-border bg-background px-3 text-xs placeholder-secondary-text focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20"
+                class="w-full text-primary-text h-10 rounded-lg border border-primary-border bg-background px-3 text-xs placeholder-secondary-text focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20"
               />
               <p class="text-xs text-secondary-text">
                 Enter the module name (e.g., AUTH, PAYMENT)

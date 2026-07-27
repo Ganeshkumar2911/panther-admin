@@ -149,19 +149,19 @@ export const navItems = [
     ],
   },
 
-  {
-    label: "Dev Tickets",
-    to: "/dev-tickets",
-    icon: Tickets,
-    permission: ["ticket.view", "ticket.platform_view"],
-  },
+  // {
+  //   label: "Dev Tickets",
+  //   to: "/dev-tickets",
+  //   icon: Tickets,
+  //   permission: ["ticket.view", "ticket.platform_view"],
+  // },
 
-  {
-    label: "Dev Telegram",
-    to: "/dev-telegram",
-    icon: Tickets,
-    permission: ["ticket.view", "ticket.platform_view"],
-  },
+  // {
+  //   label: "Dev Telegram",
+  //   to: "/dev-telegram",
+  //   icon: Tickets,
+  //   permission: ["ticket.view", "ticket.platform_view"],
+  // },
 
   {
     label: "RBAC Modules",

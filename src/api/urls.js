@@ -139,27 +139,27 @@ const urls = {
     update: "/company-integrations",
     run: "/company-integrations/run",
   },
-  dev_telegram: {
-    list: "/get-bots",
-    create: "/addbot",
-    update: "/update-bot",
-    run: "/company-integrations/run",
-    delete: "/delete-bot",
-  },
-  dev_telegram_config: {
-    list: "/get/configrations",
-    create: "/create/update/settings",
-    create_bulk: "/add/notification/settings",
-    update: "/update/configrations",
-    run: "/company-integrations/run",
-    delete: "/delete-bot",
-  },
-  dev_tickets: {
-    list: "/tickets",
-    detail: "tickets",
-    comment: "/tickets/comments",
-    updateStatus: "/tickets/status",
-  },
+  // dev_telegram: {
+  //   list: "/get-bots",
+  //   create: "/addbot",
+  //   update: "/update-bot",
+  //   run: "/company-integrations/run",
+  //   delete: "/delete-bot",
+  // },
+  // dev_telegram_config: {
+  //   list: "/get/configrations",
+  //   create: "/create/update/settings",
+  //   create_bulk: "/add/notification/settings",
+  //   update: "/update/configrations",
+  //   run: "/company-integrations/run",
+  //   delete: "/delete-bot",
+  // },
+  // dev_tickets: {
+  //   list: "/tickets",
+  //   detail: "tickets",
+  //   comment: "/tickets/comments",
+  //   updateStatus: "/tickets/status",
+  // },
   rbac: {
     roles: {
       list: "/rbac/roles",
