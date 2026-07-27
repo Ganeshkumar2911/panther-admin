@@ -13,6 +13,14 @@ export const useTicketsStore = defineStore("tickets", () => {
   const error = ref(null);
   const isFetched = ref(false);
 
+  const filters = ref({
+    search: "",
+    filter: "all",
+    status: "",
+    priority: "",
+    sort: "desc",
+  });
+
   const pagination = ref({
     page: 1,
     per_page: 10,
@@ -213,6 +221,29 @@ export const useTicketsStore = defineStore("tickets", () => {
     detailLoading.value = false;
   };
 
+  const applyFilters = () => {
+    pagination.value.page = 1;
+    fetchTickets(true, 1, filters.value);
+  };
+
+  const changePage = (page) => {
+    pagination.value.page = page;
+    fetchTickets(true, page, filters.value);
+  };
+
+  const resetFilters = () => {
+    filters.value = {
+      search: "",
+      filter: "all",
+      status: "",
+      priority: "",
+      sort: "desc",
+    };
+
+    pagination.value.page = 1;
+    fetchTickets(true, 1, filters.value);
+  };
+
   // ─── Expose ────────────────────────────────────────────
   return {
     data,
@@ -226,6 +257,11 @@ export const useTicketsStore = defineStore("tickets", () => {
     // NEW
     detail,
     detailLoading,
+
+    filters,
+    applyFilters,
+    changePage,
+    resetFilters,
 
     fetchTickets,
     updatePerPage,

@@ -327,6 +327,26 @@ const routes = [
         },
       },
       {
+        path: "/dev-tickets",
+        name: "dev-tickets",
+        component: () => import("@/pages/dev_ticketes/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Dev Tickets",
+          description: "Track and view system modifications and events.",
+        },
+      },
+      {
+        path: "/dev-telegram",
+        name: "dev-telegram",
+        component: () => import("@/pages/dev_telegram/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Dev Telegram",
+          description: "Track and view system modifications and events.",
+        },
+      },
+      {
         path: "/rbac",
         name: "rbac",
         component: () => import("@/pages/rbac/index.vue"),
