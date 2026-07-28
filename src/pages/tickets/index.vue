@@ -1,6 +1,7 @@
 <template>
   <div class="px-4">
-    <!-- Tab Toggle -->
+    <!-- Tab Toggle (Commented Out) -->
+    <!--
     <div v-if="tabs.length > 1" class="flex gap-2 mb-6">
       <button
         v-for="tab in tabs"
@@ -16,13 +17,13 @@
         {{ tab.label }}
       </button>
     </div>
+    -->
 
-    <!-- Your Tickets Tab -->
+    <!-- Your Tickets Tab (Commented Out) -->
+    <!--
     <div v-if="activeTab === 'your-tickets'" class="space-y-5">
-      <!-- Top bar -->
       <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3">
         <div class="flex w-full min-w-0 flex-col gap-2 rounded-xl border border-primary-border bg-card-background/40 p-2 sm:flex-row sm:items-center xl:flex-1 xl:flex-nowrap">
-          <!-- Search -->
           <div class="relative sm:flex-1 xl:max-w-64">
             <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-secondary-text" />
             <input
@@ -34,7 +35,6 @@
             />
           </div>
 
-          <!-- Status -->
           <BaseSelect
             v-model="yourTicketsFilters.status"
             :options="statusOptions"
@@ -43,7 +43,6 @@
             @update:modelValue="applyYourTicketsFilters"
           />
 
-          <!-- Priority -->
           <BaseSelect
             v-model="yourTicketsFilters.priority"
             :options="priorityOptions"
@@ -52,7 +51,6 @@
             @update:modelValue="applyYourTicketsFilters"
           />
 
-          <!-- Date range -->
           <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:w-[310px] xl:flex-none">
             <input
               v-model="yourTicketsFilters.from_date"
@@ -76,7 +74,6 @@
             @update:modelValue="(val) => yourTicketsStore.updatePerPage(val, yourTicketsFilters)"
           />
 
-          <!-- Clear -->
           <button
             v-if="hasYourTicketsFilters"
             class="rounded-lg px-3 py-2 text-xs font-medium text-secondary-text hover:bg-background hover:text-primary-text transition-colors sm:flex-none"
@@ -95,7 +92,6 @@
         </button>
       </div>
 
-      <!-- Table -->
       <div class="w-full border border-primary-border rounded-xl overflow-x-auto">
         <table class="w-full border-collapse">
           <thead>
@@ -110,7 +106,6 @@
             </tr>
           </thead>
 
-          <!-- Skeleton -->
           <tbody v-if="yourTicketsStore.isLoading">
             <tr v-for="n in 6" :key="n" class="border-b border-primary-border animate-pulse">
               <td class="p-3"><div class="h-3 w-16 bg-card-background rounded" /></td>
@@ -123,7 +118,6 @@
             </tr>
           </tbody>
 
-          <!-- Empty -->
           <tbody v-else-if="yourTicketsStore.data.length === 0">
             <tr>
               <td colspan="7" class="py-16 text-center">
@@ -138,7 +132,6 @@
             </tr>
           </tbody>
 
-          <!-- Data -->
           <tbody v-else>
             <tr
               v-for="ticket in yourTicketsStore.data"
@@ -181,6 +174,7 @@
 
       <CreateTicketDialog :open="dialogOpen" @close="dialogOpen = false" />
     </div>
+    -->
 
     <!-- Platform Tickets Tab -->
     <div v-if="activeTab === 'platform-tickets'" class="space-y-5">
@@ -372,7 +366,7 @@ const tabs = computed(() => {
   return allTabs.filter(tab => hasPermission(tab.permission))
 })
 
-const activeTab = ref('your-tickets')
+const activeTab = ref('platform-tickets')
 
 watch(
   tabs,

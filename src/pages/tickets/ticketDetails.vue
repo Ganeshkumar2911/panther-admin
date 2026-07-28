@@ -50,13 +50,25 @@
             >
           </p>
         </div>
-        <button
-          v-if="hasPermission(['ticket.update', 'ticket.close', 'ticket.assign'])"
-          @click="openStatusDialog"
-          class="flex items-center hover:cursor-pointer gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-btn-text-primary text-xs font-medium transition-colors"
-        >
-          Update Ticket
-        </button>
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            @click="refreshTicket"
+            :disabled="store.detailLoading"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary-border bg-card-background hover:bg-background text-secondary-text hover:text-primary-text text-xs font-medium transition-colors cursor-pointer disabled:opacity-50"
+            title="Refresh Ticket Details"
+          >
+            <RotateCw class="w-3.5 h-3.5" :class="{ 'animate-spin': store.detailLoading }" />
+            <span>Refresh</span>
+          </button>
+          <button
+            v-if="store.detail.status !== 'closed' && hasPermission(['ticket.update', 'ticket.close', 'ticket.assign'])"
+            @click="openStatusDialog"
+            class="flex items-center hover:cursor-pointer gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-btn-text-primary text-xs font-medium transition-colors"
+          >
+            Update Ticket
+          </button>
+        </div>
       </div>
 
       <!-- Description -->
@@ -175,12 +187,12 @@
           >
             <div class="flex items-center gap-2 mb-2">
               <div
-                class="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-[10px] font-medium text-black shrink-0"
+                class="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-[10px] font-medium text-white shrink-0"
               >
-                {{ c.role?.charAt(0).toUpperCase() ?? "U" }}
+                {{ (c.name || c.email || c.role || "U").charAt(0).toUpperCase() }}
               </div>
               <span class="text-xs font-medium text-primary-text">{{
-                c.role ?? "User"
+                c.name || c.email || c.role || "User"
               }}</span>
               <span class="text-[11px] text-secondary-text ml-auto">{{
                 formatDate(c.created_at)
@@ -218,6 +230,7 @@ import {
   Plus,
   File as FileIcon,
   ExternalLink,
+  RotateCw,
 } from "lucide-vue-next";
 import { useTicketsStore } from "@/stores/tickets/tickets";
 import TicketActionDialog from "@/components/tickets/TicketActionDialog.vue";
@@ -242,12 +255,13 @@ const openStatusDialog = () => {
   }
 };
 
-const formatDate = (val) =>
-  new Date(val).toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+const refreshTicket = () => {
+  if (ticketId.value) {
+    store.fetchTicketDetail(ticketId.value);
+  }
+};
+
+import { formatDate } from "@/utils/timeFormatter";
 
 const priorityClass = (p) =>
   ({

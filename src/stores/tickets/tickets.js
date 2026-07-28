@@ -143,8 +143,19 @@ export const useTicketsStore = defineStore("tickets", () => {
   };
 
   // ─── Add Comment ───────────────────────────────────────
-  const addComment = (id, message, onDone) => {
+  const addComment = (id, payload, onDone) => {
+    if (!id) return;
     actionLoading.value = true;
+
+    const commentText =
+      typeof payload === "string"
+        ? payload
+        : payload?.comment || payload?.message || payload?.content || "";
+
+    const data = {
+      comment: commentText,
+      message: commentText,
+    };
 
     const successHandler = () => {
       actionLoading.value = false;
@@ -158,8 +169,9 @@ export const useTicketsStore = defineStore("tickets", () => {
       snackbar.show(err?.message || "Failed to add comment.", "error");
     };
 
-    apiRequest(urls.KEYS.POST, `${urls.tickets.addComment}/${id}`, {
-      data: { message },
+    apiRequest(urls.KEYS.POST, urls.tickets.comment, {
+      look_up_key: id,
+      data,
       isTokenRequired: true,
       onSuccess: successHandler,
       onFailure: failureHandler,
@@ -167,11 +179,19 @@ export const useTicketsStore = defineStore("tickets", () => {
   };
 
   // ─── Add Attachment ────────────────────────────────────
-  const addAttachment = (id, file, onDone) => {
+  const addAttachment = (id, payload, onDone) => {
+    if (!id) return;
     actionLoading.value = true;
 
-    const formData = new FormData();
-    formData.append("file", file);
+    let formData;
+    if (payload instanceof FormData) {
+      formData = payload;
+    } else {
+      formData = new FormData();
+      formData.append("file", payload);
+      formData.append("attachments", payload);
+      formData.append("files", payload);
+    }
 
     const successHandler = () => {
       actionLoading.value = false;
@@ -185,7 +205,7 @@ export const useTicketsStore = defineStore("tickets", () => {
       snackbar.show(err?.message || "Failed to upload attachment.", "error");
     };
 
-    apiRequest(urls.KEYS.POST, `${urls.tickets.addAttachment}/${id}`, {
+    apiRequest(urls.KEYS.POST, `${urls.tickets.attachment}/${id}`, {
       data: formData,
       isTokenRequired: true,
       onSuccess: successHandler,

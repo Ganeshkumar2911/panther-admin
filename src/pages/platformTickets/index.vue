@@ -226,7 +226,7 @@ const hasFilters = computed(() =>
   (store.filters.sort && store.filters.sort !== 'desc')
 )
 
-const formatDate = (val) => val ? new Date(val).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
+import { formatDate } from "@/utils/timeFormatter";
 
 const priorityClass = (p) => ({
   high:   'bg-primary-red/20 text-primary-red border border-primary-red/30',

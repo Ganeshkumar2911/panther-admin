@@ -168,9 +168,19 @@ export const usePlatfromTicketsStore = defineStore("platfromTickets", () => {
 
     actionLoading.value = true;
 
+    const commentText =
+      typeof payload === "string"
+        ? payload
+        : payload?.comment || payload?.message || payload?.content || "";
+
+    const data = {
+      comment: commentText,
+      message: commentText,
+    };
+
     apiRequest(urls.KEYS.POST, urls.platformTickets.comment, {
       look_up_key: id,
-      data: payload,
+      data,
       isTokenRequired: true,
 
       onSuccess: () => {
@@ -334,7 +344,6 @@ export const usePlatfromTicketsStore = defineStore("platfromTickets", () => {
     addComment,
     addAttachment,
     updateTicketStatus,
-
 
     // filters
     setFilters,

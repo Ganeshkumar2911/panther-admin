@@ -91,7 +91,9 @@ const urls = {
     create: "/support/tickets",
     detail: "/support/tickets",
     comment: "/support/tickets/comments",
+    addComment: "/support/tickets/comments",
     attachment: "/support/tickets/attachments",
+    addAttachment: "/support/tickets/attachments",
     updateStatus: "/support/tickets/status",
   },
   platformTickets: {
@@ -99,7 +101,9 @@ const urls = {
     create: "/support/tickets",
     detail: "/support/tickets",
     comment: "/support/tickets/comments",
+    addComment: "/support/tickets/comments",
     attachment: "/support/tickets/attachments",
+    addAttachment: "/support/tickets/attachments",
     updateStatus: "/support/tickets/status",
   },
   groupConfig: {
