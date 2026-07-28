@@ -1,0 +1,140 @@
+<script setup>
+import {
+  STAGES,
+  STAFF,
+  COUNTRIES,
+  SOURCES,
+} from '@/pages/lead-management/mockLeadData'
+import {
+  Search,
+  RotateCcw,
+  SlidersHorizontal,
+} from 'lucide-vue-next'
+
+const props = defineProps({
+  searchQuery: { type: String, default: '' },
+  selectedStage: { type: String, default: '' },
+  selectedStaff: { type: String, default: '' },
+  selectedCountry: { type: String, default: '' },
+  selectedSource: { type: String, default: '' },
+  selectedPriority: { type: String, default: '' },
+  selectedDate: { type: String, default: '' },
+})
+
+const emit = defineEmits([
+  'update:searchQuery',
+  'update:selectedStage',
+  'update:selectedStaff',
+  'update:selectedCountry',
+  'update:selectedSource',
+  'update:selectedPriority',
+  'update:selectedDate',
+  'reset-filters',
+])
+</script>
+
+<template>
+  <div class="bg-card-background border border-primary-border rounded-xl p-3.5 space-y-3">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <SlidersHorizontal class="w-4 h-4 text-primary" />
+        <span class="text-xs font-semibold text-primary-text uppercase tracking-wider">
+          Filter & Search Leads
+        </span>
+      </div>
+
+      <button
+        @click="emit('reset-filters')"
+        class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium text-secondary-text hover:text-primary-text bg-background border border-primary-border hover:bg-card-background transition-colors cursor-pointer"
+      >
+        <RotateCcw class="w-3 h-3" />
+        <span>Reset Filters</span>
+      </button>
+    </div>
+
+    <!-- Filter Inputs Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2.5">
+      <!-- Search Input -->
+      <div class="relative lg:col-span-2">
+        <Search class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-secondary-text" />
+        <input
+          type="text"
+          :value="searchQuery"
+          @input="emit('update:searchQuery', $event.target.value)"
+          placeholder="Search lead name, email, phone..."
+          class="w-full pl-9 pr-3 py-1.5 text-xs bg-background border border-primary-border rounded-lg text-primary-text placeholder-secondary-text focus:outline-none focus:border-primary transition-colors"
+        />
+      </div>
+
+      <!-- Stage Filter -->
+      <div>
+        <select
+          :value="selectedStage"
+          @change="emit('update:selectedStage', $event.target.value)"
+          class="w-full px-2.5 py-1.5 text-xs bg-background border border-primary-border rounded-lg text-primary-text focus:outline-none focus:border-primary transition-colors cursor-pointer"
+        >
+          <option value="">All Stages</option>
+          <option v-for="s in STAGES" :key="s.key" :value="s.key">
+            {{ s.label }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Staff Filter -->
+      <div>
+        <select
+          :value="selectedStaff"
+          @change="emit('update:selectedStaff', $event.target.value)"
+          class="w-full px-2.5 py-1.5 text-xs bg-background border border-primary-border rounded-lg text-primary-text focus:outline-none focus:border-primary transition-colors cursor-pointer"
+        >
+          <option value="">All Staff</option>
+          <option v-for="st in STAFF" :key="st.id" :value="st.name">
+            {{ st.name }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Country Filter -->
+      <div>
+        <select
+          :value="selectedCountry"
+          @change="emit('update:selectedCountry', $event.target.value)"
+          class="w-full px-2.5 py-1.5 text-xs bg-background border border-primary-border rounded-lg text-primary-text focus:outline-none focus:border-primary transition-colors cursor-pointer"
+        >
+          <option value="">All Countries</option>
+          <option v-for="c in COUNTRIES" :key="c.code" :value="c.name">
+            {{ c.flag }} {{ c.name }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Lead Source Filter -->
+      <div>
+        <select
+          :value="selectedSource"
+          @change="emit('update:selectedSource', $event.target.value)"
+          class="w-full px-2.5 py-1.5 text-xs bg-background border border-primary-border rounded-lg text-primary-text focus:outline-none focus:border-primary transition-colors cursor-pointer"
+        >
+          <option value="">All Sources</option>
+          <option v-for="src in SOURCES" :key="src.key" :value="src.label">
+            {{ src.label }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Priority Filter -->
+      <div>
+        <select
+          :value="selectedPriority"
+          @change="emit('update:selectedPriority', $event.target.value)"
+          class="w-full px-2.5 py-1.5 text-xs bg-background border border-primary-border rounded-lg text-primary-text focus:outline-none focus:border-primary transition-colors cursor-pointer"
+        >
+          <option value="">All Priorities</option>
+          <option value="High">High</option>
+          <option value="Medium">Medium</option>
+          <option value="Low">Low</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</template>

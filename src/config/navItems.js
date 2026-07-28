@@ -19,6 +19,7 @@ import {
   ClipboardList,
   ShieldCheck,
   Layers,
+  Target,
 } from "lucide-vue-next";
 
 export const navItems = [
@@ -35,6 +36,11 @@ export const navItems = [
     to: "/clients",
     icon: Users,
     permission: "client.view",
+  },
+  {
+    label: "Lead Management",
+    to: "/lead-management",
+    icon: Target,
   },
   {
     label: "Trading Accounts",
