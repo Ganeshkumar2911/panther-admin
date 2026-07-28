@@ -182,6 +182,13 @@ const urls = {
       delete: "/rbac/permissions_mapping",
     },
   },
+  notifications: {
+    create: "/notifications/create",
+    adminList: "/notifications/list",
+    myNotifications: "/notifications/my-notifications",
+    markRead: "/notifications/read",
+    send: "/notifications/send",
+  },
 };
 
 export default urls;

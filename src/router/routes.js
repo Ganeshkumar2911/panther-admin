@@ -255,6 +255,16 @@ const routes = [
         },
       },
       {
+        path: "/notifications",
+        name: "notifications",
+        component: () => import("@/pages/notifications/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Notifications",
+          description: "View and manage system notifications.",
+        },
+      },
+      {
         path: "/platform-tickets",
         name: "platform-tickets",
         component: () => import("@/pages/platformTickets/index.vue"),
