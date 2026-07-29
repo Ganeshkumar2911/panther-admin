@@ -5,6 +5,8 @@ import MatrixTicker from "@/utils/MatrixTicker";
 import { useProfileStore } from "@/stores/profile/profile";
 import { useClientListStore } from "@/stores/clientList/clientList";
 import { useAccountsStore } from "@/stores/tradingAccounts/tradingAccounts";
+import { useNotificationsStore } from "@/stores/notifications/notifications";
+
 export const useTickerStore = defineStore("tickers", () => {
   const profileStore = useProfileStore();
   const clientListStore = useClientListStore();
@@ -56,6 +58,7 @@ export const useTickerStore = defineStore("tickers", () => {
     if (wsStatus) return;
 
     const accountsStore = useAccountsStore();
+    const notificationsStore = useNotificationsStore();
 
     ticker = new MatrixTicker({
       token: token.value,
@@ -66,6 +69,7 @@ export const useTickerStore = defineStore("tickers", () => {
       isConnected.value = true;
 
       console.log("WebSocket Connected");
+      notificationsStore.fetchMyNotifications();
     });
 
     ticker.on("disconnect", () => {
@@ -88,6 +92,10 @@ export const useTickerStore = defineStore("tickers", () => {
 
     ticker.on("new_withdrawal", (data) => {
       accountsStore.fetchAccounts();
+    });
+
+    ticker.on("new_notification", (data) => {
+      notificationsStore.fetchMyNotifications(true);
     });
 
     /* ---------------- MAIN PRICE EVENT ---------------- */
