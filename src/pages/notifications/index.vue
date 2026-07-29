@@ -243,7 +243,7 @@ function getTypeMeta(type) {
                     <span>Image</span>
                   </button>
                 </div>
-                <p class="mt-0.5 line-clamp-1 max-w-sm text-[11px] text-secondary-text">
+                <p class="mt-0.5 line-clamp-2 whitespace-pre-line max-w-sm text-[11px] text-secondary-text">
                   {{ item.message }}
                 </p>
                 <p v-if="item.note" class="mt-1 flex items-center gap-1 text-[10px] italic text-secondary-text/80">

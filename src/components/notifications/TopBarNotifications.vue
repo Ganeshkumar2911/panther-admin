@@ -261,7 +261,7 @@ function markAsRead(id) {
                 </div>
 
                 <p
-                  class="line-clamp-2 text-[11.5px] leading-relaxed text-secondary-text"
+                  class="line-clamp-3 whitespace-pre-line text-[11.5px] leading-relaxed text-secondary-text"
                 >
                   {{ item.message }}
                 </p>
