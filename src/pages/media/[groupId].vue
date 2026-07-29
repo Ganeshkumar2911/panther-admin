@@ -1,57 +1,31 @@
 <template>
-  <div class="px-4 pb-10 max-w-[1600px] mx-auto space-y-6">
-    <!-- Top Navigation & Breadcrumbs -->
-    <div class="flex items-center justify-end gap-4">
-      <div class="flex items-center gap-2">
-        <button
-          type="button"
-          class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-card-background border border-primary-border text-xs font-semibold text-secondary-text hover:text-primary-text hover:bg-background transition-all cursor-pointer disabled:opacity-50"
-          :disabled="store.loading"
-          @click="store.fetchMediaImages(groupId)"
-          title="Refresh images"
-        >
-          <RotateCw
-            class="w-3.5 h-3.5"
-            :class="{ 'animate-spin': store.loading }"
-          />
-          <span class="hidden sm:inline">Refresh</span>
-        </button>
-
-        <button
-          type="button"
-          class="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-bold transition-all active:scale-[0.98] cursor-pointer"
-          @click="panel = { open: true, editData: null }"
-        >
-          <Upload class="w-4 h-4" />
-          <span>Upload Image</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- Hero Header Banner Card -->
+  <div class="pb-10 max-w-[1600px] mx-auto space-y-6">
+    <!-- Compact Merged Header & Controls Card -->
     <div
-      class="rounded-2xl bg-card-background border border-primary-border/80 p-6 sm:p-7"
+      class="rounded-2xl bg-card-background border border-primary-border/80 p-4 sm:p-5 space-y-4"
     >
+      <!-- Top Row: Folder Info & Action Buttons -->
       <div
-        class="flex flex-col md:flex-row md:items-center justify-between gap-6"
+        class="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
       >
-        <div class="flex items-start gap-4">
+        <div class="flex items-center gap-3.5 min-w-0">
           <div
-            class="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0"
+            class="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0"
           >
-            <FolderOpen class="w-7 h-7" />
+            <FolderOpen class="w-5 h-5" />
           </div>
 
-          <div class="space-y-1">
-            <div class="flex items-center flex-wrap gap-2.5">
+          <div class="min-w-0">
+            <div class="flex items-center gap-2.5 flex-wrap">
               <h1
-                class="text-xl sm:text-2xl font-bold text-primary-text tracking-tight"
+                class="text-lg font-bold text-primary-text tracking-tight truncate"
               >
                 {{ store.mediaGroup?.title || "Media Folder" }}
               </h1>
+
               <span
                 v-if="store.mediaGroup"
-                class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-semibold uppercase tracking-wider border"
+                class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider border"
                 :class="
                   store.mediaGroup.is_active
                     ? 'bg-primary-green/10 text-primary-green border-primary-green/20'
@@ -72,126 +46,133 @@
                     : "Inactive Folder"
                 }}
               </span>
+
+              <span
+                class="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-background border border-primary-border/80 text-secondary-text"
+              >
+                {{ store.pagination?.total ?? store.records.length }} Total
+                Assets
+              </span>
             </div>
 
             <p
-              class="text-xs sm:text-sm text-secondary-text leading-relaxed max-w-2xl"
+              v-if="store.mediaGroup?.description"
+              class="text-xs text-secondary-text truncate max-w-2xl mt-0.5 leading-relaxed"
             >
-              {{
-                store.mediaGroup?.description ||
-                "Manage images and assets inside this media folder."
-              }}
+              {{ store.mediaGroup.description }}
             </p>
           </div>
         </div>
 
-        <!-- Meta Summary Stats -->
-        <div
-          class="flex items-center gap-3 sm:gap-4 shrink-0 bg-background/50 border border-primary-border/60 p-3 rounded-lg"
-        >
-          <div class="px-3 py-1 border-r border-primary-border/60 text-center">
-            <p
-              class="text-[10px] uppercase font-bold text-secondary-text tracking-wider"
-            >
-              Total Assets
-            </p>
-            <p class="text-base font-extrabold text-primary-text mt-0.5">
-              {{ store.pagination?.total ?? store.records.length }}
-            </p>
-          </div>
-
-          <div class="px-3 py-1 text-center">
-            <p
-              class="text-[10px] uppercase font-bold text-secondary-text tracking-wider"
-            >
-              Created
-            </p>
-            <p class="text-xs font-semibold text-primary-text mt-1">
-              {{ formatDate(store.mediaGroup?.created_at) }}
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Controls Bar (Search, Status Filters, View Mode) -->
-    <div
-      class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-card-background/60 border border-primary-border/70 p-3 rounded-2xl"
-    >
-      <!-- Search Input -->
-      <div class="relative flex-1 max-w-md">
-        <Search
-          class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-text"
-        />
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="Search images by title or description..."
-          class="w-full pl-9 pr-8 py-2 bg-background border border-primary-border/80 rounded-lg text-xs text-primary-text placeholder:text-secondary-text/70 focus:outline-none focus:border-primary transition-colors"
-        />
-        <button
-          v-if="searchQuery"
-          @click="searchQuery = ''"
-          class="absolute right-3 top-1/2 -translate-y-1/2 text-secondary-text hover:text-primary-text"
-        >
-          <X class="w-3.5 h-3.5" />
-        </button>
-      </div>
-
-      <!-- Right Controls: Status Pills & View Switcher -->
-      <div
-        class="flex items-center justify-between sm:justify-end gap-3 shrink-0"
-      >
-        <!-- Status Filter -->
-        <div
-          class="flex items-center bg-background border border-primary-border/80 p-0.5 rounded-lg"
-        >
+        <!-- Right Side Action Buttons -->
+        <div class="flex items-center gap-2 shrink-0">
           <button
-            v-for="status in ['all', 'active', 'inactive']"
-            :key="status"
             type="button"
-            class="px-2.5 py-1 text-[11px] font-semibold capitalize rounded-lg transition-all cursor-pointer"
-            :class="
-              statusFilter === status
-                ? 'bg-primary text-white font-bold'
-                : 'text-secondary-text hover:text-primary-text'
-            "
-            @click="statusFilter = status"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-background border border-primary-border text-xs font-semibold text-secondary-text hover:text-primary-text hover:bg-card-background transition-all cursor-pointer disabled:opacity-50"
+            :disabled="store.loading"
+            @click="store.fetchMediaImages(groupId)"
+            title="Refresh images"
           >
-            {{ status }}
+            <RotateCw
+              class="w-3.5 h-3.5"
+              :class="{ 'animate-spin': store.loading }"
+            />
+            <span class="hidden sm:inline">Refresh</span>
           </button>
+
+          <button
+            type="button"
+            class="flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-bold transition-all active:scale-[0.98] cursor-pointer shadow-sm"
+            @click="panel = { open: true, editData: null }"
+          >
+            <Upload class="w-3.5 h-3.5" />
+            <span>Upload Image</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Divider -->
+      <div class="h-px bg-primary-border/60" />
+
+      <!-- Bottom Row: Search, Status Filter & View Switcher -->
+      <div
+        class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3"
+      >
+        <!-- Search Input & Status Filter -->
+        <div class="flex flex-wrap items-center gap-3 flex-1">
+          <!-- Search Input -->
+          <div class="relative flex-1 max-w-sm min-w-[200px]">
+            <Search
+              class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-secondary-text"
+            />
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Search images..."
+              class="w-full pl-8 pr-7 py-1.5 bg-background border border-primary-border/80 rounded-lg text-xs text-primary-text placeholder:text-secondary-text/70 focus:outline-none focus:border-primary transition-colors"
+            />
+            <button
+              v-if="searchQuery"
+              @click="searchQuery = ''"
+              class="absolute right-2.5 top-1/2 -translate-y-1/2 text-secondary-text hover:text-primary-text"
+            >
+              <X class="w-3 h-3" />
+            </button>
+          </div>
+
+          <!-- Status Filter Pills -->
+          <!-- <div
+            class="flex items-center bg-background border border-primary-border/80 p-0.5 rounded-lg shrink-0"
+          >
+            <button
+              v-for="status in ['all', 'active', 'inactive']"
+              :key="status"
+              type="button"
+              class="px-2.5 py-1 text-[11px] font-semibold capitalize rounded-md transition-all cursor-pointer"
+              :class="
+                statusFilter === status
+                  ? 'bg-primary text-white font-bold'
+                  : 'text-secondary-text hover:text-primary-text'
+              "
+              @click="statusFilter = status"
+            >
+              {{ status }}
+            </button>
+          </div> -->
         </div>
 
         <!-- View Switcher (Grid vs List) -->
-        <div
-          class="flex items-center bg-background border border-primary-border/80 p-0.5 rounded-lg"
-        >
-          <button
-            type="button"
-            class="p-1.5 rounded-lg transition-all cursor-pointer"
-            :class="
-              viewMode === 'grid'
-                ? 'bg-primary text-white'
-                : 'text-secondary-text hover:text-primary-text'
-            "
-            @click="viewMode = 'grid'"
-            title="Grid View"
+        <div class="flex items-center justify-end shrink-0">
+          <div
+            class="flex items-center bg-background border border-primary-border/80 p-0.5 rounded-lg"
           >
-            <LayoutGrid class="w-4 h-4" />
-          </button>
-          <button
-            type="button"
-            class="p-1.5 rounded-lg transition-all cursor-pointer"
-            :class="
-              viewMode === 'list'
-                ? 'bg-primary text-white'
-                : 'text-secondary-text hover:text-primary-text'
-            "
-            @click="viewMode = 'list'"
-            title="List View"
-          >
-            <List class="w-4 h-4" />
-          </button>
+            <button
+              type="button"
+              class="p-1 rounded-md transition-all cursor-pointer"
+              :class="
+                viewMode === 'grid'
+                  ? 'bg-primary text-white'
+                  : 'text-secondary-text hover:text-primary-text'
+              "
+              @click="viewMode = 'grid'"
+              title="Grid View"
+            >
+              <LayoutGrid class="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
+              class="p-1 rounded-md transition-all cursor-pointer"
+              :class="
+                viewMode === 'list'
+                  ? 'bg-primary text-white'
+                  : 'text-secondary-text hover:text-primary-text'
+              "
+              @click="viewMode = 'list'"
+              title="List View"
+            >
+              <List class="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -277,7 +258,7 @@
       >
         <!-- Image Container with Hover Overlay -->
         <div
-          class="relative aspect-[4/3] bg-black/60 overflow-hidden cursor-pointer"
+          class="relative aspect-[4/3] bg-black/60 overflow-hidden cursor-pointer m-3 rounded-xl"
           @click="preview = { open: true, image: img }"
         >
           <img

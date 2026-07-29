@@ -1,8 +1,7 @@
 <template>
-  <div class="px-4 pb-10 max-w-[1600px] mx-auto space-y-6">
+  <div class="pb-10 max-w-[1600px] mx-auto space-y-6">
     <!-- Top Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-end gap-4">
-
       <div class="flex items-center gap-2.5">
         <button
           type="button"
@@ -11,7 +10,10 @@
           @click="store.fetchGroups(true)"
           title="Refresh media folders"
         >
-          <RotateCw class="w-3.5 h-3.5" :class="{ 'animate-spin': store.loading }" />
+          <RotateCw
+            class="w-3.5 h-3.5"
+            :class="{ 'animate-spin': store.loading }"
+          />
           <span class="hidden sm:inline">Refresh</span>
         </button>
 
@@ -55,13 +57,18 @@
       v-else-if="store.records.length === 0"
       class="flex flex-col items-center justify-center gap-4 py-20 bg-card-background/40 border border-dashed border-primary-border rounded-2xl"
     >
-      <div class="w-16 h-16 rounded-2xl bg-card-background border border-primary-border flex items-center justify-center text-secondary-text">
+      <div
+        class="w-16 h-16 rounded-2xl bg-card-background border border-primary-border flex items-center justify-center text-secondary-text"
+      >
         <FolderOpen class="w-8 h-8 opacity-60" />
       </div>
       <div class="text-center max-w-sm px-4">
-        <h3 class="text-base font-bold text-primary-text">No Media Folders Yet</h3>
+        <h3 class="text-base font-bold text-primary-text">
+          No Media Folders Yet
+        </h3>
         <p class="text-xs text-secondary-text mt-1 leading-relaxed">
-          Create your first media group folder to start uploading and organizing promotional images.
+          Create your first media group folder to start uploading and organizing
+          promotional images.
         </p>
       </div>
       <button
@@ -85,12 +92,16 @@
         <div class="space-y-3">
           <div class="flex items-start justify-between gap-3">
             <div class="flex items-start gap-3 min-w-0">
-              <div class="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0 group-hover:scale-105 transition-transform">
+              <div
+                class="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0 group-hover:scale-105 transition-transform"
+              >
                 <FolderOpen class="w-5 h-5" />
               </div>
 
               <div class="min-w-0">
-                <h3 class="text-sm font-bold text-primary-text group-hover:text-primary transition-colors truncate">
+                <h3
+                  class="text-sm font-bold text-primary-text group-hover:text-primary transition-colors truncate"
+                >
                   {{ group.title }}
                 </h3>
                 <p class="text-[11px] font-mono text-secondary-text/80">
@@ -107,18 +118,28 @@
                   : 'bg-primary-red/10 text-primary-red border-primary-red/20'
               "
             >
-              <span class="w-1.5 h-1.5 rounded-full" :class="group.is_active ? 'bg-primary-green' : 'bg-primary-red'" />
+              <span
+                class="w-1.5 h-1.5 rounded-full"
+                :class="group.is_active ? 'bg-primary-green' : 'bg-primary-red'"
+              />
               {{ group.is_active ? "Active" : "Inactive" }}
             </span>
           </div>
 
-          <p class="text-xs text-secondary-text leading-relaxed line-clamp-2 min-h-[36px]">
-            {{ group.description || "No description provided for this media group." }}
+          <p
+            class="text-xs text-secondary-text leading-relaxed line-clamp-2 min-h-[36px]"
+          >
+            {{
+              group.description ||
+              "No description provided for this media group."
+            }}
           </p>
         </div>
 
         <div class="space-y-3 pt-3 border-t border-primary-border/60">
-          <div class="flex items-center justify-between text-[11px] text-secondary-text">
+          <div
+            class="flex items-center justify-between text-[11px] text-secondary-text"
+          >
             <span class="flex items-center gap-1.5">
               <CalendarDays class="w-3.5 h-3.5 text-secondary-text/70" />
               {{ formatDate(group.created_at) }}
