@@ -1,20 +1,12 @@
 <template>
   <div class="px-4 pb-10 max-w-[1600px] mx-auto space-y-6">
     <!-- Top Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-      <div>
-        <h1 class="text-xl sm:text-2xl font-bold text-primary-text tracking-tight">
-          Media Library
-        </h1>
-        <p class="text-xs text-secondary-text mt-0.5">
-          Organize, manage, and retrieve image assets for the platform
-        </p>
-      </div>
+    <div class="flex flex-col sm:flex-row sm:items-center justify-end gap-4">
 
       <div class="flex items-center gap-2.5">
         <button
           type="button"
-          class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card-background border border-primary-border text-xs font-semibold text-secondary-text hover:text-primary-text hover:bg-background transition-all cursor-pointer disabled:opacity-50"
+          class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-card-background border border-primary-border text-xs font-semibold text-secondary-text hover:text-primary-text hover:bg-background transition-all cursor-pointer disabled:opacity-50"
           :disabled="store.loading"
           @click="store.fetchGroups(true)"
           title="Refresh media folders"
@@ -25,7 +17,7 @@
 
         <button
           type="button"
-          class="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-bold transition-all cursor-pointer"
+          class="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-bold transition-all cursor-pointer"
           @click="panel = { open: true, editData: null }"
         >
           <Plus class="w-4 h-4" />
@@ -51,9 +43,9 @@
         <div class="h-3.5 w-full bg-background rounded-md" />
         <div class="h-3 w-28 bg-background rounded-md" />
         <div class="flex gap-2 pt-3 border-t border-primary-border">
-          <div class="flex-1 h-8 bg-background rounded-xl" />
-          <div class="w-8 h-8 bg-background rounded-xl" />
-          <div class="w-8 h-8 bg-background rounded-xl" />
+          <div class="flex-1 h-8 bg-background rounded-lg" />
+          <div class="w-8 h-8 bg-background rounded-lg" />
+          <div class="w-8 h-8 bg-background rounded-lg" />
         </div>
       </div>
     </div>
@@ -74,7 +66,7 @@
       </div>
       <button
         type="button"
-        class="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-bold transition-all cursor-pointer"
+        class="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-bold transition-all cursor-pointer"
         @click="panel = { open: true, editData: null }"
       >
         <Plus class="w-4 h-4" />
@@ -93,7 +85,7 @@
         <div class="space-y-3">
           <div class="flex items-start justify-between gap-3">
             <div class="flex items-start gap-3 min-w-0">
-              <div class="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0 group-hover:scale-105 transition-transform">
+              <div class="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0 group-hover:scale-105 transition-transform">
                 <FolderOpen class="w-5 h-5" />
               </div>
 
@@ -136,7 +128,7 @@
           <div class="flex items-center gap-2" @click.stop>
             <button
               type="button"
-              class="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-bold transition-all cursor-pointer"
+              class="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-bold transition-all cursor-pointer"
               @click="router.push(`/media/${group.id}`)"
             >
               <FolderOpen class="w-3.5 h-3.5" />
@@ -145,7 +137,7 @@
 
             <button
               type="button"
-              class="p-2 rounded-xl border border-primary-border/80 hover:bg-background text-secondary-text hover:text-primary-text transition-colors cursor-pointer"
+              class="p-2 rounded-lg border border-primary-border/80 hover:bg-background text-secondary-text hover:text-primary-text transition-colors cursor-pointer"
               @click="panel = { open: true, editData: group }"
               title="Edit Folder"
             >
@@ -154,7 +146,7 @@
 
             <button
               type="button"
-              class="p-2 rounded-xl bg-primary-red/10 border border-primary-red/20 text-primary-red hover:bg-primary-red/20 transition-colors cursor-pointer"
+              class="p-2 rounded-lg bg-primary-red/10 border border-primary-red/20 text-primary-red hover:bg-primary-red/20 transition-colors cursor-pointer"
               @click="deleteDialog = { open: true, group }"
               title="Delete Folder"
             >

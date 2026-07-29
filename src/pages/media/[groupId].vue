@@ -1,29 +1,11 @@
 <template>
   <div class="px-4 pb-10 max-w-[1600px] mx-auto space-y-6">
     <!-- Top Navigation & Breadcrumbs -->
-    <div class="flex items-center justify-between gap-4">
-      <div
-        class="flex items-center gap-2 text-xs font-medium text-secondary-text"
-      >
-        <router-link
-          to="/media"
-          class="flex items-center gap-1.5 hover:text-primary transition-colors py-1 px-2.5 rounded-lg hover:bg-card-background border border-transparent hover:border-primary-border"
-        >
-          <ArrowLeft class="w-3.5 h-3.5" />
-          <span>Media Library</span>
-        </router-link>
-        <ChevronRight class="w-3.5 h-3.5 text-secondary-text/40" />
-        <span
-          class="text-primary-text font-semibold truncate max-w-[200px] sm:max-w-[300px]"
-        >
-          {{ store.mediaGroup?.title || "Group Images" }}
-        </span>
-      </div>
-
+    <div class="flex items-center justify-end gap-4">
       <div class="flex items-center gap-2">
         <button
           type="button"
-          class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card-background border border-primary-border text-xs font-semibold text-secondary-text hover:text-primary-text hover:bg-background transition-all cursor-pointer disabled:opacity-50"
+          class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-card-background border border-primary-border text-xs font-semibold text-secondary-text hover:text-primary-text hover:bg-background transition-all cursor-pointer disabled:opacity-50"
           :disabled="store.loading"
           @click="store.fetchMediaImages(groupId)"
           title="Refresh images"
@@ -37,7 +19,7 @@
 
         <button
           type="button"
-          class="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-bold transition-all active:scale-[0.98] cursor-pointer"
+          class="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-bold transition-all active:scale-[0.98] cursor-pointer"
           @click="panel = { open: true, editData: null }"
         >
           <Upload class="w-4 h-4" />
@@ -105,7 +87,7 @@
 
         <!-- Meta Summary Stats -->
         <div
-          class="flex items-center gap-3 sm:gap-4 shrink-0 bg-background/50 border border-primary-border/60 p-3 rounded-xl"
+          class="flex items-center gap-3 sm:gap-4 shrink-0 bg-background/50 border border-primary-border/60 p-3 rounded-lg"
         >
           <div class="px-3 py-1 border-r border-primary-border/60 text-center">
             <p
@@ -145,7 +127,7 @@
           v-model="searchQuery"
           type="text"
           placeholder="Search images by title or description..."
-          class="w-full pl-9 pr-8 py-2 bg-background border border-primary-border/80 rounded-xl text-xs text-primary-text placeholder:text-secondary-text/70 focus:outline-none focus:border-primary transition-colors"
+          class="w-full pl-9 pr-8 py-2 bg-background border border-primary-border/80 rounded-lg text-xs text-primary-text placeholder:text-secondary-text/70 focus:outline-none focus:border-primary transition-colors"
         />
         <button
           v-if="searchQuery"
@@ -162,7 +144,7 @@
       >
         <!-- Status Filter -->
         <div
-          class="flex items-center bg-background border border-primary-border/80 p-0.5 rounded-xl"
+          class="flex items-center bg-background border border-primary-border/80 p-0.5 rounded-lg"
         >
           <button
             v-for="status in ['all', 'active', 'inactive']"
@@ -182,7 +164,7 @@
 
         <!-- View Switcher (Grid vs List) -->
         <div
-          class="flex items-center bg-background border border-primary-border/80 p-0.5 rounded-xl"
+          class="flex items-center bg-background border border-primary-border/80 p-0.5 rounded-lg"
         >
           <button
             type="button"
@@ -263,7 +245,7 @@
       <button
         v-if="!searchQuery && statusFilter === 'all'"
         type="button"
-        class="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-bold transition-all cursor-pointer"
+        class="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-bold transition-all cursor-pointer"
         @click="panel = { open: true, editData: null }"
       >
         <Upload class="w-4 h-4" />
@@ -333,7 +315,7 @@
             <div class="flex items-center justify-center gap-2">
               <button
                 type="button"
-                class="p-2.5 rounded-xl bg-black/60 hover:bg-black/90 border border-white/20 text-white transition-all hover:scale-105 cursor-pointer"
+                class="p-2.5 rounded-lg bg-black/60 hover:bg-black/90 border border-white/20 text-white transition-all hover:scale-105 cursor-pointer"
                 @click.stop="preview = { open: true, image: img }"
                 title="Preview Image"
               >
@@ -342,7 +324,7 @@
 
               <button
                 type="button"
-                class="p-2.5 rounded-xl bg-black/60 hover:bg-black/90 border border-white/20 text-white transition-all hover:scale-105 cursor-pointer"
+                class="p-2.5 rounded-lg bg-black/60 hover:bg-black/90 border border-white/20 text-white transition-all hover:scale-105 cursor-pointer"
                 @click.stop="panel = { open: true, editData: img }"
                 title="Edit Image Details"
               >
@@ -351,7 +333,7 @@
 
               <button
                 type="button"
-                class="p-2.5 rounded-xl bg-primary-red/80 hover:bg-primary-red text-white transition-all hover:scale-105 cursor-pointer"
+                class="p-2.5 rounded-lg bg-primary-red/80 hover:bg-primary-red text-white transition-all hover:scale-105 cursor-pointer"
                 @click.stop="deleteDialog = { open: true, image: img }"
                 title="Delete Image"
               >
