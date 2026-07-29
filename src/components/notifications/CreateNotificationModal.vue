@@ -42,6 +42,7 @@ const form = reactive({
   type: 'ANNOUNCEMENT',
   priority: 'HIGH',
   action_url: '',
+  image_url: '',
   metadataPairs: [{ key: '', value: '' }],
   sendToAll: true,
   roles: {
@@ -112,6 +113,7 @@ function populateForm(notification) {
   form.type = notification.type || 'ANNOUNCEMENT'
   form.priority = notification.priority || 'HIGH'
   form.action_url = notification.action_url || ''
+  form.image_url = notification.image_url || ''
 
   // Metadata JSON
   if (notification.metadata_json && typeof notification.metadata_json === 'object') {
@@ -180,6 +182,7 @@ function resetForm() {
   form.type = 'ANNOUNCEMENT'
   form.priority = 'HIGH'
   form.action_url = ''
+  form.image_url = ''
   form.metadataPairs = [{ key: '', value: '' }]
   form.sendToAll = true
   form.roles.client = false
@@ -245,6 +248,7 @@ function handleSubmit() {
     type: form.type,
     priority: form.priority,
     action_url: form.action_url.trim() || null,
+    image_url: form.image_url.trim() || null,
     metadata_json,
     targets,
   }
@@ -283,7 +287,7 @@ function handleSubmit() {
         <!-- Header -->
         <div class="px-5 py-4 border-b border-primary-border flex items-center justify-between bg-background/50 shrink-0">
           <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center text-primary">
+            <div class="w-8 h-8 rounded-lg bg-primary/20 border border-primary/30 flex items-center justify-center text-primary">
               <Edit3 v-if="notificationToEdit" class="w-4 h-4" />
               <Bell v-else class="w-4 h-4" />
             </div>
@@ -332,8 +336,8 @@ function handleSubmit() {
               </div>
             </div>
 
-            <!-- Priority & Action URL -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <!-- Priority, Action URL & Image URL -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label class="block text-secondary-text font-medium mb-1">Priority</label>
                 <BaseSelect
@@ -343,7 +347,7 @@ function handleSubmit() {
                 />
               </div>
 
-              <div class="sm:col-span-2">
+              <div>
                 <label class="block text-secondary-text font-medium mb-1">Action URL (Optional)</label>
                 <input
                   v-model="form.action_url"
@@ -352,6 +356,17 @@ function handleSubmit() {
                   class="w-full px-3 py-2 bg-background border border-primary-border rounded-lg text-primary-text focus:outline-none focus:border-primary"
                 />
               </div>
+            </div>
+
+            <!-- Image URL -->
+            <div>
+              <label class="block text-secondary-text font-medium mb-1">Image URL (Optional Attachment)</label>
+              <input
+                v-model="form.image_url"
+                type="url"
+                placeholder="https://example.com/banner.png"
+                class="w-full px-3 py-2 bg-background border border-primary-border rounded-lg text-primary-text focus:outline-none focus:border-primary"
+              />
             </div>
 
             <!-- Message Body -->
@@ -378,7 +393,7 @@ function handleSubmit() {
             </div>
 
             <!-- Target Selection Box -->
-            <div class="bg-background border border-primary-border rounded-xl p-3.5 space-y-3">
+            <div class="bg-background border border-primary-border rounded-lg p-3.5 space-y-3">
               <span class="block text-xs font-semibold text-primary-text uppercase tracking-wider">
                 Target Recipients
               </span>
@@ -456,7 +471,7 @@ function handleSubmit() {
             </div>
 
             <!-- Custom Metadata Section (Dynamic Key-Value Pairs) -->
-            <div class="bg-background border border-primary-border rounded-xl p-3.5 space-y-3">
+            <div class="bg-background border border-primary-border rounded-lg p-3.5 space-y-3">
               <div class="flex items-center justify-between border-b border-primary-border/60 pb-2">
                 <span class="block text-xs font-semibold text-primary-text uppercase tracking-wider">
                   Custom Metadata (JSON Payload)
@@ -513,14 +528,14 @@ function handleSubmit() {
             <button
               type="button"
               @click="emit('close')"
-              class="px-4 py-2 rounded-xl border border-primary-border bg-background hover:bg-card-background text-secondary-text hover:text-primary-text font-medium transition-colors cursor-pointer"
+              class="px-4 py-2 rounded-lg border border-primary-border bg-background hover:bg-card-background text-secondary-text hover:text-primary-text font-medium transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               :disabled="store.createLoading || store.updateLoadingId !== null"
-              class="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-btn-text-primary font-semibold shadow-md transition-colors cursor-pointer disabled:opacity-50"
+              class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-btn-text-primary font-semibold shadow-md transition-colors cursor-pointer disabled:opacity-50"
             >
               <Loader2 v-if="store.createLoading || store.updateLoadingId !== null" class="w-3.5 h-3.5 animate-spin" />
               <Send v-else class="w-3.5 h-3.5" />
@@ -528,7 +543,7 @@ function handleSubmit() {
                 {{
                   notificationToEdit
                     ? (store.updateLoadingId === notificationToEdit.id ? 'Updating...' : 'Update Notification')
-                    : (store.createLoading ? 'Dispatching...' : 'Dispatch Notification')
+                    : (store.createLoading ? 'Creating...' : 'Create Notification')
                 }}
               </span>
             </button>

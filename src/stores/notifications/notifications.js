@@ -3,6 +3,7 @@ import { ref, computed } from "vue";
 import apiRequest from "@/api/request";
 import urls from "@/api/urls";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
+import notificationSound from "@/assets/notification.wav";
 
 export const useNotificationsStore = defineStore("notifications", () => {
   const myNotifications = ref([]);
@@ -29,7 +30,53 @@ export const useNotificationsStore = defineStore("notifications", () => {
     total: 0,
   });
 
+  const readStatusLogs = ref([]);
+  const readStatusLoading = ref(false);
+  const readStatusPagination = ref({
+    page: 1,
+    total_pages: 1,
+    per_page: 10,
+    total: 0,
+  });
+
   const snackbar = useSnackbarStore();
+
+  // ─── Preload & Unlock Notification Sound ───────────────────────────
+  let notificationAudio = null;
+  if (typeof window !== "undefined") {
+    notificationAudio = new Audio(notificationSound);
+    notificationAudio.volume = 1.0;
+
+    const unlockAudio = () => {
+      if (!notificationAudio) return;
+      notificationAudio
+        .play()
+        .then(() => {
+          notificationAudio.pause();
+          notificationAudio.currentTime = 0;
+        })
+        .catch(() => {});
+      window.removeEventListener("click", unlockAudio);
+      window.removeEventListener("keydown", unlockAudio);
+    };
+
+    window.addEventListener("click", unlockAudio, { once: true });
+    window.addEventListener("keydown", unlockAudio, { once: true });
+  }
+
+  const playNotificationSound = () => {
+    try {
+      if (!notificationAudio) {
+        notificationAudio = new Audio(notificationSound);
+      }
+      notificationAudio.currentTime = 0;
+      notificationAudio.play().catch((err) => {
+        console.warn("Notification sound blocked or failed:", err);
+      });
+    } catch (err) {
+      console.warn("Audio playback error:", err);
+    }
+  };
 
   // Computed unread count for current user
   const unreadCount = computed(() => {
@@ -119,6 +166,7 @@ export const useNotificationsStore = defineStore("notifications", () => {
 
   // ─── Add Single Notification from WebSocket ───────────────────────
   const addNotification = (data) => {
+    console.log("🔔 WebSocket received new_notification:", data);
     if (!data) return;
     const item = typeof data === "object" ? data : null;
     if (!item) return;
@@ -132,6 +180,7 @@ export const useNotificationsStore = defineStore("notifications", () => {
       });
       myPagination.value.total += 1;
     }
+    playNotificationSound();
   };
 
   // ─── Fetch Admin Historical Notification List ──────────────────────
@@ -162,6 +211,45 @@ export const useNotificationsStore = defineStore("notifications", () => {
 
     apiRequest(urls.KEYS.GET, urls.notifications.adminList, {
       params: { page },
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+    });
+  };
+
+  // ─── Fetch Read Status Logs (GET /notifications/read-status/<id>) ──
+  const fetchReadStatusLogs = (id, filters = {}) => {
+    if (!id) return;
+    readStatusLoading.value = true;
+
+    const params = {
+      page: filters.page || 1,
+    };
+    if (filters.status) params.status = filters.status;
+    if (filters.role) params.role = filters.role;
+
+    const successHandler = (res) => {
+      const list = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+      readStatusLogs.value = list;
+      if (res && typeof res === "object") {
+        readStatusPagination.value = {
+          page: res.current_page || params.page,
+          total_pages: res.pages || 1,
+          per_page: res.per_page || 10,
+          total: res.total ?? list.length,
+        };
+      }
+      readStatusLoading.value = false;
+    };
+
+    const failureHandler = (err) => {
+      readStatusLoading.value = false;
+      snackbar.show(err?.message || "Failed to fetch read status logs.", "error");
+    };
+
+    apiRequest(urls.KEYS.GET, urls.notifications.readStatus, {
+      look_up_key: id,
+      params,
       isTokenRequired: true,
       onSuccess: successHandler,
       onFailure: failureHandler,
@@ -305,6 +393,9 @@ export const useNotificationsStore = defineStore("notifications", () => {
     adminNotifications,
     myPagination,
     adminPagination,
+    readStatusLogs,
+    readStatusLoading,
+    readStatusPagination,
     myLoading,
     myMoreLoading,
     adminLoading,
@@ -315,7 +406,9 @@ export const useNotificationsStore = defineStore("notifications", () => {
     fetchMyNotifications,
     fetchMoreMyNotifications,
     addNotification,
+    playNotificationSound,
     fetchAdminNotifications,
+    fetchReadStatusLogs,
     markAsRead,
     markAllAsRead,
     createNotification,

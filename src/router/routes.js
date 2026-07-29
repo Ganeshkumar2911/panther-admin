@@ -265,6 +265,17 @@ const routes = [
         },
       },
       {
+        path: "/notifications/read-status/:id",
+        name: "notification-read-status",
+        component: () => import("@/pages/notifications/readStatus.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Notification Read Status Logs",
+          description: "Track user read statuses and delivery receipts.",
+          showBackButton: true,
+        },
+      },
+      {
         path: "/platform-tickets",
         name: "platform-tickets",
         component: () => import("@/pages/platformTickets/index.vue"),

@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
+import { useRouter } from "vue-router";
 import {
   Bell,
   CheckCheck,
@@ -10,12 +11,34 @@ import {
 } from "lucide-vue-next";
 import { useNotificationsStore } from "@/stores/notifications/notifications";
 import MyNotificationsDrawer from "@/components/notifications/MyNotificationsDrawer.vue";
+import NotificationImageModal from "@/components/notifications/NotificationImageModal.vue";
 
+const router = useRouter();
 const notificationsStore = useNotificationsStore();
 
 const notifPopoverOpen = ref(false);
 const drawerOpen = ref(false);
 const popoverRef = ref(null);
+
+const imageModalOpen = ref(false);
+const selectedImageUrl = ref("");
+const selectedImageTitle = ref("");
+
+function openImageModal(notification) {
+  if (!notification?.image_url) return;
+  selectedImageUrl.value = notification.image_url;
+  selectedImageTitle.value = notification.title || "Notification Image";
+  imageModalOpen.value = true;
+}
+
+function handleNavigate(url, event) {
+  if (!url) return;
+  notifPopoverOpen.value = false;
+  if (url.startsWith("/")) {
+    event.preventDefault();
+    router.push(url);
+  }
+}
 
 const unreadNotifications = computed(() => {
   return notificationsStore.myNotifications.filter((n) => !n.is_read);
@@ -243,6 +266,22 @@ function markAsRead(id) {
                   {{ item.message }}
                 </p>
 
+                <!-- Image Attachment Thumbnail -->
+                <Tooltip
+                  v-if="item.image_url"
+                  text="Click on the image to view it in full screen"
+                  position="start"
+                >
+                  <div class="mt-1.5 inline-block">
+                    <img
+                      :src="item.image_url"
+                      :alt="item.title"
+                      @click.stop="openImageModal(item)"
+                      class="h-10 w-10 shrink-0 rounded-lg border border-primary-border object-cover transition-opacity hover:opacity-80 cursor-pointer shadow-xs"
+                    />
+                  </div>
+                </Tooltip>
+
                 <div class="mt-2 flex items-center justify-between">
                   <div
                     class="flex items-center gap-1.5 text-[10px] text-secondary-text/80"
@@ -267,9 +306,8 @@ function markAsRead(id) {
                     <a
                       v-if="item.action_url"
                       :href="item.action_url"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      class="flex items-center gap-0.5 text-[10.5px] font-medium text-primary hover:underline"
+                      @click="handleNavigate(item.action_url, $event)"
+                      class="flex items-center gap-0.5 text-[10.5px] font-medium text-primary hover:underline cursor-pointer"
                     >
                       <span>Open</span>
                       <ExternalLink class="h-2.5 w-2.5" />
@@ -305,6 +343,14 @@ function markAsRead(id) {
 
     <!-- Side Drawer -->
     <MyNotificationsDrawer :open="drawerOpen" @close="drawerOpen = false" />
+
+    <!-- Image Attachment Preview Modal -->
+    <NotificationImageModal
+      :open="imageModalOpen"
+      :imageUrl="selectedImageUrl"
+      :title="selectedImageTitle"
+      @close="imageModalOpen = false"
+    />
   </div>
 </template>
 

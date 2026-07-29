@@ -189,6 +189,7 @@ const urls = {
     myNotifications: "/notifications/my-notifications",
     markRead: "/notifications/read",
     send: "/notifications/send",
+    readStatus: "/notifications/read-status",
   },
 };
 
