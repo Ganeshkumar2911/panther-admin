@@ -8,10 +8,26 @@ export const useNotificationsStore = defineStore("notifications", () => {
   const myNotifications = ref([]);
   const adminNotifications = ref([]);
   const myLoading = ref(false);
+  const myMoreLoading = ref(false);
   const adminLoading = ref(false);
   const createLoading = ref(false);
   const isMyFetched = ref(false);
   const isAdminFetched = ref(false);
+
+  const myPagination = ref({
+    page: 1,
+    total_pages: 1,
+    per_page: 10,
+    total: 0,
+    has_more: false,
+  });
+
+  const adminPagination = ref({
+    page: 1,
+    total_pages: 1,
+    per_page: 10,
+    total: 0,
+  });
 
   const snackbar = useSnackbarStore();
 
@@ -20,7 +36,7 @@ export const useNotificationsStore = defineStore("notifications", () => {
     return myNotifications.value.filter((n) => !n.is_read).length;
   });
 
-  // ─── Fetch Logged-in User's Notifications ─────────────────────────
+  // ─── Fetch Logged-in User's Notifications (Page 1) ─────────────────
   const fetchMyNotifications = (force = false) => {
     if (myLoading.value) return;
     if (isMyFetched.value && !force) return;
@@ -28,35 +44,113 @@ export const useNotificationsStore = defineStore("notifications", () => {
     myLoading.value = true;
 
     const successHandler = (res) => {
-      // res can be an array directly or res.data
-      const list = Array.isArray(res) ? res : res?.data || [];
+      const list = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
       myNotifications.value = list;
+      if (res && typeof res === "object") {
+        const page = res.current_page || 1;
+        const totalPages = res.pages || 1;
+        myPagination.value = {
+          page,
+          total_pages: totalPages,
+          per_page: res.per_page || 10,
+          total: res.total ?? list.length,
+          has_more: page < totalPages,
+        };
+      }
       myLoading.value = false;
       isMyFetched.value = true;
     };
 
     const failureHandler = (err) => {
       myLoading.value = false;
-      // Fail gracefully or show notification
     };
 
     apiRequest(urls.KEYS.GET, urls.notifications.myNotifications, {
+      params: { page: 1 },
       isTokenRequired: true,
       onSuccess: successHandler,
       onFailure: failureHandler,
     });
   };
 
+  // ─── Fetch More Notifications (Append Next Page) ────────────────────
+  const fetchMoreMyNotifications = () => {
+    if (myMoreLoading.value || myLoading.value) return;
+    if (myPagination.value.page >= myPagination.value.total_pages) return;
+
+    const nextPage = myPagination.value.page + 1;
+    myMoreLoading.value = true;
+
+    const successHandler = (res) => {
+      const newList = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+
+      const existingIds = new Set(myNotifications.value.map((n) => n.id));
+      newList.forEach((item) => {
+        if (!existingIds.has(item.id)) {
+          myNotifications.value.push(item);
+        }
+      });
+
+      if (res && typeof res === "object") {
+        const page = res.current_page || nextPage;
+        const totalPages = res.pages || myPagination.value.total_pages;
+        myPagination.value = {
+          page,
+          total_pages: totalPages,
+          per_page: res.per_page || 10,
+          total: res.total ?? myNotifications.value.length,
+          has_more: page < totalPages,
+        };
+      }
+      myMoreLoading.value = false;
+    };
+
+    const failureHandler = (err) => {
+      myMoreLoading.value = false;
+    };
+
+    apiRequest(urls.KEYS.GET, urls.notifications.myNotifications, {
+      params: { page: nextPage },
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+    });
+  };
+
+  // ─── Add Single Notification from WebSocket ───────────────────────
+  const addNotification = (data) => {
+    if (!data) return;
+    const item = typeof data === "object" ? data : null;
+    if (!item) return;
+
+    // Avoid duplicate entries if already present
+    const exists = myNotifications.value.some((n) => n.id === item.id);
+    if (!exists) {
+      myNotifications.value.unshift({
+        ...item,
+        is_read: item.is_read ?? false,
+      });
+      myPagination.value.total += 1;
+    }
+  };
+
   // ─── Fetch Admin Historical Notification List ──────────────────────
-  const fetchAdminNotifications = (force = false) => {
-    if (adminLoading.value) return;
-    if (isAdminFetched.value && !force) return;
+  const fetchAdminNotifications = (page = 1, force = false) => {
+    if (adminLoading.value && !force) return;
 
     adminLoading.value = true;
 
     const successHandler = (res) => {
-      const list = Array.isArray(res) ? res : res?.data || [];
+      const list = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
       adminNotifications.value = list;
+      if (res && typeof res === "object") {
+        adminPagination.value = {
+          page: res.current_page || page,
+          total_pages: res.pages || 1,
+          per_page: res.per_page || 10,
+          total: res.total ?? list.length,
+        };
+      }
       adminLoading.value = false;
       isAdminFetched.value = true;
     };
@@ -67,20 +161,33 @@ export const useNotificationsStore = defineStore("notifications", () => {
     };
 
     apiRequest(urls.KEYS.GET, urls.notifications.adminList, {
+      params: { page },
       isTokenRequired: true,
       onSuccess: successHandler,
       onFailure: failureHandler,
     });
   };
 
-  // ─── Mark Notification as Read ────────────────────────────────────
-  const markAsRead = (notificationId) => {
+  // ─── Mark Notification(s) as Read ─────────────────────────────────
+  const markAsRead = (notificationIds) => {
+    if (!notificationIds) return;
+    const ids = Array.isArray(notificationIds) ? notificationIds : [notificationIds];
+    if (ids.length === 0) return;
+
+    const targetItems = myNotifications.value.filter((n) => ids.includes(n.id) && !n.is_read);
+    if (targetItems.length === 0) return;
+
     // Optimistic update
-    const item = myNotifications.value.find((n) => n.id === notificationId);
-    if (item && !item.is_read) {
+    const prevStates = targetItems.map((item) => ({
+      item,
+      is_read: item.is_read,
+      read_at: item.read_at,
+    }));
+
+    targetItems.forEach((item) => {
       item.is_read = true;
       item.read_at = new Date().toISOString();
-    }
+    });
 
     const successHandler = () => {
       // Successfully marked as read on server
@@ -88,13 +195,14 @@ export const useNotificationsStore = defineStore("notifications", () => {
 
     const failureHandler = () => {
       // Revert if API fails
-      if (item) {
-        item.is_read = false;
-        item.read_at = null;
-      }
+      prevStates.forEach(({ item, is_read, read_at }) => {
+        item.is_read = is_read;
+        item.read_at = read_at;
+      });
     };
 
-    apiRequest(urls.KEYS.PUT, `${urls.notifications.markRead}/${notificationId}`, {
+    apiRequest(urls.KEYS.PUT, urls.notifications.markRead, {
+      data: { notification_ids: ids },
       isTokenRequired: true,
       onSuccess: successHandler,
       onFailure: failureHandler,
@@ -103,8 +211,10 @@ export const useNotificationsStore = defineStore("notifications", () => {
 
   // ─── Mark All Unread Notifications as Read ─────────────────────────
   const markAllAsRead = () => {
-    const unreadItems = myNotifications.value.filter((n) => !n.is_read);
-    unreadItems.forEach((n) => markAsRead(n.id));
+    const unreadIds = myNotifications.value.filter((n) => !n.is_read).map((n) => n.id);
+    if (unreadIds.length > 0) {
+      markAsRead(unreadIds);
+    }
   };
 
   // ─── Create & Dispatch Notification (Admin) ─────────────────────────
@@ -114,7 +224,7 @@ export const useNotificationsStore = defineStore("notifications", () => {
     const successHandler = (res) => {
       createLoading.value = false;
       snackbar.show(res?.msg || "Notification created & dispatched successfully.", "success");
-      fetchAdminNotifications(true);
+      fetchAdminNotifications(adminPagination.value.page, true);
       fetchMyNotifications(true);
       if (onDone) onDone();
     };
@@ -125,6 +235,34 @@ export const useNotificationsStore = defineStore("notifications", () => {
     };
 
     apiRequest(urls.KEYS.POST, urls.notifications.create, {
+      data: payload,
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+    });
+  };
+
+  const updateLoadingId = ref(null);
+
+  // ─── Update Notification (Admin PUT /notifications/<id>) ───────────
+  const updateNotification = (id, payload, onDone) => {
+    updateLoadingId.value = id;
+
+    const successHandler = (res) => {
+      updateLoadingId.value = null;
+      snackbar.show(res?.msg || "Notification updated successfully.", "success");
+      fetchAdminNotifications(adminPagination.value.page, true);
+      fetchMyNotifications(true);
+      if (onDone) onDone();
+    };
+
+    const failureHandler = (err) => {
+      updateLoadingId.value = null;
+      snackbar.show(err?.message || "Failed to update notification.", "error");
+    };
+
+    apiRequest(urls.KEYS.PUT, urls.notifications.update, {
+      look_up_key: id,
       data: payload,
       isTokenRequired: true,
       onSuccess: successHandler,
@@ -145,7 +283,7 @@ export const useNotificationsStore = defineStore("notifications", () => {
       if (found) {
         found.is_active = true;
       }
-      fetchAdminNotifications(true);
+      fetchAdminNotifications(adminPagination.value.page, true);
       fetchMyNotifications(true);
       if (onDone) onDone();
     };
@@ -165,16 +303,23 @@ export const useNotificationsStore = defineStore("notifications", () => {
   return {
     myNotifications,
     adminNotifications,
+    myPagination,
+    adminPagination,
     myLoading,
+    myMoreLoading,
     adminLoading,
     createLoading,
+    updateLoadingId,
     sendLoadingId,
     unreadCount,
     fetchMyNotifications,
+    fetchMoreMyNotifications,
+    addNotification,
     fetchAdminNotifications,
     markAsRead,
     markAllAsRead,
     createNotification,
+    updateNotification,
     sendNotification,
   };
 });

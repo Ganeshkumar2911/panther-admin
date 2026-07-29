@@ -35,7 +35,7 @@ function handleConfirmSend() {
           <!-- Header -->
           <div class="px-5 py-4 border-b border-primary-border flex items-center justify-between bg-background/50">
             <div class="flex items-center gap-2.5">
-              <div class="w-8 h-8 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center text-primary">
+              <div class="w-8 h-8 rounded-lg bg-primary/20 border border-primary/30 flex items-center justify-center text-primary">
                 <Send class="w-4 h-4" />
               </div>
               <div>
@@ -55,7 +55,7 @@ function handleConfirmSend() {
 
           <!-- Body -->
           <div class="p-5 space-y-4 text-xs">
-            <div class="bg-background border border-primary-border rounded-xl p-3.5 space-y-2">
+            <div class="bg-background border border-primary-border rounded-lg p-3.5 space-y-2">
               <div class="flex items-center justify-between">
                 <span class="text-[11px] font-bold text-primary-text uppercase tracking-wider">
                   {{ notification.type }}
@@ -81,7 +81,7 @@ function handleConfirmSend() {
               </p>
             </div>
 
-            <div class="p-3 rounded-xl bg-primary/5 border border-primary/20 text-xs text-primary-text flex items-start gap-2.5">
+            <div class="p-3 rounded-lg bg-primary/5 border border-primary/20 text-xs text-primary-text flex items-start gap-2.5">
               <AlertCircle class="w-4 h-4 text-primary shrink-0 mt-0.5" />
               <div>
                 <p class="font-semibold text-primary">Confirmation Prompt</p>
@@ -97,7 +97,7 @@ function handleConfirmSend() {
             <button
               type="button"
               @click="emit('close')"
-              class="px-4 py-2 rounded-xl border border-primary-border bg-background hover:bg-card-background text-secondary-text hover:text-primary-text font-medium text-xs transition-colors cursor-pointer"
+              class="px-4 py-2 rounded-lg border border-primary-border bg-background hover:bg-card-background text-secondary-text hover:text-primary-text font-medium text-xs transition-colors cursor-pointer"
             >
               Cancel
             </button>
@@ -106,7 +106,7 @@ function handleConfirmSend() {
               type="button"
               @click="handleConfirmSend"
               :disabled="store.sendLoadingId === notification.id"
-              class="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-btn-text-primary font-semibold text-xs shadow-md transition-colors cursor-pointer disabled:opacity-50"
+              class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-btn-text-primary font-semibold text-xs transition-colors cursor-pointer disabled:opacity-50"
             >
               <Send class="w-3.5 h-3.5" />
               <span>{{ store.sendLoadingId === notification.id ? 'Sending...' : 'Confirm & Send' }}</span>

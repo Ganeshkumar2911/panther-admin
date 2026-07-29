@@ -184,6 +184,7 @@ const urls = {
   },
   notifications: {
     create: "/notifications/create",
+    update: "/notifications",
     adminList: "/notifications/list",
     myNotifications: "/notifications/my-notifications",
     markRead: "/notifications/read",

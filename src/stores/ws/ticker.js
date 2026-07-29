@@ -95,7 +95,9 @@ export const useTickerStore = defineStore("tickers", () => {
     });
 
     ticker.on("new_notification", (data) => {
-      notificationsStore.fetchMyNotifications(true);
+      if (data) {
+        notificationsStore.addNotification(data);
+      }
     });
 
     /* ---------------- MAIN PRICE EVENT ---------------- */

@@ -1,18 +1,31 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useNotificationsStore } from '@/stores/notifications/notifications'
 import CreateNotificationModal from '@/components/notifications/CreateNotificationModal.vue'
 import SendNotificationConfirmModal from '@/components/notifications/SendNotificationConfirmModal.vue'
+import Pagination from '@/components/common/Pagination.vue'
 import {
   Plus,
   RotateCw,
   Radio,
   Send,
+  Pencil,
+  Megaphone,
+  Cog,
+  Tag,
+  TriangleAlert,
+  Bell,
+  CircleCheck,
+  CircleDashed,
+  Inbox,
+  Loader2,
 } from 'lucide-vue-next'
 
 const store = useNotificationsStore()
 
 const createModalOpen = ref(false)
+const selectedEditNotification = ref(null)
+
 const sendConfirmModalOpen = ref(false)
 const selectedSendNotification = ref(null)
 
@@ -21,39 +34,65 @@ function openSendConfirm(notification) {
   sendConfirmModalOpen.value = true
 }
 
+function openCreateModal() {
+  selectedEditNotification.value = null
+  createModalOpen.value = true
+}
+
+function openEditModal(notification) {
+  selectedEditNotification.value = notification
+  createModalOpen.value = true
+}
+
+function handleCloseCreateModal() {
+  createModalOpen.value = false
+  selectedEditNotification.value = null
+}
+
 onMounted(() => {
-  store.fetchAdminNotifications()
+  store.fetchAdminNotifications(1)
 })
 
 function handleRefresh() {
-  store.fetchAdminNotifications(true)
+  store.fetchAdminNotifications(store.adminPagination.page || 1, true)
 }
 
-function getPriorityBadge(priority) {
+function handlePageChange(newPage) {
+  store.fetchAdminNotifications(newPage, true)
+}
+
+const activeCount = computed(() =>
+  store.adminNotifications.filter((n) => n.is_active).length
+)
+const inactiveCount = computed(() =>
+  store.adminNotifications.length - activeCount.value
+)
+
+function getPriorityStyles(priority) {
   switch (priority) {
     case 'HIGH':
-      return 'bg-rose-500/10 text-rose-400 border-rose-500/30'
+      return { text: 'text-rose-400', bg: 'bg-rose-500/10', border: 'border-rose-500/30', bar: 'bg-rose-500' }
     case 'MEDIUM':
-      return 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+      return { text: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/30', bar: 'bg-amber-500' }
     case 'LOW':
-      return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+      return { text: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', bar: 'bg-emerald-500' }
     default:
-      return 'bg-zinc-500/10 text-zinc-400 border-zinc-500/30'
+      return { text: 'text-zinc-400', bg: 'bg-zinc-500/10', border: 'border-zinc-500/30', bar: 'bg-zinc-500' }
   }
 }
 
-function getTypeBadge(type) {
+function getTypeMeta(type) {
   switch (type) {
     case 'ANNOUNCEMENT':
-      return 'bg-blue-500/10 text-blue-400 border-blue-500/30'
+      return { icon: Megaphone, text: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' }
     case 'SYSTEM':
-      return 'bg-purple-500/10 text-purple-400 border-purple-500/30'
+      return { icon: Cog, text: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/30' }
     case 'PROMOTION':
-      return 'bg-teal-500/10 text-teal-400 border-teal-500/30'
+      return { icon: Tag, text: 'text-teal-400', bg: 'bg-teal-500/10', border: 'border-teal-500/30' }
     case 'ALERT':
-      return 'bg-red-500/10 text-red-400 border-red-500/30'
+      return { icon: TriangleAlert, text: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/30' }
     default:
-      return 'bg-zinc-500/10 text-zinc-300 border-zinc-500/30'
+      return { icon: Bell, text: 'text-zinc-300', bg: 'bg-zinc-500/10', border: 'border-zinc-500/30' }
   }
 }
 
@@ -72,154 +111,234 @@ function formatDate(dateStr) {
 </script>
 
 <template>
-  <div class="px-4 mx-auto space-y-6 pb-12">
+  <div class="mx-auto space-y-5 px-4 pb-12">
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-4 border-b border-primary-border pb-4">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <!-- Stat pills -->
+      <div class="flex flex-wrap items-center gap-2.5">
+        <div class="flex items-center gap-2 rounded-lg border border-primary-border bg-card-background px-3.5 py-2">
+          <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10">
+            <Radio class="h-3.5 w-3.5 text-primary" />
+          </div>
+          <div class="leading-tight">
+            <p class="text-sm font-bold text-primary-text">{{ store.adminPagination.total || store.adminNotifications.length }}</p>
+            <p class="text-[10px] font-medium uppercase tracking-wide text-secondary-text">Dispatched</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 rounded-lg border border-primary-border bg-card-background px-3.5 py-2">
+          <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/10">
+            <CircleCheck class="h-3.5 w-3.5 text-emerald-400" />
+          </div>
+          <div class="leading-tight">
+            <p class="text-sm font-bold text-primary-text">{{ activeCount }}</p>
+            <p class="text-[10px] font-medium uppercase tracking-wide text-secondary-text">Active</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 rounded-lg border border-primary-border bg-card-background px-3.5 py-2">
+          <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/10">
+            <CircleDashed class="h-3.5 w-3.5 text-amber-400" />
+          </div>
+          <div class="leading-tight">
+            <p class="text-sm font-bold text-primary-text">{{ inactiveCount }}</p>
+            <p class="text-[10px] font-medium uppercase tracking-wide text-secondary-text">Pending</p>
+          </div>
+        </div>
+      </div>
 
       <!-- Action Buttons -->
-      <div class="flex items-center gap-2 shrink-0">
+      <div class="flex shrink-0 items-center gap-2">
         <button
           @click="handleRefresh"
           :disabled="store.adminLoading"
-          class="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-primary-border bg-card-background hover:bg-background text-secondary-text hover:text-primary-text text-xs font-medium transition-colors cursor-pointer disabled:opacity-50"
+          class="flex items-center gap-1.5 rounded-lg border border-primary-border bg-card-background px-3.5 py-2.5 text-xs font-medium text-secondary-text transition-colors hover:bg-background hover:text-primary-text disabled:opacity-50"
           title="Refresh Logs"
         >
-          <RotateCw class="w-3.5 h-3.5" :class="{ 'animate-spin': store.adminLoading }" />
+          <RotateCw class="h-3.5 w-3.5" :class="{ 'animate-spin': store.adminLoading }" />
           <span>Refresh</span>
         </button>
 
         <button
-          @click="createModalOpen = true"
-          class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-btn-text-primary text-xs font-semibold shadow-primary/20 hover:shadow-primary/30 transition-all cursor-pointer"
+          @click="openCreateModal"
+          class="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2.5 text-xs font-semibold text-btn-text-primary shadow-primary/20 transition-all hover:shadow-primary/30 active:scale-[0.98]"
         >
-          <Plus class="w-4 h-4" />
+          <Plus class="h-4 w-4" />
           <span>Create Notification</span>
         </button>
       </div>
     </div>
 
-    <!-- SYSTEM DISPATCH LOGS (ADMIN) -->
-    <div class="space-y-4">
-      <div class="bg-card-background border border-primary-border rounded-2xl overflow-hidden">
-        <div class="px-5 py-3.5 border-b border-primary-border flex items-center justify-between bg-background/50">
-          <div class="flex items-center gap-2">
-            <Radio class="w-4 h-4 text-primary" />
-            <span class="text-xs font-semibold text-primary-text uppercase tracking-wider">
-              Admin Dispatched Notifications Log
-            </span>
-            <span class="text-[11px] text-secondary-text bg-card-background border border-primary-border px-2.5 py-0.5 rounded-full">
-              {{ store.adminNotifications.length }} Total Dispatched
-            </span>
+    <!-- Dispatch Log -->
+    <div class="overflow-hidden rounded-2xl border border-primary-border bg-card-background">
+      <div class="flex items-center justify-between border-b border-primary-border bg-gradient-to-b from-background/70 to-transparent px-5 py-4">
+        <div class="flex items-center gap-2.5">
+          <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+            <Radio class="h-4 w-4 text-primary" />
+          </div>
+          <div>
+            <p class="text-[13px] font-bold tracking-tight text-primary-text">Dispatch Log</p>
+            <p class="text-[10.5px] text-secondary-text">System-wide notification history</p>
           </div>
         </div>
+      </div>
 
-        <div v-if="store.adminLoading" class="p-8 text-center text-xs text-secondary-text">
-          Loading system notification history...
+      <!-- Loading -->
+      <div v-if="store.adminLoading" class="flex flex-col items-center gap-3 py-16">
+        <Loader2 class="h-5 w-5 animate-spin text-primary" />
+        <p class="text-xs text-secondary-text">Loading dispatch history…</p>
+      </div>
+
+      <!-- Empty -->
+      <div v-else-if="store.adminNotifications.length === 0" class="flex flex-col items-center gap-3 py-16 text-center">
+        <div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary-border/40">
+          <Inbox class="h-5 w-5 text-secondary-text" />
         </div>
-
-        <div v-else-if="store.adminNotifications.length === 0" class="py-16 text-center text-xs text-secondary-text">
-          No system notifications created yet. Click "+ Create Notification" to dispatch one.
+        <div>
+          <p class="text-[13px] font-semibold text-primary-text">No notifications dispatched yet</p>
+          <p class="mt-0.5 text-[11px] text-secondary-text">Click "Create Notification" to send your first one.</p>
         </div>
+      </div>
 
-        <div v-else class="overflow-x-auto no-scrollbar">
-          <table class="w-full text-left border-collapse min-w-[950px]">
-            <thead>
-              <tr class="border-b border-primary-border bg-background/50 text-[11px] font-semibold text-secondary-text uppercase tracking-wider">
-                <th class="px-5 py-3">ID</th>
-                <th class="px-4 py-3">Notification</th>
-                <th class="px-4 py-3">Type & Priority</th>
-                <th class="px-4 py-3">Status</th>
-                <th class="px-4 py-3">Target Recipients</th>
-                <th class="px-4 py-3 text-right">Date Dispatched</th>
-                <th class="px-4 py-3 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-primary-border/60 text-xs">
-              <tr
-                v-for="item in store.adminNotifications"
-                :key="item.id"
-                class="hover:bg-background/80 transition-colors"
-              >
-                <td class="px-5 py-3.5 font-mono text-secondary-text font-bold">
-                  #{{ item.id }}
-                </td>
+      <!-- Table -->
+      <div v-else class="no-scrollbar overflow-x-auto">
+        <table class="w-full min-w-[980px] border-collapse text-left">
+          <thead>
+            <tr class="border-b border-primary-border bg-background/40 text-[10.5px] font-semibold uppercase tracking-wider text-secondary-text">
+              <th class="px-5 py-3">ID</th>
+              <th class="px-4 py-3">Notification</th>
+              <th class="px-4 py-3">Type &amp; Priority</th>
+              <th class="px-4 py-3">Status</th>
+              <th class="px-4 py-3">Recipients</th>
+              <th class="px-4 py-3 text-right">Dispatched</th>
+              <th class="px-4 py-3 text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-primary-border/50 text-xs">
+            <tr
+              v-for="item in store.adminNotifications"
+              :key="item.id"
+              class="group relative transition-colors hover:bg-primary/[0.04]"
+            >
+              <td class="relative px-5 py-4">
+                <span :class="['absolute left-0 top-0 h-full w-[3px]', getPriorityStyles(item.priority).bar, 'opacity-0 group-hover:opacity-100 transition-opacity']" />
+                <span class="font-mono text-[11px] font-bold text-secondary-text">#{{ item.id }}</span>
+              </td>
 
-                <td class="px-4 py-3.5">
-                  <div>
-                    <h4 class="font-bold text-primary-text">{{ item.title }}</h4>
-                    <p class="text-[11px] text-secondary-text line-clamp-1 max-w-sm">
-                      {{ item.message }}
-                    </p>
-                    <p v-if="item.note" class="text-[10px] text-secondary-text italic mt-0.5">
-                      Memo: {{ item.note }}
-                    </p>
-                  </div>
-                </td>
+              <td class="px-4 py-4">
+                <h4 class="text-[12.5px] font-bold text-primary-text">{{ item.title }}</h4>
+                <p class="mt-0.5 line-clamp-1 max-w-sm text-[11px] text-secondary-text">
+                  {{ item.message }}
+                </p>
+                <p v-if="item.note" class="mt-1 flex items-center gap-1 text-[10px] italic text-secondary-text/80">
+                  <span class="not-italic">📝</span> {{ item.note }}
+                </p>
+              </td>
 
-                <td class="px-4 py-3.5 whitespace-nowrap">
-                  <div class="flex items-center gap-1.5">
-                    <span :class="['text-[10px] font-bold px-2 py-0.5 rounded border uppercase', getTypeBadge(item.type)]">
-                      {{ item.type }}
-                    </span>
-                    <span :class="['text-[10px] font-bold px-2 py-0.5 rounded border uppercase', getPriorityBadge(item.priority)]">
-                      {{ item.priority }}
-                    </span>
-                  </div>
-                </td>
-
-                <td class="px-4 py-3.5 whitespace-nowrap">
+              <td class="whitespace-nowrap px-4 py-4">
+                <div class="flex items-center gap-1.5">
                   <span
                     :class="[
-                      'text-[10px] font-bold px-2.5 py-0.5 rounded-full border uppercase',
-                      item.is_active
-                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                        : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                      'inline-flex items-center gap-1 rounded-lg border px-2 py-1 text-[10px] font-bold uppercase',
+                      getTypeMeta(item.type).text, getTypeMeta(item.type).bg, getTypeMeta(item.type).border,
                     ]"
                   >
-                    {{ item.is_active ? 'Active' : 'Inactive' }}
+                    <component :is="getTypeMeta(item.type).icon" class="h-3 w-3" />
+                    {{ item.type }}
                   </span>
-                </td>
-
-                <td class="px-4 py-3.5">
-                  <div class="flex flex-wrap items-center gap-1">
-                    <span
-                      v-for="(t, idx) in item.targets"
-                      :key="idx"
-                      class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-background border border-primary-border text-primary-text"
-                    >
-                      <span v-if="t.target_type === 'ALL'" class="text-primary font-extrabold">Broadcast ALL</span>
-                      <span v-else-if="t.target_type === 'ROLE'">ROLE: {{ t.target_id }}</span>
-                      <span v-else>USER: #{{ t.target_id }}</span>
-                    </span>
-                  </div>
-                </td>
-
-                <td class="px-4 py-3.5 text-secondary-text text-right whitespace-nowrap text-[11px]">
-                  {{ formatDate(item.created_at) }}
-                </td>
-
-                <td class="px-4 py-3.5 text-right whitespace-nowrap">
-                  <button
-                    v-if="!item.is_active"
-                    @click="openSendConfirm(item)"
-                    class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 font-semibold text-xs transition-colors cursor-pointer disabled:opacity-50"
-                    :disabled="store.sendLoadingId === item.id"
+                  <span
+                    :class="[
+                      'rounded-lg border px-2 py-1 text-[10px] font-bold uppercase',
+                      getPriorityStyles(item.priority).text, getPriorityStyles(item.priority).bg, getPriorityStyles(item.priority).border,
+                    ]"
                   >
-                    <Send class="w-3 h-3" />
-                    <span>{{ store.sendLoadingId === item.id ? 'Sending...' : 'Send' }}</span>
+                    {{ item.priority }}
+                  </span>
+                </div>
+              </td>
+
+              <td class="whitespace-nowrap px-4 py-4">
+                <span
+                  :class="[
+                    'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase',
+                    item.is_active
+                      ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400'
+                      : 'border-amber-500/30 bg-amber-500/10 text-amber-400'
+                  ]"
+                >
+                  <span
+                    :class="[
+                      'h-1.5 w-1.5 rounded-full',
+                      item.is_active ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'
+                    ]"
+                  />
+                  {{ item.is_active ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+
+              <td class="px-4 py-4 max-w-[240px]">
+                <div class="max-h-16 overflow-y-auto flex flex-wrap items-center gap-1 pr-1">
+                  <span
+                    v-for="(t, idx) in item.targets"
+                    :key="idx"
+                    class="rounded-full border border-primary-border bg-background px-2 py-0.5 text-[10px] font-bold text-primary-text"
+                  >
+                    <span v-if="t.target_type === 'ALL'" class="font-extrabold text-primary">Broadcast ALL</span>
+                    <span v-else-if="t.target_type === 'ROLE'">ROLE: {{ t.target_id }}</span>
+                    <span v-else>USER: #{{ t.target_id }}</span>
+                  </span>
+                </div>
+              </td>
+
+              <td class="whitespace-nowrap px-4 py-4 text-right text-[11px] text-secondary-text">
+                {{ formatDate(item.created_at) }}
+              </td>
+
+              <td class="whitespace-nowrap px-4 py-4 text-right">
+                <div v-if="!item.is_active" class="flex items-center justify-end gap-1.5">
+                  <button
+                    @click="openEditModal(item)"
+                    class="inline-flex items-center gap-1.5 rounded-lg border border-primary-border bg-background px-2.5 py-1.5 text-xs font-semibold text-secondary-text transition-colors hover:bg-card-background hover:text-primary-text cursor-pointer"
+                    title="Edit Notification"
+                  >
+                    <Pencil class="h-3 w-3" />
+                    <span>Edit</span>
                   </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+
+                  <button
+                    @click="openSendConfirm(item)"
+                    :disabled="store.sendLoadingId === item.id"
+                    class="inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/20 disabled:opacity-50 cursor-pointer"
+                  >
+                    <Loader2 v-if="store.sendLoadingId === item.id" class="h-3 w-3 animate-spin" />
+                    <Send v-else class="h-3 w-3" />
+                    <span>{{ store.sendLoadingId === item.id ? 'Sending…' : 'Send' }}</span>
+                  </button>
+                </div>
+                <span v-else class="text-[10.5px] text-secondary-text/60">Live</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination Footer -->
+      <div class="flex items-center justify-between border-t border-primary-border bg-background/30 py-2.5 px-5">
+        <span class="px-2.5 py-1 text-xs font-semibold text-secondary-text">
+          {{ store.adminPagination.total || store.adminNotifications.length }} total
+        </span>
+        <Pagination
+          :pagination="store.adminPagination"
+          @page-change="handlePageChange"
+        />
       </div>
     </div>
 
-    <!-- Create Notification Modal -->
+    <!-- Create / Edit Notification Modal -->
     <CreateNotificationModal
       :open="createModalOpen"
-      @close="createModalOpen = false"
+      :notificationToEdit="selectedEditNotification"
+      @close="handleCloseCreateModal"
     />
 
     <!-- Trigger/Send Confirmation Modal -->
@@ -230,3 +349,13 @@ function formatDate(dateStr) {
     />
   </div>
 </template>
+
+<style scoped>
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+</style>

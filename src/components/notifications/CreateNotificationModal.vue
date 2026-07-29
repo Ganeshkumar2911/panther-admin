@@ -2,7 +2,7 @@
 import { ref, reactive, watch } from 'vue'
 import { useNotificationsStore } from '@/stores/notifications/notifications'
 import { useClientLedgerStore } from '@/stores/clientLedger/clientLedger'
-import { X, Send, Bell, UserPlus } from 'lucide-vue-next'
+import { X, Send, Bell, Edit3, Loader2, Plus, Trash2 } from 'lucide-vue-next'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 
 const typeOptions = [
@@ -20,6 +20,7 @@ const priorityOptions = [
 
 const props = defineProps({
   open: { type: Boolean, default: false },
+  notificationToEdit: { type: Object, default: null },
 })
 
 const emit = defineEmits(['close'])
@@ -41,8 +42,7 @@ const form = reactive({
   type: 'ANNOUNCEMENT',
   priority: 'HIGH',
   action_url: '',
-  metadata_key: '',
-  metadata_value: '',
+  metadataPairs: [{ key: '', value: '' }],
   sendToAll: true,
   roles: {
     client: false,
@@ -52,6 +52,18 @@ const form = reactive({
   },
   userIds: '',
 })
+
+function addMetadataPair() {
+  form.metadataPairs.push({ key: '', value: '' })
+}
+
+function removeMetadataPair(index) {
+  if (form.metadataPairs.length > 1) {
+    form.metadataPairs.splice(index, 1)
+  } else {
+    form.metadataPairs[0] = { key: '', value: '' }
+  }
+}
 
 function onClientSearch(query) {
   clearTimeout(clientSearchTimer)
@@ -85,17 +97,80 @@ function handleUserSelect(val) {
 }
 
 function removeUser(userId) {
-  selectedUsers.value = selectedUsers.value.filter((u) => u.id !== userId)
+  selectedUsers.value = selectedUsers.value.filter((u) => String(u.id) !== String(userId))
 }
 
-// Initial fetch when drawer opens
+function populateForm(notification) {
+  if (!notification) {
+    resetForm()
+    return
+  }
+
+  form.title = notification.title || ''
+  form.message = notification.message || ''
+  form.note = notification.note || ''
+  form.type = notification.type || 'ANNOUNCEMENT'
+  form.priority = notification.priority || 'HIGH'
+  form.action_url = notification.action_url || ''
+
+  // Metadata JSON
+  if (notification.metadata_json && typeof notification.metadata_json === 'object') {
+    const entries = Object.entries(notification.metadata_json)
+    if (entries.length > 0) {
+      form.metadataPairs = entries.map(([k, v]) => ({ key: k, value: String(v ?? '') }))
+    } else {
+      form.metadataPairs = [{ key: '', value: '' }]
+    }
+  } else {
+    form.metadataPairs = [{ key: '', value: '' }]
+  }
+
+  // Targets
+  form.roles.client = false
+  form.roles.fm = false
+  form.roles.ib = false
+  form.roles.admin = false
+  selectedUsers.value = []
+  form.userIds = ''
+
+  const targets = notification.targets || []
+  const hasAll = targets.some((t) => t.target_type === 'ALL')
+
+  if (hasAll || targets.length === 0) {
+    form.sendToAll = true
+  } else {
+    form.sendToAll = false
+
+    targets.forEach((t) => {
+      if (t.target_type === 'ROLE' && t.target_id) {
+        const roleKey = String(t.target_id).toLowerCase()
+        if (roleKey in form.roles) {
+          form.roles[roleKey] = true
+        }
+      } else if (t.target_type === 'USER' && t.target_id) {
+        selectedUsers.value.push({
+          id: String(t.target_id),
+          name: `User #${t.target_id}`,
+          email: '',
+        })
+      }
+    })
+  }
+}
+
 watch(
-  () => props.open,
-  (isOpen) => {
+  () => [props.open, props.notificationToEdit],
+  ([isOpen, editObj]) => {
     if (isOpen) {
       onClientSearch('')
+      if (editObj) {
+        populateForm(editObj)
+      } else {
+        resetForm()
+      }
     }
-  }
+  },
+  { immediate: true }
 )
 
 function resetForm() {
@@ -105,8 +180,7 @@ function resetForm() {
   form.type = 'ANNOUNCEMENT'
   form.priority = 'HIGH'
   form.action_url = ''
-  form.metadata_key = ''
-  form.metadata_value = ''
+  form.metadataPairs = [{ key: '', value: '' }]
   form.sendToAll = true
   form.roles.client = false
   form.roles.fm = false
@@ -154,9 +228,14 @@ function handleSubmit() {
     targets.push({ target_type: 'ALL' })
   }
 
+  // Build metadata_json object from all valid key-value pairs
   let metadata_json = null
-  if (form.metadata_key.trim() && form.metadata_value.trim()) {
-    metadata_json = { [form.metadata_key.trim()]: form.metadata_value.trim() }
+  const validPairs = form.metadataPairs.filter((p) => p.key.trim() && p.value.trim())
+  if (validPairs.length > 0) {
+    metadata_json = {}
+    validPairs.forEach((p) => {
+      metadata_json[p.key.trim()] = p.value.trim()
+    })
   }
 
   const payload = {
@@ -170,10 +249,17 @@ function handleSubmit() {
     targets,
   }
 
-  store.createNotification(payload, () => {
-    resetForm()
-    emit('close')
-  })
+  if (props.notificationToEdit && props.notificationToEdit.id) {
+    store.updateNotification(props.notificationToEdit.id, payload, () => {
+      resetForm()
+      emit('close')
+    })
+  } else {
+    store.createNotification(payload, () => {
+      resetForm()
+      emit('close')
+    })
+  }
 }
 </script>
 
@@ -198,11 +284,16 @@ function handleSubmit() {
         <div class="px-5 py-4 border-b border-primary-border flex items-center justify-between bg-background/50 shrink-0">
           <div class="flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center text-primary">
-              <Bell class="w-4 h-4" />
+              <Edit3 v-if="notificationToEdit" class="w-4 h-4" />
+              <Bell v-else class="w-4 h-4" />
             </div>
             <div>
-              <h3 class="text-sm font-bold text-primary-text">Create & Dispatch Notification</h3>
-              <p class="text-[11px] text-secondary-text">Broadcast alerts or targeted memos to users.</p>
+              <h3 class="text-sm font-bold text-primary-text">
+                {{ notificationToEdit ? `Edit Notification #${notificationToEdit.id}` : 'Create & Dispatch Notification' }}
+              </h3>
+              <p class="text-[11px] text-secondary-text">
+                {{ notificationToEdit ? 'Update details for this notification draft.' : 'Broadcast alerts or targeted memos to users.' }}
+              </p>
             </div>
           </div>
 
@@ -361,40 +452,58 @@ function handleSubmit() {
                     </span>
                   </div>
                 </div>
-
-                <!-- Optional Manual User IDs Fallback -->
-                <div class="pt-2 border-t border-primary-border/40">
-                  <label class="block text-[10px] text-secondary-text mb-1">Additional User IDs (Comma-separated):</label>
-                  <input
-                    v-model="form.userIds"
-                    type="text"
-                    placeholder="e.g. 793, 802"
-                    class="w-full px-3 py-1.5 bg-card-background border border-primary-border rounded-lg text-primary-text focus:outline-none focus:border-primary text-xs"
-                  />
-                </div>
               </div>
             </div>
 
-            <!-- Optional Metadata Key/Value -->
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="block text-secondary-text mb-1">Custom Key (Optional)</label>
-                <input
-                  v-model="form.metadata_key"
-                  type="text"
-                  placeholder="e.g. event_id"
-                  class="w-full px-3 py-1.5 bg-background border border-primary-border rounded-lg text-primary-text focus:outline-none focus:border-primary"
-                />
+            <!-- Custom Metadata Section (Dynamic Key-Value Pairs) -->
+            <div class="bg-background border border-primary-border rounded-xl p-3.5 space-y-3">
+              <div class="flex items-center justify-between border-b border-primary-border/60 pb-2">
+                <span class="block text-xs font-semibold text-primary-text uppercase tracking-wider">
+                  Custom Metadata (JSON Payload)
+                </span>
+                <button
+                  type="button"
+                  @click="addMetadataPair"
+                  class="flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary-hover transition-colors cursor-pointer"
+                >
+                  <Plus class="w-3.5 h-3.5" />
+                  <span>Add Key-Value</span>
+                </button>
               </div>
 
-              <div>
-                <label class="block text-secondary-text mb-1">Custom Value (Optional)</label>
-                <input
-                  v-model="form.metadata_value"
-                  type="text"
-                  placeholder="e.g. 1042"
-                  class="w-full px-3 py-1.5 bg-background border border-primary-border rounded-lg text-primary-text focus:outline-none focus:border-primary"
-                />
+              <div class="space-y-2">
+                <div
+                  v-for="(pair, index) in form.metadataPairs"
+                  :key="index"
+                  class="grid grid-cols-12 gap-2 items-center"
+                >
+                  <div class="col-span-5">
+                    <input
+                      v-model="pair.key"
+                      type="text"
+                      placeholder="Key (e.g. event_id)"
+                      class="w-full px-2.5 py-1.5 bg-card-background border border-primary-border rounded-lg text-primary-text focus:outline-none focus:border-primary text-xs"
+                    />
+                  </div>
+                  <div class="col-span-6">
+                    <input
+                      v-model="pair.value"
+                      type="text"
+                      placeholder="Value (e.g. 1042)"
+                      class="w-full px-2.5 py-1.5 bg-card-background border border-primary-border rounded-lg text-primary-text focus:outline-none focus:border-primary text-xs"
+                    />
+                  </div>
+                  <div class="col-span-1 flex items-center justify-center">
+                    <button
+                      type="button"
+                      @click="removeMetadataPair(index)"
+                      class="p-1 rounded-lg text-secondary-text hover:text-rose-400 hover:bg-card-background transition-colors cursor-pointer"
+                      title="Remove pair"
+                    >
+                      <Trash2 class="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -410,11 +519,18 @@ function handleSubmit() {
             </button>
             <button
               type="submit"
-              :disabled="store.createLoading"
+              :disabled="store.createLoading || store.updateLoadingId !== null"
               class="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-btn-text-primary font-semibold shadow-md transition-colors cursor-pointer disabled:opacity-50"
             >
-              <Send class="w-3.5 h-3.5" />
-              <span>{{ store.createLoading ? 'Dispatching...' : 'Dispatch Notification' }}</span>
+              <Loader2 v-if="store.createLoading || store.updateLoadingId !== null" class="w-3.5 h-3.5 animate-spin" />
+              <Send v-else class="w-3.5 h-3.5" />
+              <span>
+                {{
+                  notificationToEdit
+                    ? (store.updateLoadingId === notificationToEdit.id ? 'Updating...' : 'Update Notification')
+                    : (store.createLoading ? 'Dispatching...' : 'Dispatch Notification')
+                }}
+              </span>
             </button>
           </div>
         </form>
