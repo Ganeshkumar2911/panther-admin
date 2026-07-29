@@ -19,7 +19,7 @@ const showPassword = ref(false);
 const presetUrls = [
   { label: "Vaibhav Anand", value: "https://zpj8dpf6-2504.inc1.devtunnels.ms" },
   {
-    label: "Pulkit",
+    label: "Pulkit 💦",
     value: "https://848ncvt5-2504.euw.devtunnels.ms",
   },
   {
