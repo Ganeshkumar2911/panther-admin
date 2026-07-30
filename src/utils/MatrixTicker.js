@@ -4,7 +4,7 @@ class MatrixTicker {
   constructor({ token, reconnect = true, max_retry = 50, max_delay = 60 }) {
     const DEV_WS_URL = "https://zpj8dpf6-2504.inc1.devtunnels.ms/";
     // const PROD_WS_URL = window.location.origin + "/";
-    const PROD_WS_URL = "https://1pz4zm0b-2504.euw.devtunnels.ms";
+    const PROD_WS_URL = "https://1pz4zm0b-2504.euw.devtunnels.ms/";
     const isDev =
       window.location.hostname === "localhost" ||
       window.location.hostname === "127.0.0.1" ||
