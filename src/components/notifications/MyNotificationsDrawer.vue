@@ -188,7 +188,7 @@
                   <p class="text-xs font-semibold text-primary-text mb-0.5">
                     {{ item.title }}
                   </p>
-                  <p class="text-[11px] text-secondary-text leading-relaxed">
+                  <p class="whitespace-pre-line text-[11px] text-secondary-text leading-relaxed">
                     {{ item.message }}
                   </p>
                   <Tooltip

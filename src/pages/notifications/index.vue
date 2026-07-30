@@ -337,7 +337,7 @@ function getTypeMeta(type) {
                   </button>
                 </div>
                 <p
-                  class="mt-0.5 line-clamp-1 max-w-sm text-[11px] text-secondary-text"
+                  class="mt-0.5 line-clamp-2 whitespace-pre-line max-w-sm text-[11px] text-secondary-text"
                 >
                   {{ item.message }}
                 </p>
