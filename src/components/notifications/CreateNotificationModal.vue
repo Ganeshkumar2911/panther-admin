@@ -1,49 +1,49 @@
 <script setup>
-import { ref, reactive, watch } from 'vue'
-import { useNotificationsStore } from '@/stores/notifications/notifications'
-import { useClientLedgerStore } from '@/stores/clientLedger/clientLedger'
-import { X, Send, Bell, Edit3, Loader2, Plus, Trash2 } from 'lucide-vue-next'
-import BaseSelect from '@/components/common/BaseSelect.vue'
+import { ref, reactive, watch } from "vue";
+import { useNotificationsStore } from "@/stores/notifications/notifications";
+import { useClientLedgerStore } from "@/stores/clientLedger/clientLedger";
+import { X, Send, Bell, Edit3, Loader2, Plus, Trash2 } from "lucide-vue-next";
+import BaseSelect from "@/components/common/BaseSelect.vue";
 
 const typeOptions = [
-  { label: 'Announcement', value: 'ANNOUNCEMENT' },
-  { label: 'System Alert', value: 'SYSTEM' },
-  { label: 'Promotion', value: 'PROMOTION' },
-  { label: 'Critical Alert', value: 'ALERT' },
-]
+  { label: "Announcement", value: "ANNOUNCEMENT" },
+  { label: "System Alert", value: "SYSTEM" },
+  { label: "Promotion", value: "PROMOTION" },
+  { label: "Critical Alert", value: "ALERT" },
+];
 
 const priorityOptions = [
-  { label: 'High Priority', value: 'HIGH' },
-  { label: 'Medium Priority', value: 'MEDIUM' },
-  { label: 'Low Priority', value: 'LOW' },
-]
+  { label: "High Priority", value: "HIGH" },
+  { label: "Medium Priority", value: "MEDIUM" },
+  { label: "Low Priority", value: "LOW" },
+];
 
 const props = defineProps({
   open: { type: Boolean, default: false },
   notificationToEdit: { type: Object, default: null },
-})
+});
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(["close"]);
 
-const store = useNotificationsStore()
-const clientLedgerStore = useClientLedgerStore()
+const store = useNotificationsStore();
+const clientLedgerStore = useClientLedgerStore();
 
-const clientOptions = ref([])
-const isSearchingClients = ref(false)
-let clientSearchTimer = null
+const clientOptions = ref([]);
+const isSearchingClients = ref(false);
+let clientSearchTimer = null;
 
-const selectedUsers = ref([])
-const selectedUserSelect = ref(null)
+const selectedUsers = ref([]);
+const selectedUserSelect = ref(null);
 
 const form = reactive({
-  title: '',
-  message: '',
-  note: '',
-  type: 'ANNOUNCEMENT',
-  priority: 'HIGH',
-  action_url: '',
-  image_url: '',
-  metadataPairs: [{ key: '', value: '' }],
+  title: "",
+  message: "",
+  note: "",
+  type: "ANNOUNCEMENT",
+  priority: "HIGH",
+  action_url: "",
+  image_url: "",
+  metadataPairs: [{ key: "", value: "" }],
   sendToAll: true,
   roles: {
     client: false,
@@ -51,112 +51,120 @@ const form = reactive({
     ib: false,
     admin: false,
   },
-  userIds: '',
-})
+  userIds: "",
+});
 
 function addMetadataPair() {
-  form.metadataPairs.push({ key: '', value: '' })
+  form.metadataPairs.push({ key: "", value: "" });
 }
 
 function removeMetadataPair(index) {
   if (form.metadataPairs.length > 1) {
-    form.metadataPairs.splice(index, 1)
+    form.metadataPairs.splice(index, 1);
   } else {
-    form.metadataPairs[0] = { key: '', value: '' }
+    form.metadataPairs[0] = { key: "", value: "" };
   }
 }
 
 function onClientSearch(query) {
-  clearTimeout(clientSearchTimer)
-  isSearchingClients.value = true
+  clearTimeout(clientSearchTimer);
+  isSearchingClients.value = true;
 
   clientSearchTimer = setTimeout(async () => {
     try {
-      const results = await clientLedgerStore.fetchAllClients(query || '')
-      clientOptions.value = results
+      const results = await clientLedgerStore.fetchAllClients(query || "");
+      clientOptions.value = results;
     } catch (err) {
-      clientOptions.value = []
+      clientOptions.value = [];
     } finally {
-      isSearchingClients.value = false
+      isSearchingClients.value = false;
     }
-  }, 250)
+  }, 250);
 }
 
 function handleUserSelect(val) {
-  if (!val) return
-  const found = clientOptions.value.find((o) => o.value === val)
+  if (!val) return;
+  const found = clientOptions.value.find((o) => o.value === val);
   if (found) {
     if (!selectedUsers.value.some((u) => u.id === found.value)) {
       selectedUsers.value.push({
         id: found.value,
         name: found.label,
-        email: found.email || '',
-      })
+        email: found.email || "",
+      });
     }
   }
-  selectedUserSelect.value = null
+  selectedUserSelect.value = null;
 }
 
 function removeUser(userId) {
-  selectedUsers.value = selectedUsers.value.filter((u) => String(u.id) !== String(userId))
+  selectedUsers.value = selectedUsers.value.filter(
+    (u) => String(u.id) !== String(userId),
+  );
 }
 
 function populateForm(notification) {
   if (!notification) {
-    resetForm()
-    return
+    resetForm();
+    return;
   }
 
-  form.title = notification.title || ''
-  form.message = notification.message || ''
-  form.note = notification.note || ''
-  form.type = notification.type || 'ANNOUNCEMENT'
-  form.priority = notification.priority || 'HIGH'
-  form.action_url = notification.action_url || ''
-  form.image_url = notification.image_url || ''
+  form.title = notification.title || "";
+  form.message = notification.message || "";
+  form.note = notification.note || "";
+  form.type = notification.type || "ANNOUNCEMENT";
+  form.priority = notification.priority || "HIGH";
+  form.action_url = notification.action_url || "";
+  form.image_url = notification.image_url || "";
 
   // Metadata JSON
-  if (notification.metadata_json && typeof notification.metadata_json === 'object') {
-    const entries = Object.entries(notification.metadata_json)
+  if (
+    notification.metadata_json &&
+    typeof notification.metadata_json === "object"
+  ) {
+    const entries = Object.entries(notification.metadata_json);
     if (entries.length > 0) {
-      form.metadataPairs = entries.map(([k, v]) => ({ key: k, value: String(v ?? '') }))
+      form.metadataPairs = entries.map(([k, v]) => ({
+        key: k,
+        value: String(v ?? ""),
+      }));
     } else {
-      form.metadataPairs = [{ key: '', value: '' }]
+      form.metadataPairs = [{ key: "", value: "" }];
     }
   } else {
-    form.metadataPairs = [{ key: '', value: '' }]
+    form.metadataPairs = [{ key: "", value: "" }];
   }
 
   // Targets
-  form.roles.client = false
-  form.roles.fm = false
-  form.roles.ib = false
-  form.roles.admin = false
-  selectedUsers.value = []
-  form.userIds = ''
+  form.roles.client = false;
+  form.roles.fm = false;
+  form.roles.ib = false;
+  form.roles.admin = false;
+  selectedUsers.value = [];
+  form.userIds = "";
 
-  const targets = notification.targets || []
-  const hasAll = targets.some((t) => t.target_type === 'ALL')
+  const targets = notification.targets || [];
+  const hasAll = targets.some((t) => t.target_type === "ALL");
 
   if (hasAll || targets.length === 0) {
-    form.sendToAll = true
+    form.sendToAll = true;
   } else {
-    form.sendToAll = false
+    form.sendToAll = false;
 
     targets.forEach((t) => {
-      if (t.target_type === 'ROLE' && t.target_id) {
-        const roleKey = String(t.target_id).toLowerCase()
+      if (t.target_type === "ROLE" && t.target_id) {
+        const roleKey = String(t.target_id).toLowerCase();
         if (roleKey in form.roles) {
-          form.roles[roleKey] = true
+          form.roles[roleKey] = true;
         }
-      } else if (t.target_type === 'USER' && t.target_id) {
+      } else if (t.target_type === "USER" && t.target_id) {
         selectedUsers.value.push({
           id: String(t.target_id),
           name: `User #${t.target_id}`,
-          email: '',
-        })
+          email: "",
+        });
       }
-    })
+    });
   }
 }
 
@@ -164,81 +172,94 @@ watch(
   () => [props.open, props.notificationToEdit],
   ([isOpen, editObj]) => {
     if (isOpen) {
-      onClientSearch('')
+      onClientSearch("");
       if (editObj) {
-        populateForm(editObj)
+        populateForm(editObj);
       } else {
-        resetForm()
+        resetForm();
       }
     }
   },
-  { immediate: true }
-)
+  { immediate: true },
+);
 
 function resetForm() {
-  form.title = ''
-  form.message = ''
-  form.note = ''
-  form.type = 'ANNOUNCEMENT'
-  form.priority = 'HIGH'
-  form.action_url = ''
-  form.image_url = ''
-  form.metadataPairs = [{ key: '', value: '' }]
-  form.sendToAll = true
-  form.roles.client = false
-  form.roles.fm = false
-  form.roles.ib = false
-  form.roles.admin = false
-  form.userIds = ''
-  selectedUsers.value = []
-  selectedUserSelect.value = null
+  form.title = "";
+  form.message = "";
+  form.note = "";
+  form.type = "ANNOUNCEMENT";
+  form.priority = "HIGH";
+  form.action_url = "";
+  form.image_url = "";
+  form.metadataPairs = [{ key: "", value: "" }];
+  form.sendToAll = true;
+  form.roles.client = false;
+  form.roles.fm = false;
+  form.roles.ib = false;
+  form.roles.admin = false;
+  form.userIds = "";
+  selectedUsers.value = [];
+  selectedUserSelect.value = null;
 }
 
 function handleSubmit() {
-  if (!form.title.trim() || !form.message.trim()) return
+  if (!form.title.trim() || !form.message.trim()) return;
 
   // Build target list according to API spec
-  const targets = []
+  const targets = [];
 
   if (form.sendToAll) {
-    targets.push({ target_type: 'ALL' })
+    targets.push({ target_type: "ALL" });
   } else {
     // Add selected roles
     Object.entries(form.roles).forEach(([roleName, isSelected]) => {
       if (isSelected) {
-        targets.push({ target_type: 'ROLE', target_id: roleName })
+        targets.push({
+          target_type: "ROLE",
+          target_id: roleName === "admin" ? "staff" : roleName,
+        });
       }
-    })
+    });
 
     // Add selected users from multi-select search
     selectedUsers.value.forEach((u) => {
-      targets.push({ target_type: 'USER', target_id: String(u.id) })
-    })
+      targets.push({ target_type: "USER", target_id: String(u.id) });
+    });
 
     // Add specific user IDs from text input if provided
     if (form.userIds.trim()) {
-      const ids = form.userIds.split(',').map((id) => id.trim()).filter(Boolean)
+      const ids = form.userIds
+        .split(",")
+        .map((id) => id.trim())
+        .filter(Boolean);
       ids.forEach((id) => {
-        if (!targets.some((t) => t.target_type === 'USER' && String(t.target_id) === String(id))) {
-          targets.push({ target_type: 'USER', target_id: String(id) })
+        if (
+          !targets.some(
+            (t) =>
+              t.target_type === "USER" && String(t.target_id) === String(id),
+          )
+        ) {
+          targets.push({ target_type: "USER", target_id: String(id) });
         }
-      })
+      });
     }
   }
 
   // Fallback to ALL if no targets selected
   if (targets.length === 0) {
-    targets.push({ target_type: 'ALL' })
+    targets.push({ target_type: "ALL" });
   }
 
   // Build metadata_json object from all valid key-value pairs
-  let metadata_json = null
-  const validPairs = form.metadataPairs.filter((p) => p.key.trim() && p.value.trim())
+  let metadata_json = null;
+  const validPairs = form.metadataPairs.filter(
+    (p) => p.key.trim() && p.value.trim(),
+  );
   if (validPairs.length > 0) {
-    metadata_json = {}
+    metadata_json = {};
     validPairs.forEach((p) => {
-      metadata_json[p.key.trim()] = p.value.trim()
-    })
+      metadata_json[p.key.trim()] = p.value.trim();
+    });
   }
 
   const payload = {
@@ -251,18 +272,18 @@ function handleSubmit() {
     image_url: form.image_url.trim() || null,
     metadata_json,
     targets,
-  }
+  };
 
   if (props.notificationToEdit && props.notificationToEdit.id) {
     store.updateNotification(props.notificationToEdit.id, payload, () => {
-      resetForm()
-      emit('close')
-    })
+      resetForm();
+      emit("close");
+    });
   } else {
     store.createNotification(payload, () => {
-      resetForm()
-      emit('close')
-    })
+      resetForm();
+      emit("close");
+    });
   }
 }
 </script>
@@ -285,18 +306,30 @@ function handleSubmit() {
         class="fixed top-0 right-0 z-50 h-full w-full sm:w-[480px] lg:w-[480px] bg-card-background border-l border-primary-border shadow-2xl flex flex-col justify-between overflow-hidden"
       >
         <!-- Header -->
-        <div class="px-5 py-4 border-b border-primary-border flex items-center justify-between bg-background/50 shrink-0">
+        <div
+          class="px-5 py-4 border-b border-primary-border flex items-center justify-between bg-background/50 shrink-0"
+        >
           <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-lg bg-primary/20 border border-primary/30 flex items-center justify-center text-primary">
+            <div
+              class="w-8 h-8 rounded-lg bg-primary/20 border border-primary/30 flex items-center justify-center text-primary"
+            >
               <Edit3 v-if="notificationToEdit" class="w-4 h-4" />
               <Bell v-else class="w-4 h-4" />
             </div>
             <div>
               <h3 class="text-sm font-bold text-primary-text">
-                {{ notificationToEdit ? `Edit Notification #${notificationToEdit.id}` : 'Create & Dispatch Notification' }}
+                {{
+                  notificationToEdit
+                    ? `Edit Notification #${notificationToEdit.id}`
+                    : "Create & Dispatch Notification"
+                }}
               </h3>
               <p class="text-[11px] text-secondary-text">
-                {{ notificationToEdit ? 'Update details for this notification draft.' : 'Broadcast alerts or targeted memos to users.' }}
+                {{
+                  notificationToEdit
+                    ? "Update details for this notification draft."
+                    : "Broadcast alerts or targeted memos to users."
+                }}
               </p>
             </div>
           </div>
@@ -311,12 +344,17 @@ function handleSubmit() {
         </div>
 
         <!-- Form Body -->
-        <form @submit.prevent="handleSubmit" class="p-5 overflow-y-auto space-y-4 text-xs no-scrollbar flex-1 flex flex-col justify-between">
+        <form
+          @submit.prevent="handleSubmit"
+          class="p-5 overflow-y-auto space-y-4 text-xs no-scrollbar flex-1 flex flex-col justify-between"
+        >
           <div class="space-y-4">
             <!-- Title & Type -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div class="sm:col-span-2">
-                <label class="block text-secondary-text font-medium mb-1">Title *</label>
+                <label class="block text-secondary-text font-medium mb-1"
+                  >Title *</label
+                >
                 <input
                   v-model="form.title"
                   required
@@ -327,7 +365,9 @@ function handleSubmit() {
               </div>
 
               <div>
-                <label class="block text-secondary-text font-medium mb-1">Type</label>
+                <label class="block text-secondary-text font-medium mb-1"
+                  >Type</label
+                >
                 <BaseSelect
                   v-model="form.type"
                   :options="typeOptions"
@@ -339,7 +379,9 @@ function handleSubmit() {
             <!-- Priority, Action URL & Image URL -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label class="block text-secondary-text font-medium mb-1">Priority</label>
+                <label class="block text-secondary-text font-medium mb-1"
+                  >Priority</label
+                >
                 <BaseSelect
                   v-model="form.priority"
                   :options="priorityOptions"
@@ -348,7 +390,9 @@ function handleSubmit() {
               </div>
 
               <div>
-                <label class="block text-secondary-text font-medium mb-1">Action URL (Optional)</label>
+                <label class="block text-secondary-text font-medium mb-1"
+                  >Action URL (Optional)</label
+                >
                 <input
                   v-model="form.action_url"
                   type="url"
@@ -360,7 +404,9 @@ function handleSubmit() {
 
             <!-- Image URL -->
             <div>
-              <label class="block text-secondary-text font-medium mb-1">Image URL (Optional Attachment)</label>
+              <label class="block text-secondary-text font-medium mb-1"
+                >Image URL (Optional Attachment)</label
+              >
               <input
                 v-model="form.image_url"
                 type="url"
@@ -371,7 +417,9 @@ function handleSubmit() {
 
             <!-- Message Body -->
             <div>
-              <label class="block text-secondary-text font-medium mb-1">Message Content *</label>
+              <label class="block text-secondary-text font-medium mb-1"
+                >Message Content *</label
+              >
               <textarea
                 v-model="form.message"
                 required
@@ -383,7 +431,9 @@ function handleSubmit() {
 
             <!-- Internal Admin Note -->
             <div>
-              <label class="block text-secondary-text font-medium mb-1">Internal Admin Note (Hidden from Users)</label>
+              <label class="block text-secondary-text font-medium mb-1"
+                >Internal Admin Note (Hidden from Users)</label
+              >
               <input
                 v-model="form.note"
                 type="text"
@@ -393,13 +443,19 @@ function handleSubmit() {
             </div>
 
             <!-- Target Selection Box -->
-            <div class="bg-background border border-primary-border rounded-lg p-3.5 space-y-3">
-              <span class="block text-xs font-semibold text-primary-text uppercase tracking-wider">
+            <div
+              class="bg-background border border-primary-border rounded-lg p-3.5 space-y-3"
+            >
+              <span
+                class="block text-xs font-semibold text-primary-text uppercase tracking-wider"
+              >
                 Target Recipients
               </span>
 
               <!-- All Radio -->
-              <label class="flex items-center gap-2 cursor-pointer text-xs text-primary-text font-medium">
+              <label
+                class="flex items-center gap-2 cursor-pointer text-xs text-primary-text font-medium"
+              >
                 <input
                   type="checkbox"
                   v-model="form.sendToAll"
@@ -409,24 +465,54 @@ function handleSubmit() {
               </label>
 
               <!-- Targeted Options (if not All) -->
-              <div v-if="!form.sendToAll" class="space-y-3.5 pt-2.5 border-t border-primary-border/60">
+              <div
+                v-if="!form.sendToAll"
+                class="space-y-3.5 pt-2.5 border-t border-primary-border/60"
+              >
                 <div>
-                  <span class="block text-[11px] text-secondary-text mb-1.5 font-medium">Target Specific Roles:</span>
+                  <span
+                    class="block text-[11px] text-secondary-text mb-1.5 font-medium"
+                    >Target Specific Roles:</span
+                  >
                   <div class="flex flex-wrap items-center gap-3">
-                    <label class="flex items-center gap-1.5 text-xs text-primary-text cursor-pointer">
-                      <input type="checkbox" v-model="form.roles.client" class="rounded text-primary focus:ring-0" />
+                    <label
+                      class="flex items-center gap-1.5 text-xs text-primary-text cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        v-model="form.roles.client"
+                        class="rounded text-primary focus:ring-0"
+                      />
                       <span>Clients (`client`)</span>
                     </label>
-                    <label class="flex items-center gap-1.5 text-xs text-primary-text cursor-pointer">
-                      <input type="checkbox" v-model="form.roles.fm" class="rounded text-primary focus:ring-0" />
+                    <label
+                      class="flex items-center gap-1.5 text-xs text-primary-text cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        v-model="form.roles.fm"
+                        class="rounded text-primary focus:ring-0"
+                      />
                       <span>Fund Managers (`fm`)</span>
                     </label>
-                    <label class="flex items-center gap-1.5 text-xs text-primary-text cursor-pointer">
-                      <input type="checkbox" v-model="form.roles.ib" class="rounded text-primary focus:ring-0" />
+                    <label
+                      class="flex items-center gap-1.5 text-xs text-primary-text cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        v-model="form.roles.ib"
+                        class="rounded text-primary focus:ring-0"
+                      />
                       <span>IB Partners (`ib`)</span>
                     </label>
-                    <label class="flex items-center gap-1.5 text-xs text-primary-text cursor-pointer">
-                      <input type="checkbox" v-model="form.roles.admin" class="rounded text-primary focus:ring-0" />
+                    <label
+                      class="flex items-center gap-1.5 text-xs text-primary-text cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        v-model="form.roles.admin"
+                        class="rounded text-primary focus:ring-0"
+                      />
                       <span>Admins (`admin`)</span>
                     </label>
                   </div>
@@ -434,7 +520,9 @@ function handleSubmit() {
 
                 <!-- Live User Search Multi-Select -->
                 <div>
-                  <label class="block text-[11px] text-secondary-text mb-1 font-medium">
+                  <label
+                    class="block text-[11px] text-secondary-text mb-1 font-medium"
+                  >
                     Search & Select Target Users (Multiple):
                   </label>
                   <BaseSelect
@@ -449,13 +537,21 @@ function handleSubmit() {
                   />
 
                   <!-- Selected User Tags / Chips -->
-                  <div v-if="selectedUsers.length > 0" class="flex flex-wrap gap-1.5 mt-2.5">
+                  <div
+                    v-if="selectedUsers.length > 0"
+                    class="flex flex-wrap gap-1.5 mt-2.5"
+                  >
                     <span
                       v-for="u in selectedUsers"
                       :key="u.id"
                       class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-medium"
                     >
-                      <span>{{ u.name }} <span class="text-[10px] opacity-75">(#{{ u.id }})</span></span>
+                      <span
+                        >{{ u.name }}
+                        <span class="text-[10px] opacity-75"
+                          >(#{{ u.id }})</span
+                        ></span
+                      >
                       <button
                         type="button"
                         @click="removeUser(u.id)"
@@ -471,9 +567,15 @@ function handleSubmit() {
             </div>
 
             <!-- Custom Metadata Section (Dynamic Key-Value Pairs) -->
-            <div class="bg-background border border-primary-border rounded-lg p-3.5 space-y-3">
-              <div class="flex items-center justify-between border-b border-primary-border/60 pb-2">
-                <span class="block text-xs font-semibold text-primary-text uppercase tracking-wider">
+            <div
+              class="bg-background border border-primary-border rounded-lg p-3.5 space-y-3"
+            >
+              <div
+                class="flex items-center justify-between border-b border-primary-border/60 pb-2"
+              >
+                <span
+                  class="block text-xs font-semibold text-primary-text uppercase tracking-wider"
+                >
                   Custom Metadata (JSON Payload)
                 </span>
                 <button
@@ -524,7 +626,9 @@ function handleSubmit() {
           </div>
 
           <!-- Buttons -->
-          <div class="pt-4 mt-4 border-t border-primary-border flex items-center justify-end gap-2 shrink-0">
+          <div
+            class="pt-4 mt-4 border-t border-primary-border flex items-center justify-end gap-2 shrink-0"
+          >
             <button
               type="button"
               @click="emit('close')"
@@ -537,13 +641,20 @@ function handleSubmit() {
               :disabled="store.createLoading || store.updateLoadingId !== null"
               class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-btn-text-primary font-semibold shadow-md transition-colors cursor-pointer disabled:opacity-50"
             >
-              <Loader2 v-if="store.createLoading || store.updateLoadingId !== null" class="w-3.5 h-3.5 animate-spin" />
+              <Loader2
+                v-if="store.createLoading || store.updateLoadingId !== null"
+                class="w-3.5 h-3.5 animate-spin"
+              />
               <Send v-else class="w-3.5 h-3.5" />
               <span>
                 {{
                   notificationToEdit
-                    ? (store.updateLoadingId === notificationToEdit.id ? 'Updating...' : 'Update Notification')
-                    : (store.createLoading ? 'Creating...' : 'Create Notification')
+                    ? store.updateLoadingId === notificationToEdit.id
+                      ? "Updating..."
+                      : "Update Notification"
+                    : store.createLoading
+                      ? "Creating..."
+                      : "Create Notification"
                 }}
               </span>
             </button>
