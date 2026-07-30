@@ -532,6 +532,7 @@ function handleSubmit() {
                     placeholder="Search user by name or email..."
                     searchable
                     class="w-full"
+                    :isShowMail="true"
                     @update:modelValue="handleUserSelect"
                     @search="onClientSearch"
                   />
