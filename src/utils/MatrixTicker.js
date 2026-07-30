@@ -2,9 +2,13 @@ import { io } from "socket.io-client";
 
 class MatrixTicker {
   constructor({ token, reconnect = true, max_retry = 50, max_delay = 60 }) {
-    const DEV_WS_URL = "https://1pz4zm0b-2504.euw.devtunnels.ms/";
+    const DEV_WS_URL = "https://zpj8dpf6-2504.inc1.devtunnels.ms/";
     const PROD_WS_URL = window.location.origin + "/";
-    const isDev = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.hostname.includes("devtunnels.ms") || window.location.port !== "";
+    const isDev =
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1" ||
+      window.location.hostname.includes("devtunnels.ms") ||
+      window.location.port !== "";
     this.root = isDev ? DEV_WS_URL : PROD_WS_URL;
     this.token = token;
 
@@ -30,6 +34,7 @@ class MatrixTicker {
       new_user_registered: [],
       new_deposit: [],
       new_withdrawal: [],
+      new_notification: [],
     };
 
     this.current_reconnection_count = 0;
@@ -109,6 +114,10 @@ class MatrixTicker {
 
     this.ws.on("new_withdrawal", (data) => {
       this.trigger("new_withdrawal", [data]);
+    });
+
+    this.ws.on("new_notification", (data) => {
+      this.trigger("new_notification", [data]);
     });
   }
 

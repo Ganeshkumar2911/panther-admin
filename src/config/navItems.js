@@ -19,6 +19,7 @@ import {
   ClipboardList,
   ShieldCheck,
   Layers,
+  Bell,
 } from "lucide-vue-next";
 
 export const navItems = [
@@ -135,6 +136,12 @@ export const navItems = [
     to: "/tickets",
     icon: Tickets,
     permission: ["ticket.view", "ticket.platform_view"],
+  },
+  {
+    label: "Notifications",
+    to: "/notifications",
+    icon: Bell,
+    permission: ["notifications.view", "notifications.create"],
   },
   {
     label: "Access Control",

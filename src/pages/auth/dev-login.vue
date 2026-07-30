@@ -1,123 +1,147 @@
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
-import { Mail, Lock, Eye, EyeOff, Loader2, Globe } from 'lucide-vue-next'
-import { useSnackbarStore } from '@/stores/snackbar/snackbar'
-import apiRequest from '@/api/request'
-import authToken from '@/common/authToken'
-import urls from '@/api/urls'
-import { useRouter } from 'vue-router'
-import { useMyPermissionsStore } from '@/stores/rbac/myPermissions'
-import bgImage from '@/assets/Login-img.jpeg'
-import BaseSelect from '@/components/common/BaseSelect.vue'
+import { ref, reactive, onMounted } from "vue";
+import { Mail, Lock, Eye, EyeOff, Loader2, Globe } from "lucide-vue-next";
+import { useSnackbarStore } from "@/stores/snackbar/snackbar";
+import apiRequest from "@/api/request";
+import authToken from "@/common/authToken";
+import urls from "@/api/urls";
+import { useRouter } from "vue-router";
+import { useMyPermissionsStore } from "@/stores/rbac/myPermissions";
+import bgImage from "@/assets/Login-img.jpeg";
+import BaseSelect from "@/components/common/BaseSelect.vue";
 
-const router = useRouter()
-const snackbar = useSnackbarStore()
+const router = useRouter();
+const snackbar = useSnackbarStore();
 
-const loading = ref(false)
-const showPassword = ref(false)
+const loading = ref(false);
+const showPassword = ref(false);
 
 const presetUrls = [
-  { label: 'https://zpj8dpf6-2504.inc1.devtunnels.ms', value: 'https://zpj8dpf6-2504.inc1.devtunnels.ms' },
-  { label: 'https://1pz4zm0b-2504.euw.devtunnels.ms', value: 'https://1pz4zm0b-2504.euw.devtunnels.ms' },
-  { label: 'https://848ncvt5-2504.euw.devtunnels.ms', value: 'https://848ncvt5-2504.euw.devtunnels.ms' },
-  { label: 'https://ls01t281-5001.inc1.devtunnels.ms', value: 'https://ls01t281-5001.inc1.devtunnels.ms' },
-]
+  {
+    label: "https://w2llv2cm-2504.inc1.devtunnels.ms",
+    value: "https://w2llv2cm-2504.inc1.devtunnels.ms",
+    optinalLableName: "Office",
+  },
+  {
+    label: "https://zpj8dpf6-2504.inc1.devtunnels.ms",
+    value: "https://zpj8dpf6-2504.inc1.devtunnels.ms",
+    optinalLableName: "Vaibhav",
+  },
+  {
+    label: "https://1pz4zm0b-2504.euw.devtunnels.ms",
+    value: "https://1pz4zm0b-2504.euw.devtunnels.ms",
+    optinalLableName: "Production",
+  },
+  {
+    label: "https://848ncvt5-2504.euw.devtunnels.ms",
+    value: "https://848ncvt5-2504.euw.devtunnels.ms",
+    optinalLableName: "Pulkit",
+  },
+  {
+    label: "https://ls01t281-5001.inc1.devtunnels.ms",
+    value: "https://ls01t281-5001.inc1.devtunnels.ms",
+    optinalLableName: "Lokesh",
+  },
+];
 
 const form = reactive({
-  email: '',
-  password: '',
-  baseUrl: ''
-})
+  email: "",
+  password: "",
+  baseUrl: "",
+});
 
 const errors = reactive({
-  email: '',
-  password: '',
-  baseUrl: ''
-})
+  email: "",
+  password: "",
+  baseUrl: "",
+});
 
 // Load saved custom base URL on mounted
 onMounted(() => {
-  const savedUrl = localStorage.getItem('custom_base_url')
+  const savedUrl = localStorage.getItem("custom_base_url");
   if (savedUrl) {
-    form.baseUrl = savedUrl
+    form.baseUrl = savedUrl;
   }
-})
+});
 
 // ─── Validation ─────────────────────────────────────────
 const validate = () => {
-  let valid = true
+  let valid = true;
 
   if (!form.email) {
-    errors.email = 'Email is required.'
-    valid = false
+    errors.email = "Email is required.";
+    valid = false;
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-    errors.email = 'Enter a valid email address.'
-    valid = false
+    errors.email = "Enter a valid email address.";
+    valid = false;
   }
 
   if (!form.password) {
-    errors.password = 'Password is required.'
-    valid = false
+    errors.password = "Password is required.";
+    valid = false;
   } else if (form.password.length < 6) {
-    errors.password = 'Password must be at least 6 characters.'
-    valid = false
+    errors.password = "Password must be at least 6 characters.";
+    valid = false;
   }
 
   if (!form.baseUrl) {
-    errors.baseUrl = 'Base URL is required.'
-    valid = false
+    errors.baseUrl = "Base URL is required.";
+    valid = false;
   } else {
     try {
-      const url = new URL(form.baseUrl.trim())
-      if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-        errors.baseUrl = 'URL must start with http:// or https://'
-        valid = false
+      const url = new URL(form.baseUrl.trim());
+      if (url.protocol !== "http:" && url.protocol !== "https:") {
+        errors.baseUrl = "URL must start with http:// or https://";
+        valid = false;
       }
     } catch (_) {
-      errors.baseUrl = 'Enter a valid URL.'
-      valid = false
+      errors.baseUrl = "Enter a valid URL.";
+      valid = false;
     }
   }
 
-  return valid
-}
+  return valid;
+};
 
 const clearError = (field) => {
-  errors[field] = ''
-}
+  errors[field] = "";
+};
 
 const resetToDefault = () => {
-  form.baseUrl = ''
-  localStorage.removeItem('custom_base_url')
-  snackbar.show('Target Base URL reset to default.', 'success')
-}
+  form.baseUrl = "";
+  localStorage.removeItem("custom_base_url");
+  snackbar.show("Target Base URL reset to default.", "success");
+};
 
 // ─── API Call ─────────────────────────────────────────
 const handleLogin = () => {
-  if (!validate()) return
+  if (!validate()) return;
 
-  loading.value = true
+  loading.value = true;
 
   // Save the custom URL first so the login request hits this URL
-  localStorage.setItem('custom_base_url', form.baseUrl.trim())
+  localStorage.setItem("custom_base_url", form.baseUrl.trim());
 
   const successHandler = async (res) => {
-    authToken.setToken(res.access_token)
-    const myPermissionsStore = useMyPermissionsStore()
+    authToken.setToken(res.access_token);
+    const myPermissionsStore = useMyPermissionsStore();
     try {
-      await myPermissionsStore.fetchMyPermissions(true)
+      await myPermissionsStore.fetchMyPermissions(true);
     } catch (_) {
       // ignore
     }
-    loading.value = false
-    snackbar.show('Connected to target host successfully.', 'success')
-    router.push(myPermissionsStore.firstAllowedPath)
-  }
+    loading.value = false;
+    snackbar.show("Connected to target host successfully.", "success");
+    router.push(myPermissionsStore.firstAllowedPath);
+  };
 
   const failureHandler = (err) => {
-    loading.value = false
-    snackbar.show(err?.error || 'Authentication failed on target host.', 'error')
-  }
+    loading.value = false;
+    snackbar.show(
+      err?.error || "Authentication failed on target host.",
+      "error",
+    );
+  };
 
   apiRequest(urls.KEYS.POST, urls.auth.login, {
     data: {
@@ -127,19 +151,16 @@ const handleLogin = () => {
     isTokenRequired: false,
     onSuccess: successHandler,
     onFailure: failureHandler,
-  })
-}
+  });
+};
 </script>
 
 <template>
   <div class="min-h-screen flex bg-[#0A0A0A]">
-
     <!-- LEFT SIDE -->
     <div class="hidden lg:flex lg:w-1/2 pl-4 pt-4">
       <div
-        class="w-full h-[calc(100vh-24px)] overflow-hidden
-               rounded-tr-3xl rounded-tl-3xl rounded-br-3xl rounded-bl-none
-               shadow-2xl"
+        class="w-full h-[calc(100vh-24px)] overflow-hidden rounded-tr-3xl rounded-tl-3xl rounded-br-3xl rounded-bl-none shadow-2xl"
       >
         <img
           :src="bgImage"
@@ -154,7 +175,6 @@ const handleLogin = () => {
       class="w-full lg:w-1/2 flex items-center justify-center px-6 py-10 bg-[#0A0A0A]"
     >
       <div class="w-full max-w-md">
-
         <!-- Logo -->
         <div class="text-center mb-8">
           <div class="flex justify-center mb-6">
@@ -176,7 +196,6 @@ const handleLogin = () => {
 
         <!-- Form -->
         <div>
-
           <!-- Base URL Override -->
           <div class="mb-4">
             <div class="flex justify-between items-center mb-2">
@@ -218,10 +237,7 @@ const handleLogin = () => {
               </div>
             </div>
 
-            <p
-              v-if="errors.baseUrl"
-              class="text-xs text-red-400 mt-1"
-            >
+            <p v-if="errors.baseUrl" class="text-xs text-red-400 mt-1">
               {{ errors.baseUrl }}
             </p>
           </div>
@@ -241,10 +257,7 @@ const handleLogin = () => {
               @focus="clearError('email')"
             />
 
-            <p
-              v-if="errors.email"
-              class="text-xs text-red-400 mt-1"
-            >
+            <p v-if="errors.email" class="text-xs text-red-400 mt-1">
               {{ errors.email }}
             </p>
           </div>
@@ -276,10 +289,7 @@ const handleLogin = () => {
               </button>
             </div>
 
-            <p
-              v-if="errors.password"
-              class="text-xs text-red-400 mt-1"
-            >
+            <p v-if="errors.password" class="text-xs text-red-400 mt-1">
               {{ errors.password }}
             </p>
           </div>
@@ -292,9 +302,10 @@ const handleLogin = () => {
             class="w-full rounded-lg bg-primary py-3 text.sm font-medium text-white hover:bg-primary-hover transition disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
           >
             <Loader2 v-if="loading" class="w-4 h-4 animate-spin" />
-            <span>{{ loading ? 'Connecting...' : 'Connect to Environment' }}</span>
+            <span>{{
+              loading ? "Connecting..." : "Connect to Environment"
+            }}</span>
           </button>
-
         </div>
       </div>
     </div>
