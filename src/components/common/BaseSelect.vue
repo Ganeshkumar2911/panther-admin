@@ -6,6 +6,7 @@ import {
   onBeforeUnmount,
   nextTick,
   useAttrs,
+  watchEffect,
 } from "vue";
 import { ChevronDown, Check, Search } from "lucide-vue-next";
 
@@ -16,6 +17,11 @@ const props = defineProps({
   modelValue: {
     type: [String, Number, null],
     default: null,
+  },
+
+  isShowMail: {
+    type: Boolean,
+    default: false,
   },
   options: {
     type: Array,
@@ -129,9 +135,12 @@ const filteredOptions = computed(() => {
   }
 
   const query = searchQuery.value.toLowerCase().trim();
+
   return baseOptions.value.filter((option) => {
     const labelStr = (option.label ?? "").toString().toLowerCase();
+    const emailStr = (option.email ?? "").toString().toLowerCase();
     if (labelStr.includes(query)) return true;
+    if (emailStr.includes(query)) return true;
 
     if (option.value !== null && option.value !== undefined) {
       const valStr = option.value.toString().toLowerCase();
@@ -236,6 +245,10 @@ function handleScrollOrResize() {
 function handleKeydown(event) {
   if (event.key === "Escape") close();
 }
+
+// watchEffect(() => {
+//   console.log(filteredOptions.value);
+// });
 
 onMounted(() => {
   document.addEventListener("mousedown", handleOutsideClick);
@@ -347,18 +360,24 @@ onBeforeUnmount(() => {
               ]"
             >
               <div class="flex items-center gap-2">
-                <span v-if="option?.optinalLableName">{{
-                  option.optinalLableName
-                }} - </span>
-                <span
-                  :class="
-                    isSelected(option) && !option.disabled
-                      ? 'text-primary font-medium'
-                      : ''
-                  "
-                >
-                  {{ option.label }}
+                <span v-if="option?.optinalLableName"
+                  >{{ option.optinalLableName }} -
                 </span>
+                <div class="flex flex-col items-start">
+                  <span
+                    :class="
+                      isSelected(option) && !option.disabled
+                        ? 'text-primary font-medium'
+                        : ''
+                    "
+                  >
+                    {{ option.label }}
+                  </span>
+                  <p v-if="isShowMail">
+                    <span class="text-xs">email : </span>
+                    <span>{{ option?.email }}</span>
+                  </p>
+                </div>
               </div>
 
               <Check
