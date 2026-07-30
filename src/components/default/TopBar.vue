@@ -1,16 +1,21 @@
 <script setup>
-import { computed, ref, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Menu, Sun, Moon, ChevronLeft } from 'lucide-vue-next'
+import {
+  Menu,
+  Sun,
+  Moon,
+  ChevronLeft,
+} from 'lucide-vue-next'
 import { useProfileStore } from '@/stores/profile/profile'
 import ProfileDialog from '@/components/common/profileDialog.vue'
+import TopBarNotifications from '@/components/notifications/TopBarNotifications.vue'
 
 defineEmits(['toggle-sidebar'])
 
 const router = useRouter()
 const route = useRoute()
 const profileStore = useProfileStore()
-
 
 const isDark = ref(false)
 const profileDialogOpen = ref(false)
@@ -31,16 +36,6 @@ function toggleDark() {
   }
 }
 
-// 📅 Date
-const today = computed(() =>
-  new Date().toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
-)
-
 function openProfileDialog() {
   profileDialogOpen.value = true
 }
@@ -54,11 +49,10 @@ function closeProfileDialog() {
   <header
     class="h-[60px] flex items-center justify-between
            px-4 lg:px-6
-           bg-background border-b border-primary-border"
+           bg-background border-b border-primary-border relative"
   >
     <!-- Left -->
     <div class="flex items-center gap-3">
-
       <!-- Hamburger -->
       <button
         @click="$emit('toggle-sidebar')"
@@ -90,6 +84,8 @@ function closeProfileDialog() {
 
     <!-- Right -->
     <div class="flex items-center gap-2">
+      <!-- Notification Bell Popover & Drawer -->
+      <TopBarNotifications />
 
       <!-- Theme Toggle -->
       <button
@@ -101,11 +97,6 @@ function closeProfileDialog() {
         <Moon v-else class="w-4 h-4" />
       </button>
 
-      <!-- Date -->
-      <!-- <span class="hidden sm:block text-xs text-secondary-text">
-        {{ today }}
-      </span> -->
-
       <!-- Avatar -->
       <div
         class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-primary-border cursor-pointer"
@@ -113,16 +104,16 @@ function closeProfileDialog() {
       >
         <div class="w-7 h-7 rounded-full bg-card-background border border-primary-border text-primary flex items-center justify-center">
           <span class="text-xs font-bold">
-            {{ profileStore.user?.name?.charAt(0).toUpperCase() || 'S' }} 
+            {{ profileStore.user?.name?.charAt(0).toUpperCase() || 'S' }}
           </span>
         </div>
         <span class="hidden text-primary-text sm:block text-xs font-medium">
           {{ profileStore.user?.name || 'Super Admin' }}
         </span>
       </div>
-
     </div>
   </header>
+
   <ProfileDialog
     :open="profileDialogOpen"
     @close="closeProfileDialog"

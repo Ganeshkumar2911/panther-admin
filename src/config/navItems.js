@@ -20,6 +20,7 @@ import {
   ShieldCheck,
   Layers,
   FolderOpen,
+  Bell,
 } from "lucide-vue-next";
 
 export const navItems = [
@@ -116,6 +117,7 @@ export const navItems = [
     label: "Media Library",
     to: "/media",
     icon: FolderOpen,
+    permission: ["media.view"],
   },
   // 6. System & Support
   {
@@ -141,6 +143,12 @@ export const navItems = [
     to: "/tickets",
     icon: Tickets,
     permission: ["ticket.view", "ticket.platform_view"],
+  },
+  {
+    label: "Notifications",
+    to: "/notifications",
+    icon: Bell,
+    permission: ["notifications.view", "notifications.create"],
   },
   {
     label: "Access Control",
