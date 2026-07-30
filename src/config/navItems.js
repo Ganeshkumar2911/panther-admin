@@ -19,6 +19,7 @@ import {
   ClipboardList,
   ShieldCheck,
   Layers,
+  FolderOpen,
   Bell,
 } from "lucide-vue-next";
 
@@ -111,6 +112,12 @@ export const navItems = [
     to: "/e-mails",
     icon: Mail,
     permission: ["email.view", "email.manage"],
+  },
+  {
+    label: "Media Library",
+    to: "/media",
+    icon: FolderOpen,
+    permission: ["media.view"],
   },
   // 6. System & Support
   {

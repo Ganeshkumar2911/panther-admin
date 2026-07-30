@@ -286,6 +286,27 @@ const routes = [
         },
       },
       {
+        path: "/media",
+        name: "media",
+        component: () => import("@/pages/media/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Media Library",
+          description: "Manage image folders and media assets across the platform.",
+        },
+      },
+      {
+        path: "/media/:groupId",
+        name: "media-images",
+        component: () => import("@/pages/media/[groupId].vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Media Images",
+          description: "Manage images within this media group.",
+          showBackButton: true,
+        },
+      },
+      {
         path: "/platform-tickets/:id",
         name: "platform-tickets-details",
         component: () => import("@/pages/platformTickets/ticketDetails.vue"),
