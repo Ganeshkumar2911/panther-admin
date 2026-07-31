@@ -17,30 +17,22 @@ const loading = ref(false);
 const showPassword = ref(false);
 
 const presetUrls = [
+  { label: "Vaibhav Anand", value: "https://zpj8dpf6-2504.inc1.devtunnels.ms" },
   {
-    label: "https://w2llv2cm-2504.inc1.devtunnels.ms",
-    value: "https://w2llv2cm-2504.inc1.devtunnels.ms",
-    optinalLableName: "Office",
-  },
-  {
-    label: "https://zpj8dpf6-2504.inc1.devtunnels.ms",
-    value: "https://zpj8dpf6-2504.inc1.devtunnels.ms",
-    optinalLableName: "Vaibhav",
-  },
-  {
-    label: "https://1pz4zm0b-2504.euw.devtunnels.ms",
-    value: "https://1pz4zm0b-2504.euw.devtunnels.ms",
-    optinalLableName: "Production",
-  },
-  {
-    label: "https://848ncvt5-2504.euw.devtunnels.ms",
+    label: "Pulkit 💦",
     value: "https://848ncvt5-2504.euw.devtunnels.ms",
-    optinalLableName: "Pulkit",
   },
   {
-    label: "https://ls01t281-5001.inc1.devtunnels.ms",
+    label: "Lokesh",
     value: "https://ls01t281-5001.inc1.devtunnels.ms",
-    optinalLableName: "Lokesh",
+  },
+  {
+    label: "Production",
+    value: "https://1pz4zm0b-2504.euw.devtunnels.ms",
+  },
+  {
+    label: "Sarkari",
+    value: "https://w2llv2cm-2504.inc1.devtunnels.ms",
   },
 ];
 
