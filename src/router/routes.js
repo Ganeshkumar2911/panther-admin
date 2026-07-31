@@ -265,6 +265,27 @@ const routes = [
         },
       },
       {
+        path: "/notifications",
+        name: "notifications",
+        component: () => import("@/pages/notifications/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Notifications",
+          description: "View and manage system notifications.",
+        },
+      },
+      {
+        path: "/notifications/read-status/:id",
+        name: "notification-read-status",
+        component: () => import("@/pages/notifications/readStatus.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Notification Read Status Logs",
+          description: "Track user read statuses and delivery receipts.",
+          showBackButton: true,
+        },
+      },
+      {
         path: "/platform-tickets",
         name: "platform-tickets",
         component: () => import("@/pages/platformTickets/index.vue"),
@@ -272,6 +293,27 @@ const routes = [
           requiresAuth: true,
           title: "Support Tickets",
           description: "Raise a ticket to connect with the developer team.",
+        },
+      },
+      {
+        path: "/media",
+        name: "media",
+        component: () => import("@/pages/media/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Media Library",
+          description: "Manage image folders and media assets across the platform.",
+        },
+      },
+      {
+        path: "/media/:groupId",
+        name: "media-images",
+        component: () => import("@/pages/media/[groupId].vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Media Images",
+          description: "Manage images within this media group.",
+          showBackButton: true,
         },
       },
       {

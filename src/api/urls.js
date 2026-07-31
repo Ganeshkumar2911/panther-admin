@@ -182,6 +182,29 @@ const urls = {
       delete: "/rbac/permissions_mapping",
     },
   },
+  notifications: {
+    create: "/notifications/create",
+    update: "/notifications",
+    adminList: "/notifications/list",
+    myNotifications: "/notifications/my-notifications",
+    markRead: "/notifications/read",
+    send: "/notifications/send",
+    readStatus: "/notifications/read-status",
+  },
+  media: {
+    groups: {
+      list: "/media-groups",
+      create: "/create-media-group",
+      update: "/update-media-group",
+      delete: "/delete-media-group",
+    },
+    images: {
+      list: "/media-images",
+      create: "/create-media-image",
+      update: "/media-images",
+      delete: "/media-images",
+    },
+  },
 };
 
 export default urls;
