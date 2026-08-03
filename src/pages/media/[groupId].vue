@@ -71,7 +71,7 @@
             class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-background border border-primary-border text-xs font-semibold text-secondary-text hover:text-primary-text hover:bg-card-background transition-all cursor-pointer disabled:opacity-50"
             :disabled="store.loading"
             @click="store.fetchMediaImages(groupId)"
-            title="Refresh images"
+            title="Refresh media"
           >
             <RotateCw
               class="w-3.5 h-3.5"
@@ -86,7 +86,7 @@
             @click="panel = { open: true, editData: null }"
           >
             <Upload class="w-3.5 h-3.5" />
-            <span>Upload Image</span>
+            <span>Upload Media</span>
           </button>
         </div>
       </div>
@@ -108,7 +108,7 @@
             <input
               v-model="searchQuery"
               type="text"
-              placeholder="Search images..."
+              placeholder="Search media..."
               class="w-full pl-8 pr-7 py-1.5 bg-background border border-primary-border/80 rounded-lg text-xs text-primary-text placeholder:text-secondary-text/70 focus:outline-none focus:border-primary transition-colors"
             />
             <button
@@ -210,15 +210,15 @@
         <h3 class="text-base font-bold text-primary-text">
           {{
             searchQuery || statusFilter !== "all"
-              ? "No matching images found"
-              : "No images in this folder yet"
+              ? "No matching media found"
+              : "No media files in this folder yet"
           }}
         </h3>
         <p class="text-xs text-secondary-text mt-1 leading-relaxed">
           {{
             searchQuery || statusFilter !== "all"
               ? "Try adjusting your search query or filter settings."
-              : "Upload image files to start managing assets in this media group."
+              : "Upload media files (Images, Videos, PDFs) to start managing assets in this media group."
           }}
         </p>
       </div>
@@ -230,7 +230,7 @@
         @click="panel = { open: true, editData: null }"
       >
         <Upload class="w-4 h-4" />
-        <span>Upload First Image</span>
+        <span>Upload First Media File</span>
       </button>
 
       <button
@@ -256,17 +256,43 @@
         :key="img.id"
         class="group relative bg-card-background border border-primary-border/80 hover:border-primary/50 rounded-2xl overflow-hidden flex flex-col transition-all duration-200"
       >
-        <!-- Image Container with Hover Overlay -->
+        <!-- Media Container with Hover Overlay -->
         <div
-          class="relative aspect-[4/3] bg-black/60 overflow-hidden cursor-pointer m-3 rounded-xl"
+          class="relative aspect-[4/3] bg-black/60 overflow-hidden cursor-pointer m-3 rounded-xl flex items-center justify-center"
           @click="preview = { open: true, image: img }"
         >
           <img
+            v-if="getMediaType(img.image_url) === 'image'"
             :src="img.image_url"
             :alt="img.title"
             class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             loading="lazy"
           />
+          <div
+            v-else-if="getMediaType(img.image_url) === 'video'"
+            class="relative w-full h-full flex items-center justify-center bg-black"
+          >
+            <video
+              :src="img.image_url"
+              class="w-full h-full object-cover opacity-80"
+              muted
+              preload="metadata"
+            />
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="w-10 h-10 rounded-full bg-black/60 border border-white/30 flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
+                <Play class="w-5 h-5 fill-white translate-x-0.5" />
+              </div>
+            </div>
+          </div>
+          <div
+            v-else-if="getMediaType(img.image_url) === 'pdf'"
+            class="w-full h-full flex flex-col items-center justify-center bg-card-background/90 p-4 gap-2 text-center"
+          >
+            <FileText class="w-10 h-10 text-primary" />
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary uppercase tracking-wide">
+              PDF Document
+            </span>
+          </div>
 
           <!-- Dark Overlay on Hover -->
           <div
@@ -424,14 +450,33 @@
               <!-- Thumbnail -->
               <td class="py-3 px-4 shrink-0">
                 <div
-                  class="w-14 h-11 rounded-lg bg-black/40 overflow-hidden border border-primary-border/80 cursor-pointer shrink-0 relative group/thumb"
+                  class="w-14 h-11 rounded-lg bg-black/40 overflow-hidden border border-primary-border/80 cursor-pointer shrink-0 relative group/thumb flex items-center justify-center"
                   @click="preview = { open: true, image: img }"
                 >
                   <img
+                    v-if="getMediaType(img.image_url) === 'image'"
                     :src="img.image_url"
                     :alt="img.title"
                     class="w-full h-full object-cover group-hover/thumb:scale-105 transition-transform"
                   />
+                  <div
+                    v-else-if="getMediaType(img.image_url) === 'video'"
+                    class="w-full h-full relative bg-black flex items-center justify-center"
+                  >
+                    <video
+                      :src="img.image_url"
+                      class="w-full h-full object-cover opacity-70"
+                      muted
+                      preload="metadata"
+                    />
+                    <Play class="w-3.5 h-3.5 text-white absolute fill-white" />
+                  </div>
+                  <div
+                    v-else-if="getMediaType(img.image_url) === 'pdf'"
+                    class="w-full h-full flex items-center justify-center bg-background text-primary"
+                  >
+                    <FileText class="w-5 h-5" />
+                  </div>
                   <div
                     class="absolute inset-0 bg-black/40 opacity-0 group-hover/thumb:opacity-100 flex items-center justify-center transition-opacity"
                   >
@@ -575,6 +620,9 @@ import {
   Pencil,
   Trash2,
   CalendarDays,
+  Video,
+  FileText,
+  Play,
 } from "lucide-vue-next";
 import { useMediaImagesStore } from "@/stores/media/mediaImages";
 import Pagination from "@/components/common/Pagination.vue";
@@ -595,6 +643,18 @@ const preview = ref({ open: false, image: null });
 const searchQuery = ref("");
 const statusFilter = ref("all");
 const viewMode = ref("grid");
+
+function getMediaType(url) {
+  if (!url || typeof url !== "string") return "image";
+  const cleanUrl = url.split("?")[0].toLowerCase();
+  if (/\.(mp4|webm|ogg|mov|m4v|mkv)$/i.test(cleanUrl)) {
+    return "video";
+  }
+  if (/\.pdf$/i.test(cleanUrl)) {
+    return "pdf";
+  }
+  return "image";
+}
 
 const filteredImages = computed(() => {
   return (store.records || []).filter((img) => {
