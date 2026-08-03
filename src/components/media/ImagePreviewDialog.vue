@@ -13,11 +13,13 @@
         <div class="px-5 py-3.5 border-b border-primary-border/70 flex items-center justify-between bg-background/60">
           <div class="flex items-center gap-2.5 min-w-0">
             <div class="w-8 h-8 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
-              <ImageIcon class="w-4 h-4" />
+              <Video v-if="mediaType === 'video'" class="w-4 h-4" />
+              <FileText v-else-if="mediaType === 'pdf'" class="w-4 h-4" />
+              <ImageIcon v-else class="w-4 h-4" />
             </div>
             <div class="min-w-0">
               <h3 class="text-sm font-bold text-primary-text truncate">
-                {{ image?.title || "Image Preview" }}
+                {{ image?.title || (mediaType === 'video' ? 'Video Preview' : mediaType === 'pdf' ? 'PDF Document' : 'Media Preview') }}
               </h3>
               <p v-if="image?.created_at" class="text-[10.5px] text-secondary-text">
                 Uploaded {{ formatDate(image.created_at) }}
@@ -33,7 +35,7 @@
               rel="noopener noreferrer"
               class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-background border border-primary-border text-[11px] font-semibold text-primary hover:bg-primary/10 transition-colors"
             >
-              <span>Full Size</span>
+              <span>{{ mediaType === 'pdf' ? 'Open PDF' : 'Full View' }}</span>
               <ExternalLink class="w-3.5 h-3.5" />
             </a>
 
@@ -47,17 +49,40 @@
           </div>
         </div>
 
-        <!-- Image Container -->
+        <!-- Media Container -->
         <div class="flex-1 overflow-auto bg-black/50 p-4 sm:p-6 flex items-center justify-center min-h-[300px]">
+          <!-- Video Preview -->
+          <video
+            v-if="image?.image_url && mediaType === 'video'"
+            :src="image.image_url"
+            controls
+            autoplay
+            class="max-w-full max-h-[65vh] rounded-xl shadow-2xl bg-black"
+          />
+
+          <!-- PDF Preview -->
+          <div
+            v-else-if="image?.image_url && mediaType === 'pdf'"
+            class="w-full h-[65vh] flex flex-col items-center justify-center"
+          >
+            <iframe
+              :src="image.image_url"
+              class="w-full h-full rounded-xl border border-primary-border bg-white"
+              title="PDF Preview"
+            />
+          </div>
+
+          <!-- Image Preview -->
           <img
-            v-if="image?.image_url"
+            v-else-if="image?.image_url"
             :src="image.image_url"
             :alt="image?.title || 'Preview image'"
             class="max-w-full max-h-[65vh] object-contain rounded-xl shadow-2xl transition-all hover:scale-[1.01]"
           />
+
           <div v-else class="flex flex-col items-center gap-2 py-12 text-secondary-text">
             <ImageIcon class="w-10 h-10 opacity-40" />
-            <p class="text-xs">No image preview available</p>
+            <p class="text-xs">No media preview available</p>
           </div>
         </div>
 
@@ -82,8 +107,8 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted } from "vue";
-import { X, ExternalLink, Image as ImageIcon } from "lucide-vue-next";
+import { computed, onMounted, onUnmounted } from "vue";
+import { X, ExternalLink, Image as ImageIcon, Video, FileText } from "lucide-vue-next";
 import URLCopyButton from "@/components/media/URLCopyButton.vue";
 import { formatDate } from "@/utils/timeFormatter";
 
@@ -93,6 +118,19 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["close"]);
+
+const mediaType = computed(() => {
+  const url = props.image?.image_url;
+  if (!url || typeof url !== "string") return "image";
+  const cleanUrl = url.split("?")[0].toLowerCase();
+  if (/\.(mp4|webm|ogg|mov|m4v|mkv)$/i.test(cleanUrl)) {
+    return "video";
+  }
+  if (/\.pdf$/i.test(cleanUrl)) {
+    return "pdf";
+  }
+  return "image";
+});
 
 function handleKeydown(e) {
   if (e.key === "Escape" && props.open) {
