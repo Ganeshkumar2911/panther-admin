@@ -319,6 +319,33 @@ export const usePlatfromTicketsStore = defineStore("platfromTickets", () => {
     isFetched.value = false;
   };
 
+  // ─── Create Ticket For User (Admin) ───────────────────
+  const createTicketForUser = (payload, onDone) => {
+    actionLoading.value = true;
+
+    apiRequest(urls.KEYS.POST, urls.platformTickets.createAdminTicket, {
+      data: {
+        user_id: payload.user_id,
+        subject: payload.subject,
+        description: payload.description,
+        priority: payload.priority || "medium",
+      },
+      isTokenRequired: true,
+
+      onSuccess: (res) => {
+        actionLoading.value = false;
+        snackbar.show(res?.message || "Ticket created successfully.", "success");
+        fetchTickets(true);
+        onDone?.(res);
+      },
+
+      onFailure: (err) => {
+        actionLoading.value = false;
+        snackbar.show(err?.message || "Failed to create ticket.", "error");
+      },
+    });
+  };
+
   return {
     // state
     data,
@@ -336,6 +363,7 @@ export const usePlatfromTicketsStore = defineStore("platfromTickets", () => {
 
     // list
     fetchTickets,
+    createTicketForUser,
     changePage,
     updatePerPage,
 

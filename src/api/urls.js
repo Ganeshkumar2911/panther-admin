@@ -99,6 +99,7 @@ const urls = {
   platformTickets: {
     list: "/support/tickets/platform",
     create: "/support/tickets",
+    createAdminTicket: "/support/admin/tickets",
     detail: "/support/tickets",
     comment: "/support/tickets/comments",
     addComment: "/support/tickets/comments",
