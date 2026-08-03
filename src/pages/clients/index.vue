@@ -15,6 +15,7 @@ import UpdateReferralLinkDrawer from '@/components/common/UpdateReferralLinkDraw
 import { useRouter } from "vue-router";
 import { useGoToTradingAccount } from '@/composables/useGoToTradingAccount'
 import { usePermissionCheck } from '@/composables/usePermissionCheck'
+import { getFlagCode, cleanCountryLabel } from '@/utils/countries'
 
 const router = useRouter();
 const { hasPermission } = usePermissionCheck()
@@ -386,7 +387,14 @@ onMounted(() => store.fetchClients())
             <td class="p-3">
               <p class="text-xs text-primary-text">{{ client.address ?? '—' }}</p>
               <p class="text-[10px] text-secondary-text">{{ client.city ?? '—' }}, {{ client.state ?? '—' }}</p>
-              <p class="text-[10px] text-secondary-text">{{ client.country ?? '—' }} {{ client.zip_code ? `(${client.zip_code})` : '' }}</p>
+              <p class="text-[10px] text-secondary-text flex items-center gap-1.5">
+                <span
+                  v-if="client.country && getFlagCode(client.country)"
+                  :class="['fi', `fi-${getFlagCode(client.country)}`, 'fis', 'w-4 h-3 flex-shrink-0']"
+                ></span>
+                <span>{{ cleanCountryLabel(client.country) || '—' }}</span>
+                <span v-if="client.zip_code">({{ client.zip_code }})</span>
+              </p>
             </td>
 
             <td class="p-3">

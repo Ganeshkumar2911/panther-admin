@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
+import { getFlagCode, cleanCountryLabel } from '@/utils/countries'
 import {
   Eye,
   Edit,
@@ -54,7 +55,7 @@ function getStageBadge(lead) {
   const stageCode = current.code || lead.stage || ''
   const stageName = current.name || current.code || lead.stage || 'NEW'
   const matched = props.stages.find(s => (s.code || s.key) === stageCode)
-  const color = current.color || matched?.color || '#3B82F6'
+  const color = current.color || matched?.color || 'var(primary-blue)'
 
   return {
     label: stageName,
@@ -67,13 +68,13 @@ function getPriorityBadge(priority) {
   const p = (priority || '').toLowerCase()
   switch (p) {
     case 'high':
-      return 'bg-red-500/10 text-red-400 border-red-500/30'
+      return 'bg-primary-red/10 text-primary-red border-primary-red/30'
     case 'medium':
-      return 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+      return 'bg-primary-yellow/10 text-primary-yellow border-primary-yellow/30'
     case 'low':
-      return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+      return 'bg-primary-green/10 text-primary-green border-primary-green/30'
     default:
-      return 'bg-zinc-500/10 text-zinc-400 border-zinc-500/30'
+      return 'bg-secondary-text/10 text-secondary-text border-secondary-text/30'
   }
 }
 
@@ -219,7 +220,11 @@ function formatDate(dateStr) {
             <!-- Country -->
             <td class="px-4 py-3.5 whitespace-nowrap">
               <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-background border border-primary-border text-[11px] text-primary-text font-medium">
-                <span>{{ lead.country || '-' }}</span>
+                <span
+                  v-if="lead.country && getFlagCode(lead.country)"
+                  :class="['fi', `fi-${getFlagCode(lead.country)}`, 'fis', 'rounded-full', 'w-[18px]', 'h-[18px]', 'flex-shrink-0']"
+                ></span>
+                <span>{{ cleanCountryLabel(lead.country) || '-' }}</span>
               </span>
             </td>
 
@@ -233,7 +238,7 @@ function formatDate(dateStr) {
             <!-- Assigned Staff -->
             <td class="px-4 py-3.5 whitespace-nowrap" @click.stop>
               <div v-if="lead.assigned_staff" class="flex items-center gap-2">
-                <div class="w-5 h-5 rounded-full bg-indigo-600 flex items-center justify-center text-[9px] font-bold text-white shrink-0">
+                <div class="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-[9px] font-bold text-btn-text-primary shrink-0">
                   {{ getStaffName(lead).charAt(0).toUpperCase() }}
                 </div>
                 <span class="text-primary-text font-medium text-xs">{{ getStaffName(lead) }}</span>

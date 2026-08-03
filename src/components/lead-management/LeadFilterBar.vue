@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { ref, computed, watch, onUnmounted } from 'vue'
 import {
   STAFF,
   COUNTRIES,
@@ -33,6 +33,29 @@ const emit = defineEmits([
   'update:selectedDate',
   'reset-filters',
 ])
+
+const localSearchQuery = ref(props.searchQuery || '')
+let searchTimer = null
+
+watch(
+  () => props.searchQuery,
+  (newVal) => {
+    localSearchQuery.value = newVal || ''
+  }
+)
+
+function handleSearchInput(e) {
+  const val = e.target.value
+  localSearchQuery.value = val
+  clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => {
+    emit('update:searchQuery', val)
+  }, 400)
+}
+
+onUnmounted(() => {
+  clearTimeout(searchTimer)
+})
 
 const stageOptions = computed(() => {
   if (props.stages && props.stages.length > 0) {
@@ -71,8 +94,8 @@ const stageOptions = computed(() => {
         <Search class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-secondary-text" />
         <input
           type="text"
-          :value="searchQuery"
-          @input="emit('update:searchQuery', $event.target.value)"
+          :value="localSearchQuery"
+          @input="handleSearchInput"
           placeholder="Search lead name, email, phone..."
           class="w-full pl-9 pr-3 py-1.5 text-xs bg-background border border-primary-border rounded-lg text-primary-text placeholder-secondary-text focus:outline-none focus:border-primary transition-colors"
         />

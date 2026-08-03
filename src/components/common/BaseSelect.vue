@@ -9,6 +9,7 @@ import {
   watchEffect,
 } from "vue";
 import { ChevronDown, Check, Search } from "lucide-vue-next";
+import { getFlagCode } from "@/utils/countries";
 
 const attrs = useAttrs();
 
@@ -86,6 +87,10 @@ const props = defineProps({
   variant: {
     type: String,
     default: "default", // 'default' | 'surface'
+  },
+  showFlags: {
+    type: Boolean,
+    default: false,
   },
 });
 
@@ -168,6 +173,32 @@ const isPlaceholder = computed(
     (!selectedLabel.value && props.modelValue !== null) ||
     (!props.allowAll && props.modelValue === null),
 );
+
+const selectedOption = computed(() => {
+  if (props.modelValue === null || props.modelValue === undefined) {
+    return null;
+  }
+  return props.options?.find(
+    (o) => String(o.value) === String(props.modelValue),
+  ) || null;
+});
+
+function getOptionFlagCode(option) {
+  if (!option) return "";
+  if (option.flagCode) return option.flagCode;
+  
+  if (option.value && typeof option.value === "string" && option.value.length === 2) {
+    return getFlagCode(option.value);
+  }
+  if (option.label && typeof option.label === "string") {
+    return getFlagCode(option.label);
+  }
+  return "";
+}
+
+const selectedFlagCode = computed(() => {
+  return getOptionFlagCode(selectedOption.value);
+});
 
 // Background control
 const triggerBgClass = computed(() => {
@@ -281,11 +312,15 @@ onBeforeUnmount(() => {
     >
       <span
         :class="[
-          'truncate',
+          'truncate flex items-center gap-2',
           isPlaceholder ? 'text-secondary-text' : 'text-primary-text',
         ]"
       >
-        {{ displayLabel }}
+        <span
+          v-if="showFlags && selectedFlagCode"
+          :class="['fi', `fi-${selectedFlagCode}`, 'fis', 'w-4 h-3 flex-shrink-0']"
+        ></span>
+        <span>{{ displayLabel }}</span>
       </span>
 
       <ChevronDown
@@ -360,6 +395,10 @@ onBeforeUnmount(() => {
               ]"
             >
               <div class="flex items-center gap-2">
+                <span
+                  v-if="showFlags && getOptionFlagCode(option)"
+                  :class="['fi', `fi-${getOptionFlagCode(option)}`, 'fis', 'w-4 h-3 flex-shrink-0']"
+                ></span>
                 <span v-if="option?.optinalLableName"
                   >{{ option.optinalLableName }} -
                 </span>

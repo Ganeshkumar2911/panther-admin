@@ -34,6 +34,7 @@ const countryOptions = computed(() => {
   return countries.map((c) => ({
     value: c.label,
     label: c.label,
+    flagCode: c.flagCode,
   }));
 });
 
@@ -75,7 +76,7 @@ const formData = ref({
   last_name: "",
   email: "",
   phone: "",
-  country: "AE (🇦🇪 United Arab Emirates)",
+  country: "AE (United Arab Emirates)",
   source: "website",
   priority: "medium",
   stage: "NEW",
@@ -96,7 +97,7 @@ watch(
       if (matchedCountry) {
         initialCountry = matchedCountry.label;
       } else if (!initialCountry) {
-        initialCountry = "AE (🇦🇪 United Arab Emirates)";
+        initialCountry = "AE (United Arab Emirates)";
       }
 
       formData.value = {
@@ -119,7 +120,7 @@ watch(
         last_name: "",
         email: "",
         phone: "",
-        country: "AE (🇦🇪 United Arab Emirates)",
+        country: "AE (United Arab Emirates)",
         source: "website",
         priority: "medium",
         stage: "NEW",
@@ -147,6 +148,7 @@ function handleSubmit() {
     source: formData.value.source,
     priority: formData.value.priority,
     remarks: formData.value.remarks,
+    remark: formData.value.remarks,
     ...(formData.value.stage ? { stage: formData.value.stage } : {}),
     ...(formData.value.assigned_staff_id ? { assigned_staff_id: formData.value.assigned_staff_id } : {}),
   };
@@ -210,7 +212,7 @@ function handleSubmit() {
         <form @submit.prevent="handleSubmit" class="flex-1 overflow-y-auto p-6 space-y-4 text-xs flex flex-col justify-between">
           <div class="space-y-4">
             <!-- Mode: Move Stage Only -->
-            <div v-if="mode === 'moveStage'" class="space-y-3">
+            <div v-if="mode === 'moveStage'" class="space-y-4">
               <p class="text-xs text-primary-text font-medium">
                 Select target stage for lead
                 <strong class="text-primary">{{ lead?.first_name ? `${lead.first_name} ${lead.last_name || ''}` : lead?.name }}</strong>:
@@ -231,6 +233,19 @@ function handleSubmit() {
                   <span class="text-[11px] uppercase tracking-tight">{{ s.label }}</span>
                   <Check v-if="formData.stage === s.value" class="w-4 h-4 text-primary" />
                 </button>
+              </div>
+
+              <!-- Stage Change Remark / Notes -->
+              <div>
+                <label class="block text-secondary-text font-medium mb-1">
+                  Stage Change Remark / Notes
+                </label>
+                <textarea
+                  v-model="formData.remarks"
+                  rows="3"
+                  placeholder="Enter reason or remarks for changing stage..."
+                  class="w-full px-3 py-2 bg-background border border-primary-border rounded-lg text-primary-text focus:outline-none focus:border-primary text-xs resize-none transition-all"
+                ></textarea>
               </div>
             </div>
 
@@ -322,6 +337,7 @@ function handleSubmit() {
                     placeholder="Search country..."
                     searchable
                     variant="surface"
+                    show-flags
                   />
                 </div>
               </div>

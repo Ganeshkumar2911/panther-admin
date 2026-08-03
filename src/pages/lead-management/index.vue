@@ -169,7 +169,6 @@ function handleImportCSV() {
     <!-- Section 1: KPI Overview Cards -->
     <LeadKpiCards
       :metrics="leadStore.dashboardMetrics"
-      :total-leads="leadStore.pagination.total || leadStore.leads.length"
       :loading="leadStore.metricsLoading"
     />
 
