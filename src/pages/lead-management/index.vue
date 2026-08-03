@@ -1,112 +1,68 @@
 <script setup>
-import { ref, computed } from 'vue'
-import { INITIAL_LEADS } from '@/pages/lead-management/mockLeadData'
+import { ref, computed, watch, onMounted } from 'vue'
+import { useLeadStageStore } from '@/stores/leadStage/leadStage'
+import { useLeadStore } from '@/stores/lead/lead'
+import { useRbacStaffStore } from '@/stores/rbac/staff'
 
 import LeadKpiCards from '@/components/lead-management/LeadKpiCards.vue'
 import LeadPipelineOverview from '@/components/lead-management/LeadPipelineOverview.vue'
-import LeadFunnelVisualization from '@/components/lead-management/LeadFunnelVisualization.vue'
 import LeadFilterBar from '@/components/lead-management/LeadFilterBar.vue'
 import LeadTable from '@/components/lead-management/LeadTable.vue'
 import LeadDetailDrawer from '@/components/lead-management/LeadDetailDrawer.vue'
 import LeadFormModal from '@/components/lead-management/LeadFormModal.vue'
-import LeadCharts from '@/components/lead-management/LeadCharts.vue'
+import LeadStageManagementModal from '@/components/lead-management/LeadStageManagementModal.vue'
 
 import {
   Plus,
   Upload,
   Download,
-  Target,
-  Sparkles,
+  Layers,
 } from 'lucide-vue-next'
 
-// Reactive state for mock leads
-const leads = ref([...INITIAL_LEADS])
+const leadStageStore = useLeadStageStore()
+const leadStore = useLeadStore()
+const rbacStaffStore = useRbacStaffStore()
 
-// Filter state
-const searchQuery = ref('')
-const selectedStage = ref('')
-const selectedStaff = ref('')
-const selectedCountry = ref('')
-const selectedSource = ref('')
-const selectedPriority = ref('')
-const selectedDate = ref('')
+const stageModalOpen = ref(false)
 
 // Modal & Drawer state
-const drawer = ref({ open: false, lead: null })
+const drawer = ref({ open: false, lead: null, leadId: null })
 const modal = ref({ open: false, mode: 'add', lead: null })
 
-// Computed Filtered Leads
-const filteredLeads = computed(() => {
-  return leads.value.filter((l) => {
-    // 1. Search Query
-    if (searchQuery.value) {
-      const q = searchQuery.value.toLowerCase().trim()
-      const matchesName = l.name.toLowerCase().includes(q)
-      const matchesEmail = l.email.toLowerCase().includes(q)
-      const matchesPhone = l.phone.toLowerCase().includes(q)
-      if (!matchesName && !matchesEmail && !matchesPhone) return false
-    }
-
-    // 2. Stage
-    if (selectedStage.value && l.stage !== selectedStage.value) return false
-
-    // 3. Staff
-    if (selectedStaff.value && l.assignedStaff !== selectedStaff.value) return false
-
-    // 4. Country
-    if (selectedCountry.value && l.country !== selectedCountry.value) return false
-
-    // 5. Source
-    if (selectedSource.value && l.source !== selectedSource.value) return false
-
-    // 6. Priority
-    if (selectedPriority.value && l.priority !== selectedPriority.value) return false
-
-    return true
-  })
+onMounted(() => {
+  leadStageStore.fetchStages()
+  leadStore.fetchLeads(1)
+  leadStore.fetchDashboardMetrics()
+  leadStore.fetchStageCounts()
+  rbacStaffStore.fetchStaff(true, 1)
 })
 
-// KPI Metrics
-const totalLeadsCount = computed(() => leads.value.length)
-const newLeadsCount = computed(() => leads.value.filter(l => l.stage === 'NEW').length)
-const interestedCount = computed(() => leads.value.filter(l => l.stage === 'INTERESTED').length)
-const registeredCount = computed(() => leads.value.filter(l => l.stage === 'REGISTERED').length)
-const kycApprovedCount = computed(() => leads.value.filter(l => l.stage === 'KYC_APPROVED').length)
-const tradingAccountsCount = computed(() => leads.value.filter(l => l.stage === 'TRADING_ACCOUNT_CREATED').length)
+// Watch filters to trigger API refetch
+watch(
+  () => [
+    leadStore.filters.search,
+    leadStore.filters.stage,
+    leadStore.filters.staff,
+    leadStore.filters.country,
+    leadStore.filters.source,
+    leadStore.filters.priority,
+  ],
+  () => {
+    leadStore.fetchLeads(1)
+  }
+)
 
-function resetFilters() {
-  searchQuery.value = ''
-  selectedStage.value = ''
-  selectedStaff.value = ''
-  selectedCountry.value = ''
-  selectedSource.value = ''
-  selectedPriority.value = ''
-  selectedDate.value = ''
+function handleSelectStage(stageCode) {
+  leadStore.filters.stage = stageCode || ''
 }
 
 // Drawer Handlers
 function openDrawer(lead) {
-  drawer.value = { open: true, lead }
+  drawer.value = { open: true, lead, leadId: lead?.id }
 }
 
 function closeDrawer() {
-  drawer.value = { open: false, lead: null }
-}
-
-function handleAddNote({ leadId, noteText }) {
-  const target = leads.value.find((l) => l.id === leadId)
-  if (target) {
-    if (!target.notes) target.notes = []
-    target.notes.unshift({
-      id: Date.now(),
-      text: noteText,
-      time: 'Just now',
-      author: 'Super Admin',
-    })
-    if (drawer.value.lead?.id === leadId) {
-      drawer.value.lead = { ...target }
-    }
-  }
+  drawer.value = { open: false, lead: null, leadId: null }
 }
 
 // Modal Handlers
@@ -118,47 +74,42 @@ function closeModal() {
   modal.value = { open: false, mode: 'add', lead: null }
 }
 
-function handleSaveLead({ mode, leadId, payload }) {
-  if (mode === 'add') {
-    const newLeadObj = {
-      id: `LEAD-${1000 + leads.value.length + 1}`,
-      name: payload.name,
-      email: payload.email,
-      phone: payload.phone || '+971 50 000 0000',
-      country: payload.country,
-      flag: payload.flag,
-      source: payload.source,
-      sourceKey: payload.sourceKey,
-      assignedStaff: payload.assignedStaff,
-      staffAvatar: payload.staffAvatar,
-      stage: payload.stage || 'NEW',
-      priority: payload.priority || 'Medium',
-      createdAt: 'Just now',
-      dateObj: new Date().toISOString().split('T')[0],
-      notes: [],
-      timeline: [
-        { id: 1, title: 'Lead Created', desc: 'Added via CRM Lead Management', time: 'Just now', icon: 'Plus' }
-      ],
-      followUp: { date: 'Tomorrow', time: '10:00 AM', reminder: true }
+async function handleSaveLead({ mode, leadId, payload }) {
+  try {
+    if (mode === 'add') {
+      await leadStore.createLead(payload)
+    } else if (mode === 'edit' || mode === 'moveStage') {
+      await leadStore.updateLead(leadId, payload)
     }
-    leads.value.unshift(newLeadObj)
-  } else if (mode === 'edit' || mode === 'moveStage') {
-    const idx = leads.value.findIndex((l) => l.id === leadId)
-    if (idx !== -1) {
-      const updated = { ...leads.value[idx], ...payload }
-      leads.value[idx] = updated
-      if (drawer.value.lead?.id === leadId) {
-        drawer.value.lead = updated
-      }
-    }
+    closeModal()
+  } catch (err) {
+    // Handled in store with snackbar
   }
-  closeModal()
+}
+
+async function handleAssignStaff({ leadId, staffId }) {
+  if (!leadId || !staffId) return
+  try {
+    await leadStore.assignLead(leadId, staffId)
+  } catch (err) {
+    // Handled in store
+  }
 }
 
 function handleExportCSV() {
-  const headers = ['ID', 'Name', 'Email', 'Phone', 'Country', 'Source', 'Assigned Staff', 'Stage', 'Priority', 'Created Date']
-  const rows = filteredLeads.value.map(l => [
-    l.id, l.name, l.email, l.phone, l.country, l.source, l.assignedStaff, l.stage, l.priority, l.createdAt
+  const headers = ['ID', 'Lead Code', 'Name', 'Email', 'Phone', 'Country', 'Source', 'Assigned Staff', 'Stage', 'Priority', 'Created Date']
+  const rows = leadStore.leads.map(l => [
+    l.id,
+    l.lead_code || '',
+    `${l.first_name || ''} ${l.last_name || ''}`.trim() || l.name || '',
+    l.email || '',
+    l.phone || '',
+    l.country || '',
+    l.source || '',
+    l.assigned_staff ? `${l.assigned_staff.first_name || ''} ${l.assigned_staff.last_name || ''}`.trim() : (l.assignedStaff || ''),
+    l.current_stage?.name || l.current_stage?.code || l.stage || '',
+    l.priority || '',
+    l.created_at || l.createdAt || ''
   ])
   const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n')
   const encodedUri = encodeURI(csvContent)
@@ -171,7 +122,6 @@ function handleExportCSV() {
 }
 
 function handleImportCSV() {
-  alert('Mock CSV Import: Successfully imported 12 new leads into the pipeline!')
   closeModal()
 }
 </script>
@@ -180,12 +130,19 @@ function handleImportCSV() {
   <div class="px-4 mx-auto space-y-6 pb-12">
     <!-- Header Row -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-end gap-4">
-
       <!-- Action Buttons -->
       <div class="flex items-center gap-2 shrink-0">
         <button
+          @click="stageModalOpen = true"
+          class="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-primary/30 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold transition-all duration-200 cursor-pointer"
+        >
+          <Layers class="w-3.5 h-3.5" />
+          <span>Manage Stages</span>
+        </button>
+
+        <button
           @click="openModal('import')"
-          class="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-primary-border bg-card-background hover:bg-background text-secondary-text hover:text-primary-text text-xs font-medium transition-all duration-200  cursor-pointer"
+          class="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-primary-border bg-card-background hover:bg-background text-secondary-text hover:text-primary-text text-xs font-medium transition-all duration-200 cursor-pointer"
         >
           <Upload class="w-3.5 h-3.5" />
           <span>Import CSV</span>
@@ -193,7 +150,7 @@ function handleImportCSV() {
 
         <button
           @click="handleExportCSV"
-          class="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-primary-border bg-card-background hover:bg-background text-secondary-text hover:text-primary-text text-xs font-medium transition-all duration-200  cursor-pointer"
+          class="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-primary-border bg-card-background hover:bg-background text-secondary-text hover:text-primary-text text-xs font-medium transition-all duration-200 cursor-pointer"
         >
           <Download class="w-3.5 h-3.5" />
           <span>Export Leads</span>
@@ -201,7 +158,7 @@ function handleImportCSV() {
 
         <button
           @click="openModal('add')"
-          class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-btn-text-primary text-xs font-semibold  shadow-primary/20 hover:shadow-primary/30 transition-all duration-200 cursor-pointer"
+          class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-btn-text-primary text-xs font-semibold shadow-primary/20 hover:shadow-primary/30 transition-all duration-200 cursor-pointer"
         >
           <Plus class="w-4 h-4" />
           <span>Add Lead</span>
@@ -211,57 +168,60 @@ function handleImportCSV() {
 
     <!-- Section 1: KPI Overview Cards -->
     <LeadKpiCards
-      :total-leads="totalLeadsCount"
-      :new-leads="newLeadsCount"
-      :interested="interestedCount"
-      :registered="registeredCount"
-      :kyc-approved="kycApprovedCount"
-      :trading-accounts="tradingAccountsCount"
-      :conversion-rate="41"
+      :metrics="leadStore.dashboardMetrics"
+      :total-leads="leadStore.pagination.total || leadStore.leads.length"
+      :loading="leadStore.metricsLoading"
     />
 
     <!-- Section 2: Pipeline Overview (Hero Section) -->
     <LeadPipelineOverview
-      :leads="leads"
-      :selected-stage="selectedStage"
-      @select-stage="selectedStage = $event"
+      :leads="leadStore.leads"
+      :stages="leadStageStore.stages"
+      :stage-counts="leadStore.stageCounts"
+      :loading="leadStageStore.loading || leadStore.countsLoading"
+      :selected-stage="leadStore.filters.stage"
+      @select-stage="handleSelectStage"
     />
 
-    <!-- Section 3: Funnel Visualization -->
-    <!-- <LeadFunnelVisualization /> -->
-
-    <!-- Section 4: Filters -->
+    <!-- Section 3: Filters -->
     <LeadFilterBar
-      v-model:searchQuery="searchQuery"
-      v-model:selectedStage="selectedStage"
-      v-model:selectedStaff="selectedStaff"
-      v-model:selectedCountry="selectedCountry"
-      v-model:selectedSource="selectedSource"
-      v-model:selectedPriority="selectedPriority"
-      v-model:selectedDate="selectedDate"
-      @reset-filters="resetFilters"
+      v-model:searchQuery="leadStore.filters.search"
+      v-model:selectedStage="leadStore.filters.stage"
+      v-model:selectedStaff="leadStore.filters.staff"
+      v-model:selectedCountry="leadStore.filters.country"
+      v-model:selectedSource="leadStore.filters.source"
+      v-model:selectedPriority="leadStore.filters.priority"
+      :stages="leadStageStore.stages"
+      :staff-list="rbacStaffStore.records"
+      @reset-filters="leadStore.resetFilters"
     />
 
-    <!-- Section 5: Primary Lead Table -->
+    <!-- Section 4: Primary Lead Table -->
     <LeadTable
-      :leads="filteredLeads"
+      :leads="leadStore.leads"
+      :loading="leadStore.loading"
+      :pagination="leadStore.pagination"
+      :stages="leadStageStore.stages"
+      :staff-list="rbacStaffStore.records"
+      @page-change="leadStore.fetchLeads"
       @open-drawer="openDrawer"
       @edit-lead="openModal('edit', $event)"
       @move-stage="openModal('moveStage', $event)"
       @add-lead="openModal('add')"
+      @assign-staff="handleAssignStaff"
     />
-
-    <!-- Section 6: Analytics & Charts -->
-    <!-- <LeadCharts :leads="leads" /> -->
 
     <!-- Detail Drawer Slide-over -->
     <LeadDetailDrawer
       :open="drawer.open"
       :lead="drawer.lead"
+      :lead-id="drawer.leadId"
+      :stages="leadStageStore.stages"
+      :staff-list="rbacStaffStore.records"
       @close="closeDrawer"
-      @add-note="handleAddNote"
       @move-stage="openModal('moveStage', drawer.lead)"
       @edit-lead="openModal('edit', drawer.lead)"
+      @assign-staff="handleAssignStaff"
     />
 
     <!-- Action & Form Modal -->
@@ -269,9 +229,18 @@ function handleImportCSV() {
       :open="modal.open"
       :mode="modal.mode"
       :lead="modal.lead"
+      :stages="leadStageStore.stages"
+      :staff-list="rbacStaffStore.records"
       @close="closeModal"
       @save-lead="handleSaveLead"
       @import-csv="handleImportCSV"
+    />
+
+    <!-- Lead Stage Management Modal -->
+    <LeadStageManagementModal
+      :open="stageModalOpen"
+      @close="stageModalOpen = false"
+      @stages-updated="leadStageStore.fetchStages(true)"
     />
   </div>
 </template>

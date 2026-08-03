@@ -1,6 +1,6 @@
 <script setup>
+import { computed } from 'vue'
 import {
-  STAGES,
   STAFF,
   COUNTRIES,
   SOURCES,
@@ -13,6 +13,8 @@ import {
 
 const props = defineProps({
   searchQuery: { type: String, default: '' },
+  stages: { type: Array, default: () => [] },
+  staffList: { type: Array, default: () => [] },
   selectedStage: { type: String, default: '' },
   selectedStaff: { type: String, default: '' },
   selectedCountry: { type: String, default: '' },
@@ -31,6 +33,16 @@ const emit = defineEmits([
   'update:selectedDate',
   'reset-filters',
 ])
+
+const stageOptions = computed(() => {
+  if (props.stages && props.stages.length > 0) {
+    return props.stages.map(s => ({
+      key: s.code || s.key,
+      label: s.name || s.label || s.key,
+    }))
+  }
+  return []
+})
 </script>
 
 <template>
@@ -74,7 +86,7 @@ const emit = defineEmits([
           class="w-full px-2.5 py-1.5 text-xs bg-background border border-primary-border rounded-lg text-primary-text focus:outline-none focus:border-primary transition-colors cursor-pointer"
         >
           <option value="">All Stages</option>
-          <option v-for="s in STAGES" :key="s.key" :value="s.key">
+          <option v-for="s in stageOptions" :key="s.key" :value="s.key">
             {{ s.label }}
           </option>
         </select>
@@ -88,8 +100,8 @@ const emit = defineEmits([
           class="w-full px-2.5 py-1.5 text-xs bg-background border border-primary-border rounded-lg text-primary-text focus:outline-none focus:border-primary transition-colors cursor-pointer"
         >
           <option value="">All Staff</option>
-          <option v-for="st in STAFF" :key="st.id" :value="st.name">
-            {{ st.name }}
+          <option v-for="st in staffList" :key="st.id" :value="st.id">
+            {{ st.name || `${st.first_name || ''} ${st.last_name || ''}`.trim() || st.email }}
           </option>
         </select>
       </div>
@@ -116,9 +128,12 @@ const emit = defineEmits([
           class="w-full px-2.5 py-1.5 text-xs bg-background border border-primary-border rounded-lg text-primary-text focus:outline-none focus:border-primary transition-colors cursor-pointer"
         >
           <option value="">All Sources</option>
-          <option v-for="src in SOURCES" :key="src.key" :value="src.label">
-            {{ src.label }}
-          </option>
+          <option value="website">Website</option>
+          <option value="support">Support</option>
+          <option value="csv_import">CSV Import</option>
+          <option value="google_ads">Google Ads</option>
+          <option value="facebook">Facebook</option>
+          <option value="referral">Referral</option>
         </select>
       </div>
 
@@ -130,9 +145,9 @@ const emit = defineEmits([
           class="w-full px-2.5 py-1.5 text-xs bg-background border border-primary-border rounded-lg text-primary-text focus:outline-none focus:border-primary transition-colors cursor-pointer"
         >
           <option value="">All Priorities</option>
-          <option value="High">High</option>
-          <option value="Medium">Medium</option>
-          <option value="Low">Low</option>
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
         </select>
       </div>
     </div>

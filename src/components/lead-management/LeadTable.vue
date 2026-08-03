@@ -1,68 +1,107 @@
 <script setup>
-import { ref, computed } from 'vue'
-import { STAGES, SOURCES } from '@/pages/lead-management/mockLeadData'
+import { computed } from 'vue'
+import BaseSelect from '@/components/common/BaseSelect.vue'
 import {
   Eye,
   Edit,
   ArrowRightLeft,
-  MoreVertical,
   ChevronLeft,
   ChevronRight,
   UserX,
   Phone,
   Mail,
-  User,
   Plus,
+  Loader2,
+  UserCheck,
 } from 'lucide-vue-next'
 
 const props = defineProps({
   leads: { type: Array, required: true },
+  loading: { type: Boolean, default: false },
+  pagination: {
+    type: Object,
+    default: () => ({ page: 1, per_page: 10, total: 0, pages: 1 }),
+  },
+  stages: { type: Array, default: () => [] },
+  staffList: { type: Array, default: () => [] },
 })
 
-const emit = defineEmits(['open-drawer', 'edit-lead', 'move-stage', 'add-lead'])
+const emit = defineEmits(['open-drawer', 'edit-lead', 'move-stage', 'add-lead', 'page-change', 'assign-staff'])
 
-// Pagination state
-const currentPage = ref(1)
-const itemsPerPage = ref(10)
-
-const totalPages = computed(() => Math.ceil(props.leads.length / itemsPerPage.value) || 1)
-
-const paginatedLeads = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage.value
-  return props.leads.slice(start, start + itemsPerPage.value)
+const staffOptions = computed(() => {
+  return props.staffList.map(s => ({
+    value: s.id,
+    label: s.name || `${s.first_name || ''} ${s.last_name || ''}`.trim() || s.email,
+  }))
 })
 
-function getStageBadge(stageKey) {
-  const found = STAGES.find(s => s.key === stageKey)
-  return found || { label: stageKey, bgClass: 'bg-zinc-500/10 text-zinc-300 border-zinc-500/30' }
+function getLeadName(lead) {
+  if (lead.first_name || lead.last_name) {
+    return `${lead.first_name || ''} ${lead.last_name || ''}`.trim()
+  }
+  return lead.name || 'Unnamed Lead'
 }
 
-function getSourceChip(sourceLabel) {
-  const found = SOURCES.find(s => s.label === sourceLabel)
-  return found?.color || 'bg-primary-border/20 text-secondary-text border-primary-border'
+function getStaffName(lead) {
+  if (lead.assigned_staff) {
+    return `${lead.assigned_staff.first_name || ''} ${lead.assigned_staff.last_name || ''}`.trim() || lead.assigned_staff.email
+  }
+  return lead.assignedStaff || 'Unassigned'
+}
+
+function getStageBadge(lead) {
+  const current = lead.current_stage || {}
+  const stageCode = current.code || lead.stage || ''
+  const stageName = current.name || current.code || lead.stage || 'NEW'
+  const matched = props.stages.find(s => (s.code || s.key) === stageCode)
+  const color = current.color || matched?.color || '#3B82F6'
+
+  return {
+    label: stageName,
+    code: stageCode,
+    color,
+  }
 }
 
 function getPriorityBadge(priority) {
-  switch (priority) {
-    case 'High':
+  const p = (priority || '').toLowerCase()
+  switch (p) {
+    case 'high':
       return 'bg-red-500/10 text-red-400 border-red-500/30'
-    case 'Medium':
+    case 'medium':
       return 'bg-amber-500/10 text-amber-400 border-amber-500/30'
-    case 'Low':
+    case 'low':
       return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
     default:
       return 'bg-zinc-500/10 text-zinc-400 border-zinc-500/30'
   }
 }
 
-// Active action dropdown index
-const activeActionMenu = ref(null)
+function formatSourceLabel(source) {
+  const s = (source || '').toLowerCase()
+  switch (s) {
+    case 'website': return 'Website'
+    case 'support': return 'Support'
+    case 'csv_import': return 'CSV Import'
+    case 'google_ads': return 'Google Ads'
+    case 'facebook': return 'Facebook'
+    case 'referral': return 'Referral'
+    default: return source || 'Website'
+  }
+}
 
-function toggleMenu(leadId) {
-  if (activeActionMenu.value === leadId) {
-    activeActionMenu.value = null
-  } else {
-    activeActionMenu.value = leadId
+function formatDate(dateStr) {
+  if (!dateStr) return '-'
+  try {
+    const d = new Date(dateStr)
+    if (isNaN(d.getTime())) return dateStr
+    return d.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    })
+  } catch (e) {
+    return dateStr
   }
 }
 </script>
@@ -76,26 +115,34 @@ function toggleMenu(leadId) {
           Lead Records
         </span>
         <span class="text-[11px] text-secondary-text bg-background border border-primary-border px-2.5 py-0.5 rounded-full font-medium">
-          Showing {{ paginatedLeads.length }} of {{ leads.length }} Leads
+          Showing {{ leads.length }} of {{ pagination.total || leads.length }} Leads
         </span>
       </div>
 
-      <div class="flex items-center gap-2">
-        <label class="text-[11px] text-secondary-text">Per Page:</label>
-        <select
-          v-model="itemsPerPage"
-          @change="currentPage = 1"
-          class="bg-background border border-primary-border rounded-lg text-xs text-primary-text px-2 py-1 focus:outline-none focus:border-primary cursor-pointer"
-        >
-          <option :value="10">10</option>
-          <option :value="20">20</option>
-          <option :value="50">50</option>
-        </select>
+      <div v-if="loading" class="flex items-center gap-1.5 text-xs text-primary">
+        <Loader2 class="w-3.5 h-3.5 animate-spin" />
+        <span>Loading...</span>
+      </div>
+    </div>
+
+    <!-- Skeleton Loading -->
+    <div v-if="loading && leads.length === 0" class="p-6 space-y-3">
+      <div v-for="n in 5" :key="n" class="animate-pulse flex items-center justify-between py-3 border-b border-primary-border/40">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full bg-primary-border/40 shrink-0" />
+          <div class="space-y-1.5">
+            <div class="h-3 w-32 bg-primary-border/50 rounded" />
+            <div class="h-2.5 w-44 bg-primary-border/30 rounded" />
+          </div>
+        </div>
+        <div class="h-3 w-20 bg-primary-border/40 rounded" />
+        <div class="h-3 w-24 bg-primary-border/40 rounded" />
+        <div class="h-4 w-16 bg-primary-border/30 rounded-full" />
       </div>
     </div>
 
     <!-- Empty State -->
-    <div v-if="leads.length === 0" class="py-16 text-center space-y-3 px-4">
+    <div v-else-if="!loading && leads.length === 0" class="py-16 text-center space-y-3 px-4">
       <div class="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mx-auto">
         <UserX class="w-6 h-6" />
       </div>
@@ -107,7 +154,7 @@ function toggleMenu(leadId) {
       </div>
       <button
         @click="emit('add-lead')"
-        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-btn-text-primary text-xs font-medium transition-colors cursor-pointer"
+        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-btn-text-primary text-xs font-medium transition-colors cursor-pointer"
       >
         <Plus class="w-3.5 h-3.5" />
         <span>Add Lead</span>
@@ -119,6 +166,7 @@ function toggleMenu(leadId) {
       <table class="w-full text-left border-collapse min-w-[1000px]">
         <thead>
           <tr class="border-b border-primary-border bg-background/50 text-[11px] font-semibold text-secondary-text uppercase tracking-wider">
+            <th class="px-5 py-3">Lead Code</th>
             <th class="px-5 py-3">Lead</th>
             <th class="px-4 py-3">Phone</th>
             <th class="px-4 py-3">Country</th>
@@ -132,22 +180,27 @@ function toggleMenu(leadId) {
         </thead>
         <tbody class="divide-y divide-primary-border/60 text-xs">
           <tr
-            v-for="lead in paginatedLeads"
+            v-for="lead in leads"
             :key="lead.id"
             @click="emit('open-drawer', lead)"
             class="hover:bg-background/80 transition-colors group cursor-pointer"
           >
+            <!-- Lead Code -->
+            <td class="px-5 py-3.5 font-mono text-[11px] text-secondary-text whitespace-nowrap">
+              {{ lead.lead_code || `L-${lead.id}` }}
+            </td>
+
             <!-- Lead Name & Email -->
             <td class="px-5 py-3.5">
               <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-full bg-primary/20 border border-primary/30 text-primary flex items-center justify-center font-bold text-xs shrink-0 group-hover:scale-105 transition-transform">
-                  {{ lead.name.charAt(0).toUpperCase() }}
+                  {{ getLeadName(lead).charAt(0).toUpperCase() }}
                 </div>
                 <div class="min-w-0">
                   <p class="font-semibold text-primary-text truncate group-hover:text-primary transition-colors">
-                    {{ lead.name }}
+                    {{ getLeadName(lead) }}
                   </p>
-                  <p class="text-[11px] text-secondary-text truncate flex items-center gap-1">
+                  <p v-if="lead.email" class="text-[11px] text-secondary-text truncate flex items-center gap-1">
                     <Mail class="w-2.5 h-2.5 shrink-0" />
                     {{ lead.email }}
                   </p>
@@ -159,52 +212,68 @@ function toggleMenu(leadId) {
             <td class="px-4 py-3.5 text-secondary-text whitespace-nowrap">
               <span class="flex items-center gap-1">
                 <Phone class="w-3 h-3 text-secondary-text/70 shrink-0" />
-                {{ lead.phone }}
+                {{ lead.phone || '-' }}
               </span>
             </td>
 
             <!-- Country -->
             <td class="px-4 py-3.5 whitespace-nowrap">
               <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-background border border-primary-border text-[11px] text-primary-text font-medium">
-                <span>{{ lead.flag }}</span>
-                <span>{{ lead.country }}</span>
+                <span>{{ lead.country || '-' }}</span>
               </span>
             </td>
 
             <!-- Source -->
             <td class="px-4 py-3.5 whitespace-nowrap">
-              <span :class="['text-[10px] font-semibold px-2 py-0.5 rounded-md border', getSourceChip(lead.source)]">
-                {{ lead.source }}
+              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md border bg-primary/10 text-primary border-primary/20">
+                {{ formatSourceLabel(lead.source) }}
               </span>
             </td>
 
             <!-- Assigned Staff -->
-            <td class="px-4 py-3.5 whitespace-nowrap">
-              <div class="flex items-center gap-2">
-                <div :class="['w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white shrink-0', lead.staffAvatar]">
-                  {{ lead.assignedStaff.charAt(0) }}
+            <td class="px-4 py-3.5 whitespace-nowrap" @click.stop>
+              <div v-if="lead.assigned_staff" class="flex items-center gap-2">
+                <div class="w-5 h-5 rounded-full bg-indigo-600 flex items-center justify-center text-[9px] font-bold text-white shrink-0">
+                  {{ getStaffName(lead).charAt(0).toUpperCase() }}
                 </div>
-                <span class="text-primary-text font-medium text-xs">{{ lead.assignedStaff }}</span>
+                <span class="text-primary-text font-medium text-xs">{{ getStaffName(lead) }}</span>
+              </div>
+              <div v-else class="w-36">
+                <BaseSelect
+                  :model-value="null"
+                  :options="staffOptions"
+                  placeholder="Assign Staff..."
+                  searchable
+                  variant="surface"
+                  @update:model-value="(staffId) => emit('assign-staff', { leadId: lead.id, staffId })"
+                />
               </div>
             </td>
 
             <!-- Stage Badge -->
             <td class="px-4 py-3.5 whitespace-nowrap">
-              <span :class="['text-[10px] font-bold px-2.5 py-1 rounded-full border tracking-wide uppercase', getStageBadge(lead.stage).bgClass]">
-                {{ getStageBadge(lead.stage).label }}
+              <span
+                class="text-[10px] font-bold px-2.5 py-1 rounded-full border tracking-wide uppercase shadow-xs"
+                :style="{
+                  backgroundColor: `${getStageBadge(lead).color}15`,
+                  color: getStageBadge(lead).color,
+                  borderColor: `${getStageBadge(lead).color}40`,
+                }"
+              >
+                {{ getStageBadge(lead).label }}
               </span>
             </td>
 
             <!-- Priority -->
             <td class="px-4 py-3.5 whitespace-nowrap">
-              <span :class="['text-[10px] font-semibold px-2 py-0.5 rounded-md border', getPriorityBadge(lead.priority)]">
-                {{ lead.priority }}
+              <span :class="['text-[10px] font-semibold px-2 py-0.5 rounded-md border capitalize', getPriorityBadge(lead.priority)]">
+                {{ lead.priority || 'medium' }}
               </span>
             </td>
 
             <!-- Created Date -->
             <td class="px-4 py-3.5 text-secondary-text whitespace-nowrap text-[11px]">
-              {{ lead.createdAt }}
+              {{ formatDate(lead.created_at || lead.createdAt) }}
             </td>
 
             <!-- Actions -->
@@ -241,22 +310,22 @@ function toggleMenu(leadId) {
     </div>
 
     <!-- Pagination Footer -->
-    <div v-if="leads.length > 0" class="px-5 py-3.5 border-t border-primary-border flex items-center justify-between bg-background/30">
+    <div v-if="leads.length > 0 && pagination.pages > 1" class="px-5 py-3.5 border-t border-primary-border flex items-center justify-between bg-background/30">
       <p class="text-xs text-secondary-text">
-        Page <strong class="text-primary-text font-semibold">{{ currentPage }}</strong> of <strong class="text-primary-text font-semibold">{{ totalPages }}</strong>
+        Page <strong class="text-primary-text font-semibold">{{ pagination.page }}</strong> of <strong class="text-primary-text font-semibold">{{ pagination.pages }}</strong>
       </p>
 
       <div class="flex items-center gap-1.5">
         <button
-          @click="currentPage--"
-          :disabled="currentPage === 1"
+          @click="emit('page-change', pagination.page - 1)"
+          :disabled="pagination.page <= 1"
           class="p-1.5 rounded-lg border border-primary-border bg-card-background hover:bg-background text-secondary-text hover:text-primary-text disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
         >
           <ChevronLeft class="w-4 h-4" />
         </button>
         <button
-          @click="currentPage++"
-          :disabled="currentPage === totalPages"
+          @click="emit('page-change', pagination.page + 1)"
+          :disabled="pagination.page >= pagination.pages"
           class="p-1.5 rounded-lg border border-primary-border bg-card-background hover:bg-background text-secondary-text hover:text-primary-text disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
         >
           <ChevronRight class="w-4 h-4" />

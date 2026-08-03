@@ -1,37 +1,45 @@
 <script setup>
 import { computed } from 'vue'
-import { STAGES } from '@/pages/lead-management/mockLeadData'
 import { Filter, ArrowRight } from 'lucide-vue-next'
 
 const props = defineProps({
-  leads: { type: Array, required: true },
+  leads: { type: Array, default: () => [] },
+  stages: { type: Array, default: () => [] },
+  stageCounts: { type: Object, default: () => ({}) },
   selectedStage: { type: String, default: null },
+  loading: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['select-stage'])
 
-// Compute stage metrics dynamically from current lead set
+// Compute stage metrics dynamically from stageCounts / current lead set and provided stages
 const stageMetrics = computed(() => {
-  const total = props.leads.length || 1
-  
-  const countsMap = {
-    NEW: props.leads.filter(l => l.stage === 'NEW').length,
-    ASSIGNED: props.leads.filter(l => l.stage === 'ASSIGNED').length,
-    CONTACT_ATTEMPTED: props.leads.filter(l => l.stage === 'CONTACT_ATTEMPTED').length,
-    CONTACTED: props.leads.filter(l => l.stage === 'CONTACTED').length,
-    INTERESTED: props.leads.filter(l => l.stage === 'INTERESTED').length,
-    FOLLOW_UP: props.leads.filter(l => l.stage === 'FOLLOW_UP').length,
-    REGISTERED: props.leads.filter(l => l.stage === 'REGISTERED').length,
-    KYC_PENDING: props.leads.filter(l => l.stage === 'KYC_PENDING').length,
-    KYC_APPROVED: props.leads.filter(l => l.stage === 'KYC_APPROVED').length,
-    TRADING_ACCOUNT_CREATED: props.leads.filter(l => l.stage === 'TRADING_ACCOUNT_CREATED').length,
-  }
+  const activeStagesList = (props.stages && props.stages.length > 0)
+    ? props.stages.filter(s => s.is_active !== false)
+    : []
 
-  return STAGES.map((s, idx) => {
-    const count = countsMap[s.key] || 0
+  const total = activeStagesList.reduce((acc, s) => {
+    const key = s.code || s.key
+    const countVal = props.stageCounts[key] ?? props.stageCounts[s.id] ?? props.stageCounts[s.code]
+    const count = countVal !== undefined
+      ? Number(countVal)
+      : props.leads.filter(l => (l.current_stage?.code || l.stage) === key).length
+    return acc + count
+  }, 0) || props.leads.length || 1
+
+  return activeStagesList.map((s, idx) => {
+    const key = s.code || s.key
+    const label = s.name || s.label || s.key
+    const countVal = props.stageCounts[key] ?? props.stageCounts[s.id] ?? props.stageCounts[s.code]
+    const count = countVal !== undefined
+      ? Number(countVal)
+      : props.leads.filter(l => (l.current_stage?.code || l.stage) === key).length
     const pct = Math.round((count / total) * 100)
+
     return {
       ...s,
+      key,
+      label,
       stepNumber: idx + 1,
       count,
       pct,
@@ -71,8 +79,42 @@ function handleStageClick(key) {
       </button>
     </div>
 
+    <!-- Stepper Skeleton Loader -->
+    <div v-if="loading" class="overflow-x-auto pb-2 pt-1 no-scrollbar">
+      <div class="flex items-start min-w-[950px] justify-between relative px-2 py-2">
+        <div
+          v-for="n in 6"
+          :key="n"
+          class="flex-1 flex flex-col items-center relative animate-pulse"
+        >
+          <!-- Connector Line Placeholder -->
+          <div
+            v-if="n < 6"
+            class="absolute top-4 left-[50%] right-[-50%] h-[2px] bg-primary-border/40 z-0"
+          />
+
+          <!-- Circle Node Placeholder -->
+          <div class="relative z-10 w-8 h-8 rounded-full bg-primary-border/60 border-2 border-primary-border/40 shrink-0" />
+
+          <!-- Step Title & Metrics Placeholder -->
+          <div class="mt-2.5 flex flex-col items-center gap-1.5 w-full">
+            <div class="h-3 w-16 bg-primary-border/50 rounded" />
+            <div class="h-4 w-12 bg-primary-border/30 rounded-md" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div
+      v-else-if="stageMetrics.length === 0"
+      class="py-6 text-center text-xs text-secondary-text border border-dashed border-primary-border/60 rounded-lg"
+    >
+      No active stages found. Manage stages to configure your onboarding pipeline.
+    </div>
+
     <!-- Stepper Pipeline View -->
-    <div class="overflow-x-auto pb-2 pt-1 no-scrollbar">
+    <div v-else class="overflow-x-auto pb-2 pt-1 no-scrollbar">
       <div class="flex items-start min-w-[950px] justify-between relative px-2">
         <div
           v-for="(stg, i) in stageMetrics"

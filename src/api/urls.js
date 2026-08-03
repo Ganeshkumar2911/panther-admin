@@ -205,6 +205,15 @@ const urls = {
       delete: "/media-images",
     },
   },
+  lead: {
+    list: "/lead/",
+    detail: "/lead/",
+    assign: "/lead/assign/",
+    history: "/lead/history/",
+    dashboard: "/lead/dashboard",
+    stageCounts: "/lead/count/stages",
+    stages: "/lead/stage",
+  },
 };
 
 export default urls;
