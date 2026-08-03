@@ -241,13 +241,13 @@
             Clear
           </button>
 
-          <!-- <button
+          <button
             v-if="hasPermission('ticket.create')"
             class="flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-medium transition-colors sm:flex-none shrink-0 cursor-pointer shadow-xs"
             @click="dialogOpen = true"
           >
             <Plus class="w-3.5 h-3.5" /> Create Ticket
-          </button> -->
+          </button>
         </div>
       </div>
 
