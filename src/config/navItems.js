@@ -19,6 +19,8 @@ import {
   ClipboardList,
   ShieldCheck,
   Layers,
+  FolderOpen,
+  Bell,
 } from "lucide-vue-next";
 
 export const navItems = [
@@ -117,6 +119,12 @@ export const navItems = [
     icon: ClipboardList,
     permission: ["telegram.view", "telegram.manage"],
   },
+  {
+    label: "Media Library",
+    to: "/media",
+    icon: FolderOpen,
+    permission: ["media.view"],
+  },
   // 6. System & Support
   {
     label: "Group Config",
@@ -141,6 +149,12 @@ export const navItems = [
     to: "/tickets",
     icon: Tickets,
     permission: ["ticket.view", "ticket.platform_view"],
+  },
+  {
+    label: "Notifications",
+    to: "/notifications",
+    icon: Bell,
+    permission: ["notifications.view", "notifications.create"],
   },
   {
     label: "Access Control",

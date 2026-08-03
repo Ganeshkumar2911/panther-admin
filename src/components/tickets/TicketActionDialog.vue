@@ -97,6 +97,8 @@ const submit = () => {
   } else {
     const fd = new FormData()
     fd.append('file', file.value)
+    fd.append('attachments', file.value)
+    fd.append('files', file.value)
     store.addAttachment(props.ticketId, fd, () => emit('close'))
   }
 }
