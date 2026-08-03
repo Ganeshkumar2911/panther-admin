@@ -127,7 +127,7 @@ function handleImportCSV() {
 </script>
 
 <template>
-  <div class="px-4 mx-auto space-y-6 pb-12">
+  <div class="mx-auto space-y-6 pb-12">
     <!-- Header Row -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-end gap-4">
       <!-- Action Buttons -->
@@ -203,6 +203,7 @@ function handleImportCSV() {
       :stages="leadStageStore.stages"
       :staff-list="rbacStaffStore.records"
       @page-change="leadStore.fetchLeads"
+      @per-page-change="(perPage) => leadStore.fetchLeads(1, perPage)"
       @open-drawer="openDrawer"
       @edit-lead="openModal('edit', $event)"
       @move-stage="openModal('moveStage', $event)"

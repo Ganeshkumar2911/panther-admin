@@ -58,12 +58,9 @@ function getLeadName(l) {
 
 function getStaffName(l) {
   if (l.assigned_staff) {
-    return (
-      `${l.assigned_staff.first_name || ""} ${l.assigned_staff.last_name || ""}`.trim() ||
-      l.assigned_staff.email
-    );
+    return l.assigned_staff.name || l.assigned_staff.email || "Unassigned";
   }
-  return l.assignedStaff || "Unassigned";
+  return "Unassigned";
 }
 
 function getStageName(l) {

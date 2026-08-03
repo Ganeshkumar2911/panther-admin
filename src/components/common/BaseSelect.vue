@@ -92,6 +92,14 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  dropUp: {
+    type: Boolean,
+    default: false,
+  },
+  placement: {
+    type: String,
+    default: "bottom", // 'bottom' | 'top'
+  },
 });
 
 // ─── Emits ────────────────────────────────────────────────────────────────────
@@ -209,17 +217,29 @@ const dropdownBgClass = computed(() => {
   return props.variant === "surface" ? "bg-background" : "bg-card-background";
 });
 
+const isDropUp = computed(() => props.dropUp || props.placement === "top");
+
 // ─── Position Calculation ─────────────────────────────────────────────────────
 function updatePosition() {
   if (!triggerRef.value) return;
   const rect = triggerRef.value.getBoundingClientRect();
-  dropdownStyle.value = {
-    position: "fixed",
-    top: `${rect.bottom + 6}px`,
-    left: `${rect.left}px`,
-    width: `${rect.width}px`,
-    zIndex: 9999,
-  };
+  if (isDropUp.value) {
+    dropdownStyle.value = {
+      position: "fixed",
+      bottom: `${window.innerHeight - rect.top + 6}px`,
+      left: `${rect.left}px`,
+      width: `${rect.width}px`,
+      zIndex: 9999,
+    };
+  } else {
+    dropdownStyle.value = {
+      position: "fixed",
+      top: `${rect.bottom + 6}px`,
+      left: `${rect.left}px`,
+      width: `${rect.width}px`,
+      zIndex: 9999,
+    };
+  }
 }
 
 // ─── Methods ──────────────────────────────────────────────────────────────────

@@ -1,13 +1,12 @@
 <script setup>
 import { computed } from 'vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
+import Pagination from '@/components/common/Pagination.vue'
 import { getFlagCode, cleanCountryLabel } from '@/utils/countries'
 import {
   Eye,
   Edit,
   ArrowRightLeft,
-  ChevronLeft,
-  ChevronRight,
   UserX,
   Phone,
   Mail,
@@ -21,13 +20,27 @@ const props = defineProps({
   loading: { type: Boolean, default: false },
   pagination: {
     type: Object,
-    default: () => ({ page: 1, per_page: 10, total: 0, pages: 1 }),
+    default: () => ({ page: 1, per_page: 10, total_items: 0, total_pages: 1 }),
   },
   stages: { type: Array, default: () => [] },
   staffList: { type: Array, default: () => [] },
 })
 
-const emit = defineEmits(['open-drawer', 'edit-lead', 'move-stage', 'add-lead', 'page-change', 'assign-staff'])
+const emit = defineEmits(['open-drawer', 'edit-lead', 'move-stage', 'add-lead', 'page-change', 'per-page-change', 'assign-staff'])
+
+const perPageOptions = [
+  { value: 10, label: '10' },
+  { value: 25, label: '25' },
+  { value: 50, label: '50' },
+  { value: 100, label: '100' },
+]
+
+const formattedPagination = computed(() => ({
+  page: props.pagination?.page || 1,
+  total_pages: props.pagination?.total_pages || 1,
+  total_items: props.pagination?.total_items || 0,
+  per_page: props.pagination?.per_page || 10,
+}))
 
 const staffOptions = computed(() => {
   return props.staffList.map(s => ({
@@ -45,9 +58,9 @@ function getLeadName(lead) {
 
 function getStaffName(lead) {
   if (lead.assigned_staff) {
-    return `${lead.assigned_staff.first_name || ''} ${lead.assigned_staff.last_name || ''}`.trim() || lead.assigned_staff.email
+    return lead.assigned_staff.name || lead.assigned_staff.email || 'Unassigned'
   }
-  return lead.assignedStaff || 'Unassigned'
+  return 'Unassigned'
 }
 
 function getStageBadge(lead) {
@@ -55,7 +68,7 @@ function getStageBadge(lead) {
   const stageCode = current.code || lead.stage || ''
   const stageName = current.name || current.code || lead.stage || 'NEW'
   const matched = props.stages.find(s => (s.code || s.key) === stageCode)
-  const color = current.color || matched?.color || 'var(primary-blue)'
+  const color = current.color || matched?.color || 'var(--color-primary-blue)'
 
   return {
     label: stageName,
@@ -110,19 +123,14 @@ function formatDate(dateStr) {
 <template>
   <div class="bg-card-background border border-primary-border rounded-2xl overflow-hidden">
     <!-- Table Header Info -->
-    <div class="px-5 py-3.5 border-b border-primary-border flex items-center justify-between">
+    <div class="px-5 py-3.5 border-b border-primary-border flex flex-wrap items-center justify-between gap-3">
       <div class="flex items-center gap-2">
         <span class="text-xs font-semibold text-primary-text uppercase tracking-wider">
           Lead Records
         </span>
         <span class="text-[11px] text-secondary-text bg-background border border-primary-border px-2.5 py-0.5 rounded-full font-medium">
-          Showing {{ leads.length }} of {{ pagination.total || leads.length }} Leads
+          Showing {{ leads.length }} of {{ formattedPagination.total_items || leads.length }} Leads
         </span>
-      </div>
-
-      <div v-if="loading" class="flex items-center gap-1.5 text-xs text-primary">
-        <Loader2 class="w-3.5 h-3.5 animate-spin" />
-        <span>Loading...</span>
       </div>
     </div>
 
@@ -315,26 +323,31 @@ function formatDate(dateStr) {
     </div>
 
     <!-- Pagination Footer -->
-    <div v-if="leads.length > 0 && pagination.pages > 1" class="px-5 py-3.5 border-t border-primary-border flex items-center justify-between bg-background/30">
-      <p class="text-xs text-secondary-text">
-        Page <strong class="text-primary-text font-semibold">{{ pagination.page }}</strong> of <strong class="text-primary-text font-semibold">{{ pagination.pages }}</strong>
-      </p>
+    <div v-if="leads.length > 0" class="px-5 py-3 border-t border-primary-border flex flex-wrap items-center justify-between gap-3 bg-background/30">
+      <div class="flex items-center gap-4">
+        <p class="text-xs text-secondary-text">
+          Page <strong class="text-primary-text font-semibold">{{ formattedPagination.page }}</strong> of <strong class="text-primary-text font-semibold">{{ formattedPagination.total_pages }}</strong>
+        </p>
+      </div>
 
-      <div class="flex items-center gap-1.5">
-        <button
-          @click="emit('page-change', pagination.page - 1)"
-          :disabled="pagination.page <= 1"
-          class="p-1.5 rounded-lg border border-primary-border bg-card-background hover:bg-background text-secondary-text hover:text-primary-text disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
-        >
-          <ChevronLeft class="w-4 h-4" />
-        </button>
-        <button
-          @click="emit('page-change', pagination.page + 1)"
-          :disabled="pagination.page >= pagination.pages"
-          class="p-1.5 rounded-lg border border-primary-border bg-card-background hover:bg-background text-secondary-text hover:text-primary-text disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
-        >
-          <ChevronRight class="w-4 h-4" />
-        </button>
+      <div class="flex items-center gap-4">
+         <div class="flex items-center gap-2">
+          <span class="text-xs text-secondary-text">Per page:</span>
+          <div class="w-24">
+            <BaseSelect
+              :modelValue="formattedPagination.per_page"
+              :options="perPageOptions"
+              :dropUp="true"
+              @update:modelValue="emit('per-page-change', Number($event))"
+            />
+          </div>
+        </div>
+
+      <Pagination
+        v-if="formattedPagination.total_pages > 1"
+        :pagination="formattedPagination"
+        @page-change="emit('page-change', $event)"
+      />
       </div>
     </div>
   </div>

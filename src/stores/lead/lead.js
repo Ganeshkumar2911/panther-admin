@@ -12,8 +12,8 @@ export const useLeadStore = defineStore('lead', () => {
   const pagination = ref({
     page: 1,
     per_page: 10,
-    total: 0,
-    pages: 0,
+    total_items: 0,
+    total_pages: 1,
   })
 
   const filters = reactive({
@@ -41,9 +41,13 @@ export const useLeadStore = defineStore('lead', () => {
   // ─── Actions ────────────────────────────────────────────────────────
 
   // 1. Get All Leads (Paginated & Filtered)
-  const fetchLeads = (page = pagination.value.page || 1) => {
+  const fetchLeads = (page = pagination.value.page || 1, perPage = pagination.value.per_page) => {
     loading.value = true
     error.value = null
+
+    if (perPage) {
+      pagination.value.per_page = Number(perPage)
+    }
 
     const params = {
       page,
@@ -63,15 +67,9 @@ export const useLeadStore = defineStore('lead', () => {
         params,
         onSuccess: (res) => {
           loading.value = false
-          const resData = res?.data || res || {}
-          leads.value = Array.isArray(resData.items) ? resData.items : (Array.isArray(resData) ? resData : [])
-          pagination.value = {
-            page: resData.page || page,
-            per_page: resData.per_page || pagination.value.per_page,
-            total: resData.total || leads.value.length,
-            pages: resData.pages || Math.ceil((resData.total || leads.value.length) / (resData.per_page || 10)) || 1,
-          }
-          resolve(resData)
+          leads.value = res.data
+          pagination.value = res.pagination
+          resolve(res)
         },
         onFailure: (err) => {
           loading.value = false
@@ -118,7 +116,7 @@ export const useLeadStore = defineStore('lead', () => {
         isTokenRequired: true,
         onSuccess: (res) => {
           detailLoading.value = false
-          currentLead.value = res?.data || res
+          currentLead.value = res.data
           resolve(currentLead.value)
         },
         onFailure: (err) => {
