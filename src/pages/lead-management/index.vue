@@ -33,7 +33,6 @@ onMounted(() => {
   leadStageStore.fetchStages()
   leadStore.fetchLeads(1)
   leadStore.fetchDashboardMetrics()
-  leadStore.fetchStageCounts()
   rbacStaffStore.fetchStaff(true, 1)
 })
 
@@ -176,8 +175,7 @@ function handleImportCSV() {
     <LeadPipelineOverview
       :leads="leadStore.leads"
       :stages="leadStageStore.stages"
-      :stage-counts="leadStore.stageCounts"
-      :loading="leadStageStore.loading || leadStore.countsLoading"
+      :loading="leadStageStore.loading"
       :selected-stage="leadStore.filters.stage"
       @select-stage="handleSelectStage"
     />
@@ -193,6 +191,7 @@ function handleImportCSV() {
       :stages="leadStageStore.stages"
       :staff-list="rbacStaffStore.records"
       @reset-filters="leadStore.resetFilters"
+      @refresh="leadStore.fetchLeads()"
     />
 
     <!-- Section 4: Primary Lead Table -->
@@ -202,6 +201,7 @@ function handleImportCSV() {
       :pagination="leadStore.pagination"
       :stages="leadStageStore.stages"
       :staff-list="rbacStaffStore.records"
+      :selected-stage="leadStore.filters.stage"
       @page-change="leadStore.fetchLeads"
       @per-page-change="(perPage) => leadStore.fetchLeads(1, perPage)"
       @open-drawer="openDrawer"

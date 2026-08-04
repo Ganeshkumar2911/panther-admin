@@ -24,31 +24,36 @@ export const useLeadStageStore = defineStore('leadStage', () => {
     error.value = null
 
     return new Promise((resolve, reject) => {
+      const successHandler = (res) => {
+        loading.value = false
+        isFetched.value = true
+        // Handle response data - array of stages
+        let dataList = []
+        if (Array.isArray(res?.data)) {
+          dataList = res.data
+        } else if (Array.isArray(res)) {
+          dataList = res
+        } else if (res?.data?.stages && Array.isArray(res.data.stages)) {
+          dataList = res.data.stages
+        }
+
+        // Sort stages by display_order ascending
+        stages.value = dataList.sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))
+        resolve(stages.value)
+      }
+
+      const failureHandler = (err) => {
+        loading.value = false
+        error.value = err
+        snackbar.show(err?.message || err?.response?.data?.message || 'Failed to fetch lead stages', 'error')
+        reject(err)
+      }
+
       apiRequest(urls.KEYS.GET, urls.lead.stages, {
         isTokenRequired: true,
-        onSuccess: (res) => {
-          loading.value = false
-          isFetched.value = true
-          // Handle response data - array of stages
-          let dataList = []
-          if (Array.isArray(res?.data)) {
-            dataList = res.data
-          } else if (Array.isArray(res)) {
-            dataList = res
-          } else if (res?.data?.stages && Array.isArray(res.data.stages)) {
-            dataList = res.data.stages
-          }
-
-          // Sort stages by display_order ascending
-          stages.value = dataList.sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))
-          resolve(stages.value)
-        },
-        onFailure: (err) => {
-          loading.value = false
-          error.value = err
-          snackbar.show(err?.message || err?.response?.data?.message || 'Failed to fetch lead stages', 'error')
-          reject(err)
-        },
+        params: { show_count: true },
+        onSuccess: successHandler,
+        onFailure: failureHandler,
       })
     })
   }
@@ -57,6 +62,19 @@ export const useLeadStageStore = defineStore('leadStage', () => {
     actionLoading.value = true
 
     return new Promise((resolve, reject) => {
+      const successHandler = (res) => {
+        actionLoading.value = false
+        snackbar.show(res?.message || res?.data?.message || 'Stage created successfully', 'success')
+        fetchStages(true)
+        resolve(res)
+      }
+
+      const failureHandler = (err) => {
+        actionLoading.value = false
+        snackbar.show(err?.response?.data?.message || err?.message || 'Failed to create stage', 'error')
+        reject(err)
+      }
+
       apiRequest(urls.KEYS.POST, urls.lead.stages, {
         isTokenRequired: true,
         data: {
@@ -66,17 +84,8 @@ export const useLeadStageStore = defineStore('leadStage', () => {
           color: payload.color || '#3B82F6',
           is_active: payload.is_active ?? true,
         },
-        onSuccess: (res) => {
-          actionLoading.value = false
-          snackbar.show(res?.message || res?.data?.message || 'Stage created successfully', 'success')
-          fetchStages(true)
-          resolve(res)
-        },
-        onFailure: (err) => {
-          actionLoading.value = false
-          snackbar.show(err?.response?.data?.message || err?.message || 'Failed to create stage', 'error')
-          reject(err)
-        },
+        onSuccess: successHandler,
+        onFailure: failureHandler,
       })
     })
   }
@@ -85,6 +94,19 @@ export const useLeadStageStore = defineStore('leadStage', () => {
     actionLoading.value = true
 
     return new Promise((resolve, reject) => {
+      const successHandler = (res) => {
+        actionLoading.value = false
+        snackbar.show(res?.message || res?.data?.message || 'Stage updated successfully', 'success')
+        fetchStages(true)
+        resolve(res)
+      }
+
+      const failureHandler = (err) => {
+        actionLoading.value = false
+        snackbar.show(err?.response?.data?.message || err?.message || 'Failed to update stage', 'error')
+        reject(err)
+      }
+
       apiRequest(urls.KEYS.PATCH, urls.lead.stages, {
         look_up_key: stageId,
         isTokenRequired: true,
@@ -95,17 +117,8 @@ export const useLeadStageStore = defineStore('leadStage', () => {
           is_active: payload.is_active ?? true,
           ...(payload.code ? { code: payload.code } : {}),
         },
-        onSuccess: (res) => {
-          actionLoading.value = false
-          snackbar.show(res?.message || res?.data?.message || 'Stage updated successfully', 'success')
-          fetchStages(true)
-          resolve(res)
-        },
-        onFailure: (err) => {
-          actionLoading.value = false
-          snackbar.show(err?.response?.data?.message || err?.message || 'Failed to update stage', 'error')
-          reject(err)
-        },
+        onSuccess: successHandler,
+        onFailure: failureHandler,
       })
     })
   }
@@ -114,20 +127,24 @@ export const useLeadStageStore = defineStore('leadStage', () => {
     actionLoading.value = true
 
     return new Promise((resolve, reject) => {
+      const successHandler = (res) => {
+        actionLoading.value = false
+        snackbar.show(res?.message || res?.data?.message || 'Stage deleted successfully', 'success')
+        fetchStages(true)
+        resolve(res)
+      }
+
+      const failureHandler = (err) => {
+        actionLoading.value = false
+        snackbar.show(err?.response?.data?.message || err?.message || 'Failed to delete stage', 'error')
+        reject(err)
+      }
+
       apiRequest(urls.KEYS.DELETE, urls.lead.stages, {
         look_up_key: stageId,
         isTokenRequired: true,
-        onSuccess: (res) => {
-          actionLoading.value = false
-          snackbar.show(res?.message || res?.data?.message || 'Stage deleted successfully', 'success')
-          fetchStages(true)
-          resolve(res)
-        },
-        onFailure: (err) => {
-          actionLoading.value = false
-          snackbar.show(err?.response?.data?.message || err?.message || 'Failed to delete stage', 'error')
-          reject(err)
-        },
+        onSuccess: successHandler,
+        onFailure: failureHandler,
       })
     })
   }

@@ -32,17 +32,17 @@ export const navItems = [
     icon: LayoutDashboard,
     permission: "analytics.view",
   },
+  {
+    label: "Lead Management",
+    to: "/lead-management",
+    icon: Target,
+  },
   // 2. User & Network Administration
   {
     label: "Clients",
     to: "/clients",
     icon: Users,
     permission: "client.view",
-  },
-  {
-    label: "Lead Management",
-    to: "/lead-management",
-    icon: Target,
   },
   {
     label: "Trading Accounts",

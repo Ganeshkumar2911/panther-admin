@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import Pagination from '@/components/common/Pagination.vue'
 import { getFlagCode, cleanCountryLabel } from '@/utils/countries'
+import { formatDate } from '@/utils/timeFormatter'
 import {
   Eye,
   Edit,
@@ -24,6 +25,7 @@ const props = defineProps({
   },
   stages: { type: Array, default: () => [] },
   staffList: { type: Array, default: () => [] },
+  selectedStage: { type: String, default: '' },
 })
 
 const emit = defineEmits(['open-drawer', 'edit-lead', 'move-stage', 'add-lead', 'page-change', 'per-page-change', 'assign-staff'])
@@ -34,6 +36,12 @@ const perPageOptions = [
   { value: 50, label: '50' },
   { value: 100, label: '100' },
 ]
+
+const isKycStatusVisible = computed(() => {
+  if (!props.selectedStage) return true
+  const stage = props.selectedStage.toUpperCase()
+  return ['REGISTERED', 'KYC', 'TRADING_ACCOUNT'].includes(stage)
+})
 
 const formattedPagination = computed(() => ({
   page: props.pagination?.page || 1,
@@ -77,6 +85,22 @@ function getStageBadge(lead) {
   }
 }
 
+function getKycStatusBadge(kycStatus) {
+  const status = (kycStatus || 'pending').toLowerCase().replace(/_/g, ' ')
+  let badgeClass = 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+
+  if (['approved', 'verified', 'completed'].includes(status)) {
+    badgeClass = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+  } else if (['rejected', 'failed', 'declined'].includes(status)) {
+    badgeClass = 'bg-red-500/10 text-red-400 border-red-500/30'
+  }
+
+  return {
+    label: status,
+    class: badgeClass,
+  }
+}
+
 function getPriorityBadge(priority) {
   const p = (priority || '').toLowerCase()
   switch (p) {
@@ -103,21 +127,6 @@ function formatSourceLabel(source) {
     default: return source || 'Website'
   }
 }
-
-function formatDate(dateStr) {
-  if (!dateStr) return '-'
-  try {
-    const d = new Date(dateStr)
-    if (isNaN(d.getTime())) return dateStr
-    return d.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    })
-  } catch (e) {
-    return dateStr
-  }
-}
 </script>
 
 <template>
@@ -135,7 +144,7 @@ function formatDate(dateStr) {
     </div>
 
     <!-- Skeleton Loading -->
-    <div v-if="loading && leads.length === 0" class="p-6 space-y-3">
+    <div v-if="loading" class="p-6 space-y-3">
       <div v-for="n in 5" :key="n" class="animate-pulse flex items-center justify-between py-3 border-b border-primary-border/40">
         <div class="flex items-center gap-3">
           <div class="w-8 h-8 rounded-full bg-primary-border/40 shrink-0" />
@@ -182,6 +191,7 @@ function formatDate(dateStr) {
             <th class="px-4 py-3">Source</th>
             <th class="px-4 py-3">Assigned Staff</th>
             <th class="px-4 py-3">Current Stage</th>
+            <th v-if="isKycStatusVisible" class="px-4 py-3">KYC Status</th>
             <th class="px-4 py-3">Priority</th>
             <th class="px-4 py-3">Created Date</th>
             <th class="px-5 py-3 text-right">Actions</th>
@@ -274,6 +284,13 @@ function formatDate(dateStr) {
                 }"
               >
                 {{ getStageBadge(lead).label }}
+              </span>
+            </td>
+
+            <!-- KYC Status -->
+            <td v-if="isKycStatusVisible" class="px-4 py-3.5 whitespace-nowrap">
+              <span :class="['text-[10px] font-semibold px-2 py-0.5 rounded-md border uppercase tracking-wider capitalize', getKycStatusBadge(lead.kyc_status || lead.kycStatus).class]">
+                {{ getKycStatusBadge(lead.kyc_status || lead.kycStatus).label }}
               </span>
             </td>
 

@@ -8,6 +8,7 @@ import {
 import {
   Search,
   RotateCcw,
+  RefreshCw,
   SlidersHorizontal,
 } from 'lucide-vue-next'
 
@@ -32,6 +33,7 @@ const emit = defineEmits([
   'update:selectedPriority',
   'update:selectedDate',
   'reset-filters',
+  'refresh',
 ])
 
 const localSearchQuery = ref(props.searchQuery || '')
@@ -78,13 +80,22 @@ const stageOptions = computed(() => {
         </span>
       </div>
 
-      <button
-        @click="emit('reset-filters')"
-        class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium text-secondary-text hover:text-primary-text bg-background border border-primary-border hover:bg-card-background transition-colors cursor-pointer"
-      >
-        <RotateCcw class="w-3 h-3" />
-        <span>Reset Filters</span>
-      </button>
+      <div class="flex items-center gap-2">
+        <button
+          @click="emit('refresh')"
+          class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium text-secondary-text hover:text-primary-text bg-background border border-primary-border hover:bg-card-background transition-colors cursor-pointer"
+        >
+          <RefreshCw class="w-3 h-3" />
+          <span>Refresh</span>
+        </button>
+        <button
+          @click="emit('reset-filters')"
+          class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium text-secondary-text hover:text-primary-text bg-background border border-primary-border hover:bg-card-background transition-colors cursor-pointer"
+        >
+          <RotateCcw class="w-3 h-3" />
+          <span>Reset Filters</span>
+        </button>
+      </div>
     </div>
 
     <!-- Filter Inputs Grid -->

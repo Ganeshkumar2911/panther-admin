@@ -212,7 +212,6 @@ const urls = {
     assign: "/lead/assign/",
     history: "/lead/history/",
     dashboard: "/lead/dashboard",
-    stageCounts: "/lead/count/stages",
     stages: "/lead/stage",
   },
 };

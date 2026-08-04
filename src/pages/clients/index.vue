@@ -210,6 +210,41 @@ const handleUpdateReferralLinkSuccess = () => {
   store.fetchClients(store.pagination.page)
 }
 
+import apiRequest from '@/api/request'
+import urls from '@/api/urls'
+import { useSnackbarStore } from '@/stores/snackbar/snackbar'
+import { useRbacStaffStore } from '@/stores/rbac/staff'
+
+const snackbar = useSnackbarStore()
+const rbacStaffStore = useRbacStaffStore()
+
+const staffOptions = computed(() => {
+  return (rbacStaffStore.records || []).map(s => ({
+    value: s.id,
+    label: s.name || `${s.first_name || ''} ${s.last_name || ''}`.trim() || s.email,
+  }))
+})
+
+const handleAssignStaff = (client, staffId) => {
+  const targetId = client?.lead_id || client?.id
+  if (!targetId || !staffId) return
+
+  apiRequest(urls.KEYS.PATCH, urls.lead.assign, {
+    look_up_key: targetId,
+    data: {
+      assigned_staff_id: staffId,
+    },
+    isTokenRequired: true,
+    onSuccess: (res) => {
+      snackbar.show(res?.message || res?.data?.message || 'Staff assigned successfully.', 'success')
+      store.fetchClients(store.pagination.page)
+    },
+    onFailure: (err) => {
+      snackbar.show(err?.response?.data?.message || err?.message || err?.error || 'Failed to assign staff.', 'error')
+    },
+  })
+}
+
 const getKycClass = (status) => {
   const s = (status || '').toLowerCase()
   if (s === 'approved') return 'bg-green-500/10 text-green-700 border-green-500/20'
@@ -217,7 +252,10 @@ const getKycClass = (status) => {
   return 'bg-red-500/10 text-red-700 border-red-500/20'
 }
 
-onMounted(() => store.fetchClients())
+onMounted(() => {
+  store.fetchClients()
+  rbacStaffStore.fetchStaff(false)
+})
 </script>
 
 <template>
@@ -307,6 +345,7 @@ onMounted(() => store.fetchClients())
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Contact</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Address</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">IB</th>
+            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Ass. Staff</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Referral Campaign</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">KYC Status</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Doc Status</th>
@@ -333,6 +372,7 @@ onMounted(() => store.fetchClients())
             <td class="p-3"><div class="space-y-1.5"><div class="h-3 w-20 bg-card-background rounded" /><div class="h-2.5 w-24 bg-card-background rounded" /></div></td>
             <td class="p-3"><div class="space-y-1.5"><div class="h-3 w-16 bg-card-background rounded" /><div class="h-2.5 w-20 bg-card-background rounded" /></div></td>
             <td class="p-3"><div class="space-y-1.5"><div class="h-3 w-20 bg-card-background rounded" /><div class="h-2.5 w-24 bg-card-background rounded" /></div></td>
+            <td class="p-3"><div class="space-y-1.5"><div class="h-3 w-20 bg-card-background rounded" /><div class="h-2.5 w-24 bg-card-background rounded" /></div></td>
             <td class="p-3"><div class="space-y-1.5"><div class="h-3 w-16 bg-card-background rounded" /><div class="h-2.5 w-20 bg-card-background rounded" /></div></td>
             <td class="p-3"><div class="h-5 w-16 bg-card-background rounded-full" /></td>
             <td class="p-3"><div class="h-5 w-16 bg-card-background rounded-full" /></td>
@@ -347,7 +387,7 @@ onMounted(() => store.fetchClients())
         <!-- Empty -->
         <tbody v-else-if="store.data.length === 0">
           <tr>
-            <td colspan="12" class="py-16 text-center">
+            <td colspan="13" class="py-16 text-center">
               <div class="flex flex-col items-center gap-3">
                 <div class="w-12 h-12 rounded-full bg-card-background flex items-center justify-center">
                   <Users class="w-5 h-5 text-secondary-text" />
@@ -403,6 +443,26 @@ onMounted(() => store.fetchClients())
               <p class="text-[10px] text-secondary-text" v-if="client.ib_id">
                 Ref: {{ client.ib_referral_code ?? '' }} (ID: {{ client.ib_id }})
               </p>
+            </td>
+
+            <!-- Assigned Staff -->
+            <td class="p-3 whitespace-nowrap" @click.stop>
+              <div v-if="client.staff_assigned?.name || client.assigned_staff?.name" class="flex items-center gap-2">
+                <div class="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-[9px] font-bold text-btn-text-primary shrink-0">
+                  {{ (client.staff_assigned?.name || client.assigned_staff?.name || '').charAt(0).toUpperCase() }}
+                </div>
+                <span class="text-primary-text font-medium text-xs">{{ client.staff_assigned?.name || client.assigned_staff?.name }}</span>
+              </div>
+              <div v-else class="w-36">
+                <BaseSelect
+                  :model-value="null"
+                  :options="staffOptions"
+                  placeholder="Assign Staff..."
+                  searchable
+                  variant="surface"
+                  @update:model-value="(staffId) => handleAssignStaff(client, staffId)"
+                />
+              </div>
             </td>
 
             <!-- Referral Link Column -->
@@ -604,6 +664,25 @@ onMounted(() => store.fetchClients())
             <p class="font-medium text-primary-text text-[11px] truncate">{{ client.ib_name ?? '—' }}</p>
             <p class="text-[10px] text-secondary-text truncate">{{ client.ib_email ?? '—' }}</p>
             <p class="text-[10px] text-secondary-text">Ref: {{ client.ib_referral_code ?? '—' }} | ID: {{ client.ib_id ?? '—' }}</p>
+          </div>
+          <div class="bg-background rounded-lg px-3 py-2 col-span-2">
+            <p class="text-[10px] text-secondary-text mb-0.5">Assigned Staff</p>
+            <div v-if="client.staff_assigned?.name || client.assigned_staff?.name" class="flex items-center gap-2 mt-0.5">
+              <div class="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-[9px] font-bold text-btn-text-primary shrink-0">
+                {{ (client.staff_assigned?.name || client.assigned_staff?.name || '').charAt(0).toUpperCase() }}
+              </div>
+              <p class="font-medium text-primary-text text-xs truncate">{{ client.staff_assigned?.name || client.assigned_staff?.name }}</p>
+            </div>
+            <div v-else class="w-full mt-1">
+              <BaseSelect
+                :model-value="null"
+                :options="staffOptions"
+                placeholder="Assign Staff..."
+                searchable
+                variant="surface"
+                @update:model-value="(staffId) => handleAssignStaff(client, staffId)"
+              />
+            </div>
           </div>
           <div class="bg-background rounded-lg px-3 py-2 col-span-2" v-if="client.referral_link_code">
             <p class="text-[10px] text-secondary-text mb-0.5">Referral Campaign</p>

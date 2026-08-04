@@ -52,7 +52,7 @@ watch(
   () => props.open,
   (isOpen) => {
     if (isOpen) {
-      stageStore.fetchStages(true)
+      stageStore.fetchStages()
       resetForm()
     }
   }

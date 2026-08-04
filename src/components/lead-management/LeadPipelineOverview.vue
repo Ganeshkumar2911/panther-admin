@@ -4,7 +4,6 @@ import { Filter, ArrowRight } from 'lucide-vue-next'
 
 const props = defineProps({
   stages: { type: Array, default: () => [] },
-  stageCounts: { type: [Array, Object], default: () => [] },
   selectedStage: { type: String, default: null },
   loading: { type: Boolean, default: false },
 })
@@ -12,9 +11,7 @@ const props = defineProps({
 const emit = defineEmits(['select-stage'])
 
 const stageMetrics = computed(() => {
-  const list = Array.isArray(props.stageCounts) && props.stageCounts.length > 0
-    ? props.stageCounts
-    : (Array.isArray(props.stages) ? props.stages : [])
+  const list = Array.isArray(props.stages) ? props.stages : []
 
   if (!list.length) return []
 
@@ -22,7 +19,7 @@ const stageMetrics = computed(() => {
 
   return list.map((s, idx) => {
     const code = s.code || String(s.id)
-    const count = Number(s.count ?? (typeof props.stageCounts === 'object' ? props.stageCounts[code] : 0))
+    const count = Number(s.count ?? 0)
     return {
       code,
       label: s.name || code,
