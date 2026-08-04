@@ -87,6 +87,16 @@ const props = defineProps({
     type: String,
     default: "default", // 'default' | 'surface'
   },
+
+  // Placement
+  top: {
+    type: Boolean,
+    default: false,
+  },
+  position: {
+    type: String,
+    default: "bottom", // 'bottom' | 'top'
+  },
 });
 
 // ─── Emits ────────────────────────────────────────────────────────────────────
@@ -182,13 +192,25 @@ const dropdownBgClass = computed(() => {
 function updatePosition() {
   if (!triggerRef.value) return;
   const rect = triggerRef.value.getBoundingClientRect();
-  dropdownStyle.value = {
-    position: "fixed",
-    top: `${rect.bottom + 6}px`,
-    left: `${rect.left}px`,
-    width: `${rect.width}px`,
-    zIndex: 9999,
-  };
+  const isTop = props.top || props.position === "top";
+
+  if (isTop) {
+    dropdownStyle.value = {
+      position: "fixed",
+      bottom: `${window.innerHeight - rect.top + 6}px`,
+      left: `${rect.left}px`,
+      width: `${rect.width}px`,
+      zIndex: 9999,
+    };
+  } else {
+    dropdownStyle.value = {
+      position: "fixed",
+      top: `${rect.bottom + 6}px`,
+      left: `${rect.left}px`,
+      width: `${rect.width}px`,
+      zIndex: 9999,
+    };
+  }
 }
 
 // ─── Methods ──────────────────────────────────────────────────────────────────
