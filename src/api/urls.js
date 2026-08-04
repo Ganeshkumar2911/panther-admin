@@ -138,6 +138,10 @@ const urls = {
     update: "/email-templates",
     manual: "/emails/manual/send",
   },
+  emailLogs: {
+    list: "/fetch-logs",
+    sync: "/sync-logs",
+  },
   integrations: {
     list: "/company-integrations",
     create: "/company-integrations",
