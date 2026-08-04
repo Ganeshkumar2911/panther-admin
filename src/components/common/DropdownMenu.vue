@@ -33,7 +33,9 @@
               class="w-full flex items-center gap-2.5 px-3.5 py-2 text-sm text-left transition disabled:opacity-40 disabled:cursor-not-allowed"
               :class="item.danger
                 ? 'text-red-600 hover:bg-red-500/10'
-                : 'text-primary-text hover:bg-background'"
+                : item.success
+                  ? 'text-green-600 hover:bg-green-500/10'
+                  : 'text-primary-text hover:bg-background'"
             >
               <component :is="item.icon" v-if="item.icon" class="w-4 h-4 shrink-0" />
               <span class="truncate">{{ item.label }}</span>
@@ -62,6 +64,7 @@ import { MoreVertical } from 'lucide-vue-next'
  *   action?: string,        // key you switch on in the parent
  *   handler?: () => void,   // OR pass a direct function instead of using 'select' event
  *   danger?: boolean,       // red/destructive styling (e.g. Remove, Deactivate)
+ *   success?: boolean,      // green/positive styling (e.g. Activate, Approve)
  *   disabled?: boolean,
  *   hidden?: boolean,       // conditionally hide (e.g. client.is_ib === true)
  *   divider?: boolean       // renders a separator line, ignores other fields

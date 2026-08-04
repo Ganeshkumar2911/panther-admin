@@ -121,7 +121,9 @@ const hasActiveFilters = computed(
     activeTab.value !== "all" ||
     activeTradingType.value !== "all" ||
     activeAccountType.value !== "all" ||
-    (store.filters.is_active !== "all" && store.filters.is_active !== null && store.filters.is_active !== undefined) ||
+    (store.filters.is_active !== "all" &&
+      store.filters.is_active !== null &&
+      store.filters.is_active !== undefined) ||
     Boolean(store.filters.search_query?.trim()),
 );
 
@@ -325,6 +327,8 @@ function getRowActions(acc) {
         action: "toggleTrading",
         label: acc.is_active ? "Disable Trading" : "Enable Trading",
         icon: Power,
+        danger: acc.is_active,
+        success: !acc.is_active,
       },
     );
   }

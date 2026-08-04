@@ -76,6 +76,7 @@ function getRowActions(client) {
         label: client.is_active ? 'Deactivate Client' : 'Activate Client',
         icon: client.is_active ? UserX : UserCheck,
         danger: client.is_active,
+        success: !client.is_active,
       }
     )
   }
