@@ -71,6 +71,28 @@
         </div>
       </div>
 
+      <!-- TAT Status Panel -->
+      <div class="bg-card-background border border-primary-border rounded-xl p-5 mb-4">
+        <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-3">
+          TAT Status
+        </p>
+        <div class="flex flex-col gap-2">
+          <span v-if="store.detail.tat_formatted" class="text-sm font-medium text-primary-text">
+            {{ store.detail.tat_formatted }}
+          </span>
+          <span
+            v-if="store.detail.tat_message"
+            class="text-xs"
+            :class="store.detail.tat_message?.includes('Breached') ? 'text-primary-red font-medium' : 'text-primary-green'"
+          >
+            {{ store.detail.tat_message }}
+          </span>
+          <span v-if="!store.detail.tat_message" class="text-xs text-secondary-text">
+            No target resolution deadline set
+          </span>
+        </div>
+      </div>
+
       <!-- Description -->
       <div
         class="bg-card-background border border-primary-border rounded-xl p-5 mb-4"
