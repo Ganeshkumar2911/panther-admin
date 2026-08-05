@@ -37,6 +37,7 @@ const urls = {
     create: "/client/create",
     delete: "/clients",
     updateReferralLink: "/clients/referral-link",
+    userDashboard: "/user-dashboard",
   },
   clientLedger: {
     list: "/ledger/clients",
@@ -235,6 +236,17 @@ const urls = {
       update: "/media-images",
       delete: "/media-images",
     },
+  },
+  lead: {
+    list: "/lead/",
+    detail: "/lead/",
+    assign: "/lead/assign/",
+    history: "/lead/history/",
+    dashboard: "/lead/dashboard",
+    stages: "/lead/stage",
+    export: "/lead/export",
+    importTemplate: "/lead/import/template",
+    import: "/lead/import",
   },
 };
 

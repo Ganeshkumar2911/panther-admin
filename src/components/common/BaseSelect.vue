@@ -6,9 +6,11 @@ import {
   onBeforeUnmount,
   nextTick,
   useAttrs,
+  watch,
   watchEffect,
 } from "vue";
 import { ChevronDown, Check, Search } from "lucide-vue-next";
+import { getFlagCode } from "@/utils/countries";
 
 const attrs = useAttrs();
 
@@ -87,6 +89,18 @@ const props = defineProps({
     type: String,
     default: "default", // 'default' | 'surface'
   },
+  showFlags: {
+    type: Boolean,
+    default: false,
+  },
+  dropUp: {
+    type: Boolean,
+    default: false,
+  },
+  placement: {
+    type: String,
+    default: "bottom", // 'bottom' | 'top'
+  },
 });
 
 // ─── Emits ────────────────────────────────────────────────────────────────────
@@ -98,7 +112,9 @@ const searchQuery = ref("");
 const triggerRef = ref(null);
 const dropdownRef = ref(null);
 const searchRef = ref(null);
+const listRef = ref(null);
 const dropdownStyle = ref({});
+const highlightedIndex = ref(-1);
 
 // ─── Computed ─────────────────────────────────────────────────────────────────
 const allOption = computed(() => ({ label: props.allLabel, value: null }));
@@ -151,14 +167,79 @@ const filteredOptions = computed(() => {
   });
 });
 
+const selectedOption = computed(() => {
+  if (
+    props.modelValue === null ||
+    props.modelValue === undefined ||
+    props.modelValue === ""
+  ) {
+    return null;
+  }
+
+  const rawVal = String(props.modelValue).trim();
+
+  // 1. Direct exact match on option.value
+  let found = props.options?.find(
+    (o) => String(o.value).toLowerCase() === rawVal.toLowerCase(),
+  );
+  if (found) return found;
+
+  // 2. Direct exact match on option.label
+  found = props.options?.find(
+    (o) => String(o.label).toLowerCase() === rawVal.toLowerCase(),
+  );
+  if (found) return found;
+
+  // 3. Match 2-letter country code extracted from brackets e.g. "India [IN]" -> "IN"
+  const bracketMatch = rawVal.match(/\[([A-Za-z]{2})\]|\(([A-Za-z]{2})\)/);
+  if (bracketMatch) {
+    const code = (bracketMatch[1] || bracketMatch[2]).toUpperCase();
+    found = props.options?.find(
+      (o) =>
+        String(o.value).toUpperCase() === code ||
+        String(o.label).toUpperCase().includes(`(${code})`) ||
+        String(o.label).toUpperCase().startsWith(`${code} `),
+    );
+    if (found) return found;
+  }
+
+  // 4. Match using getFlagCode if showFlags is true
+  if (props.showFlags) {
+    const flagCode = getOptionFlagCode({ value: rawVal, label: rawVal });
+    if (flagCode) {
+      found = props.options?.find((o) => getOptionFlagCode(o) === flagCode);
+      if (found) return found;
+    }
+  }
+
+  // 5. Partial / name match
+  found = props.options?.find((o) => {
+    const l = String(o.label || "").toLowerCase();
+    const v = String(o.value || "").toLowerCase();
+    const valLower = rawVal.toLowerCase();
+    return (
+      (v && v.length >= 2 && valLower.includes(v)) ||
+      (l && (valLower.includes(l) || l.includes(valLower)))
+    );
+  });
+
+  return found || null;
+});
+
 const selectedLabel = computed(() => {
-  if (props.modelValue === null || props.modelValue === undefined) {
+  if (
+    props.modelValue === null ||
+    props.modelValue === undefined ||
+    props.modelValue === ""
+  ) {
     return props.allowAll ? props.allLabel : null;
   }
-  const found = props.options?.find(
-    (o) => String(o.value) === String(props.modelValue),
-  );
-  return found ? found.label : null;
+
+  if (selectedOption.value) {
+    return selectedOption.value.label;
+  }
+
+  return String(props.modelValue);
 });
 
 const displayLabel = computed(() => selectedLabel.value ?? props.placeholder);
@@ -166,8 +247,33 @@ const displayLabel = computed(() => selectedLabel.value ?? props.placeholder);
 const isPlaceholder = computed(
   () =>
     (!selectedLabel.value && props.modelValue !== null) ||
-    (!props.allowAll && props.modelValue === null),
+    (!props.allowAll && (props.modelValue === null || props.modelValue === "")),
 );
+
+function getOptionFlagCode(option) {
+  if (!option) return "";
+  if (option.flagCode) return option.flagCode;
+
+  if (option.value && typeof option.value === "string") {
+    const code = getFlagCode(option.value);
+    if (code) return code;
+  }
+  if (option.label && typeof option.label === "string") {
+    const code = getFlagCode(option.label);
+    if (code) return code;
+  }
+  return "";
+}
+
+const selectedFlagCode = computed(() => {
+  if (selectedOption.value) {
+    return getOptionFlagCode(selectedOption.value);
+  }
+  if (props.modelValue) {
+    return getFlagCode(String(props.modelValue));
+  }
+  return "";
+});
 
 // Background control
 const triggerBgClass = computed(() => {
@@ -178,27 +284,65 @@ const dropdownBgClass = computed(() => {
   return props.variant === "surface" ? "bg-background" : "bg-card-background";
 });
 
+const isDropUp = computed(() => props.dropUp || props.placement === "top");
+
 // ─── Position Calculation ─────────────────────────────────────────────────────
 function updatePosition() {
   if (!triggerRef.value) return;
   const rect = triggerRef.value.getBoundingClientRect();
-  dropdownStyle.value = {
-    position: "fixed",
-    top: `${rect.bottom + 6}px`,
-    left: `${rect.left}px`,
-    width: `${rect.width}px`,
-    zIndex: 9999,
-  };
+  if (isDropUp.value) {
+    dropdownStyle.value = {
+      position: "fixed",
+      bottom: `${window.innerHeight - rect.top + 6}px`,
+      left: `${rect.left}px`,
+      width: `${rect.width}px`,
+      zIndex: 9999,
+    };
+  } else {
+    dropdownStyle.value = {
+      position: "fixed",
+      top: `${rect.bottom + 6}px`,
+      left: `${rect.left}px`,
+      width: `${rect.width}px`,
+      zIndex: 9999,
+    };
+  }
 }
 
 // ─── Methods ──────────────────────────────────────────────────────────────────
+function initHighlightedIndex() {
+  if (!filteredOptions.value || !filteredOptions.value.length) {
+    highlightedIndex.value = -1;
+    return;
+  }
+  const selectedIdx = filteredOptions.value.findIndex((o) => isSelected(o));
+  if (selectedIdx >= 0 && !filteredOptions.value[selectedIdx]?.disabled) {
+    highlightedIndex.value = selectedIdx;
+  } else {
+    const firstEnabled = filteredOptions.value.findIndex((o) => !o.disabled);
+    highlightedIndex.value = firstEnabled >= 0 ? firstEnabled : 0;
+  }
+}
+
+function scrollToHighlighted() {
+  nextTick(() => {
+    if (!listRef.value) return;
+    const items = listRef.value.children;
+    if (!items || highlightedIndex.value < 0 || !items[highlightedIndex.value]) return;
+    const el = items[highlightedIndex.value];
+    el.scrollIntoView({ block: "nearest", inline: "nearest" });
+  });
+}
+
 function toggle() {
   isOpen.value = !isOpen.value;
   if (isOpen.value) {
     searchQuery.value = "";
+    initHighlightedIndex();
     updatePosition();
     nextTick(() => {
       updatePosition();
+      scrollToHighlighted();
       if (props.searchable) {
         searchRef.value?.focus();
       }
@@ -209,6 +353,7 @@ function toggle() {
 function close() {
   isOpen.value = false;
   searchQuery.value = "";
+  highlightedIndex.value = -1;
 }
 
 function select(option) {
@@ -218,10 +363,35 @@ function select(option) {
 
 function isSelected(option) {
   if (option.value === null) {
-    return props.modelValue === null || props.modelValue === undefined;
+    return (
+      props.modelValue === null ||
+      props.modelValue === undefined ||
+      props.modelValue === ""
+    );
+  }
+  if (selectedOption.value) {
+    return String(selectedOption.value.value) === String(option.value);
   }
   return String(props.modelValue) === String(option.value);
 }
+
+watch(searchQuery, () => {
+  if (isOpen.value) {
+    initHighlightedIndex();
+    scrollToHighlighted();
+  }
+});
+
+watch(
+  () => props.options,
+  () => {
+    if (isOpen.value) {
+      initHighlightedIndex();
+      scrollToHighlighted();
+    }
+  },
+  { deep: true }
+);
 
 // ─── Outside click ────────────────────────────────────────────────────────────
 function handleOutsideClick(event) {
@@ -243,12 +413,69 @@ function handleScrollOrResize() {
 }
 
 function handleKeydown(event) {
-  if (event.key === "Escape") close();
-}
+  if (!isOpen.value) {
+    if (
+      (event.key === "ArrowDown" || event.key === "ArrowUp") &&
+      (document.activeElement === triggerRef.value || dropdownRef.value?.contains(document.activeElement))
+    ) {
+      event.preventDefault();
+      toggle();
+    }
+    return;
+  }
 
-// watchEffect(() => {
-//   console.log(filteredOptions.value);
-// });
+  if (event.key === "Escape") {
+    close();
+    return;
+  }
+
+  if (event.key === "ArrowDown") {
+    event.preventDefault();
+    if (!filteredOptions.value.length) return;
+    let nextIndex = highlightedIndex.value + 1;
+    while (
+      nextIndex < filteredOptions.value.length &&
+      filteredOptions.value[nextIndex]?.disabled
+    ) {
+      nextIndex++;
+    }
+    if (nextIndex < filteredOptions.value.length) {
+      highlightedIndex.value = nextIndex;
+      scrollToHighlighted();
+    }
+    return;
+  }
+
+  if (event.key === "ArrowUp") {
+    event.preventDefault();
+    if (!filteredOptions.value.length) return;
+    let prevIndex = highlightedIndex.value - 1;
+    while (
+      prevIndex >= 0 &&
+      filteredOptions.value[prevIndex]?.disabled
+    ) {
+      prevIndex--;
+    }
+    if (prevIndex >= 0) {
+      highlightedIndex.value = prevIndex;
+      scrollToHighlighted();
+    }
+    return;
+  }
+
+  if (event.key === "Enter") {
+    if (
+      highlightedIndex.value >= 0 &&
+      highlightedIndex.value < filteredOptions.value.length
+    ) {
+      event.preventDefault();
+      const option = filteredOptions.value[highlightedIndex.value];
+      if (option && !option.disabled) {
+        select(option);
+      }
+    }
+  }
+}
 
 onMounted(() => {
   document.addEventListener("mousedown", handleOutsideClick);
@@ -281,11 +508,15 @@ onBeforeUnmount(() => {
     >
       <span
         :class="[
-          'truncate',
+          'truncate flex items-center gap-2',
           isPlaceholder ? 'text-secondary-text' : 'text-primary-text',
         ]"
       >
-        {{ displayLabel }}
+        <span
+          v-if="showFlags && selectedFlagCode"
+          :class="['fi', `fi-${selectedFlagCode}`, 'fis', 'w-4 h-3 flex-shrink-0']"
+        ></span>
+        <span>{{ displayLabel }}</span>
       </span>
 
       <ChevronDown
@@ -330,7 +561,7 @@ onBeforeUnmount(() => {
           </div>
 
           <!-- Options -->
-          <ul class="flex-1 min-h-0 overflow-y-auto py-1">
+          <ul ref="listRef" class="flex-1 min-h-0 overflow-y-auto py-1">
             <li
               v-if="isLoading"
               class="px-4 py-3 text-sm text-secondary-text text-center italic"
@@ -346,20 +577,27 @@ onBeforeUnmount(() => {
             </li>
 
             <li
-              v-for="option in filteredOptions"
+              v-for="(option, index) in filteredOptions"
               :key="option.value ?? '__all__'"
               role="option"
               :aria-selected="isSelected(option)"
               :aria-disabled="option.disabled"
               @click="option.disabled ? null : select(option)"
+              @mouseenter="highlightedIndex = index"
               :class="[
                 'flex items-center justify-between px-4 py-2.5 text-sm transition-colors duration-100',
                 option.disabled
                   ? 'opacity-40 cursor-not-allowed'
+                  : index === highlightedIndex
+                  ? 'bg-background text-primary-text cursor-pointer'
                   : 'cursor-pointer text-primary-text hover:bg-background',
               ]"
             >
               <div class="flex items-center gap-2">
+                <span
+                  v-if="showFlags && getOptionFlagCode(option)"
+                  :class="['fi', `fi-${getOptionFlagCode(option)}`, 'fis', 'w-4 h-3 flex-shrink-0']"
+                ></span>
                 <span v-if="option?.optinalLableName"
                   >{{ option.optinalLableName }} -
                 </span>
