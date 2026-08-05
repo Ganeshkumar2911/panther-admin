@@ -67,7 +67,7 @@
           Clear
         </button>
 
-        <Tooltip text="Sync Logs" placement="top">
+        <Tooltip text="Refresh Logs" placement="top">
           <button
             :disabled="store.isSyncing"
             @click="store.syncLogs()"
@@ -249,9 +249,8 @@
       </table>
     </div>
 
-    <!-- Pagination -->
-    <Pagination
-      v-if="store.pagination.total_pages > 1"
+    <SimplePagination
+      v-if="store.pagination.hasNext || store.pagination.hasPrev"
       :pagination="store.pagination"
       @page-change="store.changePage"
     />
@@ -265,6 +264,7 @@ import { useEmailLogsStore } from "@/stores/emails/emailLogs";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import Pagination from "@/components/common/Pagination.vue";
 import Tooltip from "@/components/common/Tooltip.vue";
+import SimplePagination from "@/components/common/SimplePagination.vue";
 
 const store = useEmailLogsStore();
 

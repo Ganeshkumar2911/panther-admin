@@ -34,10 +34,9 @@ export const useEmailLogsStore = defineStore("emailLogs", () => {
   const pagination = reactive({
     page: 1,
     per_page: 10,
-    total_items: 0,
-    total_pages: 0,
+    hasNext: false,
+    hasPrev: false,
   });
-
   // ─────────────────────────────────────
   // Filters
   // ─────────────────────────────────────
@@ -141,12 +140,12 @@ export const useEmailLogsStore = defineStore("emailLogs", () => {
     error.value = null;
 
     const successHandler = (res) => {
-      logs.value = res?.data || [];
+      logs.value = res?.results || [];
       Object.assign(pagination, {
-        page: res?.pagination?.page || 1,
-        per_page: res?.pagination?.per_page || 10,
-        total_items: res?.pagination?.total_items || 0,
-        total_pages: res?.pagination?.total_pages || 0,
+        page: res?.page ?? 1,
+        per_page: res?.per_page ?? 10,
+        hasNext: res?.hasNext ?? false,
+        hasPrev: res?.hasPrev ?? false,
       });
 
       isFetched.value = true;
