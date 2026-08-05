@@ -19,6 +19,7 @@ import {
   ClipboardList,
   ShieldCheck,
   Layers,
+  Target,
   FolderOpen,
   Bell,
 } from "lucide-vue-next";
@@ -30,6 +31,12 @@ export const navItems = [
     to: "/dashboard",
     icon: LayoutDashboard,
     permission: "analytics.view",
+  },
+  {
+    label: "Lead Management",
+    to: "/lead-management",
+    icon: Target,
+    permission: "lead_management.view",
   },
   // 2. User & Network Administration
   {

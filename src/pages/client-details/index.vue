@@ -59,7 +59,13 @@
           </div>
           <div>
             <p class="text-[11px] text-secondary-text uppercase tracking-widest mb-0.5">Country</p>
-            <p class="text-primary-text">{{ user.country }}</p>
+            <p class="text-primary-text flex items-center gap-1.5">
+              <span
+                v-if="user.country && getFlagCode(user.country)"
+                :class="['fi', `fi-${getFlagCode(user.country)}`, 'fis', 'w-4 h-3 flex-shrink-0']"
+              ></span>
+              <span>{{ cleanCountryLabel(user.country) || '—' }}</span>
+            </p>
           </div>
         </div>
 
@@ -119,7 +125,13 @@
             <div v-if="section.isInfo && expanded[section.key]" class="ml-3 pl-3 border-l border-primary-border space-y-2 py-1">
               <div v-for="item in section.fields" :key="item.label" class="text-xs">
                 <p class="text-[10px] text-secondary-text uppercase tracking-widest mb-0.5">{{ item.label }}</p>
-                <p class="text-primary-text break-all">{{ item.value() || '—' }}</p>
+                <p class="text-primary-text break-all flex items-center gap-1.5">
+                  <span
+                    v-if="item.label === 'Country' && item.value() && getFlagCode(item.value())"
+                    :class="['fi', `fi-${getFlagCode(item.value())}`, 'fis', 'w-4 h-3 flex-shrink-0']"
+                  ></span>
+                  <span>{{ item.label === 'Country' ? cleanCountryLabel(item.value()) : (item.value() || '—') }}</span>
+                </p>
               </div>
             </div>
 
@@ -149,6 +161,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { getFlagCode, cleanCountryLabel } from '@/utils/countries'
 import {
   User, Info, MapPin, MoreHorizontal,
   BarChart2, CreditCard, Headphones, Megaphone,

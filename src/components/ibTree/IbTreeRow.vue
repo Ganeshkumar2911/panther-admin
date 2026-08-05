@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { Pencil, Plus, ArrowLeftRight, Users, Link } from 'lucide-vue-next'
 import DropdownMenu from '@/components/common/DropdownMenu.vue'
+import BaseSelect from '@/components/common/BaseSelect.vue'
 
 import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
@@ -11,9 +12,10 @@ const { hasPermission } = usePermissionCheck()
 
 const props = defineProps({
   nodes: { type: Array, default: () => [] },
+  staffOptions: { type: Array, default: () => [] },
 })
 
-const emit = defineEmits(['add-sub', 'edit', 'transfer-parent', 'view-clients'])
+const emit = defineEmits(['add-sub', 'edit', 'transfer-parent', 'view-clients', 'assign-staff'])
 
 // Flatten the nested tree into a flat list for table display
 function flattenTree(nodes, result = []) {
@@ -91,6 +93,9 @@ const getActions = (node) => {
             Parent IB
           </th>
           <th class="px-4 py-3 text-left font-semibold text-secondary-text uppercase tracking-wider whitespace-nowrap">
+            Assigned Staff
+          </th>
+          <th class="px-4 py-3 text-left font-semibold text-secondary-text uppercase tracking-wider whitespace-nowrap">
             Split
           </th>
           <th class="px-4 py-3 text-left font-semibold text-secondary-text uppercase tracking-wider whitespace-nowrap">
@@ -124,12 +129,12 @@ const getActions = (node) => {
           </td>
 
           <!-- Referral Code -->
-          <td class="px-4 py-3 align-middle text-primary-text">
+          <td class="px-4 py-3 align-middle text-primary-text whitespace-nowrap">
             {{ node.referral_code || '—' }}
           </td>
 
           <!-- Parent IB -->
-          <td class="px-4 py-3 align-middle text-primary-text">
+          <td class="px-4 py-3 align-middle text-primary-text whitespace-nowrap">
             <div v-if="node.level > 0 && node.parent_ib_id">
               <div class="font-medium text-primary-text">{{ node.parent_name || '—' }}</div>
               <div class="text-[10px] text-secondary-text mt-0.5">{{ node.parent_email || '—' }}</div>
@@ -138,13 +143,33 @@ const getActions = (node) => {
             <div v-else class="text-secondary-text">—</div>
           </td>
 
+          <!-- Assigned Staff -->
+          <td class="px-4 py-3 align-middle whitespace-nowrap" @click.stop>
+            <div v-if="node.staff_assigned?.name || node.assigned_staff?.name" class="flex items-center gap-2">
+              <div class="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-[9px] font-bold text-btn-text-primary shrink-0">
+                {{ (node.staff_assigned?.name || node.assigned_staff?.name || '').charAt(0).toUpperCase() }}
+              </div>
+              <span class="text-primary-text font-medium text-xs">{{ node.staff_assigned?.name || node.assigned_staff?.name }}</span>
+            </div>
+            <div v-else class="w-36">
+              <BaseSelect
+                :model-value="null"
+                :options="staffOptions"
+                placeholder="Assign Staff..."
+                searchable
+                variant="surface"
+                @update:model-value="(staffId) => emit('assign-staff', { ibId: node.ib_id, leadId: node.lead_id, staffId })"
+              />
+            </div>
+          </td>
+
           <!-- Split -->
-          <td class="px-4 py-3 align-middle text-primary-text">
+          <td class="px-4 py-3 align-middle text-primary-text whitespace-nowrap">
             {{ node.split }}%
           </td>
 
           <!-- Level badge -->
-          <td class="px-4 py-3 align-middle">
+          <td class="px-4 py-3 align-middle whitespace-nowrap">
             <span
               class="inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-full bg-background border border-primary-border text-secondary-text"
             >
@@ -153,7 +178,7 @@ const getActions = (node) => {
           </td>
 
           <!-- Actions -->
-          <td class="px-4 py-3 align-middle text-right">
+          <td class="px-4 py-3 align-middle text-right whitespace-nowrap">
             <div class="flex items-center justify-end">
               <DropdownMenu :items="getActions(node)" position="bottom-end" />
             </div>
@@ -162,7 +187,7 @@ const getActions = (node) => {
 
         <!-- Empty state -->
         <tr v-if="flatRows.length === 0">
-          <td colspan="7" class="px-4 py-10 text-center text-secondary-text">
+          <td colspan="8" class="px-4 py-10 text-center text-secondary-text">
             No IB records found.
           </td>
         </tr>
