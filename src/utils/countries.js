@@ -183,31 +183,65 @@ export const countries = [
 
 export function getFlagCode(country) {
   if (!country) return '';
-  const clean = country.trim().toUpperCase();
-  
-  // Try exact match on value (e.g. 'AF')
-  const byValue = countries.find(c => c.value === clean);
+  const clean = country.trim();
+
+  // 1. Match 2-letter ISO code inside brackets e.g. "India [IN]" or "India (IN)"
+  const bracketMatch = clean.match(/\[([A-Za-z]{2})\]|\(([A-Za-z]{2})\)/);
+  if (bracketMatch) {
+    const code = (bracketMatch[1] || bracketMatch[2]).toUpperCase();
+    const byCode = countries.find((c) => c.value === code);
+    if (byCode) return byCode.flagCode;
+    return code.toLowerCase();
+  }
+
+  const cleanUpper = clean.toUpperCase();
+
+  // 2. Try exact match on value (e.g. 'AF', 'IN')
+  const byValue = countries.find((c) => c.value === cleanUpper);
   if (byValue) return byValue.flagCode;
 
-  // Try matching against the label (e.g. 'AF (Afghanistan)')
-  const byLabel = countries.find(c => c.label.toUpperCase().includes(clean) || clean.toUpperCase().includes(c.label.toUpperCase()));
+  // 3. Try matching against the label (e.g. 'AF (Afghanistan)')
+  const byLabel = countries.find(
+    (c) =>
+      c.label.toUpperCase().includes(cleanUpper) ||
+      cleanUpper.includes(c.label.toUpperCase()),
+  );
   if (byLabel) return byLabel.flagCode;
 
-  // Try checking if country contains the value or label
-  const fallback = countries.find(c => clean.includes(c.value));
-  if (fallback) return fallback.flagCode;
+  // 4. Try matching country name inside label (e.g. "India" matches "IN (India)")
+  const byName = countries.find((c) => {
+    const nameInLabel = c.label
+      .replace(/^[A-Z]{2}\s*\((.*)\)$/i, '$1')
+      .trim()
+      .toUpperCase();
+    return nameInLabel === cleanUpper || cleanUpper.includes(nameInLabel);
+  });
+  if (byName) return byName.flagCode;
 
-  if (clean.length === 2) return clean.toLowerCase();
+  if (cleanUpper.length === 2) return cleanUpper.toLowerCase();
   return '';
 }
 
 export function cleanCountryLabel(country) {
   if (!country) return '';
+  const trimmed = country.trim();
+
+  // If 2-letter ISO code like "IN", map to label "IN (India)"
+  if (trimmed.length === 2) {
+    const found = countries.find(
+      (c) => c.value === trimmed.toUpperCase(),
+    );
+    if (found) return found.label;
+  }
+
   // Strip emojis from the string
-  let cleaned = country.replace(/[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF]/g, '');
+  let cleaned = trimmed.replace(
+    /[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF]/g,
+    '',
+  );
   // Normalize whitespace
   cleaned = cleaned.replace(/\s+/g, ' ').trim();
-  // Remove empty parentheses if any (e.g. "AE () United Arab Emirates" -> "AE United Arab Emirates")
+  // Remove empty parentheses if any
   cleaned = cleaned.replace(/\(\s*\)/g, '').replace(/\s+/g, ' ').trim();
   return cleaned;
 }

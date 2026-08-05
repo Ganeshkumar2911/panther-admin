@@ -164,14 +164,79 @@ const filteredOptions = computed(() => {
   });
 });
 
+const selectedOption = computed(() => {
+  if (
+    props.modelValue === null ||
+    props.modelValue === undefined ||
+    props.modelValue === ""
+  ) {
+    return null;
+  }
+
+  const rawVal = String(props.modelValue).trim();
+
+  // 1. Direct exact match on option.value
+  let found = props.options?.find(
+    (o) => String(o.value).toLowerCase() === rawVal.toLowerCase(),
+  );
+  if (found) return found;
+
+  // 2. Direct exact match on option.label
+  found = props.options?.find(
+    (o) => String(o.label).toLowerCase() === rawVal.toLowerCase(),
+  );
+  if (found) return found;
+
+  // 3. Match 2-letter country code extracted from brackets e.g. "India [IN]" -> "IN"
+  const bracketMatch = rawVal.match(/\[([A-Za-z]{2})\]|\(([A-Za-z]{2})\)/);
+  if (bracketMatch) {
+    const code = (bracketMatch[1] || bracketMatch[2]).toUpperCase();
+    found = props.options?.find(
+      (o) =>
+        String(o.value).toUpperCase() === code ||
+        String(o.label).toUpperCase().includes(`(${code})`) ||
+        String(o.label).toUpperCase().startsWith(`${code} `),
+    );
+    if (found) return found;
+  }
+
+  // 4. Match using getFlagCode if showFlags is true
+  if (props.showFlags) {
+    const flagCode = getOptionFlagCode({ value: rawVal, label: rawVal });
+    if (flagCode) {
+      found = props.options?.find((o) => getOptionFlagCode(o) === flagCode);
+      if (found) return found;
+    }
+  }
+
+  // 5. Partial / name match
+  found = props.options?.find((o) => {
+    const l = String(o.label || "").toLowerCase();
+    const v = String(o.value || "").toLowerCase();
+    const valLower = rawVal.toLowerCase();
+    return (
+      (v && v.length >= 2 && valLower.includes(v)) ||
+      (l && (valLower.includes(l) || l.includes(valLower)))
+    );
+  });
+
+  return found || null;
+});
+
 const selectedLabel = computed(() => {
-  if (props.modelValue === null || props.modelValue === undefined) {
+  if (
+    props.modelValue === null ||
+    props.modelValue === undefined ||
+    props.modelValue === ""
+  ) {
     return props.allowAll ? props.allLabel : null;
   }
-  const found = props.options?.find(
-    (o) => String(o.value) === String(props.modelValue),
-  );
-  return found ? found.label : null;
+
+  if (selectedOption.value) {
+    return selectedOption.value.label;
+  }
+
+  return String(props.modelValue);
 });
 
 const displayLabel = computed(() => selectedLabel.value ?? props.placeholder);
@@ -179,33 +244,32 @@ const displayLabel = computed(() => selectedLabel.value ?? props.placeholder);
 const isPlaceholder = computed(
   () =>
     (!selectedLabel.value && props.modelValue !== null) ||
-    (!props.allowAll && props.modelValue === null),
+    (!props.allowAll && (props.modelValue === null || props.modelValue === "")),
 );
-
-const selectedOption = computed(() => {
-  if (props.modelValue === null || props.modelValue === undefined) {
-    return null;
-  }
-  return props.options?.find(
-    (o) => String(o.value) === String(props.modelValue),
-  ) || null;
-});
 
 function getOptionFlagCode(option) {
   if (!option) return "";
   if (option.flagCode) return option.flagCode;
-  
-  if (option.value && typeof option.value === "string" && option.value.length === 2) {
-    return getFlagCode(option.value);
+
+  if (option.value && typeof option.value === "string") {
+    const code = getFlagCode(option.value);
+    if (code) return code;
   }
   if (option.label && typeof option.label === "string") {
-    return getFlagCode(option.label);
+    const code = getFlagCode(option.label);
+    if (code) return code;
   }
   return "";
 }
 
 const selectedFlagCode = computed(() => {
-  return getOptionFlagCode(selectedOption.value);
+  if (selectedOption.value) {
+    return getOptionFlagCode(selectedOption.value);
+  }
+  if (props.modelValue) {
+    return getFlagCode(String(props.modelValue));
+  }
+  return "";
 });
 
 // Background control
@@ -269,7 +333,14 @@ function select(option) {
 
 function isSelected(option) {
   if (option.value === null) {
-    return props.modelValue === null || props.modelValue === undefined;
+    return (
+      props.modelValue === null ||
+      props.modelValue === undefined ||
+      props.modelValue === ""
+    );
+  }
+  if (selectedOption.value) {
+    return String(selectedOption.value.value) === String(option.value);
   }
   return String(props.modelValue) === String(option.value);
 }
