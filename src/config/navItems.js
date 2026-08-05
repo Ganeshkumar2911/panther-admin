@@ -36,6 +36,7 @@ export const navItems = [
     label: "Lead Management",
     to: "/lead-management",
     icon: Target,
+    permission: "lead_management.view",
   },
   // 2. User & Network Administration
   {

@@ -1,43 +1,39 @@
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
-import { usePermissionCheck } from '@/composables/usePermissionCheck'
-import { useLeadStageStore } from '@/stores/leadStage/leadStage'
-import { useLeadStore } from '@/stores/lead/lead'
-import { useRbacStaffStore } from '@/stores/rbac/staff'
+import { ref, computed, watch, onMounted } from "vue";
+import { usePermissionCheck } from "@/composables/usePermissionCheck";
+import { useLeadStageStore } from "@/stores/leadStage/leadStage";
+import { useLeadStore } from "@/stores/lead/lead";
+import { useRbacStaffStore } from "@/stores/rbac/staff";
 
-import LeadKpiCards from '@/components/lead-management/LeadKpiCards.vue'
-import LeadPipelineOverview from '@/components/lead-management/LeadPipelineOverview.vue'
-import LeadFilterBar from '@/components/lead-management/LeadFilterBar.vue'
-import LeadTable from '@/components/lead-management/LeadTable.vue'
-import LeadDetailDrawer from '@/components/lead-management/LeadDetailDrawer.vue'
-import LeadFormModal from '@/components/lead-management/LeadFormModal.vue'
-import LeadStageManagementModal from '@/components/lead-management/LeadStageManagementModal.vue'
-import LeadImportExportDrawer from '@/components/lead-management/LeadImportExportDrawer.vue'
+import LeadKpiCards from "@/components/lead-management/LeadKpiCards.vue";
+import LeadPipelineOverview from "@/components/lead-management/LeadPipelineOverview.vue";
+import LeadFilterBar from "@/components/lead-management/LeadFilterBar.vue";
+import LeadTable from "@/components/lead-management/LeadTable.vue";
+import LeadDetailDrawer from "@/components/lead-management/LeadDetailDrawer.vue";
+import LeadFormModal from "@/components/lead-management/LeadFormModal.vue";
+import LeadStageManagementModal from "@/components/lead-management/LeadStageManagementModal.vue";
+import LeadImportExportDrawer from "@/components/lead-management/LeadImportExportDrawer.vue";
 
-import {
-  Plus,
-  ArrowUpDown,
-  Layers,
-} from 'lucide-vue-next'
+import { Plus, ArrowUpDown, Layers } from "lucide-vue-next";
 
-const leadStageStore = useLeadStageStore()
-const leadStore = useLeadStore()
-const rbacStaffStore = useRbacStaffStore()
-const { hasPermission } = usePermissionCheck()
+const leadStageStore = useLeadStageStore();
+const leadStore = useLeadStore();
+const rbacStaffStore = useRbacStaffStore();
+const { hasPermission } = usePermissionCheck();
 
-const stageModalOpen = ref(false)
-const importExportDrawerOpen = ref(false)
+const stageModalOpen = ref(false);
+const importExportDrawerOpen = ref(false);
 
 // Modal & Drawer state
-const drawer = ref({ open: false, lead: null, leadId: null })
-const modal = ref({ open: false, mode: 'add', lead: null })
+const drawer = ref({ open: false, lead: null, leadId: null });
+const modal = ref({ open: false, mode: "add", lead: null });
 
 onMounted(() => {
-  leadStageStore.fetchStages()
-  leadStore.fetchLeads(1)
-  leadStore.fetchDashboardMetrics()
-  rbacStaffStore.fetchStaff(true, 1)
-})
+  leadStageStore.fetchStages();
+  leadStore.fetchLeads(1);
+  leadStore.fetchDashboardMetrics();
+  rbacStaffStore.fetchStaff(true, 1);
+});
 
 // Watch filters to trigger API refetch
 watch(
@@ -50,87 +46,106 @@ watch(
     leadStore.filters.priority,
   ],
   () => {
-    leadStore.fetchLeads(1)
-  }
-)
+    leadStore.fetchLeads(1);
+  },
+);
 
 function handleSelectStage(stageCode) {
-  leadStore.filters.stage = stageCode || ''
+  leadStore.filters.stage = stageCode || "";
 }
 
 // Drawer Handlers
 function openDrawer(lead) {
-  drawer.value = { open: true, lead, leadId: lead?.id }
+  drawer.value = { open: true, lead, leadId: lead?.id };
 }
 
 function closeDrawer() {
-  drawer.value = { open: false, lead: null, leadId: null }
+  drawer.value = { open: false, lead: null, leadId: null };
 }
 
 // Modal Handlers
 function openModal(mode, lead = null) {
-  modal.value = { open: true, mode, lead }
+  modal.value = { open: true, mode, lead };
 }
 
 function closeModal() {
-  modal.value = { open: false, mode: 'add', lead: null }
+  modal.value = { open: false, mode: "add", lead: null };
 }
 
 async function handleSaveLead({ mode, leadId, payload }) {
   try {
-    if (mode === 'add') {
-      await leadStore.createLead(payload)
-    } else if (mode === 'edit' || mode === 'moveStage') {
-      await leadStore.updateLead(leadId, payload)
+    if (mode === "add") {
+      await leadStore.createLead(payload);
+    } else if (mode === "edit" || mode === "moveStage") {
+      await leadStore.updateLead(leadId, payload);
     }
-    closeModal()
+    closeModal();
   } catch (err) {
     // Handled in store with snackbar
   }
 }
 
 async function handleAssignStaff({ leadId, staffId }) {
-  if (!leadId || !staffId) return
+  if (!leadId || !staffId) return;
   try {
-    await leadStore.assignLead(leadId, staffId)
+    await leadStore.assignLead(leadId, staffId);
   } catch (err) {
     // Handled in store
   }
 }
 
 function handleExportCSV() {
-  const headers = ['ID', 'Lead Code', 'Name', 'Email', 'Phone', 'Country', 'Source', 'Assigned Staff', 'Stage', 'Priority', 'Created Date']
-  const rows = leadStore.leads.map(l => [
+  const headers = [
+    "ID",
+    "Lead Code",
+    "Name",
+    "Email",
+    "Phone",
+    "Country",
+    "Source",
+    "Assigned Staff",
+    "Stage",
+    "Priority",
+    "Created Date",
+  ];
+  const rows = leadStore.leads.map((l) => [
     l.id,
-    l.lead_code || '',
-    `${l.first_name || ''} ${l.last_name || ''}`.trim() || l.name || '',
-    l.email || '',
-    l.phone || '',
-    l.country || '',
-    l.source || '',
-    l.assigned_staff ? `${l.assigned_staff.first_name || ''} ${l.assigned_staff.last_name || ''}`.trim() : (l.assignedStaff || ''),
-    l.current_stage?.name || l.current_stage?.code || l.stage || '',
-    l.priority || '',
-    l.created_at || l.createdAt || ''
-  ])
-  const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n')
-  const encodedUri = encodeURI(csvContent)
-  const link = document.createElement('a')
-  link.setAttribute('href', encodedUri)
-  link.setAttribute('download', `leads_export_${new Date().toISOString().split('T')[0]}.csv`)
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
+    l.lead_code || "",
+    `${l.first_name || ""} ${l.last_name || ""}`.trim() || l.name || "",
+    l.email || "",
+    l.phone || "",
+    l.country || "",
+    l.source || "",
+    l.assigned_staff
+      ? `${l.assigned_staff.first_name || ""} ${l.assigned_staff.last_name || ""}`.trim()
+      : l.assignedStaff || "",
+    l.current_stage?.name || l.current_stage?.code || l.stage || "",
+    l.priority || "",
+    l.created_at || l.createdAt || "",
+  ]);
+  const csvContent =
+    "data:text/csv;charset=utf-8," +
+    [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute(
+    "download",
+    `leads_export_${new Date().toISOString().split("T")[0]}.csv`,
+  );
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 function handleRefresh() {
-  leadStore.fetchLeads()
-  leadStore.fetchDashboardMetrics()
-  leadStageStore.fetchStages(true)
+  leadStore.fetchLeads();
+  leadStore.fetchDashboardMetrics();
+  leadStageStore.fetchStages(true);
 }
 
 function handleImportCSV() {
-  closeModal()
+  closeModal();
 }
 </script>
 
@@ -150,6 +165,7 @@ function handleImportCSV() {
         </button>
 
         <button
+          v-if="hasPermission('lead_management.import_export')"
           @click="importExportDrawerOpen = true"
           class="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-primary-border bg-card-background hover:bg-background text-secondary-text hover:text-primary-text text-xs font-medium transition-all duration-200 cursor-pointer"
         >
@@ -158,6 +174,7 @@ function handleImportCSV() {
         </button>
 
         <button
+          v-if="hasPermission('lead_management.view')"
           @click="openModal('add')"
           class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-btn-text-primary text-xs font-semibold shadow-primary/20 hover:shadow-primary/30 transition-all duration-200 cursor-pointer"
         >
