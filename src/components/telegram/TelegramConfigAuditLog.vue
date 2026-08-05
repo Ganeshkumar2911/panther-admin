@@ -3,10 +3,14 @@
     <!-- Top Header & Action Toolbar Bar -->
     <div class="space-y-4">
       <!-- Action Toolbar Box -->
-      <div class="bg-card-background/60 border border-primary-border rounded-xl p-3 sm:px-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
+      <div
+        class="bg-card-background/60 border border-primary-border rounded-xl p-3 sm:px-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs"
+      >
         <!-- Search Input Bar -->
         <div class="relative w-full sm:w-72 md:w-80">
-          <Search class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-secondary-text" />
+          <Search
+            class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-secondary-text"
+          />
           <input
             v-model="searchQuery"
             type="text"
@@ -25,10 +29,16 @@
         </div>
 
         <!-- Action Controls Group -->
-        <div class="flex items-center justify-between sm:justify-end gap-2.5 w-full sm:w-auto">
+        <div
+          class="flex items-center justify-between sm:justify-end gap-2.5 w-full sm:w-auto"
+        >
           <!-- Counter Badge -->
-          <span v-if="!store.loading && totalModulesCount > 0" class="text-[11px] font-medium text-secondary-text px-2.5 py-1 rounded-lg bg-background border border-primary-border/60">
-            {{ Object.keys(filteredConfigurations).length }} of {{ totalModulesCount }} Modules
+          <span
+            v-if="!store.loading && totalModulesCount > 0"
+            class="text-[11px] font-medium text-secondary-text px-2.5 py-1 rounded-lg bg-background border border-primary-border/60"
+          >
+            {{ Object.keys(filteredConfigurations).length }} of
+            {{ totalModulesCount }} Modules
           </span>
 
           <!-- Expand All -->
@@ -61,7 +71,10 @@
             class="w-8 h-8 rounded-lg border border-primary-border bg-card-background hover:bg-background text-secondary-text hover:text-primary-text transition-colors flex items-center justify-center cursor-pointer disabled:opacity-50"
             title="Refresh Configurations"
           >
-            <RotateCw class="w-3.5 h-3.5" :class="{ 'animate-spin': store.loading }" />
+            <RotateCw
+              class="w-3.5 h-3.5"
+              :class="{ 'animate-spin': store.loading }"
+            />
           </button>
         </div>
       </div>
@@ -69,7 +82,11 @@
 
     <!-- Loading Skeleton State -->
     <div v-if="store.loading" class="space-y-4">
-      <div v-for="n in 3" :key="n" class="bg-card-background border border-primary-border rounded-xl p-5 animate-pulse space-y-3">
+      <div
+        v-for="n in 3"
+        :key="n"
+        class="bg-card-background border border-primary-border rounded-xl p-5 animate-pulse space-y-3"
+      >
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded-lg bg-background" />
@@ -85,14 +102,24 @@
       v-else-if="isEmpty"
       class="min-h-[400px] w-full rounded-2xl border border-primary-border bg-card-background/40 backdrop-blur-md p-8 sm:p-12 flex flex-col items-center justify-center text-center overflow-hidden shadow-xl relative"
     >
-      <div class="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-4 text-primary">
+      <div
+        class="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-4 text-primary"
+      >
         <Shield class="w-8 h-8" />
       </div>
       <h3 class="text-lg font-bold text-primary-text mb-1">
-        {{ searchQuery ? 'No Matching Configurations' : 'No Audit Configurations Found' }}
+        {{
+          searchQuery
+            ? "No Matching Configurations"
+            : "No Audit Configurations Found"
+        }}
       </h3>
       <p class="text-xs text-secondary-text max-w-sm mx-auto mb-6">
-        {{ searchQuery ? `No modules or entities matched "${searchQuery}". Try a different search keyword.` : 'Authentication and system audit event triggers will appear here once created.' }}
+        {{
+          searchQuery
+            ? `No modules or entities matched "${searchQuery}". Try a different search keyword.`
+            : "Authentication and system audit event triggers will appear here once created."
+        }}
       </p>
       <button
         v-if="searchQuery"
@@ -124,16 +151,23 @@
           class="px-6 py-4 flex items-center justify-between bg-card-background/80 hover:bg-background/50 cursor-pointer transition-colors select-none"
         >
           <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+            <div
+              class="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0"
+            >
               <Shield class="w-4 h-4 text-primary" />
             </div>
             <div>
               <div class="flex items-center gap-2">
-                <h3 class="text-sm font-bold text-primary-text uppercase tracking-wide">
+                <h3
+                  class="text-sm font-bold text-primary-text uppercase tracking-wide"
+                >
                   {{ moduleKey }}
                 </h3>
-                <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
-                  {{ getEntityCount(module) }} {{ getEntityCount(module) === 1 ? 'Entity' : 'Entities' }}
+                <span
+                  class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20"
+                >
+                  {{ getEntityCount(module) }}
+                  {{ getEntityCount(module) === 1 ? "Entity" : "Entities" }}
                 </span>
               </div>
               <p class="text-[11px] text-secondary-text mt-0.5">
@@ -144,11 +178,17 @@
 
           <div class="flex items-center gap-3">
             <div class="hidden sm:flex items-center gap-3 text-xs">
-              <span class="text-green-500 font-medium flex items-center gap-1 bg-green-500/10 px-2 py-0.5 rounded-md border border-green-500/20">
-                <Check class="w-3.5 h-3.5" /> On Success: {{ getModuleSuccessCount(module) }}
+              <span
+                class="text-green-500 font-medium flex items-center gap-1 bg-green-500/10 px-2 py-0.5 rounded-md border border-green-500/20"
+              >
+                <Check class="w-3.5 h-3.5" /> On Success:
+                {{ getModuleSuccessCount(module) }}
               </span>
-              <span class="text-red-500 font-medium flex items-center gap-1 bg-red-500/10 px-2 py-0.5 rounded-md border border-red-500/20">
-                <X class="w-3.5 h-3.5" /> On Failure: {{ getModuleFailedCount(module) }}
+              <span
+                class="text-red-500 font-medium flex items-center gap-1 bg-red-500/10 px-2 py-0.5 rounded-md border border-red-500/20"
+              >
+                <X class="w-3.5 h-3.5" /> On Failure:
+                {{ getModuleFailedCount(module) }}
               </span>
             </div>
             <div
@@ -163,7 +203,10 @@
         </div>
 
         <!-- Module Content (Entities List) -->
-        <div v-if="isModuleExpanded(moduleKey)" class="border-t border-primary-border bg-background/30 p-4 space-y-3">
+        <div
+          v-if="isModuleExpanded(moduleKey)"
+          class="border-t border-primary-border bg-background/30 p-4 space-y-3"
+        >
           <!-- Inline Empty State for Module with No Entities -->
           <div
             v-if="!module || Object.keys(module).length === 0"
@@ -171,7 +214,9 @@
           >
             <AlertCircle class="w-5 h-5 text-secondary-text/60" />
             <p class="font-semibold text-primary-text">No Entities Found</p>
-            <p class="text-[11px]">There are no entities configured under module "{{ moduleKey }}"</p>
+            <p class="text-[11px]">
+              There are no entities configured under module "{{ moduleKey }}"
+            </p>
           </div>
 
           <!-- Entity Cards -->
@@ -186,23 +231,36 @@
               class="px-5 py-3.5 flex items-center justify-between bg-card-background/60 hover:bg-background/40 cursor-pointer transition-colors select-none"
             >
               <div class="flex items-center gap-3">
-                <div class="w-7 h-7 rounded-lg bg-background border border-primary-border flex items-center justify-center shrink-0">
+                <div
+                  class="w-7 h-7 rounded-lg bg-background border border-primary-border flex items-center justify-center shrink-0"
+                >
                   <Users class="w-3.5 h-3.5 text-secondary-text" />
                 </div>
                 <div>
-                  <h4 class="text-xs font-semibold text-primary-text uppercase tracking-wider">
+                  <h4
+                    class="text-xs font-semibold text-primary-text uppercase tracking-wider"
+                  >
                     {{ entityKey }}
                   </h4>
-                  <span class="text-[10px] text-secondary-text">Entity Scope</span>
+                  <span class="text-[10px] text-secondary-text"
+                    >Entity Scope</span
+                  >
                 </div>
               </div>
 
               <div class="flex items-center gap-4">
                 <div class="flex items-center gap-3 text-xs">
-                  <span class="text-green-500 font-medium text-[11px] flex items-center gap-1" title="Notifications On Success">
-                    <Check class="w-3 h-3" /> On Success: {{ countSuccess(entity) }}
+                  <span
+                    class="text-green-500 font-medium text-[11px] flex items-center gap-1"
+                    title="Notifications On Success"
+                  >
+                    <Check class="w-3 h-3" /> On Success:
+                    {{ countSuccess(entity) }}
                   </span>
-                  <span class="text-red-500 font-medium text-[11px] flex items-center gap-1" title="Notifications On Failure">
+                  <span
+                    class="text-red-500 font-medium text-[11px] flex items-center gap-1"
+                    title="Notifications On Failure"
+                  >
                     <X class="w-3 h-3" /> On Failure: {{ countFailed(entity) }}
                   </span>
                 </div>
@@ -211,14 +269,19 @@
                 >
                   <ChevronDown
                     class="w-4 h-4 transition-transform duration-200"
-                    :class="{ 'rotate-180': isEntityExpanded(moduleKey, entityKey) }"
+                    :class="{
+                      'rotate-180': isEntityExpanded(moduleKey, entityKey),
+                    }"
                   />
                 </div>
               </div>
             </div>
 
             <!-- Actions Table Container -->
-            <div v-if="isEntityExpanded(moduleKey, entityKey)" class="border-t border-primary-border/60 bg-background/50 p-4">
+            <div
+              v-if="isEntityExpanded(moduleKey, entityKey)"
+              class="border-t border-primary-border/60 bg-background/50 p-4"
+            >
               <!-- Inline Empty State for Entity with No Actions -->
               <div
                 v-if="!entity || Object.keys(entity).length === 0"
@@ -229,17 +292,26 @@
               </div>
 
               <!-- Actions Table -->
-              <div v-else class="w-full border border-primary-border rounded-lg overflow-hidden bg-card-background">
+              <div
+                v-else
+                class="w-full border border-primary-border rounded-lg overflow-hidden bg-card-background"
+              >
                 <table class="w-full border-collapse">
                   <thead>
                     <tr class="border-b border-primary-border bg-background/60">
-                      <th class="text-left text-[11px] font-semibold text-secondary-text uppercase tracking-wider px-4 py-2.5">
+                      <th
+                        class="text-left text-[11px] font-semibold text-secondary-text uppercase tracking-wider px-4 py-2.5"
+                      >
                         Action Event
                       </th>
-                      <th class="text-left text-[11px] font-semibold text-secondary-text uppercase tracking-wider px-4 py-2.5 w-44">
+                      <th
+                        class="text-left text-[11px] font-semibold text-secondary-text uppercase tracking-wider px-4 py-2.5 w-44"
+                      >
                         On Success
                       </th>
-                      <th class="text-left text-[11px] font-semibold text-secondary-text uppercase tracking-wider px-4 py-2.5 w-44">
+                      <th
+                        class="text-left text-[11px] font-semibold text-secondary-text uppercase tracking-wider px-4 py-2.5 w-44"
+                      >
                         On Failure
                       </th>
                     </tr>
@@ -250,7 +322,9 @@
                       :key="actionKey"
                       class="hover:bg-background/40 transition-colors"
                     >
-                      <td class="px-4 py-3 text-xs font-semibold text-primary-text">
+                      <td
+                        class="px-4 py-3 text-xs font-semibold text-primary-text"
+                      >
                         <div class="flex items-center gap-2">
                           <span class="w-1.5 h-1.5 rounded-full bg-primary" />
                           <span>{{ actionKey }}</span>
@@ -271,25 +345,51 @@
                                 value: !actionValue.SUCCESS,
                               })
                             "
-                            :disabled="isTogglePending(moduleKey, entityKey, actionKey, 'SUCCESS')"
+                            :disabled="
+                              isTogglePending(
+                                moduleKey,
+                                entityKey,
+                                actionKey,
+                                'SUCCESS',
+                              ) || actionValue.SUCCESS === null
+                            "
                             class="relative w-10 h-5 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 cursor-pointer focus:outline-none"
-                            :class="actionValue.SUCCESS ? 'bg-primary-green' : 'bg-primary-border'"
+                            :class="
+                              actionValue.SUCCESS
+                                ? 'bg-primary-green'
+                                : 'bg-primary-border'
+                            "
                           >
                             <span
                               class="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform duration-200 flex items-center justify-center"
-                              :class="actionValue.SUCCESS ? 'translate-x-5' : 'translate-x-0'"
+                              :class="
+                                actionValue.SUCCESS
+                                  ? 'translate-x-5'
+                                  : 'translate-x-0'
+                              "
                             >
                               <Loader2
-                                v-if="isTogglePending(moduleKey, entityKey, actionKey, 'SUCCESS')"
+                                v-if="
+                                  isTogglePending(
+                                    moduleKey,
+                                    entityKey,
+                                    actionKey,
+                                    'SUCCESS',
+                                  )
+                                "
                                 class="w-2.5 h-2.5 text-black animate-spin"
                               />
                             </span>
                           </button>
                           <span
                             class="text-[11px] font-medium"
-                            :class="actionValue.SUCCESS ? 'text-primary-green' : 'text-secondary-text'"
+                            :class="
+                              actionValue.SUCCESS
+                                ? 'text-primary-green'
+                                : 'text-secondary-text'
+                            "
                           >
-                            {{ actionValue.SUCCESS ? 'Enabled' : 'Disabled' }}
+                            {{ actionValue.SUCCESS ? "Enabled" : "Disabled" }}
                           </span>
                         </div>
                       </td>
@@ -308,25 +408,51 @@
                                 value: !actionValue.FAILED,
                               })
                             "
-                            :disabled="isTogglePending(moduleKey, entityKey, actionKey, 'FAILED')"
+                            :disabled="
+                              isTogglePending(
+                                moduleKey,
+                                entityKey,
+                                actionKey,
+                                'FAILED',
+                              ) || actionValue.FAILED === null
+                            "
                             class="relative w-10 h-5 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 cursor-pointer focus:outline-none"
-                            :class="actionValue.FAILED ? 'bg-primary-green' : 'bg-primary-border'"
+                            :class="
+                              actionValue.FAILED
+                                ? 'bg-primary-green'
+                                : 'bg-primary-border'
+                            "
                           >
                             <span
                               class="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform duration-200 flex items-center justify-center"
-                              :class="actionValue.FAILED ? 'translate-x-5' : 'translate-x-0'"
+                              :class="
+                                actionValue.FAILED
+                                  ? 'translate-x-5'
+                                  : 'translate-x-0'
+                              "
                             >
                               <Loader2
-                                v-if="isTogglePending(moduleKey, entityKey, actionKey, 'FAILED')"
+                                v-if="
+                                  isTogglePending(
+                                    moduleKey,
+                                    entityKey,
+                                    actionKey,
+                                    'FAILED',
+                                  )
+                                "
                                 class="w-2.5 h-2.5 text-black animate-spin"
                               />
                             </span>
                           </button>
                           <span
                             class="text-[11px] font-medium"
-                            :class="actionValue.FAILED ? 'text-primary-green' : 'text-secondary-text'"
+                            :class="
+                              actionValue.FAILED
+                                ? 'text-primary-green'
+                                : 'text-secondary-text'
+                            "
                           >
-                            {{ actionValue.FAILED ? 'Enabled' : 'Disabled' }}
+                            {{ actionValue.FAILED ? "Enabled" : "Disabled" }}
                           </span>
                         </div>
                       </td>
@@ -393,7 +519,11 @@ const filteredConfigurations = computed(() => {
         }
       }
 
-      if (Object.keys(filteredEntity).length > 0 || moduleMatch || entityMatch) {
+      if (
+        Object.keys(filteredEntity).length > 0 ||
+        moduleMatch ||
+        entityMatch
+      ) {
         filteredModule[entityKey] = filteredEntity;
       }
     }
@@ -412,7 +542,9 @@ const isEmpty = computed(() => {
 });
 
 // Metric Calculations
-const totalModulesCount = computed(() => Object.keys(configurations.value).length);
+const totalModulesCount = computed(
+  () => Object.keys(configurations.value).length,
+);
 
 const totalEntitiesCount = computed(() => {
   let count = 0;
