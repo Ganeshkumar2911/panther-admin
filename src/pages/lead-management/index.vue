@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
+import { usePermissionCheck } from '@/composables/usePermissionCheck'
 import { useLeadStageStore } from '@/stores/leadStage/leadStage'
 import { useLeadStore } from '@/stores/lead/lead'
 import { useRbacStaffStore } from '@/stores/rbac/staff'
@@ -11,19 +12,21 @@ import LeadTable from '@/components/lead-management/LeadTable.vue'
 import LeadDetailDrawer from '@/components/lead-management/LeadDetailDrawer.vue'
 import LeadFormModal from '@/components/lead-management/LeadFormModal.vue'
 import LeadStageManagementModal from '@/components/lead-management/LeadStageManagementModal.vue'
+import LeadImportExportDrawer from '@/components/lead-management/LeadImportExportDrawer.vue'
 
 import {
   Plus,
-  Upload,
-  Download,
+  ArrowUpDown,
   Layers,
 } from 'lucide-vue-next'
 
 const leadStageStore = useLeadStageStore()
 const leadStore = useLeadStore()
 const rbacStaffStore = useRbacStaffStore()
+const { hasPermission } = usePermissionCheck()
 
 const stageModalOpen = ref(false)
+const importExportDrawerOpen = ref(false)
 
 // Modal & Drawer state
 const drawer = ref({ open: false, lead: null, leadId: null })
@@ -138,6 +141,7 @@ function handleImportCSV() {
       <!-- Action Buttons -->
       <div class="flex items-center gap-2 shrink-0">
         <button
+          v-if="hasPermission('xtention_dev.view')"
           @click="stageModalOpen = true"
           class="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-primary/30 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold transition-all duration-200 cursor-pointer"
         >
@@ -146,19 +150,11 @@ function handleImportCSV() {
         </button>
 
         <button
-          @click="openModal('import')"
+          @click="importExportDrawerOpen = true"
           class="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-primary-border bg-card-background hover:bg-background text-secondary-text hover:text-primary-text text-xs font-medium transition-all duration-200 cursor-pointer"
         >
-          <Upload class="w-3.5 h-3.5" />
-          <span>Import CSV</span>
-        </button>
-
-        <button
-          @click="handleExportCSV"
-          class="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-primary-border bg-card-background hover:bg-background text-secondary-text hover:text-primary-text text-xs font-medium transition-all duration-200 cursor-pointer"
-        >
-          <Download class="w-3.5 h-3.5" />
-          <span>Export Leads</span>
+          <ArrowUpDown class="w-3.5 h-3.5" />
+          <span>Import / Export</span>
         </button>
 
         <button
@@ -247,6 +243,16 @@ function handleImportCSV() {
       :open="stageModalOpen"
       @close="stageModalOpen = false"
       @stages-updated="leadStageStore.fetchStages(true)"
+    />
+
+    <!-- Lead Import / Export Drawer -->
+    <LeadImportExportDrawer
+      :open="importExportDrawerOpen"
+      :filters="leadStore.filters"
+      :stages="leadStageStore.stages"
+      :staff-list="rbacStaffStore.records"
+      @close="importExportDrawerOpen = false"
+      @imported="handleRefresh"
     />
   </div>
 </template>

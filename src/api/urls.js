@@ -214,6 +214,9 @@ const urls = {
     history: "/lead/history/",
     dashboard: "/lead/dashboard",
     stages: "/lead/stage",
+    export: "/lead/export",
+    importTemplate: "/lead/import/template",
+    import: "/lead/import",
   },
 };
 
