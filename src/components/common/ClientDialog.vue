@@ -139,6 +139,7 @@
               :options="countries"
               placeholder="Select Country..."
               variant="surface"
+              show-flags
             />
           </div>
 

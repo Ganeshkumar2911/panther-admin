@@ -162,6 +162,7 @@
                     variant="surface"
                     searchable
                     local-search
+                    show-flags
                   />
                 </div>
                 <div>
@@ -300,7 +301,13 @@
 
                   <div class="p-3 rounded-xl bg-background/60 border border-primary-border/60">
                     <p class="text-[10px] text-secondary-text">Country</p>
-                    <p class="text-xs font-semibold text-primary-text mt-0.5 truncate">{{ getCountryLabel(profileStore.user?.country) }}</p>
+                    <p class="text-xs font-semibold text-primary-text mt-0.5 truncate flex items-center gap-1.5">
+                      <span
+                        v-if="profileStore.user?.country && getFlagCode(profileStore.user.country)"
+                        :class="['fi', `fi-${getFlagCode(profileStore.user.country)}`, 'fis', 'w-4 h-3 flex-shrink-0']"
+                      ></span>
+                      <span>{{ getCountryLabel(profileStore.user?.country) }}</span>
+                    </p>
                   </div>
 
                   <div class="p-3 rounded-xl bg-background/60 border border-primary-border/60">
@@ -425,7 +432,7 @@ import { LogOut, ClipboardList, Clock, CheckCircle2, AlertCircle, User, UserPen,
 import { useProfileStore } from '@/stores/profile/profile'
 import { useAuthStore } from '@/stores/auth'
 import { useMyPermissionsStore } from '@/stores/rbac/myPermissions'
-import { countries } from '@/utils/countries'
+import { countries, getFlagCode, cleanCountryLabel } from '@/utils/countries'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 
 const props = defineProps({
@@ -493,7 +500,7 @@ async function submitProfileUpdate() {
 function getCountryLabel(val) {
   if (!val) return '—'
   const found = countries.find((c) => c.value === val || c.label.includes(val))
-  return found ? found.label : val
+  return found ? cleanCountryLabel(found.label) : cleanCountryLabel(val)
 }
 
 // ─── Role Detection ─────────────────────────────────
