@@ -57,6 +57,7 @@ export const usePlatfromTicketsStore = defineStore("platfromTickets", () => {
       { label: "Low", value: "low" },
       { label: "Medium", value: "medium" },
       { label: "High", value: "high" },
+      { label: "Urgent", value: "urgent" },
     ],
 
     sorts: [
@@ -323,13 +324,21 @@ export const usePlatfromTicketsStore = defineStore("platfromTickets", () => {
   const createTicketForUser = (payload, onDone) => {
     actionLoading.value = true;
 
+    const data = {
+      user_id: payload.user_id,
+      subject: payload.subject,
+      description: payload.description,
+      priority: payload.priority || "medium",
+    };
+
+    // Add due_at only when priority is urgent
+    if (payload.priority === "urgent" && payload.due_at) {
+      const dateObj = new Date(payload.due_at);
+      data.due_at = dateObj.toISOString().replace("T", " ").substring(0, 19);
+    }
+
     apiRequest(urls.KEYS.POST, urls.platformTickets.createAdminTicket, {
-      data: {
-        user_id: payload.user_id,
-        subject: payload.subject,
-        description: payload.description,
-        priority: payload.priority || "medium",
-      },
+      data,
       isTokenRequired: true,
 
       onSuccess: (res) => {
