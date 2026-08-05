@@ -201,7 +201,6 @@ function formatSourceLabel(source) {
           <tr
             v-for="lead in leads"
             :key="lead.id"
-            @click="emit('open-drawer', lead)"
             class="hover:bg-background/80 transition-colors group cursor-pointer"
           >
             <!-- Lead Code -->

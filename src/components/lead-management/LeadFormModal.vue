@@ -25,7 +25,7 @@ const emit = defineEmits(["close", "save-lead", "import-csv"]);
 const staffOptions = computed(() => {
   return props.staffList.map((s) => ({
     value: s.id,
-    label: s.name || `${s.first_name || ""} ${s.last_name || ""}`.trim() || s.email,
+    label: s.name || s.first_name || s.email,
   }));
 });
 
@@ -87,28 +87,16 @@ watch(
   () => props.lead,
   (newLead) => {
     if (newLead) {
-      let initialCountry = newLead.country || "";
-      const matchedCountry = countries.find(
-        (c) =>
-          c.label.toLowerCase().includes((initialCountry || "").toLowerCase()) ||
-          c.value.toLowerCase() === (initialCountry || "").toLowerCase()
-      );
-      if (matchedCountry) {
-        initialCountry = matchedCountry.label;
-      } else if (!initialCountry) {
-        initialCountry = "AE (United Arab Emirates)";
-      }
-
       formData.value = {
-        lead_code: newLead.lead_code || `L-${newLead.id || "001"}`,
-        name: newLead.name || `${newLead.first_name || ""} ${newLead.last_name || ""}`.trim(),
+        lead_code: newLead.lead_code || "",
+        name: newLead.name || "",
         email: newLead.email || "",
         phone: newLead.phone || "",
-        country: initialCountry,
-        source: (newLead.source || "website").toLowerCase(),
-        priority: (newLead.priority || "medium").toLowerCase(),
-        stage: newLead.current_stage?.code || newLead.stage || "NEW",
-        assigned_staff_id: newLead.assigned_staff?.id || newLead.assigned_staff_id || null,
+        country: newLead.country || "AE (United Arab Emirates)",
+        source: newLead.source || "website",
+        priority: newLead.priority || "medium",
+        stage: newLead.stage || "NEW",
+        assigned_staff_id: newLead.assigned_staff_id || null,
         remarks: newLead.remarks || "",
       };
     } else {
@@ -126,7 +114,7 @@ watch(
       };
     }
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 function handleSubmit() {
@@ -135,23 +123,17 @@ function handleSubmit() {
     return;
   }
 
-  const nameTrimmed = (formData.value.name || "").trim();
-  const nameParts = nameTrimmed.split(" ");
-
   const payload = {
-    lead_code: formData.value.lead_code || `L-${Date.now().toString().slice(-4)}`,
-    name: nameTrimmed,
-    first_name: nameParts[0] || "",
-    last_name: nameParts.slice(1).join(" ") || "",
-    email: formData.value.email.trim(),
-    phone: formData.value.phone.trim(),
+    lead_code: formData.value.lead_code,
+    name: formData.value.name,
+    email: formData.value.email,
+    phone: formData.value.phone,
     country: formData.value.country,
     source: formData.value.source,
     priority: formData.value.priority,
+    stage: formData.value.stage,
+    assigned_staff_id: formData.value.assigned_staff_id,
     remarks: formData.value.remarks,
-    remark: formData.value.remarks,
-    ...(formData.value.stage ? { stage: formData.value.stage } : {}),
-    ...(formData.value.assigned_staff_id ? { assigned_staff_id: formData.value.assigned_staff_id } : {}),
   };
 
   emit("save-lead", { mode: props.mode, leadId: props.lead?.id, payload });
@@ -177,12 +159,19 @@ function handleSubmit() {
         class="fixed top-0 right-0 z-50 h-full w-full sm:w-[500px] md:w-[560px] max-w-full bg-card-background border-l border-primary-border shadow-2xl flex flex-col justify-between overflow-hidden"
       >
         <!-- Header -->
-        <div class="px-6 py-4 border-b border-primary-border flex items-center justify-between bg-background/50 shrink-0">
+        <div
+          class="px-6 py-4 border-b border-primary-border flex items-center justify-between bg-background/50 shrink-0"
+        >
           <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center text-primary">
+            <div
+              class="w-9 h-9 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center text-primary"
+            >
               <UserPlus v-if="mode === 'add'" class="w-5 h-5" />
               <Edit v-else-if="mode === 'edit'" class="w-5 h-5" />
-              <ArrowRightLeft v-else-if="mode === 'moveStage'" class="w-5 h-5" />
+              <ArrowRightLeft
+                v-else-if="mode === 'moveStage'"
+                class="w-5 h-5"
+              />
               <Upload v-else class="w-5 h-5" />
             </div>
             <div>
@@ -193,9 +182,15 @@ function handleSubmit() {
                 <span v-else>Import Leads from CSV</span>
               </h3>
               <p class="text-xs text-secondary-text mt-0.5">
-                <span v-if="mode === 'add'">Add a new lead to the CRM onboarding pipeline.</span>
-                <span v-else-if="mode === 'edit'">Update lead contact or details according to API schema.</span>
-                <span v-else-if="mode === 'moveStage'">Advance lead status to the next funnel stage.</span>
+                <span v-if="mode === 'add'"
+                  >Add a new lead to the CRM onboarding pipeline.</span
+                >
+                <span v-else-if="mode === 'edit'"
+                  >Update lead contact or details according to API schema.</span
+                >
+                <span v-else-if="mode === 'moveStage'"
+                  >Advance lead status to the next funnel stage.</span
+                >
                 <span v-else>Upload CSV batch file to import leads.</span>
               </p>
             </div>
@@ -210,13 +205,22 @@ function handleSubmit() {
         </div>
 
         <!-- Body Form -->
-        <form @submit.prevent="handleSubmit" class="flex-1 overflow-y-auto p-6 space-y-4 text-xs flex flex-col justify-between">
+        <form
+          @submit.prevent="handleSubmit"
+          class="flex-1 overflow-y-auto p-6 space-y-4 text-xs flex flex-col justify-between"
+        >
           <div class="space-y-4">
             <!-- Mode: Move Stage Only -->
             <div v-if="mode === 'moveStage'" class="space-y-4">
               <p class="text-xs text-primary-text font-medium">
                 Select target stage for lead
-                <strong class="text-primary">{{ lead?.name || (lead?.first_name ? `${lead.first_name} ${lead.last_name || ''}` : '') }}</strong>:
+                <strong class="text-primary">{{
+                  lead?.name ||
+                  (lead?.first_name
+                    ? `${lead.first_name} ${lead.last_name || ""}`
+                    : "")
+                }}</strong
+                >:
               </p>
               <div class="grid grid-cols-2 gap-2">
                 <button
@@ -231,8 +235,13 @@ function handleSubmit() {
                       : 'border-primary-border bg-background hover:border-primary/40 text-primary-text',
                   ]"
                 >
-                  <span class="text-[11px] uppercase tracking-tight">{{ s.label }}</span>
-                  <Check v-if="formData.stage === s.value" class="w-4 h-4 text-primary" />
+                  <span class="text-[11px] uppercase tracking-tight">{{
+                    s.label
+                  }}</span>
+                  <Check
+                    v-if="formData.stage === s.value"
+                    class="w-4 h-4 text-primary"
+                  />
                 </button>
               </div>
 
@@ -251,18 +260,30 @@ function handleSubmit() {
             </div>
 
             <!-- Mode: Import CSV -->
-            <div v-else-if="mode === 'import'" class="space-y-4 text-center py-8">
-              <div class="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mx-auto">
+            <div
+              v-else-if="mode === 'import'"
+              class="space-y-4 text-center py-8"
+            >
+              <div
+                class="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mx-auto"
+              >
                 <Upload class="w-8 h-8" />
               </div>
               <div>
-                <h4 class="text-sm font-bold text-primary-text">Upload CSV File</h4>
+                <h4 class="text-sm font-bold text-primary-text">
+                  Upload CSV File
+                </h4>
                 <p class="text-xs text-secondary-text mt-1 max-w-xs mx-auto">
-                  Drag and drop your lead export CSV or click browse to select file (.csv, .xlsx).
+                  Drag and drop your lead export CSV or click browse to select
+                  file (.csv, .xlsx).
                 </p>
               </div>
-              <div class="border-2 border-dashed border-primary-border hover:border-primary/50 rounded-xl p-6 transition-colors bg-background/50 cursor-pointer">
-                <span class="text-xs text-primary font-medium">Browse File from Computer</span>
+              <div
+                class="border-2 border-dashed border-primary-border hover:border-primary/50 rounded-xl p-6 transition-colors bg-background/50 cursor-pointer"
+              >
+                <span class="text-xs text-primary font-medium"
+                  >Browse File from Computer</span
+                >
               </div>
             </div>
 
@@ -283,7 +304,9 @@ function handleSubmit() {
                   />
                 </div>
                 <div>
-                  <label class="block text-secondary-text font-medium mb-1">Email Address</label>
+                  <label class="block text-secondary-text font-medium mb-1"
+                    >Email Address</label
+                  >
                   <input
                     v-model="formData.email"
                     type="email"
@@ -310,7 +333,9 @@ function handleSubmit() {
               <!-- Phone & Country -->
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-secondary-text font-medium mb-1">Phone Number</label>
+                  <label class="block text-secondary-text font-medium mb-1"
+                    >Phone Number</label
+                  >
                   <input
                     v-model="formData.phone"
                     type="text"
@@ -320,7 +345,9 @@ function handleSubmit() {
                 </div>
 
                 <div>
-                  <label class="block text-secondary-text font-medium mb-1">Country</label>
+                  <label class="block text-secondary-text font-medium mb-1"
+                    >Country</label
+                  >
                   <BaseSelect
                     v-model="formData.country"
                     :options="countryOptions"
@@ -335,7 +362,9 @@ function handleSubmit() {
               <!-- Source & Priority -->
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-secondary-text font-medium mb-1">Lead Source</label>
+                  <label class="block text-secondary-text font-medium mb-1"
+                    >Lead Source</label
+                  >
                   <BaseSelect
                     v-model="formData.source"
                     :options="sourceOptions"
@@ -345,7 +374,9 @@ function handleSubmit() {
                 </div>
 
                 <div>
-                  <label class="block text-secondary-text font-medium mb-1">Priority</label>
+                  <label class="block text-secondary-text font-medium mb-1"
+                    >Priority</label
+                  >
                   <BaseSelect
                     v-model="formData.priority"
                     :options="priorityOptions"
@@ -358,7 +389,9 @@ function handleSubmit() {
               <!-- Pipeline Stage & Staff Assignment -->
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-secondary-text font-medium mb-1">Pipeline Stage</label>
+                  <label class="block text-secondary-text font-medium mb-1"
+                    >Pipeline Stage</label
+                  >
                   <BaseSelect
                     v-model="formData.stage"
                     :options="stageSelectOptions"
@@ -368,7 +401,9 @@ function handleSubmit() {
                 </div>
 
                 <div>
-                  <label class="block text-secondary-text font-medium mb-1">Assigned Staff</label>
+                  <label class="block text-secondary-text font-medium mb-1"
+                    >Assigned Staff</label
+                  >
                   <BaseSelect
                     v-model="formData.assigned_staff_id"
                     :options="staffOptions"
@@ -381,7 +416,9 @@ function handleSubmit() {
 
               <!-- Remarks / Notes -->
               <div>
-                <label class="block text-secondary-text font-medium mb-1">Remarks / Notes</label>
+                <label class="block text-secondary-text font-medium mb-1"
+                  >Remarks / Notes</label
+                >
                 <textarea
                   v-model="formData.remarks"
                   rows="3"
@@ -393,7 +430,9 @@ function handleSubmit() {
           </div>
 
           <!-- Footer Buttons -->
-          <div class="pt-4 mt-6 border-t border-primary-border flex items-center justify-end gap-2 shrink-0">
+          <div
+            class="pt-4 mt-6 border-t border-primary-border flex items-center justify-end gap-2 shrink-0"
+          >
             <button
               type="button"
               @click="emit('close')"

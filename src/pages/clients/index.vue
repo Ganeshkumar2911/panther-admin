@@ -168,7 +168,10 @@ const handleClientLogin = (client) => {
         res?.message || "User dashboard fetched successfully.",
         "success",
       );
-      window.open(`http://localhost:3002?token=${secretCode}`, "_blank");
+      window.open(
+        `https://portal.panthercapitals.com/login/user?token=${secretCode}`,
+        "_blank",
+      );
     } else {
       snackbar.show(res?.message || "Failed to retrieve secret code.", "error");
     }
