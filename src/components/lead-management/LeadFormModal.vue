@@ -72,8 +72,7 @@ const stageSelectOptions = computed(() => {
 
 const formData = ref({
   lead_code: "",
-  first_name: "",
-  last_name: "",
+  name: "",
   email: "",
   phone: "",
   country: "AE (United Arab Emirates)",
@@ -102,8 +101,7 @@ watch(
 
       formData.value = {
         lead_code: newLead.lead_code || `L-${newLead.id || "001"}`,
-        first_name: newLead.first_name || newLead.name?.split(" ")[0] || "",
-        last_name: newLead.last_name || newLead.name?.split(" ").slice(1).join(" ") || "",
+        name: newLead.name || `${newLead.first_name || ""} ${newLead.last_name || ""}`.trim(),
         email: newLead.email || "",
         phone: newLead.phone || "",
         country: initialCountry,
@@ -116,8 +114,7 @@ watch(
     } else {
       formData.value = {
         lead_code: `L-${Math.floor(100 + Math.random() * 900)}`,
-        first_name: "",
-        last_name: "",
+        name: "",
         email: "",
         phone: "",
         country: "AE (United Arab Emirates)",
@@ -138,10 +135,14 @@ function handleSubmit() {
     return;
   }
 
+  const nameTrimmed = (formData.value.name || "").trim();
+  const nameParts = nameTrimmed.split(" ");
+
   const payload = {
     lead_code: formData.value.lead_code || `L-${Date.now().toString().slice(-4)}`,
-    first_name: formData.value.first_name.trim(),
-    last_name: formData.value.last_name.trim(),
+    name: nameTrimmed,
+    first_name: nameParts[0] || "",
+    last_name: nameParts.slice(1).join(" ") || "",
     email: formData.value.email.trim(),
     phone: formData.value.phone.trim(),
     country: formData.value.country,
@@ -215,7 +216,7 @@ function handleSubmit() {
             <div v-if="mode === 'moveStage'" class="space-y-4">
               <p class="text-xs text-primary-text font-medium">
                 Select target stage for lead
-                <strong class="text-primary">{{ lead?.first_name ? `${lead.first_name} ${lead.last_name || ''}` : lead?.name }}</strong>:
+                <strong class="text-primary">{{ lead?.name || (lead?.first_name ? `${lead.first_name} ${lead.last_name || ''}` : '') }}</strong>:
               </p>
               <div class="grid grid-cols-2 gap-2">
                 <button
@@ -292,29 +293,18 @@ function handleSubmit() {
                 </div>
               </div>
 
-              <!-- First Name & Last Name -->
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-secondary-text font-medium mb-1">
-                    First Name <span class="text-red-400">*</span>
-                  </label>
-                  <input
-                    v-model="formData.first_name"
-                    required
-                    type="text"
-                    placeholder="e.g. John"
-                    class="w-full px-3 py-2 bg-background border border-primary-border rounded-lg text-primary-text focus:outline-none focus:border-primary transition-all"
-                  />
-                </div>
-                <div>
-                  <label class="block text-secondary-text font-medium mb-1">Last Name</label>
-                  <input
-                    v-model="formData.last_name"
-                    type="text"
-                    placeholder="e.g. Doe"
-                    class="w-full px-3 py-2 bg-background border border-primary-border rounded-lg text-primary-text focus:outline-none focus:border-primary transition-all"
-                  />
-                </div>
+              <!-- Name -->
+              <div>
+                <label class="block text-secondary-text font-medium mb-1">
+                  Name <span class="text-red-400">*</span>
+                </label>
+                <input
+                  v-model="formData.name"
+                  required
+                  type="text"
+                  placeholder="e.g. John Doe"
+                  class="w-full px-3 py-2 bg-background border border-primary-border rounded-lg text-primary-text focus:outline-none focus:border-primary transition-all"
+                />
               </div>
 
               <!-- Phone & Country -->
