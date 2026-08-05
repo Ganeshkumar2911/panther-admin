@@ -120,6 +120,12 @@ function handleExportCSV() {
   document.body.removeChild(link)
 }
 
+function handleRefresh() {
+  leadStore.fetchLeads()
+  leadStore.fetchDashboardMetrics()
+  leadStageStore.fetchStages(true)
+}
+
 function handleImportCSV() {
   closeModal()
 }
@@ -191,7 +197,7 @@ function handleImportCSV() {
       :stages="leadStageStore.stages"
       :staff-list="rbacStaffStore.records"
       @reset-filters="leadStore.resetFilters"
-      @refresh="leadStore.fetchLeads()"
+      @refresh="handleRefresh"
     />
 
     <!-- Section 4: Primary Lead Table -->
