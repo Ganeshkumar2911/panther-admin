@@ -101,6 +101,16 @@ const props = defineProps({
     type: String,
     default: "bottom", // 'bottom' | 'top'
   },
+
+  // Placement
+  top: {
+    type: Boolean,
+    default: false,
+  },
+  position: {
+    type: String,
+    default: "bottom", // 'bottom' | 'top'
+  },
 });
 
 // ─── Emits ────────────────────────────────────────────────────────────────────
@@ -290,7 +300,9 @@ const isDropUp = computed(() => props.dropUp || props.placement === "top");
 function updatePosition() {
   if (!triggerRef.value) return;
   const rect = triggerRef.value.getBoundingClientRect();
-  if (isDropUp.value) {
+  const isTop = props.top || props.position === "top";
+
+  if (isTop) {
     dropdownStyle.value = {
       position: "fixed",
       bottom: `${window.innerHeight - rect.top + 6}px`,
@@ -299,13 +311,23 @@ function updatePosition() {
       zIndex: 9999,
     };
   } else {
-    dropdownStyle.value = {
-      position: "fixed",
-      top: `${rect.bottom + 6}px`,
-      left: `${rect.left}px`,
-      width: `${rect.width}px`,
-      zIndex: 9999,
-    };
+    if (isDropUp.value) {
+      dropdownStyle.value = {
+        position: "fixed",
+        bottom: `${window.innerHeight - rect.top + 6}px`,
+        left: `${rect.left}px`,
+        width: `${rect.width}px`,
+        zIndex: 9999,
+      };
+    } else {
+      dropdownStyle.value = {
+        position: "fixed",
+        top: `${rect.bottom + 6}px`,
+        left: `${rect.left}px`,
+        width: `${rect.width}px`,
+        zIndex: 9999,
+      };
+    }
   }
 }
 
@@ -328,7 +350,8 @@ function scrollToHighlighted() {
   nextTick(() => {
     if (!listRef.value) return;
     const items = listRef.value.children;
-    if (!items || highlightedIndex.value < 0 || !items[highlightedIndex.value]) return;
+    if (!items || highlightedIndex.value < 0 || !items[highlightedIndex.value])
+      return;
     const el = items[highlightedIndex.value];
     el.scrollIntoView({ block: "nearest", inline: "nearest" });
   });
@@ -390,7 +413,7 @@ watch(
       scrollToHighlighted();
     }
   },
-  { deep: true }
+  { deep: true },
 );
 
 // ─── Outside click ────────────────────────────────────────────────────────────
@@ -416,7 +439,8 @@ function handleKeydown(event) {
   if (!isOpen.value) {
     if (
       (event.key === "ArrowDown" || event.key === "ArrowUp") &&
-      (document.activeElement === triggerRef.value || dropdownRef.value?.contains(document.activeElement))
+      (document.activeElement === triggerRef.value ||
+        dropdownRef.value?.contains(document.activeElement))
     ) {
       event.preventDefault();
       toggle();
@@ -450,10 +474,7 @@ function handleKeydown(event) {
     event.preventDefault();
     if (!filteredOptions.value.length) return;
     let prevIndex = highlightedIndex.value - 1;
-    while (
-      prevIndex >= 0 &&
-      filteredOptions.value[prevIndex]?.disabled
-    ) {
+    while (prevIndex >= 0 && filteredOptions.value[prevIndex]?.disabled) {
       prevIndex--;
     }
     if (prevIndex >= 0) {
@@ -514,7 +535,12 @@ onBeforeUnmount(() => {
       >
         <span
           v-if="showFlags && selectedFlagCode"
-          :class="['fi', `fi-${selectedFlagCode}`, 'fis', 'w-4 h-3 flex-shrink-0']"
+          :class="[
+            'fi',
+            `fi-${selectedFlagCode}`,
+            'fis',
+            'w-4 h-3 flex-shrink-0',
+          ]"
         ></span>
         <span>{{ displayLabel }}</span>
       </span>
@@ -589,14 +615,19 @@ onBeforeUnmount(() => {
                 option.disabled
                   ? 'opacity-40 cursor-not-allowed'
                   : index === highlightedIndex
-                  ? 'bg-background text-primary-text cursor-pointer'
-                  : 'cursor-pointer text-primary-text hover:bg-background',
+                    ? 'bg-background text-primary-text cursor-pointer'
+                    : 'cursor-pointer text-primary-text hover:bg-background',
               ]"
             >
               <div class="flex items-center gap-2">
                 <span
                   v-if="showFlags && getOptionFlagCode(option)"
-                  :class="['fi', `fi-${getOptionFlagCode(option)}`, 'fis', 'w-4 h-3 flex-shrink-0']"
+                  :class="[
+                    'fi',
+                    `fi-${getOptionFlagCode(option)}`,
+                    'fis',
+                    'w-4 h-3 flex-shrink-0',
+                  ]"
                 ></span>
                 <span v-if="option?.optinalLableName"
                   >{{ option.optinalLableName }} -

@@ -13,6 +13,7 @@ import {
   Plus,
   Pencil,
   Power,
+  Layers,
 } from "lucide-vue-next";
 import Pagination from "@/components/common/Pagination.vue";
 import DropdownMenu from "@/components/common/DropdownMenu.vue";
@@ -20,6 +21,7 @@ import ChangePasswordDialog from "@/components/trading-accounts/ChangePasswordDi
 import DepositWithdrawalDialog from "@/components/trading-accounts/DepositWithdrawal.vue";
 import AddEditAccount from "@/components/trading-accounts/AddEditAccount.vue";
 import ToggleTradingDialog from "@/components/trading-accounts/ToggleTradingDialog.vue";
+import ChangeTradingGroupDrawer from "@/components/trading-accounts/ChangeTradingGroupDrawer.vue";
 import { useAccountsStore } from "@/stores/tradingAccounts/tradingAccounts";
 import { useProfileStore } from "@/stores/profile/profile";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
@@ -75,6 +77,11 @@ const toggleTradingDialog = ref({
   account: null,
 });
 
+const changeGroupDrawer = ref({
+  open: false,
+  account: null,
+});
+
 const openAddAccount = () => {
   addEditAccountDialog.value = {
     open: true,
@@ -121,7 +128,9 @@ const hasActiveFilters = computed(
     activeTab.value !== "all" ||
     activeTradingType.value !== "all" ||
     activeAccountType.value !== "all" ||
-    (store.filters.is_active !== "all" && store.filters.is_active !== null && store.filters.is_active !== undefined) ||
+    (store.filters.is_active !== "all" &&
+      store.filters.is_active !== null &&
+      store.filters.is_active !== undefined) ||
     Boolean(store.filters.search_query?.trim()),
 );
 
@@ -237,6 +246,20 @@ const closeToggleTrading = () => {
   };
 };
 
+const openChangeGroup = (acc) => {
+  changeGroupDrawer.value = {
+    open: true,
+    account: acc,
+  };
+};
+
+const closeChangeGroup = () => {
+  changeGroupDrawer.value = {
+    open: false,
+    account: null,
+  };
+};
+
 const formatNum = (val) =>
   Number(val ?? 0).toLocaleString("en-US", {
     minimumFractionDigits: 2,
@@ -325,6 +348,14 @@ function getRowActions(acc) {
         action: "toggleTrading",
         label: acc.is_active ? "Disable Trading" : "Enable Trading",
         icon: Power,
+        danger: acc.is_active,
+        success: !acc.is_active,
+      },
+      {
+        action: "changeGroup",
+        label: "Change Trading Group",
+        icon: Layers,
+        hidden: acc.trading_type === "copy_trading" || acc.account_type === "copy_trading",
       },
     );
   }
@@ -361,6 +392,10 @@ function onMenuSelect(item, acc) {
     case "toggleTrading":
       setActiveCurrency(acc);
       openToggleTrading(acc);
+      break;
+    case "changeGroup":
+      setActiveCurrency(acc);
+      openChangeGroup(acc);
       break;
   }
 }
@@ -863,6 +898,13 @@ onBeforeUnmount(() => clearTimeout(searchTimer));
       :account="toggleTradingDialog.account"
       @close="closeToggleTrading"
       @success="store.fetchAccounts(true)"
+    />
+
+    <ChangeTradingGroupDrawer
+      :open="changeGroupDrawer.open"
+      :account="changeGroupDrawer.account"
+      @close="closeChangeGroup"
+      @updated="store.fetchAccounts()"
     />
   </div>
 </template>

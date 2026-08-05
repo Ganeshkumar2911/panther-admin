@@ -90,6 +90,21 @@ const formatDate = (val) =>
 function getRowActions(client) {
   const actions = [];
 
+  if (hasPermission('client.update')) {
+    actions.push(
+      { action: 'edit', label: 'Edit Client', icon: Pencil },
+      { action: 'changeIB', label: 'Change IB', icon: UserPen },
+      { action: 'makeIB', label: 'Make IB', icon: UserPlus, hidden: client.is_ib === true },
+      { action: 'updateReferralLink', label: 'Update Referral Link', icon: Link2 },
+      { divider: true },
+      {
+        action: 'toggleStatus',
+        label: client.is_active ? 'Deactivate Client' : 'Activate Client',
+        icon: client.is_active ? UserX : UserCheck,
+        danger: client.is_active,
+        success: !client.is_active,
+      }
+    )
   if (hasPermission("xtention_dev.login_as_client")) {
     actions.push({ action: "clientLogin", label: "Client Login", icon: LogIn });
   }

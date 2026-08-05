@@ -21,6 +21,7 @@ const urls = {
     list: "/accounts",
     create: "/accounts/create",
     changePassword: "/accounts/change-password",
+    changeBrokerGroup: "/accounts/change-broker-group",
     accountTrades: "/accounts/trades",
     transactions: "/accounts/transactions",
     deposit: "/accounts/deposit",
