@@ -233,6 +233,7 @@ const closeDepositWithdrawalDialog = () => {
 };
 
 const openToggleTrading = (acc) => {
+  if (!hasPermission("trading_account.update")) return;
   toggleTradingDialog.value = {
     open: true,
     account: acc,
@@ -839,10 +840,14 @@ onBeforeUnmount(() => clearTimeout(searchTimer));
             <td class="px-3 py-4">
               <button
                 type="button"
-                class="text-[11px] font-medium px-2.5 py-1 rounded-full capitalize whitespace-nowrap text-white transition-all hover:opacity-80 active:scale-95 cursor-pointer flex items-center gap-1"
-                :class="
-                  acc.is_active ? 'bg-primary-green/100' : 'bg-primary-red/100'
-                "
+                class="text-[11px] font-medium px-2.5 py-1 rounded-full capitalize whitespace-nowrap text-white transition-all flex items-center gap-1"
+                :class="[
+                  acc.is_active ? 'bg-primary-green/100' : 'bg-primary-red/100',
+                  hasPermission('trading_account.update')
+                    ? 'hover:opacity-80 active:scale-95 cursor-pointer'
+                    : 'cursor-not-allowed opacity-80'
+                ]"
+                :disabled="!hasPermission('trading_account.update')"
                 @click="openToggleTrading(acc)"
               >
                 {{ acc.is_active ? "Active" : "Inactive" }}
