@@ -112,19 +112,22 @@
             <td class="px-3 py-3.5 align-middle">
               <div class="flex items-center gap-2">
                 <div class="w-3.5 h-3.5 bg-card-background rounded" />
-                <div class="h-3 w-36 bg-card-background rounded" />
+                <div class="h-3 w-12 bg-card-background rounded" />
               </div>
             </td>
+            <td class="px-3 py-3.5 align-middle"><div class="h-3 w-28 bg-card-background rounded" /></td>
+            <td class="px-3 py-3.5 align-middle"><div class="h-3 w-16 bg-card-background rounded" /></td>
             <td class="px-3 py-3.5 align-middle"><div class="h-3 w-24 bg-card-background rounded" /></td>
+            <td class="px-3 py-3.5 align-middle"><div class="h-3 w-20 bg-card-background rounded" /></td>
             <td class="px-3 py-3.5 align-middle"><div class="h-3 w-10 bg-card-background rounded" /></td>
             <td class="px-3 py-3.5 align-middle"><div class="h-5 w-8 bg-card-background rounded-full" /></td>
-            <td class="px-3 py-3.5 align-middle"><div class="h-5 w-16 bg-card-background rounded ml-auto" /></td>
+            <td class="px-3 py-3.5 align-middle"><div class="h-5 w-8 bg-card-background rounded ml-auto" /></td>
           </tr>
         </tbody>
 
         <tbody v-else-if="filteredData.length === 0">
           <tr>
-            <td colspan="6" class="py-16 text-center bg-card-background">
+            <td colspan="8" class="py-16 text-center bg-card-background">
               <div class="flex flex-col items-center justify-center gap-3">
                 <div class="w-12 h-12 rounded-full bg-background border border-primary-border flex items-center justify-center mx-auto">
                   <Users class="w-5 h-5 text-secondary-text" />
@@ -139,11 +142,13 @@
         <tbody v-else>
           <IbTreeRow
             :nodes="filteredData"
+            :staff-options="staffOptions"
             :expanded="expanded"
             @toggle="toggleRow"
             @add-sub="openAddSub"
             @edit="openEdit"
             @transfer-parent="openTransferParent"
+            @assign-staff="handleAssignStaff"
           />
         </tbody>
       </table>
@@ -168,8 +173,9 @@
 <script setup>
 import { onMounted, ref, computed, watch } from 'vue'
 import { storeToRefs } from 'pinia'
-import { Plus, Search, Users,RefreshCw } from 'lucide-vue-next'
+import { Plus, Search, Users, RefreshCw } from 'lucide-vue-next'
 import { useIbTreeStore } from '@/stores/ibTree/ibTree'
+import { useRbacStaffStore } from '@/stores/rbac/staff'
 import IbTreeRow from '@/components/ibTree/IbTreeRow.vue'
 import IbTree from '@/components/ibTree/IbTree.vue'
 import IbDialog from '@/components/ibTree/IbDialog.vue'
@@ -177,12 +183,44 @@ import TransferIbDialog from '@/components/ibTree/TransferIbDialog.vue'
 import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
 const store = useIbTreeStore()
+const rbacStaffStore = useRbacStaffStore()
 const { hasPermission } = usePermissionCheck()
 const { searchQuery } = storeToRefs(store)
 const expanded = ref({})
 const viewMode = ref('table')
 const dialog = ref({ open: false, editData: null, parentIbId: null })
 const transferDialog = ref({ open: false, ib: null })
+
+import apiRequest from '@/api/request'
+import urls from '@/api/urls'
+import { useSnackbarStore } from '@/stores/snackbar/snackbar'
+
+const staffOptions = computed(() => {
+  return (rbacStaffStore.records || []).map(s => ({
+    value: s.id,
+    label: s.name || `${s.first_name || ''} ${s.last_name || ''}`.trim() || s.email,
+  }))
+})
+
+const handleAssignStaff = ({ ibId, leadId, staffId }) => {
+  const targetId = leadId || ibId
+  if (!targetId || !staffId) return
+
+  apiRequest(urls.KEYS.PATCH, urls.lead.assign, {
+    look_up_key: targetId,
+    data: {
+      assigned_staff_id: staffId,
+    },
+    isTokenRequired: true,
+    onSuccess: (res) => {
+      snackbar.show(res?.message || res?.data?.message || 'Staff assigned successfully.', 'success')
+      store.fetchIbTree(true)
+    },
+    onFailure: (err) => {
+      snackbar.show(err?.response?.data?.message || err?.message || err?.error || 'Failed to assign staff.', 'error')
+    },
+  })
+}
 
 const openAdd = () => { dialog.value = { open: true, editData: null, parentIbId: null } }
 const openAddSub = (id) => { dialog.value = { open: true, editData: null, parentIbId: id } }
@@ -209,6 +247,7 @@ const getNodesToExpand = (nodes, query) => {
       node.name?.toLowerCase().includes(lowerQuery) ||
       node.email?.toLowerCase().includes(lowerQuery) ||
       node.referral_code?.toLowerCase().includes(lowerQuery) ||
+      node.staff_assigned?.name?.toLowerCase().includes(lowerQuery) ||
       String(node.ib_id).includes(lowerQuery)
     )
 
@@ -258,6 +297,7 @@ const filteredData = computed(() => {
         node.name?.toLowerCase().includes(lowerQuery) ||
         node.email?.toLowerCase().includes(lowerQuery) ||
         node.referral_code?.toLowerCase().includes(lowerQuery) ||
+        node.staff_assigned?.name?.toLowerCase().includes(lowerQuery) ||
         String(node.ib_id).includes(lowerQuery)
       )
 
@@ -276,5 +316,8 @@ const filteredData = computed(() => {
   return filterNodes(store.data)
 })
 
-onMounted(() => { store.fetchIbTree() })
+onMounted(() => {
+  store.fetchIbTree()
+  rbacStaffStore.fetchStaff(false)
+})
 </script>

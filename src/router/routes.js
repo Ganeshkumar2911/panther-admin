@@ -55,6 +55,16 @@ const routes = [
         },
       },
       {
+        path: "/lead-management",
+        name: "lead-management",
+        component: () => import("@/pages/lead-management/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Lead Management",
+          description: "Track and manage leads throughout their onboarding journey.",
+        },
+      },
+      {
         path: "/trading-accounts",
         name: "trading-accounts",
         component: () => import("@/pages/trading-accounts/index.vue"),
@@ -325,6 +335,16 @@ const routes = [
           requiresAuth: true,
           title: "Email Management",
           description: "Manage platfrom e-mails and templates",
+        },
+      },
+      {
+        path: "/telegram",
+        name: "telegram",
+        component: () => import("@/pages/telegram/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Telegram",
+          description: "Manage Telegram",
         },
       },
       {

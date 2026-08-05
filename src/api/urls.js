@@ -38,6 +38,7 @@ const urls = {
     create: "/client/create",
     delete: "/clients",
     updateReferralLink: "/clients/referral-link",
+    userDashboard: "/user-dashboard",
   },
   clientLedger: {
     list: "/ledger/clients",
@@ -64,6 +65,22 @@ const urls = {
     delete: "/ib/delete",
     transfer: "/ib-transfer",
     clients: "/ibs/clients/",
+  },
+  referralLinks: {
+    list: "/ibs/referral-links",
+    create: "/ibs/referral-links",
+    update: "/referral-links",
+  },
+  auditLogs: {
+    list: "/audit-logs",
+  },
+  referralLinks: {
+    list: "/ibs/referral-links",
+    create: "/ibs/referral-links",
+    update: "/referral-links",
+  },
+  auditLogs: {
+    list: "/audit-logs",
   },
   referralLinks: {
     list: "/ibs/referral-links",
@@ -145,6 +162,20 @@ const urls = {
     update: "/company-integrations",
     run: "/company-integrations/run",
   },
+  telegram: {
+    list: "/get-bots",
+    create: "/addbot",
+    update: "/update-bot",
+    run: "/company-integrations/run",
+    delete: "/delete-bot",
+  },
+  telegram_config: {
+    list: "/get/configrations",
+    create: "/create/update/settings",
+    update: "/update/configrations",
+    run: "/company-integrations/run",
+    delete: "/delete-bot",
+  },
   rbac: {
     roles: {
       list: "/rbac/roles",
@@ -206,6 +237,17 @@ const urls = {
       update: "/media-images",
       delete: "/media-images",
     },
+  },
+  lead: {
+    list: "/lead/",
+    detail: "/lead/",
+    assign: "/lead/assign/",
+    history: "/lead/history/",
+    dashboard: "/lead/dashboard",
+    stages: "/lead/stage",
+    export: "/lead/export",
+    importTemplate: "/lead/import/template",
+    import: "/lead/import",
   },
 };
 

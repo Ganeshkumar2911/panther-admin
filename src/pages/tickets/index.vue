@@ -281,6 +281,11 @@
               <th
                 class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
               >
+                TAT Status
+              </th>
+              <th
+                class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
+              >
                 Created By
               </th>
               <th
@@ -321,6 +326,9 @@
                 <div class="h-5 w-14 bg-card-background rounded-full" />
               </td>
               <td class="p-3">
+                <div class="h-3 w-48 bg-card-background rounded" />
+              </td>
+              <td class="p-3">
                 <div class="h-3 w-28 bg-card-background rounded" />
               </td>
               <td class="p-3">
@@ -338,7 +346,7 @@
           <!-- Empty -->
           <tbody v-else-if="platformTicketsStore.data.length === 0">
             <tr>
-              <td colspan="8" class="py-16 text-center">
+              <td colspan="9" class="py-16 text-center">
                 <div class="flex flex-col items-center gap-3">
                   <div
                     class="w-12 h-12 rounded-full bg-card-background flex items-center justify-center"
@@ -385,6 +393,25 @@
                   {{ ticket.status }}
                 </span>
               </td>
+
+              <td class="p-3 text-xs text-secondary-text">
+                <div class="flex flex-col gap-1">
+                  <span v-if="ticket.tat_formatted" class="text-[11px] font-medium text-primary-text">
+                    {{ ticket.tat_formatted }}
+                  </span>
+                  <span
+                    v-if="ticket.tat_message"
+                    class="text-[10px]"
+                    :class="ticket.tat_message?.includes('Breached') ? 'text-primary-red font-medium' : 'text-primary-green'"
+                  >
+                    {{ ticket.tat_message }}
+                  </span>
+                  <span v-if="!ticket.tat_message" class="text-[11px] text-secondary-text">
+                    No target resolution deadline set
+                  </span>
+                </div>
+              </td>
+
               <td class="p-3 text-xs text-secondary-text">
                 <div class="flex flex-col">
                   <span class="text-[11px] text-secondary-text mt-0.5">
@@ -506,9 +533,10 @@ const statusOptions = [
 ];
 
 const priorityOptions = [
-  { label: "Low", value: "low" },
-  { label: "Medium", value: "medium" },
+  { label: "Urgent", value: "urgent" },
   { label: "High", value: "high" },
+  { label: "Medium", value: "medium" },
+  { label: "Low", value: "low" },
 ];
 
 const dateFilterOptions = [
@@ -580,10 +608,11 @@ const formatDate = (val) =>
 
 const priorityClass = (p) =>
   ({
-    low: "bg-primary-green/20 text-primary-green border border-primary-green/30",
+    urgent: "bg-primary-red/30 text-primary-red border border-primary-red/50 font-medium",
+    high: "bg-primary-red/20 text-primary-red border border-primary-red/30",
     medium:
       "bg-primary-yellow/20 text-primary-yellow border border-primary-yellow/30",
-    high: "bg-primary-red/20 text-primary-red border border-primary-red/30",
+    low: "bg-primary-green/20 text-primary-green border border-primary-green/30",
   })[p] ??
   "bg-primary-border/20 text-secondary-text border border-primary-border";
 
