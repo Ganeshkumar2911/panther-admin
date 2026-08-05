@@ -68,6 +68,17 @@
             placeholder="Select priority"
           />
         </div>
+
+        <!-- Due Date/Time (Only for Urgent) -->
+        <div v-if="form.priority === 'urgent'">
+          <p class="text-xs text-secondary-text mb-1.5">Due Date & Time <span class="text-primary-red">*</span></p>
+          <input
+            v-model="form.due_at"
+            type="datetime-local"
+            :disabled="platformTicketsStore.actionLoading"
+            class="w-full px-3 py-2.5 rounded-lg bg-background border border-primary-border text-primary-text text-sm outline-none focus:border-primary transition-colors placeholder:text-secondary-text disabled:opacity-50"
+          />
+        </div>
       </div>
 
       <!-- Footer -->
@@ -118,11 +129,16 @@ const priorityOptions = [
   { label: 'Low', value: 'low' },
   { label: 'Medium', value: 'medium' },
   { label: 'High', value: 'high' },
+  { label: 'Urgent', value: 'urgent' },
 ]
 
-const isValid = computed(
-  () => form.value.user_id && form.value.subject.trim() && form.value.description.trim()
-)
+const isValid = computed(() => {
+  const hasRequiredFields = form.value.user_id && form.value.subject.trim() && form.value.description.trim()
+  if (form.value.priority === 'urgent') {
+    return hasRequiredFields && form.value.due_at
+  }
+  return hasRequiredFields
+})
 
 const onClientSearch = (query = '') => {
   clearTimeout(clientSearchTimer)
@@ -146,7 +162,7 @@ onMounted(() => {
 
 watch(() => props.open, (val) => {
   if (val) {
-    form.value = { user_id: null, subject: '', description: '', priority: 'medium' }
+    form.value = { user_id: null, subject: '', description: '', priority: 'medium', due_at: '' }
     onClientSearch('')
     nextTick(() => firstInput.value?.focus())
   }
