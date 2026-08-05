@@ -73,6 +73,22 @@ const urls = {
   auditLogs: {
     list: "/audit-logs",
   },
+  referralLinks: {
+    list: "/ibs/referral-links",
+    create: "/ibs/referral-links",
+    update: "/referral-links",
+  },
+  auditLogs: {
+    list: "/audit-logs",
+  },
+  referralLinks: {
+    list: "/ibs/referral-links",
+    create: "/ibs/referral-links",
+    update: "/referral-links",
+  },
+  auditLogs: {
+    list: "/audit-logs",
+  },
   fm: {
     list: "/fund_managers",
     create: "/fund_managers/create",
@@ -144,6 +160,20 @@ const urls = {
     create: "/company-integrations",
     update: "/company-integrations",
     run: "/company-integrations/run",
+  },
+  telegram: {
+    list: "/get-bots",
+    create: "/addbot",
+    update: "/update-bot",
+    run: "/company-integrations/run",
+    delete: "/delete-bot",
+  },
+  telegram_config: {
+    list: "/get/configrations",
+    create: "/create/update/settings",
+    update: "/update/configrations",
+    run: "/company-integrations/run",
+    delete: "/delete-bot",
   },
   rbac: {
     roles: {

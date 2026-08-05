@@ -338,6 +338,16 @@ const routes = [
         },
       },
       {
+        path: "/telegram",
+        name: "telegram",
+        component: () => import("@/pages/telegram/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Telegram",
+          description: "Manage Telegram",
+        },
+      },
+      {
         path: "/group-config",
         name: "group-config",
         component: () => import("@/pages/groupConfig/categories.vue"),

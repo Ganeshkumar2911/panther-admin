@@ -126,6 +126,12 @@ export const navItems = [
     icon: FolderOpen,
     permission: ["media.view"],
   },
+  {
+    label: "Telegram",
+    to: "/telegram",
+    icon: ClipboardList,
+    permission: ["telegram.view", "telegram.manage"],
+  },
   // 6. System & Support
   {
     label: "Group Config",
