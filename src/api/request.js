@@ -4,11 +4,13 @@ import router from "../router";
 
 // ─── Constants
 
-const BASE_URL = "https://1pz4zm0b-2504.euw.devtunnels.ms/admin/";
-// const BASE_URL = "https://f7v2d03l-2504.inc1.devtunnels.ms/admin/";
-// const BASE_URL = "https://848ncvt5-2504.euw.devtunnels.ms/admin/";
-// const BASE_URL = "https://1pz4zm0b-2504.euw.devtunnels.ms/admin/";
-// const BASE_URL = "https://zpj8dpf6-2504.inc1.devtunnels.ms/admin";
+const DEFAULT_BASE_URL =
+  typeof window !== "undefined" &&
+  window.location.hostname === "admin.panthercapitals.com"
+    ? "https://admin.panthercapitals.com/admin/"
+    : "https://1pz4zm0b-2504.euw.devtunnels.ms/admin/";
+
+const BASE_URL = DEFAULT_BASE_URL;
 
 const DEFAULT_TIMEOUT = 2 * 60 * 1000;
 const MAX_RETRY_ATTEMPTS = 2;

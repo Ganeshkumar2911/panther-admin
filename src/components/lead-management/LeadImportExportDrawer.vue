@@ -15,6 +15,7 @@ import {
   RotateCcw,
 } from 'lucide-vue-next'
 import BaseSelect from '@/components/common/BaseSelect.vue'
+import ConfirmationDialog from '@/components/common/ConfirmationDialog.vue'
 import { SOURCES } from '@/pages/lead-management/mockLeadData'
 import { countries } from '@/utils/countries'
 import apiRequest from '@/api/request'
@@ -36,6 +37,7 @@ const snackbar = useSnackbarStore()
 const exportLoading = ref(false)
 const templateLoading = ref(false)
 const importLoading = ref(false)
+const exportConfirmOpen = ref(false)
 
 const selectedFile = ref(null)
 const dragOver = ref(false)
@@ -168,6 +170,7 @@ const handleExport = () => {
 
   const successHandler = (res) => {
     exportLoading.value = false
+    exportConfirmOpen.value = false
     const blob = res instanceof Blob ? res : new Blob([res], { type: 'text/csv' })
     const downloadUrl = window.URL.createObjectURL(blob)
     const link = document.createElement('a')
@@ -182,6 +185,7 @@ const handleExport = () => {
 
   const failureHandler = (err) => {
     exportLoading.value = false
+    exportConfirmOpen.value = false
     snackbar.show(err?.message || err?.error || 'Failed to export leads.', 'error')
   }
 
@@ -444,7 +448,7 @@ const formatFileSize = (bytes) => {
 
             <button
               :disabled="exportLoading"
-              @click="handleExport"
+              @click="exportConfirmOpen = true"
               class="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-primary hover:bg-primary-hover text-btn-text-primary text-xs font-semibold shadow-sm transition active:scale-[0.99] disabled:opacity-50 cursor-pointer mt-2"
             >
               <Loader2 v-if="exportLoading" class="w-3.5 h-3.5 animate-spin" />
@@ -554,6 +558,19 @@ const formatFileSize = (bytes) => {
         </div>
       </div>
     </Transition>
+
+    <!-- Export Confirmation Dialog -->
+    <ConfirmationDialog
+      :open="exportConfirmOpen"
+      title="Confirm Lead Export"
+      message="Are you sure you want to export the lead records CSV with the applied filters?"
+      confirm-text="Export CSV"
+      cancel-text="Cancel"
+      type="info"
+      :loading="exportLoading"
+      @confirm="handleExport"
+      @cancel="exportConfirmOpen = false"
+    />
   </Teleport>
 </template>
 

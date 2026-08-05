@@ -431,7 +431,7 @@ const closeDialog = () => {
 
 // KYC Status options
 const kycStatuses = [
-  { value: 'not started', label: 'Not Started' },
+  // { value: 'not started', label: 'Not Started' },
   { value: 'pending', label: 'Pending' },
   { value: 'approved', label: 'Approved' },
   { value: 'rejected', label: 'Rejected' },

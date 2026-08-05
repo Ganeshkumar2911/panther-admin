@@ -158,7 +158,7 @@ const isActive = (path) => {
                 {{ store.user?.name }}
               </p>
               <p class="text-white text-[11px] capitalize truncate">
-                {{ store.user?.role }}
+                {{ store.user?.role === "staff" ? "admin" : store.user?.role }}
               </p>
             </div>
           </div>
