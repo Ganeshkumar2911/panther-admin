@@ -6,6 +6,7 @@ import {
   onBeforeUnmount,
   nextTick,
   useAttrs,
+  watch,
   watchEffect,
 } from "vue";
 import { ChevronDown, Check, Search } from "lucide-vue-next";
@@ -111,7 +112,9 @@ const searchQuery = ref("");
 const triggerRef = ref(null);
 const dropdownRef = ref(null);
 const searchRef = ref(null);
+const listRef = ref(null);
 const dropdownStyle = ref({});
+const highlightedIndex = ref(-1);
 
 // ─── Computed ─────────────────────────────────────────────────────────────────
 const allOption = computed(() => ({ label: props.allLabel, value: null }));
@@ -307,13 +310,39 @@ function updatePosition() {
 }
 
 // ─── Methods ──────────────────────────────────────────────────────────────────
+function initHighlightedIndex() {
+  if (!filteredOptions.value || !filteredOptions.value.length) {
+    highlightedIndex.value = -1;
+    return;
+  }
+  const selectedIdx = filteredOptions.value.findIndex((o) => isSelected(o));
+  if (selectedIdx >= 0 && !filteredOptions.value[selectedIdx]?.disabled) {
+    highlightedIndex.value = selectedIdx;
+  } else {
+    const firstEnabled = filteredOptions.value.findIndex((o) => !o.disabled);
+    highlightedIndex.value = firstEnabled >= 0 ? firstEnabled : 0;
+  }
+}
+
+function scrollToHighlighted() {
+  nextTick(() => {
+    if (!listRef.value) return;
+    const items = listRef.value.children;
+    if (!items || highlightedIndex.value < 0 || !items[highlightedIndex.value]) return;
+    const el = items[highlightedIndex.value];
+    el.scrollIntoView({ block: "nearest", inline: "nearest" });
+  });
+}
+
 function toggle() {
   isOpen.value = !isOpen.value;
   if (isOpen.value) {
     searchQuery.value = "";
+    initHighlightedIndex();
     updatePosition();
     nextTick(() => {
       updatePosition();
+      scrollToHighlighted();
       if (props.searchable) {
         searchRef.value?.focus();
       }
@@ -324,6 +353,7 @@ function toggle() {
 function close() {
   isOpen.value = false;
   searchQuery.value = "";
+  highlightedIndex.value = -1;
 }
 
 function select(option) {
@@ -345,6 +375,24 @@ function isSelected(option) {
   return String(props.modelValue) === String(option.value);
 }
 
+watch(searchQuery, () => {
+  if (isOpen.value) {
+    initHighlightedIndex();
+    scrollToHighlighted();
+  }
+});
+
+watch(
+  () => props.options,
+  () => {
+    if (isOpen.value) {
+      initHighlightedIndex();
+      scrollToHighlighted();
+    }
+  },
+  { deep: true }
+);
+
 // ─── Outside click ────────────────────────────────────────────────────────────
 function handleOutsideClick(event) {
   if (
@@ -365,12 +413,69 @@ function handleScrollOrResize() {
 }
 
 function handleKeydown(event) {
-  if (event.key === "Escape") close();
-}
+  if (!isOpen.value) {
+    if (
+      (event.key === "ArrowDown" || event.key === "ArrowUp") &&
+      (document.activeElement === triggerRef.value || dropdownRef.value?.contains(document.activeElement))
+    ) {
+      event.preventDefault();
+      toggle();
+    }
+    return;
+  }
 
-// watchEffect(() => {
-//   console.log(filteredOptions.value);
-// });
+  if (event.key === "Escape") {
+    close();
+    return;
+  }
+
+  if (event.key === "ArrowDown") {
+    event.preventDefault();
+    if (!filteredOptions.value.length) return;
+    let nextIndex = highlightedIndex.value + 1;
+    while (
+      nextIndex < filteredOptions.value.length &&
+      filteredOptions.value[nextIndex]?.disabled
+    ) {
+      nextIndex++;
+    }
+    if (nextIndex < filteredOptions.value.length) {
+      highlightedIndex.value = nextIndex;
+      scrollToHighlighted();
+    }
+    return;
+  }
+
+  if (event.key === "ArrowUp") {
+    event.preventDefault();
+    if (!filteredOptions.value.length) return;
+    let prevIndex = highlightedIndex.value - 1;
+    while (
+      prevIndex >= 0 &&
+      filteredOptions.value[prevIndex]?.disabled
+    ) {
+      prevIndex--;
+    }
+    if (prevIndex >= 0) {
+      highlightedIndex.value = prevIndex;
+      scrollToHighlighted();
+    }
+    return;
+  }
+
+  if (event.key === "Enter") {
+    if (
+      highlightedIndex.value >= 0 &&
+      highlightedIndex.value < filteredOptions.value.length
+    ) {
+      event.preventDefault();
+      const option = filteredOptions.value[highlightedIndex.value];
+      if (option && !option.disabled) {
+        select(option);
+      }
+    }
+  }
+}
 
 onMounted(() => {
   document.addEventListener("mousedown", handleOutsideClick);
@@ -456,7 +561,7 @@ onBeforeUnmount(() => {
           </div>
 
           <!-- Options -->
-          <ul class="flex-1 min-h-0 overflow-y-auto py-1">
+          <ul ref="listRef" class="flex-1 min-h-0 overflow-y-auto py-1">
             <li
               v-if="isLoading"
               class="px-4 py-3 text-sm text-secondary-text text-center italic"
@@ -472,16 +577,19 @@ onBeforeUnmount(() => {
             </li>
 
             <li
-              v-for="option in filteredOptions"
+              v-for="(option, index) in filteredOptions"
               :key="option.value ?? '__all__'"
               role="option"
               :aria-selected="isSelected(option)"
               :aria-disabled="option.disabled"
               @click="option.disabled ? null : select(option)"
+              @mouseenter="highlightedIndex = index"
               :class="[
                 'flex items-center justify-between px-4 py-2.5 text-sm transition-colors duration-100',
                 option.disabled
                   ? 'opacity-40 cursor-not-allowed'
+                  : index === highlightedIndex
+                  ? 'bg-background text-primary-text cursor-pointer'
                   : 'cursor-pointer text-primary-text hover:bg-background',
               ]"
             >

@@ -37,6 +37,7 @@ const urls = {
     create: "/client/create",
     delete: "/clients",
     updateReferralLink: "/clients/referral-link",
+    userDashboard: "/user-dashboard",
   },
   clientLedger: {
     list: "/ledger/clients",
