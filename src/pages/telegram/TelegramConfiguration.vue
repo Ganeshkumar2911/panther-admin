@@ -13,7 +13,7 @@
             Manage your automated Telegram bot settings and event triggers
           </p>
         </div>
-        <div>
+        <div v-if="hasPermission('telegram.configure_update')">
           <button
             @click="store.openAdd()"
             class="px-4 py-2.5 rounded-xl text-xs font-semibold text-white bg-primary hover:bg-primary-hover shadow-md shadow-primary/20 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
@@ -80,6 +80,7 @@
 
         <!-- CTA Button -->
         <button
+          v-if="hasPermission('telegram.configure_update')"
           @click="store.openAdd()"
           class="px-6 py-3 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-semibold shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all duration-200 flex items-center gap-2 cursor-pointer group mb-12"
         >
@@ -165,6 +166,7 @@
                 Action
               </th>
               <th
+                v-if="hasPermission('telegram.configure_update')"
                 class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
               >
                 Actions
@@ -186,7 +188,7 @@
               <td class="p-3 text-primary-text text-xs">
                 {{ item?.action || "-" }}
               </td>
-              <td class="p-3">
+              <td v-if="hasPermission('telegram.configure_update')" class="p-3">
                 <div class="flex items-center gap-3">
                   <button
                     :disabled="store.toggleLoading"
@@ -255,7 +257,9 @@ import {
 } from "lucide-vue-next";
 import DynamicFormModal from "@/components/common/DynamicFormModal.vue";
 import { useTelegramConfigurationStore } from "@/stores/telegram/telegram-config";
+import { usePermissionCheck } from "@/composables/usePermissionCheck";
 
+const { hasPermission } = usePermissionCheck();
 const store = useTelegramConfigurationStore();
 
 const isEmpty = computed(() => {
