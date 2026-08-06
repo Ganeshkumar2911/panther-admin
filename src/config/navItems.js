@@ -22,6 +22,7 @@ import {
   Target,
   FolderOpen,
   Bell,
+  Tag,
 } from "lucide-vue-next";
 
 export const navItems = [
@@ -187,5 +188,11 @@ export const navItems = [
     to: "/rbac-modules",
     icon: Layers,
     permission: ["xtention_dev.view"],
+  },
+  {
+    label: "Tag Management",
+    to: "/tags",
+    icon: Tag,
+    permission: "tags.view",
   },
 ];

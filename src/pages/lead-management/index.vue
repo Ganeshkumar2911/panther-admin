@@ -12,7 +12,7 @@ import LeadTable from "@/components/lead-management/LeadTable.vue";
 import LeadDetailDrawer from "@/components/lead-management/LeadDetailDrawer.vue";
 import LeadFormModal from "@/components/lead-management/LeadFormModal.vue";
 import LeadStageManagementModal from "@/components/lead-management/LeadStageManagementModal.vue";
-import LeadImportExportDrawer from "@/components/lead-management/LeadImportExportDrawer.vue";
+import TagAssignmentModal from "@/components/common/TagAssignmentModal.vue";
 
 import { Plus, ArrowUpDown, Layers } from "lucide-vue-next";
 
@@ -27,6 +27,14 @@ const importExportDrawerOpen = ref(false);
 // Modal & Drawer state
 const drawer = ref({ open: false, lead: null, leadId: null });
 const modal = ref({ open: false, mode: "add", lead: null });
+
+const tagModal = ref({
+  open: false,
+  entityType: "lead",
+  entityId: null,
+  entityIds: [],
+  currentTags: [],
+});
 
 onMounted(() => {
   leadStageStore.fetchStages();
@@ -44,11 +52,40 @@ watch(
     leadStore.filters.country,
     leadStore.filters.source,
     leadStore.filters.priority,
+    leadStore.filters.tag_ids,
+    leadStore.filters.tag_mode,
   ],
   () => {
     leadStore.fetchLeads(1);
   },
 );
+
+function openTagModal(lead) {
+  tagModal.value = {
+    open: true,
+    entityType: "lead",
+    entityId: lead.id,
+    entityIds: [],
+    currentTags: lead.tags || [],
+  };
+}
+
+function openBulkTagModal(leadIds) {
+  tagModal.value = {
+    open: true,
+    entityType: "lead",
+    entityId: null,
+    entityIds: leadIds,
+    currentTags: [],
+  };
+}
+
+function handleTagModalUpdated() {
+  leadStore.fetchLeads();
+  if (drawer.value.open && drawer.value.leadId) {
+    leadStore.fetchLeadById(drawer.value.leadId);
+  }
+}
 
 function handleSelectStage(stageCode) {
   leadStore.filters.stage = stageCode || "";
@@ -207,6 +244,8 @@ function handleImportCSV() {
       v-model:selectedCountry="leadStore.filters.country"
       v-model:selectedSource="leadStore.filters.source"
       v-model:selectedPriority="leadStore.filters.priority"
+      v-model:selectedTagIds="leadStore.filters.tag_ids"
+      v-model:selectedTagMode="leadStore.filters.tag_mode"
       :stages="leadStageStore.stages"
       :staff-list="rbacStaffStore.records"
       @reset-filters="leadStore.resetFilters"
@@ -228,6 +267,8 @@ function handleImportCSV() {
       @move-stage="openModal('moveStage', $event)"
       @add-lead="openModal('add')"
       @assign-staff="handleAssignStaff"
+      @manage-tags="openTagModal"
+      @bulk-manage-tags="openBulkTagModal"
     />
 
     <!-- Detail Drawer Slide-over -->
@@ -241,6 +282,7 @@ function handleImportCSV() {
       @move-stage="openModal('moveStage', drawer.lead)"
       @edit-lead="openModal('edit', drawer.lead)"
       @assign-staff="handleAssignStaff"
+      @manage-tags="openTagModal"
     />
 
     <!-- Action & Form Modal -->
@@ -269,6 +311,17 @@ function handleImportCSV() {
       :staff-list="rbacStaffStore.records"
       @close="importExportDrawerOpen = false"
       @imported="handleRefresh"
+    />
+
+    <!-- Tag Assignment Modal -->
+    <TagAssignmentModal
+      :open="tagModal.open"
+      :entity-type="tagModal.entityType"
+      :entity-id="tagModal.entityId"
+      :entity-ids="tagModal.entityIds"
+      :current-tags="tagModal.currentTags"
+      @close="tagModal.open = false"
+      @updated="handleTagModalUpdated"
     />
   </div>
 </template>

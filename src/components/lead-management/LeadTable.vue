@@ -1,7 +1,8 @@
 <script setup>
-import { computed } from "vue";
+import { ref, computed } from "vue";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import Pagination from "@/components/common/Pagination.vue";
+import TagChip from "@/components/common/TagChip.vue";
 import { getFlagCode, cleanCountryLabel } from "@/utils/countries";
 import { formatDate } from "@/utils/timeFormatter";
 import {
@@ -14,6 +15,7 @@ import {
   Plus,
   Loader2,
   UserCheck,
+  Tag,
 } from "lucide-vue-next";
 
 const props = defineProps({
@@ -36,7 +38,33 @@ const emit = defineEmits([
   "page-change",
   "per-page-change",
   "assign-staff",
+  "manage-tags",
+  "bulk-manage-tags",
 ]);
+
+const selectedLeadIds = ref([]);
+
+const isAllSelected = computed(() => {
+  if (!props.leads || props.leads.length === 0) return false;
+  return props.leads.every((l) => selectedLeadIds.value.includes(l.id));
+});
+
+const toggleSelectAll = () => {
+  if (isAllSelected.value) {
+    selectedLeadIds.value = [];
+  } else {
+    selectedLeadIds.value = props.leads.map((l) => l.id);
+  }
+};
+
+const toggleSelectLead = (leadId) => {
+  const idx = selectedLeadIds.value.indexOf(leadId);
+  if (idx > -1) {
+    selectedLeadIds.value.splice(idx, 1);
+  } else {
+    selectedLeadIds.value.push(leadId);
+  }
+};
 
 const perPageOptions = [
   { value: 10, label: "10" },
@@ -168,6 +196,17 @@ function formatSourceLabel(source) {
           {{ formattedPagination.total_items || leads.length }} Leads
         </span>
       </div>
+
+      <div v-if="selectedLeadIds.length > 0" class="flex items-center gap-2">
+        <button
+          type="button"
+          @click="emit('bulk-manage-tags', selectedLeadIds)"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary hover:bg-primary-hover text-white transition-colors cursor-pointer"
+        >
+          <Tag class="w-3.5 h-3.5" />
+          <span>Manage Tags ({{ selectedLeadIds.length }})</span>
+        </button>
+      </div>
     </div>
 
     <!-- Skeleton Loading -->
@@ -223,8 +262,17 @@ function formatSourceLabel(source) {
           <tr
             class="border-b border-primary-border bg-background/50 text-[11px] font-semibold text-secondary-text uppercase tracking-wider"
           >
+            <th class="px-3 py-3 w-10 text-center">
+              <input
+                type="checkbox"
+                :checked="isAllSelected"
+                @change="toggleSelectAll"
+                class="rounded border-primary-border bg-background text-primary focus:ring-primary cursor-pointer"
+              />
+            </th>
             <th class="px-5 py-3">Lead Code</th>
             <th class="px-5 py-3">Lead</th>
+            <th class="px-4 py-3">Tags</th>
             <th class="px-4 py-3">Phone</th>
             <th class="px-4 py-3">Country</th>
             <th class="px-4 py-3">Source</th>
@@ -242,6 +290,16 @@ function formatSourceLabel(source) {
             :key="lead.id"
             class="hover:bg-background/80 transition-colors group cursor-pointer"
           >
+            <!-- Select Checkbox -->
+            <td class="px-3 py-3.5 text-center" @click.stop>
+              <input
+                type="checkbox"
+                :checked="selectedLeadIds.includes(lead.id)"
+                @change="toggleSelectLead(lead.id)"
+                class="rounded border-primary-border bg-background text-primary focus:ring-primary cursor-pointer"
+              />
+            </td>
+
             <!-- Lead Code -->
             <td
               class="px-5 py-3.5 font-mono text-[11px] text-secondary-text whitespace-nowrap"
@@ -271,6 +329,26 @@ function formatSourceLabel(source) {
                     {{ lead.email }}
                   </p>
                 </div>
+              </div>
+            </td>
+
+            <!-- Tags Column -->
+            <td class="px-4 py-3.5 max-w-[200px]" @click.stop>
+              <div class="flex flex-wrap items-center gap-1">
+                <TagChip
+                  v-for="tag in (lead.tags || [])"
+                  :key="tag.id"
+                  :tag="tag"
+                  size="sm"
+                />
+                <button
+                  type="button"
+                  @click="emit('manage-tags', lead)"
+                  class="p-1 rounded hover:bg-white/10 text-secondary-text hover:text-primary-text transition-colors cursor-pointer"
+                  title="Manage Tags"
+                >
+                  <Plus class="w-3 h-3" />
+                </button>
               </div>
             </td>
 

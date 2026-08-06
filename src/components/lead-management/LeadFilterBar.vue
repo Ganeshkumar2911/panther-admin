@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import {
   STAFF,
   COUNTRIES,
@@ -12,6 +12,7 @@ import {
   SlidersHorizontal,
 } from 'lucide-vue-next'
 import BaseSelect from '@/components/common/BaseSelect.vue'
+import { useTagsStore } from '@/stores/tags/tags'
 
 const props = defineProps({
   searchQuery: { type: String, default: '' },
@@ -23,6 +24,8 @@ const props = defineProps({
   selectedSource: { type: String, default: '' },
   selectedPriority: { type: String, default: '' },
   selectedDate: { type: String, default: '' },
+  selectedTagIds: { type: String, default: '' },
+  selectedTagMode: { type: String, default: 'or' },
 })
 
 const emit = defineEmits([
@@ -33,6 +36,8 @@ const emit = defineEmits([
   'update:selectedSource',
   'update:selectedPriority',
   'update:selectedDate',
+  'update:selectedTagIds',
+  'update:selectedTagMode',
   'reset-filters',
   'refresh',
 ])
@@ -93,6 +98,29 @@ const priorityOptions = [
   { label: 'Low', value: 'low' },
 ]
 
+const tagsStore = useTagsStore()
+onMounted(() => {
+  tagsStore.fetchTags()
+})
+
+const tagOptions = computed(() => {
+  const options = [{ label: 'All Tags', value: '' }]
+  if (tagsStore.tags && tagsStore.tags.length > 0) {
+    tagsStore.tags.forEach(t => {
+      options.push({
+        label: t.name,
+        value: String(t.id),
+      })
+    })
+  }
+  return options
+})
+
+const toggleTagMode = () => {
+  const nextMode = props.selectedTagMode === 'and' ? 'or' : 'and'
+  emit('update:selectedTagMode', nextMode)
+}
+
 const hasActiveFilters = computed(() => {
   return (
     !!localSearchQuery.value?.trim() ||
@@ -101,7 +129,8 @@ const hasActiveFilters = computed(() => {
     !!props.selectedCountry ||
     !!props.selectedSource ||
     !!props.selectedPriority ||
-    !!props.selectedDate
+    !!props.selectedDate ||
+    !!props.selectedTagIds
   )
 })
 </script>
@@ -185,6 +214,28 @@ const hasActiveFilters = computed(() => {
           placeholder="All Priorities"
           variant="surface"
         />
+      </div>
+
+      <!-- Tag Filter -->
+      <div class="w-full xl:w-44 shrink-0 flex items-center gap-1">
+        <div class="flex-1 min-w-0">
+          <BaseSelect
+            :model-value="selectedTagIds"
+            @update:model-value="emit('update:selectedTagIds', $event)"
+            :options="tagOptions"
+            placeholder="All Tags"
+            variant="surface"
+          />
+        </div>
+        <button
+          type="button"
+          @click="toggleTagMode"
+          class="h-[38px] px-2 rounded-lg text-[10px] font-bold tracking-wider uppercase border transition-colors flex items-center justify-center shrink-0 cursor-pointer"
+          :class="selectedTagMode === 'and' ? 'bg-primary-500/20 border-primary text-primary' : 'bg-background border-primary-border text-secondary-text hover:text-primary-text'"
+          :title="`Tag match mode: ${selectedTagMode.toUpperCase()} (click to switch to ${selectedTagMode === 'and' ? 'OR' : 'AND'})`"
+        >
+          {{ selectedTagMode.toUpperCase() }}
+        </button>
       </div>
     </div>
 

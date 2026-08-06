@@ -14,8 +14,10 @@ import {
   Trash2,
   Link2,
   LogIn,
+  Tag,
 } from "lucide-vue-next";
 import { useClientListStore } from "@/stores/clientList/clientList";
+import { useTagsStore } from "@/stores/tags/tags";
 import Pagination from "@/components/common/Pagination.vue";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import DropdownMenu from "@/components/common/DropdownMenu.vue";
@@ -27,6 +29,8 @@ import DeleteClientDialog from "@/components/common/DeleteClientDialog.vue";
 import Tooltip from "@/components/common/Tooltip.vue";
 import UpdateReferralLinkDrawer from "@/components/common/UpdateReferralLinkDrawer.vue";
 import ClientLoginModal from "@/components/common/ClientLoginModal.vue";
+import TagChip from "@/components/common/TagChip.vue";
+import TagAssignmentModal from "@/components/common/TagAssignmentModal.vue";
 import { useRouter } from "vue-router";
 import { useGoToTradingAccount } from "@/composables/useGoToTradingAccount";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
@@ -36,6 +40,74 @@ const router = useRouter();
 const { hasPermission } = usePermissionCheck();
 
 const store = useClientListStore();
+const tagsStore = useTagsStore();
+
+const selectedClientIds = ref([]);
+const tagModal = ref({
+  open: false,
+  entityType: "user",
+  entityId: null,
+  entityIds: [],
+  currentTags: [],
+});
+
+const isAllClientsSelected = computed(() => {
+  if (!store.data || store.data.length === 0) return false;
+  return store.data.every((c) => selectedClientIds.value.includes(c.id));
+});
+
+const toggleSelectAllClients = () => {
+  if (isAllClientsSelected.value) {
+    selectedClientIds.value = [];
+  } else {
+    selectedClientIds.value = store.data.map((c) => c.id);
+  }
+};
+
+const toggleSelectClient = (clientId) => {
+  const idx = selectedClientIds.value.indexOf(clientId);
+  if (idx > -1) {
+    selectedClientIds.value.splice(idx, 1);
+  } else {
+    selectedClientIds.value.push(clientId);
+  }
+};
+
+const openClientTagModal = (client) => {
+  tagModal.value = {
+    open: true,
+    entityType: "user",
+    entityId: client.id,
+    entityIds: [],
+    currentTags: client.tags || [],
+  };
+};
+
+const openBulkClientTagModal = () => {
+  if (selectedClientIds.value.length === 0) return;
+  tagModal.value = {
+    open: true,
+    entityType: "user",
+    entityId: null,
+    entityIds: [...selectedClientIds.value],
+    currentTags: [],
+  };
+};
+
+const handleTagModalUpdated = () => {
+  store.fetchClients(store.pagination.page);
+};
+
+const tagOptions = computed(() => {
+  const options = [{ label: "All Tags", value: "" }];
+  (tagsStore.tags || []).forEach((t) => {
+    options.push({
+      label: t.name,
+      value: String(t.id),
+    });
+  });
+  return options;
+});
 
 let searchTimer = null;
 let ibSearchTimer = null;
@@ -94,6 +166,14 @@ const formatDate = (val) =>
 function getRowActions(client) {
   const actions = [];
 
+  if (hasPermission("tags.assign")) {
+    actions.push({
+      action: "manageTags",
+      label: "Manage Tags",
+      icon: Tag,
+    });
+  }
+
   if (hasPermission("client.update")) {
     actions.push(
       { action: "edit", label: "Edit Client", icon: Pencil },
@@ -150,6 +230,8 @@ function getRowActions(client) {
 
 function onMenuSelect(item, client) {
   switch (item.action) {
+    case "manageTags":
+      return openClientTagModal(client);
     case "clientLogin":
       return handleClientLogin(client);
     case "edit":
@@ -337,8 +419,14 @@ const getKycClass = (status) => {
   return "bg-red-500/10 text-red-700 border-red-500/20";
 };
 
+const toggleClientTagMode = () => {
+  store.filters.tag_mode = store.filters.tag_mode === "and" ? "or" : "and";
+  store.applyFilters();
+};
+
 onMounted(() => {
   store.fetchClients();
+  tagsStore.fetchTags();
   rbacStaffStore.fetchStaff(false);
 });
 </script>
@@ -375,6 +463,38 @@ onMounted(() => {
           @search="onIbSearch"
           @update:modelValue="store.applyFilters()"
         />
+
+        <!-- Tag Filter & Mode -->
+        <div class="flex items-center gap-1 w-full sm:w-56 xl:w-56">
+          <div class="flex-1 min-w-0">
+            <BaseSelect
+              v-model="store.filters.tag_ids"
+              :options="tagOptions"
+              placeholder="All Tags..."
+              class="w-full"
+              @update:modelValue="store.applyFilters()"
+            />
+          </div>
+          <button
+            type="button"
+            @click="toggleClientTagMode"
+            class="h-[38px] px-2 rounded-lg text-[10px] font-bold tracking-wider uppercase border transition-colors flex items-center justify-center shrink-0 cursor-pointer"
+            :class="store.filters.tag_mode === 'and' ? 'bg-primary-500/20 border-primary text-primary' : 'bg-background border-primary-border text-secondary-text hover:text-primary-text'"
+            :title="`Tag match mode: ${(store.filters.tag_mode || 'or').toUpperCase()}`"
+          >
+            {{ (store.filters.tag_mode || 'or').toUpperCase() }}
+          </button>
+        </div>
+
+        <button
+          v-if="selectedClientIds.length > 0"
+          type="button"
+          @click="openBulkClientTagModal"
+          class="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all cursor-pointer shrink-0"
+        >
+          <Tag class="w-3.5 h-3.5" />
+          <span>Manage Tags ({{ selectedClientIds.length }})</span>
+        </button>
 
         <button
           v-if="hasFilters"
@@ -433,10 +553,23 @@ onMounted(() => {
       <table class="w-full border-collapse">
         <thead>
           <tr class="border-b border-primary-border">
+            <th class="p-3 w-10 text-center">
+              <input
+                type="checkbox"
+                :checked="isAllClientsSelected"
+                @change="toggleSelectAllClients"
+                class="rounded border-primary-border bg-background text-primary focus:ring-primary cursor-pointer"
+              />
+            </th>
             <th
               class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
             >
               Client
+            </th>
+            <th
+              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
+            >
+              Tags
             </th>
             <th
               class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
@@ -605,6 +738,16 @@ onMounted(() => {
             :key="client.id"
             class="border-b border-primary-border last:border-none hover:bg-card-background transition-colors"
           >
+            <!-- Select Checkbox -->
+            <td class="p-3 text-center" @click.stop>
+              <input
+                type="checkbox"
+                :checked="selectedClientIds.includes(client.id)"
+                @change="toggleSelectClient(client.id)"
+                class="rounded border-primary-border bg-background text-primary focus:ring-primary cursor-pointer"
+              />
+            </td>
+
             <td class="p-3">
               <div class="flex items-center gap-2.5">
                 <div
@@ -620,6 +763,26 @@ onMounted(() => {
                     ID: {{ client.id }}
                   </p>
                 </div>
+              </div>
+            </td>
+
+            <!-- Tags Column -->
+            <td class="p-3 max-w-[180px]" @click.stop>
+              <div class="flex flex-wrap items-center gap-1">
+                <TagChip
+                  v-for="tag in (client.tags || [])"
+                  :key="tag.id"
+                  :tag="tag"
+                  size="sm"
+                />
+                <button
+                  type="button"
+                  @click="openClientTagModal(client)"
+                  class="p-1 rounded hover:bg-white/10 text-secondary-text hover:text-primary-text transition-colors cursor-pointer"
+                  title="Manage Tags"
+                >
+                  <Plus class="w-3 h-3" />
+                </button>
               </div>
             </td>
 
@@ -1279,6 +1442,17 @@ onMounted(() => {
       :open="clientLoginModalOpen"
       :client="selectedClientForLogin || {}"
       @close="closeClientLoginModal"
+    />
+
+    <!-- Tag Assignment Modal -->
+    <TagAssignmentModal
+      :open="tagModal.open"
+      :entity-type="tagModal.entityType"
+      :entity-id="tagModal.entityId"
+      :entity-ids="tagModal.entityIds"
+      :current-tags="tagModal.currentTags"
+      @close="tagModal.open = false"
+      @updated="handleTagModalUpdated"
     />
   </div>
 </template>

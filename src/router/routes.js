@@ -409,6 +409,16 @@ const routes = [
             "Manage dynamic resources, actions, and permissions mappings.",
         },
       },
+      {
+        path: "/tags",
+        name: "tags",
+        component: () => import("@/pages/tags/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Tag Management",
+          description: "Manage tags and entity assignments.",
+        },
+      },
     ],
   },
 ];
