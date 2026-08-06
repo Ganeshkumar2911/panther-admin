@@ -13,18 +13,23 @@ export const useLeadStageStore = defineStore('leadStage', () => {
   const actionLoading = ref(false)
   const error = ref(null)
   const isFetched = ref(false)
+  let inFlightPromise = null
 
   // Actions
   const fetchStages = (force = false) => {
     if (isFetched.value && !force) {
       return Promise.resolve(stages.value)
     }
+    if (inFlightPromise) {
+      return inFlightPromise
+    }
 
     loading.value = true
     error.value = null
 
-    return new Promise((resolve, reject) => {
+    inFlightPromise = new Promise((resolve, reject) => {
       const successHandler = (res) => {
+        inFlightPromise = null
         loading.value = false
         isFetched.value = true
         // Handle response data - array of stages
@@ -43,6 +48,7 @@ export const useLeadStageStore = defineStore('leadStage', () => {
       }
 
       const failureHandler = (err) => {
+        inFlightPromise = null
         loading.value = false
         error.value = err
         snackbar.show(err?.message || err?.response?.data?.message || 'Failed to fetch lead stages', 'error')
@@ -56,6 +62,8 @@ export const useLeadStageStore = defineStore('leadStage', () => {
         onFailure: failureHandler,
       })
     })
+
+    return inFlightPromise
   }
 
   const createStage = (payload) => {
@@ -80,9 +88,11 @@ export const useLeadStageStore = defineStore('leadStage', () => {
         data: {
           code: payload.code,
           name: payload.name,
+          description: payload.description ?? '',
           display_order: Number(payload.display_order) || 1,
           color: payload.color || '#3B82F6',
-          is_active: payload.is_active ?? true,
+          is_active: Boolean(payload.is_active),
+          is_system: Boolean(payload.is_system),
         },
         onSuccess: successHandler,
         onFailure: failureHandler,
@@ -110,13 +120,7 @@ export const useLeadStageStore = defineStore('leadStage', () => {
       apiRequest(urls.KEYS.PATCH, urls.lead.stages, {
         look_up_key: stageId,
         isTokenRequired: true,
-        data: {
-          name: payload.name,
-          display_order: Number(payload.display_order) || 1,
-          color: payload.color || '#3B82F6',
-          is_active: payload.is_active ?? true,
-          ...(payload.code ? { code: payload.code } : {}),
-        },
+        data: payload,
         onSuccess: successHandler,
         onFailure: failureHandler,
       })

@@ -114,12 +114,12 @@ const kpiItems = computed(() => {
     <div class="flex items-center justify-between px-0.5">
       <div class="flex items-center gap-2">
         <h3 class="text-xs font-bold text-primary-text uppercase tracking-wider">Metrics Overview</h3>
-        <span
+        <!-- <span
           v-if="kpiItems.length > 0"
           class="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 font-medium"
         >
           {{ kpiItems.length }}
-        </span>
+        </span> -->
       </div>
 
       <button

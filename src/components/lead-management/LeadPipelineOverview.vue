@@ -1,47 +1,54 @@
 <script setup>
-import { computed } from 'vue'
-import { Filter, ArrowRight } from 'lucide-vue-next'
+import { computed } from "vue";
+import { Filter, ArrowRight, Info } from "lucide-vue-next";
+import Tooltip from "@/components/common/Tooltip.vue";
 
 const props = defineProps({
   stages: { type: Array, default: () => [] },
   selectedStage: { type: String, default: null },
   loading: { type: Boolean, default: false },
-})
+});
 
-const emit = defineEmits(['select-stage'])
+const emit = defineEmits(["select-stage"]);
 
 const stageMetrics = computed(() => {
-  const list = Array.isArray(props.stages) ? props.stages : []
+  const list = Array.isArray(props.stages) ? props.stages : [];
 
-  if (!list.length) return []
+  if (!list.length) return [];
 
-  const total = list.reduce((sum, item) => sum + Number(item.count || 0), 0) || 1
+  const total =
+    list.reduce((sum, item) => sum + Number(item.count || 0), 0) || 1;
 
   return list.map((s, idx) => {
-    const code = s.code || String(s.id)
-    const count = Number(s.count ?? 0)
+    const code = s.code || String(s.id);
+    const count = Number(s.count ?? 0);
     return {
       code,
       label: s.name || code,
+      description: s.description || "",
       color: s.color,
-      stepNumber: s.display_order || (idx + 1),
+      stepNumber: s.display_order || idx + 1,
       count,
       pct: Math.round((count / total) * 100),
-    }
-  })
-})
+    };
+  });
+});
 
 function handleStageClick(code) {
-  emit('select-stage', props.selectedStage === code ? null : code)
+  emit("select-stage", props.selectedStage === code ? null : code);
 }
 </script>
 
 <template>
-  <div class="bg-card-background border border-primary-border rounded-xl p-5 space-y-4">
+  <div
+    class="bg-card-background border border-primary-border rounded-xl p-5 space-y-4"
+  >
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div>
-        <h2 class="text-xs font-bold uppercase tracking-wider text-primary-text">
+        <h2
+          class="text-xs font-bold uppercase tracking-wider text-primary-text"
+        >
           Onboarding Process Stepper
         </h2>
         <p class="text-[11px] text-secondary-text mt-0.5">
@@ -61,14 +68,21 @@ function handleStageClick(code) {
 
     <!-- Stepper Skeleton Loader -->
     <div v-if="loading" class="overflow-x-auto pb-2 pt-1 no-scrollbar">
-      <div class="flex items-start min-w-[950px] justify-between relative px-2 py-2">
+      <div
+        class="flex items-start min-w-[950px] justify-between relative px-2 py-2"
+      >
         <div
           v-for="n in 6"
           :key="n"
           class="flex-1 flex flex-col items-center relative animate-pulse"
         >
-          <div v-if="n < 6" class="absolute top-4 left-[50%] right-[-50%] h-[2px] bg-primary-border/40 z-0" />
-          <div class="relative z-10 w-8 h-8 rounded-full bg-primary-border/60 border-2 border-primary-border/40 shrink-0" />
+          <div
+            v-if="n < 6"
+            class="absolute top-4 left-[50%] right-[-50%] h-[2px] bg-primary-border/40 z-0"
+          />
+          <div
+            class="relative z-10 w-8 h-8 rounded-full bg-primary-border/60 border-2 border-primary-border/40 shrink-0"
+          />
           <div class="mt-2.5 flex flex-col items-center gap-1.5 w-full">
             <div class="h-3 w-16 bg-primary-border/50 rounded" />
             <div class="h-4 w-12 bg-primary-border/30 rounded-md" />
@@ -82,7 +96,8 @@ function handleStageClick(code) {
       v-else-if="stageMetrics.length === 0"
       class="py-6 text-center text-xs text-secondary-text border border-dashed border-primary-border/60 rounded-lg"
     >
-      No active stages found. Manage stages to configure your onboarding pipeline.
+      No active stages found. Manage stages to configure your onboarding
+      pipeline.
     </div>
 
     <!-- Stepper Pipeline View -->
@@ -98,14 +113,18 @@ function handleStageClick(code) {
           <div
             v-if="i < stageMetrics.length - 1"
             class="absolute top-4 left-[50%] right-[-50%] h-[2px] z-0 flex items-center justify-center transition-colors"
-            :class="selectedStage === stg.code ? 'bg-primary' : 'bg-primary-border group-hover:bg-primary/40'"
+            :class="
+              selectedStage === stg.code
+                ? 'bg-primary'
+                : 'bg-primary-border group-hover:bg-primary/40'
+            "
           >
             <div
               :class="[
                 'w-5 h-5 rounded-full flex items-center justify-center border transition-all duration-200 z-10 shrink-0 shadow-xs group-hover:scale-110 group-hover:translate-x-0.5',
                 selectedStage === stg.code
                   ? 'bg-primary text-white border-primary shadow-sm shadow-primary/30'
-                  : 'bg-card-background text-secondary-text border-primary-border group-hover:border-primary/60 group-hover:text-primary'
+                  : 'bg-card-background text-secondary-text border-primary-border group-hover:border-primary/60 group-hover:text-primary',
               ]"
             >
               <ArrowRight class="w-3 h-3" />
@@ -118,7 +137,7 @@ function handleStageClick(code) {
               'relative z-10 w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs transition-all duration-200 border-2',
               selectedStage === stg.code
                 ? 'bg-primary border-primary text-white shadow-primary/30 scale-110'
-                : 'bg-background border-primary-border text-secondary-text group-hover:border-primary/50 group-hover:text-primary-text'
+                : 'bg-background border-primary-border text-secondary-text group-hover:border-primary/50 group-hover:text-primary-text',
             ]"
           >
             <span>{{ stg.stepNumber }}</span>
@@ -126,14 +145,33 @@ function handleStageClick(code) {
 
           <!-- Step Title & Metrics -->
           <div class="mt-2.5 text-center px-1">
-            <p
-              :class="[
-                'text-[11px] font-semibold tracking-tight uppercase transition-colors line-clamp-1',
-                selectedStage === stg.code ? 'text-primary font-bold' : 'text-primary-text group-hover:text-primary'
-              ]"
-            >
-              {{ stg.label }}
-            </p>
+            <div class="flex items-center justify-center gap-1">
+              <p
+                :class="[
+                  'text-[11px] font-semibold tracking-tight uppercase transition-colors line-clamp-1',
+                  selectedStage === stg.code
+                    ? 'text-primary font-bold'
+                    : 'text-primary-text group-hover:text-primary',
+                ]"
+              >
+                {{ stg.label }}
+              </p>
+
+              <Tooltip
+                v-if="stg.description"
+                :text="stg.description"
+                :position="i === stageMetrics.length - 1 ? 'left' : 'right'"
+                textSize="10px"
+              >
+                <button
+                  type="button"
+                  class="p-0.5 text-secondary-text hover:text-primary transition-colors cursor-pointer inline-flex items-center justify-center shrink-0"
+                  @click.stop
+                >
+                  <Info class="w-3 h-3" />
+                </button>
+              </Tooltip>
+            </div>
 
             <div class="mt-1 flex items-center justify-center gap-1.5">
               <span
@@ -141,7 +179,7 @@ function handleStageClick(code) {
                   'text-[10px] font-bold px-1.5 py-0.5 rounded-md border',
                   selectedStage === stg.code
                     ? 'bg-primary/20 text-primary border-primary/30'
-                    : 'bg-background text-secondary-text border-primary-border/60'
+                    : 'bg-background text-secondary-text border-primary-border/60',
                 ]"
               >
                 {{ stg.count }}

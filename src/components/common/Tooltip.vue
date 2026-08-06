@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 
 const props = defineProps({
   text: {
@@ -19,14 +19,68 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  textSize: {
+    type: String,
+    default: "12px",
+  },
+  maxWidth: {
+    type: String,
+    default: "240px",
+  },
+});
+
+const computedFontSizeStyle = computed(() => {
+  if (props.textSize && !props.textSize.startsWith("text-")) {
+    return { fontSize: props.textSize };
+  }
+  return {};
+});
+
+const computedTextSizeClass = computed(() => {
+  if (props.textSize && props.textSize.startsWith("text-")) {
+    return props.textSize;
+  }
+  return "";
+});
+
+const computedMaxWidthStyle = computed(() => {
+  if (!props.maxWidth) return {};
+  if (props.maxWidth === "none") return { maxWidth: "none" };
+  if (/^\d+(\.\d+)?(px|rem|em|pt|%)$/.test(props.maxWidth)) {
+    return { maxWidth: props.maxWidth };
+  }
+  return {};
+});
+
+const computedMaxWidthClass = computed(() => {
+  if (props.maxWidth && props.maxWidth.startsWith("max-w-")) {
+    return props.maxWidth;
+  }
+  return "";
 });
 
 const showTooltip = ref(false);
 const wrapperRef = ref(null);
+const actualPosition = ref(props.position);
 
 const getTooltipStyle = () => {
-  if (props.position === "right" && wrapperRef.value) {
-    const rect = wrapperRef.value.getBoundingClientRect();
+  if (!wrapperRef.value) return {};
+  const rect = wrapperRef.value.getBoundingClientRect();
+  const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+
+  let pos = props.position;
+  // If target position is 'right' but wrapper is too close to right viewport boundary (< 240px space), flip to 'left'
+  if (pos === "right" && viewportWidth - rect.right < 240) {
+    pos = "left";
+  }
+  // If target position is 'left' but wrapper is too close to left viewport boundary (< 240px space), flip to 'right'
+  else if (pos === "left" && rect.left < 240) {
+    pos = "right";
+  }
+
+  actualPosition.value = pos;
+
+  if (pos === "right") {
     return {
       position: "fixed",
       left: `${rect.right + 8}px`,
@@ -37,11 +91,10 @@ const getTooltipStyle = () => {
       zIndex: "9999",
     };
   }
-  if (props.position === "left" && wrapperRef.value) {
-    const rect = wrapperRef.value.getBoundingClientRect();
+  if (pos === "left") {
     return {
       position: "fixed",
-      left: `${rect.left - 8}px`,
+      left: `${Math.max(12, rect.left - 8)}px`,
       top: `${rect.top + rect.height / 2}px`,
       transform: "translate(-100%, -50%)",
       bottom: "auto",
@@ -76,7 +129,7 @@ const getTooltipStyle = () => {
       bottom: "auto",
     },
   };
-  return positionMap[props.position] || positionMap.center;
+  return positionMap[pos] || positionMap.center;
 };
 
 const tooltipStyle = ref({});
@@ -105,10 +158,14 @@ const handleMouseLeave = () => {
     <div
       v-show="showTooltip"
       class="tooltip-popup"
-      :class="[`position-${position}`]"
-      :style="tooltipStyle"
+      :class="[`position-${actualPosition}`, computedMaxWidthClass]"
+      :style="[tooltipStyle, computedMaxWidthStyle]"
     >
-      <div class="tooltip-content">
+      <div
+        class="tooltip-content"
+        :class="computedTextSizeClass"
+        :style="computedFontSizeStyle"
+      >
         {{ text }}
       </div>
     </div>
@@ -129,7 +186,7 @@ const handleMouseLeave = () => {
 .tooltip-popup {
   position: absolute;
   z-index: 9999;
-  white-space: nowrap;
+  width: max-content;
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.15s ease;
@@ -141,7 +198,7 @@ const handleMouseLeave = () => {
 
 .tooltip-content {
   position: relative;
-  background: rgba(0, 0, 0, 0.9);
+  background: rgba(0, 0, 0, 0.92);
   color: #fff;
   padding: 6px 12px;
   border-radius: 6px;
@@ -149,6 +206,9 @@ const handleMouseLeave = () => {
   font-weight: 500;
   line-height: 1.4;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  white-space: normal;
+  word-break: break-word;
+  text-align: left;
 }
 
 /* Default arrow (center) */
