@@ -29,17 +29,18 @@ export const calculateTat = (ticket, now = new Date()) => {
       tatFormatted: ticket.tat_formatted || "Completed",
       tatMessage: ticket.tat_message || `Resolved (${ticket.status})`,
       isBreached: ticket.tat_message?.toLowerCase().includes("breached") || ticket.is_due || false,
-      hasDeadline: !!(ticket.due_at || ticket.tat_formatted || ticket.tat_message),
+      hasDeadline: !!(ticket.due_at || ticket.tat_formatted || ticket.tat_message || ticket.total_minutes),
     };
   }
 
   const dueAt = ticket.due_at;
   if (!dueAt) {
-    if (ticket.tat_formatted || ticket.tat_message) {
+    if (ticket.tat_formatted || ticket.tat_message || ticket.total_minutes) {
+      const isBreached = ticket.is_due || ticket.tat_message?.toLowerCase().includes("breached") || false;
       return {
-        tatFormatted: ticket.tat_formatted || null,
-        tatMessage: ticket.tat_message || null,
-        isBreached: ticket.tat_message?.toLowerCase().includes("breached") || ticket.is_due || false,
+        tatFormatted: ticket.tat_formatted || (ticket.total_minutes ? `${ticket.total_minutes} minutes` : null),
+        tatMessage: ticket.tat_message || (isBreached ? "Breached" : "On Track"),
+        isBreached,
         hasDeadline: true,
       };
     }
@@ -53,18 +54,19 @@ export const calculateTat = (ticket, now = new Date()) => {
 
   const due = moment.utc(dueAt);
   if (!due.isValid()) {
+    const isBreached = ticket.is_due || ticket.tat_message?.toLowerCase().includes("breached") || false;
     return {
-      tatFormatted: ticket.tat_formatted || null,
-      tatMessage: ticket.tat_message || null,
-      isBreached: false,
-      hasDeadline: false,
+      tatFormatted: ticket.tat_formatted || (ticket.total_minutes ? `${ticket.total_minutes} minutes` : null),
+      tatMessage: ticket.tat_message || (isBreached ? "Breached" : "On Track"),
+      isBreached,
+      hasDeadline: !!(ticket.tat_formatted || ticket.tat_message || ticket.total_minutes),
     };
   }
 
-  const current = moment(now);
+  const current = moment.utc(now);
   const diffSeconds = due.diff(current, "seconds");
 
-  const isBreached = diffSeconds < 0;
+  const isBreached = diffSeconds < 0 || ticket.is_due === true;
   const absSec = Math.abs(diffSeconds);
 
   const duration = moment.duration(absSec, "seconds");
@@ -73,7 +75,7 @@ export const calculateTat = (ticket, now = new Date()) => {
   const minutes = duration.minutes();
   const seconds = duration.seconds();
 
-  // Short format countdown e.g. "1h 3m 24s"
+  // Short format countdown e.g. "29m 45s" or "1h 3m 24s"
   const shortParts = [];
   if (days > 0) shortParts.push(`${days}d`);
   if (hours > 0 || days > 0) shortParts.push(`${hours}h`);
@@ -81,18 +83,10 @@ export const calculateTat = (ticket, now = new Date()) => {
   shortParts.push(`${seconds}s`);
   const countdownStr = shortParts.join(" ");
 
-  // Full descriptive verbose text e.g. "1 hour 3 minutes 24 seconds"
-  const verboseParts = [];
-  if (days > 0) verboseParts.push(`${days} ${days === 1 ? "day" : "days"}`);
-  if (hours > 0) verboseParts.push(`${hours} ${hours === 1 ? "hour" : "hours"}`);
-  if (minutes > 0) verboseParts.push(`${minutes} ${minutes === 1 ? "minute" : "minutes"}`);
-  verboseParts.push(`${seconds} ${seconds === 1 ? "second" : "seconds"}`);
-  const verboseStr = verboseParts.join(" ");
-
   if (isBreached) {
     return {
       tatFormatted: `Overdue by ${countdownStr}`,
-      tatMessage: "Breached",
+      tatMessage: ticket.tat_message || "Breached",
       isBreached: true,
       hasDeadline: true,
     };
@@ -100,7 +94,7 @@ export const calculateTat = (ticket, now = new Date()) => {
 
   return {
     tatFormatted: `Due in ${countdownStr}`,
-    tatMessage: "On Track",
+    tatMessage: ticket.tat_message || "On Track",
     isBreached: false,
     hasDeadline: true,
   };
