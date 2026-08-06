@@ -470,6 +470,7 @@ import Pagination from "@/components/common/Pagination.vue";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import CreateTicketDialog from "@/components/tickets/CreateTicketDialog.vue";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
+import { formatDate } from "@/utils/timeFormatter";
 
 const router = useRouter();
 const yourTicketsStore = useTicketsStore();
@@ -599,12 +600,6 @@ const handleYourTicketsPageChange = (page) => {
   yourTicketsStore.fetchTickets(true, page, yourTicketsFilters.value);
 };
 
-const formatDate = (val) =>
-  new Date(val).toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
 
 const priorityClass = (p) =>
   ({
@@ -625,7 +620,9 @@ const statusClass = (s) =>
   })[s] ?? "bg-primary-border/20 text-secondary-text";
 
 onMounted(() => {
-  yourTicketsStore.fetchTickets();
+  if (activeTab.value === "your-tickets") {
+    yourTicketsStore.fetchTickets();
+  }
   platformTicketsStore.fetchTickets();
 });
 </script>

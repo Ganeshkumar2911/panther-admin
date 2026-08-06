@@ -71,7 +71,7 @@ const cards = computed(() => [
       <span class="flex-1 h-px bg-primary-border" />
     </div>
 
-    <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-7 gap-3">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       <MetricCard
         v-for="(card, i) in cards"
         :key="i"
