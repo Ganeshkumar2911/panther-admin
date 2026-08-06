@@ -624,7 +624,15 @@ onMounted(() => {
             </td>
 
             <td class="p-3">
-              <p class="text-xs text-primary-text">{{ client.email ?? "—" }}</p>
+              <p
+                v-if="client.email"
+                @click="goToTradingAccount(client.email)"
+                class="text-xs font-medium text-primary hover:underline cursor-pointer transition-colors"
+                title="Search trading accounts for this email"
+              >
+                {{ client.email }}
+              </p>
+              <p v-else class="text-xs text-primary-text">—</p>
               <p
                 v-if="hasPermission('client.view_number')"
                 class="text-[10px] text-secondary-text"
@@ -907,9 +915,15 @@ onMounted(() => {
               <p class="text-sm font-medium text-primary-text truncate">
                 {{ client.name }}
               </p>
-              <p class="text-[11px] text-secondary-text truncate">
+              <p
+                v-if="client.email"
+                @click="goToTradingAccount(client.email)"
+                class="text-[11px] font-medium text-primary hover:underline cursor-pointer transition-colors truncate"
+                title="Search trading accounts for this email"
+              >
                 {{ client.email }}
               </p>
+              <p v-else class="text-[11px] text-secondary-text truncate">—</p>
               <p
                 v-if="client.phone_number"
                 class="text-[10px] text-secondary-text/80 truncate"

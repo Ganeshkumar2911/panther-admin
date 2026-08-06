@@ -77,17 +77,18 @@
           TAT Status
         </p>
         <div class="flex flex-col gap-2">
-          <span v-if="store.detail.tat_formatted" class="text-sm font-medium text-primary-text">
-            {{ store.detail.tat_formatted }}
-          </span>
-          <span
-            v-if="store.detail.tat_message"
-            class="text-xs"
-            :class="store.detail.tat_message?.includes('Breached') ? 'text-primary-red font-medium' : 'text-primary-green'"
-          >
-            {{ store.detail.tat_message }}
-          </span>
-          <span v-if="!store.detail.tat_message" class="text-xs text-secondary-text">
+          <template v-if="getTat(store.detail).hasDeadline">
+            <span class="text-sm font-medium text-primary-text">
+              {{ getTat(store.detail).tatFormatted }}
+            </span>
+            <span
+              class="text-xs"
+              :class="getTat(store.detail).isBreached ? 'text-primary-red font-medium' : 'text-primary-green'"
+            >
+              {{ getTat(store.detail).tatMessage }}
+            </span>
+          </template>
+          <span v-else class="text-xs text-secondary-text">
             No target resolution deadline set
           </span>
         </div>
@@ -244,7 +245,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref, computed, watch } from "vue";
+import { onMounted, onBeforeUnmount, ref, computed, watch } from "vue";
 import { useRoute } from "vue-router";
 import {
   Paperclip,
@@ -258,6 +259,7 @@ import { useTicketsStore } from "@/stores/tickets/tickets";
 import TicketActionDialog from "@/components/tickets/TicketActionDialog.vue";
 import TicketStatusDialog from "@/components/tickets/TicketStatusDialog.vue";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
+import { formatDate, calculateTat } from "@/utils/timeFormatter";
 
 const store = useTicketsStore();
 const route = useRoute();
@@ -277,13 +279,24 @@ const openStatusDialog = () => {
   }
 };
 
-const refreshTicket = () => {
+const now = ref(new Date());
+let tickerTimer = null;
+
+const getTat = (ticket) => calculateTat(ticket, now.value);
+
+onMounted(() => {
+  tickerTimer = setInterval(() => {
+    now.value = new Date();
+  }, 1000);
+
   if (ticketId.value) {
     store.fetchTicketDetail(ticketId.value);
   }
-};
+});
 
-import { formatDate } from "@/utils/timeFormatter";
+onBeforeUnmount(() => {
+  if (tickerTimer) clearInterval(tickerTimer);
+});
 
 const priorityClass = (p) =>
   ({
@@ -302,6 +315,4 @@ const statusClass = (s) =>
     closed: "bg-primary-red/20 text-primary-red border border-primary-red/30",
   })[s] ??
   "bg-primary-border/20 text-secondary-text border border-primary-border";
-
-onMounted(() => store.fetchTicketDetail(ticketId.value));
 </script>

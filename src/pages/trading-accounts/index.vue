@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import {
   BarChart2,
@@ -408,7 +408,7 @@ onMounted(() => {
     profile.fetchUserProfile();
   }
 
-  const querySearch = route.query.search;
+  const querySearch = route.query.search || route.query.search_query || route.query.email;
   if (querySearch) {
     store.setFilters({
       search_query: String(querySearch).trim(),
@@ -417,6 +417,17 @@ onMounted(() => {
     store.fetchAccounts();
   }
 });
+
+watch(
+  () => route.query.search || route.query.search_query || route.query.email,
+  (newSearch) => {
+    if (newSearch && newSearch !== store.filters.search_query) {
+      store.setFilters({
+        search_query: String(newSearch).trim(),
+      });
+    }
+  }
+);
 
 onBeforeUnmount(() => clearTimeout(searchTimer));
 </script>
