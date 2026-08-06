@@ -1,13 +1,23 @@
 <template>
   <Teleport to="body">
-    <Transition name="modal">
-      <div
-        v-if="open"
-        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs transition-all duration-300"
-      >
+    <div>
+      <!-- Backdrop Overlay -->
+      <Transition name="backdrop">
         <div
-          class="bg-card-background border border-primary-border rounded-2xl shadow-2xl w-full max-h-[90vh] overflow-hidden flex flex-col transform transition-all duration-300"
-          :class="maxWidth"
+          v-if="open"
+          class="fixed inset-0 z-[100] bg-black/50 backdrop-blur-xs cursor-pointer"
+          @click="handleBackdropClick"
+        />
+      </Transition>
+
+      <!-- Side Drawer Panel -->
+      <Transition name="drawer">
+        <div
+          v-if="open"
+          class="fixed right-0 top-0 bottom-0 z-[101] w-full bg-card-background border-l border-primary-border flex flex-col shadow-2xl transform transition-all duration-300"
+          :class="maxWidth || 'max-w-md sm:max-w-lg'"
+          role="dialog"
+          aria-modal="true"
           @click.stop
         >
           <!-- Header -->
@@ -39,7 +49,7 @@
             <button
               type="button"
               @click="$emit('close')"
-              class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-background text-secondary-text hover:text-primary-text transition-colors cursor-pointer focus:outline-none"
+              class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-background text-secondary-text hover:text-primary-text transition-colors cursor-pointer focus:outline-none"
               title="Close"
             >
               <X class="w-4 h-4" />
@@ -232,8 +242,8 @@
             </button>
           </div>
         </div>
-      </div>
-    </Transition>
+      </Transition>
+    </div>
   </Teleport>
 </template>
 
@@ -242,27 +252,12 @@ import { ref, watch, computed } from "vue";
 import { X, Save, Loader2, Eye, EyeOff, Sliders } from "lucide-vue-next";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 
-/**
- * FIELD CONFIG EXAMPLE:
- * {
- *   type: "text" | "password" | "number" | "email" | "textarea" | "select" | "radio" | "checkbox-group" | "switch",
- *   label: "Bot ID",
- *   model: "bot_id",              // key inside form object
- *   placeholder: "Enter Bot ID",
- *   required: true,
- *   disabled: false,
- *   rows: 4,                      // textarea only
- *   options: [{ label, value }],  // select / radio / checkbox-group
- *   hint: "helper text"
- * }
- */
-
 const props = defineProps({
   open: { type: Boolean, default: true },
   title: { type: String, default: "" },
   description: { type: String, default: "" },
   icon: { type: [Object, Function, String], default: null },
-  maxWidth: { type: String, default: "max-w-lg" },
+  maxWidth: { type: String, default: "max-w-md sm:max-w-lg" },
   fields: { type: Array, required: true },
   modelValue: { type: Object, default: () => ({}) },
   loading: { type: Boolean, default: false },
@@ -339,14 +334,25 @@ function submit() {
 </script>
 
 <style scoped>
-.modal-enter-active,
-.modal-leave-active {
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+/* Backdrop transition */
+.backdrop-enter-active,
+.backdrop-leave-active {
+  transition: opacity 0.25s ease;
 }
 
-.modal-enter-from,
-.modal-leave-to {
+.backdrop-enter-from,
+.backdrop-leave-to {
   opacity: 0;
-  transform: scale(0.96);
+}
+
+/* Side Drawer Panel slide-out-from-right transition */
+.drawer-enter-active,
+.drawer-leave-active {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.drawer-enter-from,
+.drawer-leave-to {
+  transform: translateX(100%);
 }
 </style>
