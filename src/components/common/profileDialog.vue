@@ -263,7 +263,7 @@
                     {{ profileStore.user?.email || 'No email registered' }}
                   </p>
                   <p v-if="role" class="text-[11px] text-primary font-medium capitalize mt-1">
-                    Role: {{ role }}
+                    Role: {{ role === "staff" ? "admin" : role }}
                   </p>
                 </div>
               </div>
@@ -505,11 +505,13 @@ function getCountryLabel(val) {
 
 // ─── Role Detection ─────────────────────────────────
 const role = computed(() => {
+  let r = null;
   try {
-    return JSON.parse(localStorage.getItem('user') || '{}')?.role || profileStore.user?.role || null
+    r = JSON.parse(localStorage.getItem('user') || '{}')?.role || profileStore.user?.role || null;
   } catch {
-    return profileStore.user?.role || null
+    r = profileStore.user?.role || null;
   }
+  return r === 'staff' ? 'admin' : r;
 })
 
 const isFm = computed(() => role.value === 'fm')

@@ -329,6 +329,37 @@
                   {{ req.acquirer }}
                 </p>
                 <p
+                  v-if="
+                    req.type?.toLowerCase() === 'withdrawal' && getAddress(req)
+                  "
+                  class="text-[10px] text-secondary-text font-mono flex items-center gap-1.5"
+                >
+                  <span>Address:</span>
+                  <Tooltip
+                    :text="getAddress(req)"
+                    position="bottom"
+                    textSize="8px"
+                  >
+                    <span
+                      class="truncate max-w-[120px] inline-block align-bottom font-mono text-primary-text font-medium"
+                    >
+                      {{ getAddress(req) }}
+                    </span>
+                  </Tooltip>
+                  <button
+                    type="button"
+                    class="p-0.5 hover:text-primary transition-colors cursor-pointer shrink-0 text-secondary-text"
+                    title="Copy address"
+                    @click.stop="copyToClipboard(getAddress(req), req.id)"
+                  >
+                    <Check
+                      v-if="copiedAddressMap[req.id]"
+                      class="w-3 h-3 text-emerald-400"
+                    />
+                    <Copy v-else class="w-3 h-3" />
+                  </button>
+                </p>
+                <p
                   v-if="req.txid"
                   class="text-[10px] text-secondary-text font-mono truncate max-w-[140px]"
                   :title="req.txid"
@@ -457,11 +488,13 @@
 
 <script setup>
 import { onMounted, computed, ref } from "vue";
-import { Receipt, Check, X, RefreshCw } from "lucide-vue-next";
+import { Receipt, Check, X, RefreshCw, Copy } from "lucide-vue-next";
 import { usePaymentRequestsStore } from "@/stores/paymentRequests/paymentRequests";
 import { useProfileStore } from "@/stores/profile/profile";
+import { useSnackbarStore } from "@/stores/snackbar/snackbar";
 import Pagination from "@/components/common/Pagination.vue";
 import BaseSelect from "@/components/common/BaseSelect.vue";
+import Tooltip from "@/components/common/Tooltip.vue";
 import PaymentRequestConfirmDialog from "@/components/paymentRequests/PaymentRequestConfirmDialog.vue";
 import ChangePaymentStatusDialog from "@/components/paymentRequests/ChangePaymentStatusDialog.vue";
 import { formatDate } from "@/utils/timeFormatter";
@@ -469,7 +502,23 @@ import { usePermissionCheck } from "@/composables/usePermissionCheck";
 
 const store = usePaymentRequestsStore();
 const profileStore = useProfileStore();
+const snackbar = useSnackbarStore();
 const { hasPermission } = usePermissionCheck();
+
+const copiedAddressMap = ref({});
+
+const getAddress = (req) =>
+  req?.address || req?.wallet_address || req?.details?.address || "";
+
+const copyToClipboard = (text, reqId) => {
+  if (!text) return;
+  navigator.clipboard.writeText(text);
+  copiedAddressMap.value[reqId] = true;
+  snackbar.show("Wallet address copied to clipboard", "success");
+  setTimeout(() => {
+    copiedAddressMap.value[reqId] = false;
+  }, 2000);
+};
 
 // ── Client / Account search options (populated from store methods) ──
 const clientOptions = ref([]);

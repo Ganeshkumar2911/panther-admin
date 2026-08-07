@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import {
   BarChart2,
@@ -233,6 +233,8 @@ const closeDepositWithdrawalDialog = () => {
 };
 
 const openToggleTrading = (acc) => {
+  if (!hasPermission("trading_account.update")) return;
+  if (acc?.account_type === "copy_trading" || acc?.trading_type === "copy_trading") return;
   toggleTradingDialog.value = {
     open: true,
     account: acc,
@@ -350,6 +352,7 @@ function getRowActions(acc) {
         icon: Power,
         danger: acc.is_active,
         success: !acc.is_active,
+        hidden: acc.trading_type === "copy_trading" || acc.account_type === "copy_trading",
       },
       {
         action: "changeGroup",
@@ -405,7 +408,7 @@ onMounted(() => {
     profile.fetchUserProfile();
   }
 
-  const querySearch = route.query.search;
+  const querySearch = route.query.search || route.query.search_query || route.query.email;
   if (querySearch) {
     store.setFilters({
       search_query: String(querySearch).trim(),
@@ -414,6 +417,17 @@ onMounted(() => {
     store.fetchAccounts();
   }
 });
+
+watch(
+  () => route.query.search || route.query.search_query || route.query.email,
+  (newSearch) => {
+    if (newSearch && newSearch !== store.filters.search_query) {
+      store.setFilters({
+        search_query: String(newSearch).trim(),
+      });
+    }
+  }
+);
 
 onBeforeUnmount(() => clearTimeout(searchTimer));
 </script>
@@ -839,10 +853,14 @@ onBeforeUnmount(() => clearTimeout(searchTimer));
             <td class="px-3 py-4">
               <button
                 type="button"
-                class="text-[11px] font-medium px-2.5 py-1 rounded-full capitalize whitespace-nowrap text-white transition-all hover:opacity-80 active:scale-95 cursor-pointer flex items-center gap-1"
-                :class="
-                  acc.is_active ? 'bg-primary-green/100' : 'bg-primary-red/100'
-                "
+                class="text-[11px] font-medium px-2.5 py-1 rounded-full capitalize whitespace-nowrap text-white transition-all flex items-center gap-1"
+                :class="[
+                  acc.is_active ? 'bg-primary-green/100' : 'bg-primary-red/100',
+                  hasPermission('trading_account.update') && acc.account_type !== 'copy_trading' && acc.trading_type !== 'copy_trading'
+                    ? 'hover:opacity-80 active:scale-95 cursor-pointer'
+                    : 'cursor-not-allowed opacity-80'
+                ]"
+                :disabled="!hasPermission('trading_account.update') || acc.account_type === 'copy_trading' || acc.trading_type === 'copy_trading'"
                 @click="openToggleTrading(acc)"
               >
                 {{ acc.is_active ? "Active" : "Inactive" }}

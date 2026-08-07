@@ -414,27 +414,18 @@
 
               <td class="p-3 text-xs text-secondary-text">
                 <div class="flex flex-col gap-1">
-                  <span
-                    v-if="ticket.tat_formatted"
-                    class="text-[11px] font-medium text-primary-text"
-                  >
-                    {{ ticket.tat_formatted }}
-                  </span>
-                  <span
-                    v-if="ticket.tat_message"
-                    class="text-[10px]"
-                    :class="
-                      ticket.tat_message?.includes('Breached')
-                        ? 'text-primary-red font-medium'
-                        : 'text-primary-green'
-                    "
-                  >
-                    {{ ticket.tat_message }}
-                  </span>
-                  <span
-                    v-if="!ticket.tat_message"
-                    class="text-[11px] text-secondary-text"
-                  >
+                  <template v-if="getTat(ticket).hasDeadline">
+                    <span class="text-[11px] font-medium text-primary-text">
+                      {{ getTat(ticket).tatFormatted }}
+                    </span>
+                    <span
+                      class="text-[10px]"
+                      :class="getTat(ticket).isBreached ? 'text-primary-red font-medium' : 'text-primary-green'"
+                    >
+                      {{ getTat(ticket).tatMessage }}
+                    </span>
+                  </template>
+                  <span v-else class="text-[11px] text-secondary-text">
                     No target resolution deadline set
                   </span>
                 </div>
@@ -489,7 +480,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref, computed, watch } from "vue";
+import { onMounted, onBeforeUnmount, ref, computed, watch } from "vue";
 import { useRouter } from "vue-router";
 import {
   Search,
@@ -504,7 +495,7 @@ import Pagination from "@/components/common/Pagination.vue";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import CreateTicketDialog from "@/components/tickets/CreateTicketDialog.vue";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
-import Tooltip from "@/components/common/Tooltip.vue";
+import { formatDate, calculateTat } from "@/utils/timeFormatter";
 
 const router = useRouter();
 const yourTicketsStore = useTicketsStore();
@@ -634,12 +625,6 @@ const handleYourTicketsPageChange = (page) => {
   yourTicketsStore.fetchTickets(true, page, yourTicketsFilters.value);
 };
 
-const formatDate = (val) =>
-  new Date(val).toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
 
 const priorityClass = (p) =>
   ({
@@ -660,8 +645,23 @@ const statusClass = (s) =>
     closed: "bg-primary-border/20 text-secondary-text",
   })[s] ?? "bg-primary-border/20 text-secondary-text";
 
+const now = ref(new Date());
+let tickerTimer = null;
+
+const getTat = (ticket) => calculateTat(ticket, now.value);
+
 onMounted(() => {
-  yourTicketsStore.fetchTickets();
+  tickerTimer = setInterval(() => {
+    now.value = new Date();
+  }, 1000);
+
+  if (activeTab.value === "your-tickets") {
+    yourTicketsStore.fetchTickets();
+  }
   platformTicketsStore.fetchTickets();
+});
+
+onBeforeUnmount(() => {
+  if (tickerTimer) clearInterval(tickerTimer);
 });
 </script>

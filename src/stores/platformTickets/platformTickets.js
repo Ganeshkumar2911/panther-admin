@@ -332,9 +332,8 @@ export const usePlatfromTicketsStore = defineStore("platfromTickets", () => {
     };
 
     // Add due_at only when priority is urgent
-    if (payload.priority === "urgent" && payload.due_at) {
-      const dateObj = new Date(payload.due_at);
-      data.due_at = dateObj.toISOString().replace("T", " ").substring(0, 19);
+    if (payload.priority === "urgent" && payload.due_at !== null && payload.due_at !== undefined) {
+      data.due_at = String(payload.due_at);
     }
 
     apiRequest(urls.KEYS.POST, urls.platformTickets.createAdminTicket, {

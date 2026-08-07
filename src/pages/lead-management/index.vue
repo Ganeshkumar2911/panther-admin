@@ -259,7 +259,6 @@ function handleImportCSV() {
     <LeadStageManagementModal
       :open="stageModalOpen"
       @close="stageModalOpen = false"
-      @stages-updated="leadStageStore.fetchStages(true)"
     />
 
     <!-- Lead Import / Export Drawer -->

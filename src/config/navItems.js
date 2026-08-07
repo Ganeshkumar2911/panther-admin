@@ -130,7 +130,14 @@ export const navItems = [
     label: "Telegram",
     to: "/telegram",
     icon: ClipboardList,
-    permission: ["telegram.view", "telegram.manage"],
+    permission: [
+      "telegram.view",
+      "telegram.create",
+      "telegram.update",
+      "telegram.delete",
+      "telegram.configure_view",
+      "telegram.configure_update",
+    ],
   },
   // 6. System & Support
   {

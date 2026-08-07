@@ -51,15 +51,27 @@
           <!-- Code -->
           <div>
             <p class="text-xs text-secondary-text mb-1.5">Code</p>
-            <BaseSelect
-              v-model="form.code"
-              :options="currentCodes.map(code => ({ label: code, value: code }))"
-              :placeholder="form.category ? 'Select code' : 'Select category first'"
-              :is-loading="isLoading"
-              :disabled="isLoading || isEdit || !form.category"
-              variant="surface"
-            />
+            <div class="space-y-2">
+              <input
+                v-model="form.code"
+                type="text"
+                :placeholder="form.category ? 'Enter custom code or select from dropdown' : 'Select category first'"
+                :disabled="isLoading || isEdit || !form.category"
+                class="w-full px-3 py-2.5 rounded-lg bg-background border border-primary-border text-primary-text text-sm outline-none focus:border-primary transition-colors placeholder:text-secondary-text disabled:opacity-50"
+              />
+              <BaseSelect
+                v-if="!isEdit"
+                :model-value="form.code"
+                @update:modelValue="val => form.code = val"
+                :options="currentCodes.map(code => ({ label: code, value: code }))"
+                :placeholder="!form.category ? 'Select category first' : (currentCodes.length ? 'Or choose from predefined codes' : 'No predefined codes for this category')"
+                :is-loading="isLoading"
+                :disabled="isLoading || isEdit || !form.category || !currentCodes.length"
+                variant="surface"
+              />
+            </div>
             <p v-if="isEdit" class="text-[11px] text-secondary-text mt-1">Code cannot be changed after creation</p>
+            <p v-else-if="form.category && !currentCodes.length" class="text-[11px] text-secondary-text mt-1">No predefined codes for this category. You can type a custom code above.</p>
           </div>
 
           <!-- Subject -->
@@ -148,8 +160,8 @@
             @click="emit('close')"
           >Cancel</button>
           <button
-            :disabled="isLoading || !isValid"
-            class="flex-1 px-4 py-2.5 rounded-lg text-xs font-medium text-white bg-primary hover:bg-primary-hover transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+            :disabled="isLoading"
+            class="flex-1 px-4 py-2.5 rounded-lg text-xs font-medium text-white bg-primary hover:bg-primary-hover transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
             @click="submit"
           >
             <Loader2 v-if="isLoading" class="w-3.5 h-3.5 animate-spin" />
@@ -165,6 +177,7 @@
 import { ref, computed, watch } from 'vue'
 import { X, Eye, Loader2 } from 'lucide-vue-next'
 import { useEmailTemplatesStore } from '@/stores/emails/emailTemplates'
+import { useSnackbarStore } from '@/stores/snackbar/snackbar'
 
 const props = defineProps({
   open:     { type: Boolean, default: false },
@@ -173,6 +186,7 @@ const props = defineProps({
 const emit = defineEmits(['close', 'preview'])
 
 const store   = useEmailTemplatesStore()
+const snackbar = useSnackbarStore()
 const isEdit  = computed(() => !!props.editData)
 const isLoading = computed(() => store.createLoading || store.updateLoading)
 
@@ -211,7 +225,26 @@ watch(() => props.open, (val) => {
 })
 
 const submit = () => {
-  if (!isValid.value) return
+  if (!form.value.name?.trim()) {
+    snackbar.show('Please fill in the Name field', 'error')
+    return
+  }
+  if (!form.value.category?.trim()) {
+    snackbar.show('Please select a Category', 'error')
+    return
+  }
+  if (!form.value.code?.trim()) {
+    snackbar.show('Please fill in or select a Code', 'error')
+    return
+  }
+  if (!form.value.subject?.trim()) {
+    snackbar.show('Please fill in the Subject field', 'error')
+    return
+  }
+  if (!form.value.body_html?.trim()) {
+    snackbar.show('Please fill in the Body HTML field', 'error')
+    return
+  }
 
   if (isEdit.value) {
     const payload = form.value

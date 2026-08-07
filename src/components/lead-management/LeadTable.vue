@@ -1,9 +1,9 @@
 <script setup>
-import { computed } from 'vue'
-import BaseSelect from '@/components/common/BaseSelect.vue'
-import Pagination from '@/components/common/Pagination.vue'
-import { getFlagCode, cleanCountryLabel } from '@/utils/countries'
-import { formatDate } from '@/utils/timeFormatter'
+import { computed } from "vue";
+import BaseSelect from "@/components/common/BaseSelect.vue";
+import Pagination from "@/components/common/Pagination.vue";
+import { getFlagCode, cleanCountryLabel } from "@/utils/countries";
+import { formatDate } from "@/utils/timeFormatter";
 import {
   Eye,
   Edit,
@@ -14,7 +14,7 @@ import {
   Plus,
   Loader2,
   UserCheck,
-} from 'lucide-vue-next'
+} from "lucide-vue-next";
 
 const props = defineProps({
   leads: { type: Array, required: true },
@@ -25,127 +25,158 @@ const props = defineProps({
   },
   stages: { type: Array, default: () => [] },
   staffList: { type: Array, default: () => [] },
-  selectedStage: { type: String, default: '' },
-})
+  selectedStage: { type: String, default: "" },
+});
 
-const emit = defineEmits(['open-drawer', 'edit-lead', 'move-stage', 'add-lead', 'page-change', 'per-page-change', 'assign-staff'])
+const emit = defineEmits([
+  "open-drawer",
+  "edit-lead",
+  "move-stage",
+  "add-lead",
+  "page-change",
+  "per-page-change",
+  "assign-staff",
+]);
 
 const perPageOptions = [
-  { value: 10, label: '10' },
-  { value: 25, label: '25' },
-  { value: 50, label: '50' },
-  { value: 100, label: '100' },
-]
+  { value: 10, label: "10" },
+  { value: 25, label: "25" },
+  { value: 50, label: "50" },
+  { value: 100, label: "100" },
+];
 
 const isKycStatusVisible = computed(() => {
-  if (!props.selectedStage) return true
-  const stage = props.selectedStage.toUpperCase()
-  return ['REGISTERED', 'KYC', 'TRADING_ACCOUNT'].includes(stage)
-})
+  if (!props.selectedStage) return true;
+  const stage = props.selectedStage.toUpperCase();
+  return ["REGISTERED", "KYC", "TRADING_ACCOUNT"].includes(stage);
+});
 
 const formattedPagination = computed(() => ({
   page: props.pagination?.page || 1,
   total_pages: props.pagination?.total_pages || 1,
   total_items: props.pagination?.total_items || 0,
   per_page: props.pagination?.per_page || 10,
-}))
+}));
 
 const staffOptions = computed(() => {
-  return props.staffList.map(s => ({
+  return props.staffList.map((s) => ({
     value: s.id,
-    label: s.name || `${s.first_name || ''} ${s.last_name || ''}`.trim() || s.email,
-  }))
-})
+    label:
+      s.name || `${s.first_name || ""} ${s.last_name || ""}`.trim() || s.email,
+  }));
+});
 
 function getLeadName(lead) {
   if (lead.first_name || lead.last_name) {
-    return `${lead.first_name || ''} ${lead.last_name || ''}`.trim()
+    return `${lead.first_name || ""} ${lead.last_name || ""}`.trim();
   }
-  return lead.name || 'Unnamed Lead'
+  return lead.name || "Unnamed Lead";
 }
 
 function getStaffName(lead) {
   if (lead.assigned_staff) {
-    return lead.assigned_staff.name || lead.assigned_staff.email || 'Unassigned'
+    return (
+      lead.assigned_staff.name || lead.assigned_staff.email || "Unassigned"
+    );
   }
-  return 'Unassigned'
+  return "Unassigned";
 }
 
 function getStageBadge(lead) {
-  const current = lead.current_stage || {}
-  const stageCode = current.code || lead.stage || ''
-  const stageName = current.name || current.code || lead.stage || 'NEW'
-  const matched = props.stages.find(s => (s.code || s.key) === stageCode)
-  const color = current.color || matched?.color || 'var(--color-primary-blue)'
+  const current = lead.current_stage || {};
+  const stageCode = current.code || lead.stage || "";
+  const stageName = current.name || current.code || lead.stage || "NEW";
+  const matched = props.stages.find((s) => (s.code || s.key) === stageCode);
+  const color = current.color || matched?.color || "var(--color-primary-blue)";
 
   return {
     label: stageName,
     code: stageCode,
     color,
-  }
+  };
 }
 
 function getKycStatusBadge(kycStatus) {
-  const status = (kycStatus || 'pending').toLowerCase().replace(/_/g, ' ')
-  let badgeClass = 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+  const status = (kycStatus || "pending").toLowerCase().replace(/_/g, " ");
+  let badgeClass = "bg-amber-500/10 text-amber-400 border-amber-500/30";
 
-  if (['approved', 'verified', 'completed'].includes(status)) {
-    badgeClass = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-  } else if (['rejected', 'failed', 'declined'].includes(status)) {
-    badgeClass = 'bg-red-500/10 text-red-400 border-red-500/30'
+  if (["approved", "verified", "completed"].includes(status)) {
+    badgeClass = "bg-emerald-500/10 text-emerald-400 border-emerald-500/30";
+  } else if (["rejected", "failed", "declined"].includes(status)) {
+    badgeClass = "bg-red-500/10 text-red-400 border-red-500/30";
   }
 
   return {
     label: status,
     class: badgeClass,
-  }
+  };
 }
 
 function getPriorityBadge(priority) {
-  const p = (priority || '').toLowerCase()
+  const p = (priority || "").toLowerCase();
   switch (p) {
-    case 'high':
-      return 'bg-primary-red/10 text-primary-red border-primary-red/30'
-    case 'medium':
-      return 'bg-primary-yellow/10 text-primary-yellow border-primary-yellow/30'
-    case 'low':
-      return 'bg-primary-green/10 text-primary-green border-primary-green/30'
+    case "high":
+      return "bg-primary-red/10 text-primary-red border-primary-red/30";
+    case "medium":
+      return "bg-primary-yellow/10 text-primary-yellow border-primary-yellow/30";
+    case "low":
+      return "bg-primary-green/10 text-primary-green border-primary-green/30";
     default:
-      return 'bg-secondary-text/10 text-secondary-text border-secondary-text/30'
+      return "bg-secondary-text/10 text-secondary-text border-secondary-text/30";
   }
 }
 
 function formatSourceLabel(source) {
-  const s = (source || '').toLowerCase()
+  const s = (source || "").toLowerCase();
   switch (s) {
-    case 'website': return 'Website'
-    case 'support': return 'Support'
-    case 'csv_import': return 'CSV Import'
-    case 'google_ads': return 'Google Ads'
-    case 'facebook': return 'Facebook'
-    case 'referral': return 'Referral'
-    default: return source || 'Website'
+    case "website":
+      return "Website";
+    case "support":
+      return "Support";
+    case "csv_import":
+      return "CSV Import";
+    case "google_ads":
+      return "Google Ads";
+    case "facebook":
+      return "Facebook";
+    case "referral":
+      return "Referral";
+    default:
+      return source || "Website";
   }
 }
 </script>
 
 <template>
-  <div class="bg-card-background border border-primary-border rounded-2xl overflow-hidden">
+  <div
+    class="bg-card-background border border-primary-border rounded-2xl overflow-hidden"
+  >
     <!-- Table Header Info -->
-    <div class="px-5 py-3.5 border-b border-primary-border flex flex-wrap items-center justify-between gap-3">
+    <div
+      class="px-5 py-3.5 border-b border-primary-border flex flex-wrap items-center justify-between gap-3"
+    >
       <div class="flex items-center gap-2">
-        <span class="text-xs font-semibold text-primary-text uppercase tracking-wider">
+        <span
+          class="text-xs font-semibold text-primary-text uppercase tracking-wider"
+        >
           Lead Records
         </span>
-        <span class="text-[11px] text-secondary-text bg-background border border-primary-border px-2.5 py-0.5 rounded-full font-medium">
-          Showing {{ leads.length }} of {{ formattedPagination.total_items || leads.length }} Leads
+        <span
+          class="text-[11px] text-secondary-text bg-background border border-primary-border px-2.5 py-0.5 rounded-full font-medium"
+        >
+          Showing {{ leads.length }} of
+          {{ formattedPagination.total_items || leads.length }} Leads
         </span>
       </div>
     </div>
 
     <!-- Skeleton Loading -->
     <div v-if="loading" class="p-6 space-y-3">
-      <div v-for="n in 5" :key="n" class="animate-pulse flex items-center justify-between py-3 border-b border-primary-border/40">
+      <div
+        v-for="n in 5"
+        :key="n"
+        class="animate-pulse flex items-center justify-between py-3 border-b border-primary-border/40"
+      >
         <div class="flex items-center gap-3">
           <div class="w-8 h-8 rounded-full bg-primary-border/40 shrink-0" />
           <div class="space-y-1.5">
@@ -160,14 +191,20 @@ function formatSourceLabel(source) {
     </div>
 
     <!-- Empty State -->
-    <div v-else-if="!loading && leads.length === 0" class="py-16 text-center space-y-3 px-4">
-      <div class="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mx-auto">
+    <div
+      v-else-if="!loading && leads.length === 0"
+      class="py-16 text-center space-y-3 px-4"
+    >
+      <div
+        class="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mx-auto"
+      >
         <UserX class="w-6 h-6" />
       </div>
       <div class="max-w-md mx-auto">
         <h3 class="text-sm font-semibold text-primary-text">No Leads Found</h3>
         <p class="text-xs text-secondary-text mt-1">
-          No lead records match your search or filter parameters. Try resetting your filters or create a new lead.
+          No lead records match your search or filter parameters. Try resetting
+          your filters or create a new lead.
         </p>
       </div>
       <button
@@ -183,7 +220,9 @@ function formatSourceLabel(source) {
     <div v-else class="overflow-x-auto no-scrollbar">
       <table class="w-full text-left border-collapse min-w-[1000px]">
         <thead>
-          <tr class="border-b border-primary-border bg-background/50 text-[11px] font-semibold text-secondary-text uppercase tracking-wider">
+          <tr
+            class="border-b border-primary-border bg-background/50 text-[11px] font-semibold text-secondary-text uppercase tracking-wider"
+          >
             <th class="px-5 py-3">Lead Code</th>
             <th class="px-5 py-3">Lead</th>
             <th class="px-4 py-3">Phone</th>
@@ -193,7 +232,7 @@ function formatSourceLabel(source) {
             <th class="px-4 py-3">Current Stage</th>
             <th v-if="isKycStatusVisible" class="px-4 py-3">KYC Status</th>
             <th class="px-4 py-3">Priority</th>
-            <th class="px-4 py-3">Created Date</th>
+            <th class="px-4 py-3">Date</th>
             <th class="px-5 py-3 text-right">Actions</th>
           </tr>
         </thead>
@@ -204,21 +243,30 @@ function formatSourceLabel(source) {
             class="hover:bg-background/80 transition-colors group cursor-pointer"
           >
             <!-- Lead Code -->
-            <td class="px-5 py-3.5 font-mono text-[11px] text-secondary-text whitespace-nowrap">
+            <td
+              class="px-5 py-3.5 font-mono text-[11px] text-secondary-text whitespace-nowrap"
+            >
               {{ lead.lead_code || `L-${lead.id}` }}
             </td>
 
             <!-- Lead Name & Email -->
             <td class="px-5 py-3.5">
               <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full bg-primary/20 border border-primary/30 text-primary flex items-center justify-center font-bold text-xs shrink-0 group-hover:scale-105 transition-transform">
+                <div
+                  class="w-8 h-8 rounded-full bg-primary/20 border border-primary/30 text-primary flex items-center justify-center font-bold text-xs shrink-0 group-hover:scale-105 transition-transform"
+                >
                   {{ getLeadName(lead).charAt(0).toUpperCase() }}
                 </div>
                 <div class="min-w-0">
-                  <p class="font-semibold text-primary-text truncate group-hover:text-primary transition-colors">
+                  <p
+                    class="font-semibold text-primary-text truncate group-hover:text-primary transition-colors"
+                  >
                     {{ getLeadName(lead) }}
                   </p>
-                  <p v-if="lead.email" class="text-[11px] text-secondary-text truncate flex items-center gap-1">
+                  <p
+                    v-if="lead.email"
+                    class="text-[11px] text-secondary-text truncate flex items-center gap-1"
+                  >
                     <Mail class="w-2.5 h-2.5 shrink-0" />
                     {{ lead.email }}
                   </p>
@@ -230,24 +278,36 @@ function formatSourceLabel(source) {
             <td class="px-4 py-3.5 text-secondary-text whitespace-nowrap">
               <span class="flex items-center gap-1">
                 <Phone class="w-3 h-3 text-secondary-text/70 shrink-0" />
-                {{ lead.phone || '-' }}
+                {{ lead.phone || "-" }}
               </span>
             </td>
 
             <!-- Country -->
             <td class="px-4 py-3.5 whitespace-nowrap">
-              <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-background border border-primary-border text-[11px] text-primary-text font-medium">
+              <span
+                class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-background border border-primary-border text-[11px] text-primary-text font-medium"
+              >
                 <span
                   v-if="lead.country && getFlagCode(lead.country)"
-                  :class="['fi', `fi-${getFlagCode(lead.country)}`, 'fis', 'rounded-full', 'w-[18px]', 'h-[18px]', 'flex-shrink-0']"
+                  :class="[
+                    'fi',
+                    `fi-${getFlagCode(lead.country)}`,
+                    'fis',
+                    'rounded-full',
+                    'w-[18px]',
+                    'h-[18px]',
+                    'flex-shrink-0',
+                  ]"
                 ></span>
-                <span>{{ cleanCountryLabel(lead.country) || '-' }}</span>
+                <span>{{ cleanCountryLabel(lead.country) || "-" }}</span>
               </span>
             </td>
 
             <!-- Source -->
             <td class="px-4 py-3.5 whitespace-nowrap">
-              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md border bg-primary/10 text-primary border-primary/20">
+              <span
+                class="text-[10px] font-semibold px-2 py-0.5 rounded-md border bg-primary/10 text-primary border-primary/20"
+              >
                 {{ formatSourceLabel(lead.source) }}
               </span>
             </td>
@@ -255,10 +315,14 @@ function formatSourceLabel(source) {
             <!-- Assigned Staff -->
             <td class="px-4 py-3.5 whitespace-nowrap" @click.stop>
               <div v-if="lead.assigned_staff" class="flex items-center gap-2">
-                <div class="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-[9px] font-bold text-btn-text-primary shrink-0">
+                <div
+                  class="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-[9px] font-bold text-btn-text-primary shrink-0"
+                >
                   {{ getStaffName(lead).charAt(0).toUpperCase() }}
                 </div>
-                <span class="text-primary-text font-medium text-xs">{{ getStaffName(lead) }}</span>
+                <span class="text-primary-text font-medium text-xs">{{
+                  getStaffName(lead)
+                }}</span>
               </div>
               <div v-else class="w-36">
                 <BaseSelect
@@ -267,7 +331,10 @@ function formatSourceLabel(source) {
                   placeholder="Assign Staff..."
                   searchable
                   variant="surface"
-                  @update:model-value="(staffId) => emit('assign-staff', { leadId: lead.id, staffId })"
+                  @update:model-value="
+                    (staffId) =>
+                      emit('assign-staff', { leadId: lead.id, staffId })
+                  "
                 />
               </div>
             </td>
@@ -288,21 +355,46 @@ function formatSourceLabel(source) {
 
             <!-- KYC Status -->
             <td v-if="isKycStatusVisible" class="px-4 py-3.5 whitespace-nowrap">
-              <span :class="['text-[10px] font-semibold px-2 py-0.5 rounded-md border uppercase tracking-wider capitalize', getKycStatusBadge(lead.kyc_status || lead.kycStatus).class]">
+              <span
+                :class="[
+                  'text-[10px] font-semibold px-2 py-0.5 rounded-md border uppercase tracking-wider capitalize',
+                  getKycStatusBadge(lead.kyc_status || lead.kycStatus).class,
+                ]"
+              >
                 {{ getKycStatusBadge(lead.kyc_status || lead.kycStatus).label }}
               </span>
             </td>
 
             <!-- Priority -->
             <td class="px-4 py-3.5 whitespace-nowrap">
-              <span :class="['text-[10px] font-semibold px-2 py-0.5 rounded-md border capitalize', getPriorityBadge(lead.priority)]">
-                {{ lead.priority || 'medium' }}
+              <span
+                :class="[
+                  'text-[10px] font-semibold px-2 py-0.5 rounded-md border capitalize',
+                  getPriorityBadge(lead.priority),
+                ]"
+              >
+                {{ lead.priority || "medium" }}
               </span>
             </td>
 
             <!-- Created Date -->
-            <td class="px-4 py-3.5 text-secondary-text whitespace-nowrap text-[11px]">
-              {{ formatDate(lead.created_at || lead.createdAt) }}
+            <td
+              class="px-4 py-3.5 text-secondary-text whitespace-nowrap text-[11px]"
+            >
+              <div class="flex flex-col gap-0.5">
+                <span
+                  ><strong class="font-bold text-primary-text"
+                    >Created:&nbsp;
+                  </strong>
+                  {{ formatDate(lead.created_at) }}</span
+                >
+                <span
+                  ><strong class="font-bold text-primary-text"
+                    >Updated: &nbsp;
+                  </strong>
+                  {{ formatDate(lead.updated_at) }}</span
+                >
+              </div>
             </td>
 
             <!-- Actions -->
@@ -339,15 +431,25 @@ function formatSourceLabel(source) {
     </div>
 
     <!-- Pagination Footer -->
-    <div v-if="leads.length > 0" class="px-5 py-3 border-t border-primary-border flex flex-wrap items-center justify-between gap-3 bg-background/30">
+    <div
+      v-if="leads.length > 0"
+      class="px-5 py-3 border-t border-primary-border flex flex-wrap items-center justify-between gap-3 bg-background/30"
+    >
       <div class="flex items-center gap-4">
         <p class="text-xs text-secondary-text">
-          Page <strong class="text-primary-text font-semibold">{{ formattedPagination.page }}</strong> of <strong class="text-primary-text font-semibold">{{ formattedPagination.total_pages }}</strong>
+          Page
+          <strong class="text-primary-text font-semibold">{{
+            formattedPagination.page
+          }}</strong>
+          of
+          <strong class="text-primary-text font-semibold">{{
+            formattedPagination.total_pages
+          }}</strong>
         </p>
       </div>
 
       <div class="flex items-center gap-4">
-         <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2">
           <span class="text-xs text-secondary-text">Per page:</span>
           <div class="w-24">
             <BaseSelect
@@ -359,11 +461,11 @@ function formatSourceLabel(source) {
           </div>
         </div>
 
-      <Pagination
-        v-if="formattedPagination.total_pages > 1"
-        :pagination="formattedPagination"
-        @page-change="emit('page-change', $event)"
-      />
+        <Pagination
+          v-if="formattedPagination.total_pages > 1"
+          :pagination="formattedPagination"
+          @page-change="emit('page-change', $event)"
+        />
       </div>
     </div>
   </div>

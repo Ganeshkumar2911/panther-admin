@@ -6,7 +6,7 @@
         class="flex flex-col sm:flex-row sm:items-center justify-end gap-4"
       >
 
-        <div>
+        <div v-if="hasPermission('telegram.create')">
           <button
             type="button"
             @click="store.openAdd()"
@@ -133,7 +133,7 @@
           Clear Search Filter
         </button>
         <button
-          v-else
+          v-else-if="hasPermission('telegram.create')"
           @click="store.openAdd()"
           class="px-6 py-3 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold hover:shadow-primary/40 transition-all duration-200 flex items-center gap-2 cursor-pointer group"
         >
@@ -166,6 +166,7 @@
                 Status
               </th>
               <th
+                v-if="hasPermission('telegram.update') || hasPermission('telegram.delete')"
                 class="text-left text-[11px] font-semibold text-secondary-text uppercase tracking-widest px-4 py-3 w-28"
               >
                 Actions
@@ -193,12 +194,13 @@
                 <div class="flex items-center gap-2">
                   <button
                     type="button"
-                    :disabled="store.toggleLoading"
-                    @click="store.toggleStatus(item)"
-                    class="relative w-10 h-5 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 cursor-pointer focus:outline-none"
-                    :class="
-                      item.is_active ? 'bg-primary-green' : 'bg-primary-border'
-                    "
+                    :disabled="store.toggleLoading || !hasPermission('telegram.update')"
+                    @click="hasPermission('telegram.update') && store.toggleStatus(item)"
+                    class="relative w-10 h-5 rounded-full transition-colors flex-shrink-0 focus:outline-none"
+                    :class="[
+                      item.is_active ? 'bg-primary-green' : 'bg-primary-border',
+                      hasPermission('telegram.update') ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'
+                    ]"
                   >
                     <span
                       class="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform duration-200"
@@ -216,9 +218,13 @@
                 </div>
               </td>
 
-              <td class="px-4 py-3">
+              <td
+                v-if="hasPermission('telegram.update') || hasPermission('telegram.delete')"
+                class="px-4 py-3"
+              >
                 <div class="flex items-center gap-3">
                   <button
+                    v-if="hasPermission('telegram.update')"
                     type="button"
                     @click="store.openEdit(item)"
                     class="text-secondary-text hover:text-primary-text transition-colors cursor-pointer"
@@ -227,6 +233,7 @@
                     <Pencil class="w-4 h-4" />
                   </button>
                   <button
+                    v-if="hasPermission('telegram.delete')"
                     type="button"
                     :disabled="store.deleteLoading"
                     @click="promptDelete(item)"
@@ -337,7 +344,9 @@ import {
 } from "lucide-vue-next";
 import DynamicFormModal from "@/components/common/DynamicFormModal.vue";
 import { useTelegramSettingsStore } from "@/stores/telegram/telegram";
+import { usePermissionCheck } from "@/composables/usePermissionCheck";
 
+const { hasPermission } = usePermissionCheck();
 const store = useTelegramSettingsStore();
 const searchQuery = ref("");
 const deleteTarget = ref(null);

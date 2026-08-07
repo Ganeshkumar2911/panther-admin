@@ -1,39 +1,55 @@
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import TelegramSettings from "@/pages/telegram/TelegramSettings.vue";
 import TelegramConfiguration from "@/pages/telegram/TelegramConfiguration.vue";
-import TelegramConfigurationAudit from "@/pages/telegram/TelegramConfigurationAudit.vue";
+import { usePermissionCheck } from "@/composables/usePermissionCheck";
 
-const activeTab = ref("settings");
+const { hasPermission } = usePermissionCheck();
 
-const tabs = [
+const allTabs = [
   {
     label: "Telegram Settings",
     value: "settings",
+    permission: [
+      "telegram.view",
+      "telegram.create",
+      "telegram.update",
+      "telegram.delete",
+    ],
   },
   {
     label: "Telegram Configuration",
     value: "configuration",
+    permission: ["telegram.configure_view", "telegram.configure_update"],
   },
-  // {
-  //   label: "Configuration Audit",
-  //   value: "audit",
-  // },
 ];
+
+const tabs = computed(() => {
+  return allTabs.filter((tab) => hasPermission(tab.permission));
+});
+
+const activeTab = ref("settings");
+
+watch(
+  tabs,
+  (newTabs) => {
+    if (newTabs.length > 0 && !newTabs.some((t) => t.value === activeTab.value)) {
+      activeTab.value = newTabs[0].value;
+    }
+  },
+  { immediate: true },
+);
 
 const activeComponent = computed(() => {
   switch (activeTab.value) {
     case "settings":
       return TelegramSettings;
 
-    // case "configuration":
-    //   return TelegramConfiguration;
-
-    // case "audit":
-    //   return TelegramConfigurationAudit;
+    case "configuration":
+      return TelegramConfiguration;
 
     default:
-      return TelegramConfigurationAudit;
+      return TelegramSettings;
   }
 });
 </script>
@@ -42,7 +58,8 @@ const activeComponent = computed(() => {
   <div class="px-4">
     <!-- Tabs -->
     <div
-      class="flex items-center gap-1 cursor-pointer bg-card-background border border-primary-border rounded-lg p-1 w-fit"
+      v-if="tabs.length > 0"
+      class="flex items-center gap-1 cursor-pointer bg-card-background border border-primary-border rounded-lg p-1 w-fit mb-4"
     >
       <button
         v-for="tab in tabs"
@@ -60,6 +77,9 @@ const activeComponent = computed(() => {
     </div>
 
     <!-- Active Tab Content -->
-    <component :is="activeComponent" />
+    <component :is="activeComponent" v-if="tabs.length > 0" />
+    <div v-else class="py-12 text-center text-sm text-secondary-text">
+      You do not have permission to view Telegram settings or configuration.
+    </div>
   </div>
 </template>

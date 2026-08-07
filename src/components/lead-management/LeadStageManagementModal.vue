@@ -43,9 +43,11 @@ const defaultColors = [
 const form = ref({
   code: '',
   name: '',
+  description: '',
   color: '#3B82F6',
   display_order: 1,
   is_active: true,
+  is_system: false,
 })
 
 watch(
@@ -58,17 +60,22 @@ watch(
   }
 )
 
+const originalStage = ref(null)
+
 function resetForm() {
   isEditing.value = false
   editingStageId.value = null
   deleteConfirmId.value = null
+  originalStage.value = null
   const nextOrder = stageStore.stages.length ? Math.max(...stageStore.stages.map(s => s.display_order || 0)) + 1 : 1
   form.value = {
     code: '',
     name: '',
+    description: '',
     color: '#3B82F6',
     display_order: nextOrder,
     is_active: true,
+    is_system: false,
   }
 }
 
@@ -81,13 +88,45 @@ function handleStartEdit(stage) {
   deleteConfirmId.value = null
   editingStageId.value = stage.id
   isEditing.value = true
+  originalStage.value = { ...stage }
   form.value = {
     code: stage.code || '',
     name: stage.name || '',
+    description: stage.description || '',
     color: stage.color || '#3B82F6',
     display_order: stage.display_order ?? 1,
     is_active: stage.is_active ?? true,
+    is_system: stage.is_system ?? false,
   }
+}
+
+function getChangedPayload(original, current) {
+  if (!original) return current
+  const diff = {}
+
+  if (current.name !== undefined && current.name !== original.name) {
+    diff.name = current.name
+  }
+  if (current.code !== undefined && current.code !== original.code) {
+    diff.code = current.code
+  }
+  if (current.description !== undefined && (current.description || '') !== (original.description || '')) {
+    diff.description = current.description
+  }
+  if (current.color !== undefined && current.color !== original.color) {
+    diff.color = current.color
+  }
+  if (current.display_order !== undefined && Number(current.display_order) !== Number(original.display_order)) {
+    diff.display_order = Number(current.display_order)
+  }
+  if (current.is_active !== undefined && Boolean(current.is_active) !== Boolean(original.is_active)) {
+    diff.is_active = Boolean(current.is_active)
+  }
+  if (current.is_system !== undefined && Boolean(current.is_system) !== Boolean(original.is_system)) {
+    diff.is_system = Boolean(current.is_system)
+  }
+
+  return diff
 }
 
 async function handleSave() {
@@ -95,7 +134,10 @@ async function handleSave() {
 
   try {
     if (editingStageId.value) {
-      await stageStore.updateStage(editingStageId.value, form.value)
+      const changedPayload = getChangedPayload(originalStage.value, form.value)
+      if (Object.keys(changedPayload).length > 0) {
+        await stageStore.updateStage(editingStageId.value, changedPayload)
+      }
     } else {
       if (!form.value.code.trim()) {
         form.value.code = form.value.name.trim().toUpperCase().replace(/\s+/g, '_')
@@ -211,7 +253,20 @@ async function handleDelete(stage) {
                 </div>
               </div>
 
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+              <!-- Description -->
+              <div>
+                <label class="block text-xs font-medium text-secondary-text mb-1">
+                  Description
+                </label>
+                <textarea
+                  v-model="form.description"
+                  rows="2"
+                  placeholder="Enter stage description..."
+                  class="w-full px-3 py-2 rounded-lg bg-background border border-primary-border focus:border-primary focus:ring-1 focus:ring-primary text-xs text-primary-text outline-none transition-all resize-none"
+                ></textarea>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
                 <!-- Display Order -->
                 <div>
                   <label class="block text-xs font-medium text-secondary-text mb-1">
@@ -237,6 +292,21 @@ async function handleDelete(stage) {
                   </label>
                   <span class="text-xs font-medium text-primary-text">
                     {{ form.is_active ? 'Active Stage' : 'Inactive Stage' }}
+                  </span>
+                </div>
+
+                <!-- System Stage Switch -->
+                <div class="flex items-center gap-3 pt-4">
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input
+                      v-model="form.is_system"
+                      type="checkbox"
+                      class="sr-only peer"
+                    />
+                    <div class="w-9 h-5 bg-background peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500 border border-primary-border"></div>
+                  </label>
+                  <span class="text-xs font-medium text-primary-text">
+                    {{ form.is_system ? 'System Stage' : 'Standard Stage' }}
                   </span>
                 </div>
               </div>
@@ -347,6 +417,9 @@ async function handleDelete(stage) {
                       System
                     </span>
                   </div>
+                  <p v-if="stage.description" class="text-[11px] text-secondary-text truncate mt-0.5">
+                    {{ stage.description }}
+                  </p>
                 </div>
               </div>
 

@@ -26,6 +26,7 @@ import MakeIBDialog from "@/components/common/MakeIBDialog.vue";
 import DeleteClientDialog from "@/components/common/DeleteClientDialog.vue";
 import Tooltip from "@/components/common/Tooltip.vue";
 import UpdateReferralLinkDrawer from "@/components/common/UpdateReferralLinkDrawer.vue";
+import ClientLoginModal from "@/components/common/ClientLoginModal.vue";
 import { useRouter } from "vue-router";
 import { useGoToTradingAccount } from "@/composables/useGoToTradingAccount";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
@@ -58,6 +59,9 @@ const selectedClientForDelete = ref(null);
 
 const updateReferralLinkDrawerOpen = ref(false);
 const selectedClientForReferralLink = ref(null);
+
+const clientLoginModalOpen = ref(false);
+const selectedClientForLogin = ref(null);
 
 const onSearch = () => {
   clearTimeout(searchTimer);
@@ -112,45 +116,27 @@ function getRowActions(client) {
         icon: client.is_active ? UserX : UserCheck,
         danger: client.is_active,
         success: !client.is_active,
-      },
+      }
     );
   }
-  if (hasPermission("xtention_dev.login_as_client")) {
-    actions.push({ action: "clientLogin", label: "Client Login", icon: LogIn });
-  }
 
-  if (hasPermission("client.update")) {
+  if (hasPermission("xtention_dev.login_as_client")) {
     if (actions.length > 0) {
       actions.push({ divider: true });
     }
-    actions.push(
-      { action: "edit", label: "Edit Client", icon: Pencil },
-      { action: "changeIB", label: "Change IB", icon: UserPen },
-      {
-        action: "makeIB",
-        label: "Make IB",
-        icon: UserPlus,
-        hidden: client.is_ib === true,
-      },
-      {
-        action: "updateReferralLink",
-        label: "Update Referral Link",
-        icon: Link2,
-      },
-      { divider: true },
-      {
-        action: "toggleStatus",
-        label: client.is_active ? "Deactivate Client" : "Activate Client",
-        icon: client.is_active ? UserX : UserCheck,
-        danger: client.is_active,
-      },
-    );
+
+    actions.push({
+      action: "clientLogin",
+      label: "Client Login",
+      icon: LogIn,
+    });
   }
 
   if (client.kyc_status === "pending" && hasPermission("client.delete")) {
     if (actions.length > 0) {
       actions.push({ divider: true });
     }
+
     actions.push({
       action: "delete",
       label: "Delete Client",
@@ -185,36 +171,13 @@ function onMenuSelect(item, client) {
 
 const handleClientLogin = (client) => {
   if (!client?.id) return;
+  selectedClientForLogin.value = client;
+  clientLoginModalOpen.value = true;
+};
 
-  const successHandler = (res) => {
-    const secretCode = res?.data?.secret_code;
-    if (secretCode) {
-      snackbar.show(
-        res?.message || "User dashboard fetched successfully.",
-        "success",
-      );
-      window.open(
-        `https://portal.panthercapitals.com/login/user?token=${secretCode}`,
-        "_blank",
-      );
-    } else {
-      snackbar.show(res?.message || "Failed to retrieve secret code.", "error");
-    }
-  };
-
-  const failureHandler = (err) => {
-    snackbar.show(
-      err?.message || err?.error || "Something went wrong.",
-      "error",
-    );
-  };
-
-  apiRequest(urls.KEYS.GET, urls.clientList.userDashboard, {
-    look_up_key: client.id,
-    isTokenRequired: true,
-    onSuccess: successHandler,
-    onFailure: failureHandler,
-  });
+const closeClientLoginModal = () => {
+  clientLoginModalOpen.value = false;
+  selectedClientForLogin.value = null;
 };
 
 const openDeleteClientDialog = (client) => {
@@ -661,7 +624,15 @@ onMounted(() => {
             </td>
 
             <td class="p-3">
-              <p class="text-xs text-primary-text">{{ client.email ?? "—" }}</p>
+              <p
+                v-if="client.email"
+                @click="goToTradingAccount(client.email)"
+                class="text-xs font-medium text-primary hover:underline cursor-pointer transition-colors"
+                title="Search trading accounts for this email"
+              >
+                {{ client.email }}
+              </p>
+              <p v-else class="text-xs text-primary-text">—</p>
               <p
                 v-if="hasPermission('client.view_number')"
                 class="text-[10px] text-secondary-text"
@@ -944,9 +915,15 @@ onMounted(() => {
               <p class="text-sm font-medium text-primary-text truncate">
                 {{ client.name }}
               </p>
-              <p class="text-[11px] text-secondary-text truncate">
+              <p
+                v-if="client.email"
+                @click="goToTradingAccount(client.email)"
+                class="text-[11px] font-medium text-primary hover:underline cursor-pointer transition-colors truncate"
+                title="Search trading accounts for this email"
+              >
                 {{ client.email }}
               </p>
+              <p v-else class="text-[11px] text-secondary-text truncate">—</p>
               <p
                 v-if="client.phone_number"
                 class="text-[10px] text-secondary-text/80 truncate"
@@ -1295,6 +1272,13 @@ onMounted(() => {
       :client="selectedClientForReferralLink || {}"
       @close="closeUpdateReferralLinkDrawer"
       @success="handleUpdateReferralLinkSuccess"
+    />
+
+    <!-- Client Login Confirmation Modal -->
+    <ClientLoginModal
+      :open="clientLoginModalOpen"
+      :client="selectedClientForLogin || {}"
+      @close="closeClientLoginModal"
     />
   </div>
 </template>

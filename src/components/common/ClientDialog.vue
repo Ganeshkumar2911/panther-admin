@@ -252,7 +252,7 @@ const form = ref({
   tracking_id: '',
   ib_user_id: null,
   date_of_birth: '',
-  kyc_status: 'not started',
+  kyc_status: 'pending',
   address: '',
   city: '',
   state: '',
@@ -293,7 +293,7 @@ watch(
         form.value.tracking_id = props.client.tracking_id ?? ''
         form.value.ib_user_id = props.client.ib_user_id ?? props.client.ib_id ?? null
         form.value.date_of_birth = formatDateForInput(props.client.date_of_birth)
-        form.value.kyc_status = props.client.kyc_status ?? 'not started'
+        form.value.kyc_status = props.client.kyc_status ?? 'pending'
         form.value.address = props.client.address ?? ''
         form.value.city = props.client.city ?? ''
         form.value.state = props.client.state ?? ''
@@ -308,7 +308,7 @@ watch(
         form.value.tracking_id = ''
         form.value.ib_user_id = null
         form.value.date_of_birth = ''
-        form.value.kyc_status = 'not started'
+        form.value.kyc_status = 'pending'
         form.value.address = ''
         form.value.city = ''
         form.value.state = ''
@@ -431,7 +431,7 @@ const closeDialog = () => {
 
 // KYC Status options
 const kycStatuses = [
-  { value: 'not started', label: 'Not Started' },
+  // { value: 'not started', label: 'Not Started' },
   { value: 'pending', label: 'Pending' },
   { value: 'approved', label: 'Approved' },
   { value: 'rejected', label: 'Rejected' },
