@@ -134,7 +134,7 @@ export const useTicketsStore = defineStore("tickets", () => {
       snackbar.show(err?.message || "Failed to update status.", "error");
     };
 
-    apiRequest(urls.KEYS.POST, `${urls.tickets.updateStatus}/${id}`, {
+    apiRequest(urls.KEYS.PATCH, `${urls.tickets.updateStatus}/${id}`, {
       data: { status },
       isTokenRequired: true,
       onSuccess: successHandler,
