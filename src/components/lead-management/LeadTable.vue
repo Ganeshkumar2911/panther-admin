@@ -84,8 +84,14 @@ function getStaffName(lead) {
 
 function getStageBadge(lead) {
   const current = lead.current_stage || {};
-  const stageCode = current.code || lead.stage || "";
-  const stageName = current.name || current.code || lead.stage || "NEW";
+  const stageCode = current.code || lead.stage || props.stages?.[0]?.code || "";
+  const stageName =
+    current.name ||
+    current.code ||
+    lead.stage ||
+    props.stages?.[0]?.name ||
+    props.stages?.[0]?.code ||
+    "NEW_USER";
   const matched = props.stages.find((s) => (s.code || s.key) === stageCode);
   const color = current.color || matched?.color || "var(--color-primary-blue)";
 

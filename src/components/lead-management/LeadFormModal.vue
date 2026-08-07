@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, onMounted } from "vue";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import { countries } from "@/utils/countries.js";
 import {
@@ -10,6 +10,7 @@ import {
   Upload,
   Check,
 } from "lucide-vue-next";
+import { useLeadStageStore } from "@/stores/leadStage/leadStage";
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -21,11 +22,26 @@ const props = defineProps({
 
 const emit = defineEmits(["close", "save-lead", "import-csv"]);
 
+const leadStageStore = useLeadStageStore();
+
+onMounted(() => {
+  if (!props.stages?.length && !leadStageStore.isFetched) {
+    leadStageStore.fetchStages();
+  }
+});
+
+const activeStages = computed(() => {
+  if (Array.isArray(props.stages) && props.stages.length > 0) {
+    return props.stages;
+  }
+  return leadStageStore.stages || [];
+});
+
 // Staff options for BaseSelect
 const staffOptions = computed(() => {
   return props.staffList.map((s) => ({
     value: s.id,
-    label: s.name || s.first_name || s.email,
+    label: s.name || `${s.first_name || ""} ${s.last_name || ""}`.trim() || s.email,
   }));
 });
 
@@ -57,17 +73,10 @@ const priorityOptions = [
 
 // Stage options for BaseSelect
 const stageSelectOptions = computed(() => {
-  if (props.stages && props.stages.length > 0) {
-    return props.stages.map((s) => ({
-      value: s.code || s.key,
-      label: s.name || s.label || s.key,
-    }));
-  }
-  return [
-    { value: "NEW", label: "New Lead" },
-    { value: "CONTACTED", label: "Contacted" },
-    { value: "INTERESTED", label: "Interested" },
-  ];
+  return activeStages.value.map((s) => ({
+    value: s.code || String(s.id),
+    label: s.name || s.code,
+  }));
 });
 
 const formData = ref({
@@ -78,25 +87,28 @@ const formData = ref({
   country: "AE (United Arab Emirates)",
   source: "website",
   priority: "medium",
-  stage: "NEW",
+  stage: "",
   assigned_staff_id: null,
   remarks: "",
 });
 
 watch(
-  () => props.lead,
-  (newLead) => {
+  () => [props.lead, props.open, activeStages.value],
+  ([newLead, isOpen]) => {
+    if (!isOpen) return;
+    const defaultStageCode = activeStages.value[0]?.code || "";
+
     if (newLead) {
       formData.value = {
         lead_code: newLead.lead_code || "",
-        name: newLead.name || "",
+        name: newLead.name || `${newLead.first_name || ""} ${newLead.last_name || ""}`.trim(),
         email: newLead.email || "",
         phone: newLead.phone || "",
         country: newLead.country || "AE (United Arab Emirates)",
         source: newLead.source || "website",
         priority: newLead.priority || "medium",
-        stage: newLead.stage || "NEW",
-        assigned_staff_id: newLead.assigned_staff_id || null,
+        stage: newLead.current_stage?.code || newLead.stage || defaultStageCode,
+        assigned_staff_id: newLead.assigned_staff_id || newLead.assigned_staff?.id || null,
         remarks: newLead.remarks || "",
       };
     } else {
@@ -108,13 +120,13 @@ watch(
         country: "AE (United Arab Emirates)",
         source: "website",
         priority: "medium",
-        stage: "NEW",
+        stage: defaultStageCode,
         assigned_staff_id: null,
         remarks: "",
       };
     }
   },
-  { immediate: true },
+  { immediate: true, deep: true },
 );
 
 function handleSubmit() {
