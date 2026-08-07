@@ -226,6 +226,14 @@
             @update:modelValue="platformTicketsStore.applyFilters()"
           />
           <BaseSelect
+            v-model="platformTicketsFilters.assigned_staff_id"
+            :options="staffFilterOptions"
+            placeholder="Assigned Staff"
+            searchable
+            class="w-full sm:w-36 xl:w-40"
+            @update:modelValue="platformTicketsStore.applyFilters()"
+          />
+          <BaseSelect
             :modelValue="platformTicketsStore.pagination.per_page"
             :options="platformTicketsStore.perPageOptions"
             placeholder="Per Page"
@@ -283,6 +291,11 @@
               >
                 TAT Status
               </th>
+              <!-- <th
+                class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
+              >
+                Assigned Staff
+              </th> -->
               <th
                 class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
               >
@@ -346,7 +359,7 @@
           <!-- Empty -->
           <tbody v-else-if="platformTicketsStore.data.length === 0">
             <tr>
-              <td colspan="9" class="py-16 text-center">
+              <td colspan="10" class="py-16 text-center">
                 <div class="flex flex-col items-center gap-3">
                   <div
                     class="w-12 h-12 rounded-full bg-card-background flex items-center justify-center"
@@ -413,6 +426,76 @@
                 </div>
               </td>
 
+              <!-- Assigned Staff -->
+              <!-- <td class="p-3 whitespace-nowrap" @click.stop>
+                <div
+                  v-if="
+                    ticket.assigned_staff?.name  &&
+                    editingStaffTicketId !== ticket.id
+                  "
+                  class="flex items-center justify-evenly gap-2 group"
+                >
+                  <div class="flex items-center gap-2">
+                    <div
+                      class="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-[9px] font-bold text-btn-text-primary shrink-0"
+                    >
+                      {{
+                        (
+                          ticket.assigned_staff?.name ||
+                          ""
+                        )
+                          .charAt(0)
+                          .toUpperCase()
+                      }}
+                    </div>
+                    <span class="text-primary-text font-medium text-xs">{{
+                      ticket.assigned_staff?.name
+                    }}</span>
+                  </div>
+                  <button
+                    v-if="hasPermission('ticket.update')"
+                    type="button"
+                    @click="editingStaffTicketId = ticket.id"
+                    class="p-1 rounded-md text-secondary-text hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer"
+                    title="Edit Assigned Staff"
+                  >
+                    <Pencil class="w-3 h-3" />
+                  </button>
+                </div>
+                <div v-else-if="hasPermission('ticket.update')" class="w-40 flex items-center gap-1">
+                  <div class="flex-1">
+                    <BaseSelect
+                      :model-value="
+                        ticket.assigned_staff?.id ||
+                        ticket.assigned_staff_id ||
+                        null
+                      "
+                      :options="staffOptions"
+                      :placeholder="
+                        ticket.assigned_staff?.name || ticket.staff_assigned?.name
+                          ? 'Change Staff...'
+                          : 'Assign Staff...'
+                      "
+                      searchable
+                      variant="surface"
+                      @update:model-value="
+                        (staffId) => promptAssignStaff(ticket, staffId)
+                      "
+                    />
+                  </div>
+                  <button
+                    v-if="editingStaffTicketId === ticket.id"
+                    type="button"
+                    @click="editingStaffTicketId = null"
+                    class="p-1 rounded-md text-secondary-text hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer shrink-0"
+                    title="Cancel Edit"
+                  >
+                    <X class="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                <span v-else class="text-xs text-secondary-text">Unassigned</span>
+              </td> -->
+
               <td class="p-3 text-xs text-secondary-text">
                 <div class="flex flex-col">
                   <span class="text-[11px] text-secondary-text mt-0.5">
@@ -457,6 +540,23 @@
       </div>
 
       <CreateTicketDialog :open="dialogOpen" @close="dialogOpen = false" />
+
+      <!-- Assign / Reassign Staff Confirmation Dialog -->
+      <ConfirmationDialog
+        :open="assignDialog.open"
+        :title="assignDialog.isEdit ? 'Reassign Support Ticket Staff' : 'Assign Support Ticket Staff'"
+        :message="
+          assignDialog.isEdit
+            ? `Are you sure you want to reassign ticket #${assignDialog.ticket?.ticket_number || assignDialog.ticket?.id} to ${assignDialog.staffName}?`
+            : `Are you sure you want to assign ${assignDialog.staffName} to ticket #${assignDialog.ticket?.ticket_number || assignDialog.ticket?.id}?`
+        "
+        :confirm-text="assignDialog.isEdit ? 'Reassign Staff' : 'Assign Staff'"
+        cancel-text="Cancel"
+        type="info"
+        :loading="assignDialog.loading"
+        @confirm="handleConfirmAssignStaff"
+        @cancel="handleCancelAssignStaff"
+      />
     </div>
   </div>
 </template>
@@ -464,18 +564,23 @@
 <script setup>
 import { onMounted, onBeforeUnmount, ref, computed, watch } from "vue";
 import { useRouter } from "vue-router";
-import { Search, Plus, Eye, Ticket as TicketIcon } from "lucide-vue-next";
+import { Search, Plus, Eye, Ticket as TicketIcon, Pencil, X } from "lucide-vue-next";
 import { useTicketsStore } from "@/stores/tickets/tickets";
 import { usePlatfromTicketsStore } from "@/stores/platformTickets/platformTickets";
+import { useRbacStaffStore } from "@/stores/rbac/staff";
+import { useSnackbarStore } from "@/stores/snackbar/snackbar";
 import Pagination from "@/components/common/Pagination.vue";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import CreateTicketDialog from "@/components/tickets/CreateTicketDialog.vue";
+import ConfirmationDialog from "@/components/common/ConfirmationDialog.vue";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import { formatDate, calculateTat } from "@/utils/timeFormatter";
 
 const router = useRouter();
 const yourTicketsStore = useTicketsStore();
 const platformTicketsStore = usePlatfromTicketsStore();
+const rbacStaffStore = useRbacStaffStore();
+const snackbar = useSnackbarStore();
 const { hasPermission } = usePermissionCheck();
 
 const allTabs = [
@@ -568,6 +673,7 @@ const hasPlatformTicketsFilters = computed(
     platformTicketsStore.filters.search ||
     platformTicketsStore.filters.status ||
     platformTicketsStore.filters.priority ||
+    platformTicketsStore.filters.assigned_staff_id ||
     (platformTicketsStore.filters.filter &&
       platformTicketsStore.filters.filter !== "all") ||
     (platformTicketsStore.filters.sort &&
@@ -623,12 +729,98 @@ const statusClass = (s) =>
 const now = ref(new Date());
 let tickerTimer = null;
 
+const editingStaffTicketId = ref(null);
+
+const staffOptions = computed(() => {
+  return (rbacStaffStore.records || []).map((s) => ({
+    value: s.id,
+    label: s.name || `${s.first_name || ""} ${s.last_name || ""}`.trim() || s.email,
+  }));
+});
+
+const staffFilterOptions = computed(() => {
+  return [{ label: "All Staff", value: "" }, ...staffOptions.value];
+});
+
+const assignDialog = ref({
+  open: false,
+  loading: false,
+  ticket: null,
+  staffId: null,
+  staffName: "",
+  isEdit: false,
+});
+
+const promptAssignStaff = (ticket, staffId) => {
+  if (!hasPermission("ticket.update")) {
+    snackbar.show("You do not have permission to update tickets.", "error");
+    return;
+  }
+
+  if (!ticket?.id) {
+    snackbar.show("Invalid ticket record.", "error");
+    return;
+  }
+
+  const currentStaffId =
+    ticket?.assigned_staff?.id ||
+    ticket?.staff_assigned?.id ||
+    ticket?.assigned_staff_id;
+
+  if (currentStaffId && Number(currentStaffId) === Number(staffId)) {
+    snackbar.show("This staff member is already assigned to this ticket.", "info");
+    return;
+  }
+
+  const currentStaffName =
+    ticket?.assigned_staff?.name || ticket?.staff_assigned?.name || null;
+  const isEdit = !!currentStaffName;
+
+  const staffObj = (rbacStaffStore.records || []).find((s) => s.id === staffId);
+  const staffName = staffObj
+    ? staffObj.name ||
+      `${staffObj.first_name || ""} ${staffObj.last_name || ""}`.trim() ||
+      staffObj.email
+    : "selected staff member";
+
+  assignDialog.value = {
+    open: true,
+    loading: false,
+    ticket,
+    staffId,
+    staffName,
+    isEdit,
+  };
+};
+
+const handleConfirmAssignStaff = () => {
+  const { ticket, staffId } = assignDialog.value;
+  if (!ticket?.id) {
+    assignDialog.value.open = false;
+    return;
+  }
+
+  assignDialog.value.loading = true;
+
+  platformTicketsStore.assignTicket(ticket.id, staffId, () => {
+    assignDialog.value.loading = false;
+    assignDialog.value.open = false;
+    editingStaffTicketId.value = null;
+  });
+};
+
+const handleCancelAssignStaff = () => {
+  assignDialog.value.open = false;
+};
+
 const getTat = (ticket) => calculateTat(ticket, now.value);
 
 onMounted(() => {
   tickerTimer = setInterval(() => {
     now.value = new Date();
   }, 1000);
+
+  rbacStaffStore.fetchStaff(false);
 
   if (activeTab.value === "your-tickets") {
     yourTicketsStore.fetchTickets();
