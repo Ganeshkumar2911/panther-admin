@@ -255,13 +255,13 @@ import {
   ExternalLink,
   RotateCw,
 } from "lucide-vue-next";
-import { useTicketsStore } from "@/stores/tickets/tickets";
-import TicketActionDialog from "@/components/tickets/TicketActionDialog.vue";
-import TicketStatusDialog from "@/components/tickets/TicketStatusDialog.vue";
+import { usePlatfromTicketsStore } from "@/stores/platformTickets/platformTickets";
+import TicketActionDialog from "@/components/platformTickets/TicketActionDialog.vue";
+import TicketStatusDialog from "@/components/platformTickets/TicketStatusDialog.vue";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import { formatDate, calculateTat } from "@/utils/timeFormatter";
 
-const store = useTicketsStore();
+const store = usePlatfromTicketsStore();
 const route = useRoute();
 const { hasPermission } = usePermissionCheck();
 

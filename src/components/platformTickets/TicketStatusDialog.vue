@@ -60,7 +60,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { X, CheckCircle2, Loader2 } from 'lucide-vue-next'
-import { useTicketsStore } from '@/stores/tickets/tickets'
+import { usePlatfromTicketsStore } from '@/stores/platformTickets/platformTickets'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 
 const props = defineProps({
@@ -70,7 +70,7 @@ const props = defineProps({
 })
 const emit = defineEmits(['close'])
 
-const store = useTicketsStore()
+const store = usePlatfromTicketsStore()
 const selected = ref(null)
 const currentStatus = ref(props.status)
 
@@ -82,17 +82,17 @@ watch(() => props.open, (val) => {
 })
 
 const statusOptions = [
-  { label: 'Open',        value: 'open' },
-  { label: 'In Progress', value: 'in_progress' },
-  { label: 'Resolved',    value: 'resolved' },
+  { label: 'Open',     value: 'open' },
+  { label: 'Pending',  value: 'pending' },
+  { label: 'Resolved', value: 'resolved' },
+  { label: 'Closed',   value: 'closed' },
 ]
 
-const submit = async () => {
-  await store.updateTicketStatus(props.ticketId, { status: selected.value })
-  if (!store.actionLoading) {
-    store.fetchTicketDetail(props.ticketId)
+const submit = () => {
+  if (!selected.value) return
+  store.updateTicketStatus(props.ticketId, { status: selected.value }, () => {
     emit('close')
-  }
+  })
 }
 
 const formatStatus = (s) => s?.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) ?? '—'
