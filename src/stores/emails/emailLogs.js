@@ -19,9 +19,15 @@ export const useEmailLogsStore = defineStore("emailLogs", () => {
   // ─────────────────────────────────────
 
   const logs = ref([]);
+  const tags = ref([]);
+  const isLoadingTags = ref(false);
+  const isLoadingLogs = ref(false);
+  const isLoadingLogsList = ref(false);
+  const logDetails = ref(null);
+
+  const logLists = ref([]);
 
   const loading = ref(false);
-  const isSyncing = ref(false);
 
   const error = ref(null);
 
@@ -48,6 +54,7 @@ export const useEmailLogsStore = defineStore("emailLogs", () => {
     endDate: null,
     days: null,
     sort: "desc",
+    tags: "ALL",
   });
 
   // ─────────────────────────────────────
@@ -81,33 +88,6 @@ export const useEmailLogsStore = defineStore("emailLogs", () => {
   ];
 
   // ─────────────────────────────────────
-  // Sync Logs
-  // ─────────────────────────────────────
-
-  const syncLogs = () => {
-    isSyncing.value = true;
-
-    error.value = null;
-
-    const successHandler = (res) => {
-      isSyncing.value = false;
-      snackbar.show("Email logs synced successfully.", "success");
-      fetchLogs(true);
-    };
-
-    const failureHandler = (err) => {
-      isSyncing.value = false;
-      error.value = err;
-      snackbar.show(err?.message || "Failed to sync email logs.", "error");
-    };
-
-    apiRequest(urls.KEYS.POST, urls.emailLogs.sync, {
-      isTokenRequired: true,
-      onSuccess: successHandler,
-      onFailure: failureHandler,
-    });
-  };
-  // ─────────────────────────────────────
   // Helpers
   // ─────────────────────────────────────
 
@@ -118,6 +98,7 @@ export const useEmailLogsStore = defineStore("emailLogs", () => {
         event: filters.event,
         startDate: filters.startDate,
         endDate: filters.endDate,
+        tags: filters.tags === "ALL" ? null : filters.tags,
         days:
           filters.days !== null && filters.days !== undefined
             ? filters.days
@@ -132,7 +113,7 @@ export const useEmailLogsStore = defineStore("emailLogs", () => {
   // Fetch Logs
   // ─────────────────────────────────────
 
-  const fetchLogs = (force = false) => {
+  const fetchLogs = async (force = false) => {
     if (isFetched.value && !force) return;
 
     loading.value = true;
@@ -179,6 +160,106 @@ export const useEmailLogsStore = defineStore("emailLogs", () => {
   };
 
   // ─────────────────────────────────────
+  // Fetch Tags
+  // ─────────────────────────────────────
+
+  const convertTagIntoOptions = (tagsArray) => {
+    return tagsArray.map((tag) => ({
+      label: tag,
+      value: tag,
+    }));
+  };
+
+  const fetchTags = async (query = "", force = false) => {
+    isLoadingTags.value = true;
+
+    error.value = null;
+
+    const successHandler = (res) => {
+      tags.value = convertTagIntoOptions(res?.codes || []);
+      isLoadingTags.value = false;
+    };
+
+    const failureHandler = (err) => {
+      isLoadingTags.value = false;
+
+      error.value = err;
+
+      snackbar.show(err?.message || "Failed to fetch email logs.", "error");
+    };
+
+    apiRequest(urls.KEYS.GET, urls.emailLogs.tags, {
+      isTokenRequired: true,
+
+      onSuccess: successHandler,
+
+      onFailure: failureHandler,
+    });
+  };
+
+  // ─────────────────────────────────────
+  // Fetch Logs Details
+  // ─────────────────────────────────────
+
+  const fetchLogsDetails = async (id = null) => {
+    isLoadingLogs.value = true;
+
+    error.value = null;
+
+    const successHandler = (res) => {
+      logDetails.value = res?.data;
+      isLoadingLogs.value = false;
+    };
+
+    const failureHandler = (err) => {
+      isLoadingLogs.value = false;
+
+      error.value = err;
+
+      snackbar.show(err?.message || "Failed to fetch email logs.", "error");
+    };
+
+    apiRequest(urls.KEYS.GET, urls.emailLogs.logDetails, {
+      isTokenRequired: true,
+      params: {
+        messageId: id,
+      },
+      onSuccess: successHandler,
+
+      onFailure: failureHandler,
+    });
+  };
+
+  // ─────────────────────────────────────
+  // Fetch LogsList Details
+  // ─────────────────────────────────────
+
+  const fetchLogsList = async () => {
+    isLoadingLogsList.value = true;
+
+    error.value = null;
+
+    const successHandler = (res) => {
+      logLists.value = res;
+      isLoadingLogsList.value = false;
+    };
+
+    const failureHandler = (err) => {
+      isLoadingLogsList.value = false;
+
+      error.value = err;
+
+      snackbar.show(err?.message || "Failed to fetch email logs.", "error");
+    };
+
+    apiRequest(urls.KEYS.GET, urls.emailLogs.logList, {
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+    });
+  };
+
+  // ─────────────────────────────────────
   // Apply Filters
   // ─────────────────────────────────────
 
@@ -206,6 +287,7 @@ export const useEmailLogsStore = defineStore("emailLogs", () => {
       endDate: null,
       days: null,
       sort: "desc",
+      tags: null,
     });
 
     applyFilters();
@@ -242,6 +324,7 @@ export const useEmailLogsStore = defineStore("emailLogs", () => {
     return (
       filters.email ||
       filters.event ||
+      filters.tags ||
       filters.startDate ||
       filters.endDate ||
       (filters.days !== null && filters.days !== undefined)
@@ -254,6 +337,9 @@ export const useEmailLogsStore = defineStore("emailLogs", () => {
 
   const reset = () => {
     logs.value = [];
+    tags.value = [];
+
+    isLoadingTags.value = false;
 
     loading.value = false;
 
@@ -264,8 +350,8 @@ export const useEmailLogsStore = defineStore("emailLogs", () => {
     Object.assign(pagination, {
       page: 1,
       per_page: 10,
-      total_items: 0,
-      total_pages: 0,
+      hasNext: false,
+      hasPrev: false,
     });
 
     Object.assign(filters, {
@@ -275,8 +361,16 @@ export const useEmailLogsStore = defineStore("emailLogs", () => {
       endDate: null,
       days: null,
       sort: "desc",
+      tags: null,
     });
   };
+
+  // ─────────────────────────────────────
+  // Reset Log Details
+  // ─────────────────────────────────────
+  function resetLogDetails() {
+    logDetails.value = null;
+  }
 
   // ─────────────────────────────────────
   // Return
@@ -285,18 +379,23 @@ export const useEmailLogsStore = defineStore("emailLogs", () => {
   return {
     // state
     logs,
+    tags,
 
     loading,
     error,
     isFetched,
+    isLoadingTags,
+    isLoadingLogsList,
 
     pagination,
     perPageOptions,
     filters,
-    isSyncing,
+    logLists,
+    logDetails,
 
     eventOptions,
     dayOptions,
+    isLoadingLogs,
 
     // computed
     hasActiveFilters,
@@ -306,8 +405,12 @@ export const useEmailLogsStore = defineStore("emailLogs", () => {
 
     applyFilters,
     resetFilters,
+    fetchLogsDetails,
+    fetchLogsList,
 
-    syncLogs,
+    fetchTags,
+
+    resetLogDetails,
 
     changePage,
     updatePerPage,

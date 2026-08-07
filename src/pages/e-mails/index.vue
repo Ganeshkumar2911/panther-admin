@@ -4,7 +4,8 @@ import { ref, computed, watch } from "vue";
 import EmailSettings from "./EmailSettings.vue";
 import EmailTemplates from "./EmailTemplates.vue";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
-import EmailLogs from "@/pages/e-mails/EmailLogs.vue";
+// import EmailLogs from "@/pages/e-mails/EmailLogs.vue";
+import NewEmailLogs from "@/pages/e-mails/NewEmailLogs.vue";
 
 const { hasPermission } = usePermissionCheck();
 
@@ -54,7 +55,7 @@ const activeComponent = computed(() => {
     case "templates":
       return EmailTemplates;
     case "logs":
-      return EmailLogs;
+      return NewEmailLogs;
     default:
       return EmailSettings;
   }

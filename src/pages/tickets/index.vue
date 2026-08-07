@@ -248,6 +248,24 @@
           >
             <Plus class="w-3.5 h-3.5" /> Create Ticket
           </button>
+
+          <Tooltip text="Refresh" position="right">
+            <button
+              type="button"
+              :disabled="platformTicketsStore.isLoading"
+              class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text transition-colors hover:text-primary-text hover:bg-background disabled:opacity-60 disabled:cursor-not-allowed"
+              @click="
+                () => {
+                  platformTicketsStore.fetchTickets(true);
+                }
+              "
+            >
+              <RefreshCw
+                class="h-3.5 w-3.5"
+                :class="{ 'animate-spin': platformTicketsStore.isLoading }"
+              />
+            </button>
+          </Tooltip>
         </div>
       </div>
 
@@ -396,17 +414,27 @@
 
               <td class="p-3 text-xs text-secondary-text">
                 <div class="flex flex-col gap-1">
-                  <span v-if="ticket.tat_formatted" class="text-[11px] font-medium text-primary-text">
+                  <span
+                    v-if="ticket.tat_formatted"
+                    class="text-[11px] font-medium text-primary-text"
+                  >
                     {{ ticket.tat_formatted }}
                   </span>
                   <span
                     v-if="ticket.tat_message"
                     class="text-[10px]"
-                    :class="ticket.tat_message?.includes('Breached') ? 'text-primary-red font-medium' : 'text-primary-green'"
+                    :class="
+                      ticket.tat_message?.includes('Breached')
+                        ? 'text-primary-red font-medium'
+                        : 'text-primary-green'
+                    "
                   >
                     {{ ticket.tat_message }}
                   </span>
-                  <span v-if="!ticket.tat_message" class="text-[11px] text-secondary-text">
+                  <span
+                    v-if="!ticket.tat_message"
+                    class="text-[11px] text-secondary-text"
+                  >
                     No target resolution deadline set
                   </span>
                 </div>
@@ -463,13 +491,20 @@
 <script setup>
 import { onMounted, ref, computed, watch } from "vue";
 import { useRouter } from "vue-router";
-import { Search, Plus, Eye, Ticket as TicketIcon } from "lucide-vue-next";
+import {
+  Search,
+  Plus,
+  Eye,
+  Ticket as TicketIcon,
+  RefreshCw,
+} from "lucide-vue-next";
 import { useTicketsStore } from "@/stores/tickets/tickets";
 import { usePlatfromTicketsStore } from "@/stores/platformTickets/platformTickets";
 import Pagination from "@/components/common/Pagination.vue";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import CreateTicketDialog from "@/components/tickets/CreateTicketDialog.vue";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
+import Tooltip from "@/components/common/Tooltip.vue";
 
 const router = useRouter();
 const yourTicketsStore = useTicketsStore();
@@ -608,7 +643,8 @@ const formatDate = (val) =>
 
 const priorityClass = (p) =>
   ({
-    urgent: "bg-primary-red/30 text-primary-red border border-primary-red/50 font-medium",
+    urgent:
+      "bg-primary-red/30 text-primary-red border border-primary-red/50 font-medium",
     high: "bg-primary-red/20 text-primary-red border border-primary-red/30",
     medium:
       "bg-primary-yellow/20 text-primary-yellow border border-primary-yellow/30",

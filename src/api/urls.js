@@ -159,6 +159,9 @@ const urls = {
   emailLogs: {
     list: "/fetch-logs",
     sync: "/sync-logs",
+    tags: "/filter-template-codes",
+    logDetails: "/emails/preview",
+    logList: "/fetch/dispatch/records",
   },
   integrations: {
     list: "/company-integrations",

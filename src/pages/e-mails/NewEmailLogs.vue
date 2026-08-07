@@ -122,146 +122,89 @@
       </button>
     </div>
 
-    <!-- Table -->
-    <div class="w-full border border-primary-border rounded-xl overflow-x-auto">
-      <table class="w-full border-collapse">
-        <thead>
-          <tr class="border-b border-primary-border">
-            <th class="p-3 text-xs font-semibold text-primary-text text-start">
-              Date
-            </th>
-            <th class="p-3 text-xs font-semibold text-primary-text text-start">
-              Event
-            </th>
-            <th class="p-3 text-xs font-semibold text-primary-text text-start">
-              Subject
-            </th>
-            <th class="p-3 text-xs font-semibold text-primary-text text-start">
-              From
-            </th>
-            <th class="p-3 text-xs font-semibold text-primary-text text-start">
-              Email
-            </th>
-            <th class="p-3 text-xs font-semibold text-primary-text text-start">
-              Action
-            </th>
-            <!-- <th class="p-3 text-xs font-semibold text-primary-text text-start">
-              Message ID
-            </th> -->
-          </tr>
-        </thead>
+    <div
+      v-if="store.isLoadingLogsList"
+      class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"
+    >
+      <div
+        v-for="n in 6"
+        :key="n"
+        class="bg-card-background border border-primary-border rounded-2xl p-5 animate-pulse space-y-3"
+      >
+        <div class="flex items-center justify-between">
+          <div class="h-4 w-32 bg-background rounded" />
+          <div class="h-5 w-14 bg-background rounded-full" />
+        </div>
+        <div class="flex gap-1.5">
+          <div class="h-5 w-12 bg-background rounded-full" />
+          <div class="h-5 w-20 bg-background rounded-full" />
+        </div>
+        <div class="h-3 w-full bg-background rounded" />
+        <div class="h-3 w-3/4 bg-background rounded" />
+        <div class="flex gap-1.5 pt-1">
+          <div class="h-5 w-10 bg-background rounded-full" />
+          <div class="h-5 w-10 bg-background rounded-full" />
+        </div>
+      </div>
+    </div>
 
-        <!-- Skeleton Loading -->
-        <tbody v-if="store.loading">
-          <tr
-            v-for="n in 5"
-            :key="n"
-            class="border-b border-primary-border animate-pulse"
+    <div
+      v-else-if="store.logLists?.records?.length === 0"
+      class="flex flex-col items-center gap-4 py-24"
+    >
+      <div
+        class="w-16 h-16 rounded-2xl bg-card-background border border-primary-border flex items-center justify-center"
+      >
+        <Mail class="w-7 h-7 text-secondary-text" />
+      </div>
+      <div class="text-center">
+        <p class="text-sm font-semibold text-primary-text">No logs found</p>
+        <p class="text-xs text-secondary-text mt-1">
+          Create your first email log to get started
+        </p>
+      </div>
+    </div>
+
+    <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      <div
+        v-for="d in store.logLists?.records"
+        :key="d.id"
+        class="bg-card-background border border-primary-border rounded-2xl p-5 flex flex-col gap-3 hover:border-primary/30 transition-all duration-200"
+      >
+        <!-- Top -->
+        <div class="flex items-start justify-between gap-4">
+          <p class="text-sm font-semibold text-primary-text">
+            {{ d.tag }}
+          </p>
+          <p class="text-xs font-semibold text-secondary-text">
+            {{ formatDate(d.campaigns.campaign_date) }}
+          </p>
+        </div>
+
+        <!-- Actions -->
+        <!-- <div
+          v-if="
+            hasPermission('email.template_view') ||
+            hasPermission('email.template_update')
+          "
+          class="flex gap-2 pt-2.5 mt-auto border-t border-primary-border"
+        >
+          <button
+            v-if="hasPermission('email.template_view')"
+            class="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary-border text-xs text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer"
+            @click="openPreview(d.id)"
           >
-            <td class="p-3">
-              <div class="h-3 w-24 bg-card-background rounded" />
-            </td>
-            <td class="p-3">
-              <div class="h-3 w-16 bg-card-background rounded" />
-            </td>
-            <td class="p-3">
-              <div class="h-3 w-40 bg-card-background rounded" />
-            </td>
-            <td class="p-3">
-              <div class="h-3 w-32 bg-card-background rounded" />
-            </td>
-            <td class="p-3">
-              <div class="h-3 w-36 bg-card-background rounded" />
-            </td>
-            <td class="p-3">
-              <div class="h-3 w-20 bg-card-background rounded" />
-            </td>
-            <!-- <td class="p-3">
-              <div class="h-3 w-32 bg-card-background rounded" />
-            </td> -->
-          </tr>
-        </tbody>
-
-        <!-- Empty State -->
-        <tbody v-else-if="store.logs.length === 0">
-          <tr>
-            <td colspan="7" class="py-16 text-center">
-              <div class="flex flex-col items-center gap-3">
-                <div
-                  class="w-12 h-12 rounded-full bg-card-background flex items-center justify-center"
-                >
-                  <Mail class="w-5 h-5 text-secondary-text" />
-                </div>
-                <p class="text-sm font-medium text-primary-text">
-                  No email logs found
-                </p>
-                <p class="text-xs text-secondary-text">
-                  {{
-                    store.hasActiveFilters
-                      ? "Try adjusting your filters"
-                      : "Email logs will appear here"
-                  }}
-                </p>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-
-        <!-- Data Rows -->
-        <tbody v-else>
-          <tr
-            v-for="log in store.logs"
-            :key="log.messageId"
-            class="border-b border-primary-border last:border-none hover:bg-card-background transition-colors"
+            <Eye class="w-3.5 h-3.5" /> Preview
+          </button>
+          <button
+            v-if="hasPermission('email.template_update')"
+            class="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-colors cursor-pointer"
+            @click="openEdit(d.id)"
           >
-            <td
-              class="p-3 text-xs font-medium text-primary-text whitespace-nowrap"
-            >
-              {{ formatDate(log.date) }}
-            </td>
-            <td class="p-3 text-xs">
-              <span
-                class="px-2 py-0.5 rounded-full text-[11px] font-medium border capitalize"
-                :class="eventClass(log.event)"
-              >
-                {{ log.event }}
-              </span>
-            </td>
-            <td
-              class="p-3 text-xs text-primary-text max-w-[250px] truncate"
-              :title="log.subject"
-            >
-              {{ log.subject }}
-            </td>
-            <td
-              class="p-3 text-xs text-secondary-text max-w-[200px] truncate"
-              :title="log.from"
-            >
-              {{ log.from }}
-            </td>
-            <td
-              class="p-3 text-xs text-secondary-text max-w-[200px] truncate"
-              :title="log.email"
-            >
-              {{ log.email }}
-            </td>
-            <td class="p-3 text-xs text-secondary-text">
-              <button
-                @click="handleViewLog(log.messageId)"
-                class="cursor-pointer flex items-center gap-1 px-2 py-1 text-xs font-medium text-secondary-text hover:text-primary-text bg-card-background hover:bg-background rounded-lg border border-primary-border transition-colors"
-              >
-                <Eye size="16" class="text-secondary-text" />
-              </button>
-            </td>
-            <!-- <td
-              class="p-3 text-xs text-secondary-text max-w-[200px] truncate"
-              :title="log.messageId"
-            >
-              {{ log.messageId }}
-            </td> -->
-          </tr>
-        </tbody>
-      </table>
+            <Pencil class="w-3.5 h-3.5" /> Edit
+          </button>
+        </div> -->
+      </div>
     </div>
 
     <SimplePagination
@@ -270,12 +213,12 @@
       @page-change="store.changePage"
     />
 
-    <ViewEmailLog
+    <!-- <ViewEmailLog
       v-if="openDialog"
       :open="openDialog"
       :id="selectedLogId"
       @close="handleCloseDialog"
-    />
+    /> -->
   </div>
 </template>
 
@@ -287,12 +230,14 @@ import BaseSelect from "@/components/common/BaseSelect.vue";
 import Pagination from "@/components/common/Pagination.vue";
 import Tooltip from "@/components/common/Tooltip.vue";
 import SimplePagination from "@/components/common/SimplePagination.vue";
-import ViewEmailLog from "@/pages/e-mails/ViewEmailLog.vue";
+// import ViewEmailLog from "@/pages/e-mails/ViewEmailLog.vue";
 
 const store = useEmailLogsStore();
 const openDialog = ref(false);
 let tagsSearchTimer = null;
 const selectedLogId = ref(null);
+
+console.log("logs:", store.logLists);
 
 let searchTimeout;
 
@@ -360,11 +305,11 @@ const handleCloseDialog = () => {
 };
 
 watchEffect(() => {
-  console.log("logs:", store.logs);
+  console.log("logs: w", store.logLists);
 });
 
 onMounted(() => {
-  store.fetchLogs(true);
+  store.fetchLogsList();
   store.fetchTags();
 });
 </script>
