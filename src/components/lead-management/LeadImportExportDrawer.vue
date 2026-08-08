@@ -38,6 +38,7 @@ const exportLoading = ref(false)
 const templateLoading = ref(false)
 const importLoading = ref(false)
 const exportConfirmOpen = ref(false)
+const templateConfirmOpen = ref(false)
 
 const selectedFile = ref(null)
 const dragOver = ref(false)
@@ -204,6 +205,7 @@ const handleDownloadTemplate = () => {
 
   const successHandler = (res) => {
     templateLoading.value = false
+    templateConfirmOpen.value = false
     const blob = res instanceof Blob ? res : new Blob([res], { type: 'text/csv' })
     const downloadUrl = window.URL.createObjectURL(blob)
     const link = document.createElement('a')
@@ -218,6 +220,7 @@ const handleDownloadTemplate = () => {
 
   const failureHandler = (err) => {
     templateLoading.value = false
+    templateConfirmOpen.value = false
     snackbar.show(err?.message || err?.error || 'Failed to download import template.', 'error')
   }
 
@@ -471,7 +474,7 @@ const formatFileSize = (bytes) => {
 
             <button
               :disabled="templateLoading"
-              @click="handleDownloadTemplate"
+              @click="templateConfirmOpen = true"
               class="w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-primary-border bg-card-background hover:bg-background text-primary-text text-xs font-semibold transition active:scale-[0.99] disabled:opacity-50 cursor-pointer"
             >
               <Loader2 v-if="templateLoading" class="w-3.5 h-3.5 animate-spin text-primary" />
@@ -570,6 +573,19 @@ const formatFileSize = (bytes) => {
       :loading="exportLoading"
       @confirm="handleExport"
       @cancel="exportConfirmOpen = false"
+    />
+
+    <!-- Template Download Confirmation Dialog -->
+    <ConfirmationDialog
+      :open="templateConfirmOpen"
+      title="Confirm Template Download"
+      message="Are you sure you want to download the sample CSV lead import template?"
+      confirm-text="Download Template"
+      cancel-text="Cancel"
+      type="info"
+      :loading="templateLoading"
+      @confirm="handleDownloadTemplate"
+      @cancel="templateConfirmOpen = false"
     />
   </Teleport>
 </template>

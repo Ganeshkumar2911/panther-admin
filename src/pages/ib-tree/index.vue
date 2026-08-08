@@ -167,6 +167,33 @@
       @close="transferDialog.open = false"
       @success="onTransferSuccess"
     />
+
+    <!-- Assign / Reassign Staff Confirmation Dialog -->
+    <ConfirmationDialog
+      :open="assignDialog.open"
+      :title="assignDialog.isEdit ? 'Reassign Staff Member' : 'Assign Staff Member'"
+      :message="
+        assignDialog.isEdit
+          ? `Are you sure you want to reassign staff for IB '${
+              assignDialog.node?.name ||
+              (assignDialog.node?.first_name
+                ? `${assignDialog.node.first_name} ${assignDialog.node.last_name || ''}`.trim()
+                : assignDialog.node?.email || 'Selected IB')
+            }' to ${assignDialog.staffName}?`
+          : `Are you sure you want to assign ${assignDialog.staffName} to IB '${
+              assignDialog.node?.name ||
+              (assignDialog.node?.first_name
+                ? `${assignDialog.node.first_name} ${assignDialog.node.last_name || ''}`.trim()
+                : assignDialog.node?.email || 'Selected IB')
+            }'?`
+      "
+      :confirm-text="assignDialog.isEdit ? 'Reassign Staff' : 'Assign Staff'"
+      cancel-text="Cancel"
+      type="info"
+      :loading="assignDialog.loading"
+      @confirm="handleConfirmAssignStaff"
+      @cancel="handleCancelAssignStaff"
+    />
   </div>
 </template>
 
@@ -180,6 +207,7 @@ import IbTreeRow from '@/components/ibTree/IbTreeRow.vue'
 import IbTree from '@/components/ibTree/IbTree.vue'
 import IbDialog from '@/components/ibTree/IbDialog.vue'
 import TransferIbDialog from '@/components/ibTree/TransferIbDialog.vue'
+import ConfirmationDialog from '@/components/common/ConfirmationDialog.vue'
 import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
 const store = useIbTreeStore()
@@ -195,6 +223,19 @@ import apiRequest from '@/api/request'
 import urls from '@/api/urls'
 import { useSnackbarStore } from '@/stores/snackbar/snackbar'
 
+const snackbar = useSnackbarStore()
+
+const assignDialog = ref({
+  open: false,
+  loading: false,
+  node: null,
+  ibId: null,
+  leadId: null,
+  staffId: null,
+  staffName: '',
+  isEdit: false,
+})
+
 const staffOptions = computed(() => {
   return (rbacStaffStore.records || []).map(s => ({
     value: s.id,
@@ -202,9 +243,76 @@ const staffOptions = computed(() => {
   }))
 })
 
-const handleAssignStaff = ({ ibId, leadId, staffId }) => {
-  const targetId = leadId || ibId
-  if (!targetId || !staffId) return
+const handleAssignStaff = ({ node, ibId, leadId, staffId }) => {
+  if (!hasPermission('ib.update')) {
+    snackbar.show('You do not have permission to assign or update staff.', 'error')
+    return
+  }
+
+  const targetId = leadId || ibId || node?.lead_id || node?.ib_id || node?.id
+  if (!targetId) {
+    snackbar.show('Invalid IB record.', 'error')
+    return
+  }
+
+  if (!staffId) {
+    snackbar.show('Please select a staff member.', 'warning')
+    return
+  }
+
+  const currentStaffId =
+    node?.staff_assigned?.id ||
+    node?.assigned_staff?.id ||
+    node?.assigned_staff_id
+
+  if (currentStaffId && Number(currentStaffId) === Number(staffId)) {
+    snackbar.show(
+      'This staff member is already assigned to this IB.',
+      'info'
+    )
+    return
+  }
+
+  const currentStaffName =
+    node?.staff_assigned?.name || node?.assigned_staff?.name || null
+  const isEdit = !!currentStaffName
+
+  const staffObj = (rbacStaffStore.records || []).find((s) => s.id === staffId)
+  const staffName = staffObj
+    ? staffObj.name ||
+      `${staffObj.first_name || ''} ${staffObj.last_name || ''}`.trim() ||
+      staffObj.email
+    : 'selected staff member'
+
+  assignDialog.value = {
+    open: true,
+    loading: false,
+    node,
+    ibId,
+    leadId,
+    staffId,
+    staffName,
+    isEdit,
+  }
+}
+
+const handleConfirmAssignStaff = () => {
+  const { node, ibId, leadId, staffId } = assignDialog.value
+  const targetId = leadId || ibId || node?.lead_id || node?.ib_id || node?.id
+
+  if (!targetId) {
+    snackbar.show('Invalid IB lead ID for assignment.', 'error')
+    assignDialog.value.open = false
+    return
+  }
+
+  if (!staffId) {
+    snackbar.show('Please select a staff member.', 'warning')
+    assignDialog.value.open = false
+    return
+  }
+
+  assignDialog.value.loading = true
 
   apiRequest(urls.KEYS.PATCH, urls.lead.assign, {
     look_up_key: targetId,
@@ -213,13 +321,30 @@ const handleAssignStaff = ({ ibId, leadId, staffId }) => {
     },
     isTokenRequired: true,
     onSuccess: (res) => {
-      snackbar.show(res?.message || res?.data?.message || 'Staff assigned successfully.', 'success')
+      assignDialog.value.loading = false
+      assignDialog.value.open = false
+
+      snackbar.show(
+        res?.message || res?.data?.message || 'Staff assigned successfully.',
+        'success'
+      )
       store.fetchIbTree(true)
     },
     onFailure: (err) => {
-      snackbar.show(err?.response?.data?.message || err?.message || err?.error || 'Failed to assign staff.', 'error')
+      assignDialog.value.loading = false
+      snackbar.show(
+        err?.response?.data?.message ||
+          err?.message ||
+          err?.error ||
+          'Failed to assign staff.',
+        'error'
+      )
     },
   })
+}
+
+const handleCancelAssignStaff = () => {
+  assignDialog.value.open = false
 }
 
 const openAdd = () => { dialog.value = { open: true, editData: null, parentIbId: null } }

@@ -15,6 +15,7 @@ import {
   Loader2,
   UserCheck,
 } from "lucide-vue-next";
+import DropdownMenu from "@/components/common/DropdownMenu.vue";
 
 const props = defineProps({
   leads: { type: Array, required: true },
@@ -44,6 +45,26 @@ const perPageOptions = [
   { value: 50, label: "50" },
   { value: 100, label: "100" },
 ];
+
+function getActions(lead) {
+  return [
+    {
+      label: "View Details",
+      icon: Eye,
+      handler: () => emit("open-drawer", lead),
+    },
+    {
+      label: "Move Stage",
+      icon: ArrowRightLeft,
+      handler: () => emit("move-stage", lead),
+    },
+    {
+      label: "Edit Lead",
+      icon: Edit,
+      handler: () => emit("edit-lead", lead),
+    },
+  ];
+}
 
 const isKycStatusVisible = computed(() => {
   if (!props.selectedStage) return true;
@@ -84,8 +105,14 @@ function getStaffName(lead) {
 
 function getStageBadge(lead) {
   const current = lead.current_stage || {};
-  const stageCode = current.code || lead.stage || "";
-  const stageName = current.name || current.code || lead.stage || "NEW";
+  const stageCode = current.code || lead.stage || props.stages?.[0]?.code || "";
+  const stageName =
+    current.name ||
+    current.code ||
+    lead.stage ||
+    props.stages?.[0]?.name ||
+    props.stages?.[0]?.code ||
+    "NEW_USER";
   const matched = props.stages.find((s) => (s.code || s.key) === stageCode);
   const color = current.color || matched?.color || "var(--color-primary-blue)";
 
@@ -399,30 +426,8 @@ function formatSourceLabel(source) {
 
             <!-- Actions -->
             <td class="px-5 py-3.5 text-right whitespace-nowrap" @click.stop>
-              <div class="flex items-center justify-end gap-1.5">
-                <button
-                  @click="emit('open-drawer', lead)"
-                  class="p-1.5 rounded-lg border border-primary-border bg-background hover:bg-card-background text-secondary-text hover:text-primary-text transition-colors cursor-pointer"
-                  title="View Lead Details"
-                >
-                  <Eye class="w-3.5 h-3.5" />
-                </button>
-
-                <button
-                  @click="emit('move-stage', lead)"
-                  class="p-1.5 rounded-lg border border-primary-border bg-background hover:bg-card-background text-secondary-text hover:text-primary-text transition-colors cursor-pointer"
-                  title="Move Stage"
-                >
-                  <ArrowRightLeft class="w-3.5 h-3.5" />
-                </button>
-
-                <button
-                  @click="emit('edit-lead', lead)"
-                  class="p-1.5 rounded-lg border border-primary-border bg-background hover:bg-card-background text-secondary-text hover:text-primary-text transition-colors cursor-pointer"
-                  title="Edit Lead"
-                >
-                  <Edit class="w-3.5 h-3.5" />
-                </button>
+              <div class="flex items-center justify-end">
+                <DropdownMenu :items="getActions(lead)" position="bottom-end" />
               </div>
             </td>
           </tr>

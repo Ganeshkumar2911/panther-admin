@@ -1,7 +1,7 @@
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { Pencil, Plus, ArrowLeftRight, Users, Link } from 'lucide-vue-next'
+import { Pencil, Plus, ArrowLeftRight, Users, Link, X } from 'lucide-vue-next'
 import DropdownMenu from '@/components/common/DropdownMenu.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 
@@ -16,6 +16,8 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['add-sub', 'edit', 'transfer-parent', 'view-clients', 'assign-staff'])
+
+const editingStaffNodeId = ref(null)
 
 // Flatten the nested tree into a flat list for table display
 function flattenTree(nodes, result = []) {
@@ -145,22 +147,80 @@ const getActions = (node) => {
 
           <!-- Assigned Staff -->
           <td class="px-4 py-3 align-middle whitespace-nowrap" @click.stop>
-            <div v-if="node.staff_assigned?.name || node.assigned_staff?.name" class="flex items-center gap-2">
-              <div class="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-[9px] font-bold text-btn-text-primary shrink-0">
-                {{ (node.staff_assigned?.name || node.assigned_staff?.name || '').charAt(0).toUpperCase() }}
+            <div
+              v-if="
+                (node.staff_assigned?.name || node.assigned_staff?.name) &&
+                editingStaffNodeId !== (node.ib_id || node.id)
+              "
+              class="flex items-center justify-between gap-2 group"
+            >
+              <div class="flex items-center gap-2">
+                <div
+                  class="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-[9px] font-bold text-btn-text-primary shrink-0"
+                >
+                  {{
+                    (
+                      node.staff_assigned?.name ||
+                      node.assigned_staff?.name ||
+                      ''
+                    )
+                      .charAt(0)
+                      .toUpperCase()
+                  }}
+                </div>
+                <span class="text-primary-text font-medium text-xs">{{
+                  node.staff_assigned?.name || node.assigned_staff?.name
+                }}</span>
               </div>
-              <span class="text-primary-text font-medium text-xs">{{ node.staff_assigned?.name || node.assigned_staff?.name }}</span>
+              <button
+                v-if="hasPermission('ib.update')"
+                type="button"
+                @click="editingStaffNodeId = (node.ib_id || node.id)"
+                class="p-1 rounded-md text-secondary-text hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer"
+                title="Edit Assigned Staff"
+              >
+                <Pencil class="w-3 h-3" />
+              </button>
             </div>
-            <div v-else class="w-36">
-              <BaseSelect
-                :model-value="null"
-                :options="staffOptions"
-                placeholder="Assign Staff..."
-                searchable
-                variant="surface"
-                @update:model-value="(staffId) => emit('assign-staff', { ibId: node.ib_id, leadId: node.lead_id, staffId })"
-              />
+            <div v-else-if="hasPermission('ib.update')" class="w-44 flex items-center gap-1">
+              <div class="flex-1">
+                <BaseSelect
+                  :model-value="
+                    node.staff_assigned?.id ||
+                    node.assigned_staff?.id ||
+                    node.assigned_staff_id ||
+                    null
+                  "
+                  :options="staffOptions"
+                  :placeholder="
+                    node.staff_assigned?.name || node.assigned_staff?.name
+                      ? 'Change Staff...'
+                      : 'Assign Staff...'
+                  "
+                  searchable
+                  variant="surface"
+                  @update:model-value="
+                    (staffId) =>
+                      emit('assign-staff', {
+                        node,
+                        ibId: node.ib_id,
+                        leadId: node.lead_id,
+                        staffId,
+                      })
+                  "
+                />
+              </div>
+              <button
+                v-if="editingStaffNodeId === (node.ib_id || node.id)"
+                type="button"
+                @click="editingStaffNodeId = null"
+                class="p-1 rounded-md text-secondary-text hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer shrink-0"
+                title="Cancel Edit"
+              >
+                <X class="w-3.5 h-3.5" />
+              </button>
             </div>
+            <span v-else class="text-xs text-secondary-text">Unassigned</span>
           </td>
 
           <!-- Split -->

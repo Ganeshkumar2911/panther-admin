@@ -113,6 +113,7 @@ const urls = {
     attachment: "/support/tickets/attachments",
     addAttachment: "/support/tickets/attachments",
     updateStatus: "/support/tickets/status",
+    assign: "/support/tickets/assign",
   },
   platformTickets: {
     list: "/support/tickets/platform",
@@ -124,6 +125,7 @@ const urls = {
     attachment: "/support/tickets/attachments",
     addAttachment: "/support/tickets/attachments",
     updateStatus: "/support/tickets/status",
+    assign: "/support/tickets/assign",
   },
   groupConfig: {
     list: "/mt5/groups",

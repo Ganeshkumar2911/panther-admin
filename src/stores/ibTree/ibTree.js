@@ -51,7 +51,6 @@ export const useIbTreeStore = defineStore('ibTree', () => {
 
     if (password) payload.password = password
     if (parent_ib_id) payload.parent_ib_id = parent_ib_id
-    if (ib_id) payload.ib_id = ib_id
 
     const successHandler = () => {
       actionLoading.value = false
@@ -63,16 +62,22 @@ export const useIbTreeStore = defineStore('ibTree', () => {
       snackbar.show(err?.error || 'Something went wrong.', 'error')
     }
 
-    apiRequest(
-      ib_id ? urls.KEYS.PUT : urls.KEYS.POST,
-      ib_id ? urls.ibTree.update : urls.ibTree.create,
-      {
+    if (ib_id) {
+      apiRequest(urls.KEYS.PUT, urls.ibTree.update, {
+        look_up_key: ib_id,
         data: payload,
         isTokenRequired: true,
         onSuccess: successHandler,
         onFailure: failureHandler,
-      }
-    )
+      })
+    } else {
+      apiRequest(urls.KEYS.POST, urls.ibTree.create, {
+        data: payload,
+        isTokenRequired: true,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+      })
+    }
   }
 
   // ─── Convert Client to IB

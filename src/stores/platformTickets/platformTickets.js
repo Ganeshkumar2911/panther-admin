@@ -23,6 +23,7 @@ export const usePlatfromTicketsStore = defineStore("platfromTickets", () => {
     priority: "",
     search: "",
     sort: "desc",
+    assigned_staff_id: "",
   });
 
   // ─── Detail State ──────────────────────────────────────
@@ -88,6 +89,10 @@ export const usePlatfromTicketsStore = defineStore("platfromTickets", () => {
 
     if (filters.search) {
       params.search = filters.search;
+    }
+
+    if (filters.assigned_staff_id) {
+      params.assigned_staff_id = filters.assigned_staff_id;
     }
 
     return params;
@@ -285,11 +290,40 @@ export const usePlatfromTicketsStore = defineStore("platfromTickets", () => {
     filters.priority = "";
     filters.search = "";
     filters.sort = "desc";
+    filters.assigned_staff_id = "";
 
     pagination.value.page = 1;
     isFetched.value = false;
 
     fetchTickets(true, 1);
+  };
+
+  // ─── Assign Staff to Ticket ───────────────────────────────
+  const assignTicket = (ticketId, staffId, onDone) => {
+    if (!ticketId) return;
+
+    actionLoading.value = true;
+
+    apiRequest(urls.KEYS.PATCH, urls.platformTickets.assign, {
+      look_up_key: ticketId,
+      data: {
+        assigned_staff_id: staffId,
+      },
+      isTokenRequired: true,
+      onSuccess: (res) => {
+        actionLoading.value = false;
+        snackbar.show(res?.message || "Staff assigned to ticket successfully.", "success");
+        fetchTickets(true);
+        if (detail.value?.id === ticketId) {
+          fetchTicketDetail(ticketId);
+        }
+        onDone?.(res);
+      },
+      onFailure: (err) => {
+        actionLoading.value = false;
+        snackbar.show(err?.message || err?.error || "Failed to assign staff.", "error");
+      },
+    });
   };
 
   // ─── Pagination ────────────────────────────────────────
@@ -372,6 +406,7 @@ export const usePlatfromTicketsStore = defineStore("platfromTickets", () => {
     // list
     fetchTickets,
     createTicketForUser,
+    assignTicket,
     changePage,
     updatePerPage,
 

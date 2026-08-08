@@ -61,6 +61,29 @@
         </button>
       </div>
 
+      <!-- TAT Status Panel -->
+      <div class="bg-card-background border border-primary-border rounded-xl p-5 mb-4">
+        <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-3">
+          TAT Status
+        </p>
+        <div class="flex flex-col gap-2">
+          <template v-if="getTat(store.detail).hasDeadline">
+            <span class="text-sm font-medium text-primary-text">
+              {{ getTat(store.detail).tatFormatted }}
+            </span>
+            <span
+              class="text-xs"
+              :class="getTat(store.detail).isBreached ? 'text-primary-red font-medium' : 'text-primary-green'"
+            >
+              {{ getTat(store.detail).tatMessage }}
+            </span>
+          </template>
+          <span v-else class="text-xs text-secondary-text">
+            No target resolution deadline set
+          </span>
+        </div>
+      </div>
+
       <!-- Description -->
       <div
         class="bg-card-background border border-primary-border rounded-xl p-5 mb-4"
@@ -91,12 +114,13 @@
               {{ store.detail.attachments.length }}
             </span>
           </div>
-          <!-- <button
-            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-black text-xs font-medium transition-colors"
+          <button
+            v-if="hasPermission('ticket.platform_update')"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-black text-xs font-medium transition-colors cursor-pointer"
             @click="openDialog('attachment')"
           >
             <Plus class="w-3 h-3" /> Add
-          </button> -->
+          </button>
         </div>
 
         <div
@@ -211,7 +235,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref, computed } from "vue";
+import { onMounted, onBeforeUnmount, ref, computed } from "vue";
 import { useRoute } from "vue-router";
 import {
   Paperclip,
@@ -225,6 +249,7 @@ import { usePlatfromTicketsStore } from "@/stores/platformTickets/platformTicket
 import TicketActionDialog from "@/components/platformTickets/TicketActionDialog.vue";
 import TicketStatusDialog from "@/components/platformTickets/TicketStatusDialog.vue";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
+import { formatDate, calculateTat } from "@/utils/timeFormatter";
 
 const store = usePlatfromTicketsStore();
 const route = useRoute();
@@ -250,7 +275,10 @@ const refreshTicket = () => {
   }
 };
 
-import { formatDate } from "@/utils/timeFormatter";
+const now = ref(new Date());
+let tickerTimer = null;
+
+const getTat = (ticket) => calculateTat(ticket, now.value);
 
 const priorityClass = (p) =>
   ({
@@ -267,5 +295,17 @@ const statusClass = (s) =>
     closed: "bg-background text-secondary-text border-primary-border",
   })[s] ?? "bg-background text-secondary-text border-primary-border";
 
-onMounted(() => store.fetchTicketDetail(ticketId.value));
+onMounted(() => {
+  tickerTimer = setInterval(() => {
+    now.value = new Date();
+  }, 1000);
+
+  if (ticketId.value) {
+    store.fetchTicketDetail(ticketId.value);
+  }
+});
+
+onBeforeUnmount(() => {
+  if (tickerTimer) clearInterval(tickerTimer);
+});
 </script>

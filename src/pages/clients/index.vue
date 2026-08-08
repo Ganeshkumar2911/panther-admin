@@ -14,7 +14,9 @@ import {
   Trash2,
   Link2,
   LogIn,
+  X,
 } from "lucide-vue-next";
+import ConfirmationDialog from "@/components/common/ConfirmationDialog.vue";
 import { useClientListStore } from "@/stores/clientList/clientList";
 import Pagination from "@/components/common/Pagination.vue";
 import BaseSelect from "@/components/common/BaseSelect.vue";
@@ -291,6 +293,17 @@ import { useRbacStaffStore } from "@/stores/rbac/staff";
 const snackbar = useSnackbarStore();
 const rbacStaffStore = useRbacStaffStore();
 
+const editingStaffClientId = ref(null);
+
+const assignDialog = ref({
+  open: false,
+  loading: false,
+  client: null,
+  staffId: null,
+  staffName: "",
+  isEdit: false,
+});
+
 const staffOptions = computed(() => {
   return (rbacStaffStore.records || []).map((s) => ({
     value: s.id,
@@ -299,9 +312,74 @@ const staffOptions = computed(() => {
   }));
 });
 
-const handleAssignStaff = (client, staffId) => {
+const promptAssignStaff = (client, staffId) => {
+  if (!hasPermission("client.update")) {
+    snackbar.show("You do not have permission to assign or update staff.", "error");
+    return;
+  }
+
+  if (!client) {
+    snackbar.show("Invalid client record.", "error");
+    return;
+  }
+
+  if (!staffId) {
+    snackbar.show("Please select a staff member.", "warning");
+    return;
+  }
+
+  const currentStaffId =
+    client.staff_assigned?.id ||
+    client.assigned_staff?.id ||
+    client.assigned_staff_id;
+
+  if (currentStaffId && Number(currentStaffId) === Number(staffId)) {
+    snackbar.show(
+      "This staff member is already assigned to this client.",
+      "info",
+    );
+    editingStaffClientId.value = null;
+    return;
+  }
+
+  const currentStaffName =
+    client.staff_assigned?.name || client.assigned_staff?.name || null;
+  const isEdit = !!currentStaffName;
+
+  const staffObj = (rbacStaffStore.records || []).find((s) => s.id === staffId);
+  const staffName = staffObj
+    ? staffObj.name ||
+      `${staffObj.first_name || ""} ${staffObj.last_name || ""}`.trim() ||
+      staffObj.email
+    : "selected staff member";
+
+  assignDialog.value = {
+    open: true,
+    loading: false,
+    client,
+    staffId,
+    staffName,
+    isEdit,
+  };
+};
+
+const handleConfirmAssignStaff = () => {
+  const { client, staffId } = assignDialog.value;
   const targetId = client?.lead_id || client?.id;
-  if (!targetId || !staffId) return;
+
+  if (!targetId) {
+    snackbar.show("Invalid client lead ID for assignment.", "error");
+    assignDialog.value.open = false;
+    return;
+  }
+
+  if (!staffId) {
+    snackbar.show("Please select a staff member.", "warning");
+    assignDialog.value.open = false;
+    return;
+  }
+
+  assignDialog.value.loading = true;
 
   apiRequest(urls.KEYS.PATCH, urls.lead.assign, {
     look_up_key: targetId,
@@ -310,6 +388,10 @@ const handleAssignStaff = (client, staffId) => {
     },
     isTokenRequired: true,
     onSuccess: (res) => {
+      assignDialog.value.loading = false;
+      assignDialog.value.open = false;
+      editingStaffClientId.value = null;
+
       snackbar.show(
         res?.message || res?.data?.message || "Staff assigned successfully.",
         "success",
@@ -317,6 +399,7 @@ const handleAssignStaff = (client, staffId) => {
       store.fetchClients(store.pagination.page);
     },
     onFailure: (err) => {
+      assignDialog.value.loading = false;
       snackbar.show(
         err?.response?.data?.message ||
           err?.message ||
@@ -326,6 +409,10 @@ const handleAssignStaff = (client, staffId) => {
       );
     },
   });
+};
+
+const handleCancelAssignStaff = () => {
+  assignDialog.value.open = false;
 };
 
 const getKycClass = (status) => {
@@ -688,39 +775,72 @@ onMounted(() => {
             <td class="p-3 whitespace-nowrap" @click.stop>
               <div
                 v-if="
-                  client.staff_assigned?.name || client.assigned_staff?.name
+                  (client.staff_assigned?.name || client.assigned_staff?.name) &&
+                  editingStaffClientId !== client.id
                 "
-                class="flex items-center gap-2"
+                class="flex items-center justify-between gap-2 group"
               >
-                <div
-                  class="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-[9px] font-bold text-btn-text-primary shrink-0"
-                >
-                  {{
-                    (
-                      client.staff_assigned?.name ||
-                      client.assigned_staff?.name ||
-                      ""
-                    )
-                      .charAt(0)
-                      .toUpperCase()
-                  }}
+                <div class="flex items-center gap-2">
+                  <div
+                    class="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-[9px] font-bold text-btn-text-primary shrink-0"
+                  >
+                    {{
+                      (
+                        client.staff_assigned?.name ||
+                        client.assigned_staff?.name ||
+                        ""
+                      )
+                        .charAt(0)
+                        .toUpperCase()
+                    }}
+                  </div>
+                  <span class="text-primary-text font-medium text-xs">{{
+                    client.staff_assigned?.name || client.assigned_staff?.name
+                  }}</span>
                 </div>
-                <span class="text-primary-text font-medium text-xs">{{
-                  client.staff_assigned?.name || client.assigned_staff?.name
-                }}</span>
+                <button
+                  v-if="hasPermission('client.update')"
+                  type="button"
+                  @click="editingStaffClientId = client.id"
+                  class="p-1 rounded-md text-secondary-text hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer"
+                  title="Edit Assigned Staff"
+                >
+                  <Pencil class="w-3 h-3" />
+                </button>
               </div>
-              <div v-else class="w-36">
-                <BaseSelect
-                  :model-value="null"
-                  :options="staffOptions"
-                  placeholder="Assign Staff..."
-                  searchable
-                  variant="surface"
-                  @update:model-value="
-                    (staffId) => handleAssignStaff(client, staffId)
-                  "
-                />
+              <div v-else-if="hasPermission('client.update')" class="w-44 flex items-center gap-1">
+                <div class="flex-1">
+                  <BaseSelect
+                    :model-value="
+                      client.staff_assigned?.id ||
+                      client.assigned_staff?.id ||
+                      client.assigned_staff_id ||
+                      null
+                    "
+                    :options="staffOptions"
+                    :placeholder="
+                      client.staff_assigned?.name || client.assigned_staff?.name
+                        ? 'Change Staff...'
+                        : 'Assign Staff...'
+                    "
+                    searchable
+                    variant="surface"
+                    @update:model-value="
+                      (staffId) => promptAssignStaff(client, staffId)
+                    "
+                  />
+                </div>
+                <button
+                  v-if="editingStaffClientId === client.id"
+                  type="button"
+                  @click="editingStaffClientId = null"
+                  class="p-1 rounded-md text-secondary-text hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer shrink-0"
+                  title="Cancel Edit"
+                >
+                  <X class="w-3.5 h-3.5" />
+                </button>
               </div>
+              <span v-else class="text-xs text-secondary-text">Unassigned</span>
             </td>
 
             <!-- Referral Link Column -->
@@ -1017,38 +1137,73 @@ onMounted(() => {
           <div class="bg-background rounded-lg px-3 py-2 col-span-2">
             <p class="text-[10px] text-secondary-text mb-0.5">Assigned Staff</p>
             <div
-              v-if="client.staff_assigned?.name || client.assigned_staff?.name"
-              class="flex items-center gap-2 mt-0.5"
+              v-if="
+                (client.staff_assigned?.name || client.assigned_staff?.name) &&
+                editingStaffClientId !== client.id
+              "
+              class="flex items-center justify-between gap-2 mt-0.5"
             >
-              <div
-                class="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-[9px] font-bold text-btn-text-primary shrink-0"
-              >
-                {{
-                  (
-                    client.staff_assigned?.name ||
-                    client.assigned_staff?.name ||
-                    ""
-                  )
-                    .charAt(0)
-                    .toUpperCase()
-                }}
+              <div class="flex items-center gap-1.5 min-w-0">
+                <div
+                  class="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-[9px] font-bold text-btn-text-primary shrink-0"
+                >
+                  {{
+                    (
+                      client.staff_assigned?.name ||
+                      client.assigned_staff?.name ||
+                      ""
+                    )
+                      .charAt(0)
+                      .toUpperCase()
+                  }}
+                </div>
+                <p class="font-medium text-primary-text text-xs truncate">
+                  {{ client.staff_assigned?.name || client.assigned_staff?.name }}
+                </p>
               </div>
-              <p class="font-medium text-primary-text text-xs truncate">
-                {{ client.staff_assigned?.name || client.assigned_staff?.name }}
-              </p>
+              <button
+                v-if="hasPermission('client.update')"
+                type="button"
+                @click="editingStaffClientId = client.id"
+                class="p-1 rounded-md text-secondary-text hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer shrink-0"
+                title="Edit Assigned Staff"
+              >
+                <Pencil class="w-3 h-3" />
+              </button>
             </div>
-            <div v-else class="w-full mt-1">
-              <BaseSelect
-                :model-value="null"
-                :options="staffOptions"
-                placeholder="Assign Staff..."
-                searchable
-                variant="surface"
-                @update:model-value="
-                  (staffId) => handleAssignStaff(client, staffId)
-                "
-              />
+            <div v-else-if="hasPermission('client.update')" class="w-full mt-1 flex items-center gap-1">
+              <div class="flex-1">
+                <BaseSelect
+                  :model-value="
+                    client.staff_assigned?.id ||
+                    client.assigned_staff?.id ||
+                    client.assigned_staff_id ||
+                    null
+                  "
+                  :options="staffOptions"
+                  :placeholder="
+                    client.staff_assigned?.name || client.assigned_staff?.name
+                      ? 'Change Staff...'
+                      : 'Assign Staff...'
+                  "
+                  searchable
+                  variant="surface"
+                  @update:model-value="
+                    (staffId) => promptAssignStaff(client, staffId)
+                  "
+                />
+              </div>
+              <button
+                v-if="editingStaffClientId === client.id"
+                type="button"
+                @click="editingStaffClientId = null"
+                class="p-1 rounded-md text-secondary-text hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer shrink-0"
+                title="Cancel Edit"
+              >
+                <X class="w-3.5 h-3.5" />
+              </button>
             </div>
+            <p v-else class="text-xs text-secondary-text mt-0.5">Unassigned</p>
           </div>
           <div
             class="bg-background rounded-lg px-3 py-2 col-span-2"
@@ -1279,6 +1434,33 @@ onMounted(() => {
       :open="clientLoginModalOpen"
       :client="selectedClientForLogin || {}"
       @close="closeClientLoginModal"
+    />
+
+    <!-- Assign / Reassign Staff Confirmation Dialog -->
+    <ConfirmationDialog
+      :open="assignDialog.open"
+      :title="assignDialog.isEdit ? 'Reassign Staff Member' : 'Assign Staff Member'"
+      :message="
+        assignDialog.isEdit
+          ? `Are you sure you want to reassign staff for client '${
+              assignDialog.client?.name ||
+              (assignDialog.client?.first_name
+                ? `${assignDialog.client.first_name} ${assignDialog.client.last_name || ''}`.trim()
+                : 'Selected Client')
+            }' to ${assignDialog.staffName}?`
+          : `Are you sure you want to assign ${assignDialog.staffName} to client '${
+              assignDialog.client?.name ||
+              (assignDialog.client?.first_name
+                ? `${assignDialog.client.first_name} ${assignDialog.client.last_name || ''}`.trim()
+                : 'Selected Client')
+            }'?`
+      "
+      :confirm-text="assignDialog.isEdit ? 'Reassign Staff' : 'Assign Staff'"
+      cancel-text="Cancel"
+      type="info"
+      :loading="assignDialog.loading"
+      @confirm="handleConfirmAssignStaff"
+      @cancel="handleCancelAssignStaff"
     />
   </div>
 </template>
