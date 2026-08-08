@@ -88,7 +88,7 @@
   <div v-else class="space-y-4 h-[75vh]">
     <div
       v-if="store.logDetails"
-      class="grid grid-cols-[2fr_3fr] gap-4 h-full min-h-0"
+      class="grid lg:grid-cols-2 xl:grid-cols-[2fr_3fr] gap-4 h-full min-h-0"
     >
       <div class="">
         <RenderHTMLBody :htmlContent="store.logDetails?.body_html || ''" />
@@ -199,7 +199,7 @@
               <td
                 class="p-3 text-xs font-medium text-primary-text whitespace-nowrap"
               >
-                {{ formatDate(log.created_at) }}sdsd
+                {{ formatDate(log.created_at) }}
               </td>
               <!-- <td class="p-3 text-xs">
                 <span

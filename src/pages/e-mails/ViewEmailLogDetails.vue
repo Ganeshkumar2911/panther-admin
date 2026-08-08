@@ -59,7 +59,7 @@
             <div class="border border-primary-border rounded-xl p-4">
               <!-- Example check -->
               <div class="shrink-0 space-y-2">
-                <h2 class="font-semibold">Details</h2>
+                <h2 class="font-semibold text-primary-text">Details</h2>
                 <div class="space-y-2">
                   <div>
                     <p class="text-xs font-medium text-secondary-text">

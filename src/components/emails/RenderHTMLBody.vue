@@ -4,7 +4,7 @@
       :srcdoc="safeHtml"
       sandbox="allow-popups"
       loading="lazy"
-      class="email-iframe no-scrollbar"
+      class="email-iframe no-scrollbar border border-primary-border"
     ></iframe>
   </div>
 </template>
@@ -53,7 +53,6 @@ const safeHtml = computed(() => {
   flex: 1;
   width: 100%;
   height: 100%;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  border-radius: 7px;
 }
 </style>
