@@ -377,6 +377,16 @@ export const useEmailLogsStore = defineStore("emailLogs", () => {
 
     const successHandler = (res) => {
       logLists.value = res.tags || [];
+      if (res.pagination) {
+        Object.assign(pagination, {
+          page: res.pagination.page,
+          per_page: res.pagination.per_page,
+          total_items: res.pagination.total_items || res.tags?.length || 0,
+          total_pages: res.pagination.total_pages || 1,
+          hasNext: res.pagination.page < res.pagination.total_pages,
+          hasPrev: res.pagination.page > 1,
+        });
+      }
       isLoadingLogsList.value = false;
     };
 
@@ -438,10 +448,13 @@ export const useEmailLogsStore = defineStore("emailLogs", () => {
 
   const changePage = (newPage) => {
     pagination.page = newPage;
-
     isFetched.value = false;
 
-    fetchLogs(true);
+    if (typeof activeFetcher.value === "function") {
+      activeFetcher.value();
+    } else {
+      fetchLogsList(true);
+    }
   };
 
   // ─────────────────────────────────────
