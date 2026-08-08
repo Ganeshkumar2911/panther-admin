@@ -158,10 +158,13 @@ const urls = {
   },
   emailLogs: {
     list: "/fetch-logs",
-    sync: "/sync-logs",
+    sync: "/emails/sync-events",
     tags: "/filter-template-codes",
-    logDetails: "/emails/preview",
-    logList: "/fetch/dispatch/records",
+    viewLogDetails: "/emails/preview",
+    logDetails: "/fetch/dispatch/records/campaign",
+    // logList: "/fetch/dispatch/records",
+    logList: "/fetch/dispatch/tags",
+    sendMail: "/emails/campaigns/resend",
   },
   integrations: {
     list: "/company-integrations",

@@ -5,32 +5,6 @@
       <div
         class="flex w-full min-w-0 flex-col gap-2 rounded-xl border border-primary-border bg-card-background/40 p-2 sm:flex-row sm:items-center sm:flex-wrap overflow-visible"
       >
-        <!-- Email Search -->
-        <div class="relative sm:flex-1 sm:min-w-32 lg:max-w-64">
-          <Search
-            class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-secondary-text"
-          />
-          <input
-            v-model="store.filters.email"
-            type="text"
-            placeholder="Search by email..."
-            class="w-full pl-8 pr-3 py-2 text-xs rounded-lg bg-background border border-primary-border text-primary-text outline-none focus:border-primary transition-colors placeholder:text-secondary-text"
-            @input="debounceSearch"
-          />
-        </div>
-
-        <!-- Event Filter -->
-        <BaseSelect
-          v-model="store.filters.event"
-          :options="[
-            { label: 'All Events', value: null },
-            ...store.eventOptions,
-          ]"
-          placeholder="Events"
-          class="w-full sm:w-48"
-          @update:modelValue="store.applyFilters()"
-        />
-
         <!-- Tags Filter -->
         <BaseSelect
           v-model="store.filters.tags"
@@ -38,15 +12,6 @@
           placeholder="Filters"
           class="w-full sm:w-48"
           searchable
-          @update:modelValue="store.applyFilters()"
-        />
-
-        <!-- Days Quick Filter -->
-        <BaseSelect
-          v-model="store.filters.days"
-          :options="[{ label: 'All Days', value: null }, ...store.dayOptions]"
-          placeholder="Quick Date"
-          class="w-full sm:w-48"
           @update:modelValue="store.applyFilters()"
         />
 
@@ -68,6 +33,44 @@
           @update:modelValue="store.updatePerPage"
         />
 
+        <div class="flex flex-col sm:flex-row items-center gap-3">
+          <input
+            v-model="store.filters.startDate"
+            type="date"
+            placeholder="Start Date"
+            class="px-3 py-2 text-xs rounded-lg bg-background border border-primary-border text-primary-text outline-none focus:border-primary transition-colors placeholder:text-secondary-text"
+            @change="store.applyFilters()"
+          />
+          <span class="text-secondary-text text-xs hidden sm:block">to</span>
+          <input
+            v-model="store.filters.endDate"
+            type="date"
+            placeholder="End Date"
+            class="px-3 py-2 text-xs rounded-lg bg-background border border-primary-border text-primary-text outline-none focus:border-primary transition-colors placeholder:text-secondary-text"
+            @change="store.applyFilters()"
+          />
+        </div>
+
+        <Tooltip text="Refresh Logs" placement="top">
+          <button
+            :disabled="store.isLoadingLogsList"
+            @click="store.fetchLogsList(true)"
+            class="flex items-center gap-1 px-3 py-2 text-xs font-medium text-secondary-text hover:text-primary-text bg-card-background hover:bg-background rounded-lg border border-primary-border transition-colors whitespace-nowrap"
+            :class="{ 'opacity-50 cursor-not-allowed': store.loading }"
+          >
+            <RefreshCcw size="16" />
+          </button>
+        </Tooltip>
+        <Tooltip :text="syncTooltip" placement="top">
+          <button
+            :disabled="isButtonDisabled"
+            @click="store.syncMail"
+            class="flex items-center gap-1 px-3 py-2 text-xs font-medium text-secondary-text hover:text-primary-text bg-card-background hover:bg-background rounded-lg border border-primary-border transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <CloudSync size="16" />
+          </button>
+        </Tooltip>
+
         <!-- Reset Filters (if active) -->
         <button
           v-if="store.hasActiveFilters"
@@ -76,50 +79,7 @@
         >
           Clear
         </button>
-
-        <Tooltip text="Refresh Logs" placement="top">
-          <button
-            :disabled="store.loading"
-            @click="store.fetchLogs(true)"
-            class="flex items-center gap-1 px-3 py-2 text-xs font-medium text-secondary-text hover:text-primary-text bg-card-background hover:bg-background rounded-lg border border-primary-border transition-colors whitespace-nowrap"
-            :class="{ 'opacity-50 cursor-not-allowed': store.loading }"
-          >
-            <RefreshCcw size="16" />
-          </button>
-        </Tooltip>
       </div>
-    </div>
-
-    <!-- Date Range Picker -->
-    <div class="flex flex-col sm:flex-row items-center gap-3">
-      <input
-        v-model="store.filters.startDate"
-        type="date"
-        placeholder="Start Date"
-        class="px-3 py-2 text-xs rounded-lg bg-background border border-primary-border text-primary-text outline-none focus:border-primary transition-colors placeholder:text-secondary-text"
-        @change="store.applyFilters()"
-      />
-      <span class="text-secondary-text text-xs hidden sm:block">to</span>
-      <input
-        v-model="store.filters.endDate"
-        type="date"
-        placeholder="End Date"
-        class="px-3 py-2 text-xs rounded-lg bg-background border border-primary-border text-primary-text outline-none focus:border-primary transition-colors placeholder:text-secondary-text"
-        @change="store.applyFilters()"
-      />
-      <button
-        v-if="store.filters.startDate || store.filters.endDate"
-        @click="
-          () => {
-            store.filters.startDate = null;
-            store.filters.endDate = null;
-            store.applyFilters();
-          }
-        "
-        class="cursor-pointer px-3 py-2 text-xs font-medium text-secondary-text hover:text-primary-text bg-card-background hover:bg-background rounded-lg border border-primary-border transition-colors whitespace-nowrap"
-      >
-        Clear Dates
-      </button>
     </div>
 
     <div
@@ -149,7 +109,7 @@
     </div>
 
     <div
-      v-else-if="store.logLists?.records?.length === 0"
+      v-else-if="store.logLists?.length === 0"
       class="flex flex-col items-center gap-4 py-24"
     >
       <div
@@ -167,77 +127,53 @@
 
     <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
       <div
-        v-for="d in store.logLists?.records"
+        v-for="d in store.logLists"
         :key="d.id"
         class="bg-card-background border border-primary-border rounded-2xl p-5 flex flex-col gap-3 hover:border-primary/30 transition-all duration-200"
       >
         <!-- Top -->
-        <div class="flex items-start justify-between gap-4">
+        <div class="flex items-center justify-between gap-4">
           <p class="text-sm font-semibold text-primary-text">
             {{ d.tag }}
           </p>
           <p class="text-xs font-semibold text-secondary-text">
-            {{ formatDate(d.campaigns.campaign_date) }}
+            {{ formatDate(d.last_sent_at) }}
           </p>
+          <button
+            class="flex items-center justify-center gap-1.5 p-1 rounded-lg border border-primary-border text-xs text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer"
+            @click="navigateToViewDetailsPage(d.campaign_id)"
+          >
+            <ChevronRight size="16" />
+          </button>
         </div>
-
-        <!-- Actions -->
-        <!-- <div
-          v-if="
-            hasPermission('email.template_view') ||
-            hasPermission('email.template_update')
-          "
-          class="flex gap-2 pt-2.5 mt-auto border-t border-primary-border"
-        >
-          <button
-            v-if="hasPermission('email.template_view')"
-            class="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary-border text-xs text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer"
-            @click="openPreview(d.id)"
-          >
-            <Eye class="w-3.5 h-3.5" /> Preview
-          </button>
-          <button
-            v-if="hasPermission('email.template_update')"
-            class="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-colors cursor-pointer"
-            @click="openEdit(d.id)"
-          >
-            <Pencil class="w-3.5 h-3.5" /> Edit
-          </button>
-        </div> -->
       </div>
     </div>
-
-    <SimplePagination
-      v-if="store.pagination.hasNext || store.pagination.hasPrev"
-      :pagination="store.pagination"
-      @page-change="store.changePage"
-    />
-
-    <!-- <ViewEmailLog
-      v-if="openDialog"
-      :open="openDialog"
-      :id="selectedLogId"
-      @close="handleCloseDialog"
-    /> -->
   </div>
 </template>
 
 <script setup>
-import { onMounted, ref, watchEffect } from "vue";
-import { Search, Mail, RefreshCcw, Eye } from "lucide-vue-next";
+import { computed, onMounted, ref, watchEffect } from "vue";
+import {
+  Search,
+  Mail,
+  RefreshCcw,
+  Eye,
+  ChevronRight,
+  CloudSync,
+} from "lucide-vue-next";
 import { useEmailLogsStore } from "@/stores/emails/emailLogs";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import Pagination from "@/components/common/Pagination.vue";
 import Tooltip from "@/components/common/Tooltip.vue";
 import SimplePagination from "@/components/common/SimplePagination.vue";
+import { useRouter } from "vue-router";
 // import ViewEmailLog from "@/pages/e-mails/ViewEmailLog.vue";
 
+const router = useRouter();
 const store = useEmailLogsStore();
 const openDialog = ref(false);
 let tagsSearchTimer = null;
 const selectedLogId = ref(null);
-
-console.log("logs:", store.logLists);
 
 let searchTimeout;
 
@@ -252,6 +188,24 @@ const perPageOptions = [
   { label: "50", value: 50 },
   { label: "100", value: 100 },
 ];
+
+// Aapke script tag ke andar (Vue 3 Composition API example)
+const isButtonDisabled = computed(() => {
+  const { startDate, endDate, tags } = store.filters;
+  return (
+    store.isSyncing ||
+    !startDate ||
+    !endDate ||
+    !tags ||
+    tags === "ALL"
+  );
+});
+
+const syncTooltip = computed(() =>
+  isButtonDisabled.value
+    ? "Sync Logs : date and filter are required"
+    : "Sync Logs",
+);
 
 const debounceSearch = () => {
   clearTimeout(searchTimeout);
@@ -304,11 +258,23 @@ const handleCloseDialog = () => {
   store.resetLogDetails();
 };
 
+// Navigate
+const navigateToViewDetailsPage = (id) => {
+  router.push({ name: "email-logs-details", params: { tagId: id } });
+  store.reset();
+};
+
 watchEffect(() => {
   console.log("logs: w", store.logLists);
 });
 
+// onMounted(() => {
+//   store.fetchLogsList();
+//   store.fetchTags();
+// });
+
 onMounted(() => {
+  store.setActiveFetcher(() => store.fetchLogsList(true));
   store.fetchLogsList();
   store.fetchTags();
 });

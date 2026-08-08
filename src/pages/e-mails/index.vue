@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 
 import EmailSettings from "./EmailSettings.vue";
 import EmailTemplates from "./EmailTemplates.vue";
@@ -8,6 +9,8 @@ import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import NewEmailLogs from "@/pages/e-mails/NewEmailLogs.vue";
 
 const { hasPermission } = usePermissionCheck();
+const route = useRoute();
+const router = useRouter();
 
 const allTabs = [
   {
@@ -35,7 +38,25 @@ const tabs = computed(() => {
   return allTabs.filter((tab) => hasPermission(tab.permission));
 });
 
-const activeTab = ref("settings");
+const activeTab = ref(route.query.tab || "settings");
+
+watch(
+  () => route.query.tab,
+  (tab) => {
+    if (typeof tab === "string") {
+      activeTab.value = tab;
+    }
+  },
+);
+
+watch(
+  activeTab,
+  (tab) => {
+    if (route.query.tab !== tab) {
+      router.replace({ query: { ...route.query, tab } });
+    }
+  },
+);
 
 watch(
   tabs,
