@@ -61,7 +61,7 @@
             <RefreshCcw size="16" />
           </button>
         </Tooltip>
-        <Tooltip :text="syncTooltip" placement="top">
+        <!-- <Tooltip :text="syncTooltip" placement="top">
           <button
             :disabled="isButtonDisabled"
             @click="store.syncMail"
@@ -69,7 +69,7 @@
           >
             <CloudSync size="16" />
           </button>
-        </Tooltip>
+        </Tooltip> -->
 
         <!-- Reset Filters (if active) -->
         <button
@@ -189,23 +189,22 @@ const perPageOptions = [
   { label: "100", value: 100 },
 ];
 
-// Aapke script tag ke andar (Vue 3 Composition API example)
-const isButtonDisabled = computed(() => {
-  const { startDate, endDate, tags } = store.filters;
-  return (
-    store.isSyncing ||
-    !startDate ||
-    !endDate ||
-    !tags ||
-    tags === "ALL"
-  );
-});
+// const isButtonDisabled = computed(() => {
+//   const { startDate, endDate, tags } = store.filters;
+//   return (
+//     store.isSyncing ||
+//     !startDate ||
+//     !endDate ||
+//     !tags ||
+//     tags === "ALL"
+//   );
+// });
 
-const syncTooltip = computed(() =>
-  isButtonDisabled.value
-    ? "Sync Logs : date and filter are required"
-    : "Sync Logs",
-);
+// const syncTooltip = computed(() =>
+//   isButtonDisabled.value
+//     ? "Sync Logs : date and filter are required"
+//     : "Sync Logs",
+// );
 
 const debounceSearch = () => {
   clearTimeout(searchTimeout);

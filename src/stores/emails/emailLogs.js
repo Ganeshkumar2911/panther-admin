@@ -128,29 +128,34 @@ export const useEmailLogsStore = defineStore("emailLogs", () => {
   // Synchronization
   // ─────────────────────────────────────
 
-  const syncMail = () => {
-    if (
-      isSyncing.value ||
-      !filters.startDate ||
-      !filters.endDate ||
-      !filters.tags ||
-      filters.tags === "ALL"
-    ) {
+  const syncMail = (id = null) => {
+    // if (
+    //   isSyncing.value ||
+    //   !filters.startDate ||
+    //   !filters.endDate ||
+    //   !filters.tags ||
+    //   filters.tags === "ALL"
+    // ) {
+    //   return;
+    // }
+
+    if (id === null) {
+      snackbar.show("Id is required");
       return;
     }
 
     isSyncing.value = true;
 
-    const params = {
-      start_date: filters.startDate,
-      end_date: filters.endDate,
-      tags: filters.tags.toLowerCase(),
-    };
+    // const params = {
+    //   // start_date: filters.startDate,
+    //   // end_date: filters.endDate,
+    //   // tags: filters.tags.toLowerCase(),
+    // };
 
     const successHandler = () => {
       isSyncing.value = false;
       snackbar.show("Email logs synced successfully.", "success");
-      fetchLogsList(true);
+      fetchLogsDetails(id);
     };
 
     const failureHandler = (err) => {
@@ -160,7 +165,8 @@ export const useEmailLogsStore = defineStore("emailLogs", () => {
 
     apiRequest(urls.KEYS.POST, urls.emailLogs.sync, {
       isTokenRequired: true,
-      params,
+      // params,
+      look_up_key: id,
       onSuccess: successHandler,
       onFailure: failureHandler,
     });

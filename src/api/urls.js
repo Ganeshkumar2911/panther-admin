@@ -160,7 +160,8 @@ const urls = {
   },
   emailLogs: {
     list: "/fetch-logs",
-    sync: "/emails/sync-events",
+    sync: "/emails/sync-events/campaign",
+    // sync: "/emails/sync-events",
     tags: "/filter-template-codes",
     viewLogDetails: "/emails/preview",
     logDetails: "/fetch/dispatch/records/campaign",

@@ -55,6 +55,16 @@
         </button>
       </Tooltip>
 
+      <Tooltip text="Sync Logs" placement="top">
+        <button
+          :disabled="isButtonDisabled"
+          @click="store.syncMail(route.params.tagId)"
+          class="flex items-center gap-1 px-3 py-2 text-xs font-medium text-secondary-text hover:text-primary-text bg-card-background hover:bg-background rounded-lg border border-primary-border transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <CloudSync size="16" />
+        </button>
+      </Tooltip>
+
       <button
         @click="handleResendData(store?.logDetails?.campaign_id)"
         class="cursor-pointer flex items-center gap-1 px-3 py-2 text-xs font-medium text-white bg-primary rounded-lg border border-primary-border transition-colors whitespace-nowrap"
@@ -264,6 +274,7 @@ import {
   RefreshCcw,
   Search,
   Mail,
+  CloudSync,
 } from "lucide-vue-next";
 import { useEmailLogsStore } from "@/stores/emails/emailLogs";
 import RenderHTMLBody from "@/components/emails/RenderHTMLBody.vue";
@@ -429,6 +440,12 @@ const resendData = reactive({
   campegin_id: null,
 });
 
+const isButtonDisabled = computed(() => {
+  // const { startDate, endDate, tags } = store.filters;
+  // return store.isSyncing || !startDate || !endDate || !tags || tags === "ALL";
+  return store.isSyncing;
+});
+
 const handleOpenDialog = (id) => {
   openDialog.value = true;
   selectedLogsId.value = id;
@@ -449,9 +466,9 @@ const debounceSearch = () => {
   }, 500);
 };
 
-watch(store, () => {
-  console.log("isLoadingEmailLogsDetails:", store.isLoadingEmailLogsDetails);
-});
+// watch(store, () => {
+//   console.log("isLoadingEmailLogsDetails:", store.isLoadingEmailLogsDetails);
+// });
 
 // watch(
 //   () => [route.params.tagId],
