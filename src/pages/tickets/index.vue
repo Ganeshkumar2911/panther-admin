@@ -309,11 +309,11 @@
               >
                 TAT Status
               </th>
-              <!-- <th
+              <th
                 class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
               >
                 Assigned Staff
-              </th> -->
+              </th>
               <th
                 class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
               >
@@ -445,7 +445,7 @@
               </td>
 
               <!-- Assigned Staff -->
-              <!-- <td class="p-3 whitespace-nowrap" @click.stop>
+              <td class="p-3 whitespace-nowrap" @click.stop>
                 <div
                   v-if="
                     ticket.assigned_staff?.name  &&
@@ -512,7 +512,7 @@
                   </button>
                 </div>
                 <span v-else class="text-xs text-secondary-text">Unassigned</span>
-              </td> -->
+              </td>
 
               <td class="p-3 text-xs text-secondary-text">
                 <div class="flex flex-col">
@@ -652,7 +652,7 @@ const onPlatformTicketsSearch = () => {
 
 const statusOptions = [
   { label: "Open", value: "open" },
-  { label: "Pending", value: "pending" },
+  { label: "In Progress", value: "in_progress" },
   { label: "Resolved", value: "resolved" },
   { label: "Closed", value: "closed" },
 ];
@@ -740,7 +740,7 @@ const priorityClass = (p) =>
 const statusClass = (s) =>
   ({
     open: "bg-primary-blue/20 text-primary",
-    pending: "bg-primary-yellow/20 text-primary-yellow",
+    in_progress: "bg-primary-yellow/20 text-primary-yellow",
     resolved: "bg-primary-green/20 text-primary-green",
     closed: "bg-primary-border/20 text-secondary-text",
   })[s] ?? "bg-primary-border/20 text-secondary-text";

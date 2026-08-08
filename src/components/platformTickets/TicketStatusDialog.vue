@@ -82,10 +82,10 @@ watch(() => props.open, (val) => {
 })
 
 const statusOptions = [
-  { label: 'Open',     value: 'open' },
-  { label: 'Pending',  value: 'pending' },
-  { label: 'Resolved', value: 'resolved' },
-  { label: 'Closed',   value: 'closed' },
+  { label: 'Open',        value: 'open' },
+  { label: 'In Progress', value: 'in_progress' },
+  { label: 'Resolved',    value: 'resolved' },
+  { label: 'Closed',      value: 'closed' },
 ]
 
 const submit = () => {
@@ -98,9 +98,9 @@ const submit = () => {
 const formatStatus = (s) => s?.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) ?? '—'
 
 const statusClass = (s) => ({
-  open:        'bg-blue-50 text-blue-800 border-blue-200',
-  in_progress: 'bg-yellow-50 border-yellow-200',
-  resolved:    'bg-primary-green/50 border-green-200',
-  closed:      'bg-background text-secondary-text border-primary-border',
-}[s] ?? 'bg-background text-secondary-text border-primary-border')
+  open:        'bg-primary-blue/20 text-primary border border-primary-blue/30',
+  in_progress: 'bg-primary-yellow/20 text-primary-yellow border border-primary-yellow/30',
+  resolved:    'bg-primary-green/20 text-primary-green border border-primary-green/30',
+  closed:      'bg-primary-border/20 text-secondary-text border border-primary-border',
+})[s] ?? 'bg-primary-border/20 text-secondary-text border border-primary-border'
 </script>

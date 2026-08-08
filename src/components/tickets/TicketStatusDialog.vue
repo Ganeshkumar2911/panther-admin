@@ -116,6 +116,8 @@ watch(
 
 const statusOptions = [
   { label: "Open", value: "open" },
+  { label: "In Progress", value: "in_progress" },
+  { label: "Resolved", value: "resolved" },
   { label: "Closed", value: "closed" },
 ];
 
@@ -142,10 +144,12 @@ const formatStatus = (s) =>
 
 const statusClass = (s) =>
   ({
-    open: "bg-primary-green/20 text-primary-green border border-primary-green/30",
-    pending:
+    open: "bg-primary-blue/20 text-primary border border-primary-blue/30",
+    in_progress:
       "bg-primary-yellow/20 text-primary-yellow border border-primary-yellow/30",
-    closed: "bg-primary-red/20 text-primary-red border border-primary-red/30",
+    resolved:
+      "bg-primary-green/20 text-primary-green border border-primary-green/30",
+    closed: "bg-primary-border/20 text-secondary-text border border-primary-border",
   })[s] ??
   "bg-primary-border/20 text-secondary-text border border-primary-border";
 </script>
