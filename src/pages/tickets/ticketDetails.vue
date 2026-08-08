@@ -874,10 +874,10 @@ const priorityClass = (p) =>
 
 const statusClass = (s) =>
   ({
-    open: "bg-primary-green/20 text-primary-green border-primary-green/30",
-    pending: "bg-primary-yellow/20 text-primary-yellow border-primary-yellow/30",
-    resolved: "bg-primary-blue/20 text-primary-blue border-primary-blue/30",
-    closed: "bg-primary-red/20 text-primary-red border-primary-red/30",
+    open: "bg-primary-blue/20 text-primary border-primary-blue/30",
+    in_progress: "bg-primary-yellow/20 text-primary-yellow border-primary-yellow/30",
+    resolved: "bg-primary-green/20 text-primary-green border-primary-green/30",
+    closed: "bg-primary-border/20 text-secondary-text border-primary-border",
   })[s] ?? "bg-primary-border/20 text-secondary-text border-primary-border";
 </script>
 
