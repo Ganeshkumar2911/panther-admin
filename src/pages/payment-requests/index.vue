@@ -303,9 +303,9 @@
               <span
                 class="text-[11px] font-semibold px-2 py-0.5 rounded-full border capitalize"
                 :class="
-                  req.type === 'deposit'
-                    ? 'bg-primary-green/10 text-primary-green border-primary-green/20'
-                    : 'bg-primary-yellow/10 text-primary-yellow border-primary-yellow/20'
+                  req.type?.toLowerCase() === 'deposit'
+                    ? 'bg-primary-blue/10 text-primary-blue border-primary-blue/20'
+                    : 'bg-primary-red/10 text-primary-red border-primary-red/20'
                 "
                 >{{ req.type }}</span
               >

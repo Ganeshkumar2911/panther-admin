@@ -60,7 +60,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { X, CheckCircle2, Loader2 } from 'lucide-vue-next'
-import { useTicketsStore } from '@/stores/tickets/tickets'
+import { usePlatfromTicketsStore } from '@/stores/platformTickets/platformTickets'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 
 const props = defineProps({
@@ -70,7 +70,7 @@ const props = defineProps({
 })
 const emit = defineEmits(['close'])
 
-const store = useTicketsStore()
+const store = usePlatfromTicketsStore()
 const selected = ref(null)
 const currentStatus = ref(props.status)
 
@@ -85,22 +85,22 @@ const statusOptions = [
   { label: 'Open',        value: 'open' },
   { label: 'In Progress', value: 'in_progress' },
   { label: 'Resolved',    value: 'resolved' },
+  { label: 'Closed',      value: 'closed' },
 ]
 
-const submit = async () => {
-  await store.updateTicketStatus(props.ticketId, { status: selected.value })
-  if (!store.actionLoading) {
-    store.fetchTicketDetail(props.ticketId)
+const submit = () => {
+  if (!selected.value) return
+  store.updateTicketStatus(props.ticketId, { status: selected.value }, () => {
     emit('close')
-  }
+  })
 }
 
 const formatStatus = (s) => s?.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) ?? '—'
 
 const statusClass = (s) => ({
-  open:        'bg-blue-50 text-blue-800 border-blue-200',
-  in_progress: 'bg-yellow-50 border-yellow-200',
-  resolved:    'bg-primary-green/50 border-green-200',
-  closed:      'bg-background text-secondary-text border-primary-border',
-}[s] ?? 'bg-background text-secondary-text border-primary-border')
+  open:        'bg-primary-blue/20 text-primary border border-primary-blue/30',
+  in_progress: 'bg-primary-yellow/20 text-primary-yellow border border-primary-yellow/30',
+  resolved:    'bg-primary-green/20 text-primary-green border border-primary-green/30',
+  closed:      'bg-primary-border/20 text-secondary-text border border-primary-border',
+})[s] ?? 'bg-primary-border/20 text-secondary-text border border-primary-border'
 </script>

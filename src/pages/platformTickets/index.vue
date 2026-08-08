@@ -204,9 +204,10 @@ const dateFilterOptions = [
 ]
 
 const statusOptions = [
-  { label: 'Open', value: 'open' },
-  { label: 'Pending', value: 'pending' },
-  { label: 'Closed', value: 'closed' },
+  { label: 'Open',        value: 'open' },
+  { label: 'In Progress', value: 'in_progress' },
+  { label: 'Resolved',    value: 'resolved' },
+  { label: 'Closed',      value: 'closed' },
 ]
 
 const priorityOptions = [
@@ -235,10 +236,11 @@ const priorityClass = (p) => ({
 }[p] ?? 'bg-primary-border/20 text-secondary-text border border-primary-border')
 
 const statusClass = (s) => ({
-  open:    'bg-primary-green/20 text-primary-green border border-primary-green/30',
-  pending: 'bg-primary-yellow/20 text-primary-yellow border border-primary-yellow/30',
-  closed:  'bg-primary-red/20 text-primary-red border border-primary-red/30',
-}[s] ?? 'bg-primary-border/20 text-secondary-text border border-primary-border')
+  open:        'bg-primary-blue/20 text-primary border border-primary-blue/30',
+  in_progress: 'bg-primary-yellow/20 text-primary-yellow border border-primary-yellow/30',
+  resolved:    'bg-primary-green/20 text-primary-green border border-primary-green/30',
+  closed:      'bg-primary-border/20 text-secondary-text border border-primary-border',
+})[s] ?? 'bg-primary-border/20 text-secondary-text border border-primary-border'
 
 onMounted(() => store.fetchTickets())
 </script>

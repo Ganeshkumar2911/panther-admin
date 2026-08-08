@@ -67,7 +67,15 @@ function getStaffName(l) {
 }
 
 function getStageName(l) {
-  return l.current_stage?.name || l.current_stage?.code || l.stage || "NEW";
+  if (!l) return "NEW_USER";
+  return (
+    l.current_stage?.name ||
+    l.current_stage?.code ||
+    l.stage ||
+    props.stages?.[0]?.name ||
+    props.stages?.[0]?.code ||
+    "NEW_USER"
+  );
 }
 
 function handleAssignStaff(staffId) {

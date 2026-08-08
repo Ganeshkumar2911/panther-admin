@@ -65,7 +65,7 @@
 <script setup>
 import { ref, computed, watch, nextTick } from 'vue'
 import { X, Loader2, MessageSquare, Paperclip } from 'lucide-vue-next'
-import { useTicketsStore } from '@/stores/tickets/tickets'
+import { usePlatfromTicketsStore } from '@/stores/platformTickets/platformTickets'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -74,7 +74,7 @@ const props = defineProps({
 })
 const emit = defineEmits(['close'])
 
-const store = useTicketsStore()
+const store = usePlatfromTicketsStore()
 const comment = ref('')
 const file = ref(null)
 const focusEl = ref(null)

@@ -346,6 +346,7 @@
                               })
                             "
                             :disabled="
+                              !hasPermission('telegram.configure_update') ||
                               isTogglePending(
                                 moduleKey,
                                 entityKey,
@@ -409,6 +410,7 @@
                               })
                             "
                             :disabled="
+                              !hasPermission('telegram.configure_update') ||
                               isTogglePending(
                                 moduleKey,
                                 entityKey,
@@ -486,7 +488,9 @@ import {
   ChevronsUp,
 } from "lucide-vue-next";
 import { useTelegramConfigurationStore } from "@/stores/telegram/telegram-config";
+import { usePermissionCheck } from "@/composables/usePermissionCheck";
 
+const { hasPermission } = usePermissionCheck();
 const store = useTelegramConfigurationStore();
 
 const searchQuery = ref("");
@@ -658,6 +662,7 @@ const isTogglePending = (moduleKey, entityKey, actionKey, status) => {
 };
 
 const handleEditConfiguration = (updatedConfig) => {
+  if (!hasPermission("telegram.configure_update")) return;
   store.toggleAuditLogAction(updatedConfig);
 };
 
