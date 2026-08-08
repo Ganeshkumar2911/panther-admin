@@ -592,7 +592,14 @@
 
           <!-- Bottom Chat Input Bar -->
           <div class="p-4 bg-card-background border-t border-primary-border">
-            <form @submit.prevent="sendMessage" class="flex items-end gap-2">
+            <div
+              v-if="store.detail?.status === 'closed'"
+              class="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-background border border-primary-border text-secondary-text text-xs font-medium"
+            >
+              <Lock class="w-4 h-4 text-secondary-text shrink-0" />
+              <span>This ticket is closed. You can't communicate in this ticket anymore.</span>
+            </div>
+            <form v-else @submit.prevent="sendMessage" class="flex items-end gap-2">
               <!-- File Attachment Selector Button -->
               <input
                 ref="fileInputRef"
@@ -603,9 +610,7 @@
               <button
                 type="button"
                 @click="triggerFilePicker"
-                :disabled="
-                  store.actionLoading || store.detail?.status === 'closed'
-                "
+                :disabled="store.actionLoading"
                 class="p-2.5 rounded-xl border border-primary-border bg-background hover:bg-card-background text-secondary-text hover:text-primary transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
                 title="Attach file"
               >
@@ -618,9 +623,7 @@
                   v-model="commentText"
                   rows="1"
                   placeholder="Type your reply... (Press Enter to send, Shift+Enter for new line)"
-                  :disabled="
-                    store.actionLoading || store.detail?.status === 'closed'
-                  "
+                  :disabled="store.actionLoading"
                   @keydown.enter.exact.prevent="sendMessage"
                   class="w-full px-4 py-2.5 rounded-xl bg-background border border-primary-border text-primary-text text-xs outline-none focus:border-primary transition-all placeholder:text-secondary-text disabled:opacity-50 resize-none max-h-28"
                 />
@@ -631,8 +634,7 @@
                 type="submit"
                 :disabled="
                   store.actionLoading ||
-                  (!commentText.trim() && !selectedFile) ||
-                  store.detail?.status === 'closed'
+                  (!commentText.trim() && !selectedFile)
                 "
                 class="px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-btn-text-primary text-xs font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 cursor-pointer shadow-xs"
               >
@@ -701,6 +703,7 @@ import {
   Loader2,
   Pencil,
   X,
+  Lock,
 } from "lucide-vue-next";
 import { usePlatfromTicketsStore } from "@/stores/platformTickets/platformTickets";
 import { useProfileStore } from "@/stores/profile/profile";
