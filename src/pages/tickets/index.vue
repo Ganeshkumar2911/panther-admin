@@ -291,11 +291,11 @@
               >
                 TAT Status
               </th>
-              <!-- <th
+              <th
                 class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
               >
                 Assigned Staff
-              </th> -->
+              </th>
               <th
                 class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
               >
@@ -427,7 +427,7 @@
               </td>
 
               <!-- Assigned Staff -->
-              <!-- <td class="p-3 whitespace-nowrap" @click.stop>
+              <td class="p-3 whitespace-nowrap" @click.stop>
                 <div
                   v-if="
                     ticket.assigned_staff?.name  &&
@@ -494,7 +494,7 @@
                   </button>
                 </div>
                 <span v-else class="text-xs text-secondary-text">Unassigned</span>
-              </td> -->
+              </td>
 
               <td class="p-3 text-xs text-secondary-text">
                 <div class="flex flex-col">

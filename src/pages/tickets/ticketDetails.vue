@@ -1,112 +1,110 @@
 <template>
-  <div class="px-4 mx-auto max-w-7xl pb-8">
-    <!-- Skeleton Loading -->
-    <div v-if="store.detailLoading" class="space-y-4 animate-pulse">
-      <div class="h-6 w-48 bg-card-background rounded-lg" />
-      <div class="bg-card-background border border-primary-border rounded-2xl p-6 space-y-4">
-        <div class="h-5 w-64 bg-background rounded" />
-        <div class="h-4 w-full bg-background rounded" />
-        <div class="h-4 w-3/4 bg-background rounded" />
-      </div>
+  <div class="px-4 mx-auto max-w-7xl h-[calc(100vh-115px)] flex flex-col overflow-hidden">
+    <!-- Initial Loading State (Centered spinner overlay instead of skeleton layout wipe) -->
+    <div v-if="store.detailLoading && !store.detail" class="flex flex-col items-center justify-center h-full space-y-3">
+      <Loader2 class="w-8 h-8 text-primary animate-spin" />
+      <p class="text-xs text-secondary-text font-medium">Loading ticket details...</p>
     </div>
 
     <template v-else-if="store.detail">
-      <!-- Header Bar -->
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-        <div class="space-y-1.5">
-          <div class="flex flex-wrap items-center gap-2">
-            <span class="text-xs font-semibold px-2.5 py-1 rounded-md bg-background border border-primary-border text-secondary-text font-mono">
-              {{ store.detail.ticket_number }}
-            </span>
-            
-            <!-- Priority Badge -->
-            <span
-              class="text-xs font-medium px-2.5 py-0.5 rounded-full border capitalize"
-              :class="priorityClass(store.detail.priority)"
-            >
-              {{ store.detail.priority }}
-            </span>
-
-            <!-- Status Button -->
-            <button
-              class="text-xs font-medium px-2.5 py-0.5 rounded-full border transition-all capitalize"
-              :class="[
-                statusClass(store.detail.status),
-                store.detail.status !== 'closed' && hasPermission(['ticket.update', 'ticket.close', 'ticket.assign'])
-                  ? 'cursor-pointer hover:opacity-80'
-                  : 'cursor-not-allowed opacity-60',
-              ]"
-              @click="openStatusDialog"
-              :disabled="store.detail.status === 'closed' || !hasPermission(['ticket.update', 'ticket.close', 'ticket.assign'])"
-            >
-              {{ store.detail.status }}
-            </button>
-
-            <!-- TAT Status Badge -->
-            <div
-              v-if="getTat(store.detail).hasDeadline"
-              class="flex items-center gap-1.5 text-xs px-2.5 py-0.5 rounded-full border bg-background"
-              :class="getTat(store.detail).isBreached ? 'border-primary-red/40 text-primary-red' : 'border-primary-green/40 text-primary-green'"
-            >
-              <Clock class="w-3 h-3" />
-              <span>{{ getTat(store.detail).tatFormatted || getTat(store.detail).tatMessage }}</span>
-            </div>
-          </div>
-
-          <h1 class="text-xl font-bold text-primary-text tracking-tight">
-            {{ store.detail.subject }}
-          </h1>
+      <!-- Header Bar (shrink-0) -->
+      <div class="shrink-0 mb-4 space-y-1.5">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs font-semibold px-2.5 py-1 rounded-md bg-background border border-primary-border text-secondary-text font-mono">
+            {{ store.detail.ticket_number }}
+          </span>
           
-          <div class="flex items-center gap-3 text-xs text-secondary-text">
-            <span>Created by <strong class="text-primary-text font-medium">{{ store.detail.created_by_name || 'Client' }}</strong></span>
-            <span>·</span>
-            <span>{{ formatDate(store.detail.created_at) }}</span>
+          <!-- Priority Badge -->
+          <span
+            class="text-xs font-medium px-2.5 py-0.5 rounded-full border capitalize"
+            :class="priorityClass(store.detail.priority)"
+          >
+            {{ store.detail.priority }}
+          </span>
+
+          <!-- Status Button -->
+          <button
+            class="text-xs font-medium px-2.5 py-0.5 rounded-full border transition-all capitalize"
+            :class="[
+              statusClass(store.detail.status),
+              store.detail.status !== 'closed' && hasPermission(['ticket.update', 'ticket.close', 'ticket.assign'])
+                ? 'cursor-pointer hover:opacity-80'
+                : 'cursor-not-allowed opacity-60',
+            ]"
+            @click="openStatusDialog"
+            :disabled="store.detail.status === 'closed' || !hasPermission(['ticket.update', 'ticket.close', 'ticket.assign'])"
+          >
+            {{ store.detail.status }}
+          </button>
+
+          <!-- TAT Status Badge -->
+          <div
+            v-if="getTat(store.detail).hasDeadline"
+            class="flex items-center gap-1.5 text-xs px-2.5 py-0.5 rounded-full border bg-background"
+            :class="getTat(store.detail).isBreached ? 'border-primary-red/40 text-primary-red' : 'border-primary-green/40 text-primary-green'"
+          >
+            <Clock class="w-3 h-3" />
+            <span>{{ getTat(store.detail).tatFormatted || getTat(store.detail).tatMessage }}</span>
           </div>
         </div>
 
-        <!-- Action Controls -->
-        <div class="flex items-center gap-2 shrink-0">
-          <button
-            type="button"
-            @click="refreshTicket"
-            :disabled="store.detailLoading"
-            class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-primary-border bg-card-background hover:bg-background text-secondary-text hover:text-primary-text text-xs font-medium transition-all cursor-pointer shadow-xs disabled:opacity-50"
-            title="Refresh Ticket Details"
-          >
-            <RotateCw class="w-3.5 h-3.5" :class="{ 'animate-spin': store.detailLoading }" />
-            <span>Refresh</span>
-          </button>
-          
-          <button
-            v-if="store.detail.status !== 'closed' && hasPermission(['ticket.update', 'ticket.close', 'ticket.assign'])"
-            @click="openStatusDialog"
-            class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary hover:bg-primary-hover text-btn-text-primary text-xs font-medium transition-all cursor-pointer shadow-xs"
-          >
-            <CheckCircle2 class="w-3.5 h-3.5" />
-            <span>Update Status</span>
-          </button>
+        <h1 class="text-xl font-bold text-primary-text tracking-tight">
+          {{ store.detail.subject }}
+        </h1>
+        
+        <div class="flex items-center gap-3 text-xs text-secondary-text">
+          <span>Created by <strong class="text-primary-text font-medium">{{ store.detail.created_by_name || 'Client' }}</strong></span>
+          <span>·</span>
+          <span>{{ formatDate(store.detail.created_at) }}</span>
         </div>
       </div>
 
-      <!-- Main Grid Layout: Ticket Metadata & Chat System -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Main Grid Layout: Ticket Metadata & Chat System (flex-1 min-h-0) -->
+      <div class="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-3 gap-6 pb-2">
         
         <!-- Left Side / Sidebar Info (1 column on lg) -->
-        <div class="lg:col-span-1 space-y-4">
+        <div class="lg:col-span-1 flex flex-col gap-4 overflow-y-auto no-scrollbar pr-1">
           <!-- Assignee & Ticket Meta Card -->
-          <div class="bg-card-background border border-primary-border rounded-2xl p-5 shadow-xs space-y-4">
-            <h2 class="text-xs font-bold uppercase tracking-wider text-secondary-text border-b border-primary-border pb-2.5">
-              Ticket Details
-            </h2>
+          <div class="bg-card-background border border-primary-border rounded-2xl p-5  space-y-4 shrink-0">
+            <div class="flex items-center justify-between border-b border-primary-border pb-2.5">
+              <h2 class="text-xs font-bold uppercase tracking-wider text-secondary-text">
+                Ticket Details
+              </h2>
+            </div>
+
+            <!-- Action Controls inside Left Sidebar -->
+            <div class="flex items-center gap-2 pb-1 border-b border-primary-border/60">
+              <button
+                v-if="store.detail.status !== 'closed' && hasPermission(['ticket.update', 'ticket.close', 'ticket.assign'])"
+                @click="openStatusDialog"
+                class="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-primary hover:bg-primary-hover text-btn-text-primary text-xs font-medium transition-all cursor-pointer "
+              >
+                <CheckCircle2 class="w-3.5 h-3.5" />
+                <span>Update Status</span>
+              </button>
+            </div>
 
             <!-- Assignee -->
             <div>
-              <p class="text-xs text-secondary-text mb-1">Assigned Staff</p>
-              <div v-if="store.detail.assigned_staff" class="flex items-center gap-2.5 p-2.5 rounded-lg bg-background border border-primary-border">
+              <div class="flex items-center justify-between mb-1">
+                <p class="text-xs text-secondary-text">Assigned Staff</p>
+                <button
+                  v-if="hasPermission(['ticket.update', 'ticket.assign']) && store.detail.assigned_staff && !isEditingStaff"
+                  type="button"
+                  @click="isEditingStaff = true"
+                  class="p-1 rounded-md text-secondary-text hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer"
+                  title="Change Assigned Staff"
+                >
+                  <Pencil class="w-3 h-3" />
+                </button>
+              </div>
+
+              <!-- When assigned and not editing -->
+              <div v-if="store.detail.assigned_staff && !isEditingStaff" class="flex items-center gap-2.5 p-2.5 rounded-lg bg-background border border-primary-border">
                 <div class="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-xs font-semibold text-primary">
                   {{ (store.detail.assigned_staff.name || 'S').charAt(0).toUpperCase() }}
                 </div>
-                <div class="min-w-0">
+                <div class="min-w-0 flex-1">
                   <p class="text-xs font-semibold text-primary-text truncate">
                     {{ store.detail.assigned_staff.name }}
                   </p>
@@ -114,10 +112,34 @@
                     {{ store.detail.assigned_staff.email }}
                   </p>
                 </div>
-                <span v-if="store.detail.assigned_role" class="ml-auto text-[10px] uppercase font-bold px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20">
+                <span v-if="store.detail.assigned_role" class="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 shrink-0">
                   {{ store.detail.assigned_role }}
                 </span>
               </div>
+
+              <!-- Dropdown mode (When not assigned OR when editing) -->
+              <div v-else-if="hasPermission(['ticket.update', 'ticket.assign'])" class="flex items-center gap-1.5">
+                <div class="flex-1">
+                  <BaseSelect
+                    :model-value="store.detail.assigned_staff?.id || store.detail.assigned_staff_id || null"
+                    :options="staffOptions"
+                    :placeholder="store.detail.assigned_staff ? 'Change Staff...' : 'Assign Staff...'"
+                    searchable
+                    variant="surface"
+                    @update:model-value="(staffId) => promptAssignStaff(staffId)"
+                  />
+                </div>
+                <button
+                  v-if="isEditingStaff"
+                  type="button"
+                  @click="isEditingStaff = false"
+                  class="p-2 rounded-lg border border-primary-border text-secondary-text hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer shrink-0"
+                  title="Cancel Edit"
+                >
+                  <X class="w-3.5 h-3.5" />
+                </button>
+              </div>
+
               <p v-else class="text-xs text-secondary-text italic p-2 bg-background rounded-lg border border-primary-border">
                 No staff assigned yet
               </p>
@@ -154,7 +176,7 @@
           </div>
 
           <!-- Description Card -->
-          <div class="bg-card-background border border-primary-border rounded-2xl p-5 shadow-xs">
+          <div class="bg-card-background border border-primary-border rounded-2xl p-5  shrink-0">
             <h2 class="text-xs font-bold uppercase tracking-wider text-secondary-text border-b border-primary-border pb-2.5 mb-3">
               Initial Issue Description
             </h2>
@@ -165,10 +187,10 @@
         </div>
 
         <!-- Right Side / Modern Chat System (2 columns on lg) -->
-        <div class="lg:col-span-2 flex flex-col bg-card-background border border-primary-border rounded-2xl shadow-xs overflow-hidden h-[680px]">
+        <div class="lg:col-span-2 flex flex-col bg-card-background border border-primary-border rounded-2xl  overflow-hidden h-full min-h-0">
           
-          <!-- Chat Header -->
-          <div class="px-6 py-4 border-b border-primary-border bg-card-background flex items-center justify-between">
+          <!-- Chat Header (shrink-0) -->
+          <div class="px-6 py-4 border-b border-primary-border bg-card-background flex items-center justify-between shrink-0">
             <div class="flex items-center gap-2.5">
               <div class="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
                 <MessageSquare class="w-4 h-4" />
@@ -178,8 +200,18 @@
                 <p class="text-[11px] text-secondary-text">Chat history & resolution updates</p>
               </div>
             </div>
+             <div class="flex items-center gap-2">
+            <button
+                type="button"
+                @click="refreshTicket"
+                :disabled="store.detailLoading"
+                class="flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-primary-border bg-card-background hover:bg-background text-secondary-text hover:text-primary-text text-xs font-medium transition-all cursor-pointer disabled:opacity-50"
+                title="Refresh Ticket Details"
+              >
+                <RotateCw class="w-3.5 h-3.5" :class="{ 'animate-spin': store.detailLoading }" />
+              </button>
             
-            <div class="flex items-center gap-2">
+           
               <span class="text-xs px-2.5 py-1 rounded-full bg-background border border-primary-border text-secondary-text font-medium">
                 {{ totalHistoryCount }} {{ totalHistoryCount === 1 ? 'event' : 'events' }}
               </span>
@@ -192,7 +224,7 @@
             class="flex-1 overflow-y-auto p-6 space-y-6 bg-background/50 scroll-smooth"
           >
             <div v-if="chatStream.length === 0" class="flex flex-col items-center justify-center h-full text-center p-6">
-              <div class="w-12 h-12 rounded-2xl bg-card-background border border-primary-border flex items-center justify-center text-secondary-text mb-3 shadow-xs">
+              <div class="w-12 h-12 rounded-2xl bg-card-background border border-primary-border flex items-center justify-center text-secondary-text mb-3 ">
                 <MessageSquare class="w-6 h-6" />
               </div>
               <p class="text-sm font-semibold text-primary-text">No conversation yet</p>
@@ -253,7 +285,11 @@
                         >
                           {{ item.actor_role }}
                         </span>
-                        <span class="text-[10px] text-secondary-text">
+                        <span v-if="item.isSending" class="text-[10px] text-secondary-text flex items-center gap-1">
+                          <Loader2 class="w-2.5 h-2.5 animate-spin text-primary" />
+                          <span>Sending...</span>
+                        </span>
+                        <span v-else class="text-[10px] text-secondary-text">
                           {{ formatTime(item.created_at) }}
                         </span>
                       </div>
@@ -389,7 +425,7 @@
               <button
                 type="submit"
                 :disabled="store.actionLoading || (!commentText.trim() && !selectedFile) || store.detail?.status === 'closed'"
-                class="px-4 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-btn-text-primary text-xs font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 cursor-pointer shadow-xs"
+                class="px-4 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-btn-text-primary text-xs font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 cursor-pointer "
               >
                 <Loader2 v-if="sending" class="w-4 h-4 animate-spin" />
                 <Send v-else class="w-4 h-4" />
@@ -416,6 +452,21 @@
       :ticketId="ticketId"
       @close="statusDialog.open = false"
     />
+    <ConfirmationDialog
+      :open="assignDialog.open"
+      :title="assignDialog.isEdit ? 'Reassign Staff Member' : 'Assign Staff Member'"
+      :message="
+        assignDialog.isEdit
+          ? `Are you sure you want to reassign ticket #${store.detail?.ticket_number || ticketId} to ${assignDialog.staffName}?`
+          : `Are you sure you want to assign ${assignDialog.staffName} to ticket #${store.detail?.ticket_number || ticketId}?`
+      "
+      :confirm-text="assignDialog.isEdit ? 'Reassign Staff' : 'Assign Staff'"
+      cancel-text="Cancel"
+      type="info"
+      :loading="assignDialog.loading"
+      @confirm="handleConfirmAssignStaff"
+      @cancel="handleCancelAssignStaff"
+    />
   </div>
 </template>
 
@@ -434,11 +485,15 @@ import {
   UserCheck,
   Send,
   Loader2,
+  Pencil,
   X
 } from "lucide-vue-next";
 import { usePlatfromTicketsStore } from "@/stores/platformTickets/platformTickets";
 import { useProfileStore } from "@/stores/profile/profile";
 import { useMyPermissionsStore } from "@/stores/rbac/myPermissions";
+import { useRbacStaffStore } from "@/stores/rbac/staff";
+import BaseSelect from "@/components/common/BaseSelect.vue";
+import ConfirmationDialog from "@/components/common/ConfirmationDialog.vue";
 import TicketActionDialog from "@/components/platformTickets/TicketActionDialog.vue";
 import TicketStatusDialog from "@/components/platformTickets/TicketStatusDialog.vue";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
@@ -447,6 +502,7 @@ import { formatDate, calculateTat } from "@/utils/timeFormatter";
 const store = usePlatfromTicketsStore();
 const profileStore = useProfileStore();
 const permissionsStore = useMyPermissionsStore();
+const rbacStaffStore = useRbacStaffStore();
 const route = useRoute();
 const { hasPermission } = usePermissionCheck();
 
@@ -459,6 +515,7 @@ const selectedFile = ref(null);
 const fileInputRef = ref(null);
 const chatContainerRef = ref(null);
 const sending = ref(false);
+const optimisticMessages = ref([]);
 
 // Current User ID determination for bubble alignment
 const currentUserId = computed(() => {
@@ -478,7 +535,7 @@ const openStatusDialog = () => {
 
 const refreshTicket = () => {
   if (ticketId.value) {
-    store.fetchTicketDetail(ticketId.value);
+    store.fetchTicketDetail(ticketId.value, true);
   }
 };
 
@@ -606,6 +663,13 @@ const chatStream = computed(() => {
     }
   }
 
+  // Append optimistic messages seamlessly
+  if (optimisticMessages.value.length > 0) {
+    optimisticMessages.value.forEach((opt) => {
+      rawItems.push(opt);
+    });
+  }
+
   // Sort items by created_at ascending
   rawItems.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
 
@@ -656,10 +720,42 @@ const sendMessage = () => {
 
   sending.value = true;
 
+  // Create instant optimistic bubble
+  const tempId = `temp-${Date.now()}`;
+  let tempFileUrl = null;
+  if (file && isImageFile(file.name || file.type)) {
+    tempFileUrl = URL.createObjectURL(file);
+  }
+
+  const optimisticItem = {
+    id: tempId,
+    event_type: file ? "attachment_uploaded" : "comment_added",
+    actor_name: profileStore.user?.name || profileStore.user?.first_name || "You",
+    actor_role: profileStore.user?.role || "staff",
+    actor_user_id: currentUserId.value,
+    isMe: true,
+    isSending: true,
+    comment_text: text || null,
+    file_name: file ? file.name : null,
+    file_url: tempFileUrl,
+    created_at: new Date().toISOString(),
+  };
+
+  optimisticMessages.value.push(optimisticItem);
+  scrollToBottom();
+
+  const clearOptimistic = () => {
+    if (tempFileUrl) {
+      URL.revokeObjectURL(tempFileUrl);
+    }
+    optimisticMessages.value = optimisticMessages.value.filter((m) => m.id !== tempId);
+  };
+
   const onComplete = () => {
     commentText.value = "";
     clearSelectedFile();
     sending.value = false;
+    clearOptimistic();
     scrollToBottom();
   };
 
@@ -681,6 +777,72 @@ const sendMessage = () => {
   }
 };
 
+const isEditingStaff = ref(false);
+
+const staffOptions = computed(() => {
+  return (rbacStaffStore.records || []).map((s) => ({
+    value: s.id,
+    label: s.name || `${s.first_name || ""} ${s.last_name || ""}`.trim() || s.email,
+  }));
+});
+
+const assignDialog = ref({
+  open: false,
+  loading: false,
+  staffId: null,
+  staffName: "",
+  isEdit: false,
+});
+
+const promptAssignStaff = (staffId) => {
+  if (!staffId) return;
+
+  const currentStaffId =
+    store.detail?.assigned_staff?.id ||
+    store.detail?.assigned_staff_id;
+
+  if (currentStaffId && Number(currentStaffId) === Number(staffId)) {
+    isEditingStaff.value = false;
+    return;
+  }
+
+  const isEdit = !!store.detail?.assigned_staff;
+  const staffObj = (rbacStaffStore.records || []).find((s) => s.id === staffId);
+  const staffName = staffObj
+    ? staffObj.name ||
+      `${staffObj.first_name || ""} ${staffObj.last_name || ""}`.trim() ||
+      staffObj.email
+    : "selected staff member";
+
+  assignDialog.value = {
+    open: true,
+    loading: false,
+    staffId,
+    staffName,
+    isEdit,
+  };
+};
+
+const handleConfirmAssignStaff = () => {
+  const { staffId } = assignDialog.value;
+  if (!ticketId.value || !staffId) {
+    assignDialog.value.open = false;
+    return;
+  }
+
+  assignDialog.value.loading = true;
+
+  store.assignTicket(ticketId.value, staffId, () => {
+    assignDialog.value.loading = false;
+    assignDialog.value.open = false;
+    isEditingStaff.value = false;
+  });
+};
+
+const handleCancelAssignStaff = () => {
+  assignDialog.value.open = false;
+};
+
 const now = ref(new Date());
 let tickerTimer = null;
 
@@ -690,6 +852,8 @@ onMounted(() => {
   tickerTimer = setInterval(() => {
     now.value = new Date();
   }, 1000);
+
+  rbacStaffStore.fetchStaff(false);
 
   if (ticketId.value) {
     store.fetchTicketDetail(ticketId.value);

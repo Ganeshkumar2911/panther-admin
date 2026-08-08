@@ -127,7 +127,10 @@ export const usePlatfromTicketsStore = defineStore("platfromTickets", () => {
       isLoading.value = false;
       error.value = err;
 
-      snackbar.show(err?.message || err?.error || "Something went wrong.", "error");
+      snackbar.show(
+        err?.message || err?.error || "Something went wrong.",
+        "error",
+      );
     };
 
     apiRequest(urls.KEYS.GET, urls.platformTickets.list, {
@@ -145,23 +148,40 @@ export const usePlatfromTicketsStore = defineStore("platfromTickets", () => {
     fetchTickets(true, 1);
   };
 
-  // ─── Fetch Ticket Detail ───────────────────────────────
-  // ✅ No isFetched check
-  // API should call every time page mounts
-  const fetchTicketDetail = (id) => {
+  // ─── Fetch Ticket Detail ──────────────────────────────
+  const fetchTicketDetail = (id, silent = false) => {
     if (!id) return;
 
-    detailLoading.value = true;
-    detail.value = null;
+    // Reset detail only if switching to a different ticket ID
+    if (detail.value && String(detail.value.id) !== String(id)) {
+      detail.value = null;
+    }
+
+    // Only set detailLoading to true if detail is not already loaded and not silent
+    if (!detail.value && !silent) {
+      detailLoading.value = true;
+    }
 
     const successHandler = (res) => {
-      detail.value = res?.data || null;
+      const newData = res?.data || null;
+      if (
+        detail.value &&
+        newData &&
+        String(detail.value.id) === String(newData.id)
+      ) {
+        Object.assign(detail.value, newData);
+      } else {
+        detail.value = newData;
+      }
       detailLoading.value = false;
     };
 
     const failureHandler = (err) => {
       detailLoading.value = false;
-      snackbar.show(err?.message || err?.error || "Something went wrong.", "error");
+      snackbar.show(
+        err?.message || err?.error || "Something went wrong.",
+        "error",
+      );
     };
 
     apiRequest(urls.KEYS.GET, urls.platformTickets.detail, {
@@ -193,15 +213,18 @@ export const usePlatfromTicketsStore = defineStore("platfromTickets", () => {
       actionLoading.value = false;
       snackbar.show(res?.message || "Comment added successfully.", "success");
 
-      // refresh detail
-      fetchTicketDetail(id);
+      // Silent background refresh
+      fetchTicketDetail(id, true);
 
       onDone?.(res);
     };
 
     const failureHandler = (err) => {
       actionLoading.value = false;
-      snackbar.show(err?.message || err?.error || "Something went wrong.", "error");
+      snackbar.show(
+        err?.message || err?.error || "Something went wrong.",
+        "error",
+      );
     };
 
     apiRequest(urls.KEYS.POST, urls.platformTickets.comment, {
@@ -223,8 +246,8 @@ export const usePlatfromTicketsStore = defineStore("platfromTickets", () => {
       actionLoading.value = false;
       snackbar.show(res?.message || "Ticket status updated.", "success");
 
-      // refresh detail page data
-      fetchTicketDetail(id);
+      // Silent background refresh
+      fetchTicketDetail(id, true);
 
       // refresh listing if needed
       fetchTickets(true);
@@ -234,7 +257,10 @@ export const usePlatfromTicketsStore = defineStore("platfromTickets", () => {
 
     const failureHandler = (err) => {
       actionLoading.value = false;
-      snackbar.show(err?.message || err?.error || "Something went wrong.", "error");
+      snackbar.show(
+        err?.message || err?.error || "Something went wrong.",
+        "error",
+      );
     };
 
     apiRequest(urls.KEYS.PATCH, urls.platformTickets.updateStatus, {
@@ -254,17 +280,23 @@ export const usePlatfromTicketsStore = defineStore("platfromTickets", () => {
 
     const successHandler = (res) => {
       actionLoading.value = false;
-      snackbar.show(res?.message || "Attachment uploaded successfully.", "success");
+      snackbar.show(
+        res?.message || "Attachment uploaded successfully.",
+        "success",
+      );
 
-      // refresh detail
-      fetchTicketDetail(id);
+      // Silent background refresh
+      fetchTicketDetail(id, true);
 
       onDone?.(res);
     };
 
     const failureHandler = (err) => {
       actionLoading.value = false;
-      snackbar.show(err?.message || err?.error || "Something went wrong.", "error");
+      snackbar.show(
+        err?.message || err?.error || "Something went wrong.",
+        "error",
+      );
     };
 
     apiRequest(urls.KEYS.POST, urls.platformTickets.attachment, {
@@ -310,17 +342,23 @@ export const usePlatfromTicketsStore = defineStore("platfromTickets", () => {
 
     const successHandler = (res) => {
       actionLoading.value = false;
-      snackbar.show(res?.message || "Staff assigned to ticket successfully.", "success");
+      snackbar.show(
+        res?.message || "Staff assigned to ticket successfully.",
+        "success",
+      );
       fetchTickets(true);
       if (detail.value?.id === ticketId) {
-        fetchTicketDetail(ticketId);
+        fetchTicketDetail(ticketId, true);
       }
       onDone?.(res);
     };
 
     const failureHandler = (err) => {
       actionLoading.value = false;
-      snackbar.show(err?.message || err?.error || "Failed to assign staff.", "error");
+      snackbar.show(
+        err?.message || err?.error || "Failed to assign staff.",
+        "error",
+      );
     };
 
     apiRequest(urls.KEYS.PATCH, urls.platformTickets.assign, {
@@ -374,7 +412,11 @@ export const usePlatfromTicketsStore = defineStore("platfromTickets", () => {
     };
 
     // Add due_at only when priority is urgent
-    if (payload.priority === "urgent" && payload.due_at !== null && payload.due_at !== undefined) {
+    if (
+      payload.priority === "urgent" &&
+      payload.due_at !== null &&
+      payload.due_at !== undefined
+    ) {
       ticketData.due_at = String(payload.due_at);
     }
 
@@ -387,7 +429,10 @@ export const usePlatfromTicketsStore = defineStore("platfromTickets", () => {
 
     const failureHandler = (err) => {
       actionLoading.value = false;
-      snackbar.show(err?.message || err?.error || "Failed to create ticket.", "error");
+      snackbar.show(
+        err?.message || err?.error || "Failed to create ticket.",
+        "error",
+      );
     };
 
     apiRequest(urls.KEYS.POST, urls.platformTickets.createAdminTicket, {
@@ -435,4 +480,3 @@ export const usePlatfromTicketsStore = defineStore("platfromTickets", () => {
     reset,
   };
 });
-
