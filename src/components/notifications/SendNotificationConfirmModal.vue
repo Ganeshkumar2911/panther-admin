@@ -1,6 +1,8 @@
 <script setup>
 import { AlertCircle, Send, X, CheckCircle2 } from 'lucide-vue-next'
 import { useNotificationsStore } from '@/stores/notifications/notifications'
+import MetadataBadges from '@/components/notifications/MetadataBadges.vue'
+import { getMetadataEntries } from '@/utils/notificationHelpers'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -56,7 +58,7 @@ function handleConfirmSend() {
           <!-- Body -->
           <div class="p-5 space-y-4 text-xs">
             <div class="bg-background border border-primary-border rounded-lg p-3.5 space-y-2">
-              <div class="flex items-center justify-between">
+              <div class="flex items-center justify-between gap-2">
                 <span class="text-[11px] font-bold text-primary-text uppercase tracking-wider">
                   {{ notification.type }}
                 </span>
@@ -76,9 +78,14 @@ function handleConfirmSend() {
                 {{ notification.title }}
               </h4>
 
-              <p class="text-xs text-secondary-text leading-relaxed">
-                {{ notification.message }}
-              </p>
+              <div class="flex items-start justify-between gap-2">
+                <p class="text-xs text-secondary-text leading-relaxed min-w-0 flex-1">
+                  {{ notification.message }}
+                </p>
+
+                <!-- Metadata Badges inline with message at the right end -->
+                <MetadataBadges :metadata="notification.metadata_json" :limit="2" align="right" class="shrink-0 ml-auto mt-0.5" />
+              </div>
             </div>
 
             <div class="p-3 rounded-lg bg-primary/5 border border-primary/20 text-xs text-primary-text flex items-start gap-2.5">
