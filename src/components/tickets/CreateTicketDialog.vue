@@ -51,13 +51,10 @@
           <p class="text-xs text-secondary-text mb-1.5">
             Subject <span class="text-primary-red">*</span>
           </p>
-          <input
-            ref="firstInput"
+          <BaseSelect
             v-model="form.subject"
-            type="text"
-            placeholder="e.g. MT5 Deposit Issue"
-            :disabled="platformTicketsStore.actionLoading"
-            class="w-full px-3 py-2.5 rounded-lg bg-background border border-primary-border text-primary-text text-sm outline-none focus:border-primary transition-colors placeholder:text-secondary-text disabled:opacity-50"
+            :options="subjectOptions"
+            placeholder="Select subject"
           />
         </div>
 
@@ -155,6 +152,15 @@ const form = ref({
 const clientOptions = ref([]);
 const isSearchingClients = ref(false);
 let clientSearchTimer = null;
+
+const subjectOptions = [
+  { label: "Deposit & Withdrawal", value: "Deposit & Withdrawal" },
+  { label: "Trading (MT5)", value: "Trading (MT5)" },
+  { label: "Copy Trading", value: "Copy Trading" },
+  { label: "Promotion", value: "Promotion" },
+  { label: "Introducing broker", value: "Introducing broker" },
+  { label: "Others issue", value: "others" },
+];
 
 const priorityOptions = [
   { label: "Low", value: "low" },
