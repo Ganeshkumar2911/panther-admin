@@ -582,7 +582,7 @@
 <script setup>
 import { onMounted, onBeforeUnmount, ref, computed, watch } from "vue";
 import { useRouter } from "vue-router";
-import { Search, Plus, Eye, Ticket as TicketIcon, Pencil, X } from "lucide-vue-next";
+import { Search, Plus, Eye, Ticket as TicketIcon, Pencil, X, RefreshCw } from "lucide-vue-next";
 import { useTicketsStore } from "@/stores/tickets/tickets";
 import { usePlatfromTicketsStore } from "@/stores/platformTickets/platformTickets";
 import { useRbacStaffStore } from "@/stores/rbac/staff";
