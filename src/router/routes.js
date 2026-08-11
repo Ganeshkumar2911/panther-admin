@@ -61,7 +61,8 @@ const routes = [
         meta: {
           requiresAuth: true,
           title: "Lead Management",
-          description: "Track and manage leads throughout their onboarding journey.",
+          description:
+            "Track and manage leads throughout their onboarding journey.",
         },
       },
       {
@@ -302,7 +303,8 @@ const routes = [
         meta: {
           requiresAuth: true,
           title: "Media Library",
-          description: "Manage image folders and media assets across the platform.",
+          description:
+            "Manage image folders and media assets across the platform.",
         },
       },
       {
@@ -332,6 +334,17 @@ const routes = [
         name: "mains",
         component: () => import("@/pages/e-mails/index.vue"),
         meta: {
+          requiresAuth: true,
+          title: "Email Management",
+          description: "Manage platfrom e-mails and templates",
+        },
+      },
+      {
+        path: "/e-mails/logs-details/:tagId",
+        name: "email-logs-details",
+        component: () => import("@/pages/e-mails/EmailLogDetails.vue"),
+        meta: {
+          showBackButton: true,
           requiresAuth: true,
           title: "Email Management",
           description: "Manage platfrom e-mails and templates",

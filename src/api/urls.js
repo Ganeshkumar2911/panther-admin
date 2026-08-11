@@ -158,6 +158,17 @@ const urls = {
     update: "/email-templates",
     manual: "/emails/manual/send",
   },
+  emailLogs: {
+    list: "/fetch-logs",
+    sync: "/emails/sync-events/campaign",
+    // sync: "/emails/sync-events",
+    tags: "/filter-template-codes",
+    viewLogDetails: "/emails/preview",
+    logDetails: "/fetch/dispatch/records/campaign",
+    // logList: "/fetch/dispatch/records",
+    logList: "/fetch/dispatch/tags",
+    sendMail: "/emails/campaigns/resend",
+  },
   integrations: {
     list: "/company-integrations",
     create: "/company-integrations",
