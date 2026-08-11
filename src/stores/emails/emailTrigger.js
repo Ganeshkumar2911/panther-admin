@@ -42,6 +42,7 @@ export const useEmailTriggerStore = defineStore("emailTrigger", () => {
   const customEmail = reactive({
     subject: "",
     body_html: "",
+    tag: "",
     variables: [],
   });
 
@@ -200,6 +201,7 @@ export const useEmailTriggerStore = defineStore("emailTrigger", () => {
   // ─────────────────────────────────────
 
   const sendCustomEmail = (targetGroup = null) => {
+    // alert("clicked")
     if (!customEmail.subject) {
       snackbar.show("Subject is required.", "error");
       return;
@@ -223,6 +225,8 @@ export const useEmailTriggerStore = defineStore("emailTrigger", () => {
       subject: customEmail.subject,
 
       body_html: customEmail.body_html,
+
+      tag: customEmail.tag,
 
       variables: parseVariables(customEmail.body_html),
     };

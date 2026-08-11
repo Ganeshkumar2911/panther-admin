@@ -5,8 +5,10 @@ import { useNotificationsStore } from "@/stores/notifications/notifications";
 import CreateNotificationModal from "@/components/notifications/CreateNotificationModal.vue";
 import SendNotificationConfirmModal from "@/components/notifications/SendNotificationConfirmModal.vue";
 import NotificationImageModal from "@/components/notifications/NotificationImageModal.vue";
+import MetadataBadges from "@/components/notifications/MetadataBadges.vue";
 import Pagination from "@/components/common/Pagination.vue";
 import { formatDate } from "@/utils/timeFormatter";
+import { getMetadataEntries } from "@/utils/notificationHelpers";
 import {
   Plus,
   RotateCw,
@@ -350,31 +352,36 @@ function getTypeMeta(type) {
               </td>
 
               <td class="whitespace-nowrap px-4 py-4">
-                <div class="flex items-center gap-1.5">
-                  <span
-                    :class="[
-                      'inline-flex items-center gap-1 rounded-lg border px-2 py-1 text-[10px] font-bold uppercase',
-                      getTypeMeta(item.type).text,
-                      getTypeMeta(item.type).bg,
-                      getTypeMeta(item.type).border,
-                    ]"
-                  >
-                    <component
-                      :is="getTypeMeta(item.type).icon"
-                      class="h-3 w-3"
-                    />
-                    {{ item.type }}
-                  </span>
-                  <span
-                    :class="[
-                      'rounded-lg border px-2 py-1 text-[10px] font-bold uppercase',
-                      getPriorityStyles(item.priority).text,
-                      getPriorityStyles(item.priority).bg,
-                      getPriorityStyles(item.priority).border,
-                    ]"
-                  >
-                    {{ item.priority }}
-                  </span>
+                <div class="flex flex-col items-start gap-1">
+                  <div class="flex items-center gap-1.5">
+                    <span
+                      :class="[
+                        'inline-flex items-center gap-1 rounded-lg border px-2 py-1 text-[10px] font-bold uppercase',
+                        getTypeMeta(item.type).text,
+                        getTypeMeta(item.type).bg,
+                        getTypeMeta(item.type).border,
+                      ]"
+                    >
+                      <component
+                        :is="getTypeMeta(item.type).icon"
+                        class="h-3 w-3"
+                      />
+                      {{ item.type }}
+                    </span>
+                    <span
+                      :class="[
+                        'rounded-lg border px-2 py-1 text-[10px] font-bold uppercase',
+                        getPriorityStyles(item.priority).text,
+                        getPriorityStyles(item.priority).bg,
+                        getPriorityStyles(item.priority).border,
+                      ]"
+                    >
+                      {{ item.priority }}
+                    </span>
+                  </div>
+
+                  <!-- Metadata Badges below priority -->
+                  <MetadataBadges :metadata="item.metadata_json" :limit="2" class="mt-0.5" />
                 </div>
               </td>
 

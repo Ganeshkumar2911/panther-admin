@@ -27,12 +27,12 @@
             class="text-xs font-medium px-2.5 py-0.5 rounded-full border transition-all capitalize"
             :class="[
               statusClass(store.detail.status),
-              store.detail.status !== 'closed' && hasPermission(['ticket.update', 'ticket.close', 'ticket.assign'])
+              hasPermission(['ticket.update', 'ticket.close', 'ticket.assign'])
                 ? 'cursor-pointer hover:opacity-80'
                 : 'cursor-not-allowed opacity-60',
             ]"
             @click="openStatusDialog"
-            :disabled="store.detail.status === 'closed' || !hasPermission(['ticket.update', 'ticket.close', 'ticket.assign'])"
+            :disabled="!hasPermission(['ticket.update', 'ticket.close', 'ticket.assign'])"
           >
             {{ store.detail.status }}
           </button>
@@ -536,9 +536,7 @@ const currentUserId = computed(() => {
 });
 
 const openStatusDialog = () => {
-  if (store.detail?.status !== "closed") {
     statusDialog.value.open = true;
-  }
 };
 
 const refreshTicket = () => {

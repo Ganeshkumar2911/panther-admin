@@ -2,10 +2,7 @@
   <div class="min-h-screen bg-background">
     <main class="max-w-screen-2xl mx-auto px-4 sm:px-6 py-8 space-y-6">
       <!-- Header -->
-      <div
-        class="flex flex-col sm:flex-row sm:items-center justify-end gap-4"
-      >
-
+      <div class="flex flex-col sm:flex-row sm:items-center justify-end gap-4">
         <div v-if="hasPermission('telegram.create')">
           <button
             type="button"
@@ -31,7 +28,7 @@
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="Search Bot ID or Client ID..."
+            placeholder="Search By Username..."
             class="w-full bg-background border border-primary-border rounded-lg pl-9 pr-8 py-2 text-xs text-primary-text outline-none focus:border-primary transition-colors placeholder:text-secondary-text"
           />
           <button
@@ -112,7 +109,9 @@
         <h2
           class="text-xl sm:text-2xl font-bold text-primary-text mb-2 tracking-tight"
         >
-          {{ searchQuery ? 'No Matching Telegram Bots' : 'No Telegram Bots Found' }}
+          {{
+            searchQuery ? "No Matching Telegram Bots" : "No Telegram Bots Found"
+          }}
         </h2>
         <p
           class="text-xs sm:text-sm text-secondary-text max-w-md mx-auto leading-relaxed mb-8"
@@ -120,7 +119,7 @@
           {{
             searchQuery
               ? `No bots matched "${searchQuery}". Try a different token or client ID search term.`
-              : 'Add your Telegram Bot Token and Client ID to start receiving automated notifications and system alerts.'
+              : "Add your Telegram Bot Token and Client ID to start receiving automated notifications and system alerts."
           }}
         </p>
 
@@ -153,12 +152,17 @@
               <th
                 class="text-left text-[11px] font-semibold text-secondary-text uppercase tracking-widest px-4 py-3"
               >
+                Username
+              </th>
+              <th
+                class="text-left text-[11px] font-semibold text-secondary-text uppercase tracking-widest px-4 py-3"
+              >
                 Bot Token / ID
               </th>
               <th
                 class="text-left text-[11px] font-semibold text-secondary-text uppercase tracking-widest px-4 py-3"
               >
-                Client ID
+                Chat ID
               </th>
               <th
                 class="text-left text-[11px] font-semibold text-secondary-text uppercase tracking-widest px-4 py-3 w-32"
@@ -166,7 +170,15 @@
                 Status
               </th>
               <th
-                v-if="hasPermission('telegram.update') || hasPermission('telegram.delete')"
+                class="text-left text-[11px] font-semibold text-secondary-text uppercase tracking-widest px-4 py-3 min-w-[140px] max-w-md"
+              >
+                Description
+              </th>
+              <th
+                v-if="
+                  hasPermission('telegram.update') ||
+                  hasPermission('telegram.delete')
+                "
                 class="text-left text-[11px] font-semibold text-secondary-text uppercase tracking-widest px-4 py-3 w-28"
               >
                 Actions
@@ -179,7 +191,15 @@
               :key="item.id"
               class="hover:bg-background/40 transition-colors"
             >
-              <td class="px-4 py-3 text-xs font-mono font-medium text-primary-text">
+              <td
+                class="px-4 py-3 text-xs font-mono font-medium text-primary-text"
+              >
+                {{ item?.username ?? "-" }}
+              </td>
+
+              <td
+                class="px-4 py-3 text-xs font-mono font-medium text-primary-text"
+              >
                 <div class="flex items-center gap-2">
                   <Bot class="w-4 h-4 text-primary shrink-0" />
                   <span>{{ item?.bot_token ?? "-" }}</span>
@@ -194,12 +214,19 @@
                 <div class="flex items-center gap-2">
                   <button
                     type="button"
-                    :disabled="store.toggleLoading || !hasPermission('telegram.update')"
-                    @click="hasPermission('telegram.update') && store.toggleStatus(item)"
+                    :disabled="
+                      store.toggleLoading || !hasPermission('telegram.update')
+                    "
+                    @click="
+                      hasPermission('telegram.update') &&
+                      store.toggleStatus(item)
+                    "
                     class="relative w-10 h-5 rounded-full transition-colors flex-shrink-0 focus:outline-none"
                     :class="[
                       item.is_active ? 'bg-primary-green' : 'bg-primary-border',
-                      hasPermission('telegram.update') ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'
+                      hasPermission('telegram.update')
+                        ? 'cursor-pointer'
+                        : 'cursor-not-allowed opacity-60',
                     ]"
                   >
                     <span
@@ -211,15 +238,26 @@
                   </button>
                   <span
                     class="text-[11px] font-medium"
-                    :class="item.is_active ? 'text-primary-green' : 'text-secondary-text'"
+                    :class="
+                      item.is_active
+                        ? 'text-primary-green'
+                        : 'text-secondary-text'
+                    "
                   >
-                    {{ item.is_active ? 'Active' : 'Inactive' }}
+                    {{ item.is_active ? "Active" : "Inactive" }}
                   </span>
                 </div>
               </td>
-
               <td
-                v-if="hasPermission('telegram.update') || hasPermission('telegram.delete')"
+                class="px-4 py-3 text-xs font-mono font-medium text-primary-text min-w-[140px] max-w-md break-words"
+              >
+                {{ item?.description ?? "-" }}
+              </td>
+              <td
+                v-if="
+                  hasPermission('telegram.update') ||
+                  hasPermission('telegram.delete')
+                "
                 class="px-4 py-3"
               >
                 <div class="flex items-center gap-3">
@@ -286,21 +324,36 @@
           </button>
 
           <div class="flex items-start gap-4">
-            <div class="w-11 h-11 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center shrink-0">
+            <div
+              class="w-11 h-11 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center shrink-0"
+            >
               <AlertTriangle class="w-5 h-5 text-red-500" />
             </div>
 
             <div class="space-y-1">
-              <h3 class="text-sm font-bold text-primary-text">Delete Telegram Bot</h3>
+              <h3 class="text-sm font-bold text-primary-text">
+                Delete Telegram Bot
+              </h3>
               <p class="text-xs text-secondary-text leading-relaxed">
-                Are you sure you want to delete bot token <strong class="text-primary-text font-mono">{{ deleteTarget?.bot_token }}</strong>?
+                Are you sure you want to delete bot token
+                <strong class="text-primary-text font-mono">{{
+                  deleteTarget?.bot_token
+                }}</strong
+                >?
               </p>
             </div>
           </div>
 
-          <div class="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-[11px] text-red-500 flex items-start gap-2">
+          <div
+            class="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-[11px] text-red-500 flex items-start gap-2"
+          >
             <AlertTriangle class="w-4 h-4 shrink-0 mt-0.5" />
-            <span>Warning: This will permanently remove the bot setting and stop notifications linked to Client ID <strong>{{ deleteTarget?.client_id }}</strong>.</span>
+            <span
+              >Warning: This will permanently remove the bot setting and stop
+              notifications linked to Client ID
+              <strong>{{ deleteTarget?.client_id }}</strong
+              >.</span
+            >
           </div>
 
           <div class="flex items-center gap-3 pt-2">
@@ -317,8 +370,13 @@
               class="flex-1 px-4 py-2.5 rounded-lg text-xs font-semibold text-white bg-red-600 hover:bg-red-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer shadow-xs"
               @click="confirmDelete"
             >
-              <Loader2 v-if="store.deleteLoading" class="w-3.5 h-3.5 animate-spin" />
-              <span>{{ store.deleteLoading ? 'Deleting...' : 'Delete Bot' }}</span>
+              <Loader2
+                v-if="store.deleteLoading"
+                class="w-3.5 h-3.5 animate-spin"
+              />
+              <span>{{
+                store.deleteLoading ? "Deleting..." : "Delete Bot"
+              }}</span>
             </button>
           </div>
         </div>
@@ -392,6 +450,13 @@ onMounted(() => {
 const formFields = [
   {
     type: "text",
+    label: "Username",
+    model: "username",
+    placeholder: "Enter Username",
+    required: true,
+  },
+  {
+    type: "text",
     label: "Bot ID / Token",
     model: "bot_token",
     placeholder: "Enter Bot ID or API Token",
@@ -403,6 +468,13 @@ const formFields = [
     model: "client_id",
     placeholder: "Enter Client ID",
     required: true,
+  },
+  {
+    type: "text",
+    label: "Description",
+    model: "description",
+    placeholder: "Enter Description",
+    required: false,
   },
 ];
 </script>
