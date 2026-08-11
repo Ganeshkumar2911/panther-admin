@@ -406,7 +406,12 @@ export const usePlatfromTicketsStore = defineStore("platfromTickets", () => {
 
     const ticketData = {
       user_id: payload.user_id,
-      subject: payload.subject,
+      subjectCategory: payload.subjectCategory,
+      subject_category: payload.subjectCategory,
+      subject:
+        payload.subjectCategory === "others"
+          ? payload.subject
+          : payload.subjectCategory || payload.subject,
       description: payload.description,
       priority: payload.priority || "medium",
     };
