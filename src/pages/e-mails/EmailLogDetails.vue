@@ -347,10 +347,10 @@ const resendData = reactive({
 });
 
 const perPageOptions = [
-  { label: "10 Per Page", value: 10 },
-  { label: "25 Per Page", value: 25 },
-  { label: "50 Per Page", value: 50 },
-  { label: "100 Per Page", value: 100 },
+  { label: "10", value: 10 },
+  { label: "25", value: 25 },
+  { label: "50", value: 50 },
+  { label: "100", value: 100 },
 ];
 
 const isButtonDisabled = computed(() => {
