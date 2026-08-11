@@ -12,6 +12,8 @@ import {
 import { useNotificationsStore } from "@/stores/notifications/notifications";
 import MyNotificationsDrawer from "@/components/notifications/MyNotificationsDrawer.vue";
 import NotificationImageModal from "@/components/notifications/NotificationImageModal.vue";
+import MetadataBadges from "@/components/notifications/MetadataBadges.vue";
+import { getMetadataEntries } from "@/utils/notificationHelpers";
 
 const router = useRouter();
 const notificationsStore = useNotificationsStore();
@@ -260,11 +262,16 @@ function markAsRead(id) {
                   </span>
                 </div>
 
-                <p
-                  class="line-clamp-3 whitespace-pre-line text-[11.5px] leading-relaxed text-secondary-text"
-                >
-                  {{ item.message }}
-                </p>
+                <div class="flex items-start justify-between gap-2">
+                  <p
+                    class="line-clamp-3 whitespace-pre-line text-[11.5px] leading-relaxed text-secondary-text min-w-0 flex-1"
+                  >
+                    {{ item.message }}
+                  </p>
+
+                  <!-- Metadata Badges in line of message at the right end -->
+                  <MetadataBadges :metadata="item.metadata_json" :limit="2" align="right" class="shrink-0 ml-auto mt-0.5" />
+                </div>
 
                 <!-- Image Attachment Thumbnail -->
                 <Tooltip

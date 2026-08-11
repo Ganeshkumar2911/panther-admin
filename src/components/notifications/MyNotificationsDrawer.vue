@@ -178,16 +178,23 @@
                       {{ item.priority }}
                     </span>
                   </div>
+
                   <span class="text-[11px] text-secondary-text shrink-0">{{
                     formatDate(item.created_at)
                   }}</span>
                 </div>
 
-                <!-- Title + message -->
+                <!-- Title line (with metadata at right end) + message -->
                 <div class="pl-3 mb-3">
-                  <p class="text-xs font-semibold text-primary-text mb-0.5">
-                    {{ item.title }}
-                  </p>
+                  <div class="flex items-center justify-between gap-2 mb-0.5">
+                    <p class="text-xs font-semibold text-primary-text min-w-0 truncate">
+                      {{ item.title }}
+                    </p>
+
+                    <!-- Metadata Badges in Title line at the right end -->
+                    <MetadataBadges :metadata="item.metadata_json" :limit="2" align="right" class="shrink-0 ml-auto" />
+                  </div>
+
                   <p class="whitespace-pre-line text-[11px] text-secondary-text leading-relaxed">
                     {{ item.message }}
                   </p>
@@ -291,7 +298,9 @@ import { ref, computed, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useNotificationsStore } from "@/stores/notifications/notifications";
 import NotificationImageModal from "@/components/notifications/NotificationImageModal.vue";
+import MetadataBadges from "@/components/notifications/MetadataBadges.vue";
 import { formatDate } from "@/utils/timeFormatter";
+import { getMetadataEntries } from "@/utils/notificationHelpers";
 import {
   Bell,
   CheckCheck,
@@ -347,11 +356,15 @@ const filteredMyNotifications = computed(() =>
   store.myNotifications.filter((n) => {
     if (searchQuery.value) {
       const q = searchQuery.value.toLowerCase();
-      if (
-        !n.title.toLowerCase().includes(q) &&
-        !n.message.toLowerCase().includes(q)
-      )
-        return false;
+      const titleMatch = n.title?.toLowerCase().includes(q);
+      const messageMatch = n.message?.toLowerCase().includes(q);
+      const metaEntries = getMetadataEntries(n.metadata_json);
+      const metaMatch = metaEntries.some(
+        (m) =>
+          m.key.toLowerCase().includes(q) ||
+          m.value.toLowerCase().includes(q),
+      );
+      if (!titleMatch && !messageMatch && !metaMatch) return false;
     }
     if (selectedReadStatus.value === "unread" && n.is_read) return false;
     if (selectedReadStatus.value === "read" && !n.is_read) return false;
