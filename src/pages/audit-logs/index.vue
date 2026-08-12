@@ -106,6 +106,11 @@
               Date
             </th>
             <th
+              class="text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
+            >
+              Metadata
+            </th>
+            <th
               class="text-center text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3 w-20"
             >
               Details
@@ -138,6 +143,10 @@
             <td class="p-3">
               <div class="h-3 w-28 bg-card-background rounded" />
             </td>
+            <td class="p-3">
+              <div class="h-3.5 w-36 bg-card-background rounded mb-1.5" />
+              <div class="h-2.5 w-24 bg-card-background rounded" />
+            </td>
             <td class="p-3 text-center">
               <div class="h-6 w-12 bg-card-background rounded mx-auto" />
             </td>
@@ -147,7 +156,7 @@
         <!-- Empty -->
         <tbody v-else-if="store.data.length === 0">
           <tr>
-            <td colspan="6" class="py-16 text-center">
+            <td colspan="7" class="py-16 text-center">
               <div class="flex flex-col items-center gap-3">
                 <div
                   class="w-12 h-12 rounded-full bg-card-background flex items-center justify-center"
@@ -228,6 +237,22 @@
             <!-- Date -->
             <td class="p-3 text-xs text-secondary-text">
               {{ formatDate(log.created_at) }}
+            </td>
+
+            <!-- Metadata -->
+            <td class="p-3 max-w-[240px]">
+              <div v-if="getMetadataSummary(log).length" class="space-y-1">
+                <p
+                  v-for="item in getMetadataSummary(log)"
+                  :key="item.label"
+                  class="text-[10px] leading-tight text-secondary-text truncate"
+                  :title="`${item.label}: ${item.value}`"
+                >
+                  <span class="font-medium text-primary-text">{{ item.label }}:</span>
+                  {{ item.value }}
+                </p>
+              </div>
+              <span v-else class="text-xs text-secondary-text">—</span>
             </td>
 
             <!-- Details Action -->
@@ -337,6 +362,19 @@
             <span class="font-medium text-primary-text">{{
               formatDate(log.created_at)
             }}</span>
+          </div>
+          <div v-if="getMetadataSummary(log).length" class="col-span-2">
+            <span class="text-[10px] text-secondary-text block">Metadata</span>
+            <div class="mt-1 space-y-0.5">
+              <p
+                v-for="item in getMetadataSummary(log)"
+                :key="item.label"
+                class="text-[10px] text-secondary-text break-words"
+              >
+                <span class="font-medium text-primary-text">{{ item.label }}:</span>
+                {{ item.value }}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -487,6 +525,43 @@ const getStatusClass = (status) => {
     return "bg-red-500/10 text-red-700 border-red-500/20";
   }
   return "bg-yellow-500/10 text-yellow-700 border-yellow-500/20";
+};
+
+const getMetadataSummary = (log) => {
+  const meta = log?.meta_data;
+  if (!meta || typeof meta !== "object") return [];
+
+  const formatPerson = (person) => {
+    if (!person || typeof person !== "object") return null;
+    return person.name || person.email || null;
+  };
+
+  const source = formatPerson(meta.source);
+  const destination = formatPerson(meta.destination);
+  const items = [];
+
+  if (source) items.push({ label: "Source", value: source });
+  if (destination) items.push({ label: "Destination", value: destination });
+
+  if (meta.miscellaneous && typeof meta.miscellaneous === "object") {
+    const details = Object.entries(meta.miscellaneous)
+      .filter(([key, value]) => !/(token|password|secret|authorization)/i.test(key) && value !== null && value !== undefined)
+      .slice(0, 2)
+      .map(([key, value]) => `${formatMetadataKey(key)}: ${formatMetadataValue(value)}`);
+
+    if (details.length) items.push({ label: "Info", value: details.join(" · ") });
+  }
+
+  return items;
+};
+
+const formatMetadataKey = (key) =>
+  key.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+
+const formatMetadataValue = (value) => {
+  if (Array.isArray(value)) return value.join(", ");
+  if (typeof value === "object") return Object.values(value).join(", ");
+  return String(value);
 };
 
 const parseUserAgent = (ua) => {
