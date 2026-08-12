@@ -11,14 +11,25 @@
         @update:modelValue="store.updatePerPage"
       />
 
-      <button
-        v-if="hasPermission('payment_methods.create')"
-        class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all active:scale-95 cursor-pointer ml-auto"
-        @click="handleOpenCreate"
-      >
-        <Plus class="w-3.5 h-3.5" />
-        Add Payment Method
-      </button>
+      <div class="flex items-center gap-2.5 ml-auto">
+        <button
+          v-if="hasPermission('payment_methods.view')"
+          class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-primary-border bg-card-background hover:bg-background text-primary-text text-xs font-semibold transition-all active:scale-95 cursor-pointer shadow-2xs"
+          @click="isCurrencyDrawerOpen = true"
+        >
+          <Coins class="w-3.5 h-3.5 text-primary" />
+          <span>Currency Rates</span>
+        </button>
+
+        <button
+          v-if="hasPermission('payment_methods.create')"
+          class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all active:scale-95 cursor-pointer"
+          @click="handleOpenCreate"
+        >
+          <Plus class="w-3.5 h-3.5" />
+          <span>Add Payment Method</span>
+        </button>
+      </div>
     </div>
 
     <!-- Summary Cards -->
@@ -288,20 +299,30 @@
       @close="isEditDialogOpen = false"
     />
 
+    <!-- Currency Rates Drawer -->
+    <CurrencyRatesDrawer
+      :open="isCurrencyDrawerOpen"
+      @close="isCurrencyDrawerOpen = false"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { onMounted, ref, computed, nextTick } from 'vue'
-import { RefreshCw, Wallet, Pencil, Check, X, Loader2, Settings2, Plus } from 'lucide-vue-next'
+import { RefreshCw, Wallet, Pencil, Check, X, Loader2, Settings2, Plus, Coins } from 'lucide-vue-next'
 import { usePaymentMethodsStore } from '@/stores/paymentMethods/paymentMethods'
 import Pagination from '@/components/common/Pagination.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import EditPaymentMethodDialog from '@/components/paymentMethods/EditPaymentMethodDialog.vue'
+import CurrencyRatesDrawer from '@/components/paymentMethods/CurrencyRatesDrawer.vue'
 import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
 const store = usePaymentMethodsStore()
 const { hasPermission } = usePermissionCheck()
+
+// ── Currency Rates Drawer state ──
+const isCurrencyDrawerOpen = ref(false)
 
 // ── Edit label state ──
 const editingId    = ref(null)

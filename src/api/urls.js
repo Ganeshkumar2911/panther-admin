@@ -142,6 +142,12 @@ const urls = {
     syncWallets: "/payments/sync-wallets",
     update: "/payments/payment-methods",
   },
+  currencyRates: {
+    list: "/payments/currency-rates",
+    create: "/payments/currency-rates",
+    update: "/payments/currency-rates",
+    delete: "/payments/currency-rates",
+  },
   paymentRequests: {
     list: "/payment-requests",
     approve: "/payment-requests/approve/",
