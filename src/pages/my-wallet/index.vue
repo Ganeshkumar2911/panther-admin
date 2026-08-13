@@ -43,20 +43,12 @@
         />
 
         <!-- Date range -->
-        <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:w-[310px] xl:flex-none">
-          <input
-            v-model="store.filters.from_date"
-            type="date"
-            class="w-full px-3 py-2 text-xs rounded-lg bg-background border border-primary-border text-primary-text outline-none focus:border-primary transition-colors"
-            @change="applyFilters"
-          />
-          <input
-            v-model="store.filters.to_date"
-            type="date"
-            class="w-full px-3 py-2 text-xs rounded-lg bg-background border border-primary-border text-primary-text outline-none focus:border-primary transition-colors"
-            @change="applyFilters"
-          />
-        </div>
+        <BaseDatePicker
+          v-model="dateRangeValue"
+          :range="true"
+          placeholder="Filter by date range..."
+          class="w-full sm:w-60 xl:w-64"
+        />
 
         <BaseSelect
           :modelValue="store.pagination.per_page"
@@ -189,6 +181,7 @@ import { BookOpen } from 'lucide-vue-next'
 import { useAdminLedgerStore } from '@/stores/adminLedger/adminLedger'
 import Pagination from '@/components/common/Pagination.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
+import BaseDatePicker from '@/components/common/BaseDatePicker.vue'
 import { RefreshCw } from 'lucide-vue-next'
 
 const store = useAdminLedgerStore()
@@ -196,6 +189,31 @@ const store = useAdminLedgerStore()
 const typeOptions = computed(() =>
   (store.filterOptions?.types ?? []).map((t) => ({ label: formatType(t), value: t }))
 )
+
+const dateRangeValue = computed({
+  get() {
+    if (store.filters.from_date || store.filters.to_date) {
+      return {
+        start: store.filters.from_date || null,
+        end: store.filters.to_date || null,
+      }
+    }
+    return null
+  },
+  set(val) {
+    if (!val) {
+      store.filters.from_date = ''
+      store.filters.to_date = ''
+    } else if (Array.isArray(val)) {
+      store.filters.from_date = val[0] || ''
+      store.filters.to_date = val[1] || ''
+    } else if (typeof val === 'object') {
+      store.filters.from_date = val.start || val.from || ''
+      store.filters.to_date = val.end || val.to || ''
+    }
+    applyFilters()
+  },
+})
 
 const hasFilters = computed(() =>
   store.filters.type || store.filters.from_date || store.filters.to_date
