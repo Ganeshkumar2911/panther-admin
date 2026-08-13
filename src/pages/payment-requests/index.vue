@@ -477,7 +477,7 @@
 </template>
 
 <script setup>
-import { onMounted, computed, ref } from "vue";
+import { onMounted, computed, ref, watch } from "vue";
 import { Receipt, Check, X, RefreshCw, Copy } from "lucide-vue-next";
 import { usePaymentRequestsStore } from "@/stores/paymentRequests/paymentRequests";
 import { useProfileStore } from "@/stores/profile/profile";
@@ -549,10 +549,12 @@ const onClientSearch = (q) => {
   clearTimeout(clientTimer);
   clientTimer = setTimeout(async () => {
     const res = await store.fetchAllClients(q);
+
     const data = res?.data || res || [];
     clientOptions.value = (data || []).map((c) => ({
-      label: c.label || c.email,
+      label: c.label,
       value: c.value,
+      email: c.email,
     }));
   }, 350);
 };
