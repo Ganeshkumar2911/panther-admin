@@ -1,11 +1,11 @@
 <script setup>
-import { computed, onMounted, ref, watchEffect } from 'vue'
+import { computed, onMounted, watchEffect } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { RefreshCw, CalendarDays, X } from 'lucide-vue-next'
 
 import { useDashboardStore } from '@/stores/dashboard/dashboard'
 import { usePermissionCheck } from '@/composables/usePermissionCheck'
+import BaseDatePicker from '@/components/common/BaseDatePicker.vue'
 
 import OverviewSection      from '@/components/dashboard/OverviewSection.vue'
 import RevenueIntelligence  from '@/components/dashboard/RevenueIntelligence.vue'
@@ -27,23 +27,34 @@ watchEffect(() => {
   }
 })
 
-// ─── Date filter local refs ──────────────────────────────────────
-const startDate = ref('')
-const endDate = ref('')
-
-const hasDateFilter = computed(() => dashboardFilters.value.start_date && dashboardFilters.value.end_date)
-
-function applyDateFilter() {
-  if (!startDate.value || !endDate.value) return
-  store.setDashboardFilters({ start_date: startDate.value, end_date: endDate.value })
-  store.applyDashboardFilters()
-}
-
-function clearDateFilter() {
-  startDate.value = ''
-  endDate.value = ''
-  store.resetDashboardFilters()
-}
+// ─── Date range computed wrapper for BaseDatePicker ───────────────
+const dateRangeValue = computed({
+  get() {
+    if (dashboardFilters.value.start_date || dashboardFilters.value.end_date) {
+      return {
+        start: dashboardFilters.value.start_date || null,
+        end: dashboardFilters.value.end_date || null,
+      }
+    }
+    return null
+  },
+  set(val) {
+    if (!val) {
+      store.setDashboardFilters({ start_date: '', end_date: '' })
+    } else if (Array.isArray(val)) {
+      store.setDashboardFilters({
+        start_date: val[0] || '',
+        end_date: val[1] || '',
+      })
+    } else if (typeof val === 'object') {
+      store.setDashboardFilters({
+        start_date: val.start || val.from || '',
+        end_date: val.end || val.to || '',
+      })
+    }
+    store.applyDashboardFilters()
+  },
+})
 
 // ─── Dashboard data slices (from dashboard.value) ─────────────────
 const overview            = computed(() => dashboard.value?.overview ?? {})
@@ -76,44 +87,12 @@ onMounted(() => {
 
       <!-- Date Range Filter -->
       <div class="flex flex-wrap items-center gap-3">
-        <div class="flex items-center gap-2 flex-wrap">
-          <div class="flex items-center gap-1.5 bg-card-background border border-primary-border rounded-lg px-3 py-2">
-            <CalendarDays class="h-3.5 w-3.5 text-secondary-text shrink-0" />
-            <input
-              type="date"
-              v-model="startDate"
-              class="bg-transparent text-xs text-primary-text outline-none w-[120px] appearance-none"
-              placeholder="Start date"
-            />
-          </div>
-          <span class="text-xs text-secondary-text">to</span>
-          <div class="flex items-center gap-1.5 bg-card-background border border-primary-border rounded-lg px-3 py-2">
-            <CalendarDays class="h-3.5 w-3.5 text-secondary-text shrink-0" />
-            <input
-              type="date"
-              v-model="endDate"
-              :min="startDate"
-              class="bg-transparent text-xs text-primary-text outline-none w-[120px] appearance-none"
-              placeholder="End date"
-            />
-          </div>
-          <button
-            @click="applyDateFilter"
-            :disabled="!startDate || !endDate"
-            class="inline-flex items-center gap-1.5 text-xs font-medium px-4 py-2 rounded-lg transition-opacity"
-            :class="startDate && endDate ? 'bg-primary text-black hover:opacity-90' : 'bg-card-background text-secondary-text border border-primary-border cursor-not-allowed opacity-50'"
-          >
-            Apply
-          </button>
-          <button
-            v-if="hasDateFilter"
-            @click="clearDateFilter"
-            class="inline-flex items-center gap-1 text-xs font-medium text-secondary-text hover:text-primary-text px-3 py-2 rounded-lg border border-primary-border bg-card-background transition-colors"
-          >
-            <X class="h-3 w-3" />
-            Clear
-          </button>
-        </div>
+        <BaseDatePicker
+          v-model="dateRangeValue"
+          :range="true"
+          placeholder="Filter by date range..."
+          class="w-full sm:w-60 xl:w-64"
+        />
       </div>
 
       <!-- 1 · Overview -->
