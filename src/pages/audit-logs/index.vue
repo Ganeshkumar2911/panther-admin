@@ -1,6 +1,6 @@
 <template>
   <div class="px-4 pb-8">
-    <!-- Filters -->
+    <!-- Filters Bar (Single Row) -->
     <div
       class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3 mb-5"
     >
@@ -10,10 +10,10 @@
         <!-- Module Filter -->
         <BaseSelect
           v-model="filters.module"
-          :isLaoding="store.loading"
+          :isLoading="store.loading"
           :options="moduleOptions"
           placeholder="All Modules"
-          class="w-full sm:w-56 xl:w-56"
+          class="w-full sm:w-44 xl:w-44"
           @update:modelValue="applyFilters"
         />
 
@@ -23,7 +23,26 @@
           :isLoading="store.loading"
           :options="entityOptions"
           placeholder="All Entities"
-          class="w-full sm:w-56 xl:w-56"
+          class="w-full sm:w-44 xl:w-44"
+          @update:modelValue="applyFilters"
+        />
+
+        <!-- Action Filter -->
+        <BaseSelect
+          v-model="filters.action"
+          :isLoading="store.loading"
+          :options="actionOptions"
+          placeholder="All Actions"
+          class="w-full sm:w-48 xl:w-48"
+          @update:modelValue="applyFilters"
+        />
+
+        <!-- Status Filter -->
+        <BaseSelect
+          v-model="filters.status"
+          :options="statusOptions"
+          placeholder="All Statuses"
+          class="w-full sm:w-36 xl:w-36"
           @update:modelValue="applyFilters"
         />
 
@@ -34,7 +53,7 @@
           :isLoading="isSearchingUsers"
           placeholder="Search User..."
           searchable
-          class="w-full sm:w-72 xl:w-72"
+          class="w-full sm:w-56 xl:w-56"
           @search="onUserSearch"
           @update:modelValue="applyFilters"
         />
@@ -51,6 +70,7 @@
         <!-- Clear Button -->
         <button
           v-if="hasActiveFilters"
+          type="button"
           class="rounded-lg px-3 py-2 text-xs font-medium text-secondary-text hover:bg-background hover:text-primary-text transition-colors sm:flex-none cursor-pointer"
           @click="resetFilters"
         >
@@ -62,8 +82,8 @@
           type="button"
           :disabled="store.loading"
           class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text transition-colors hover:text-primary-text hover:bg-background disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer sm:ml-auto"
-          @click="() => store.fetchAuditLogs(true)"
           title="Refresh"
+          @click="() => store.fetchAuditLogs(true)"
         >
           <RefreshCw
             class="h-3.5 w-3.5"
@@ -77,48 +97,20 @@
     <div
       class="hidden md:block w-full border border-primary-border rounded-xl overflow-x-auto bg-card-background/40"
     >
-      <table class="w-full border-collapse">
+      <table class="w-full border-collapse text-left">
         <thead>
-          <tr class="border-b border-primary-border text-left">
-            <th
-              class="text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
-            >
-              User & IP
-            </th>
-            <th
-              class="text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
-            >
-              Module / Entity
-            </th>
-            <th
-              class="text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
-            >
-              Action & Status
-            </th>
-            <th
-              class="text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
-            >
-              Device / User Agent
-            </th>
-            <th
-              class="text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
-            >
-              Date
-            </th>
-            <th
-              class="text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
-            >
-              Metadata
-            </th>
-            <th
-              class="text-center text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3 w-20"
-            >
-              Details
-            </th>
+          <tr class="border-b border-primary-border text-[11px] font-medium text-secondary-text uppercase tracking-widest">
+            <th class="p-3">Log ID & Date</th>
+            <th class="p-3">Actor / User</th>
+            <th class="p-3">Module & Entity</th>
+            <th class="p-3">Action & Status</th>
+            <th class="p-3">Highlights & Context</th>
+            <th class="p-3">Device / IP</th>
+            <th class="p-3 text-center w-20">Details</th>
           </tr>
         </thead>
 
-        <!-- Skeleton -->
+        <!-- Skeleton Loading -->
         <tbody v-if="store.loading">
           <tr
             v-for="n in 6"
@@ -126,26 +118,27 @@
             class="border-b border-primary-border animate-pulse"
           >
             <td class="p-3">
-              <div class="h-3.5 w-36 bg-card-background rounded mb-1.5" />
-              <div class="h-2.5 w-24 bg-card-background rounded" />
+              <div class="h-3.5 w-20 bg-card-background rounded mb-1.5" />
+              <div class="h-2.5 w-28 bg-card-background rounded" />
             </td>
             <td class="p-3">
-              <div class="h-3.5 w-20 bg-card-background rounded mb-1.5" />
-              <div class="h-2.5 w-16 bg-card-background rounded" />
+              <div class="h-3.5 w-36 bg-card-background rounded mb-1.5" />
+              <div class="h-2.5 w-24 bg-card-background rounded" />
             </td>
             <td class="p-3">
               <div class="h-3.5 w-24 bg-card-background rounded mb-1.5" />
+              <div class="h-2.5 w-16 bg-card-background rounded" />
+            </td>
+            <td class="p-3">
+              <div class="h-3.5 w-28 bg-card-background rounded mb-1.5" />
               <div class="h-5 w-16 bg-card-background rounded-full" />
-            </td>
-            <td class="p-3">
-              <div class="h-3 w-40 bg-card-background rounded" />
-            </td>
-            <td class="p-3">
-              <div class="h-3 w-28 bg-card-background rounded" />
             </td>
             <td class="p-3">
               <div class="h-3.5 w-36 bg-card-background rounded mb-1.5" />
               <div class="h-2.5 w-24 bg-card-background rounded" />
+            </td>
+            <td class="p-3">
+              <div class="h-3 w-32 bg-card-background rounded" />
             </td>
             <td class="p-3 text-center">
               <div class="h-6 w-12 bg-card-background rounded mx-auto" />
@@ -153,13 +146,13 @@
           </tr>
         </tbody>
 
-        <!-- Empty -->
+        <!-- Empty State -->
         <tbody v-else-if="store.data.length === 0">
           <tr>
             <td colspan="7" class="py-16 text-center">
               <div class="flex flex-col items-center gap-3">
                 <div
-                  class="w-12 h-12 rounded-full bg-card-background flex items-center justify-center"
+                  class="w-12 h-12 rounded-full bg-card-background flex items-center justify-center border border-primary-border"
                 >
                   <BookOpen class="w-5 h-5 text-secondary-text" />
                 </div>
@@ -174,74 +167,101 @@
           </tr>
         </tbody>
 
-        <!-- Data -->
+        <!-- Data Rows -->
         <tbody v-else>
           <tr
             v-for="log in store.data"
             :key="log.id"
             class="border-b border-primary-border last:border-none hover:bg-card-background transition-colors"
           >
-            <td class="p-3">
-              <p class="text-xs font-semibold text-primary-text">
-                {{ log.user?.name || log.name || "Anonymous" }}
-              </p>
-              <p
-                v-if="log.user?.email || log.email"
-                class="text-[11px] text-secondary-text mt-0.5"
-              >
-                {{ log.user?.email || log.email }}
-              </p>
-              <p class="text-[10px] text-secondary-text font-mono mt-1">
-                IP: {{ log.ip_address || "—" }}
-              </p>
-            </td>
-
-            <!-- Module / Entity -->
-            <td class="p-3">
-              <div class="flex flex-col gap-0.5">
-                <span class="text-xs font-medium text-primary-text uppercase">{{
-                  log.module
-                }}</span>
-                <span class="text-[10px] text-secondary-text">
-                  {{ log.entity }}
-                  <span v-if="log.entity_id" class="font-mono"
-                    >#{{ log.entity_id }}</span
-                  >
+            <!-- ID & Date -->
+            <td class="p-3 align-top">
+              <div class="space-y-1">
+                <span class="inline-block font-mono text-[10px] font-semibold px-1.5 py-0.5 rounded bg-background border border-primary-border/60 text-primary-text">
+                  #{{ log.id }}
                 </span>
-              </div>
-            </td>
-
-            <!-- Action / Status -->
-            <td class="p-3">
-              <p class="text-xs font-medium text-primary-text mb-1">
-                {{ log.action }}
-              </p>
-              <span
-                class="text-[10px] font-semibold px-2 py-0.5 rounded-full border capitalize"
-                :class="getStatusClass(log.status)"
-              >
-                {{ log.status }}
-              </span>
-            </td>
-
-            <!-- Device / Agent -->
-            <td class="p-3 max-w-[200px]">
-              <div class="flex items-center gap-1.5 text-xs text-primary-text">
-                <Computer class="w-3.5 h-3.5 shrink-0 text-secondary-text" />
-                <p class="truncate" :title="log.user_agent">
-                  {{ parseUserAgent(log.user_agent) }}
+                <p class="text-xs text-secondary-text">
+                  {{ formatDate(log.created_at) }}
                 </p>
               </div>
             </td>
 
-            <!-- Date -->
-            <td class="p-3 text-xs text-secondary-text">
-              {{ formatDate(log.created_at) }}
+            <!-- Actor / User -->
+            <td class="p-3 align-top">
+              <div class="space-y-0.5">
+                <p class="text-xs font-semibold text-primary-text">
+                  {{ getActorName(log) }}
+                </p>
+                <p v-if="getActorEmail(log)" class="text-[11px] text-secondary-text">
+                  {{ getActorEmail(log) }}
+                </p>
+                <p class="text-[10px] text-secondary-text font-mono mt-1">
+                  IP: {{ log.ip_address || "—" }}
+                </p>
+              </div>
             </td>
 
-            <!-- Metadata -->
-            <td class="p-3 max-w-[240px]">
-              <div v-if="getMetadataSummary(log).length" class="space-y-1">
+            <!-- Module & Entity -->
+            <td class="p-3 align-top">
+              <div class="flex flex-col gap-0.5">
+                <span class="text-xs font-medium text-primary-text uppercase">{{ log.module }}</span>
+                <span class="text-[10px] text-secondary-text">
+                  {{ log.entity }}
+                  <span v-if="log.entity_id" class="font-mono">#{{ log.entity_id }}</span>
+                </span>
+              </div>
+            </td>
+
+            <!-- Action & Status -->
+            <td class="p-3 align-top">
+              <div class="space-y-1">
+                <p class="text-xs font-medium text-primary-text">
+                  {{ formatActionName(log.action) }}
+                </p>
+                <span
+                  class="inline-flex text-[10px] font-semibold px-2 py-0.5 rounded-full border capitalize"
+                  :class="getStatusClass(log.status)"
+                >
+                  {{ log.status }}
+                </span>
+              </div>
+            </td>
+
+            <!-- Highlights & Context -->
+            <td class="p-3 align-top max-w-[240px]">
+              <!-- Failure Reason Alert Banner -->
+              <div
+                v-if="log.status === 'FAILED' || getFailureReason(log)"
+                class="bg-red-500/10 border border-red-500/20 rounded p-1.5 text-[10px] text-red-500 space-y-0.5"
+              >
+                <p class="font-bold uppercase tracking-wider flex items-center gap-1 text-[9px]">
+                  <AlertTriangle class="w-3 h-3 shrink-0" />
+                  <span>Reason</span>
+                </p>
+                <p class="font-mono leading-tight line-clamp-2 text-red-400 break-words" :title="getFailureReason(log)">
+                  {{ getFailureReason(log) || 'Operation failed' }}
+                </p>
+              </div>
+
+              <!-- Transaction Flow Preview -->
+              <div v-else-if="log.meta_data?.source || log.meta_data?.destination" class="text-[11px] space-y-0.5">
+                <div class="flex items-center gap-1 text-xs text-primary-text truncate">
+                  <span class="truncate">{{ log.meta_data.source?.name || log.meta_data.source?.email || 'System' }}</span>
+                  <ArrowRight class="w-3 h-3 text-secondary-text shrink-0" />
+                  <span class="truncate">{{ log.meta_data.destination?.name || log.meta_data.destination?.email || 'N/A' }}</span>
+                </div>
+                <div v-if="log.meta_data?.miscellaneous?.amount" class="text-[10px] text-secondary-text">
+                  Amount: {{ log.meta_data.miscellaneous.amount }} {{ log.meta_data.miscellaneous.currency || 'USD' }}
+                </div>
+              </div>
+
+              <!-- Email Preview -->
+              <div v-else-if="log.module === 'EMAIL' && log.meta_data?.miscellaneous?.subject" class="text-[10px] text-secondary-text truncate">
+                Subject: "{{ log.meta_data.miscellaneous.subject }}"
+              </div>
+
+              <!-- Metadata Summary -->
+              <div v-else-if="getMetadataSummary(log).length" class="space-y-1">
                 <p
                   v-for="item in getMetadataSummary(log)"
                   :key="item.label"
@@ -252,12 +272,24 @@
                   {{ item.value }}
                 </p>
               </div>
+
               <span v-else class="text-xs text-secondary-text">—</span>
             </td>
 
+            <!-- Device / Agent -->
+            <td class="p-3 align-top max-w-[180px]">
+              <div class="flex items-center gap-1.5 text-xs text-primary-text">
+                <Computer class="w-3.5 h-3.5 shrink-0 text-secondary-text" />
+                <p class="truncate text-[11px]" :title="log.user_agent">
+                  {{ parseUserAgent(log.user_agent) }}
+                </p>
+              </div>
+            </td>
+
             <!-- Details Action -->
-            <td class="p-3 text-center">
+            <td class="p-3 align-top text-center">
               <button
+                type="button"
                 class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-primary rounded-lg bg-primary/10 hover:bg-primary/20 transition cursor-pointer"
                 @click="openDetails(log)"
               >
@@ -311,16 +343,16 @@
         <div class="flex items-start justify-between">
           <div class="space-y-0.5">
             <p class="font-bold text-primary-text text-xs">
-              {{ log.user?.name || log.name || "Anonymous" }}
+              {{ getActorName(log) }}
             </p>
             <p
-              v-if="log.user?.email || log.email"
+              v-if="getActorEmail(log)"
               class="text-[11px] text-secondary-text mt-0.5"
             >
-              {{ log.user?.email || log.email }}
+              {{ getActorEmail(log) }}
             </p>
             <p class="text-[10px] text-secondary-text font-mono mt-0.5">
-              IP: {{ log.ip_address }}
+              IP: {{ log.ip_address || "—" }}
             </p>
           </div>
           <span
@@ -334,13 +366,11 @@
         <div class="grid grid-cols-2 gap-2 bg-background/30 rounded-lg p-2.5">
           <div>
             <span class="text-[10px] text-secondary-text block">Action</span>
-            <span class="font-medium text-primary-text">{{ log.action }}</span>
+            <span class="font-medium text-primary-text">{{ formatActionName(log.action) }}</span>
           </div>
           <div>
             <span class="text-[10px] text-secondary-text block">Module</span>
-            <span class="font-medium text-primary-text uppercase">{{
-              log.module
-            }}</span>
+            <span class="font-medium text-primary-text uppercase">{{ log.module }}</span>
           </div>
           <div class="col-span-2">
             <span class="text-[10px] text-secondary-text block">Entity</span>
@@ -363,22 +393,10 @@
               formatDate(log.created_at)
             }}</span>
           </div>
-          <div v-if="getMetadataSummary(log).length" class="col-span-2">
-            <span class="text-[10px] text-secondary-text block">Metadata</span>
-            <div class="mt-1 space-y-0.5">
-              <p
-                v-for="item in getMetadataSummary(log)"
-                :key="item.label"
-                class="text-[10px] text-secondary-text break-words"
-              >
-                <span class="font-medium text-primary-text">{{ item.label }}:</span>
-                {{ item.value }}
-              </p>
-            </div>
-          </div>
         </div>
 
         <button
+          type="button"
           class="w-full text-center py-2 text-xs font-semibold text-primary rounded-lg bg-primary/10 hover:bg-primary/20 transition cursor-pointer"
           @click="openDetails(log)"
         >
@@ -407,7 +425,7 @@
 
 <script setup>
 import { onMounted, ref, computed } from "vue";
-import { RefreshCw, BookOpen, Eye, Computer } from "lucide-vue-next";
+import { RefreshCw, BookOpen, Eye, Computer, ArrowRight, AlertTriangle } from "lucide-vue-next";
 import { useAuditLogsStore } from "@/stores/auditLogs/auditLogs";
 import Pagination from "@/components/common/Pagination.vue";
 import BaseSelect from "@/components/common/BaseSelect.vue";
@@ -419,6 +437,8 @@ const store = useAuditLogsStore();
 const filters = ref({
   entity: null,
   module: null,
+  action: null,
+  status: null,
   user_id: null,
 });
 
@@ -443,6 +463,19 @@ const moduleOptions = computed(() => {
   }));
 });
 
+const actionOptions = computed(() => {
+  return (store.actionsFilters?.actions ?? []).map((action) => ({
+    label: formatActionName(action),
+    value: action,
+  }));
+});
+
+const statusOptions = [
+  { label: "Success", value: "SUCCESS" },
+  { label: "Failed", value: "FAILED" },
+  { label: "Pending", value: "PENDING" },
+];
+
 const perPageOptions = [
   { label: "10", value: 10 },
   { label: "20", value: 20 },
@@ -451,7 +484,13 @@ const perPageOptions = [
 ];
 
 const hasActiveFilters = computed(() => {
-  return filters.value.entity || filters.value.module || filters.value.user_id;
+  return (
+    filters.value.entity ||
+    filters.value.module ||
+    filters.value.action ||
+    filters.value.status ||
+    filters.value.user_id
+  );
 });
 
 // Lifecycle
@@ -489,6 +528,8 @@ const resetFilters = () => {
   filters.value = {
     entity: null,
     module: null,
+    action: null,
+    status: null,
     user_id: null,
   };
   userOptions.value = [];
@@ -515,7 +556,31 @@ const closeDetails = () => {
   selectedLog.value = null;
 };
 
-// Styling Helpers
+// Styling & Text Helpers
+const formatActionName = (action) => {
+  if (!action) return "Audit Action";
+  return String(action)
+    .replace(/_/g, " ")
+    .toLowerCase()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+};
+
+const getActorName = (log) => {
+  return log.user?.name || log.name || "Anonymous";
+};
+
+const getActorEmail = (log) => {
+  return log.user?.email || log.email || null;
+};
+
+const getFailureReason = (log) => {
+  const meta = log?.meta_data;
+  if (meta?.miscellaneous?.reason) return String(meta.miscellaneous.reason);
+  if (meta?.reason) return String(meta.reason);
+  if (meta?.error) return String(meta.error);
+  return null;
+};
+
 const getStatusClass = (status) => {
   const s = (status || "").toLowerCase();
   if (s === "success" || s === "completed") {

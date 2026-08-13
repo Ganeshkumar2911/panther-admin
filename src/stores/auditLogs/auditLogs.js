@@ -21,6 +21,8 @@ export const useAuditLogsStore = defineStore("auditLogs", () => {
   const filters = reactive({
     entity: null,
     module: null,
+    action: null,
+    status: null,
     user_id: null,
   });
 
@@ -30,8 +32,8 @@ export const useAuditLogsStore = defineStore("auditLogs", () => {
   const cleanFilters = (payload = {}) =>
     Object.fromEntries(
       Object.entries(payload).filter(
-        ([, value]) => value !== "" && value !== null && value !== undefined,
-      ),
+        ([, value]) => value !== "" && value !== null && value !== undefined
+      )
     );
 
   // ─── Fetch Audit Logs ────────────────────────────────
@@ -65,6 +67,8 @@ export const useAuditLogsStore = defineStore("auditLogs", () => {
       per_page: pagination.value.per_page,
       entity: filters.entity,
       module: filters.module,
+      action: filters.action,
+      status: filters.status,
       user_id: filters.user_id,
     });
 
@@ -91,6 +95,8 @@ export const useAuditLogsStore = defineStore("auditLogs", () => {
     Object.assign(filters, {
       entity: null,
       module: null,
+      action: null,
+      status: null,
       user_id: null,
     });
     applyFilters();
@@ -150,6 +156,8 @@ export const useAuditLogsStore = defineStore("auditLogs", () => {
     Object.assign(filters, {
       entity: null,
       module: null,
+      action: null,
+      status: null,
       user_id: null,
     });
   };
@@ -170,3 +178,4 @@ export const useAuditLogsStore = defineStore("auditLogs", () => {
     reset,
   };
 });
+
