@@ -11,6 +11,10 @@ const props = defineProps({
     default: "center",
     validator: (value) => ["start", "center", "end", "right", "left", "bottom"].includes(value),
   },
+  placement: {
+    type: String,
+    default: "",
+  },
   disabled: {
     type: Boolean,
     default: false,
@@ -69,6 +73,11 @@ const getTooltipStyle = () => {
   const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
 
   let pos = props.position;
+  if (props.placement) {
+    if (props.placement === "top") pos = "center";
+    else pos = props.placement;
+  }
+
   // If target position is 'right' but wrapper is too close to right viewport boundary (< 240px space), flip to 'left'
   if (pos === "right" && viewportWidth - rect.right < 240) {
     pos = "left";
