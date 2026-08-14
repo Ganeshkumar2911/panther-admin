@@ -636,7 +636,8 @@ import {
   Mail,
   Calculator,
   Tag,
-  Users
+  Users,
+  BookOpen
 } from 'lucide-vue-next'
 import { useFmLeaderboardStore } from '@/stores/fmLeaderboard/fmLeaderboard'
 import Pagination from '@/components/common/Pagination.vue'
@@ -813,6 +814,11 @@ const getRowActions = (item) => {
       icon: Eye,
     },
     {
+      action: 'trade-book',
+      label: 'Trade Book',
+      icon: BookOpen,
+    },
+    {
       action: 'offers',
       label: 'Offers',
       icon: Tag,
@@ -848,6 +854,8 @@ const onMenuSelect = (menuItem, item) => {
   switch (menuItem.action) {
     case 'details':
       return openDetailsDrawer(item)
+    case 'trade-book':
+      return router.push({ name: 'fm-trade-book', params: { id: item.id } })
     case 'offers':
       return router.push({ name: 'fm-offers', params: { id: item.id } })
     case 'followers':

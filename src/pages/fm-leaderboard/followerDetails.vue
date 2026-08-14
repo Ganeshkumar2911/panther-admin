@@ -125,6 +125,14 @@
             </div> -->
 
             <button
+              class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-primary-border bg-background hover:bg-card-background text-primary-text hover:text-primary text-xs font-semibold transition-colors cursor-pointer shadow-2xs"
+              @click="router.push({ path: `/follower/trade-book/${route.params.id}`, query: { fm_id: route.query.fm_id, account_number: store.details?.account_number, trading_account_id: store.details?.trading_account_id } })"
+            >
+              <BookOpen class="w-3.5 h-3.5 text-primary" />
+              <span>Trade Book</span>
+            </button>
+
+            <button
               class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
               @click="editDialogOpen = true"
             >
@@ -419,7 +427,7 @@ import { useRoute, useRouter } from 'vue-router'
 import {
   UserCheck, UserX, RotateCw, ArrowLeft, Mail, Calendar,
   Wallet, TrendingUp, Clock, Shield, Tag, Layers, Server,
-  SlidersHorizontal, Copy, Check, Pencil
+  SlidersHorizontal, Copy, Check, Pencil, BookOpen
 } from 'lucide-vue-next'
 import { useFollowersDetailsStore } from '@/stores/fmOffers/followersDetails'
 import { useSnackbarStore } from '@/stores/snackbar/snackbar'

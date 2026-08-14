@@ -206,6 +206,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { X, Tag, Loader2 } from 'lucide-vue-next'
 import { useFmOffersStore } from '@/stores/fmOffers/fmOffers'
 import BaseSelect from '@/components/common/BaseSelect.vue'
@@ -213,9 +214,11 @@ import BaseSelect from '@/components/common/BaseSelect.vue'
 const props = defineProps({
   open: { type: Boolean, default: false },
   editOffer: { type: Object, default: null },
+  fmId: { type: [String, Number], default: null },
 })
 const emit = defineEmits(['close'])
 const store = useFmOffersStore()
+const route = useRoute()
 
 function getDefaultForm() {
   return {
@@ -261,10 +264,11 @@ watch(() => props.open, (val) => {
 })
 
 const submit = () => {
+  const currentFmId = props.fmId || route.params.id || route.query.fm_id
   if (isEditing.value) {
     store.updateOffer(props.editOffer.id, { ...form.value }, () => emit('close'))
   } else {
-    store.createOffer({ ...form.value }, () => emit('close'))
+    store.createOffer({ ...form.value }, currentFmId, () => emit('close'))
   }
 }
 </script>

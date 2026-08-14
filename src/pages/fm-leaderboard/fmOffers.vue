@@ -318,6 +318,7 @@
     <CreateOfferDialog
       :open="createDialogOpen"
       :edit-offer="editingOffer"
+      :fm-id="fmId"
       @close="closeCreateDialog"
     />
   </div>

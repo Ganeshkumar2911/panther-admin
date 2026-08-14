@@ -280,6 +280,15 @@
               <!-- Action -->
               <td class="py-4 px-4 text-right whitespace-nowrap">
                 <div class="flex items-center justify-end gap-1.5">
+                  <Tooltip text="Trade Book">
+                    <button
+                      class="flex items-center gap-1.5 px-1.5 py-1.5 rounded-lg text-[11px] font-semibold border bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-colors cursor-pointer"
+                      @click="goToTradeBook(row)"
+                    >
+                      <BookOpen class="w-3.5 h-3.5" />
+                    </button>
+                  </Tooltip>
+
                   <Tooltip text="Edit Follower Settings">
                     <button
                       class="p-1.5 rounded-lg border border-primary-border hover:bg-background text-secondary-text hover:text-primary-text transition-colors cursor-pointer inline-flex items-center gap-1 text-xs font-semibold"
@@ -382,7 +391,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { RotateCw, RotateCcw, Users, Search, X, Mail, ChevronsRight, Pencil } from 'lucide-vue-next'
+import { RotateCw, RotateCcw, Users, Search, X, Mail, ChevronsRight, Pencil, BookOpen } from 'lucide-vue-next'
 import apiRequest from '@/api/request'
 import urls from '@/api/urls'
 import Tooltip from '@/components/common/Tooltip.vue'
@@ -405,6 +414,18 @@ const selectedOffer = ref('ALL')
 
 const editDialogOpen = ref(false)
 const editingFollower = ref(null)
+
+const goToTradeBook = (row) => {
+  const followerId = row.id || row.account_id
+  router.push({
+    path: `/follower/trade-book/${followerId}`,
+    query: {
+      fm_id: fmId,
+      account_number: row.account_number,
+      trading_account_id: row.trading_account_id || row.account_id,
+    },
+  })
+}
 
 const openEditFollowerDialog = (row) => {
   editingFollower.value = row

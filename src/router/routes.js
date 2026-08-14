@@ -226,6 +226,28 @@ const routes = [
         },
       },
       {
+        path: "/fm/trade-book/:id",
+        name: "fm-trade-book",
+        component: () => import("@/pages/fmTradeBook/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Fund Manager Trade Book",
+          description: "Live positions, orders, and deal execution history for Fund Manager master account.",
+          showBackButton: true,
+        },
+      },
+      {
+        path: "/follower/trade-book/:id",
+        name: "follower-trade-book",
+        component: () => import("@/pages/fmTradeBook/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Follower Trade Book",
+          description: "Live positions, orders, and deal execution history for follower trading account.",
+          showBackButton: true,
+        },
+      },
+      {
         path: "/fm-request",
         name: "fm-request",
         component: () => import("@/pages/fm-request/index.vue"),

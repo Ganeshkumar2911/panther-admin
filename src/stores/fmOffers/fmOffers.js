@@ -47,16 +47,27 @@ export const useFmOffersStore = defineStore('fmOffers', () => {
     })
   }
 
-  const createOffer = (payload, onDone) => {
+  const createOffer = (payload, fmId, onDone) => {
+    let callback = onDone
+    let targetFmId = fmId
+    if (typeof fmId === 'function') {
+      callback = fmId
+      targetFmId = payload?.fm_id || null
+    }
+
     createLoading.value = true
-    apiRequest(urls.KEYS.POST, urls.fm.offers, {
+    const endpoint = targetFmId ? `${urls.fm.offers}/${targetFmId}` : urls.fm.offers
+
+    apiRequest(urls.KEYS.POST, endpoint, {
       data: payload,
       isTokenRequired: true,
       onSuccess: () => {
         createLoading.value = false
         snackbar.show('Offer created successfully.', 'success')
-        fetchOffers(null, true)
-        onDone?.()
+        if (targetFmId) {
+          fetchOffers(targetFmId, true)
+        }
+        callback?.()
       },
       onFailure: (err) => {
         createLoading.value = false
