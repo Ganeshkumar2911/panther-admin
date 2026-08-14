@@ -7,6 +7,7 @@ import EmailTemplates from "./EmailTemplates.vue";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 // import EmailLogs from "@/pages/e-mails/EmailLogs.vue";
 import NewEmailLogs from "@/pages/e-mails/NewEmailLogs.vue";
+import BrevoLogs from "@/pages/e-mails/BrevoLogs.vue";
 
 const { hasPermission } = usePermissionCheck();
 const route = useRoute();
@@ -30,6 +31,11 @@ const allTabs = [
   {
     label: "Email Logs",
     value: "logs",
+    // permission: ['email.log_view'],
+  },
+  {
+    label: "Brevo Logs",
+    value: "brevo-logs",
     // permission: ['email.log_view'],
   },
 ];
@@ -77,6 +83,8 @@ const activeComponent = computed(() => {
       return EmailTemplates;
     case "logs":
       return NewEmailLogs;
+    case "brevo-logs":
+      return BrevoLogs;
     default:
       return EmailSettings;
   }

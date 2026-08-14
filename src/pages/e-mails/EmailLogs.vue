@@ -91,35 +91,13 @@
     </div>
 
     <!-- Date Range Picker -->
-    <div class="flex flex-col sm:flex-row items-center gap-3">
-      <input
-        v-model="store.filters.startDate"
-        type="date"
-        placeholder="Start Date"
-        class="px-3 py-2 text-xs rounded-lg bg-background border border-primary-border text-primary-text outline-none focus:border-primary transition-colors placeholder:text-secondary-text"
-        @change="store.applyFilters()"
+    <div class="flex items-center gap-3">
+      <BaseDatePicker
+        v-model="dateRangeValue"
+        :range="true"
+        placeholder="Filter date range..."
+        class="w-full sm:w-60 lg:w-64"
       />
-      <span class="text-secondary-text text-xs hidden sm:block">to</span>
-      <input
-        v-model="store.filters.endDate"
-        type="date"
-        placeholder="End Date"
-        class="px-3 py-2 text-xs rounded-lg bg-background border border-primary-border text-primary-text outline-none focus:border-primary transition-colors placeholder:text-secondary-text"
-        @change="store.applyFilters()"
-      />
-      <button
-        v-if="store.filters.startDate || store.filters.endDate"
-        @click="
-          () => {
-            store.filters.startDate = null;
-            store.filters.endDate = null;
-            store.applyFilters();
-          }
-        "
-        class="cursor-pointer px-3 py-2 text-xs font-medium text-secondary-text hover:text-primary-text bg-card-background hover:bg-background rounded-lg border border-primary-border transition-colors whitespace-nowrap"
-      >
-        Clear Dates
-      </button>
     </div>
 
     <!-- Table -->
@@ -280,10 +258,11 @@
 </template>
 
 <script setup>
-import { onMounted, ref, watchEffect } from "vue";
+import { computed, onMounted, ref, watchEffect } from "vue";
 import { Search, Mail, RefreshCcw, Eye } from "lucide-vue-next";
 import { useEmailLogsStore } from "@/stores/emails/emailLogs";
 import BaseSelect from "@/components/common/BaseSelect.vue";
+import BaseDatePicker from "@/components/common/BaseDatePicker.vue";
 import Pagination from "@/components/common/Pagination.vue";
 import Tooltip from "@/components/common/Tooltip.vue";
 import SimplePagination from "@/components/common/SimplePagination.vue";
@@ -295,6 +274,31 @@ let tagsSearchTimer = null;
 const selectedLogId = ref(null);
 
 let searchTimeout;
+
+const dateRangeValue = computed({
+  get() {
+    if (store.filters.startDate || store.filters.endDate) {
+      return {
+        start: store.filters.startDate || null,
+        end: store.filters.endDate || null,
+      };
+    }
+    return null;
+  },
+  set(val) {
+    if (!val) {
+      store.filters.startDate = null;
+      store.filters.endDate = null;
+    } else if (Array.isArray(val)) {
+      store.filters.startDate = val[0] || null;
+      store.filters.endDate = val[1] || null;
+    } else if (typeof val === "object") {
+      store.filters.startDate = val.start || val.from || null;
+      store.filters.endDate = val.end || val.to || null;
+    }
+    store.applyFilters();
+  },
+});
 
 const sortOptions = [
   { label: "Newest First", value: "desc" },
