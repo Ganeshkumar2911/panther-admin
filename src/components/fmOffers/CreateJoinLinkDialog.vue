@@ -143,7 +143,7 @@ const props = defineProps({
   offerId: { type: [String, Number], required: true },
   editLink: { type: Object, default: null },
 })
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'created'])
 const store = useFmOffersStore()
 
 const form = ref({ title: '', description: '', one_time: false, max_uses: null, expires_at: null, is_active: true })
@@ -187,7 +187,10 @@ const submit = () => {
   if (isEditing.value) {
     store.updateJoinLink(props.offerId, props.editLink.id, payload, () => emit('close'))
   } else {
-    store.createJoinLink(props.offerId, payload, () => emit('close'))
+    store.createJoinLink(props.offerId, payload, () => {
+      emit('created')
+      emit('close')
+    })
   }
 }
 </script>

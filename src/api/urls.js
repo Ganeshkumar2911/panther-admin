@@ -90,6 +90,13 @@ const urls = {
     offerJoinLinks: "/fund_managers/offers/join-links",
     offerAgents: "/fund_managers/offers/agents",
   },
+  tradeBook: {
+    filters: "/trade-book/filters",
+    followerDetails: "/trade-book/followers/",
+    positions: "/trade-book/positions",
+    orders: "/trade-book/orders",
+    deals: "/trade-book/deals",
+  },
   fmOffers: {
     list: "/offers",
     create: "/offers",

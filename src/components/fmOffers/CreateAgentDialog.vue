@@ -52,7 +52,7 @@
         <button
           type="button"
           :disabled="loading || !isValid"
-          class="flex-1 px-4 py-2.5 rounded-lg text-xs font-semibold text-black bg-primary hover:bg-primary-hover transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+          class="flex-1 px-4 py-2.5 rounded-lg text-xs font-semibold text-white bg-primary hover:bg-primary-hover transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
           @click="submit"
         >
           <Loader2 v-if="loading" class="w-3.5 h-3.5 animate-spin" />
@@ -72,7 +72,7 @@ const props = defineProps({
   open: { type: Boolean, default: false },
   offerId: { type: [String, Number], required: true },
 })
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'created'])
 const store = useFmOffersStore()
 
 const form = ref({ trading_account_id: null, share_percentage: null })
@@ -93,6 +93,9 @@ const submit = () => {
   store.createAgent(props.offerId, {
     trading_account_id: Number(form.value.trading_account_id),
     share_percentage: Number(form.value.share_percentage),
-  }, () => emit('close'))
+  }, () => {
+    emit('created')
+    emit('close')
+  })
 }
 </script>

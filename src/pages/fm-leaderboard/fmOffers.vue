@@ -160,7 +160,6 @@
               <tr
                 class="border-b border-primary-border/60 hover:bg-background/50 transition-colors cursor-pointer"
                 :class="activeOfferId === offer.id ? 'bg-primary/5 border-primary/20' : ''"
-                @click="toggleOffer(offer)"
               >
                 <!-- Offer Name & Code -->
                 <td class="py-4 px-4">
@@ -254,169 +253,6 @@
                       <Link2 class="w-3.5 h-3.5" />
                       Manage
                     </button>
-                    <button
-                      class="p-1.5 rounded-lg border border-primary-border text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer"
-                      @click.stop="toggleOffer(offer)"
-                      title="Toggle Quick Preview"
-                    >
-                      <ChevronDown class="w-3.5 h-3.5 transition-transform duration-200" :class="activeOfferId === offer.id ? 'rotate-180' : ''" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-
-              <!-- Expanded Preview Row -->
-              <tr v-if="activeOfferId === offer.id" class="bg-background/30">
-                <td colspan="6" class="p-0">
-                  <div class="border-b border-primary-border divide-y divide-primary-border/60">
-                    <!-- FEE CONFIG -->
-                    <div class="px-6 py-4">
-                      <div class="flex items-start gap-2.5 mb-3">
-                        <div class="w-1 h-7 rounded-full bg-primary shrink-0 mt-0.5" />
-                        <p class="text-xs font-bold text-primary-text">Fee Configuration</p>
-                      </div>
-                      <div class="grid grid-cols-3 sm:grid-cols-6 gap-3">
-                        <div class="bg-card-background border border-primary-border/60 rounded-xl px-3 py-2.5">
-                          <p class="text-[10px] uppercase tracking-wide text-secondary-text font-semibold mb-0.5">Performance</p>
-                          <p class="text-sm font-bold text-primary-text">{{ offer.performance_fee ?? 0 }}%</p>
-                        </div>
-                        <div class="bg-card-background border border-primary-border/60 rounded-xl px-3 py-2.5">
-                          <p class="text-[10px] uppercase tracking-wide text-secondary-text font-semibold mb-0.5">Management</p>
-                          <p class="text-sm font-bold text-primary-text">{{ offer.management_fee ?? 0 }}%</p>
-                        </div>
-                        <div class="bg-card-background border border-primary-border/60 rounded-xl px-3 py-2.5">
-                          <p class="text-[10px] uppercase tracking-wide text-secondary-text font-semibold mb-0.5">Registration</p>
-                          <p class="text-sm font-bold text-primary-text">${{ fmt(offer.registration_fee) }}</p>
-                        </div>
-                        <div class="bg-card-background border border-primary-border/60 rounded-xl px-3 py-2.5">
-                          <p class="text-[10px] uppercase tracking-wide text-secondary-text font-semibold mb-0.5">Min Balance</p>
-                          <p class="text-sm font-bold text-primary-text">${{ fmt(offer.minimum_balance) }}</p>
-                        </div>
-                        <div class="bg-card-background border border-primary-border/60 rounded-xl px-3 py-2.5">
-                          <p class="text-[10px] uppercase tracking-wide text-secondary-text font-semibold mb-0.5">Subscribers</p>
-                          <p class="text-sm font-bold text-primary-text">{{ offer.subscribers_count ?? 0 }}</p>
-                        </div>
-                        <div class="bg-card-background border border-primary-border/60 rounded-xl px-3 py-2.5">
-                          <p class="text-[10px] uppercase tracking-wide text-secondary-text font-semibold mb-0.5">Join Links</p>
-                          <p class="text-sm font-bold text-primary-text">{{ offer.join_link_count ?? 0 }}</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- JOIN LINKS PREVIEW -->
-                    <div class="px-6 py-4">
-                      <div class="flex items-center justify-between mb-3">
-                        <div class="flex items-start gap-2.5">
-                          <div class="w-1 h-7 rounded-full bg-primary shrink-0 mt-0.5" />
-                          <p class="text-xs font-bold text-primary-text">Join Links</p>
-                        </div>
-                        <button
-                          class="text-xs font-semibold text-primary hover:underline cursor-pointer"
-                          @click="goToOfferDetails(offer)"
-                        >
-                          Full Offer Management →
-                        </button>
-                      </div>
-
-                      <div v-if="linksLoading" class="flex items-center gap-2 py-4 text-xs text-secondary-text">
-                        <Loader2 class="w-3.5 h-3.5 animate-spin opacity-60" /> Loading links...
-                      </div>
-                      <div v-else-if="joinLinks.length === 0" class="flex items-center gap-2 py-4 text-xs text-secondary-text">
-                        <Link2 class="w-4 h-4 opacity-40" /> No join links configured
-                      </div>
-                      <div v-else class="overflow-x-auto rounded-xl border border-primary-border">
-                        <table class="w-full border-collapse text-xs">
-                          <thead>
-                            <tr class="border-b border-primary-border bg-background/60 text-secondary-text uppercase tracking-wider text-[10px] font-bold">
-                              <th class="py-2.5 px-3 text-left whitespace-nowrap">Title</th>
-                              <th class="py-2.5 px-3 text-left whitespace-nowrap">Token</th>
-                              <th class="py-2.5 px-3 text-left whitespace-nowrap">Max Uses</th>
-                              <th class="py-2.5 px-3 text-left whitespace-nowrap">Expires</th>
-                              <th class="py-2.5 px-3 text-left whitespace-nowrap">Status</th>
-                            </tr>
-                          </thead>
-                          <tbody class="divide-y divide-primary-border/60">
-                            <tr v-for="link in joinLinks" :key="link.id" class="hover:bg-background/40 transition-colors">
-                              <td class="py-3 px-3 font-semibold text-primary-text whitespace-nowrap">{{ link.title || '—' }}</td>
-                              <td class="py-3 px-3"><span class="text-primary font-mono text-[11px] select-all">{{ link.token }}</span></td>
-                              <td class="py-3 px-3 text-secondary-text whitespace-nowrap">{{ link.max_uses ?? '∞' }}</td>
-                              <td class="py-3 px-3 text-secondary-text whitespace-nowrap">{{ link.expires_at ? formatDate(link.expires_at) : '—' }}</td>
-                              <td class="py-3 px-3">
-                                <span
-                                  class="text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase"
-                                  :class="link.is_active !== false
-                                    ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
-                                    : 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'"
-                                >{{ link.is_active !== false ? 'Active' : 'Inactive' }}</span>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-
-                    <!-- AGENTS PREVIEW -->
-                    <div class="px-6 py-4">
-                      <div class="flex items-center justify-between mb-3">
-                        <div class="flex items-start gap-2.5">
-                          <div class="w-1 h-7 rounded-full bg-primary shrink-0 mt-0.5" />
-                          <p class="text-xs font-bold text-primary-text">Additional Agents</p>
-                        </div>
-                        <button
-                          class="text-xs font-semibold text-primary hover:underline cursor-pointer"
-                          @click="goToOfferDetails(offer)"
-                        >
-                          Full Offer Management →
-                        </button>
-                      </div>
-
-                      <div v-if="agentsLoading" class="flex items-center gap-2 py-4 text-xs text-secondary-text">
-                        <Loader2 class="w-3.5 h-3.5 animate-spin opacity-60" /> Loading agents...
-                      </div>
-                      <div v-else-if="agents.length === 0" class="flex items-center gap-2 py-4 text-xs text-secondary-text">
-                        <Users class="w-4 h-4 opacity-40" /> No additional agents configured
-                      </div>
-                      <div v-else class="overflow-x-auto rounded-xl border border-primary-border">
-                        <table class="w-full border-collapse text-xs">
-                          <thead>
-                            <tr class="border-b border-primary-border bg-background/60 text-secondary-text uppercase tracking-wider text-[10px] font-bold">
-                              <th class="py-2.5 px-3 text-left whitespace-nowrap">Account</th>
-                              <th class="py-2.5 px-3 text-left whitespace-nowrap">Broker Label</th>
-                              <th class="py-2.5 px-3 text-left whitespace-nowrap">Share %</th>
-                              <th class="py-2.5 px-3 text-left whitespace-nowrap">Status</th>
-                              <th class="py-2.5 px-3 text-left whitespace-nowrap">Created</th>
-                            </tr>
-                          </thead>
-                          <tbody class="divide-y divide-primary-border/60">
-                            <tr v-for="agent in agents" :key="agent.id ?? `${agent.trading_account_id}-${agent.share_percentage}`" class="hover:bg-background/40 transition-colors">
-                              <td class="py-3 px-3">
-                                <div class="flex items-center gap-2">
-                                  <div class="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                                    <Users class="w-3 h-3 text-primary" />
-                                  </div>
-                                  <span class="font-semibold text-primary-text">{{ formatAgentAccount(agent) }}</span>
-                                </div>
-                              </td>
-                              <td class="py-3 px-3 text-secondary-text">{{ agent.broker_label || '—' }}</td>
-                              <td class="py-3 px-3">
-                                <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full border border-primary-border bg-background text-secondary-text">
-                                  {{ formatShare(agent.share_percentage) }}
-                                </span>
-                              </td>
-                              <td class="py-3 px-3">
-                                <span
-                                  class="text-[10px] font-bold px-2 py-0.5 rounded-full border capitalize uppercase"
-                                  :class="agent.is_active
-                                    ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
-                                    : 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'"
-                                >{{ agent.is_active ? 'Active' : 'Inactive' }}</span>
-                              </td>
-                              <td class="py-3 px-3 text-secondary-text whitespace-nowrap">{{ formatDate(agent.created_at) }}</td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
                   </div>
                 </td>
               </tr>
@@ -533,7 +369,10 @@ const closeCreateDialog = () => {
 
 const goToOfferDetails = (offer) => {
   localStorage.setItem('active_offer', JSON.stringify(offer))
-  router.push(`/fm-offers/${offer.id}`)
+  router.push({
+    path: `/fm-offers/${offer.id}`,
+    query: { fm_id: fmId || offer.fund_manager_id || offer.fm_id }
+  })
 }
 
 const loadFmInfo = () => {
@@ -610,19 +449,6 @@ const fetchOfferAgents = (offerId) => {
     },
   })
 }
-
-const toggleOffer = (offer) => {
-  if (activeOfferId.value === offer.id) {
-    activeOfferId.value = null
-    joinLinks.value = []
-    agents.value = []
-    return
-  }
-  activeOfferId.value = offer.id
-  fetchOfferJoinLinks(offer.id)
-  fetchOfferAgents(offer.id)
-}
-
 onMounted(() => {
   loadFmInfo()
   fetchOffers()

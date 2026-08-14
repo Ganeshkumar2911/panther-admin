@@ -27,13 +27,12 @@ export const useFmOffersStore = defineStore('fmOffers', () => {
 
   const snackbar = useSnackbarStore()
 
-  const fetchOffers = (fmId = null, force = false) => {
+  const fetchOffers = (fmId, force = false) => {
+    if (!fmId) return
     if (isFetched.value && !force) return
     loading.value = true
 
-    const endpoint = fmId ? `${urls.fm.offers}/${fmId}` : urls.fm.offers
-
-    apiRequest(urls.KEYS.GET, endpoint, {
+    apiRequest(urls.KEYS.GET, `${urls.fm.offers}/${fmId}`, {
       isTokenRequired: true,
       onSuccess: (res) => {
         offers.value   = res?.data || []
