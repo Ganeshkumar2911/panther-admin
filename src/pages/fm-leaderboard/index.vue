@@ -375,24 +375,11 @@
               <Eye class="w-3.5 h-3.5 text-primary" />
               <span>Full Details</span>
             </button>
-            
-            <div class="flex items-center gap-2">
-              <button
-                v-if="hasPermission('fund_manager.view_seletement')"
-                class="px-2.5 py-1.5 rounded-lg border border-primary/30 text-primary hover:bg-primary/10 text-xs font-semibold transition-colors cursor-pointer"
-                @click.stop="handleSettlement(item)"
-              >
-                Settlement
-              </button>
-              <button
-                v-if="hasPermission('fund_manager.update')"
-                class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all cursor-pointer shadow-2xs"
-                @click="handleEdit(item)"
-              >
-                <Edit class="w-3.5 h-3.5" />
-                <span>Edit</span>
-              </button>
-            </div>
+
+            <DropdownMenu
+              :items="getRowActions(item)"
+              @select="(menuItem) => onMenuSelect(menuItem, item)"
+            />
           </div>
         </div>
       </div>
@@ -487,7 +474,7 @@
                 <!-- Status & Settlement -->
                 <td class="py-3.5 px-3 whitespace-nowrap">
                   <div class="space-y-1">
-                    <div class="flex items-center gap-1.5">
+                    <div class="flex items-center gap-1.5 flex-wrap">
                       <span
                         class="text-[10px] font-bold tracking-wide uppercase px-2 py-0.5 rounded-full border inline-flex items-center gap-1"
                         :class="
@@ -498,6 +485,11 @@
                       >
                         <span class="w-1.5 h-1.5 rounded-full" :class="item.is_active ? 'bg-emerald-500' : 'bg-zinc-400'" />
                         {{ item.is_active ? 'Active' : 'Inactive' }}
+                      </span>
+                      <span
+                        class="text-[9px] uppercase tracking-widest font-bold px-1.5 py-0.5 rounded-md border text-secondary-text bg-background/80 border-primary-border"
+                      >
+                        {{ item.visibility_type || 'public' }}
                       </span>
                       <span
                         v-if="item.user?.kyc_status"
@@ -515,30 +507,10 @@
 
                 <!-- Actions -->
                 <td class="py-3.5 px-4 text-right whitespace-nowrap">
-                  <div class="flex items-center justify-end gap-1.5">
-                    <button
-                      class="p-1.5 rounded-lg border border-primary-border hover:bg-background text-primary-text transition cursor-pointer"
-                      title="View Full Details"
-                      @click="openDetailsDrawer(item)"
-                    >
-                      <Eye class="w-3.5 h-3.5 text-primary" />
-                    </button>
-                    <button
-                      v-if="hasPermission('fund_manager.view_seletement')"
-                      class="px-2.5 py-1 rounded-lg border border-primary/30 text-primary hover:bg-primary/10 text-xs font-semibold transition-colors cursor-pointer"
-                      @click.stop="handleSettlement(item)"
-                    >
-                      Settlement
-                    </button>
-                    <button
-                      v-if="hasPermission('fund_manager.update')"
-                      class="p-1.5 rounded-lg bg-primary hover:bg-primary-hover text-white transition-colors cursor-pointer"
-                      title="Edit"
-                      @click="handleEdit(item)"
-                    >
-                      <Edit class="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                  <DropdownMenu
+                    :items="getRowActions(item)"
+                    @select="(menuItem) => onMenuSelect(menuItem, item)"
+                  />
                 </td>
               </tr>
             </tbody>
@@ -562,16 +534,23 @@
                   <p class="text-[11px] font-semibold text-primary truncate select-all">{{ item.user?.email || 'No email' }}</p>
                 </div>
               </div>
-              <span
-                class="text-[10px] font-bold tracking-wide uppercase px-2 py-0.5 rounded-full border shrink-0"
-                :class="
-                  item.is_active
-                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                    : 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'
-                "
-              >
-                {{ item.is_active ? 'Active' : 'Inactive' }}
-              </span>
+              <div class="flex flex-col items-end gap-1 shrink-0">
+                <span
+                  class="text-[10px] font-bold tracking-wide uppercase px-2 py-0.5 rounded-full border"
+                  :class="
+                    item.is_active
+                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                      : 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'
+                  "
+                >
+                  {{ item.is_active ? 'Active' : 'Inactive' }}
+                </span>
+                <span
+                  class="text-[9px] uppercase tracking-widest font-bold px-1.5 py-0.5 rounded-md border text-secondary-text bg-background/80 border-primary-border"
+                >
+                  {{ item.visibility_type || 'public' }}
+                </span>
+              </div>
             </div>
 
             <div class="grid grid-cols-2 gap-2 text-xs bg-background/50 border border-primary-border/60 rounded-lg p-2.5">
@@ -595,27 +574,15 @@
 
             <div class="flex items-center justify-between pt-1">
               <button
-                class="px-2.5 py-1.5 rounded-lg border border-primary-border text-xs font-semibold text-primary-text flex items-center gap-1"
+                class="px-2.5 py-1.5 rounded-lg border border-primary-border text-xs font-semibold text-primary-text flex items-center gap-1 cursor-pointer"
                 @click="openDetailsDrawer(item)"
               >
                 <Eye class="w-3.5 h-3.5 text-primary" /> Details
               </button>
-              <div class="flex items-center gap-2">
-                <button
-                  v-if="hasPermission('fund_manager.view_seletement')"
-                  class="px-3 py-1.5 rounded-lg border border-primary/30 text-primary text-xs font-semibold cursor-pointer"
-                  @click.stop="handleSettlement(item)"
-                >
-                  Settlement
-                </button>
-                <button
-                  v-if="hasPermission('fund_manager.update')"
-                  class="px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-semibold flex items-center gap-1 cursor-pointer"
-                  @click="handleEdit(item)"
-                >
-                  <Edit class="w-3 h-3" /> Edit
-                </button>
-              </div>
+              <DropdownMenu
+                :items="getRowActions(item)"
+                @select="(menuItem) => onMenuSelect(menuItem, item)"
+              />
             </div>
           </div>
         </div>
@@ -666,7 +633,10 @@ import {
   User,
   Clock,
   Eye,
-  Mail
+  Mail,
+  Calculator,
+  Tag,
+  Users
 } from 'lucide-vue-next'
 import { useFmLeaderboardStore } from '@/stores/fmLeaderboard/fmLeaderboard'
 import Pagination from '@/components/common/Pagination.vue'
@@ -674,6 +644,7 @@ import AddEditFundManager from '@/components/fundManager/AddEditFundManager.vue'
 import FmDetailsDrawer from '@/components/fundManager/FmDetailsDrawer.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import Tooltip from '@/components/common/Tooltip.vue'
+import DropdownMenu from '@/components/common/DropdownMenu.vue'
 import { usePermissionCheck } from '@/composables/usePermissionCheck'
 import { perPageOptions } from '@/constants/pagination'
 
@@ -804,7 +775,17 @@ const handleEdit = (item) => {
   dialogOpen.value = true
 }
 
+const setActiveFm = (item) => {
+  if (!item) return
+  try {
+    localStorage.setItem('active_fm', JSON.stringify(item))
+  } catch (err) {
+    console.error('Failed to store active FM in localStorage:', err)
+  }
+}
+
 const openDetailsDrawer = (item) => {
+  setActiveFm(item)
   selectedDetailsItem.value = item
   detailsDrawerOpen.value = true
 }
@@ -820,7 +801,62 @@ const handlePerPageChange = (val) => {
 
 const handleSettlement = (item) => {
   if (!item || item.id == null) return
+  setActiveFm(item)
   router.push({ name: 'fm-settlement-preview', params: { id: item.id } })
+}
+
+const getRowActions = (item) => {
+  const actions = [
+    {
+      action: 'details',
+      label: 'Full Details',
+      icon: Eye,
+    },
+    {
+      action: 'offers',
+      label: 'Offers',
+      icon: Tag,
+    },
+    {
+      action: 'followers',
+      label: 'Followers / Clients',
+      icon: Users,
+    },
+  ]
+
+  if (hasPermission('fund_manager.view_seletement')) {
+    actions.push({
+      action: 'settlement',
+      label: 'Settlement',
+      icon: Calculator,
+    })
+  }
+
+  if (hasPermission('fund_manager.update')) {
+    actions.push({
+      action: 'edit',
+      label: 'Edit',
+      icon: Edit,
+    })
+  }
+
+  return actions
+}
+
+const onMenuSelect = (menuItem, item) => {
+  setActiveFm(item)
+  switch (menuItem.action) {
+    case 'details':
+      return openDetailsDrawer(item)
+    case 'offers':
+      return router.push({ name: 'fm-offers', params: { id: item.id } })
+    case 'followers':
+      return router.push({ name: 'fm-followers', params: { id: item.id } })
+    case 'settlement':
+      return handleSettlement(item)
+    case 'edit':
+      return handleEdit(item)
+  }
 }
 
 onMounted(() => {

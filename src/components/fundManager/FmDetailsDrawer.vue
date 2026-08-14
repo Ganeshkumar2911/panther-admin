@@ -57,11 +57,13 @@
           <div class="flex items-center gap-1.5 shrink-0">
             <button
               type="button"
-              class="p-2 rounded-lg hover:bg-background text-secondary-text hover:text-primary-text transition cursor-pointer"
-              title="Copy Email"
+              class="p-2 rounded-lg transition-colors cursor-pointer"
+              :class="copiedEmail ? 'text-emerald-500 bg-emerald-500/10 border border-emerald-500/20' : 'text-secondary-text hover:text-primary-text hover:bg-background'"
+              :title="copiedEmail ? 'Copied!' : 'Copy Email'"
               @click="copyText(item?.user?.email, 'Email')"
             >
-              <Copy class="w-4 h-4" />
+              <Check v-if="copiedEmail" class="w-4 h-4 text-emerald-500" />
+              <Copy v-else class="w-4 h-4" />
             </button>
             <button
               type="button"
@@ -425,6 +427,7 @@ import { ref } from 'vue'
 import {
   X,
   Copy,
+  Check,
   User,
   Mail,
   UserCheck,
@@ -446,11 +449,34 @@ const emit = defineEmits(['close'])
 const snackbar = useSnackbarStore()
 
 const activeTab = ref('overview')
+const copiedEmail = ref(false)
 
 const copyText = (val, label = 'Content') => {
   if (!val) return
-  navigator.clipboard.writeText(String(val))
-  snackbar.show(`${label} copied to clipboard`, 'success')
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(String(val))
+  } else {
+    const textArea = document.createElement('textarea')
+    textArea.value = String(val)
+    textArea.style.position = 'fixed'
+    textArea.style.left = '-999999px'
+    document.body.appendChild(textArea)
+    textArea.focus()
+    textArea.select()
+    try {
+      document.execCommand('copy')
+    } catch (e) {
+      console.error(e)
+    }
+    document.body.removeChild(textArea)
+  }
+
+  copiedEmail.value = true
+  // snackbar.show(`${label} copied to clipboard`, 'success')
+
+  setTimeout(() => {
+    copiedEmail.value = false
+  }, 2000)
 }
 
 const formatDate = (val) => {

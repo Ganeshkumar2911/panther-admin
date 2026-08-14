@@ -182,6 +182,50 @@ const routes = [
         },
       },
       {
+        path: "/fm/offers/:id",
+        name: "fm-offers",
+        component: () => import("@/pages/fm-leaderboard/fmOffers.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "FM Offers",
+          description: "View and manage offers for a Fund Manager.",
+          showBackButton: true,
+        },
+      },
+      {
+        path: "/fm-offers/:id",
+        name: "fm-offer-details",
+        component: () => import("@/pages/fm-leaderboard/offerDetails.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Offer Join Links & Agents",
+          description: "Manage campaign links, additional agents, and offer configuration.",
+          showBackButton: true,
+        },
+      },
+      {
+        path: "/fm/followers/:id",
+        name: "fm-followers",
+        component: () => import("@/pages/fm-leaderboard/fmFollowers.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "FM Followers & Clients",
+          description: "View followers and clients assigned to a Fund Manager.",
+          showBackButton: true,
+        },
+      },
+      {
+        path: "/follower-info/:id",
+        name: "follower-info",
+        component: () => import("@/pages/fm-leaderboard/followerDetails.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Follower Details",
+          description: "View subscription, account, and fee details for this follower.",
+          showBackButton: true,
+        },
+      },
+      {
         path: "/fm-request",
         name: "fm-request",
         component: () => import("@/pages/fm-request/index.vue"),
