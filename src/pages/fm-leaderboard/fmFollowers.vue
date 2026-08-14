@@ -423,6 +423,7 @@ const goToTradeBook = (row) => {
       fm_id: fmId,
       account_number: row.account_number,
       trading_account_id: row.trading_account_id || row.account_id,
+      currency: row.broker_currency || row.currency || fmInfo?.broker_currency || fmInfo?.coverage_account?.broker_currency,
     },
   })
 }

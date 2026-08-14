@@ -126,7 +126,7 @@
 
             <button
               class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-primary-border bg-background hover:bg-card-background text-primary-text hover:text-primary text-xs font-semibold transition-colors cursor-pointer shadow-2xs"
-              @click="router.push({ path: `/follower/trade-book/${route.params.id}`, query: { fm_id: route.query.fm_id, account_number: store.details?.account_number, trading_account_id: store.details?.trading_account_id } })"
+              @click="router.push({ path: `/follower/trade-book/${route.params.id}`, query: { fm_id: route.query.fm_id, account_number: store.details?.account_number, trading_account_id: store.details?.trading_account_id, currency: store.details?.broker_currency || store.details?.currency } })"
             >
               <BookOpen class="w-3.5 h-3.5 text-primary" />
               <span>Trade Book</span>

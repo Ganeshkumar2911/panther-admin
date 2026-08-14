@@ -3,9 +3,11 @@ import { ref, reactive } from "vue";
 import apiRequest from "@/api/request";
 import urls from "@/api/urls";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
+import { useTickerStore } from "@/stores/ws/ticker";
 
 export const useFmTradeBookStore = defineStore("fmTradeBook", () => {
   const snackbar = useSnackbarStore();
+  const tickerStore = useTickerStore();
 
   // Context & Mode
   const mode = ref("fm"); // 'fm' | 'follower'
@@ -128,6 +130,10 @@ export const useFmTradeBookStore = defineStore("fmTradeBook", () => {
           deal_entries: res.data.deal_entries || [],
           accounts: res.data.accounts || [],
         };
+
+        if (Array.isArray(res.data.symbols) && res.data.symbols.length > 0) {
+          tickerStore.updateTickerList(res.data.symbols);
+        }
       }
     } catch (err) {
       console.warn("Could not load trade book filter options:", err);
@@ -254,6 +260,17 @@ export const useFmTradeBookStore = defineStore("fmTradeBook", () => {
         orders.value = items;
       } else if (activeTab.value === "deals") {
         deals.value = items;
+      }
+
+      // Automatically subscribe all unique trade symbols to ticker store
+      if (items && items.length > 0) {
+        const uniqueSymbols = [
+          ...new Set(items.map((trade) => trade?.symbol)),
+        ].filter(Boolean);
+
+        if (uniqueSymbols.length > 0) {
+          tickerStore.updateTickerList(uniqueSymbols);
+        }
       }
 
       // Summary from API

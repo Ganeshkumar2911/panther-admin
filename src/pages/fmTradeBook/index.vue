@@ -308,8 +308,8 @@
             <DollarSign class="w-3.5 h-3.5 text-secondary-text" />
           </div>
           <p class="text-sm font-extrabold text-primary-text font-mono mt-1">
-            ${{ formatPrice(store.summary.total_commission || 0) }}
-            <span class="text-[10px] text-secondary-text font-normal">/ ${{ formatPrice(store.summary.total_storage || 0) }}</span>
+            {{ formatCurrency(store.summary.total_commission || 0) }}
+            <span class="text-[10px] text-secondary-text font-normal">/ {{ formatCurrency(store.summary.total_storage || 0) }}</span>
           </p>
         </div>
 
@@ -494,7 +494,7 @@
               <th class="py-3 px-3 text-right">Volume (Lots)</th>
               <th class="py-3 px-3 text-right">Entry Price</th>
               <th class="py-3 px-3 text-right">Exit Price</th>
-              <th class="py-3 px-3 text-right">PnL / Profit ($)</th>
+              <th class="py-3 px-3 text-right">PnL / Profit ({{ currencySymbol }})</th>
               <th class="py-3 px-3 text-right">Opened Time</th>
               <th class="py-3 px-4 text-right">Closed Time</th>
             </tr>
@@ -569,8 +569,8 @@
                   {{ formatPrice(item.price_close ?? item.exit_price ?? item.price_current) }}
                 </td>
                 <td class="py-3 px-3 text-right font-mono font-bold">
-                  <span :class="Number(item.profit ?? item.profit_raw ?? item.pnl ?? getTradePnl(item) ?? 0) >= 0 ? 'text-emerald-500' : 'text-rose-500'">
-                    {{ formatPnl(item.profit ?? item.profit_raw ?? item.pnl ?? getTradePnl(item)) }}
+                  <span :class="Number( item.profit ?? item.profit_raw ?? item.pnl ?? getTradePnl(item) ?? 0) >= 0 ? 'text-emerald-500' : 'text-rose-500'">
+                    {{ formatPnl(item.profit ?? item.profit_raw ?? item.pnl ?? getTradePnl(item)) }} {{}}
                   </span>
                 </td>
                 <td class="py-3 px-3 text-right font-medium text-secondary-text whitespace-nowrap">
@@ -717,8 +717,8 @@
               <th class="py-3 px-3 text-right">Volume</th>
               <th class="py-3 px-3 text-right">Deal Price</th>
               <th class="py-3 px-3 text-right">Position Price</th>
-              <th class="py-3 px-3 text-right">Profit ($)</th>
-              <th class="py-3 px-3 text-right">Commission / Fee</th>
+              <th class="py-3 px-3 text-right">Profit ({{ currencySymbol }})</th>
+              <th class="py-3 px-3 text-right">Commission / Fee ({{ currencySymbol }})</th>
               <th class="py-3 px-4 text-right">Time</th>
             </tr>
           </thead>
@@ -802,7 +802,7 @@
                   </span>
                 </td>
                 <td class="py-3 px-3 text-right font-mono text-secondary-text">
-                  ${{ formatPrice(deal.commission || deal.fee || 0) }}
+                  {{ formatCurrency(deal.commission || deal.fee || 0) }}
                 </td>
                 <td class="py-3 px-4 text-right font-medium text-secondary-text whitespace-nowrap">
                   {{ formatDate(deal.time) }}
@@ -1071,16 +1071,66 @@ const formatLot = (val) => {
   })
 }
 
+const activeCurrency = computed(() => {
+  if (route.query.currency) return String(route.query.currency).toUpperCase()
+  if (route.query.broker_currency) return String(route.query.broker_currency).toUpperCase()
+
+  if (store.accountInfo) {
+    const c =
+      store.accountInfo.broker_currency ||
+      store.accountInfo.currency ||
+      store.accountInfo.coverage_account?.broker_currency ||
+      store.accountInfo.trading_account?.broker_currency
+    if (c) return String(c).toUpperCase()
+  }
+
+  try {
+    const raw = localStorage.getItem('active_fm')
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      const c =
+        parsed.broker_currency ||
+        parsed.currency ||
+        parsed.coverage_account?.broker_currency ||
+        parsed.master_account?.broker_currency
+      if (c) return String(c).toUpperCase()
+    }
+  } catch (e) {
+    // ignore
+  }
+
+  return 'USD'
+})
+
+const isUsc = computed(() => activeCurrency.value === 'USC')
+const currencySymbol = computed(() => isUsc.value ? 'USC' : '$')
+
+const formatCurrency = (val) => {
+  if (val === null || val === undefined || val === '') return '-'
+  const num = Number(val)
+  if (isNaN(num)) return '-'
+  const formatted = num.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
+  return isUsc.value ? `USC ${formatted}` : `$${formatted}`
+}
+
 const formatPnl = (val) => {
   if (val === null || val === undefined || val === '') return '-'
   const num = Number(val)
   if (isNaN(num)) return '-'
-  if (Math.abs(num) < 0.000001) return '$0.00'
-  const prefix = num > 0 ? '+$' : '-$'
-  return `${prefix}${Math.abs(num).toLocaleString('en-US', {
+  const formattedNum = Math.abs(num).toLocaleString('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  })}`
+  })
+  if (Math.abs(num) < 0.000001) {
+    return isUsc.value ? `USC 0.00` : `$0.00`
+  }
+  const prefix = num > 0 ? '+' : '-'
+  return isUsc.value
+    ? `${prefix}USC ${formattedNum}`
+    : `${prefix}$${formattedNum}`
 }
 
 const formatDate = (val) => {
