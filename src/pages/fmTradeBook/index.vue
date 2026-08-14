@@ -1,52 +1,51 @@
 <template>
-  <div class="space-y-6 py-2">
-    <!-- Top Context & Identity Banner -->
-    <div class="bg-card-background border border-primary-border rounded-lg p-5 sm:p-6 shadow-2xs relative overflow-hidden">
-      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
-        <!-- Left: Identity Details -->
-        <div class="flex items-start sm:items-center gap-4 min-w-0">
-          <div class="w-12 h-12 rounded-lg bg-primary/10 border border-primary/20 text-primary flex items-center justify-center font-bold text-lg shrink-0 shadow-xs">
-            <BookOpen class="w-6 h-6" />
-          </div>
-          <div class="min-w-0">
+  <div class="space-y-6 pb-12">
+    <!-- TOP HEADER / BREADCRUMB CARD -->
+    <div class="bg-card-background border border-primary-border rounded-lg p-5 shadow-2xs">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <!-- Left Title & Meta -->
+        <div class="flex items-center gap-3">
+          <button
+            class="p-2 rounded-lg border border-primary-border bg-background text-secondary-text hover:text-primary-text hover:bg-card-background transition-colors cursor-pointer"
+            @click="goBack"
+            title="Go Back"
+          >
+            <ArrowLeft class="w-4 h-4" />
+          </button>
+
+          <div>
             <div class="flex items-center gap-2.5 flex-wrap">
-              <h1 class="text-lg sm:text-xl font-bold text-primary-text tracking-tight truncate">
+              <h1 class="text-lg font-bold text-primary-text flex items-center gap-2">
+                <BookOpen class="w-5 h-5 text-primary" />
                 {{ headerTitle }}
               </h1>
 
               <!-- Mode Badge -->
               <span
-                class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border shadow-2xs"
+                class="px-2 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wide border"
                 :class="isFollowerMode
-                  ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'
+                  ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20'
                   : 'bg-primary/10 text-primary border-primary/20'"
               >
-                {{ isFollowerMode ? 'Follower Trade Book' : 'FM Master Trade Book' }}
+                {{ isFollowerMode ? 'Follower Trade Book' : 'FM Trade Book' }}
               </span>
 
-              <!-- Status Badge -->
+              <!-- Live Account Status -->
               <span
-                v-if="activeStatus !== null"
-                class="text-[10px] font-bold uppercase tracking-wide px-2.5 py-0.5 rounded-full border inline-flex items-center gap-1.5 shadow-2xs"
+                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold border"
                 :class="activeStatus
                   ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
                   : 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'"
               >
-                <span class="w-1.5 h-1.5 rounded-full" :class="activeStatus ? 'bg-emerald-500 animate-pulse' : 'bg-zinc-400'" />
+                <span class="w-1.5 h-1.5 rounded-full" :class="activeStatus ? 'bg-emerald-500' : 'bg-zinc-500'" />
                 {{ activeStatus ? 'Active' : 'Inactive' }}
               </span>
             </div>
 
-            <!-- Meta Information Subtitle Row -->
-            <div class="flex items-center gap-3 text-xs text-secondary-text mt-2 flex-wrap font-medium">
-              <span v-if="accountNumber" class="inline-flex items-center gap-1 font-mono font-bold text-primary-text">
-                <Layers class="w-3.5 h-3.5 text-primary" />
-                Account #{{ accountNumber }}
-              </span>
-
-              <span v-if="userEmail" class="flex items-center gap-1 font-mono text-primary font-semibold select-all">
-                <Mail class="w-3.5 h-3.5 text-secondary-text" />
-                {{ userEmail }}
+            <div class="flex items-center gap-4 text-xs text-secondary-text mt-1.5 flex-wrap">
+              <span v-if="accountNumber" class="flex items-center gap-1 font-mono font-semibold text-primary-text">
+                <span class="text-secondary-text">Account:</span>
+                #{{ accountNumber }}
               </span>
 
               <span v-if="brokerGroup" class="flex items-center gap-1 font-mono text-secondary-text">
@@ -63,75 +62,268 @@
 
         <!-- Right Quick Actions -->
         <div class="flex items-center gap-2.5 shrink-0 flex-wrap">
-            <button
-              class="p-2 rounded-lg border border-primary-border bg-background text-secondary-text hover:text-primary-text hover:bg-card-background transition-colors cursor-pointer shadow-2xs"
-              :disabled="store.isLoading || store.isRefreshing"
-              @click="store.fetchTradesData(true)"
-            >
-              <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': store.isRefreshing || store.isLoading }" />
-            </button>
+          <button
+            class="p-2 rounded-lg border border-primary-border bg-background text-secondary-text hover:text-primary-text hover:bg-card-background transition-colors cursor-pointer shadow-2xs"
+            :disabled="store.isLoading || store.isRefreshing"
+            @click="store.fetchTradesData(true)"
+            title="Refresh Data"
+          >
+            <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': store.isRefreshing || store.isLoading }" />
+          </button>
         </div>
       </div>
 
-      <!-- KPI Summary Ribbon Cards -->
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mt-6 pt-5 border-t border-primary-border/60">
-        <!-- 1. Total Positions / Trades -->
+      <!-- KPI Summary Ribbon Cards (Specific to Mode & Active Tab) -->
+      <!-- FM MASTER TRADES MODE -->
+      <div v-if="!isFollowerMode" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mt-6 pt-5 border-t border-primary-border/60">
         <div class="bg-background/60 border border-primary-border/60 rounded-lg p-3.5 transition-all hover:bg-background">
           <div class="flex items-center justify-between text-secondary-text mb-1">
-            <span class="text-[10px] uppercase font-bold tracking-wider">Total Positions</span>
+            <span class="text-[10px] uppercase font-bold tracking-wider">Total Trades</span>
             <Activity class="w-3.5 h-3.5 text-primary" />
           </div>
           <p class="text-xl font-extrabold text-primary-text font-mono">
-            {{ store.summary.total_positions || store.summary.total_trades || 0 }}
+            {{ store.summary.total_trades ?? store.summary.total_positions ?? 0 }}
           </p>
         </div>
 
-        <!-- 2. Open Positions -->
         <div class="bg-background/60 border border-primary-border/60 rounded-lg p-3.5 transition-all hover:bg-background">
           <div class="flex items-center justify-between text-secondary-text mb-1">
-            <span class="text-[10px] uppercase font-bold tracking-wider">Open Positions</span>
+            <span class="text-[10px] uppercase font-bold tracking-wider">Open Trades</span>
             <Clock class="w-3.5 h-3.5 text-amber-500" />
           </div>
           <p class="text-xl font-extrabold text-amber-500 font-mono">
-            {{ store.summary.open_positions || 0 }}
+            {{ store.summary.open_trades ?? store.summary.open_positions ?? 0 }}
           </p>
         </div>
 
-        <!-- 3. Closed Positions -->
         <div class="bg-background/60 border border-primary-border/60 rounded-lg p-3.5 transition-all hover:bg-background">
           <div class="flex items-center justify-between text-secondary-text mb-1">
-            <span class="text-[10px] uppercase font-bold tracking-wider">Closed Positions</span>
+            <span class="text-[10px] uppercase font-bold tracking-wider">Closed Trades</span>
             <CheckCircle2 class="w-3.5 h-3.5 text-emerald-500" />
           </div>
           <p class="text-xl font-extrabold text-primary-text font-mono">
-            {{ store.summary.closed_positions || 0 }}
+            {{ store.summary.closed_trades ?? store.summary.closed_positions ?? 0 }}
           </p>
         </div>
 
-        <!-- 4. Total Traded Volume -->
         <div class="bg-background/60 border border-primary-border/60 rounded-lg p-3.5 transition-all hover:bg-background">
           <div class="flex items-center justify-between text-secondary-text mb-1">
             <span class="text-[10px] uppercase font-bold tracking-wider">Total Volume</span>
             <DollarSign class="w-3.5 h-3.5 text-indigo-400" />
           </div>
           <p class="text-xl font-extrabold text-primary-text font-mono">
-            {{ formatLot(store.summary.total_lot || store.summary.total_volume) }}
+            {{ formatLot(store.summary.total_lot ?? store.summary.total_volume) }}
             <span class="text-xs font-bold text-secondary-text">Lots</span>
           </p>
         </div>
 
-        <!-- 5. Net Realized / Total PnL -->
         <div class="bg-background/60 border border-primary-border/60 rounded-lg p-3.5 transition-all hover:bg-background col-span-2 sm:col-span-1">
           <div class="flex items-center justify-between text-secondary-text mb-1">
             <span class="text-[10px] uppercase font-bold tracking-wider">Net PnL</span>
-            <TrendingUp v-if="(store.summary.total_pnl || 0) >= 0" class="w-3.5 h-3.5 text-emerald-500" />
+            <TrendingUp v-if="Number(store.summary.total_pnl ?? store.summary.total_profit ?? 0) >= 0" class="w-3.5 h-3.5 text-emerald-500" />
             <TrendingDown v-else class="w-3.5 h-3.5 text-rose-500" />
           </div>
           <p
             class="text-xl font-extrabold font-mono"
-            :class="(store.summary.total_pnl || 0) >= 0 ? 'text-emerald-500' : 'text-rose-500'"
+            :class="Number(store.summary.total_pnl ?? store.summary.total_profit ?? 0) >= 0 ? 'text-emerald-500' : 'text-rose-500'"
           >
-            {{ formatPnl(store.summary.total_pnl) }}
+            {{ formatPnl(store.summary.total_pnl ?? store.summary.total_profit) }}
+          </p>
+        </div>
+      </div>
+
+      <!-- FOLLOWER MODE: POSITIONS TAB (6 KPI Cards) -->
+      <div v-else-if="store.activeTab === 'positions'" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mt-6 pt-5 border-t border-primary-border/60">
+        <div class="bg-background/60 border border-primary-border/60 rounded-lg p-3.5 transition-all hover:bg-background">
+          <div class="flex items-center justify-between text-secondary-text mb-1">
+            <span class="text-[10px] uppercase font-bold tracking-wider">Total Positions</span>
+            <Activity class="w-3.5 h-3.5 text-primary" />
+          </div>
+          <p class="text-xl font-extrabold text-primary-text font-mono">
+            {{ store.summary.total_positions ?? 0 }}
+          </p>
+        </div>
+
+        <div class="bg-background/60 border border-primary-border/60 rounded-lg p-3.5 transition-all hover:bg-background">
+          <div class="flex items-center justify-between text-secondary-text mb-1">
+            <span class="text-[10px] uppercase font-bold tracking-wider">Open Positions</span>
+            <Clock class="w-3.5 h-3.5 text-amber-500" />
+          </div>
+          <p class="text-xl font-extrabold text-amber-500 font-mono">
+            {{ store.summary.open_positions ?? 0 }}
+          </p>
+        </div>
+
+        <div class="bg-background/60 border border-primary-border/60 rounded-lg p-3.5 transition-all hover:bg-background">
+          <div class="flex items-center justify-between text-secondary-text mb-1">
+            <span class="text-[10px] uppercase font-bold tracking-wider">Closed Positions</span>
+            <CheckCircle2 class="w-3.5 h-3.5 text-emerald-500" />
+          </div>
+          <p class="text-xl font-extrabold text-primary-text font-mono">
+            {{ store.summary.closed_positions ?? 0 }}
+          </p>
+        </div>
+
+        <div class="bg-background/60 border border-primary-border/60 rounded-lg p-3.5 transition-all hover:bg-background">
+          <div class="flex items-center justify-between text-secondary-text mb-1">
+            <span class="text-[10px] uppercase font-bold tracking-wider">Win Rate</span>
+            <TrendingUp class="w-3.5 h-3.5 text-emerald-500" />
+          </div>
+          <div class="flex items-baseline gap-1.5">
+            <p class="text-xl font-extrabold text-emerald-500 font-mono">
+              {{ store.summary.win_rate != null ? Number(store.summary.win_rate).toFixed(1) + '%' : '-' }}
+            </p>
+            <span v-if="store.summary.winning_positions !== undefined" class="text-[10px] font-semibold text-secondary-text">
+              ({{ store.summary.winning_positions }}W/{{ store.summary.losing_positions ?? 0 }}L)
+            </span>
+          </div>
+        </div>
+
+        <div class="bg-background/60 border border-primary-border/60 rounded-lg p-3.5 transition-all hover:bg-background">
+          <div class="flex items-center justify-between text-secondary-text mb-1">
+            <span class="text-[10px] uppercase font-bold tracking-wider">Total Volume</span>
+            <DollarSign class="w-3.5 h-3.5 text-indigo-400" />
+          </div>
+          <p class="text-xl font-extrabold text-primary-text font-mono">
+            {{ formatLot(store.summary.total_volume) }}
+            <span class="text-xs font-bold text-secondary-text">Lots</span>
+          </p>
+        </div>
+
+        <div class="bg-background/60 border border-primary-border/60 rounded-lg p-3.5 transition-all hover:bg-background">
+          <div class="flex items-center justify-between text-secondary-text mb-1">
+            <span class="text-[10px] uppercase font-bold tracking-wider">Total Profit</span>
+            <TrendingUp v-if="Number(store.summary.total_profit ?? store.summary.total_pnl ?? 0) >= 0" class="w-3.5 h-3.5 text-emerald-500" />
+            <TrendingDown v-else class="w-3.5 h-3.5 text-rose-500" />
+          </div>
+          <p
+            class="text-xl font-extrabold font-mono"
+            :class="Number(store.summary.total_profit ?? store.summary.total_pnl ?? 0) >= 0 ? 'text-emerald-500' : 'text-rose-500'"
+          >
+            {{ formatPnl(store.summary.total_profit ?? store.summary.total_pnl) }}
+          </p>
+        </div>
+      </div>
+
+      <!-- FOLLOWER MODE: ORDERS TAB (5 KPI Cards) -->
+      <div v-else-if="store.activeTab === 'orders'" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mt-6 pt-5 border-t border-primary-border/60">
+        <div class="bg-background/60 border border-primary-border/60 rounded-lg p-3.5 transition-all hover:bg-background">
+          <div class="flex items-center justify-between text-secondary-text mb-1">
+            <span class="text-[10px] uppercase font-bold tracking-wider">Total Orders</span>
+            <Activity class="w-3.5 h-3.5 text-primary" />
+          </div>
+          <p class="text-xl font-extrabold text-primary-text font-mono">
+            {{ store.summary.total_orders ?? 0 }}
+          </p>
+        </div>
+
+        <div class="bg-background/60 border border-primary-border/60 rounded-lg p-3.5 transition-all hover:bg-background">
+          <div class="flex items-center justify-between text-secondary-text mb-1">
+            <span class="text-[10px] uppercase font-bold tracking-wider">Filled Orders</span>
+            <CheckCircle2 class="w-3.5 h-3.5 text-emerald-500" />
+          </div>
+          <p class="text-xl font-extrabold text-emerald-500 font-mono">
+            {{ store.summary.filled_orders ?? 0 }}
+          </p>
+        </div>
+
+        <div class="bg-background/60 border border-primary-border/60 rounded-lg p-3.5 transition-all hover:bg-background">
+          <div class="flex items-center justify-between text-secondary-text mb-1">
+            <span class="text-[10px] uppercase font-bold tracking-wider">Rejected Orders</span>
+            <X class="w-3.5 h-3.5 text-rose-500" />
+          </div>
+          <p class="text-xl font-extrabold text-rose-500 font-mono">
+            {{ store.summary.rejected_orders ?? 0 }}
+          </p>
+        </div>
+
+        <div class="bg-background/60 border border-primary-border/60 rounded-lg p-3.5 transition-all hover:bg-background">
+          <div class="flex items-center justify-between text-secondary-text mb-1">
+            <span class="text-[10px] uppercase font-bold tracking-wider">Total Volume</span>
+            <DollarSign class="w-3.5 h-3.5 text-indigo-400" />
+          </div>
+          <p class="text-xl font-extrabold text-primary-text font-mono">
+            {{ formatLot(store.summary.total_volume) }}
+            <span class="text-xs font-bold text-secondary-text">Lots</span>
+          </p>
+        </div>
+
+        <div class="bg-background/60 border border-primary-border/60 rounded-lg p-3.5 transition-all hover:bg-background col-span-2 sm:col-span-1">
+          <div class="flex items-center justify-between text-secondary-text mb-1">
+            <span class="text-[10px] uppercase font-bold tracking-wider">Fill Rate</span>
+            <TrendingUp class="w-3.5 h-3.5 text-primary" />
+          </div>
+          <p class="text-xl font-extrabold text-primary-text font-mono">
+            {{ store.summary.total_orders ? Math.round(((store.summary.filled_orders || 0) / store.summary.total_orders) * 100) + '%' : '-' }}
+          </p>
+        </div>
+      </div>
+
+      <!-- FOLLOWER MODE: DEALS TAB (6 KPI Cards) -->
+      <div v-else class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mt-6 pt-5 border-t border-primary-border/60">
+        <div class="bg-background/60 border border-primary-border/60 rounded-lg p-3.5 transition-all hover:bg-background">
+          <div class="flex items-center justify-between text-secondary-text mb-1">
+            <span class="text-[10px] uppercase font-bold tracking-wider">Total Deals</span>
+            <Activity class="w-3.5 h-3.5 text-primary" />
+          </div>
+          <p class="text-xl font-extrabold text-primary-text font-mono">
+            {{ store.summary.total_deals ?? 0 }}
+          </p>
+        </div>
+
+        <div class="bg-background/60 border border-primary-border/60 rounded-lg p-3.5 transition-all hover:bg-background">
+          <div class="flex items-center justify-between text-secondary-text mb-1">
+            <span class="text-[10px] uppercase font-bold tracking-wider">IN Deals</span>
+            <Clock class="w-3.5 h-3.5 text-amber-500" />
+          </div>
+          <p class="text-xl font-extrabold text-amber-500 font-mono">
+            {{ store.summary.in_deals ?? 0 }}
+          </p>
+        </div>
+
+        <div class="bg-background/60 border border-primary-border/60 rounded-lg p-3.5 transition-all hover:bg-background">
+          <div class="flex items-center justify-between text-secondary-text mb-1">
+            <span class="text-[10px] uppercase font-bold tracking-wider">OUT Deals</span>
+            <CheckCircle2 class="w-3.5 h-3.5 text-emerald-500" />
+          </div>
+          <p class="text-xl font-extrabold text-emerald-500 font-mono">
+            {{ store.summary.out_deals ?? 0 }}
+          </p>
+        </div>
+
+        <div class="bg-background/60 border border-primary-border/60 rounded-lg p-3.5 transition-all hover:bg-background">
+          <div class="flex items-center justify-between text-secondary-text mb-1">
+            <span class="text-[10px] uppercase font-bold tracking-wider">Total Volume</span>
+            <DollarSign class="w-3.5 h-3.5 text-indigo-400" />
+          </div>
+          <p class="text-xl font-extrabold text-primary-text font-mono">
+            {{ formatLot(store.summary.total_volume) }}
+            <span class="text-xs font-bold text-secondary-text">Lots</span>
+          </p>
+        </div>
+
+        <div class="bg-background/60 border border-primary-border/60 rounded-lg p-3.5 transition-all hover:bg-background">
+          <div class="flex items-center justify-between text-secondary-text mb-1">
+            <span class="text-[10px] uppercase font-bold tracking-wider">Commission / Storage</span>
+            <DollarSign class="w-3.5 h-3.5 text-secondary-text" />
+          </div>
+          <p class="text-sm font-extrabold text-primary-text font-mono mt-1">
+            ${{ formatPrice(store.summary.total_commission || 0) }}
+            <span class="text-[10px] text-secondary-text font-normal">/ ${{ formatPrice(store.summary.total_storage || 0) }}</span>
+          </p>
+        </div>
+
+        <div class="bg-background/60 border border-primary-border/60 rounded-lg p-3.5 transition-all hover:bg-background">
+          <div class="flex items-center justify-between text-secondary-text mb-1">
+            <span class="text-[10px] uppercase font-bold tracking-wider">Total Profit</span>
+            <TrendingUp v-if="Number(store.summary.total_profit || 0) >= 0" class="w-3.5 h-3.5 text-emerald-500" />
+            <TrendingDown v-else class="w-3.5 h-3.5 text-rose-500" />
+          </div>
+          <p
+            class="text-xl font-extrabold font-mono"
+            :class="Number(store.summary.total_profit || 0) >= 0 ? 'text-emerald-500' : 'text-rose-500'"
+          >
+            {{ formatPnl(store.summary.total_profit) }}
           </p>
         </div>
       </div>
@@ -141,7 +333,24 @@
     <div class="bg-card-background border border-primary-border rounded-lg p-4 space-y-4 shadow-2xs">
       <!-- Tabs Switcher -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-primary-border pb-3">
-        <div class="flex items-center gap-1.5">
+        <!-- For FM Master Trade Book: Show Single Master Trades Tab -->
+        <div v-if="!isFollowerMode" class="flex items-center gap-1.5">
+          <div
+            class="px-3.5 py-1.5 rounded-lg text-xs font-bold inline-flex items-center gap-2 bg-primary text-white shadow-xs"
+          >
+            <Layers class="w-3.5 h-3.5" />
+            <span>Master Trades</span>
+            <span
+              v-if="store.positions.length > 0 || store.pagination.total_items > 0"
+              class="px-1.5 py-0.2 rounded-md text-[10px] font-mono font-bold bg-white/20 text-white"
+            >
+              {{ store.summary.total_positions ?? store.summary.total_trades ?? store.pagination.total_items ?? store.positions.length }}
+            </span>
+          </div>
+        </div>
+
+        <!-- For Follower Trade Book: Show 3 Multi-Tabs -->
+        <div v-else class="flex items-center gap-1.5">
           <button
             class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-2"
             :class="store.activeTab === 'positions'
@@ -152,11 +361,11 @@
             <Layers class="w-3.5 h-3.5" />
             <span>Positions</span>
             <span
-              v-if="store.positions.length > 0"
+              v-if="positionsBadgeCount > 0"
               class="px-1.5 py-0.2 rounded-md text-[10px] font-mono font-bold"
               :class="store.activeTab === 'positions' ? 'bg-white/20 text-white' : 'bg-card-background text-secondary-text'"
             >
-              {{ store.positions.length }}
+              {{ positionsBadgeCount }}
             </span>
           </button>
 
@@ -170,11 +379,11 @@
             <Clock class="w-3.5 h-3.5" />
             <span>Orders</span>
             <span
-              v-if="store.orders.length > 0"
+              v-if="ordersBadgeCount > 0"
               class="px-1.5 py-0.2 rounded-md text-[10px] font-mono font-bold"
               :class="store.activeTab === 'orders' ? 'bg-white/20 text-white' : 'bg-card-background text-secondary-text'"
             >
-              {{ store.orders.length }}
+              {{ ordersBadgeCount }}
             </span>
           </button>
 
@@ -188,17 +397,17 @@
             <CheckCircle2 class="w-3.5 h-3.5" />
             <span>Deals History</span>
             <span
-              v-if="store.deals.length > 0"
+              v-if="dealsBadgeCount > 0"
               class="px-1.5 py-0.2 rounded-md text-[10px] font-mono font-bold"
               :class="store.activeTab === 'deals' ? 'bg-white/20 text-white' : 'bg-card-background text-secondary-text'"
             >
-              {{ store.deals.length }}
+              {{ dealsBadgeCount }}
             </span>
           </button>
         </div>
 
         <div class="text-[11px] text-secondary-text font-medium">
-          Viewing <strong class="text-primary-text font-mono capitalize">{{ store.activeTab }}</strong> records
+          Viewing <strong class="text-primary-text font-mono capitalize">{{ isFollowerMode ? store.activeTab : 'Master Trades' }}</strong> records
         </div>
       </div>
 
@@ -225,22 +434,22 @@
 
         <!-- Dropdowns & Datepicker Controls -->
         <div class="flex flex-wrap items-center gap-2.5">
-          <!-- Status Filter -->
-          <div class="w-32">
+          <!-- Status / State / Entry Filter (Dynamic per active Tab) -->
+          <div class="w-36">
             <BaseSelect
               :modelValue="store.filters.status"
               :options="statusOptions"
-              placeholder="Status"
+              :placeholder="statusPlaceholder"
               @update:modelValue="store.setStatusFilter"
             />
           </div>
 
-          <!-- Type Filter -->
-          <div class="w-28">
+          <!-- Type / Action Filter -->
+          <div class="w-32">
             <BaseSelect
               :modelValue="store.filters.type"
               :options="typeOptions"
-              placeholder="Side / Type"
+              placeholder="Side / Action"
               @update:modelValue="store.setTypeFilter"
             />
           </div>
@@ -273,7 +482,7 @@
     <!-- MAIN DATA TABLE -->
     <div class="bg-card-background border border-primary-border rounded-lg overflow-hidden shadow-2xs">
       <div class="overflow-x-auto">
-        <!-- 1. POSITIONS TABLE -->
+        <!-- 1. POSITIONS TABLE (Used for both FM Master Trades and Follower Positions) -->
         <table v-if="store.activeTab === 'positions'" class="w-full border-collapse text-left text-xs min-w-[960px]">
           <thead>
             <tr class="border-b border-primary-border bg-background/60 text-secondary-text font-bold uppercase tracking-wider text-[10px]">
@@ -284,15 +493,14 @@
               <th class="py-3 px-3">Status</th>
               <th class="py-3 px-3 text-right">Volume (Lots)</th>
               <th class="py-3 px-3 text-right">Entry Price</th>
-              <th class="py-3 px-3 text-right">Exit / Current</th>
-              <th class="py-3 px-3 text-right">PnL ($)</th>
+              <th class="py-3 px-3 text-right">Exit Price</th>
+              <th class="py-3 px-3 text-right">PnL / Profit ($)</th>
               <th class="py-3 px-3 text-right">Opened Time</th>
               <th class="py-3 px-4 text-right">Closed Time</th>
             </tr>
           </thead>
 
           <tbody class="divide-y divide-primary-border/60">
-            <!-- Loading Skeleton -->
             <template v-if="store.isLoading">
               <tr v-for="n in 5" :key="n" class="animate-pulse">
                 <td v-for="c in 11" :key="c" class="py-4 px-3">
@@ -301,7 +509,6 @@
               </tr>
             </template>
 
-            <!-- Empty State -->
             <template v-else-if="store.positions.length === 0">
               <tr>
                 <td colspan="11" class="py-16 px-4 text-center">
@@ -311,53 +518,36 @@
                     <p class="text-xs">
                       {{ hasActiveFilters ? 'No positions match your current search filters.' : 'There are currently no position records available.' }}
                     </p>
-                    <button
-                      v-if="hasActiveFilters"
-                      class="px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-primary-hover transition-colors cursor-pointer mt-2"
-                      @click="handleResetFilters"
-                    >
-                      Clear Filters
-                    </button>
                   </div>
                 </td>
               </tr>
             </template>
 
-            <!-- Data Rows -->
             <template v-else>
               <tr
                 v-for="item in store.positions"
-                :key="item.id || item.mt5_position_id || item.ticket"
+                :key="item.id || item.position_ticket"
                 class="hover:bg-background/40 transition-colors"
               >
-                <!-- Ticket ID -->
                 <td class="py-3 px-4 font-mono font-bold text-primary select-all">
-                  #{{ item.mt5_position_id || item.ticket || item.id }}
+                  #{{ item.position_ticket || item.id || '-' }}
                 </td>
-
-                <!-- Account -->
                 <td class="py-3 px-3 font-mono font-bold text-primary-text">
-                  {{ item.account_number || item.account_id || accountNumber || '—' }}
+                  {{ item.account_number || '-' }}
                 </td>
-
-                <!-- Symbol -->
                 <td class="py-3 px-3 font-bold text-primary-text">
-                  {{ item.symbol }}
+                  {{ item.symbol || '-' }}
                 </td>
-
-                <!-- Type -->
                 <td class="py-3 px-3">
                   <span
                     class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wide border"
-                    :class="String(item.type || item.order_type || '').toUpperCase() === 'BUY'
+                    :class="(item.action_name === 'BUY' || item.action === 0 || item.type === 'BUY')
                       ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
                       : 'bg-rose-500/10 text-rose-600 border-rose-500/20'"
                   >
-                    {{ item.type || item.order_type || 'BUY' }}
+                    {{ item.action_name || (item.action === 0 ? 'BUY' : item.action === 1 ? 'SELL' : item.type || '-') }}
                   </span>
                 </td>
-
-                <!-- Status -->
                 <td class="py-3 px-3">
                   <span
                     class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide border"
@@ -365,83 +555,66 @@
                       ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
                       : 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'"
                   >
-                    <span
-                      v-if="String(item.status || '').toUpperCase() === 'OPEN'"
-                      class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"
-                    />
-                    {{ item.status || 'OPEN' }}
+                    <span v-if="String(item.status || '').toUpperCase() === 'OPEN'" class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                    {{ item.status || (item.is_open ? 'OPEN' : 'CLOSED') }}
                   </span>
                 </td>
-
-                <!-- Volume -->
                 <td class="py-3 px-3 text-right font-mono font-bold text-primary-text">
-                  {{ formatLot(item.lot ?? item.volume ?? item.total_lot) }}
+                  {{ formatLot(item.volume ?? item.lot ?? item.volume_initial ?? item.volume_traded) }}
                 </td>
-
-                <!-- Entry Price -->
                 <td class="py-3 px-3 text-right font-mono text-secondary-text">
-                  {{ formatPrice(item.entry_price || item.price_open || item.open_price) }}
+                  {{ formatPrice(item.price_open ?? item.entry_price ?? item.price_position ?? item.price) }}
                 </td>
-
-                <!-- Exit Price -->
                 <td class="py-3 px-3 text-right font-mono text-secondary-text">
-                  {{ formatPrice(item.exit_price || item.price_current || item.close_price) }}
+                  {{ formatPrice(item.price_close ?? item.exit_price ?? item.price_current) }}
                 </td>
-
-                <!-- PnL -->
                 <td class="py-3 px-3 text-right font-mono font-bold">
-                  <span
-                    :class="Number(getTradePnl(item)) >= 0 ? 'text-emerald-500' : 'text-rose-500'"
-                  >
-                    {{ formatPnl(getTradePnl(item)) }}
+                  <span :class="Number(item.profit ?? item.profit_raw ?? item.pnl ?? getTradePnl(item) ?? 0) >= 0 ? 'text-emerald-500' : 'text-rose-500'">
+                    {{ formatPnl(item.profit ?? item.profit_raw ?? item.pnl ?? getTradePnl(item)) }}
                   </span>
                 </td>
-
-                <!-- Opened Time -->
                 <td class="py-3 px-3 text-right font-medium text-secondary-text whitespace-nowrap">
-                  {{ formatDate(item.created_at || item.open_time || item.time_open) }}
+                  {{ formatDate(item.time_create || item.created_at || item.time_open) }}
                 </td>
-
-                <!-- Closed Time -->
                 <td class="py-3 px-4 text-right font-medium text-secondary-text whitespace-nowrap">
-                  {{ item.closed_at || item.close_time ? formatDate(item.closed_at || item.close_time) : '—' }}
+                  {{ (item.time_close || item.closed_at || item.time_closed) ? formatDate(item.time_close || item.closed_at || item.time_closed) : '-' }}
                 </td>
               </tr>
             </template>
           </tbody>
         </table>
 
-        <!-- 2. ORDERS TABLE -->
+        <!-- 2. ORDERS TABLE (Follower Mode) -->
         <table v-else-if="store.activeTab === 'orders'" class="w-full border-collapse text-left text-xs min-w-[960px]">
           <thead>
             <tr class="border-b border-primary-border bg-background/60 text-secondary-text font-bold uppercase tracking-wider text-[10px]">
-              <th class="py-3 px-4">Order ID</th>
+              <th class="py-3 px-4">Order Ticket</th>
+              <th class="py-3 px-3">Position Ticket</th>
               <th class="py-3 px-3">Account</th>
               <th class="py-3 px-3">Symbol</th>
-              <th class="py-3 px-3">Order Type</th>
+              <th class="py-3 px-3">Side</th>
               <th class="py-3 px-3">State</th>
-              <th class="py-3 px-3 text-right">Initial Volume</th>
-              <th class="py-3 px-3 text-right">Current Volume</th>
-              <th class="py-3 px-3 text-right">Price Open</th>
-              <th class="py-3 px-3 text-right">SL / TP</th>
-              <th class="py-3 px-4 text-right">Setup Time</th>
+              <th class="py-3 px-3 text-right">Initial Vol</th>
+              <th class="py-3 px-3 text-right">Current Vol</th>
+              <th class="py-3 px-3 text-right">Order Price</th>
+              <th class="py-3 px-3 text-right">Current Price</th>
+              <th class="py-3 px-3 text-right">Setup Time</th>
+              <th class="py-3 px-4 text-right">Done Time</th>
             </tr>
           </thead>
 
           <tbody class="divide-y divide-primary-border/60">
-            <!-- Loading Skeleton -->
             <template v-if="store.isLoading">
               <tr v-for="n in 5" :key="n" class="animate-pulse">
-                <td v-for="c in 10" :key="c" class="py-4 px-3">
+                <td v-for="c in 12" :key="c" class="py-4 px-3">
                   <div class="h-4 bg-background rounded w-3/4" />
                 </td>
               </tr>
             </template>
 
-            <!-- Empty State -->
             <template v-else-if="store.orders.length === 0">
               <tr>
-                <td colspan="10" class="py-16 px-4 text-center">
+                <td colspan="12" class="py-16 px-4 text-center">
                   <div class="flex flex-col items-center justify-center max-w-sm mx-auto space-y-2 text-secondary-text">
                     <Clock class="w-8 h-8 opacity-40 mb-1" />
                     <p class="text-sm font-bold text-primary-text">No orders found</p>
@@ -453,103 +626,115 @@
               </tr>
             </template>
 
-            <!-- Data Rows -->
             <template v-else>
               <tr
                 v-for="order in store.orders"
-                :key="order.id || order.order_id"
+                :key="order.id || order.order_ticket"
                 class="hover:bg-background/40 transition-colors"
               >
-                <!-- Order ID -->
                 <td class="py-3 px-4 font-mono font-bold text-primary select-all">
-                  #{{ order.order_id || order.id }}
+                  #{{ order.order_ticket || order.id || '-' }}
                 </td>
-
-                <!-- Account -->
+                <td class="py-3 px-3 font-mono text-secondary-text">
+                  #{{ order.position_ticket || '-' }}
+                </td>
                 <td class="py-3 px-3 font-mono font-bold text-primary-text">
-                  {{ order.account_number || order.account_id || accountNumber || '—' }}
+                  {{ order.account_number || '-' }}
                 </td>
-
-                <!-- Symbol -->
                 <td class="py-3 px-3 font-bold text-primary-text">
-                  {{ order.symbol }}
+                  {{ order.symbol || '-' }}
                 </td>
-
-                <!-- Order Type -->
                 <td class="py-3 px-3">
-                  <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wide border bg-primary/10 text-primary border-primary/20">
-                    {{ order.type || order.order_type || 'ORDER' }}
+                  <span
+                    class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wide border"
+                    :class="(order.type_name === 'BUY' || order.type === 0 || order.action_name === 'BUY')
+                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                      : 'bg-rose-500/10 text-rose-600 border-rose-500/20'"
+                  >
+                    {{ order.type_name || (order.type === 0 ? 'BUY' : order.type === 1 ? 'SELL' : order.action_name || '-') }}
                   </span>
                 </td>
-
-                <!-- State -->
                 <td class="py-3 px-3">
-                  <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide border bg-background text-secondary-text border-primary-border">
-                    {{ order.state || order.status || 'PENDING' }}
+                  <Tooltip
+                    v-if="String(order.state_name || '').toUpperCase() === 'REJECTED' || order.state === 5 || order.reject_reason || order.comment"
+                    :text="order.reject_reason || order.comment || 'REJECTED'"
+                    position="center"
+                  >
+                    <span
+                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide border bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20 cursor-help"
+                    >
+                      <span>{{ order.state_name || 'REJECTED' }}</span>
+                      <Info class="w-3 h-3 text-rose-400 shrink-0" />
+                    </span>
+                  </Tooltip>
+                  <span
+                    v-else-if="String(order.state_name || '').toUpperCase() === 'FILLED' || order.state === 4"
+                    class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide border bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                  >
+                    {{ order.state_name || 'FILLED' }}
+                  </span>
+                  <span
+                    v-else
+                    class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide border bg-background text-secondary-text border-primary-border"
+                  >
+                    {{ order.state_name || order.state || '-' }}
                   </span>
                 </td>
-
-                <!-- Initial Volume -->
                 <td class="py-3 px-3 text-right font-mono font-bold text-primary-text">
-                  {{ formatLot(order.volume_initial || order.lot || order.volume) }}
+                  {{ formatLot(order.volume_initial ?? order.volume) }}
                 </td>
-
-                <!-- Current Volume -->
                 <td class="py-3 px-3 text-right font-mono text-secondary-text">
-                  {{ formatLot(order.volume_current || order.volume_remaining || order.lot || 0) }}
+                  {{ formatLot(order.volume_current ?? order.volume_closed) }}
                 </td>
-
-                <!-- Price Open -->
                 <td class="py-3 px-3 text-right font-mono text-secondary-text">
-                  {{ formatPrice(order.price_open || order.price) }}
+                  {{ formatPrice(order.price_order ?? order.price) }}
                 </td>
-
-                <!-- SL / TP -->
-                <td class="py-3 px-3 text-right font-mono text-secondary-text text-[11px]">
-                  {{ formatPrice(order.sl) }} / {{ formatPrice(order.tp) }}
+                <td class="py-3 px-3 text-right font-mono text-secondary-text">
+                  {{ formatPrice(order.price_current ?? order.price_position) }}
                 </td>
-
-                <!-- Setup Time -->
-                <td class="py-3 px-4 text-right font-medium text-secondary-text whitespace-nowrap">
+                <td class="py-3 px-3 text-right font-medium text-secondary-text whitespace-nowrap">
                   {{ formatDate(order.time_setup || order.created_at) }}
+                </td>
+                <td class="py-3 px-4 text-right font-medium text-secondary-text whitespace-nowrap">
+                  {{ (order.time_done || order.closed_at) ? formatDate(order.time_done || order.closed_at) : '-' }}
                 </td>
               </tr>
             </template>
           </tbody>
         </table>
 
-        <!-- 3. DEALS HISTORY TABLE -->
+        <!-- 3. DEALS HISTORY TABLE (Follower Mode) -->
         <table v-else-if="store.activeTab === 'deals'" class="w-full border-collapse text-left text-xs min-w-[960px]">
           <thead>
             <tr class="border-b border-primary-border bg-background/60 text-secondary-text font-bold uppercase tracking-wider text-[10px]">
-              <th class="py-3 px-4">Deal ID</th>
-              <th class="py-3 px-3">Position ID</th>
+              <th class="py-3 px-4">Deal Ticket</th>
+              <th class="py-3 px-3">Position Ticket</th>
+              <th class="py-3 px-3">Order Ticket</th>
               <th class="py-3 px-3">Account</th>
               <th class="py-3 px-3">Symbol</th>
-              <th class="py-3 px-3">Side</th>
+              <th class="py-3 px-3">Action</th>
               <th class="py-3 px-3">Entry</th>
               <th class="py-3 px-3 text-right">Volume</th>
-              <th class="py-3 px-3 text-right">Executed Price</th>
-              <th class="py-3 px-3 text-right">Profit / PnL</th>
+              <th class="py-3 px-3 text-right">Deal Price</th>
+              <th class="py-3 px-3 text-right">Position Price</th>
+              <th class="py-3 px-3 text-right">Profit ($)</th>
               <th class="py-3 px-3 text-right">Commission / Fee</th>
-              <th class="py-3 px-4 text-right">Execution Time</th>
+              <th class="py-3 px-4 text-right">Time</th>
             </tr>
           </thead>
 
           <tbody class="divide-y divide-primary-border/60">
-            <!-- Loading Skeleton -->
             <template v-if="store.isLoading">
               <tr v-for="n in 5" :key="n" class="animate-pulse">
-                <td v-for="c in 11" :key="c" class="py-4 px-3">
+                <td v-for="c in 13" :key="c" class="py-4 px-3">
                   <div class="h-4 bg-background rounded w-3/4" />
                 </td>
               </tr>
             </template>
 
-            <!-- Empty State -->
             <template v-else-if="store.deals.length === 0">
               <tr>
-                <td colspan="11" class="py-16 px-4 text-center">
+                <td colspan="13" class="py-16 px-4 text-center">
                   <div class="flex flex-col items-center justify-center max-w-sm mx-auto space-y-2 text-secondary-text">
                     <CheckCircle2 class="w-8 h-8 opacity-40 mb-1" />
                     <p class="text-sm font-bold text-primary-text">No deal history found</p>
@@ -561,77 +746,66 @@
               </tr>
             </template>
 
-            <!-- Data Rows -->
             <template v-else>
               <tr
                 v-for="deal in store.deals"
-                :key="deal.id || deal.deal_id"
+                :key="deal.id || deal.deal_ticket"
                 class="hover:bg-background/40 transition-colors"
               >
-                <!-- Deal ID -->
                 <td class="py-3 px-4 font-mono font-bold text-primary select-all">
-                  #{{ deal.deal_id || deal.id }}
+                  #{{ deal.deal_ticket || deal.id || '-' }}
                 </td>
-
-                <!-- Position ID -->
                 <td class="py-3 px-3 font-mono text-secondary-text">
-                  #{{ deal.position_id || deal.mt5_position_id || '—' }}
+                  #{{ deal.position_ticket || '-' }}
                 </td>
-
-                <!-- Account -->
+                <td class="py-3 px-3 font-mono text-secondary-text">
+                  #{{ deal.order_ticket || '-' }}
+                </td>
                 <td class="py-3 px-3 font-mono font-bold text-primary-text">
-                  {{ deal.account_number || deal.account_id || accountNumber || '—' }}
+                  {{ deal.account_number || '-' }}
                 </td>
-
-                <!-- Symbol -->
                 <td class="py-3 px-3 font-bold text-primary-text">
-                  {{ deal.symbol }}
+                  {{ deal.symbol || '-' }}
                 </td>
-
-                <!-- Side -->
                 <td class="py-3 px-3">
                   <span
                     class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wide border"
-                    :class="String(deal.type || deal.side || '').toUpperCase() === 'BUY'
+                    :class="(deal.action_name === 'BUY' || deal.action === 0)
                       ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
                       : 'bg-rose-500/10 text-rose-600 border-rose-500/20'"
                   >
-                    {{ deal.type || deal.side || 'BUY' }}
+                    {{ deal.action_name || (deal.action === 0 ? 'BUY' : deal.action === 1 ? 'SELL' : '-') }}
                   </span>
                 </td>
-
-                <!-- Entry (IN / OUT) -->
                 <td class="py-3 px-3">
-                  <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide border bg-background text-secondary-text border-primary-border">
-                    {{ deal.entry || 'IN' }}
+                  <span
+                    class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide border"
+                    :class="(deal.entry_name === 'IN' || deal.entry === 0)
+                      ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20'
+                      : 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20'"
+                  >
+                    {{ deal.entry_name || (deal.entry === 0 ? 'IN' : deal.entry === 1 ? 'OUT' : '-') }}
                   </span>
                 </td>
-
-                <!-- Volume -->
                 <td class="py-3 px-3 text-right font-mono font-bold text-primary-text">
-                  {{ formatLot(deal.volume || deal.lot) }}
+                  {{ formatLot(deal.volume ?? deal.volume_raw) }}
                 </td>
-
-                <!-- Executed Price -->
                 <td class="py-3 px-3 text-right font-mono text-secondary-text">
-                  {{ formatPrice(deal.price || deal.execution_price) }}
+                  {{ formatPrice(deal.price) }}
                 </td>
-
-                <!-- Profit -->
+                <td class="py-3 px-3 text-right font-mono text-secondary-text">
+                  {{ formatPrice(deal.price_position) }}
+                </td>
                 <td class="py-3 px-3 text-right font-mono font-bold">
-                  <span :class="Number(deal.profit || deal.pnl || 0) >= 0 ? 'text-emerald-500' : 'text-rose-500'">
-                    {{ formatPnl(deal.profit || deal.pnl) }}
+                  <span :class="Number(deal.profit ?? deal.profit_raw ?? 0) >= 0 ? 'text-emerald-500' : 'text-rose-500'">
+                    {{ formatPnl(deal.profit ?? deal.profit_raw) }}
                   </span>
                 </td>
-
-                <!-- Fee / Commission -->
                 <td class="py-3 px-3 text-right font-mono text-secondary-text">
                   ${{ formatPrice(deal.commission || deal.fee || 0) }}
                 </td>
-
-                <!-- Execution Time -->
                 <td class="py-3 px-4 text-right font-medium text-secondary-text whitespace-nowrap">
-                  {{ formatDate(deal.time || deal.created_at) }}
+                  {{ formatDate(deal.time) }}
                 </td>
               </tr>
             </template>
@@ -639,27 +813,14 @@
         </table>
       </div>
 
-      <!-- Pagination Footer -->
-      <div
-        v-if="!store.isLoading && currentListCount > 0"
-        class="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t border-primary-border bg-background/30"
-      >
-        <!-- Per page selector -->
-        <div class="flex items-center gap-2">
-          <span class="text-xs text-secondary-text">Per page:</span>
-          <div class="w-20">
-            <BaseSelect
-              :modelValue="store.pagination.per_page"
-              :options="perPageOptions"
-              :dropUp="true"
-              @update:modelValue="store.setPerPage"
-            />
-          </div>
-          <span class="text-xs text-secondary-text ml-2">
-            Showing
-            {{ (store.pagination.page - 1) * store.pagination.per_page + 1 }} -
-            {{ Math.min(store.pagination.page * store.pagination.per_page, store.pagination.total_items) }}
-            of {{ store.pagination.total_items }} records
+      <!-- Table Bottom Summary & Pagination Bar -->
+      <div class="px-5 py-3.5 border-t border-primary-border bg-background/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+        <div class="text-secondary-text font-medium">
+          Showing
+          <strong class="text-primary-text font-mono">{{ currentTableCount }}</strong>
+          entries
+          <span v-if="store.pagination.total_items > 0">
+            of <strong class="text-primary-text font-mono">{{ store.pagination.total_items }}</strong> total
           </span>
         </div>
 
@@ -675,22 +836,24 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   BookOpen, RefreshCw, Activity, Clock, CheckCircle2, DollarSign,
   TrendingUp, TrendingDown, Search, X, RotateCcw, ArrowLeft,
-  Layers, Mail, Server
+  Layers, Server, Info
 } from 'lucide-vue-next'
 import { useFmTradeBookStore } from '@/stores/fmTradeBook/fmTradeBook'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import BaseDatePicker from '@/components/common/BaseDatePicker.vue'
 import Pagination from '@/components/common/Pagination.vue'
 import Tooltip from '@/components/common/Tooltip.vue'
-import { formatDate } from '@/utils/timeFormatter.js'
+import { formatDate as formatTime } from '@/utils/timeFormatter.js'
 import { livePNL } from '@/utils/livePNL.js'
+import { useTickerStore } from '@/stores/ws/ticker'
 
 const store = useFmTradeBookStore()
+const tickerStore = useTickerStore()
 const route = useRoute()
 const router = useRouter()
 
@@ -721,76 +884,146 @@ const accountNumber = computed(() => {
     store.accountInfo?.account_number ||
     store.accountInfo?.master_account?.account_number ||
     route.query.account_number ||
-    null
+    ''
   )
 })
 
-const userEmail = computed(() => {
-  return store.accountInfo?.email || store.accountInfo?.user_email || store.accountInfo?.user?.email || null
-})
-
 const brokerGroup = computed(() => {
-  return store.accountInfo?.broker_group || store.accountInfo?.server || null
+  return (
+    store.accountInfo?.broker_group ||
+    store.accountInfo?.master_account?.broker_group ||
+    ''
+  )
 })
 
 const leverageOrRatio = computed(() => {
-  if (isFollowerMode.value) {
-    return store.accountInfo?.lot_type ? `Lot: ${store.accountInfo.lot_type} (${store.accountInfo.lot_value ?? '1.0'})` : null
+  if (isFollowerMode.value && store.accountInfo?.copy_ratio) {
+    return `Ratio: ${store.accountInfo.copy_ratio}x`
   }
-  return store.accountInfo?.broker_leverage ? `1:${store.accountInfo.broker_leverage} ${store.accountInfo.broker_currency || 'USD'}` : null
+  if (store.accountInfo?.broker_leverage) {
+    return `1:${store.accountInfo.broker_leverage}`
+  }
+  return ''
 })
 
-const currentListCount = computed(() => {
-  if (store.activeTab === 'positions') return store.positions.length
+const currentTableCount = computed(() => {
+  if (!isFollowerMode.value) return store.positions.length
   if (store.activeTab === 'orders') return store.orders.length
   if (store.activeTab === 'deals') return store.deals.length
-  return 0
+  return store.positions.length
+})
+
+// Tab Badge Counts
+const positionsBadgeCount = computed(() => {
+  if (store.activeTab === 'positions') {
+    return store.summary.total_positions ?? store.pagination.total_items ?? store.positions.length
+  }
+  return store.positions.length
+})
+
+const ordersBadgeCount = computed(() => {
+  if (store.activeTab === 'orders') {
+    return store.summary.total_orders ?? store.pagination.total_items ?? store.orders.length
+  }
+  return store.orders.length
+})
+
+const dealsBadgeCount = computed(() => {
+  if (store.activeTab === 'deals') {
+    return store.summary.total_deals ?? store.pagination.total_items ?? store.deals.length
+  }
+  return store.deals.length
+})
+
+// Filter dropdown options (Dynamic per active Tab)
+const statusPlaceholder = computed(() => {
+  if (store.activeTab === 'orders') return 'Order State'
+  if (store.activeTab === 'deals') return 'Entry Type'
+  return 'Status'
 })
 
 const statusOptions = computed(() => {
   if (store.activeTab === 'orders') {
+    if (store.availableFilters?.order_states?.length) {
+      return store.availableFilters.order_states.map(s => ({
+        label: s.label || String(s).toUpperCase(),
+        value: s.value !== undefined ? s.value : s,
+      }))
+    }
     return [
-      { label: 'All Statuses', value: '' },
-      { label: 'PENDING', value: 'PENDING' },
-      { label: 'PLACED', value: 'PLACED' },
-      { label: 'CANCELLED', value: 'CANCELLED' },
-      { label: 'FILLED', value: 'FILLED' },
+      { label: 'All States', value: '' },
+      { label: 'Filled', value: 'FILLED' },
+      { label: 'Rejected', value: 'REJECTED' },
     ]
+  }
+
+  if (store.activeTab === 'deals') {
+    if (store.availableFilters?.deal_entries?.length) {
+      return store.availableFilters.deal_entries.map(e => ({
+        label: e.label || String(e).toUpperCase(),
+        value: e.value !== undefined ? e.value : e,
+      }))
+    }
+    return [
+      { label: 'All Entries', value: '' },
+      { label: 'IN (Entry)', value: 'IN' },
+      { label: 'OUT (Exit)', value: 'OUT' },
+    ]
+  }
+
+  // Positions / Master trades
+  if (store.availableFilters?.statuses?.length) {
+    return store.availableFilters.statuses.map(s => ({
+      label: s.label || String(s).toUpperCase(),
+      value: s.value !== undefined ? s.value : s,
+    }))
   }
   return [
     { label: 'All Statuses', value: '' },
-    { label: 'OPEN', value: 'OPEN' },
-    { label: 'CLOSED', value: 'CLOSED' },
+    { label: 'Open', value: 'OPEN' },
+    { label: 'Closed', value: 'CLOSED' },
   ]
 })
 
-const typeOptions = [
-  { label: 'All Types', value: '' },
-  { label: 'BUY', value: 'BUY' },
-  { label: 'SELL', value: 'SELL' },
-]
+const typeOptions = computed(() => {
+  if (store.activeTab === 'deals') {
+    return [
+      { label: 'All Actions', value: '' },
+      { label: 'BUY', value: 'BUY' },
+      { label: 'SELL', value: 'SELL' },
+    ]
+  }
 
-const perPageOptions = [
-  { label: '10', value: 10 },
-  { label: '20', value: 20 },
-  { label: '50', value: 50 },
-  { label: '100', value: 100 },
-]
+  if (store.availableFilters?.types?.length) {
+    return store.availableFilters.types.map(t => ({
+      label: t.label || String(t).toUpperCase(),
+      value: t.value !== undefined ? t.value : t,
+    }))
+  }
+  return [
+    { label: 'All Sides', value: '' },
+    { label: 'Buy', value: 'BUY' },
+    { label: 'Sell', value: 'SELL' },
+  ]
+})
 
 const hasActiveFilters = computed(() => {
   return (
-    store.filters.search !== '' ||
-    store.filters.status !== '' ||
-    store.filters.type !== '' ||
-    store.filters.start_date !== '' ||
-    store.filters.end_date !== '' ||
-    dateRange.value !== null
+    !!store.filters.search ||
+    !!store.filters.status ||
+    !!store.filters.type ||
+    !!store.filters.symbol ||
+    !!store.filters.start_date ||
+    !!store.filters.end_date
   )
 })
 
+let searchDebounceTimer = null
 const handleSearch = (val) => {
-  searchInput.value = val
-  store.setSearch(val)
+  clearTimeout(searchDebounceTimer)
+  searchDebounceTimer = setTimeout(() => {
+    store.setSearch(val)
+  }, 350)
 }
 
 const clearSearch = () => {
@@ -800,10 +1033,8 @@ const clearSearch = () => {
 
 const handleDateRangeChange = (val) => {
   dateRange.value = val
-  if (Array.isArray(val) && val.length === 2) {
+  if (val && Array.isArray(val) && val.length === 2) {
     store.setDateFilter(val[0], val[1])
-  } else if (val && typeof val === 'object' && val.start && val.end) {
-    store.setDateFilter(val.start, val.end)
   } else if (!val) {
     store.setDateFilter('', '')
   }
@@ -821,9 +1052,9 @@ const handleResetFilters = () => {
 }
 
 const formatPrice = (val) => {
-  if (val === null || val === undefined || val === '') return '—'
+  if (val === null || val === undefined || val === '') return '-'
   const num = Number(val)
-  if (isNaN(num)) return '—'
+  if (isNaN(num)) return '-'
   return num.toLocaleString('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 5,
@@ -831,9 +1062,9 @@ const formatPrice = (val) => {
 }
 
 const formatLot = (val) => {
-  if (val === null || val === undefined || val === '') return '0.00'
+  if (val === null || val === undefined || val === '') return '-'
   const num = Number(val)
-  if (isNaN(num)) return '0.00'
+  if (isNaN(num)) return '-'
   return num.toLocaleString('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 4,
@@ -841,14 +1072,20 @@ const formatLot = (val) => {
 }
 
 const formatPnl = (val) => {
-  if (val === null || val === undefined || val === '') return '$0.00'
+  if (val === null || val === undefined || val === '') return '-'
   const num = Number(val)
-  if (isNaN(num)) return '$0.00'
-  const prefix = num >= 0 ? '+$' : '-$'
+  if (isNaN(num)) return '-'
+  if (Math.abs(num) < 0.000001) return '$0.00'
+  const prefix = num > 0 ? '+$' : '-$'
   return `${prefix}${Math.abs(num).toLocaleString('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`
+}
+
+const formatDate = (val) => {
+  if (!val) return '-'
+  return formatTime(val)
 }
 
 const getTradePnl = (trade) => {
@@ -899,6 +1136,21 @@ const initContext = () => {
   store.fetchFilters()
   store.fetchTradesData()
 }
+
+// Watch trade records and subscribe all unique symbols to live ticker WebSocket
+watch(
+  [() => store.positions, () => store.orders, () => store.deals],
+  ([newPositions, newOrders, newDeals]) => {
+    const allItems = [...(newPositions || []), ...(newOrders || []), ...(newDeals || [])]
+    if (allItems.length > 0) {
+      const uniqueSymbols = [...new Set(allItems.map((item) => item?.symbol))].filter(Boolean)
+      if (uniqueSymbols.length > 0) {
+        tickerStore.updateTickerList(uniqueSymbols)
+      }
+    }
+  },
+  { deep: true, immediate: true }
+)
 
 onMounted(() => {
   initContext()

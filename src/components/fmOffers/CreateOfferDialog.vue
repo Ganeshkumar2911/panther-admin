@@ -139,15 +139,16 @@
               </div>
 
               <div>
-                <label class="block text-xs font-semibold text-primary-text mb-1.5">Registration Fee ($)</label>
+                <label class="block text-xs font-semibold text-primary-text mb-1.5">Registration Fee ({{ currencyLabel }})</label>
                 <div class="relative">
-                  <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-secondary-text pointer-events-none">$</span>
+                  <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-secondary-text pointer-events-none">{{ currencyLabel }}</span>
                   <input
                     v-model.number="form.registration_fee"
                     type="number"
                     min="0"
                     placeholder="e.g. 50"
-                    class="w-full pl-8 pr-3.5 py-2.5 rounded-lg bg-card-background border border-primary-border text-primary-text text-sm outline-none focus:border-primary transition-colors placeholder:text-secondary-text"
+                    class="w-full pr-3.5 py-2.5 rounded-lg bg-card-background border border-primary-border text-primary-text text-sm outline-none focus:border-primary transition-colors placeholder:text-secondary-text"
+                    :class="isUsc ? 'pl-11' : 'pl-8'"
                   />
                 </div>
               </div>
@@ -162,15 +163,16 @@
             </div>
 
             <div>
-              <label class="block text-xs font-semibold text-primary-text mb-1.5">Minimum Balance / Capital ($)</label>
+              <label class="block text-xs font-semibold text-primary-text mb-1.5">Minimum Balance / Capital ({{ currencyLabel }})</label>
               <div class="relative">
-                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-secondary-text pointer-events-none">$</span>
+                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-secondary-text pointer-events-none">{{ currencyLabel }}</span>
                 <input
                   v-model.number="form.minimum_balance"
                   type="number"
                   min="0"
-                  placeholder="e.g. 1000"
-                  class="w-full pl-8 pr-3.5 py-2.5 rounded-lg bg-card-background border border-primary-border text-primary-text text-sm outline-none focus:border-primary transition-colors placeholder:text-secondary-text font-mono"
+                  :placeholder="isUsc ? 'e.g. 100000' : 'e.g. 1000'"
+                  class="w-full pr-3.5 py-2.5 rounded-lg bg-card-background border border-primary-border text-primary-text text-sm outline-none focus:border-primary transition-colors placeholder:text-secondary-text font-mono"
+                  :class="isUsc ? 'pl-11' : 'pl-8'"
                 />
               </div>
               <p class="text-[11px] text-secondary-text mt-1.5">
@@ -215,10 +217,31 @@ const props = defineProps({
   open: { type: Boolean, default: false },
   editOffer: { type: Object, default: null },
   fmId: { type: [String, Number], default: null },
+  currency: { type: String, default: '' },
 })
 const emit = defineEmits(['close'])
 const store = useFmOffersStore()
 const route = useRoute()
+
+const fmCurrency = computed(() => {
+  if (props.currency) return props.currency.toUpperCase()
+  if (props.editOffer?.currency) return props.editOffer.currency.toUpperCase()
+  if (props.editOffer?.broker_currency) return props.editOffer.broker_currency.toUpperCase()
+  try {
+    const raw = localStorage.getItem('active_fm')
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      const c = parsed?.broker_currency || parsed?.currency || parsed?.coverage_account?.broker_currency
+      if (c) return String(c).toUpperCase()
+    }
+  } catch (e) {
+    // ignore
+  }
+  return 'USD'
+})
+
+const isUsc = computed(() => fmCurrency.value === 'USC')
+const currencyLabel = computed(() => isUsc.value ? 'USC' : '$')
 
 function getDefaultForm() {
   return {

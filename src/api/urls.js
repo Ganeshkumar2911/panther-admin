@@ -93,6 +93,7 @@ const urls = {
   tradeBook: {
     filters: "/trade-book/filters",
     followerDetails: "/trade-book/followers/",
+    masterTrades: "/trade-book/master-trades",
     positions: "/trade-book/positions",
     orders: "/trade-book/orders",
     deals: "/trade-book/deals",

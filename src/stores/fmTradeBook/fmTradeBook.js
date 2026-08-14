@@ -20,14 +20,31 @@ export const useFmTradeBookStore = defineStore("fmTradeBook", () => {
 
   // Summary Metrics
   const summary = ref({
+    // Positions
+    total_positions: 0,
     open_positions: 0,
     closed_positions: 0,
-    total_positions: 0,
+    winning_positions: 0,
+    losing_positions: 0,
+    win_rate: null,
+    // Orders
     total_orders: 0,
+    filled_orders: 0,
+    rejected_orders: 0,
+    // Deals
     total_deals: 0,
-    total_lot: 0,
+    in_deals: 0,
+    out_deals: 0,
+    total_commission: 0,
+    total_storage: 0,
+    // Common / FM Master
     total_volume: 0,
+    total_profit: 0,
+    total_lot: 0,
     total_pnl: 0,
+    total_trades: 0,
+    open_trades: 0,
+    closed_trades: 0,
     floating_pnl: 0,
     realized_pnl: 0,
   });
@@ -37,6 +54,8 @@ export const useFmTradeBookStore = defineStore("fmTradeBook", () => {
     symbols: [],
     types: [],
     statuses: [],
+    order_states: [],
+    deal_entries: [],
     accounts: [],
   });
 
@@ -60,7 +79,7 @@ export const useFmTradeBookStore = defineStore("fmTradeBook", () => {
     end_date: "",
     from_date: "",
     to_date: "",
-    sort_by: "",
+    sort_by: "time_create",
     sort_order: "desc",
   });
 
@@ -105,6 +124,8 @@ export const useFmTradeBookStore = defineStore("fmTradeBook", () => {
           symbols: res.data.symbols || [],
           types: res.data.types || [],
           statuses: res.data.statuses || [],
+          order_states: res.data.order_states || [],
+          deal_entries: res.data.deal_entries || [],
           accounts: res.data.accounts || [],
         };
       }
@@ -118,9 +139,12 @@ export const useFmTradeBookStore = defineStore("fmTradeBook", () => {
     const params = {
       page: pagination.value.page,
       per_page: pagination.value.per_page,
-      sort_by: filters.sort_by || undefined,
       sort_order: filters.sort_order || "desc",
     };
+
+    if (filters.sort_by) {
+      params.sort_by = filters.sort_by;
+    }
 
     // Attach Context Filter
     if (mode.value === "fm" && contextId.value) {
@@ -138,19 +162,33 @@ export const useFmTradeBookStore = defineStore("fmTradeBook", () => {
     if (filters.search && filters.search.trim() !== "") {
       params.search = filters.search.trim();
     }
+
     if (filters.status && filters.status !== "") {
-      params.status = filters.status;
+      if (activeTab.value === "orders") {
+        params.state = filters.status;
+        params.status = filters.status;
+      } else if (activeTab.value === "deals") {
+        params.entry = filters.status;
+        params.status = filters.status;
+      } else {
+        params.status = filters.status;
+      }
     }
+
     if (filters.type && filters.type !== "") {
       params.type = filters.type;
+      params.action = filters.type;
     }
+
     if (filters.symbol && filters.symbol !== "") {
       params.symbol = filters.symbol;
     }
+
     if (filters.start_date && filters.start_date !== "") {
       params.start_date = filters.start_date;
       params.from_date = filters.start_date;
     }
+
     if (filters.end_date && filters.end_date !== "") {
       params.end_date = filters.end_date;
       params.to_date = filters.end_date;
@@ -168,13 +206,32 @@ export const useFmTradeBookStore = defineStore("fmTradeBook", () => {
     }
 
     try {
-      const params = buildParams();
       let endpoint = urls.tradeBook.positions;
+      let params = buildParams();
 
-      if (activeTab.value === "orders") {
-        endpoint = urls.tradeBook.orders;
-      } else if (activeTab.value === "deals") {
-        endpoint = urls.tradeBook.deals;
+      // FM Mode uses master-trades endpoint: GET /trade-book/master-trades/:fm_id
+      if (mode.value === "fm" && contextId.value) {
+        endpoint = `${urls.tradeBook.masterTrades}/${contextId.value}`;
+        params = {
+          page: pagination.value.page,
+          per_page: pagination.value.per_page,
+          sort_order: filters.sort_order || "desc",
+        };
+        if (filters.sort_by) params.sort_by = filters.sort_by;
+        if (filters.search) params.search = filters.search.trim();
+        if (filters.status) params.status = filters.status;
+        if (filters.symbol) params.symbol = filters.symbol;
+        if (filters.start_date) params.start_date = filters.start_date;
+        if (filters.end_date) params.end_date = filters.end_date;
+      } else {
+        // Follower mode uses positions / orders / deals
+        if (activeTab.value === "orders") {
+          endpoint = urls.tradeBook.orders;
+        } else if (activeTab.value === "deals") {
+          endpoint = urls.tradeBook.deals;
+        } else {
+          endpoint = urls.tradeBook.positions;
+        }
       }
 
       const res = await apiRequest(urls.KEYS.GET, endpoint, {
@@ -182,52 +239,56 @@ export const useFmTradeBookStore = defineStore("fmTradeBook", () => {
         isTokenRequired: true,
       });
 
-      const wrapper =
-        res?.data && Array.isArray(res.data) ? res : res?.data || res;
-
-      const rawItems = Array.isArray(wrapper?.data)
-        ? wrapper.data
-        : Array.isArray(res?.data)
-        ? res.data
+      const responseData = res?.data || res || {};
+      const items = Array.isArray(responseData.data)
+        ? responseData.data
+        : Array.isArray(responseData)
+        ? responseData
         : [];
 
-      if (activeTab.value === "positions") {
-        positions.value = rawItems;
+      if (mode.value === "fm") {
+        positions.value = items;
+      } else if (activeTab.value === "positions") {
+        positions.value = items;
       } else if (activeTab.value === "orders") {
-        orders.value = rawItems;
+        orders.value = items;
       } else if (activeTab.value === "deals") {
-        deals.value = rawItems;
+        deals.value = items;
       }
 
-      // Update Summary
-      if (wrapper?.summary) {
+      // Summary from API
+      if (responseData.summary) {
         summary.value = {
-          open_positions: wrapper.summary.open_positions ?? wrapper.summary.open_trades ?? 0,
-          closed_positions: wrapper.summary.closed_positions ?? wrapper.summary.closed_trades ?? 0,
-          total_positions: wrapper.summary.total_positions ?? wrapper.summary.total_trades ?? rawItems.length,
-          total_orders: wrapper.summary.total_orders ?? 0,
-          total_deals: wrapper.summary.total_deals ?? 0,
-          total_lot: wrapper.summary.total_lot ?? wrapper.summary.total_lots ?? wrapper.summary.total_volume ?? 0,
-          total_volume: wrapper.summary.total_volume ?? wrapper.summary.total_lot ?? 0,
-          total_pnl: wrapper.summary.total_pnl ?? wrapper.summary.pnl ?? 0,
-          floating_pnl: wrapper.summary.floating_pnl ?? 0,
-          realized_pnl: wrapper.summary.realized_pnl ?? wrapper.summary.total_pnl ?? 0,
+          ...summary.value,
+          ...responseData.summary,
         };
       }
 
-      // Update Pagination
-      pagination.value = wrapper?.pagination || {
-        page: pagination.value.page,
-        per_page: pagination.value.per_page,
-        total_items: wrapper?.total || rawItems.length,
-        total_pages: Math.max(1, Math.ceil((wrapper?.total || rawItems.length) / pagination.value.per_page)),
-        has_next: false,
-        has_prev: false,
-      };
+      // Pagination from API
+      if (responseData.pagination) {
+        pagination.value = {
+          page: responseData.pagination.page || 1,
+          per_page: responseData.pagination.per_page || 20,
+          total_items: responseData.pagination.total_items ?? items.length,
+          total_pages: responseData.pagination.total_pages || 1,
+          has_next: responseData.pagination.has_next || false,
+          has_prev: responseData.pagination.has_prev || false,
+        };
+      }
+
+      // Sort from API
+      if (responseData.sort) {
+        if (responseData.sort.sort_by) {
+          filters.sort_by = responseData.sort.sort_by;
+        }
+        if (responseData.sort.sort_order) {
+          filters.sort_order = responseData.sort.sort_order;
+        }
+      }
     } catch (err) {
-      console.error(`Failed to fetch ${activeTab.value} data:`, err);
+      console.error(`Failed to fetch trade book data:`, err);
       snackbar.show(
-        err?.message || `Failed to load ${activeTab.value} data.`,
+        err?.message || `Failed to load trade book data.`,
         "error"
       );
     } finally {
@@ -242,6 +303,17 @@ export const useFmTradeBookStore = defineStore("fmTradeBook", () => {
     activeTab.value = tab;
     pagination.value.page = 1;
     filters.status = "";
+    filters.type = "";
+
+    // Set default sort for active tab
+    if (tab === "positions") {
+      filters.sort_by = "time_create";
+    } else if (tab === "orders") {
+      filters.sort_by = "time_setup";
+    } else if (tab === "deals") {
+      filters.sort_by = "time";
+    }
+
     fetchTradesData();
   };
 
@@ -309,7 +381,15 @@ export const useFmTradeBookStore = defineStore("fmTradeBook", () => {
     filters.end_date = "";
     filters.from_date = "";
     filters.to_date = "";
-    filters.sort_by = "";
+    if (activeTab.value === "positions") {
+      filters.sort_by = "time_create";
+    } else if (activeTab.value === "orders") {
+      filters.sort_by = "time_setup";
+    } else if (activeTab.value === "deals") {
+      filters.sort_by = "time";
+    } else {
+      filters.sort_by = "";
+    }
     filters.sort_order = "desc";
     pagination.value.page = 1;
     fetchTradesData(true);

@@ -1,10 +1,10 @@
 <template>
   <div>
-    <!-- Backdrop Overlay -->
+    <!-- Backdrop -->
     <Transition name="backdrop">
       <div
         v-if="open"
-        class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs transition-opacity cursor-pointer"
+        class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs transition-opacity"
         @click="emit('close')"
       />
     </Transition>
@@ -13,36 +13,30 @@
     <Transition name="drawer">
       <div
         v-if="open"
-        class="fixed right-0 top-0 bottom-0 z-[101] w-full max-w-xl sm:max-w-2xl bg-card-background border-l border-primary-border flex flex-col shadow-2xl overflow-hidden"
-        role="dialog"
-        aria-modal="true"
+        class="fixed inset-y-0 right-0 z-50 w-full max-w-2xl bg-card-background border-l border-primary-border shadow-2xl flex flex-col overflow-hidden"
       >
-        <!-- Drawer Header -->
-        <div class="px-6 py-4 border-b border-primary-border flex items-center justify-between shrink-0 bg-background/60">
+        <!-- Header -->
+        <div class="px-6 py-5 border-b border-primary-border flex items-center justify-between gap-4 bg-background/50 shrink-0">
           <div class="flex items-center gap-3 min-w-0">
-            <div
-              class="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center font-bold text-base shrink-0"
-            >
-              #{{ item?.id || '—' }}
+            <div class="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-base shrink-0">
+              {{ (item?.label_name || item?.user?.name || 'FM').charAt(0).toUpperCase() }}
             </div>
             <div class="min-w-0">
               <div class="flex items-center gap-2 flex-wrap">
                 <h3 class="text-base font-bold text-primary-text truncate">
-                  {{ item?.label_name || 'Fund Manager Details' }}
+                  {{ item?.label_name || item?.user?.name || 'Fund Manager Details' }}
                 </h3>
                 <span
-                  class="text-[10px] font-bold tracking-wide uppercase px-2 py-0.5 rounded-full border inline-flex items-center gap-1"
-                  :class="
-                    item?.is_active
-                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                      : 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'
-                  "
+                  class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border"
+                  :class="item?.is_active
+                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                    : 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'"
                 >
-                  <span class="w-1.5 h-1.5 rounded-full" :class="item?.is_active ? 'bg-emerald-500' : 'bg-zinc-400'" />
                   {{ item?.is_active ? 'Active' : 'Inactive' }}
                 </span>
                 <span
-                  class="text-[9px] uppercase tracking-wider font-bold px-2 py-0.5 rounded border text-secondary-text bg-background border-primary-border"
+                  v-if="item?.visibility_type"
+                  class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20"
                 >
                   {{ item?.visibility_type || 'public' }}
                 </span>
@@ -55,16 +49,26 @@
           </div>
 
           <div class="flex items-center gap-1.5 shrink-0">
+            <!-- Header Copy Button -->
             <button
+              v-if="item?.user?.email"
               type="button"
-              class="p-2 rounded-lg transition-colors cursor-pointer"
-              :class="copiedEmail ? 'text-emerald-500 bg-emerald-500/10 border border-emerald-500/20' : 'text-secondary-text hover:text-primary-text hover:bg-background'"
-              :title="copiedEmail ? 'Copied!' : 'Copy Email'"
-              @click="copyText(item?.user?.email, 'Email')"
+              class="relative p-2 rounded-lg transition-all cursor-pointer overflow-visible"
+              :class="copiedKey === 'header_email'
+                ? 'text-emerald-500 bg-emerald-500/10 border border-emerald-500/30 ring-1 ring-emerald-500/20'
+                : 'text-secondary-text hover:text-primary-text hover:bg-background border border-transparent'"
+              :title="copiedKey === 'header_email' ? 'Copied!' : 'Copy Email'"
+              @click="copyText(item?.user?.email, 'header_email')"
             >
-              <Check v-if="copiedEmail" class="w-4 h-4 text-emerald-500" />
-              <Copy v-else class="w-4 h-4" />
+              <template v-if="copiedKey === 'header_email'">
+                <Check class="w-4 h-4 text-emerald-500 animate-scale-pop" />
+                <span class="sparkle-particle sparkle-1">✦</span>
+                <span class="sparkle-particle sparkle-2">★</span>
+                <span class="sparkle-particle sparkle-3">✦</span>
+              </template>
+              <Copy v-else class="w-4 h-4 transition-transform active:scale-90" />
             </button>
+
             <button
               type="button"
               class="p-2 rounded-lg hover:bg-background text-secondary-text hover:text-primary-text transition cursor-pointer"
@@ -146,11 +150,19 @@
                     <span class="font-bold text-primary-text font-mono select-all">{{ item?.user?.email || '—' }}</span>
                     <button
                       v-if="item?.user?.email"
-                      @click="copyText(item.user.email, 'Email')"
-                      class="text-secondary-text hover:text-primary transition p-0.5 cursor-pointer"
-                      title="Copy email"
+                      type="button"
+                      @click="copyText(item.user.email, 'overview_email')"
+                      class="relative text-secondary-text hover:text-primary transition p-1 rounded-md hover:bg-background cursor-pointer overflow-visible"
+                      :class="{ 'text-emerald-500': copiedKey === 'overview_email' }"
+                      :title="copiedKey === 'overview_email' ? 'Copied!' : 'Copy Email'"
                     >
-                      <Copy class="w-3 h-3" />
+                      <template v-if="copiedKey === 'overview_email'">
+                        <Check class="w-3.5 h-3.5 text-emerald-500 animate-scale-pop" />
+                        <span class="sparkle-particle sparkle-1">✦</span>
+                        <span class="sparkle-particle sparkle-2">★</span>
+                        <span class="sparkle-particle sparkle-3">✦</span>
+                      </template>
+                      <Copy v-else class="w-3.5 h-3.5 transition-transform active:scale-90" />
                     </button>
                   </div>
                 </div>
@@ -240,9 +252,27 @@
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div>
                   <span class="text-secondary-text text-[11px] block">Account Number</span>
-                  <span class="font-mono font-bold text-primary-text text-sm select-all">
-                    {{ item?.master_account?.account_number || item?.master_account_id || '—' }}
-                  </span>
+                  <div class="flex items-center gap-1.5">
+                    <span class="font-mono font-bold text-primary-text text-sm select-all">
+                      {{ item?.master_account?.account_number || item?.master_account_id || '—' }}
+                    </span>
+                    <button
+                      v-if="item?.master_account?.account_number || item?.master_account_id"
+                      type="button"
+                      @click="copyText(item?.master_account?.account_number || item?.master_account_id, 'master_acc')"
+                      class="relative text-secondary-text hover:text-primary transition p-1 rounded-md hover:bg-background cursor-pointer overflow-visible"
+                      :class="{ 'text-emerald-500': copiedKey === 'master_acc' }"
+                      :title="copiedKey === 'master_acc' ? 'Copied!' : 'Copy Account Number'"
+                    >
+                      <template v-if="copiedKey === 'master_acc'">
+                        <Check class="w-3.5 h-3.5 text-emerald-500 animate-scale-pop" />
+                        <span class="sparkle-particle sparkle-1">✦</span>
+                        <span class="sparkle-particle sparkle-2">★</span>
+                        <span class="sparkle-particle sparkle-3">✦</span>
+                      </template>
+                      <Copy v-else class="w-3.5 h-3.5 transition-transform active:scale-90" />
+                    </button>
+                  </div>
                 </div>
                 <div>
                   <span class="text-secondary-text text-[11px] block">Role</span>
@@ -280,9 +310,27 @@
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div>
                   <span class="text-secondary-text text-[11px] block">Account Number</span>
-                  <span class="font-mono font-bold text-primary-text text-sm select-all">
-                    {{ item?.coverage_account?.account_number || item?.coverage_account_id || '—' }}
-                  </span>
+                  <div class="flex items-center gap-1.5">
+                    <span class="font-mono font-bold text-primary-text text-sm select-all">
+                      {{ item?.coverage_account?.account_number || item?.coverage_account_id || '—' }}
+                    </span>
+                    <button
+                      v-if="item?.coverage_account?.account_number || item?.coverage_account_id"
+                      type="button"
+                      @click="copyText(item?.coverage_account?.account_number || item?.coverage_account_id, 'coverage_acc')"
+                      class="relative text-secondary-text hover:text-primary transition p-1 rounded-md hover:bg-background cursor-pointer overflow-visible"
+                      :class="{ 'text-emerald-500': copiedKey === 'coverage_acc' }"
+                      :title="copiedKey === 'coverage_acc' ? 'Copied!' : 'Copy Account Number'"
+                    >
+                      <template v-if="copiedKey === 'coverage_acc'">
+                        <Check class="w-3.5 h-3.5 text-emerald-500 animate-scale-pop" />
+                        <span class="sparkle-particle sparkle-1">✦</span>
+                        <span class="sparkle-particle sparkle-2">★</span>
+                        <span class="sparkle-particle sparkle-3">✦</span>
+                      </template>
+                      <Copy v-else class="w-3.5 h-3.5 transition-transform active:scale-90" />
+                    </button>
+                  </div>
                 </div>
                 <div>
                   <span class="text-secondary-text text-[11px] block">Role</span>
@@ -395,11 +443,24 @@
             <div class="flex items-center justify-between">
               <span class="text-xs font-bold uppercase tracking-wider text-secondary-text">Full API Response JSON</span>
               <button
-                @click="copyText(JSON.stringify(item, null, 2), 'Raw JSON')"
-                class="px-3 py-1.5 rounded-lg border border-primary/30 text-primary hover:bg-primary/10 text-xs font-semibold transition cursor-pointer flex items-center gap-1.5"
+                type="button"
+                @click="copyText(JSON.stringify(item, null, 2), 'raw_json')"
+                class="relative px-3 py-1.5 rounded-lg border text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 overflow-visible"
+                :class="copiedKey === 'raw_json'
+                  ? 'border-emerald-500/40 text-emerald-500 bg-emerald-500/10 shadow-xs'
+                  : 'border-primary/30 text-primary hover:bg-primary/10'"
               >
-                <Copy class="w-3.5 h-3.5" />
-                <span>Copy JSON</span>
+                <template v-if="copiedKey === 'raw_json'">
+                  <Check class="w-3.5 h-3.5 text-emerald-500 animate-scale-pop" />
+                  <span>Copied!</span>
+                  <span class="sparkle-particle sparkle-1">✦</span>
+                  <span class="sparkle-particle sparkle-2">★</span>
+                  <span class="sparkle-particle sparkle-3">✦</span>
+                </template>
+                <template v-else>
+                  <Copy class="w-3.5 h-3.5 transition-transform active:scale-90" />
+                  <span>Copy JSON</span>
+                </template>
               </button>
             </div>
             <pre class="bg-background border border-primary-border rounded-xl p-4 text-[11px] font-mono text-primary-text overflow-x-auto select-all leading-relaxed">{{ JSON.stringify(item, null, 2) }}</pre>
@@ -438,7 +499,6 @@ import {
   Briefcase,
   ShieldCheck
 } from 'lucide-vue-next'
-import { useSnackbarStore } from '@/stores/snackbar/snackbar'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -446,12 +506,12 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close'])
-const snackbar = useSnackbarStore()
 
 const activeTab = ref('overview')
-const copiedEmail = ref(false)
+const copiedKey = ref('')
 
-const copyText = (val, label = 'Content') => {
+let copyTimeout = null
+const copyText = (val, key = '') => {
   if (!val) return
   if (navigator.clipboard && window.isSecureContext) {
     navigator.clipboard.writeText(String(val))
@@ -471,12 +531,14 @@ const copyText = (val, label = 'Content') => {
     document.body.removeChild(textArea)
   }
 
-  copiedEmail.value = true
-  // snackbar.show(`${label} copied to clipboard`, 'success')
+  copiedKey.value = key
 
-  setTimeout(() => {
-    copiedEmail.value = false
-  }, 2000)
+  clearTimeout(copyTimeout)
+  copyTimeout = setTimeout(() => {
+    if (copiedKey.value === key) {
+      copiedKey.value = ''
+    }
+  }, 1800)
 }
 
 const formatDate = (val) => {
@@ -524,5 +586,72 @@ const getKycBadgeClass = (status) => {
 .drawer-enter-from,
 .drawer-leave-to {
   transform: translateX(100%);
+}
+
+/* Micro Sparkle Stars Animation */
+@keyframes sparkle-burst {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.2) rotate(0deg);
+  }
+  40% {
+    opacity: 1;
+    transform: translate(var(--tx), var(--ty)) scale(1.3) rotate(35deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--tx-end), var(--ty-end)) scale(0.4) rotate(70deg);
+  }
+}
+
+.sparkle-particle {
+  position: absolute;
+  pointer-events: none;
+  font-size: 10px;
+  line-height: 1;
+  animation: sparkle-burst 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  z-index: 10;
+}
+
+.sparkle-1 {
+  --tx: -8px;
+  --ty: -10px;
+  --tx-end: -12px;
+  --ty-end: -16px;
+  color: #10b981;
+}
+
+.sparkle-2 {
+  --tx: 10px;
+  --ty: -12px;
+  --tx-end: 14px;
+  --ty-end: -18px;
+  color: #fbbf24;
+  font-size: 9px;
+}
+
+.sparkle-3 {
+  --tx: 9px;
+  --ty: 7px;
+  --tx-end: 13px;
+  --ty-end: 11px;
+  color: #34d399;
+  font-size: 8px;
+}
+
+@keyframes scale-pop {
+  0% {
+    transform: scale(0.6);
+  }
+  70% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-scale-pop {
+  animation: scale-pop 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 </style>

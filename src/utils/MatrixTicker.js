@@ -6,7 +6,7 @@ class MatrixTicker {
       typeof window !== "undefined" &&
       window.location.hostname === "admin.panthercapitals.com";
 
-    const DEV_WS_URL = "https://zpj8dpf6-2504.inc1.devtunnels.ms/";
+    const DEV_WS_URL = "https://w2llv2cm-2504.inc1.devtunnels.ms/";
     const PROD_WS_URL = isProdDomain
       ? "https://admin.panthercapitals.com/"
       : "https://1pz4zm0b-2504.euw.devtunnels.ms/";

@@ -121,7 +121,7 @@
                 />
               </div>
 
-              <!-- Password (Required for add) -->
+              <!-- Password (Required for add, optional for edit) -->
               <div class="flex flex-col gap-1.5">
                 <label class="text-xs font-semibold text-secondary-text">
                   Password
@@ -263,7 +263,7 @@
                 >
               </div>
 
-              <!-- Broker Currency (Disabled / Fixed from Group) -->
+              <!-- Broker Currency (Disabled / Auto-selected from Group) -->
               <div class="flex flex-col gap-1.5">
                 <label class="text-xs font-semibold text-secondary-text">
                   Broker Currency <span class="text-primary-red">*</span>
@@ -333,7 +333,7 @@
               <!-- Min Investment Capital (Required) -->
               <div class="flex flex-col gap-1.5">
                 <label class="text-xs font-semibold text-secondary-text">
-                  Min Investment Capital ($)
+                  Min Investment Capital ({{ form.broker_currency === 'USC' ? 'USC' : '$' }})
                   <span class="text-primary-red">*</span>
                 </label>
                 <input
@@ -461,7 +461,7 @@
                   {{
                     (
                       (parseFloat(form.fm_share) || 0) +
-                      (parseFloat(form.broker_share) || 0)
+                        (parseFloat(form.broker_share) || 0)
                     ).toFixed(1)
                   }}% / 100%
                 </span>
@@ -509,7 +509,7 @@
               <!-- Registration Fee -->
               <div class="flex flex-col gap-1.5">
                 <label class="text-xs font-semibold text-secondary-text"
-                  >Registration Fee ($)</label
+                  >Registration Fee ({{ form.broker_currency === 'USC' ? 'USC' : '$' }})</label
                 >
                 <input
                   v-model="form.registration_fee"
@@ -612,6 +612,25 @@
                 />
               </div>
 
+              <!-- Date of Birth -->
+              <div class="flex flex-col gap-1.5">
+                <label class="text-xs font-semibold text-secondary-text"
+                  >Date of Birth</label
+                >
+                <BaseDatePicker
+                  v-model="form.date_of_birth"
+                  mode="single"
+                  valueFormat="YYYY-MM-DD"
+                  placeholder="Select date of birth"
+                  variant="surface"
+                />
+                <span
+                  v-if="errors.date_of_birth"
+                  class="text-xs text-primary-red"
+                  >{{ errors.date_of_birth }}</span
+                >
+              </div>
+
               <!-- Country -->
               <div class="flex flex-col gap-1.5">
                 <label class="text-xs font-semibold text-secondary-text"
@@ -679,6 +698,88 @@
               </div>
             </div>
           </div>
+
+          <!-- SECTION 5: KYC & VERIFICATION STATUS (Optional / Edit Support) -->
+          <div
+            class="space-y-3.5 bg-background/40 border border-primary-border/60 rounded-xl p-4"
+          >
+            <h3
+              class="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-1.5 border-b border-primary-border/60 pb-2"
+            >
+              <ShieldCheck class="w-3.5 h-3.5" />
+              KYC & Verification Status
+            </h3>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <!-- Verification Channel -->
+              <div class="flex flex-col gap-1.5">
+                <label class="text-xs font-semibold text-secondary-text"
+                  >Verification Channel</label
+                >
+                <BaseSelect
+                  :modelValue="form.verification_channel"
+                  :options="channelOptions"
+                  placeholder="Select channel"
+                  @update:modelValue="form.verification_channel = $event"
+                />
+              </div>
+
+              <!-- KYC Status -->
+              <div class="flex flex-col gap-1.5">
+                <label class="text-xs font-semibold text-secondary-text"
+                  >KYC Status</label
+                >
+                <BaseSelect
+                  :modelValue="form.kyc_status"
+                  :options="kycStatusOptions"
+                  placeholder="Select KYC status"
+                  @update:modelValue="form.kyc_status = $event"
+                />
+              </div>
+
+              <!-- Docs Uploaded -->
+              <div class="flex flex-col gap-1.5">
+                <label class="text-xs font-semibold text-secondary-text"
+                  >Docs Uploaded</label
+                >
+                <BaseSelect
+                  :modelValue="form.docs_uploaded"
+                  :options="yesNoOptions"
+                  placeholder="Select..."
+                  @update:modelValue="form.docs_uploaded = $event"
+                />
+              </div>
+
+              <!-- Doc Approved -->
+              <div class="flex flex-col gap-1.5">
+                <label class="text-xs font-semibold text-secondary-text"
+                  >Doc Approved</label
+                >
+                <BaseSelect
+                  :modelValue="form.doc_approved"
+                  :options="yesNoOptions"
+                  placeholder="Select..."
+                  @update:modelValue="form.doc_approved = $event"
+                />
+              </div>
+
+              <!-- KYC Reject Reason (if rejected) -->
+              <div
+                v-if="form.kyc_status === 'rejected'"
+                class="flex flex-col gap-1.5 sm:col-span-2"
+              >
+                <label class="text-xs font-semibold text-primary-red"
+                  >KYC Rejection Reason</label
+                >
+                <input
+                  v-model="form.kyc_reject_reason"
+                  type="text"
+                  placeholder="Provide reason for KYC rejection..."
+                  class="bg-background border border-primary-red rounded-xl px-3.5 py-2.5 text-xs text-primary-text outline-none transition-colors"
+                />
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Footer Actions -->
@@ -719,9 +820,11 @@ import {
   DollarSign,
   Server,
   MapPin,
+  ShieldCheck,
 } from "lucide-vue-next";
 import { useFmLeaderboardStore } from "@/stores/fmLeaderboard/fmLeaderboard";
 import BaseSelect from "@/components/common/BaseSelect.vue";
+import BaseDatePicker from "@/components/common/BaseDatePicker.vue";
 import { countries } from "@/utils/countries";
 import apiRequest from "@/api/request";
 import urls from "@/api/urls";
@@ -771,6 +874,24 @@ const leverageOptions = [
   { label: "1:1000", value: 1000 },
 ];
 
+const kycStatusOptions = [
+  { label: "Approved", value: "approved" },
+  { label: "Pending", value: "pending" },
+  { label: "Rejected", value: "rejected" },
+];
+
+const yesNoOptions = [
+  { label: "Yes", value: "Yes" },
+  { label: "No", value: "No" },
+];
+
+const channelOptions = [
+  { label: "Manual", value: "Manual" },
+  { label: "Sumsub", value: "Sumsub" },
+  { label: "ShuftiPro", value: "ShuftiPro" },
+  { label: "Other", value: "Other" },
+];
+
 const countryOptions = computed(() => {
   return countries.map((c) => ({
     label: c.label,
@@ -817,14 +938,36 @@ const form = ref({
 
   // Contact / Address
   phone_number: "",
+  date_of_birth: "",
   country: "",
   state: "",
   city: "",
   address: "",
   zip_code: "",
+
+  // KYC
+  verification_channel: "Manual",
+  docs_uploaded: "Yes",
+  doc_approved: "Yes",
+  kyc_status: "approved",
+  kyc_reject_reason: "",
 });
 
 const errors = ref({});
+
+const formatDateForInput = (d) => {
+  if (!d) return "";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
+  try {
+    const date = new Date(d);
+    if (!isNaN(date.getTime())) {
+      return date.toISOString().split("T")[0];
+    }
+  } catch {
+    // ignore
+  }
+  return String(d).slice(0, 10);
+};
 
 const onBrokerShareInput = () => {
   const b = parseFloat(form.value.broker_share);
@@ -901,20 +1044,29 @@ const resetForm = () => {
       email: u.email ?? props.item.email ?? "",
       name: u.name ?? props.item.name ?? "",
       password: "",
-      label_name: props.item.label_name ?? "",
+      label_name: props.item.label_name ?? u.name ?? props.item.name ?? "",
       visibility_type: props.item.visibility_type ?? "public",
-      is_active: props.item.is_active ?? true,
+      is_active: props.item.is_active ?? u.is_active ?? true,
 
-      broker_group: props.item.broker_group ?? "",
-      broker_currency: props.item.broker_currency ?? "USD",
-      broker_leverage: props.item.broker_leverage ?? 100,
+      broker_group:
+        props.item.broker_group ??
+        props.item.coverage_account?.broker_group ??
+        "",
+      broker_currency:
+        props.item.broker_currency ??
+        props.item.coverage_account?.broker_currency ??
+        "USD",
+      broker_leverage:
+        props.item.broker_leverage ??
+        props.item.coverage_account?.broker_leverage ??
+        100,
       group_config_id:
         props.item.group_config_id ??
         props.item.coverage_account?.group_config_id ??
         null,
 
-      min_capital: props.item.min_capital ?? "",
-      performance_fee: props.item.performance_fee ?? "",
+      min_capital: props.item.min_capital ?? 1000,
+      performance_fee: props.item.performance_fee ?? 20,
       fm_share: props.item.fm_share ?? 70,
       broker_share: props.item.broker_share ?? 30,
       ib_pool_percentage: props.item.ib_pool_percentage ?? 10,
@@ -926,11 +1078,20 @@ const resetForm = () => {
       registration_fee: props.item.registration_fee ?? 0,
 
       phone_number: u.phone_number ?? props.item.phone_number ?? "",
+      date_of_birth: u.date_of_birth ? formatDateForInput(u.date_of_birth) : "",
       country: u.country ?? props.item.country ?? "",
       state: u.state ?? props.item.state ?? "",
       city: u.city ?? props.item.city ?? "",
       address: u.address ?? props.item.address ?? "",
       zip_code: u.zip_code ?? props.item.zip_code ?? "",
+
+      verification_channel:
+        u.verification_channel ?? props.item.verification_channel ?? "Manual",
+      docs_uploaded: u.docs_uploaded ?? props.item.docs_uploaded ?? "Yes",
+      doc_approved: u.doc_approved ?? props.item.doc_approved ?? "Yes",
+      kyc_status: u.kyc_status ?? props.item.kyc_status ?? "approved",
+      kyc_reject_reason:
+        u.kyc_reject_reason ?? props.item.kyc_reject_reason ?? "",
     };
   } else {
     // Add mode initial defaults matching new payload schema
@@ -959,11 +1120,18 @@ const resetForm = () => {
       registration_fee: 0,
 
       phone_number: "",
+      date_of_birth: "",
       country: "",
       state: "",
       city: "",
       address: "",
       zip_code: "",
+
+      verification_channel: "Manual",
+      docs_uploaded: "Yes",
+      doc_approved: "Yes",
+      kyc_status: "approved",
+      kyc_reject_reason: "",
     };
   }
   errors.value = {};
@@ -1073,50 +1241,104 @@ const validateForm = () => {
 const handleSubmit = async () => {
   if (!validateForm()) return;
 
-  const payload = {
-    email: form.value.email.trim(),
-    name: form.value.name.trim(),
-    label_name: form.value.label_name?.trim() || form.value.name.trim(),
-    visibility_type: form.value.visibility_type || "public",
-    is_active: Boolean(form.value.is_active),
-
-    broker_group: form.value.broker_group.trim(),
-    broker_currency: form.value.broker_currency || "USD",
-    broker_leverage: Number(form.value.broker_leverage) || 100,
-
-    min_capital: Number(form.value.min_capital) || 0,
-    performance_fee: Number(form.value.performance_fee) || 0,
-    fm_share: Number(form.value.fm_share) || 0,
-    broker_share: Number(form.value.broker_share) || 0,
-    ib_pool_percentage: Number(form.value.ib_pool_percentage) || 0,
-    settlement_type: form.value.settlement_type || "monthly",
-    settlement_time: form.value.settlement_time || "00:00",
-    management_fee: Number(form.value.management_fee) || 0,
-    management_fee_interval: form.value.management_fee_interval || "monthly",
-    registration_fee: Number(form.value.registration_fee) || 0,
-  };
-
-  if (form.value.group_config_id != null && form.value.group_config_id !== "") {
-    payload.group_config_id = Number(form.value.group_config_id);
-  }
-
-  if (form.value.password) {
-    payload.password = form.value.password;
-  }
-
-  if (form.value.phone_number?.trim())
-    payload.phone_number = form.value.phone_number.trim();
-  if (form.value.country?.trim()) payload.country = form.value.country.trim();
-  if (form.value.state?.trim()) payload.state = form.value.state.trim();
-  if (form.value.city?.trim()) payload.city = form.value.city.trim();
-  if (form.value.address?.trim()) payload.address = form.value.address.trim();
-  if (form.value.zip_code?.trim())
-    payload.zip_code = form.value.zip_code.trim();
-
   if (props.mode === "add") {
-    await store.createFundManager(payload);
+    const createPayload = {
+      email: form.value.email.trim(),
+      name: form.value.name.trim(),
+      password: form.value.password,
+      label_name: form.value.label_name?.trim() || form.value.name.trim(),
+      visibility_type: form.value.visibility_type || "public",
+      is_active: Boolean(form.value.is_active),
+
+      broker_group: form.value.broker_group.trim(),
+      broker_currency: form.value.broker_currency || "USD",
+      broker_leverage: Number(form.value.broker_leverage) || 100,
+
+      min_capital: Number(form.value.min_capital) || 0,
+      performance_fee: Number(form.value.performance_fee) || 0,
+      fm_share: Number(form.value.fm_share) || 0,
+      broker_share: Number(form.value.broker_share) || 0,
+      ib_pool_percentage: Number(form.value.ib_pool_percentage) || 0,
+      settlement_type: form.value.settlement_type || "monthly",
+      settlement_time: form.value.settlement_time || "00:00",
+      management_fee: Number(form.value.management_fee) || 0,
+      management_fee_interval: form.value.management_fee_interval || "monthly",
+      registration_fee: Number(form.value.registration_fee) || 0,
+    };
+
+    if (
+      form.value.group_config_id != null &&
+      form.value.group_config_id !== ""
+    ) {
+      createPayload.group_config_id = Number(form.value.group_config_id);
+    }
+    if (form.value.phone_number?.trim())
+      createPayload.phone_number = form.value.phone_number.trim();
+    if (form.value.country?.trim())
+      createPayload.country = form.value.country.trim();
+    if (form.value.state?.trim()) createPayload.state = form.value.state.trim();
+    if (form.value.city?.trim()) createPayload.city = form.value.city.trim();
+    if (form.value.address?.trim())
+      createPayload.address = form.value.address.trim();
+    if (form.value.zip_code?.trim())
+      createPayload.zip_code = form.value.zip_code.trim();
+
+    await store.createFundManager(createPayload);
   } else {
-    await store.editFundManager(props.item.id, payload);
+    // Edit Mode Payload
+    const editPayload = {
+      label_name: form.value.label_name?.trim() || form.value.name.trim(),
+      is_active: Boolean(form.value.is_active),
+      min_capital: Number(form.value.min_capital) || 0,
+      performance_fee: Number(form.value.performance_fee) || 0,
+      fm_share: Number(form.value.fm_share) || 0,
+      broker_share: Number(form.value.broker_share) || 0,
+      ib_pool_percentage: Number(form.value.ib_pool_percentage) || 0,
+      settlement_type: form.value.settlement_type || "monthly",
+      settlement_time: form.value.settlement_time || "00:00",
+      management_fee: Number(form.value.management_fee) || 0,
+      management_fee_interval: form.value.management_fee_interval || "monthly",
+      registration_fee: Number(form.value.registration_fee) || 0,
+      visibility_type: form.value.visibility_type || "public",
+      broker_group: form.value.broker_group.trim(),
+      broker_leverage: Number(form.value.broker_leverage) || 100,
+      broker_currency: form.value.broker_currency || "USD",
+
+      name: form.value.name.trim(),
+      email: form.value.email.trim(),
+      phone_number: form.value.phone_number?.trim() || "",
+      date_of_birth: form.value.date_of_birth || null,
+      country: form.value.country?.trim() || "",
+      state: form.value.state?.trim() || "",
+      city: form.value.city?.trim() || "",
+      address: form.value.address?.trim() || "",
+      zip_code: form.value.zip_code?.trim() || "",
+      verification_channel: form.value.verification_channel || "Manual",
+      docs_uploaded: form.value.docs_uploaded || "Yes",
+      doc_approved: form.value.doc_approved || "Yes",
+      kyc_status: form.value.kyc_status || "approved",
+      kyc_reject_reason:
+        form.value.kyc_status === "rejected"
+          ? form.value.kyc_reject_reason || null
+          : null,
+
+      user: {
+        is_active: Boolean(form.value.is_active),
+      },
+    };
+
+    if (
+      form.value.group_config_id != null &&
+      form.value.group_config_id !== ""
+    ) {
+      editPayload.group_config_id = Number(form.value.group_config_id);
+    }
+
+    if (form.value.password && form.value.password.trim() !== "") {
+      editPayload.password = form.value.password.trim();
+    }
+
+    await store.editFundManager(props.item.id, editPayload);
   }
 
   if (!store.error) {

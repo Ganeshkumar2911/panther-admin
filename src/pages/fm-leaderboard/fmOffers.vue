@@ -319,6 +319,7 @@
       :open="createDialogOpen"
       :edit-offer="editingOffer"
       :fm-id="fmId"
+      :currency="fmInfo?.broker_currency || fmInfo?.currency || fmInfo?.coverage_account?.broker_currency"
       @close="closeCreateDialog"
     />
   </div>

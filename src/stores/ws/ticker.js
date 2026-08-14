@@ -32,19 +32,26 @@ export const useTickerStore = defineStore("tickers", () => {
 
   /* ---------------- Add Symbols ---------------- */
   function updateTickerList(data) {
+    if (!Array.isArray(data) || data.length === 0) return;
     let newSymbols = [];
 
     for (let i = 0; i < data.length; i++) {
-      const symbol = String(data[i]).replace(/[^A-Z0-9]/g, "");
+      const raw = data[i];
+      if (!raw) continue;
+      const symbol = String(raw).replace(/[^A-Z0-9]/gi, "").toUpperCase();
+      if (!symbol) continue;
 
       if (!tickerList.value.includes(symbol)) {
         tickerList.value.push(symbol);
-        newSymbols.push(symbol);
       }
+      newSymbols.push(symbol);
     }
 
-    if (ticker && newSymbols.length > 0) {
-      subscribe(profileStore.user?.user_id, newSymbols);
+    const uniqueSymbols = [...new Set(newSymbols)];
+    const userId = profileStore.user?.user_id || profileStore.user?.id || null;
+
+    if (ticker && isConnected.value && uniqueSymbols.length > 0) {
+      subscribe(userId, uniqueSymbols);
     }
   }
 
@@ -70,6 +77,11 @@ export const useTickerStore = defineStore("tickers", () => {
 
       console.log("WebSocket Connected");
       notificationsStore.fetchMyNotifications();
+
+      if (tickerList.value.length > 0) {
+        const userId = profileStore.user?.user_id || profileStore.user?.id || null;
+        subscribe(userId, tickerList.value);
+      }
     });
 
     ticker.on("disconnect", () => {
@@ -121,8 +133,9 @@ export const useTickerStore = defineStore("tickers", () => {
 
   /* ---------------- Subscribe ---------------- */
   const subscribe = (id, symbols = tickerList.value) => {
-    if (ticker && symbols.length > 0) {
-      ticker.subscribe(symbols, id);
+    const targetUserId = id || profileStore.user?.user_id || profileStore.user?.id || null;
+    if (ticker && symbols && symbols.length > 0) {
+      ticker.subscribe(symbols, targetUserId);
     }
   };
 
