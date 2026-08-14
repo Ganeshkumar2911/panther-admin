@@ -118,7 +118,7 @@ function getRowActions(client) {
         icon: client.is_active ? UserX : UserCheck,
         danger: client.is_active,
         success: !client.is_active,
-      }
+      },
     );
   }
 
@@ -149,6 +149,13 @@ function getRowActions(client) {
 
   return actions;
 }
+
+const chooseBgColor = {
+  live: "bg-green-500/10 text-green-700 border-green-500/20 hover:bg-green-500/20",
+  demo: "bg-yellow-500/10 text-yellow-700 border-yellow-500/20 hover:bg-yellow-500/20",
+  copy_trading:
+    "bg-red-500/10 text-red-700 border-red-500/20 hover:bg-red-500/20",
+};
 
 function onMenuSelect(item, client) {
   switch (item.action) {
@@ -314,7 +321,10 @@ const staffOptions = computed(() => {
 
 const promptAssignStaff = (client, staffId) => {
   if (!hasPermission("client.update")) {
-    snackbar.show("You do not have permission to assign or update staff.", "error");
+    snackbar.show(
+      "You do not have permission to assign or update staff.",
+      "error",
+    );
     return;
   }
 
@@ -775,7 +785,8 @@ onMounted(() => {
             <td class="p-3 whitespace-nowrap" @click.stop>
               <div
                 v-if="
-                  (client.staff_assigned?.name || client.assigned_staff?.name) &&
+                  (client.staff_assigned?.name ||
+                    client.assigned_staff?.name) &&
                   editingStaffClientId !== client.id
                 "
                 class="flex items-center justify-between gap-2 group"
@@ -808,7 +819,10 @@ onMounted(() => {
                   <Pencil class="w-3 h-3" />
                 </button>
               </div>
-              <div v-else-if="hasPermission('client.update')" class="w-44 flex items-center gap-1">
+              <div
+                v-else-if="hasPermission('client.update')"
+                class="w-44 flex items-center gap-1"
+              >
                 <div class="flex-1">
                   <BaseSelect
                     :model-value="
@@ -921,25 +935,26 @@ onMounted(() => {
                 </span>
 
                 <div
-                  v-if="client.account_numbers?.length"
+                  v-if="client.accounts?.length > 0"
                   class="flex flex-wrap gap-1 mb-1 max-h-10 overflow-y-auto"
                 >
                   <span
-                    v-for="num in client.account_numbers"
+                    v-for="num in client.accounts"
                     :key="num"
                     @click="goToTradingAccount(num)"
-                    class="font-mono text-[9px] px-1 py-0.5 rounded bg-background border border-primary-border text-secondary-text cursor-pointer hover:bg-primary-hover/10 hover:text-primary transition-all duration-150"
+                    class="font-mono text-[9px] px-1 py-0.5 rounded-full cursor-pointer transition-all duration-150"
+                    :class="[chooseBgColor[num.account_type]]"
                   >
-                    {{ num }}
+                    {{ num.account_number }}
                   </span>
                 </div>
 
-                <div
+                <!-- <div
                   v-if="client.account_types?.length"
                   class="text-[9px] text-secondary-text capitalize truncate"
                 >
                   {{ client.account_types.join(", ") }}
-                </div>
+                </div> -->
               </div>
             </td>
 
@@ -1158,7 +1173,9 @@ onMounted(() => {
                   }}
                 </div>
                 <p class="font-medium text-primary-text text-xs truncate">
-                  {{ client.staff_assigned?.name || client.assigned_staff?.name }}
+                  {{
+                    client.staff_assigned?.name || client.assigned_staff?.name
+                  }}
                 </p>
               </div>
               <button
@@ -1171,7 +1188,10 @@ onMounted(() => {
                 <Pencil class="w-3 h-3" />
               </button>
             </div>
-            <div v-else-if="hasPermission('client.update')" class="w-full mt-1 flex items-center gap-1">
+            <div
+              v-else-if="hasPermission('client.update')"
+              class="w-full mt-1 flex items-center gap-1"
+            >
               <div class="flex-1">
                 <BaseSelect
                   :model-value="
@@ -1439,7 +1459,9 @@ onMounted(() => {
     <!-- Assign / Reassign Staff Confirmation Dialog -->
     <ConfirmationDialog
       :open="assignDialog.open"
-      :title="assignDialog.isEdit ? 'Reassign Staff Member' : 'Assign Staff Member'"
+      :title="
+        assignDialog.isEdit ? 'Reassign Staff Member' : 'Assign Staff Member'
+      "
       :message="
         assignDialog.isEdit
           ? `Are you sure you want to reassign staff for client '${

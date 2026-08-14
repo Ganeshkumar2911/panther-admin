@@ -15,6 +15,7 @@ const urls = {
   },
   dashboard: {
     list: "/dashboard",
+    accounts: "/live-user-count",
     revenueAnalytics: "/dashboard/revenue-analytics",
   },
   tradingAccounts: {
@@ -265,4 +266,3 @@ const urls = {
 };
 
 export default urls;
-
