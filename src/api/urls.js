@@ -15,6 +15,7 @@ const urls = {
   },
   dashboard: {
     list: "/dashboard",
+    accounts: "/live-user-count",
     revenueAnalytics: "/dashboard/revenue-analytics",
   },
   tradingAccounts: {
@@ -150,6 +151,9 @@ const urls = {
     list: "/payment-requests",
     approve: "/payment-requests/approve/",
     reject: "/payment-requests/reject/",
+  },
+  paymentSettings: {
+    bulkRestrictions: "/clients/transaction-restrictions/bulk",
   },
   emailSettings: {
     details: "/email-settings",
