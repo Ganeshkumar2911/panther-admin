@@ -6,6 +6,7 @@ import { useProfileStore } from "@/stores/profile/profile";
 import { useClientListStore } from "@/stores/clientList/clientList";
 import { useAccountsStore } from "@/stores/tradingAccounts/tradingAccounts";
 import { useNotificationsStore } from "@/stores/notifications/notifications";
+import { useDashboardStore } from "@/stores/dashboard/dashboard";
 
 export const useTickerStore = defineStore("tickers", () => {
   const profileStore = useProfileStore();
@@ -66,6 +67,7 @@ export const useTickerStore = defineStore("tickers", () => {
 
     const accountsStore = useAccountsStore();
     const notificationsStore = useNotificationsStore();
+    const dashboardStore = useDashboardStore();
 
     ticker = new MatrixTicker({
       token: token.value,
@@ -109,6 +111,12 @@ export const useTickerStore = defineStore("tickers", () => {
     ticker.on("new_notification", (data) => {
       if (data) {
         notificationsStore.addNotification(data);
+      }
+    });
+
+    ticker.on("live_user_count_update", (data) => {
+      if (data) {
+        dashboardStore.updateUserAccountsFromSocket(data);
       }
     });
 

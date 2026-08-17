@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from "vue";
-import { ShieldCheck, Users } from "lucide-vue-next";
+import { ShieldCheck, Users, Briefcase, Network } from "lucide-vue-next";
 
 const props = defineProps({
   data: {
@@ -23,24 +23,24 @@ const cards = computed(() => [
   },
   {
     title: "Clients",
-    description: "Client-side users",
-    value: props.data?.clients?.count ?? 0,
+    description: "Active trader clients",
+    value: props.data?.clients?.client ?? 0,
     icon: Users,
-    iconClass: "bg-blue-500/10 text-blue-500",
+    iconClass: "bg-primary-green/10 text-primary-green",
   },
   {
     title: "Fund Managers",
-    description: "Client-side users",
-    value: props.data?.fm?.count ?? 0,
-    icon: Users,
-    iconClass: "bg-blue-500/10 text-blue-500",
+    description: "Fund manager accounts",
+    value: props.data?.clients?.fm ?? 0,
+    icon: Briefcase,
+    iconClass: "bg-primary-blue/10 text-primary-blue",
   },
   {
     title: "Introducing Broker (IB)",
-    description: "Client-side users",
-    value: props.data?.ib?.count ?? 0,
-    icon: Users,
-    iconClass: "bg-blue-500/10 text-blue-500",
+    description: "Partner & IB network",
+    value: props.data?.clients?.ib ?? 0,
+    icon: Network,
+    iconClass: "bg-primary-yellow/10 text-primary-yellow",
   },
 ]);
 </script>
