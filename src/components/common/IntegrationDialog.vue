@@ -42,6 +42,17 @@
             />
           </div>
 
+          <!-- Provider -->
+          <div class="flex flex-col gap-1">
+            <label class="text-secondary-text text-[11px] font-semibold">Provider <span class="text-red-500">*</span></label>
+            <input
+              v-model="form.provider"
+              type="text"
+              class="w-full bg-background border border-primary-border rounded-lg px-3 py-2 text-primary-text text-xs outline-none focus:border-primary transition-colors"
+              placeholder="e.g., https://tenant.domain/webapi/api"
+            />
+          </div>
+
           <!-- API Key -->
           <div class="flex flex-col gap-1">
             <label class="text-secondary-text text-[11px] font-semibold">
@@ -177,7 +188,7 @@ const showApiKey = ref(false)
 
 const form = reactive({
   company_id: 1,
-  provider: 'affiliate',
+  provider: '',
   base_url: '',
   api_key: '',
   report_user_id: '',
@@ -229,7 +240,7 @@ watch(
       } else {
         // Create mode
         form.company_id = 1
-        form.provider = 'affiliate'
+        form.provider = ''
         form.base_url = ''
         form.api_key = ''
         form.report_user_id = ''
