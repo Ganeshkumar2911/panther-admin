@@ -140,7 +140,7 @@
             <Activity class="w-3.5 h-3.5 text-primary" />
           </div>
           <p class="text-xl font-extrabold text-primary-text font-mono">
-            {{ store.summary.total_positions ?? 0 }}
+            {{ store.summary.total_positions ?? store.summary.total_trades ?? 0 }}
           </p>
         </div>
 
@@ -150,7 +150,7 @@
             <Clock class="w-3.5 h-3.5 text-amber-500" />
           </div>
           <p class="text-xl font-extrabold text-amber-500 font-mono">
-            {{ store.summary.open_positions ?? 0 }}
+            {{ store.summary.open_positions ?? store.summary.open_trades ?? 0 }}
           </p>
         </div>
 
@@ -160,7 +160,7 @@
             <CheckCircle2 class="w-3.5 h-3.5 text-emerald-500" />
           </div>
           <p class="text-xl font-extrabold text-primary-text font-mono">
-            {{ store.summary.closed_positions ?? 0 }}
+            {{ store.summary.closed_positions ?? store.summary.closed_trades ?? 0 }}
           </p>
         </div>
 
@@ -173,8 +173,8 @@
             <p class="text-xl font-extrabold text-emerald-500 font-mono">
               {{ store.summary.win_rate != null ? Number(store.summary.win_rate).toFixed(1) + '%' : '-' }}
             </p>
-            <span v-if="store.summary.winning_positions !== undefined" class="text-[10px] font-semibold text-secondary-text">
-              ({{ store.summary.winning_positions }}W/{{ store.summary.losing_positions ?? 0 }}L)
+            <span v-if="store.summary.winning_positions !== undefined || store.summary.winning_trades !== undefined" class="text-[10px] font-semibold text-secondary-text">
+              ({{ store.summary.winning_positions ?? store.summary.winning_trades ?? 0 }}W/{{ store.summary.losing_positions ?? store.summary.losing_trades ?? 0 }}L)
             </span>
           </div>
         </div>
@@ -185,7 +185,7 @@
             <DollarSign class="w-3.5 h-3.5 text-indigo-400" />
           </div>
           <p class="text-xl font-extrabold text-primary-text font-mono">
-            {{ formatLot(store.summary.total_volume) }}
+            {{ formatLot(store.summary.total_volume ?? store.summary.total_lot ?? store.summary.total_lots) }}
             <span class="text-xs font-bold text-secondary-text">Lots</span>
           </p>
         </div>
@@ -243,7 +243,7 @@
             <DollarSign class="w-3.5 h-3.5 text-indigo-400" />
           </div>
           <p class="text-xl font-extrabold text-primary-text font-mono">
-            {{ formatLot(store.summary.total_volume) }}
+            {{ formatLot(store.summary.total_volume ?? store.summary.total_lot ?? store.summary.total_lots) }}
             <span class="text-xs font-bold text-secondary-text">Lots</span>
           </p>
         </div>
@@ -297,7 +297,7 @@
             <DollarSign class="w-3.5 h-3.5 text-indigo-400" />
           </div>
           <p class="text-xl font-extrabold text-primary-text font-mono">
-            {{ formatLot(store.summary.total_volume) }}
+            {{ formatLot(store.summary.total_volume ?? store.summary.total_lot ?? store.summary.total_lots) }}
             <span class="text-xs font-bold text-secondary-text">Lots</span>
           </p>
         </div>
@@ -316,14 +316,14 @@
         <div class="bg-background/60 border border-primary-border/60 rounded-lg p-3.5 transition-all hover:bg-background">
           <div class="flex items-center justify-between text-secondary-text mb-1">
             <span class="text-[10px] uppercase font-bold tracking-wider">Total Profit</span>
-            <TrendingUp v-if="Number(store.summary.total_profit || 0) >= 0" class="w-3.5 h-3.5 text-emerald-500" />
+            <TrendingUp v-if="Number(store.summary.total_profit ?? store.summary.total_pnl ?? 0) >= 0" class="w-3.5 h-3.5 text-emerald-500" />
             <TrendingDown v-else class="w-3.5 h-3.5 text-rose-500" />
           </div>
           <p
             class="text-xl font-extrabold font-mono"
-            :class="Number(store.summary.total_profit || 0) >= 0 ? 'text-emerald-500' : 'text-rose-500'"
+            :class="Number(store.summary.total_profit ?? store.summary.total_pnl ?? 0) >= 0 ? 'text-emerald-500' : 'text-rose-500'"
           >
-            {{ formatPnl(store.summary.total_profit) }}
+            {{ formatPnl(store.summary.total_profit ?? store.summary.total_pnl) }}
           </p>
         </div>
       </div>
@@ -560,7 +560,7 @@
                   </span>
                 </td>
                 <td class="py-3 px-3 text-right font-mono font-bold text-primary-text">
-                  {{ formatLot(item.volume ?? item.lot ?? item.volume_initial ?? item.volume_traded) }}
+                  {{ formatLot(getTradeLot(item)) }}
                 </td>
                 <td class="py-3 px-3 text-right font-mono text-secondary-text">
                   {{ formatPrice(item.price_open ?? item.entry_price ?? item.price_position ?? item.price) }}
@@ -570,7 +570,7 @@
                 </td>
                 <td class="py-3 px-3 text-right font-mono font-bold">
                   <span :class="Number( item.profit ?? item.profit_raw ?? item.pnl ?? getTradePnl(item) ?? 0) >= 0 ? 'text-emerald-500' : 'text-rose-500'">
-                    {{ formatPnl(item.profit ?? item.profit_raw ?? item.pnl ?? getTradePnl(item)) }} {{}}
+                    {{ formatPnl(item.profit ?? item.profit_raw ?? item.pnl ?? getTradePnl(item)) }}
                   </span>
                 </td>
                 <td class="py-3 px-3 text-right font-medium text-secondary-text whitespace-nowrap">
@@ -681,10 +681,10 @@
                   </span>
                 </td>
                 <td class="py-3 px-3 text-right font-mono font-bold text-primary-text">
-                  {{ formatLot(order.volume_initial ?? order.volume) }}
+                  {{ formatLot(getTradeLot(order)) }}
                 </td>
                 <td class="py-3 px-3 text-right font-mono text-secondary-text">
-                  {{ formatLot(order.volume_current ?? order.volume_closed) }}
+                  {{ formatLot(order.volume_current ?? order.volume_closed ?? 0) }}
                 </td>
                 <td class="py-3 px-3 text-right font-mono text-secondary-text">
                   {{ formatPrice(order.price_order ?? order.price) }}
@@ -788,7 +788,7 @@
                   </span>
                 </td>
                 <td class="py-3 px-3 text-right font-mono font-bold text-primary-text">
-                  {{ formatLot(deal.volume ?? deal.volume_raw) }}
+                  {{ formatLot(getTradeLot(deal)) }}
                 </td>
                 <td class="py-3 px-3 text-right font-mono text-secondary-text">
                   {{ formatPrice(deal.price) }}
@@ -1061,10 +1061,55 @@ const formatPrice = (val) => {
   })
 }
 
+const getTradeLot = (item) => {
+  if (!item) return 0
+
+  // 1. Direct lot field
+  if (item.lot !== undefined && item.lot !== null && Number(item.lot) > 0) {
+    const raw = Number(item.lot)
+    return raw >= 100 && Number.isInteger(raw) ? raw / 10000 : raw
+  }
+
+  // 2. Active volume (if > 0)
+  if (item.volume !== undefined && item.volume !== null && Number(item.volume) > 0) {
+    const raw = Number(item.volume)
+    return raw >= 100 && Number.isInteger(raw) ? raw / 10000 : raw
+  }
+
+  // 3. Closed / Traded volume (for closed positions where volume is 0)
+  if (item.volume_closed !== undefined && item.volume_closed !== null && Number(item.volume_closed) > 0) {
+    const raw = Number(item.volume_closed)
+    return raw >= 100 && Number.isInteger(raw) ? raw / 10000 : raw
+  }
+
+  // 4. Initial volume
+  if (item.volume_initial !== undefined && item.volume_initial !== null && Number(item.volume_initial) > 0) {
+    const raw = Number(item.volume_initial)
+    return raw >= 100 && Number.isInteger(raw) ? raw / 10000 : raw
+  }
+
+  // 5. Traded volume
+  if (item.volume_traded !== undefined && item.volume_traded !== null && Number(item.volume_traded) > 0) {
+    const raw = Number(item.volume_traded)
+    return raw >= 100 && Number.isInteger(raw) ? raw / 10000 : raw
+  }
+
+  // 6. Raw volume
+  if (item.volume_raw !== undefined && item.volume_raw !== null && Number(item.volume_raw) > 0) {
+    const raw = Number(item.volume_raw)
+    return raw >= 100 && Number.isInteger(raw) ? raw / 10000 : raw
+  }
+
+  return item.volume ?? item.lot ?? 0
+}
+
 const formatLot = (val) => {
   if (val === null || val === undefined || val === '') return '-'
-  const num = Number(val)
+  let num = Number(val)
   if (isNaN(num)) return '-'
+  if (num >= 100 && Number.isInteger(num)) {
+    num = num / 10000
+  }
   return num.toLocaleString('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 4,

@@ -245,12 +245,17 @@ export const useFmTradeBookStore = defineStore("fmTradeBook", () => {
         isTokenRequired: true,
       });
 
-      const responseData = res?.data || res || {};
-      const items = Array.isArray(responseData.data)
-        ? responseData.data
-        : Array.isArray(responseData)
-        ? responseData
-        : [];
+      // Support both { data: [...], summary: {...} } and { data: { data: [...], summary: {...} } }
+      let items = [];
+      if (Array.isArray(res?.data)) {
+        items = res.data;
+      } else if (Array.isArray(res?.data?.data)) {
+        items = res.data.data;
+      } else if (Array.isArray(res)) {
+        items = res;
+      } else if (Array.isArray(res?.items)) {
+        items = res.items;
+      }
 
       if (mode.value === "fm") {
         positions.value = items;
@@ -273,33 +278,46 @@ export const useFmTradeBookStore = defineStore("fmTradeBook", () => {
         }
       }
 
-      // Summary from API
-      if (responseData.summary) {
+      // Extract summary from root res or nested res.data
+      const summaryData = res?.summary || res?.data?.summary || null;
+      if (summaryData) {
         summary.value = {
-          ...summary.value,
-          ...responseData.summary,
+          ...summaryData,
         };
+      } else {
+        summary.value = {};
       }
 
-      // Pagination from API
-      if (responseData.pagination) {
+      // Extract pagination from root res or nested res.data
+      const paginationData = res?.pagination || res?.data?.pagination || null;
+      if (paginationData) {
         pagination.value = {
-          page: responseData.pagination.page || 1,
-          per_page: responseData.pagination.per_page || 20,
-          total_items: responseData.pagination.total_items ?? items.length,
-          total_pages: responseData.pagination.total_pages || 1,
-          has_next: responseData.pagination.has_next || false,
-          has_prev: responseData.pagination.has_prev || false,
+          page: paginationData.page || 1,
+          per_page: paginationData.per_page || 20,
+          total_items: paginationData.total_items ?? items.length,
+          total_pages: paginationData.total_pages || 1,
+          has_next: paginationData.has_next || false,
+          has_prev: paginationData.has_prev || false,
+        };
+      } else {
+        pagination.value = {
+          page: 1,
+          per_page: 20,
+          total_items: items.length,
+          total_pages: 1,
+          has_next: false,
+          has_prev: false,
         };
       }
 
-      // Sort from API
-      if (responseData.sort) {
-        if (responseData.sort.sort_by) {
-          filters.sort_by = responseData.sort.sort_by;
+      // Extract sort options
+      const sortData = res?.sort || res?.data?.sort || null;
+      if (sortData) {
+        if (sortData.sort_by) {
+          filters.sort_by = sortData.sort_by;
         }
-        if (responseData.sort.sort_order) {
-          filters.sort_order = responseData.sort.sort_order;
+        if (sortData.sort_order) {
+          filters.sort_order = sortData.sort_order;
         }
       }
     } catch (err) {
@@ -318,6 +336,7 @@ export const useFmTradeBookStore = defineStore("fmTradeBook", () => {
   const setActiveTab = (tab) => {
     if (activeTab.value === tab) return;
     activeTab.value = tab;
+    summary.value = {};
     pagination.value.page = 1;
     filters.status = "";
     filters.type = "";

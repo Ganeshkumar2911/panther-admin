@@ -280,7 +280,7 @@
               <!-- Action -->
               <td class="py-4 px-4 text-right whitespace-nowrap">
                 <div class="flex items-center justify-end gap-1.5">
-                  <Tooltip text="Trade Book">
+                  <Tooltip text="Trade Book" position="right">
                     <button
                       class="flex items-center gap-1.5 px-1.5 py-1.5 rounded-lg text-[11px] font-semibold border bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-colors cursor-pointer"
                       @click="goToTradeBook(row)"
@@ -289,7 +289,7 @@
                     </button>
                   </Tooltip>
 
-                  <Tooltip text="Edit Follower Settings">
+                  <Tooltip text="Edit Follower Settings" position="right">
                     <button
                       class="p-1.5 rounded-lg border border-primary-border hover:bg-background text-secondary-text hover:text-primary-text transition-colors cursor-pointer inline-flex items-center gap-1 text-xs font-semibold"
                       @click="openEditFollowerDialog(row)"
@@ -298,7 +298,7 @@
                     </button>
                   </Tooltip>
 
-                  <Tooltip text="View Follower Details">
+                  <Tooltip text="View Follower Details" position="right">
                     <button
                       class="p-1.5 rounded-lg border border-primary-border hover:bg-background text-secondary-text hover:text-primary transition-colors cursor-pointer inline-flex items-center gap-1 text-xs font-semibold"
                       @click="router.push(`/follower-info/${row.id || row.account_id}`)"
