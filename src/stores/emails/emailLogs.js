@@ -77,22 +77,20 @@ export const useEmailLogsStore = defineStore("emailLogs", () => {
   // ─────────────────────────────────────
 
   const eventOptions = [
+    { label: "Blocked", value: "blocked" },
+    { label: "Bounces", value: "bounces" },
+    { label: "Clicks", value: "clicks" },
+    { label: "Deferred", value: "deferred" },
     { label: "Delivered", value: "delivered" },
-    // { label: "Clicks", value: "clicks" },
+    { label: "Error", value: "error" },
+    { label: "Hard Bounces", value: "hardBounces" },
+    { label: "Invalid", value: "invalid" },
+    { label: "Loaded By Proxy", value: "loadedByProxy" },
     { label: "Opened", value: "opened" },
-    // { label: "Spam", value: "spam" },
-    // { label: "Requests", value: "requests" },
-    // { label: "Failed", value: "failed" },
-    // { label: "Soft Bounced", value: "soft_bounced" },
-    // { label: "Bounced", value: "bounced" },
-    // { label: "Hard Bounced", value: "hard_bounced" },
-    // { label: "Loaded By Proxy", value: "loaded_by_proxy" },
-    // { label: "Error", value: "error" },
-    // { label: "Unsubscribed", value: "unsubscribed" },
-    // { label: "Blocked", value: "blocked" },
-    // { label: "Deferred", value: "deferred" },
-    // { label: "Invalid Email", value: "invalid_email" },
-    // { label: "Complaint", value: "complaint" },
+    { label: "Requests", value: "requests" },
+    { label: "Soft Bounces", value: "softBounces" },
+    { label: "Spam", value: "spam" },
+    { label: "Unsubscribed", value: "unsubscribed" },
   ];
 
   const dayOptions = [
@@ -111,8 +109,8 @@ export const useEmailLogsStore = defineStore("emailLogs", () => {
       Object.entries({
         email: filters.email,
         event: filters.event,
-        startDate: filters.startDate,
-        endDate: filters.endDate,
+        start_date: filters.startDate,
+        end_date: filters.endDate,
         tags: filters.tags === "ALL" ? null : filters.tags,
         days:
           filters.days !== null && filters.days !== undefined
@@ -269,6 +267,11 @@ export const useEmailLogsStore = defineStore("emailLogs", () => {
     }));
   };
 
+  const templateTags = ref([]);
+  const isLoadingTemplateTags = ref(false);
+  const clientEmails = ref([]);
+  const isLoadingClientEmails = ref(false);
+
   const fetchTags = async (query = "", force = false) => {
     isLoadingTags.value = true;
 
@@ -293,6 +296,58 @@ export const useEmailLogsStore = defineStore("emailLogs", () => {
       onSuccess: successHandler,
 
       onFailure: failureHandler,
+    });
+  };
+
+  // Fetch Template Codes for Tags Dropdown (/email-templates)
+  const fetchTemplateTags = async () => {
+    isLoadingTemplateTags.value = true;
+    apiRequest(urls.KEYS.GET, urls.emailTemplates.list, {
+      isTokenRequired: true,
+      params: { page: 1, per_page: 100 },
+      onSuccess: (res) => {
+        const list = res?.data || res?.templates || res?.results || [];
+        templateTags.value = list
+          .filter((t) => t && t.code)
+          .map((t) => ({
+            label: t.code,
+            value: t.code,
+          }));
+        isLoadingTemplateTags.value = false;
+      },
+      onFailure: () => {
+        isLoadingTemplateTags.value = false;
+      },
+    });
+  };
+
+  // Fetch Client Emails for Email Dropdown (/client-list)
+  const fetchClientEmails = async (searchQuery = "") => {
+    isLoadingClientEmails.value = true;
+    const params = {
+      page: 1,
+      per_page: 50,
+    };
+    if (searchQuery && String(searchQuery).trim()) {
+      params.search = String(searchQuery).trim();
+    }
+
+    apiRequest(urls.KEYS.GET, urls.clientList.list, {
+      isTokenRequired: true,
+      params,
+      onSuccess: (res) => {
+        const list = res?.data || res?.results || res?.clients || [];
+        clientEmails.value = list
+          .filter((c) => c && c.email)
+          .map((c) => ({
+            label: c.email,
+            value: c.email,
+          }));
+        isLoadingClientEmails.value = false;
+      },
+      onFailure: () => {
+        isLoadingClientEmails.value = false;
+      },
     });
   };
 
@@ -580,6 +635,12 @@ export const useEmailLogsStore = defineStore("emailLogs", () => {
     tags,
     isLoadingTags,
     fetchTags,
+    templateTags,
+    isLoadingTemplateTags,
+    fetchTemplateTags,
+    clientEmails,
+    isLoadingClientEmails,
+    fetchClientEmails,
 
     // Log detail state
     logDetails,
