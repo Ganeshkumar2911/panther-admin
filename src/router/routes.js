@@ -488,6 +488,17 @@ const routes = [
             "Manage dynamic resources, actions, and permissions mappings.",
         },
       },
+      {
+        path: "/settings",
+        name: "settings",
+        component: () => import("@/pages/settings/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Settings",
+          description:
+            "Manage Settings",
+        },
+      },
     ],
   },
 ];

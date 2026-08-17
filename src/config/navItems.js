@@ -188,4 +188,12 @@ export const navItems = [
     icon: Layers,
     permission: ["xtention_dev.view"],
   },
+  {
+    label: "Settings",
+    to: "/settings",
+    icon: Settings,
+    permission: [
+      "xtention_dev.view",
+    ],
+  },
 ];
