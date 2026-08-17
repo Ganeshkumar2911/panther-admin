@@ -248,6 +248,7 @@
                 <input
                   v-model="form.broker_group"
                   type="text"
+                  disabled
                   placeholder="e.g. real\FM or PCL\RAW"
                   class="bg-background border rounded-xl px-3.5 py-2.5 text-xs text-primary-text font-mono outline-none transition-colors"
                   :class="
@@ -290,6 +291,7 @@
                 <BaseSelect
                   :modelValue="form.broker_leverage"
                   :options="leverageOptions"
+                  :disabled="true"
                   placeholder="Select leverage"
                   @update:modelValue="form.broker_leverage = $event"
                 />
@@ -301,7 +303,7 @@
               </div>
 
               <!-- Group Config ID (Optional) -->
-              <div class="flex flex-col gap-1.5">
+              <!-- <div class="flex flex-col gap-1.5">
                 <label class="text-xs font-semibold text-secondary-text">
                   Group Config ID
                   <span class="text-[11px] font-normal text-secondary-text"
@@ -314,7 +316,7 @@
                   placeholder="e.g. 1"
                   class="bg-background border border-primary-border focus:border-primary rounded-xl px-3.5 py-2.5 text-xs text-primary-text font-mono outline-none transition-colors"
                 />
-              </div>
+              </div> -->
             </div>
           </div>
 
@@ -843,14 +845,15 @@ const groupsLoading = ref(false);
 const selectedGroupValue = ref("");
 
 const settlementOptions = [
-  { label: "Monthly", value: "monthly" },
-  { label: "Weekly", value: "weekly" },
   { label: "Daily", value: "daily" },
+  { label: "Weekly", value: "weekly" },
+  { label: "Monthly", value: "monthly" },
 ];
 
 const intervalOptions = [
-  { label: "Monthly", value: "monthly" },
+  { label: "Daily", value: "daily" },
   { label: "Weekly", value: "weekly" },
+  { label: "Monthly", value: "monthly" },
   { label: "Quarterly", value: "quarterly" },
   { label: "Yearly", value: "yearly" },
 ];

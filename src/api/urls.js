@@ -152,6 +152,9 @@ const urls = {
     approve: "/payment-requests/approve/",
     reject: "/payment-requests/reject/",
   },
+  paymentSettings: {
+    bulkRestrictions: "/clients/transaction-restrictions/bulk",
+  },
   emailSettings: {
     details: "/email-settings",
     update: "/email-settings",
