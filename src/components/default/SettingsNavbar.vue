@@ -2,14 +2,14 @@
   <div class="w-full">
     <!-- Submodule Navigation Bar -->
     <div
-      class="flex items-center gap-1.5 p-1.5 bg-card-background/70 backdrop-blur-md border border-primary-border rounded-2xl overflow-x-auto no-scrollbar shadow-xs"
+      class="flex items-center gap-1.5 p-1.5 bg-card-background/70 backdrop-blur-md border border-primary-border rounded-xl overflow-x-auto no-scrollbar shadow-xs"
     >
       <button
         v-for="tab in visibleTabs"
         :key="tab.value"
         type="button"
         @click="selectTab(tab.value)"
-        class="group relative flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer shrink-0 outline-none select-none"
+        class="group relative flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer shrink-0 outline-none select-none"
         :class="[
           modelValue === tab.value
             ? 'bg-primary text-white shadow-xs'
@@ -51,13 +51,13 @@
 
 <script setup>
 import { computed, watch } from "vue";
-import { CreditCard } from "lucide-vue-next";
+import { SlidersHorizontal } from "lucide-vue-next";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 
 const props = defineProps({
   modelValue: {
     type: String,
-    default: "payment-settings",
+    default: "transaction-settings",
   },
   customTabs: {
     type: Array,
@@ -72,14 +72,13 @@ const { hasPermission } = usePermissionCheck();
 // Built-in default settings submodule definitions
 const defaultSettingsTabs = [
   {
-    label: "Payment Settings",
-    value: "payment-settings",
-    icon: CreditCard,
-    description: "Payment methods, deposit & withdrawal limits and gateway rules",
+    label: "Transaction Settings",
+    value: "transaction-settings",
+    icon: SlidersHorizontal,
+    description: "Deposit, withdrawal, and internal transfer restrictions",
     permission: [
-      "payment_methods.view",
-      "payment_methods.create",
-      "payment_methods.update",
+      "system_setting.manager_transection_setting",
+      "system_setting.view",
       "xtention_dev.view",
     ],
   },

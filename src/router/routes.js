@@ -494,9 +494,9 @@ const routes = [
         component: () => import("@/pages/settings/index.vue"),
         meta: {
           requiresAuth: true,
-          title: "Settings",
+          title: "System Settings",
           description:
-            "Manage Settings",
+            "Configure system-wide settings, transaction restrictions, and miscellaneous platform settings.",
         },
       },
     ],

@@ -1,14 +1,5 @@
 <template>
   <div class="px-4 pb-8 space-y-6">
-    <!-- Header / Banner -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-      <div>
-        <h1 class="text-xl sm:text-2xl font-bold text-primary-text tracking-tight">System Settings</h1>
-        <p class="text-xs text-secondary-text mt-1">
-          Manage system configurations, payment channels, and platform preferences.
-        </p>
-      </div>
-    </div>
 
     <!-- Default Submodule Navbar -->
     <SettingsNavbar
@@ -27,9 +18,9 @@
     <!-- No Permissions Fallback -->
     <div
       v-else
-      class="flex flex-col items-center justify-center p-12 bg-card-background/40 border border-primary-border rounded-2xl text-center min-h-[400px] gap-3"
+      class="flex flex-col items-center justify-center p-12 bg-card-background/40 border border-primary-border rounded-lg text-center min-h-[400px] gap-3"
     >
-      <div class="w-14 h-14 rounded-2xl bg-card-background border border-primary-border flex items-center justify-center text-secondary-text">
+      <div class="w-14 h-14 rounded-lg bg-card-background border border-primary-border flex items-center justify-center text-secondary-text">
         <ShieldAlert class="w-6 h-6 text-primary-red" />
       </div>
       <h3 class="text-sm font-bold text-primary-text">Access Restricted</h3>
@@ -47,13 +38,17 @@ import { ShieldAlert } from "lucide-vue-next";
 import SettingsNavbar from "@/components/default/SettingsNavbar.vue";
 
 // Submodule Tab Components
-import PaymentSettingsTab from "./tabs/PaymentSettingsTab.vue";
+import TransactionSettingsTab from "./tabs/TransactionSettingsTab.vue";
 
 const route = useRoute();
 const router = useRouter();
 
 const allowedTabs = ref([]);
-const activeTab = ref(route.query.tab || "payment-settings");
+const activeTab = ref(
+  route.query.tab === "payment-settings"
+    ? "transaction-settings"
+    : route.query.tab || "transaction-settings"
+);
 
 const hasAnyAllowedTab = computed(() => allowedTabs.value.length > 0);
 
@@ -72,9 +67,12 @@ const handleTabChange = (tabValue) => {
 watch(
   () => route.query.tab,
   (tab) => {
-    if (typeof tab === "string" && tab !== activeTab.value) {
-      if (allowedTabs.value.length === 0 || allowedTabs.value.some((t) => t.value === tab)) {
-        activeTab.value = tab;
+    if (typeof tab === "string") {
+      const normalizedTab = tab === "payment-settings" ? "transaction-settings" : tab;
+      if (normalizedTab !== activeTab.value) {
+        if (allowedTabs.value.length === 0 || allowedTabs.value.some((t) => t.value === normalizedTab)) {
+          activeTab.value = normalizedTab;
+        }
       }
     }
   }
@@ -89,14 +87,14 @@ watch(
   }
 );
 
-// Map active tab to component
+// Map active tab to component (extensible for future settings submodules)
+const tabComponentsMap = {
+  "transaction-settings": TransactionSettingsTab,
+  "payment-settings": TransactionSettingsTab,
+};
+
 const activeComponent = computed(() => {
-  switch (activeTab.value) {
-    case "payment-settings":
-      return PaymentSettingsTab;
-    default:
-      return PaymentSettingsTab;
-  }
+  return tabComponentsMap[activeTab.value] || TransactionSettingsTab;
 });
 </script>
 

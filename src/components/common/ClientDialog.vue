@@ -240,75 +240,6 @@
               placeholder="Zip Code"
             />
           </div>
-
-          <div class="flex flex-col gap-4 items-start">
-            <label class="text-secondary-text text-[11px] font-medium"
-              >Payment Settings</label
-            >
-            <div class="flex items-center gap-4">
-              <Tooltip position="right" text="Restrict Deposit">
-                <button
-                  class="relative w-9 h-5 rounded-full transition-colors duration-200 cursor-pointer"
-                  :class="
-                    form.restrict_deposit
-                      ? 'bg-primary'
-                      : 'border border-primary-border bg-background'
-                  "
-                  @click="form.restrict_deposit = !form.restrict_deposit"
-                >
-                  <span
-                    class="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200"
-                    :class="
-                      form.restrict_deposit ? 'translate-x-4' : 'translate-x-0'
-                    "
-                  />
-                </button>
-              </Tooltip>
-              <Tooltip position="right" text="Restrict Internal Deposit">
-                <button
-                  class="relative w-9 h-5 rounded-full transition-colors duration-200 cursor-pointer"
-                  :class="
-                    form.restrict_internal_transfer
-                      ? 'bg-primary'
-                      : 'border border-primary-border bg-background'
-                  "
-                  @click="
-                    form.restrict_internal_transfer =
-                      !form.restrict_internal_transfer
-                  "
-                >
-                  <span
-                    class="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200"
-                    :class="
-                      form.restrict_internal_transfer
-                        ? 'translate-x-4'
-                        : 'translate-x-0'
-                    "
-                  />
-                </button>
-              </Tooltip>
-              <Tooltip position="right" text="Restrict Withdrawal">
-                <button
-                  class="relative w-9 h-5 rounded-full transition-colors duration-200 cursor-pointer"
-                  :class="
-                    form.restrict_withdrawal
-                      ? 'bg-primary'
-                      : 'border border-primary-border bg-background'
-                  "
-                  @click="form.restrict_withdrawal = !form.restrict_withdrawal"
-                >
-                  <span
-                    class="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200"
-                    :class="
-                      form.restrict_withdrawal
-                        ? 'translate-x-4'
-                        : 'translate-x-0'
-                    "
-                  />
-                </button>
-              </Tooltip>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -352,7 +283,6 @@ import urls from "@/api/urls";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import { countries } from "@/utils/countries";
-import Tooltip from "@/components/common/Tooltip.vue";
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -382,9 +312,6 @@ const form = ref({
   state: "",
   zip_code: "",
   country: "",
-  restrict_deposit: false,
-  restrict_internal_transfer: false,
-  restrict_withdrawal: false,
 });
 
 const isValid = computed(() => {
@@ -433,11 +360,6 @@ watch(
         form.value.state = props.client.state ?? "";
         form.value.zip_code = props.client.zip_code ?? "";
         form.value.country = props.client.country ?? "";
-        form.value.restrict_deposit = props.client.restrict_deposit ?? false;
-        form.value.restrict_internal_transfer =
-          props.client.restrict_internal_transfer ?? false;
-        form.value.restrict_withdrawal =
-          props.client.restrict_withdrawal ?? false;
       } else {
         // Create mode
         form.value.name = "";
@@ -453,9 +375,6 @@ watch(
         form.value.state = "";
         form.value.zip_code = "";
         form.value.country = "";
-        form.value.restrict_deposit = false;
-        form.value.restrict_internal_transfer = false;
-        form.value.restrict_withdrawal = false;
       }
       newIbOptions.value = [];
       searchLoading.value = false;
@@ -513,28 +432,55 @@ const handleSubmit = () => {
   if (!isValid.value) return;
   isSubmitting.value = true;
 
-  const payload = {
-    name: form.value.name.trim(),
-    email: form.value.email.trim(),
-    phone_number: form.value.phone_number?.trim() || null,
-    date_of_birth: form.value.date_of_birth || null,
-    kyc_status: form.value.kyc_status,
-    address: form.value.address?.trim() || null,
-    city: form.value.city?.trim() || null,
-    state: form.value.state?.trim() || null,
-    zip_code: form.value.zip_code?.trim() || null,
-    country: form.value.country || null,
-    restrict_deposit: form.value.restrict_deposit,
-    restrict_internal_transfer: form.value.restrict_internal_transfer,
-    restrict_withdrawal: form.value.restrict_withdrawal,
-  };
-
   if (isEditMode.value) {
-    const editPayload = {
-      ...payload,
-      tracking_id: form.value.tracking_id?.trim() || null,
-    };
-    apiRequest(urls.KEYS.PUT, urls.clientList.update, {
+    const editPayload = {};
+    const cleanStr = (val) =>
+      val === null || val === undefined ? "" : String(val).trim();
+
+    if (form.value.name.trim() !== cleanStr(props.client.name)) {
+      editPayload.name = form.value.name.trim();
+    }
+    if (form.value.email.trim() !== cleanStr(props.client.email)) {
+      editPayload.email = form.value.email.trim();
+    }
+    if (cleanStr(form.value.phone_number) !== cleanStr(props.client.phone_number)) {
+      editPayload.phone_number = form.value.phone_number?.trim() || null;
+    }
+    if (cleanStr(form.value.tracking_id) !== cleanStr(props.client.tracking_id)) {
+      editPayload.tracking_id = form.value.tracking_id?.trim() || null;
+    }
+    if (form.value.kyc_status !== (props.client.kyc_status ?? "pending")) {
+      editPayload.kyc_status = form.value.kyc_status;
+    }
+    if (cleanStr(form.value.country) !== cleanStr(props.client.country)) {
+      editPayload.country = form.value.country || null;
+    }
+    if (
+      form.value.date_of_birth !== formatDateForInput(props.client.date_of_birth)
+    ) {
+      editPayload.date_of_birth = form.value.date_of_birth || null;
+    }
+    if (cleanStr(form.value.address) !== cleanStr(props.client.address)) {
+      editPayload.address = form.value.address?.trim() || null;
+    }
+    if (cleanStr(form.value.city) !== cleanStr(props.client.city)) {
+      editPayload.city = form.value.city?.trim() || null;
+    }
+    if (cleanStr(form.value.state) !== cleanStr(props.client.state)) {
+      editPayload.state = form.value.state?.trim() || null;
+    }
+    if (cleanStr(form.value.zip_code) !== cleanStr(props.client.zip_code)) {
+      editPayload.zip_code = form.value.zip_code?.trim() || null;
+    }
+
+    if (Object.keys(editPayload).length === 0) {
+      snackbar.show("No changes detected.", "info");
+      isSubmitting.value = false;
+      closeDialog();
+      return;
+    }
+
+    apiRequest(urls.KEYS.PATCH, urls.clientList.update, {
       look_up_key: props.client.id,
       data: editPayload,
       isTokenRequired: true,
@@ -554,7 +500,16 @@ const handleSubmit = () => {
     });
   } else {
     const createPayload = {
-      ...payload,
+      name: form.value.name.trim(),
+      email: form.value.email.trim(),
+      phone_number: form.value.phone_number?.trim() || null,
+      date_of_birth: form.value.date_of_birth || null,
+      kyc_status: form.value.kyc_status,
+      address: form.value.address?.trim() || null,
+      city: form.value.city?.trim() || null,
+      state: form.value.state?.trim() || null,
+      zip_code: form.value.zip_code?.trim() || null,
+      country: form.value.country || null,
       ib_user_id: form.value.ib_user_id,
       password: form.value.password.trim(),
     };
