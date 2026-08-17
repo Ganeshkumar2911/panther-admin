@@ -75,22 +75,6 @@ const urls = {
   auditLogs: {
     list: "/audit-logs",
   },
-  referralLinks: {
-    list: "/ibs/referral-links",
-    create: "/ibs/referral-links",
-    update: "/referral-links",
-  },
-  auditLogs: {
-    list: "/audit-logs",
-  },
-  referralLinks: {
-    list: "/ibs/referral-links",
-    create: "/ibs/referral-links",
-    update: "/referral-links",
-  },
-  auditLogs: {
-    list: "/audit-logs",
-  },
   fm: {
     list: "/fund_managers",
     create: "/fund_managers/create",
@@ -100,6 +84,26 @@ const urls = {
     rejectRequest: "/fm/requests/reject",
     settlementPreview: "/settlement/preview",
     settlementRun: "/settlement/run",
+    offers: "/fund_managers/offers",
+    followers: "/fund_managers/followers",
+    followersDetails: "fund_managers/followers/info/",
+    editFollower: "/fund_managers/followers/edit",
+    offerJoinLinks: "/fund_managers/offers/join-links",
+    offerAgents: "/fund_managers/offers/agents",
+  },
+  tradeBook: {
+    filters: "/trade-book/filters",
+    followerDetails: "/trade-book/followers/",
+    masterTrades: "/trade-book/master-trades",
+    positions: "/trade-book/positions",
+    orders: "/trade-book/orders",
+    deals: "/trade-book/deals",
+  },
+  fmOffers: {
+    list: "/offers",
+    create: "/offers",
+    joinLinks: "/offers/join-links",
+    agents: "/offers/agents",
   },
   settlements: {
     list: "/settlements",
