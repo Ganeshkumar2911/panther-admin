@@ -102,13 +102,19 @@ function getRowActions(client) {
   const actions = [];
 
   if (hasPermission("client.update")) {
+    actions.push({ action: "edit", label: "Edit Client", icon: Pencil });
+  }
+
+  if (hasPermission("system_setting.manager_transection_setting")) {
+    actions.push({
+      action: "manageTransactions",
+      label: "Manage Transactions",
+      icon: SlidersHorizontal,
+    });
+  }
+
+  if (hasPermission("client.update")) {
     actions.push(
-      { action: "edit", label: "Edit Client", icon: Pencil },
-      {
-        action: "manageTransactions",
-        label: "Manage Transactions",
-        icon: SlidersHorizontal,
-      },
       { action: "changeIB", label: "Change IB", icon: UserPen },
       {
         action: "makeIB",
