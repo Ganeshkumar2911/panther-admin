@@ -14,6 +14,7 @@ import {
   Pencil,
   Power,
   Layers,
+  SlidersHorizontal,
 } from "lucide-vue-next";
 import Pagination from "@/components/common/Pagination.vue";
 import DropdownMenu from "@/components/common/DropdownMenu.vue";
@@ -22,6 +23,7 @@ import DepositWithdrawalDialog from "@/components/trading-accounts/DepositWithdr
 import AddEditAccount from "@/components/trading-accounts/AddEditAccount.vue";
 import ToggleTradingDialog from "@/components/trading-accounts/ToggleTradingDialog.vue";
 import ChangeTradingGroupDrawer from "@/components/trading-accounts/ChangeTradingGroupDrawer.vue";
+import ManageTransactionsDialog from "@/components/common/ManageTransactionsDialog.vue";
 import { useAccountsStore } from "@/stores/tradingAccounts/tradingAccounts";
 import { useProfileStore } from "@/stores/profile/profile";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
@@ -78,6 +80,11 @@ const toggleTradingDialog = ref({
 });
 
 const changeGroupDrawer = ref({
+  open: false,
+  account: null,
+});
+
+const manageTransactionsDialog = ref({
   open: false,
   account: null,
 });
@@ -266,6 +273,20 @@ const closeChangeGroup = () => {
   };
 };
 
+const openManageTransactions = (acc) => {
+  manageTransactionsDialog.value = {
+    open: true,
+    account: acc,
+  };
+};
+
+const closeManageTransactions = () => {
+  manageTransactionsDialog.value = {
+    open: false,
+    account: null,
+  };
+};
+
 const formatNum = (val) =>
   Number(val ?? 0).toLocaleString("en-US", {
     minimumFractionDigits: 2,
@@ -339,6 +360,11 @@ function getRowActions(acc) {
       { action: "deposit", label: "Deposit", icon: DollarSign },
       { action: "withdraw", label: "Withdraw", icon: ArrowDownUp },
       {
+        action: "manageRestrictions",
+        label: "Manage Restrictions",
+        icon: SlidersHorizontal,
+      },
+      {
         action: "changePassword",
         label: "Change Password",
         icon: RotateCcwKey,
@@ -391,6 +417,10 @@ function onMenuSelect(item, acc) {
     case "withdraw":
       setActiveCurrency(acc);
       openDepositWithdrawalDialog(acc, "withdrawal");
+      break;
+    case "manageRestrictions":
+      setActiveCurrency(acc);
+      openManageTransactions(acc);
       break;
     case "changePassword":
       setActiveCurrency(acc);
@@ -938,6 +968,13 @@ onBeforeUnmount(() => clearTimeout(searchTimer));
       :account="changeGroupDrawer.account"
       @close="closeChangeGroup"
       @updated="store.fetchAccounts()"
+    />
+
+    <ManageTransactionsDialog
+      :open="manageTransactionsDialog.open"
+      :account="manageTransactionsDialog.account"
+      @close="closeManageTransactions"
+      @success="store.fetchAccounts(true)"
     />
   </div>
 </template>

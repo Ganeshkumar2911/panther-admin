@@ -20,7 +20,11 @@
           </div>
           <div>
             <h2 class="text-sm font-semibold text-primary-text">
-              Manage Transaction Restrictions
+              {{
+                isAccountMode
+                  ? "Trading Account Restrictions"
+                  : "Manage Transaction Restrictions"
+              }}
             </h2>
             <p class="text-[11px] text-secondary-text mt-0.5">
               Configure deposit, transfer, and withdrawal restrictions
@@ -37,7 +41,7 @@
 
       <!-- Body -->
       <div class="p-6 space-y-5 bg-card-background max-h-[calc(85vh-130px)] overflow-y-auto">
-        <!-- Client Reference Card -->
+        <!-- Reference Card (Client or Account) -->
         <div
           class="bg-background border border-primary-border rounded-xl p-3.5 flex items-center justify-between gap-3"
         >
@@ -45,21 +49,47 @@
             <div
               class="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-xs font-semibold text-white shrink-0"
             >
-              {{ client.name ? client.name.charAt(0).toUpperCase() : "C" }}
+              <Wallet v-if="isAccountMode" class="w-4 h-4" />
+              <span v-else>{{ initialLetter }}</span>
             </div>
             <div class="min-w-0">
-              <div class="flex items-center gap-2">
-                <p class="text-xs font-semibold text-primary-text truncate">
-                  {{ client.name || "—" }}
-                </p>
-                <span
-                  class="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 font-mono font-medium"
-                >
-                  ID: {{ client.id }}
-                </span>
+              <div class="flex items-center gap-2 flex-wrap">
+                <template v-if="isAccountMode">
+                  <p class="text-xs font-semibold text-primary-text font-mono truncate">
+                    #{{ accountNumber || "—" }}
+                  </p>
+                  <span
+                    v-if="accountId"
+                    class="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 font-mono font-medium"
+                  >
+                    ID: {{ accountId }}
+                  </span>
+                  <span
+                    v-if="account?.trading_type"
+                    class="text-[10px] px-1.5 py-0.5 rounded bg-card-background text-secondary-text capitalize font-medium"
+                  >
+                    {{ account.trading_type }}
+                  </span>
+                </template>
+                <template v-else>
+                  <p class="text-xs font-semibold text-primary-text truncate">
+                    {{ clientName }}
+                  </p>
+                  <span
+                    v-if="client?.id"
+                    class="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 font-mono font-medium"
+                  >
+                    ID: {{ client.id }}
+                  </span>
+                </template>
               </div>
               <p class="text-[11px] text-secondary-text truncate mt-0.5">
-                {{ client.email || "—" }}
+                <template v-if="isAccountMode">
+                  {{ clientName !== "—" ? `${clientName} • ` : "" }}{{ clientEmail || (account?.broker ? `${account.broker} (${account.broker_currency || account.currency || 'USD'})` : "—") }}
+                </template>
+                <template v-else>
+                  {{ clientEmail || "—" }}
+                </template>
               </p>
             </div>
           </div>
@@ -125,7 +155,11 @@
                   </span>
                 </div>
                 <p class="text-[11px] text-secondary-text leading-relaxed">
-                  Block the client from depositing funds into their accounts.
+                  {{
+                    isAccountMode
+                      ? "Block deposits into this trading account."
+                      : "Block the client from depositing funds into their accounts."
+                  }}
                 </p>
               </div>
             </div>
@@ -197,7 +231,11 @@
                   </span>
                 </div>
                 <p class="text-[11px] text-secondary-text leading-relaxed">
-                  Block internal wallet transfers and balance movements between accounts.
+                  {{
+                    isAccountMode
+                      ? "Block internal transfers and balance movements to/from this trading account."
+                      : "Block internal wallet transfers and balance movements between accounts."
+                  }}
                 </p>
               </div>
             </div>
@@ -273,7 +311,11 @@
                   </span>
                 </div>
                 <p class="text-[11px] text-secondary-text leading-relaxed">
-                  Block the client from submitting or processing fund withdrawal requests.
+                  {{
+                    isAccountMode
+                      ? "Block withdrawal requests from this trading account."
+                      : "Block the client from submitting or processing fund withdrawal requests."
+                  }}
                 </p>
               </div>
             </div>
@@ -348,6 +390,7 @@ import {
   ArrowUpCircle,
   ArrowLeftRight,
   Info,
+  Wallet,
 } from "lucide-vue-next";
 import apiRequest from "@/api/request";
 import urls from "@/api/urls";
@@ -355,13 +398,62 @@ import { useSnackbarStore } from "@/stores/snackbar/snackbar";
 
 const props = defineProps({
   open: { type: Boolean, default: false },
-  client: { type: Object, default: () => ({}) },
+  client: { type: Object, default: null },
+  account: { type: Object, default: null },
+  type: { type: String, default: "" }, // 'client' | 'account'
 });
 
 const emit = defineEmits(["close", "success"]);
 
 const snackbar = useSnackbarStore();
 const isSubmitting = ref(false);
+
+const isAccountMode = computed(() => {
+  if (props.type === "account") return true;
+  if (props.type === "client") return false;
+  return Boolean(props.account && !props.client);
+});
+
+const accountId = computed(() => {
+  return (
+    props.account?.account_id ??
+    props.account?.id ??
+    props.account?.trading_account_id ??
+    null
+  );
+});
+
+const accountNumber = computed(() => {
+  return props.account?.account_number ?? "";
+});
+
+const clientName = computed(() => {
+  if (isAccountMode.value) {
+    return (
+      props.account?.client_name ??
+      props.account?.user?.name ??
+      props.client?.name ??
+      "—"
+    );
+  }
+  return props.client?.name ?? "—";
+});
+
+const clientEmail = computed(() => {
+  if (isAccountMode.value) {
+    return props.account?.user?.email ?? props.client?.email ?? "";
+  }
+  return props.client?.email ?? "";
+});
+
+const initialLetter = computed(() => {
+  if (isAccountMode.value) {
+    return clientName.value && clientName.value !== "—"
+      ? clientName.value.charAt(0).toUpperCase()
+      : "A";
+  }
+  return props.client?.name ? props.client.name.charAt(0).toUpperCase() : "C";
+});
 
 const restrictions = reactive({
   restrict_deposit: false,
@@ -376,22 +468,25 @@ const initialRestrictions = reactive({
 });
 
 watch(
-  () => [props.open, props.client],
-  ([isOpen, clientData]) => {
-    if (isOpen && clientData) {
-      const dep = Boolean(clientData.restrict_deposit);
-      const transfer = Boolean(clientData.restrict_internal_transfer);
-      const withdr = Boolean(clientData.restrict_withdrawal);
+  () => [props.open, props.client, props.account],
+  ([isOpen]) => {
+    if (isOpen) {
+      const target = isAccountMode.value ? props.account : props.client;
+      if (target) {
+        const dep = Boolean(target.restrict_deposit);
+        const transfer = Boolean(target.restrict_internal_transfer);
+        const withdr = Boolean(target.restrict_withdrawal);
 
-      restrictions.restrict_deposit = dep;
-      restrictions.restrict_internal_transfer = transfer;
-      restrictions.restrict_withdrawal = withdr;
+        restrictions.restrict_deposit = dep;
+        restrictions.restrict_internal_transfer = transfer;
+        restrictions.restrict_withdrawal = withdr;
 
-      initialRestrictions.restrict_deposit = dep;
-      initialRestrictions.restrict_internal_transfer = transfer;
-      initialRestrictions.restrict_withdrawal = withdr;
+        initialRestrictions.restrict_deposit = dep;
+        initialRestrictions.restrict_internal_transfer = transfer;
+        initialRestrictions.restrict_withdrawal = withdr;
 
-      isSubmitting.value = false;
+        isSubmitting.value = false;
+      }
     }
   },
   { immediate: true },
@@ -433,35 +528,73 @@ const hasChanges = computed(() => {
 });
 
 const handleSubmit = () => {
-  if (!props.client?.id) return;
-  if (!hasChanges.value) {
-    closeDialog();
-    return;
-  }
-
-  isSubmitting.value = true;
-
-  apiRequest(urls.KEYS.PATCH, urls.clientList.update, {
-    look_up_key: props.client.id,
-    data: changedPayload.value,
-    isTokenRequired: true,
-    onSuccess: (res) => {
-      snackbar.show(
-        res?.message || "Transaction restrictions updated successfully.",
-        "success",
-      );
-      isSubmitting.value = false;
-      emit("success");
+  if (isAccountMode.value) {
+    const accId = accountId.value;
+    if (!accId) return;
+    if (!hasChanges.value) {
       closeDialog();
-    },
-    onFailure: (err) => {
-      snackbar.show(
-        err?.message || "Failed to update transaction restrictions.",
-        "error",
-      );
-      isSubmitting.value = false;
-    },
-  });
+      return;
+    }
+
+    isSubmitting.value = true;
+
+    apiRequest(
+      urls.KEYS.PATCH,
+      urls.tradingAccounts.transactionRestrictions(accId),
+      {
+        data: changedPayload.value,
+        isTokenRequired: true,
+        onSuccess: (res) => {
+          snackbar.show(
+            res?.message ||
+              "Trading account transaction restrictions updated successfully.",
+            "success",
+          );
+          isSubmitting.value = false;
+          emit("success", res?.data);
+          closeDialog();
+        },
+        onFailure: (err) => {
+          snackbar.show(
+            err?.message ||
+              "Failed to update trading account transaction restrictions.",
+            "error",
+          );
+          isSubmitting.value = false;
+        },
+      },
+    );
+  } else {
+    if (!props.client?.id) return;
+    if (!hasChanges.value) {
+      closeDialog();
+      return;
+    }
+
+    isSubmitting.value = true;
+
+    apiRequest(urls.KEYS.PATCH, urls.clientList.update, {
+      look_up_key: props.client.id,
+      data: changedPayload.value,
+      isTokenRequired: true,
+      onSuccess: (res) => {
+        snackbar.show(
+          res?.message || "Transaction restrictions updated successfully.",
+          "success",
+        );
+        isSubmitting.value = false;
+        emit("success", res?.data);
+        closeDialog();
+      },
+      onFailure: (err) => {
+        snackbar.show(
+          err?.message || "Failed to update transaction restrictions.",
+          "error",
+        );
+        isSubmitting.value = false;
+      },
+    });
+  }
 };
 
 const closeDialog = () => {

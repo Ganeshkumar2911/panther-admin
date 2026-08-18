@@ -29,6 +29,8 @@ const urls = {
     withdraw: "/accounts/withdraw",
     groups: "/account-groups",
     toggleTrading: "/account/toggle-trading",
+    transactionRestrictions: (tradingAccountId) =>
+      `/trading-accounts/${tradingAccountId}/transaction-restrictions`,
   },
   clientList: {
     list: "/client-list",
