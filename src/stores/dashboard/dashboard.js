@@ -171,6 +171,11 @@ export const useDashboardStore = defineStore("dashboard", () => {
     dashboardFilters.end_date = "";
   };
 
+  const updateUserAccountsFromSocket = (data) => {
+    if (!data) return;
+    userAccounts.value = data;
+  };
+
   return {
     dashboard,
     revenueAnalytics,
@@ -189,6 +194,7 @@ export const useDashboardStore = defineStore("dashboard", () => {
     fetchDashboard,
     fetchRevenueAnalytics,
     fetchLiveUserAccounts,
+    updateUserAccountsFromSocket,
 
     setRevenueFilters,
     applyRevenueFilters,

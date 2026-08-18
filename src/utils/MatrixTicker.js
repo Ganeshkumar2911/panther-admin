@@ -44,6 +44,7 @@ class MatrixTicker {
       new_deposit: [],
       new_withdrawal: [],
       new_notification: [],
+      live_user_count_update: [],
     };
 
     this.current_reconnection_count = 0;
@@ -127,6 +128,10 @@ class MatrixTicker {
 
     this.ws.on("new_notification", (data) => {
       this.trigger("new_notification", [data]);
+    });
+
+    this.ws.on("live_user_count_update", (data) => {
+      this.trigger("live_user_count_update", [data]);
     });
   }
 
