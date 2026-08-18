@@ -9,6 +9,7 @@ import FmRequestActionDialog from "@/components/fmRequest/FmRequestActionDialog.
 import AddEditFundManager from "@/components/fundManager/AddEditFundManager.vue";
 import { RefreshCw } from "lucide-vue-next";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
+import EmptyState from "@/components/common/EmptyState.vue";
 
 const store = useFmRequestStore();
 const { hasPermission } = usePermissionCheck();
@@ -251,6 +252,19 @@ onMounted(() => {
                 <div class="h-8 w-8 bg-card-background rounded" />
                 <div class="h-8 w-8 bg-card-background rounded" />
               </div>
+            </td>
+          </tr>
+        </tbody>
+
+        <tbody v-else-if="store.data.length !== 0">
+          <tr class="">
+            <td colspan="10" class="">
+              <EmptyState
+                title="Fund Manager Request not found"
+                subtitle="You don't have any pending fund manager requests"
+              >
+                <!-- <template #icon><Users :size="20" /></template> -->
+              </EmptyState>
             </td>
           </tr>
         </tbody>

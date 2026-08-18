@@ -8,6 +8,7 @@ import BaseSelect from '@/components/common/BaseSelect.vue'
 import DropdownMenu from './components/common/DropdownMenu.vue'
 import Tooltip from '@/components/common/Tooltip.vue'
 import BaseDatePicker from '@/components/common/BaseDatePicker.vue'
+import EmptyState from '@/components/common/EmptyState.vue'
 
 initTheme()
 const app = createApp(App)
@@ -19,4 +20,5 @@ app.component('DropdownMenu', DropdownMenu)
 app.component('Tooltip', Tooltip)
 app.component('BaseDatePicker', BaseDatePicker)
 app.component('BaseCalendar', BaseDatePicker)
+app.component('EmptyState', EmptyState)
 app.mount('#app')
