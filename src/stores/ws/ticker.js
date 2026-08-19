@@ -1,4 +1,4 @@
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import authToken from "@/common/authToken";
 import { defineStore } from "pinia";
 import MatrixTicker from "@/utils/MatrixTicker";
@@ -21,6 +21,16 @@ export const useTickerStore = defineStore("tickers", () => {
   const token = computed(() => authToken.getToken().accessToken);
 
   const isConnected = ref(false);
+
+  /* ---------------- Watch Profile User ID ---------------- */
+  watch(
+    () => profileStore.user?.user_id || profileStore.user?.id,
+    (newUserId) => {
+      if (newUserId && ticker && isConnected.value && tickerList.value.length > 0) {
+        subscribe(newUserId, tickerList.value);
+      }
+    }
+  );
 
   /* ---------------- Cross Tab Logout ---------------- */
   const channel = new BroadcastChannel("my-channel");

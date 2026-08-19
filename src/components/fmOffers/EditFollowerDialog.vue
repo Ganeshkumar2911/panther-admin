@@ -288,7 +288,6 @@ const initialForm = ref({})
 const lotTypeOptions = [
   { label: 'Fixed', value: 'fixed' },
   { label: 'Multiplier', value: 'multiplier' },
-  { label: 'Proportional', value: 'proportional' },
 ]
 
 const intervalOptions = [

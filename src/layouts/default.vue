@@ -33,7 +33,9 @@ const handleRetry = () => {
 }
 
 onMounted(async () => {
-  profileStore.fetchUserProfile()
+  try {
+    await profileStore.fetchUserProfile()
+  } catch (_) {}
   await tickerStore.startWebSocket()
   tickerStore.updateTickerList(['EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD', 'XAUUSD'])
 })
