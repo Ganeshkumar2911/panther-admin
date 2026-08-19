@@ -6,6 +6,19 @@ class MatrixTicker {
       typeof window !== "undefined" &&
       window.location.hostname === "admin.panthercapitals.com";
 
+    const customBaseUrl =
+      typeof window !== "undefined"
+        ? localStorage.getItem("custom_base_url")
+        : null;
+
+    let customWsUrl = null;
+    if (customBaseUrl) {
+      customWsUrl = customBaseUrl.trim().replace(/\/admin\/?$/, "");
+      if (!customWsUrl.endsWith("/")) {
+        customWsUrl += "/";
+      }
+    }
+
     const DEV_WS_URL = "https://w2llv2cm-2504.inc1.devtunnels.ms/";
     const PROD_WS_URL = isProdDomain
       ? "https://admin.panthercapitals.com/"
@@ -18,7 +31,9 @@ class MatrixTicker {
         window.location.hostname.includes("devtunnels.ms") ||
         window.location.port !== "");
 
-    this.root = isProdDomain ? PROD_WS_URL : isDev ? DEV_WS_URL : PROD_WS_URL;
+    this.root =
+      customWsUrl ||
+      (isProdDomain ? PROD_WS_URL : isDev ? DEV_WS_URL : PROD_WS_URL);
     this.token = token;
 
     this.auto_reconnect = reconnect;

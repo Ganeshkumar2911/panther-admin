@@ -17,6 +17,7 @@ const urls = {
     list: "/dashboard",
     accounts: "/live-user-count",
     revenueAnalytics: "/dashboard/revenue-analytics",
+    liveUsers: "/live-users",
   },
   tradingAccounts: {
     list: "/accounts",

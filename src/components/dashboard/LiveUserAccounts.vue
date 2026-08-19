@@ -1,6 +1,13 @@
 <script setup>
-import { computed } from "vue";
-import { ShieldCheck, Users, Briefcase, Network } from "lucide-vue-next";
+import { ref, computed } from "vue";
+import {
+  ShieldCheck,
+  Users,
+  Briefcase,
+  Network,
+  ArrowUpRight,
+} from "lucide-vue-next";
+import LiveUsersDrawer from "@/components/dashboard/LiveUsersDrawer.vue";
 
 const props = defineProps({
   data: {
@@ -13,42 +20,60 @@ const props = defineProps({
   },
 });
 
-const cards = computed(() => [
-  {
-    title: "Admins",
-    description: "Administrative users",
-    value: props.data?.admins?.count ?? 0,
-    icon: ShieldCheck,
-    iconClass: "bg-primary/10 text-primary",
-  },
-  {
-    title: "Clients",
-    description: "Active trader clients",
-    value: props.data?.clients?.client ?? 0,
-    icon: Users,
-    iconClass: "bg-primary-green/10 text-primary-green",
-  },
-  {
-    title: "Fund Managers",
-    description: "Fund manager accounts",
-    value: props.data?.clients?.fm ?? 0,
-    icon: Briefcase,
-    iconClass: "bg-primary-blue/10 text-primary-blue",
-  },
-  {
-    title: "Introducing Broker (IB)",
-    description: "Partner & IB network",
-    value: props.data?.clients?.ib ?? 0,
-    icon: Network,
-    iconClass: "bg-primary-yellow/10 text-primary-yellow",
-  },
-]);
+const isDrawerOpen = ref(false);
+const selectedRole = ref("client");
+
+const cards = computed(() => {
+  const d = props.data?.data || props.data;
+  const admins = d?.admins;
+  const clients = d?.clients;
+
+  return [
+    {
+      role: "admin",
+      title: "Admins",
+      description: "Administrative users",
+      value: typeof admins === "number" ? admins : (admins?.count ?? 0),
+      icon: ShieldCheck,
+      iconClass: "bg-primary/10 text-primary",
+    },
+    {
+      role: "client",
+      title: "Clients",
+      description: "Active trader clients",
+      value: clients?.client ?? d?.client ?? 0,
+      icon: Users,
+      iconClass: "bg-primary-green/10 text-primary-green",
+    },
+    {
+      role: "fm",
+      title: "Fund Managers",
+      description: "Fund manager accounts",
+      value: clients?.fm ?? d?.fm ?? 0,
+      icon: Briefcase,
+      iconClass: "bg-primary-blue/10 text-primary-blue",
+    },
+    {
+      role: "ib",
+      title: "Introducing Broker (IB)",
+      description: "Partner & IB network",
+      value: clients?.ib ?? d?.ib ?? 0,
+      icon: Network,
+      iconClass: "bg-primary-yellow/10 text-primary-yellow",
+    },
+  ];
+});
+
+const handleCardClick = (role) => {
+  selectedRole.value = role;
+  isDrawerOpen.value = true;
+};
 </script>
 
 <template>
   <section>
     <!-- Section Header -->
-    <div class="flex items-center gap-3 mb-4">
+    <div class="flex items-center justify-between gap-3 mb-4">
       <div class="flex items-center gap-2">
         <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
 
@@ -60,6 +85,15 @@ const cards = computed(() => [
       </div>
 
       <span class="flex-1 h-px bg-primary-border" />
+
+      <button
+        type="button"
+        class="text-xs text-primary font-semibold hover:underline inline-flex items-center gap-1 cursor-pointer transition-colors"
+        @click="handleCardClick('')"
+      >
+        <span>View All Live</span>
+        <ArrowUpRight class="w-3.5 h-3.5" />
+      </button>
     </div>
 
     <!-- Cards -->
@@ -67,7 +101,8 @@ const cards = computed(() => [
       <div
         v-for="card in cards"
         :key="card.title"
-        class="group relative overflow-hidden rounded-2xl border border-primary-border bg-card-background p-4 sm:p-5 transition-all duration-200 hover:border-primary/30 hover:shadow-sm"
+        class="group relative overflow-hidden rounded-2xl border border-primary-border bg-card-background p-4 sm:p-5 transition-all duration-200 hover:border-primary/40 hover:shadow-md cursor-pointer select-none"
+        @click="handleCardClick(card.role)"
       >
         <!-- Hover line -->
         <span
@@ -94,16 +129,19 @@ const cards = computed(() => [
             <!-- Left -->
             <div class="flex items-center gap-3 min-w-0">
               <div
-                class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+                class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-200"
                 :class="card.iconClass"
               >
                 <component :is="card.icon" class="w-5 h-5" />
               </div>
 
               <div class="min-w-0">
-                <p class="text-sm font-semibold text-primary-text truncate">
-                  {{ card.title }}
-                </p>
+                <div class="flex items-center gap-1">
+                  <p class="text-sm font-semibold text-primary-text truncate group-hover:text-primary transition-colors">
+                    {{ card.title }}
+                  </p>
+                  <ArrowUpRight class="w-3 h-3 text-secondary-text opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                </div>
 
                 <p class="mt-0.5 text-[10px] text-secondary-text truncate">
                   {{ card.description }}
@@ -114,7 +152,7 @@ const cards = computed(() => [
             <!-- Count -->
             <div class="text-right shrink-0">
               <p
-                class="text-2xl sm:text-3xl font-bold tracking-tight text-primary-text leading-none"
+                class="text-2xl sm:text-3xl font-bold tracking-tight text-primary-text leading-none group-hover:text-primary transition-colors"
               >
                 {{ card.value }}
               </p>
@@ -129,5 +167,12 @@ const cards = computed(() => [
         </template>
       </div>
     </div>
+
+    <!-- Live Users Side Panel Drawer -->
+    <LiveUsersDrawer
+      :open="isDrawerOpen"
+      :initial-role="selectedRole"
+      @close="isDrawerOpen = false"
+    />
   </section>
 </template>

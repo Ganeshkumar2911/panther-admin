@@ -76,17 +76,8 @@ export const useDashboardStore = defineStore("dashboard", () => {
 
       snackbar.show(err?.message || "Failed to fetch dashboard.", "error");
     };
-
-    const params = {};
-    if (dashboardFilters.start_date && dashboardFilters.end_date) {
-      params.start_date = dashboardFilters.start_date;
-      params.end_date = dashboardFilters.end_date;
-    }
-
     apiRequest(urls.KEYS.GET, urls.dashboard.accounts, {
       isTokenRequired: true,
-      params,
-
       onSuccess: successHandler,
       onFailure: failureHandler,
     });
