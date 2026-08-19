@@ -1706,7 +1706,9 @@ const formatPnl = (val) => {
     maximumFractionDigits: 2,
   });
 
-  return isUsc.value ? `${prefix}USC ${formattedNum}` : `${prefix}$${formattedNum}`;
+  return isUsc.value
+    ? `${prefix}USC ${formattedNum}`
+    : `${prefix}$${formattedNum}`;
 };
 
 const formatDate = (val) => {

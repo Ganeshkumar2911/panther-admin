@@ -5,7 +5,7 @@
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
         <div class="flex items-center gap-2.5">
-          <h1 class="text-lg font-semibold text-primary-text">Settlement Preview</h1>
+          <!-- <h1 class="text-lg font-semibold text-primary-text">Settlement Preview</h1> -->
           <span
             v-if="store.settlement?.preview"
             class="px-2 py-0.5 rounded-md text-[11px] font-medium bg-primary/10 text-primary border border-primary/20"
@@ -19,9 +19,9 @@
             Settlement #{{ store.settlement.settlement_id }}
           </span>
         </div>
-        <p class="text-xs text-secondary-text mt-1">
+        <!-- <p class="text-xs text-secondary-text mt-1">
           Review follower trades, commission distributions, and IB payouts before executing settlement.
-        </p>
+        </p> -->
       </div>
 
       <div class="flex items-center gap-2.5">
