@@ -55,7 +55,7 @@ onMounted(async () => {
     <!-- Main column — offset by sidebar width on md+ -->
     <div
       class="flex flex-1 flex-col overflow-hidden transition-all duration-300 ease-in-out"
-      :class="isSidebarCollapsed ? 'md:ml-[80px]' : 'md:ml-[240px]'"
+      :class="isSidebarCollapsed ? 'md:ml-20' : 'md:ml-60'"
     >
 
       <!-- Top Bar -->

@@ -207,7 +207,7 @@
                     <p class="font-bold text-primary-text text-xs truncate" :title="row.name">
                       {{ row.name || 'Unnamed Follower' }}
                     </p>
-                    <p class="text-[11px] font-semibold text-primary font-mono select-all truncate max-w-[200px]" :title="row.email">
+                    <p class="text-[11px] font-semibold text-primary font-mono select-all truncate max-w-50" :title="row.email">
                       {{ row.email || 'No email' }}
                     </p>
                   </div>
@@ -254,11 +254,11 @@
               <!-- Offer & IB Partner -->
               <td class="py-4 px-4 whitespace-nowrap">
                 <div class="space-y-0.5">
-                  <p v-if="row.offer_name" class="text-xs font-semibold text-primary-text truncate max-w-[170px]" :title="row.offer_name">
+                  <p v-if="row.offer_name" class="text-xs font-semibold text-primary-text truncate max-w-42.5" :title="row.offer_name">
                     {{ row.offer_name }}
                   </p>
                   <p v-else class="text-xs text-secondary-text">—</p>
-                  <p v-if="row.ib_name || row.ib_email" class="text-[10px] text-secondary-text truncate max-w-[170px]" :title="row.ib_email">
+                  <p v-if="row.ib_name || row.ib_email" class="text-[10px] text-secondary-text truncate max-w-42.5" :title="row.ib_email">
                     IB: {{ row.ib_name || row.ib_email }}
                   </p>
                 </div>

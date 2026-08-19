@@ -719,7 +719,7 @@
       <!-- Filters Row -->
       <div class="flex flex-wrap items-center justify-between gap-3">
         <!-- Search Input -->
-        <div class="relative flex-1 min-w-[200px] max-w-sm">
+        <div class="relative flex-1 min-w-50 max-w-sm">
           <Search
             class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-text pointer-events-none"
           />
@@ -794,7 +794,7 @@
         <!-- 1. POSITIONS TABLE (Used for both FM Master Trades and Follower Positions) -->
         <table
           v-if="store.activeTab === 'positions'"
-          class="w-full border-collapse text-left text-xs min-w-[960px]"
+          class="w-full border-collapse text-left text-xs min-w-240"
         >
           <thead>
             <tr
@@ -956,7 +956,7 @@
         <!-- 2. ORDERS TABLE (Follower Mode) -->
         <table
           v-else-if="store.activeTab === 'orders'"
-          class="w-full border-collapse text-left text-xs min-w-[960px]"
+          class="w-full border-collapse text-left text-xs min-w-240"
         >
           <thead>
             <tr
@@ -1079,7 +1079,7 @@
                   </span>
                   <span
                     v-else
-                    class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide border bg-background text-secondary-text border-primary-border"
+                    class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide border bg-zinc-500/10 text-zinc-400 border-zinc-500/20"
                   >
                     {{ order.state_name || order.state || "-" }}
                   </span>
@@ -1122,7 +1122,7 @@
         <!-- 3. DEALS HISTORY TABLE (Follower Mode) -->
         <table
           v-else-if="store.activeTab === 'deals'"
-          class="w-full border-collapse text-left text-xs min-w-[960px]"
+          class="w-full border-collapse text-left text-xs min-w-240"
         >
           <thead>
             <tr
