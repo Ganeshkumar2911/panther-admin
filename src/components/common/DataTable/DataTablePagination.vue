@@ -17,17 +17,18 @@
       </span>
 
       <!-- Rows per page selector -->
-      <div v-if="perPageOptions && perPageOptions.length" class="flex items-center gap-1.5">
+      <div v-if="perPageOptions && perPageOptions.length" class="flex items-center gap-2">
         <span class="text-secondary-text whitespace-nowrap">Rows per page:</span>
-        <select
-          :value="currentPerPage"
-          @change="handlePerPageChange($event.target.value)"
-          class="h-7 px-2 pr-6 rounded-lg border border-primary-border bg-background text-primary-text text-xs font-medium outline-none cursor-pointer hover:border-primary transition"
-        >
-          <option v-for="opt in perPageOptions" :key="opt" :value="opt">
-            {{ opt }}
-          </option>
-        </select>
+        <div class="w-20">
+          <BaseSelect
+            :model-value="currentPerPage"
+            :options="formattedPerPageOptions"
+            :drop-up="true"
+            placement="top"
+            variant="surface"
+            @update:model-value="handlePerPageChange"
+          />
+        </div>
       </div>
     </div>
 
@@ -152,6 +153,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from 'lucide-vue-next'
+import BaseSelect from '@/components/common/BaseSelect.vue'
 
 const props = defineProps({
   pagination: {
@@ -169,6 +171,22 @@ const emit = defineEmits(['page-change', 'per-page-change'])
 
 const jumpPageInput = ref('')
 const jumpError = ref('')
+
+const formattedPerPageOptions = computed(() => {
+  if (!props.perPageOptions || !Array.isArray(props.perPageOptions)) return []
+  return props.perPageOptions.map((opt) => {
+    if (typeof opt === 'object' && opt !== null) {
+      return {
+        label: String(opt.label ?? opt.value),
+        value: Number(opt.value ?? opt.label),
+      }
+    }
+    return {
+      label: String(opt),
+      value: Number(opt),
+    }
+  })
+})
 
 const currentPage = computed(() => Number(props.pagination?.page) || 1)
 const currentPerPage = computed(() => Number(props.pagination?.per_page) || 10)
