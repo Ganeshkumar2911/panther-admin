@@ -29,7 +29,6 @@ export function livePNL(trade) {
     const currentPrice = Number(livePrice?.bid || 0);
 
     pnl = (currentPrice - entryPrice) * lot;
-    console.log("pnl", pnl);
   }
 
   // ✅ SELL Trade
