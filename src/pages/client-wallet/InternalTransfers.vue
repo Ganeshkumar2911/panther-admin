@@ -95,118 +95,59 @@
     </div>
 
     <!-- Table -->
-    <div class="w-full border border-primary-border rounded-xl overflow-x-auto bg-card-background">
-      <table class="w-full border-collapse">
-        <thead>
-          <tr class="border-b border-primary-border bg-card-background/50">
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Ledger ID / Description</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Client</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Trading Account</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Type</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Amount</th>
-            <th class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Date</th>
-          </tr>
-        </thead>
+    <!-- DataTable -->
+    <DataTable
+      :data="store.data"
+      :columns="transferColumns"
+      :pagination="store.pagination"
+      :loading="store.loading"
+      :per-page-options="[10, 25, 50, 100]"
+      row-key="ledger_id"
+      table-key="client-wallet-internal-transfers-table"
+      empty-title="No transfers found"
+      empty-text="Try adjusting your filters or date range."
+      @page-change="handlePageChange"
+      @per-page-change="handlePerPageChange"
+    >
+      <!-- Cell: Ledger ID / Description -->
+      <template #cell-ledger_id="{ row }">
+        <p class="text-xs font-semibold text-primary-text">#{{ row.ledger_id }}</p>
+        <p class="text-[10px] text-secondary-text max-w-62.5 truncate" :title="row.description">
+          {{ row.description }}
+        </p>
+      </template>
 
-        <!-- Skeleton -->
-        <tbody v-if="store.loading">
-          <tr v-for="n in 8" :key="n" class="border-b border-primary-border animate-pulse">
-            <td class="p-3">
-              <div class="h-3.5 w-12 bg-background rounded mb-1.5" />
-              <div class="h-2.5 w-40 bg-background rounded" />
-            </td>
-            <td class="p-3">
-              <div class="h-3.5 w-24 bg-background rounded mb-1.5" />
-              <div class="h-2.5 w-10 bg-background rounded" />
-            </td>
-            <td class="p-3">
-              <div class="h-3.5 w-28 bg-background rounded mb-1.5" />
-              <div class="h-2.5 w-16 bg-background rounded" />
-            </td>
-            <td class="p-3"><div class="h-5 w-16 bg-background rounded-full" /></td>
-            <td class="p-3"><div class="h-3.5 w-14 bg-background rounded" /></td>
-            <td class="p-3 flex justify-end"><div class="h-3.5 w-20 bg-background rounded" /></td>
-          </tr>
-        </tbody>
+      <!-- Cell: Client -->
+      <template #cell-client="{ row }">
+        <p class="text-xs font-semibold text-primary-text">{{ row.client_name }}</p>
+        <p class="text-[10px] text-secondary-text">ID: {{ row.client_id }}</p>
+      </template>
 
-        <!-- Empty -->
-        <tbody v-else-if="store.data.length === 0">
-          <tr>
-            <td colspan="6" class="py-16 text-center">
-              <div class="flex flex-col items-center gap-3">
-                <div class="w-12 h-12 rounded-full bg-card-background flex items-center justify-center">
-                  <BookOpen class="w-5 h-5 text-secondary-text" />
-                </div>
-                <p class="text-sm font-semibold text-primary-text">No transfers found</p>
-                <p class="text-xs text-secondary-text">Try adjusting your filters</p>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-
-        <!-- Data -->
-        <tbody v-else>
-          <tr
-            v-for="entry in store.data"
-            :key="entry.ledger_id"
-            class="border-b border-primary-border last:border-none hover:bg-background/40 transition-colors"
+      <!-- Cell: Trading Account -->
+      <template #cell-trading_account="{ row }">
+        <p class="text-xs font-medium text-primary-text">
+          <span
+            @click.stop="goToTradingAccount(row.account_number)"
+            class="cursor-pointer hover:text-primary transition-colors hover:underline"
           >
-            <!-- Ledger ID / Description -->
-            <td class="p-3">
-              <p class="text-xs font-semibold text-primary-text">#{{ entry.ledger_id }}</p>
-              <p class="text-[10px] text-secondary-text max-w-[250px] truncate" :title="entry.description">
-                {{ entry.description }}
-              </p>
-            </td>
+            {{ row.account_number }} · {{ row.broker_label || '—' }}
+          </span>
+        </p>
+        <p class="text-[10px] text-secondary-text capitalize">Type: {{ row.account_type }}</p>
+      </template>
 
-            <!-- Client -->
-            <td class="p-3">
-              <p class="text-xs font-semibold text-primary-text">{{ entry.client_name }}</p>
-              <p class="text-[10px] text-secondary-text">ID: {{ entry.client_id }}</p>
-            </td>
+      <!-- Cell: Amount -->
+      <template #cell-amount="{ row }">
+        <span class="text-xs font-medium tabular-nums" :class="amountClass(row.type, row.amount)">
+          {{ row.type === 'deposit' ? '+' : '-' }}{{ formatMoney(row.amount, row.broker_currency) }}
+        </span>
+      </template>
 
-            <!-- Trading Account -->
-            <td class="p-3">
-              <p class="text-xs font-medium text-primary-text">
-                <span
-                  @click="goToTradingAccount(entry.account_number)"
-                  class="cursor-pointer hover:text-primary transition-colors hover:underline"
-                >
-                  {{ entry.account_number }} · {{ entry.broker_label ?? '—' }}
-                </span>
-              </p>
-              <p class="text-[10px] text-secondary-text capitalize">Type: {{ entry.account_type }}</p>
-            </td>
-
-            <!-- Type -->
-            <td class="p-3">
-              <span class="text-[11px] font-medium px-2 py-0.5 rounded-full border capitalize" :class="typeClass(entry.type)">
-                {{ formatType(entry.type) }}
-              </span>
-            </td>
-
-            <!-- Amount -->
-            <td class="p-3">
-              <span class="text-xs font-medium tabular-nums" :class="amountClass(entry.type, entry.amount)">
-                {{ entry.type === 'deposit' ? '+' : '-' }}{{ formatMoney(entry.amount, entry.broker_currency) }}
-              </span>
-            </td>
-
-            <!-- Date -->
-            <td class="p-3 text-xs text-secondary-text text-right whitespace-nowrap">{{ formatDate(entry.created_at) }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Pagination -->
-    <div class="mt-4">
-      <Pagination
-        v-if="store.pagination.total_items > store.pagination.per_page"
-        :pagination="store.pagination"
-        @page-change="handlePageChange"
-      />
-    </div>
+      <!-- Cell: Date -->
+      <template #cell-created_at="{ row }">
+        <span class="text-xs text-secondary-text whitespace-nowrap">{{ formatDate(row.created_at) }}</span>
+      </template>
+    </DataTable>
   </div>
 </template>
 
@@ -353,6 +294,33 @@ const refresh = () => {
 const handlePageChange = (page) => {
   store.setPage(page)
 }
+
+const handlePerPageChange = ({ per_page }) => {
+  store.updatePerPage(per_page)
+}
+
+const transferColumns = [
+  { key: 'ledger_id', label: 'Ledger ID / Description', minWidth: 180, resizable: true },
+  { key: 'client', label: 'Client', minWidth: 150, resizable: true },
+  { key: 'trading_account', label: 'Trading Account', minWidth: 180, resizable: true },
+  {
+    key: 'type',
+    label: 'Type',
+    type: 'badge',
+    minWidth: 110,
+    resizable: true,
+    badge: {
+      map: {
+        deposit: { label: 'Deposit', variant: 'success' },
+        withdrawal: { label: 'Withdrawal', variant: 'danger' },
+        trade_pnl: { label: 'Trade PnL', variant: 'info' },
+        fee_paid: { label: 'Fee Paid', variant: 'warning' },
+      },
+    },
+  },
+  { key: 'amount', label: 'Amount', minWidth: 140, resizable: true },
+  { key: 'created_at', label: 'Date', align: 'right', minWidth: 130, resizable: true },
+]
 
 const formatNum = (val) => (val ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 const formatDate = (val) => new Date(val).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })

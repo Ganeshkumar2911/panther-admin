@@ -6,6 +6,7 @@
         ref="menuRef"
         class="fixed z-999 min-w-56 max-h-96 rounded-xl border border-primary-border bg-card-background shadow-xl py-2 overflow-hidden flex flex-col"
         :style="menuStyle"
+        @mousedown.stop
         @click.stop
       >
         <!-- Menu Header -->
@@ -142,7 +143,7 @@ function openAt(x, y) {
     positionAt(x, y)
     document.addEventListener('mousedown', handleClickOutside, true)
     document.addEventListener('keydown', handleKeydown)
-    window.addEventListener('scroll', close, true)
+    window.addEventListener('scroll', handleScroll, true)
     window.addEventListener('resize', close)
   })
 }
@@ -158,7 +159,7 @@ function close() {
   isOpen.value = false
   document.removeEventListener('mousedown', handleClickOutside, true)
   document.removeEventListener('keydown', handleKeydown)
-  window.removeEventListener('scroll', close, true)
+  window.removeEventListener('scroll', handleScroll, true)
   window.removeEventListener('resize', close)
 }
 
@@ -184,10 +185,25 @@ function positionAt(x, y) {
   }
 }
 
-function handleClickOutside(e) {
-  if (menuRef.value && !menuRef.value.contains(e.target)) {
-    close()
+function handleScroll(e) {
+  if (!isOpen.value) return
+  // If scrolling inside the menu itself (e.g. the column list), do not close
+  if (menuRef.value && menuRef.value.contains(e.target)) {
+    return
   }
+  // Ignore scroll events originating from within the table container during column toggling/reflow
+  if (e.target && e.target !== document && e.target !== window && e.target !== document.documentElement && e.target !== document.body) {
+    return
+  }
+  close()
+}
+
+function handleClickOutside(e) {
+  if (!isOpen.value) return
+  if (menuRef.value && (menuRef.value === e.target || menuRef.value.contains(e.target))) {
+    return
+  }
+  close()
 }
 
 function handleKeydown(e) {

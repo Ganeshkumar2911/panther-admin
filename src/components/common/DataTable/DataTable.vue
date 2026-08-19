@@ -40,7 +40,7 @@
 
         <!-- Table Body -->
         <DataTableBody
-          :data="data"
+          :data="displayData"
           :columns="visibleColumns"
           :loading="loading"
           :skeleton-rows="skeletonRowsCount"
@@ -275,6 +275,54 @@ const hasActions = computed(() => {
 
 const activeSortKey = computed(() => internalSortKey.value)
 const activeSortDirection = computed(() => internalSortDirection.value)
+
+// Smart built-in sorting (automatic fallback when sorting in memory)
+const displayData = computed(() => {
+  if (!Array.isArray(props.data)) return []
+
+  const sortKey = internalSortKey.value
+  const sortDir = internalSortDirection.value
+
+  if (!sortKey || !sortDir) {
+    return props.data
+  }
+
+  const col = computedAllColumns.value.find((c) => c.key === sortKey)
+  const sortField = col?.sortKey || col?.key || sortKey
+
+  return [...props.data].sort((a, b) => {
+    let valA = a[sortField] !== undefined ? a[sortField] : (col?.formatter ? col.formatter(a[sortKey], a) : a[sortKey])
+    let valB = b[sortField] !== undefined ? b[sortField] : (col?.formatter ? col.formatter(b[sortKey], b) : b[sortKey])
+
+    // Fallback for common compound fields (e.g. client -> name)
+    if (valA === undefined && sortKey === 'client') valA = a.name
+    if (valB === undefined && sortKey === 'client') valB = b.name
+
+    if (valA === null || valA === undefined) return sortDir === 'asc' ? 1 : -1
+    if (valB === null || valB === undefined) return sortDir === 'asc' ? -1 : 1
+
+    // Numeric comparison
+    const numA = typeof valA === 'number' ? valA : Number(valA)
+    const numB = typeof valB === 'number' ? valB : Number(valB)
+    if (!isNaN(numA) && !isNaN(numB) && typeof valA !== 'boolean' && typeof valB !== 'boolean' && String(valA).trim() !== '' && String(valB).trim() !== '') {
+      return sortDir === 'asc' ? numA - numB : numB - numA
+    }
+
+    // Date comparison
+    const dateA = Date.parse(valA)
+    const dateB = Date.parse(valB)
+    if (!isNaN(dateA) && !isNaN(dateB) && typeof valA === 'string' && (valA.includes('-') || valA.includes('/') || valA.includes(':'))) {
+      return sortDir === 'asc' ? dateA - dateB : dateB - dateA
+    }
+
+    // String comparison
+    const strA = String(valA).toLowerCase()
+    const strB = String(valB).toLowerCase()
+    if (strA < strB) return sortDir === 'asc' ? -1 : 1
+    if (strA > strB) return sortDir === 'asc' ? 1 : -1
+    return 0
+  })
+})
 
 const skeletonRowsCount = computed(() => {
   if (props.pagination?.per_page) {

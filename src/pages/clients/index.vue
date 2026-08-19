@@ -609,9 +609,7 @@ onMounted(() => {
               <p class="text-xs font-medium text-primary-text">
                 {{ row.name }}
               </p>
-              <p class="text-[10px] text-secondary-text">
-                ID: {{ row.id }}
-              </p>
+              <p class="text-[10px] text-secondary-text">ID: {{ row.id }}</p>
             </div>
           </div>
         </template>
@@ -633,10 +631,7 @@ onMounted(() => {
           >
             {{ row.phone_number ?? "—" }}
           </p>
-          <p
-            class="text-[10px] text-secondary-text"
-            v-if="row.date_of_birth"
-          >
+          <p class="text-[10px] text-secondary-text" v-if="row.date_of_birth">
             DOB: {{ formatDate(row.date_of_birth) }}
           </p>
         </template>
@@ -656,7 +651,7 @@ onMounted(() => {
                 'fi',
                 `fi-${getFlagCode(row.country)}`,
                 'fis',
-                'w-4 h-3 flex-shrink-0',
+                'w-4 h-3 shrink-0',
               ]"
             ></span>
             <span>{{ cleanCountryLabel(row.country) || "—" }}</span>
@@ -692,11 +687,7 @@ onMounted(() => {
                   class="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-[9px] font-bold text-btn-text-primary shrink-0"
                 >
                   {{
-                    (
-                      row.staff_assigned?.name ||
-                      row.assigned_staff?.name ||
-                      ""
-                    )
+                    (row.staff_assigned?.name || row.assigned_staff?.name || "")
                       .charAt(0)
                       .toUpperCase()
                   }}
@@ -765,7 +756,7 @@ onMounted(() => {
               <span>{{ row.referral_link_code }}</span>
             </span>
             <p
-              class="text-[10px] text-primary-text truncate max-w-[140px]"
+              class="text-[10px] text-primary-text truncate max-w-35"
               :title="row.referral_link_name"
             >
               {{ row.referral_link_name }}
@@ -777,7 +768,7 @@ onMounted(() => {
         <!-- Custom Cell: KYC Status -->
         <template #cell-kyc_status="{ row }">
           <span
-            class="text-[11px] font-medium px-2 py-0.5 rounded-full border capitalize block mb-1"
+            class="text-[11px] font-medium px-2 py-0.5 rounded-full border capitalize mb-1"
             :class="getKycClass(row.kyc_status)"
           >
             {{ row.kyc_status || "not started" }}
@@ -785,10 +776,7 @@ onMounted(() => {
           <p class="text-[10px] text-secondary-text">
             {{ row.verification_channel ?? "—" }}
           </p>
-          <p
-            v-if="row.kyc_verified_at"
-            class="text-[10px] text-secondary-text"
-          >
+          <p v-if="row.kyc_verified_at" class="text-[10px] text-secondary-text">
             ✓ {{ formatDate(row.kyc_verified_at) }}
           </p>
         </template>
@@ -809,10 +797,7 @@ onMounted(() => {
           <p class="text-xs text-primary-text mb-1">
             {{ row.doc_approved ?? "—" }}
           </p>
-          <p
-            v-if="row.kyc_reject_reason"
-            class="text-[10px] text-red-600"
-          >
+          <p v-if="row.kyc_reject_reason" class="text-[10px] text-red-600">
             Reject: {{ row.kyc_reject_reason }}
           </p>
         </template>
@@ -826,13 +811,13 @@ onMounted(() => {
 
         <!-- Custom Cell: Accounts -->
         <template #cell-accounts="{ row }">
-          <div class="max-w-[220px]">
+          <div class="max-w-55">
             <div class="flex items-center justify-between gap-1 mb-1">
-              <span
-                class="text-xs font-semibold text-primary-text block"
-              >
+              <span class="text-xs font-semibold text-primary-text block">
                 {{ row.total_accounts || row.accounts?.length || 0 }} Acct{{
-                  (row.total_accounts || row.accounts?.length || 0) !== 1 ? "s" : ""
+                  (row.total_accounts || row.accounts?.length || 0) !== 1
+                    ? "s"
+                    : ""
                 }}
               </span>
               <button
@@ -1219,25 +1204,39 @@ onMounted(() => {
           <div class="bg-background rounded-lg px-3 py-2 col-span-2">
             <div class="flex items-center justify-between mb-1">
               <p class="text-[10px] text-secondary-text">
-                Accounts ({{ client.total_accounts || (client.accounts?.length || client.account_numbers?.length || 0) }})
+                Accounts ({{
+                  client.total_accounts ||
+                  client.accounts?.length ||
+                  client.account_numbers?.length ||
+                  0
+                }})
               </p>
               <button
-                v-if="(client.accounts?.length > 4) || (client.account_numbers?.length > 4)"
+                v-if="
+                  client.accounts?.length > 4 ||
+                  client.account_numbers?.length > 4
+                "
                 type="button"
                 @click="toggleExpandAccounts(`mobile_${client.id}`)"
                 class="text-[9px] font-medium text-primary hover:underline cursor-pointer focus:outline-none"
               >
-                {{ expandedAccountsMap[`mobile_${client.id}`] ? "Show Less" : "Show All" }}
+                {{
+                  expandedAccountsMap[`mobile_${client.id}`]
+                    ? "Show Less"
+                    : "Show All"
+                }}
               </button>
             </div>
 
             <div
-              v-if="(client.accounts?.length || client.account_numbers?.length)"
+              v-if="client.accounts?.length || client.account_numbers?.length"
               class="flex flex-wrap gap-1"
             >
               <template v-if="!expandedAccountsMap[`mobile_${client.id}`]">
                 <span
-                  v-for="(num, idx) in (client.accounts || client.account_numbers).slice(0, 4)"
+                  v-for="(num, idx) in (
+                    client.accounts || client.account_numbers
+                  ).slice(0, 4)"
                   :key="num.account_number || num || idx"
                   @click="goToTradingAccount(num.account_number || num)"
                   class="font-mono text-[10px] px-1.5 py-0.5 rounded border cursor-pointer transition-all duration-150"
@@ -1253,12 +1252,14 @@ onMounted(() => {
                   @click="toggleExpandAccounts(`mobile_${client.id}`)"
                   class="font-mono text-[9px] font-semibold px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition cursor-pointer"
                 >
-                  +{{ (client.accounts || client.account_numbers).length - 4 }} more
+                  +{{ (client.accounts || client.account_numbers).length - 4 }}
+                  more
                 </span>
               </template>
               <template v-else>
                 <span
-                  v-for="(num, idx) in (client.accounts || client.account_numbers)"
+                  v-for="(num, idx) in client.accounts ||
+                  client.account_numbers"
                   :key="num.account_number || num || idx"
                   @click="goToTradingAccount(num.account_number || num)"
                   class="font-mono text-[10px] px-1.5 py-0.5 rounded border cursor-pointer transition-all duration-150"
@@ -1302,42 +1303,42 @@ onMounted(() => {
             <button
               v-if="hasPermission('client.update')"
               @click="openEditClientDialog(client)"
-              class="flex-1 min-w-[70px] text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer"
+              class="flex-1 min-w-17.5 text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer"
             >
               Edit
             </button>
             <button
               v-if="hasPermission('client.update')"
               @click="openManageTransactionsDialog(client)"
-              class="flex-1 min-w-[90px] text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer"
+              class="flex-1 min-w-22.5 text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer"
             >
               Transactions
             </button>
             <button
               v-if="hasPermission('client.update')"
               @click="openChangeIBDialog(client)"
-              class="flex-1 min-w-[80px] text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer"
+              class="flex-1 min-w-20 text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer"
             >
               Change IB
             </button>
             <button
               v-if="client.is_ib === false && hasPermission('client.update')"
               @click="openMakeIBDialog(client)"
-              class="flex-1 min-w-[80px] text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition animate-all duration-200 cursor-pointer"
+              class="flex-1 min-w-20 text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition animate-all duration-200 cursor-pointer"
             >
               Make IB
             </button>
             <button
               v-if="hasPermission('client.update')"
               @click="openUpdateReferralLinkDrawer(client)"
-              class="flex-1 min-w-[100px] text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer"
+              class="flex-1 min-w-25 text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer"
             >
               Referral Link
             </button>
             <button
               v-if="hasPermission('client.update')"
               @click="openChangeStatusDialog(client)"
-              class="flex-1 min-w-[70px] text-xs font-medium py-1.5 rounded-lg transition animate-all duration-200 cursor-pointer"
+              class="flex-1 min-w-17.5 text-xs font-medium py-1.5 rounded-lg transition animate-all duration-200 cursor-pointer"
               :class="
                 client.is_active
                   ? 'bg-primary-red/10 text-primary-red hover:bg-primary-red/20'
@@ -1352,7 +1353,7 @@ onMounted(() => {
                 hasPermission('client.delete')
               "
               @click="openDeleteClientDialog(client)"
-              class="flex-1 min-w-[70px] text-xs font-medium py-1.5 rounded-lg bg-primary-red/10 text-primary-red hover:bg-primary-red/20 transition animate-all duration-200 cursor-pointer"
+              class="flex-1 min-w-17.5 text-xs font-medium py-1.5 rounded-lg bg-primary-red/10 text-primary-red hover:bg-primary-red/20 transition animate-all duration-200 cursor-pointer"
             >
               Delete
             </button>

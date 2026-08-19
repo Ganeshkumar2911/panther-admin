@@ -1,8 +1,9 @@
 <template>
   <div class="px-4">
-
     <!-- Tabs -->
-    <div class="flex items-center gap-1 bg-card-background border border-primary-border rounded-lg p-1 w-fit mb-6">
+    <div
+      class="flex items-center gap-1 bg-card-background border border-primary-border rounded-lg p-1 w-fit mb-6"
+    >
       <button
         v-for="tab in tabs"
         :key="tab.value"
@@ -20,318 +21,346 @@
 
     <div v-if="activeTab === 'transactions'">
       <!-- Summary Cards -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-      <template v-if="store.loading">
-        <div v-for="n in 4" :key="n" class="bg-card-background border border-primary-border rounded-xl p-4 animate-pulse space-y-2">
-          <div class="h-3 w-24 bg-background rounded" />
-          <div class="h-6 w-28 bg-background rounded" />
-        </div>
-      </template>
-      <template v-else>
-        <div class="bg-card-background border border-primary-border rounded-xl p-4">
-          <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-1">Total Deposit</p>
-          <p class="text-xl font-medium text-green-700">+${{ formatNum(store.summary.total_deposit) }}</p>
-        </div>
-        <div class="bg-card-background border border-primary-border rounded-xl p-4">
-          <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-1">Total Withdrawal</p>
-          <p class="text-xl font-medium text-red-700">-${{ formatNum(store.summary.total_withdrawal) }}</p>
-        </div>
-        <div class="bg-card-background border border-primary-border rounded-xl p-4">
-          <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-1">Trade PnL</p>
-          <p class="text-xl font-medium" :class="store.summary.total_pnl >= 0 ? 'text-green-700' : 'text-red-700'">
-            {{ store.summary.total_pnl >= 0 ? '+' : '' }}${{ formatNum(store.summary.total_pnl) }}
-          </p>
-        </div>
-        <div class="bg-card-background border border-primary-border rounded-xl p-4">
-          <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-1">Fee Paid</p>
-          <p class="text-xl font-medium text-primary-text">${{ formatNum(store.summary.total_fee_paid) }}</p>
-        </div>
-      </template>
-    </div>
-
-    <!-- Filters -->
-    <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3 mb-5">
-      <div class="flex w-full min-w-0 flex-col gap-2 rounded-xl border border-primary-border bg-card-background/40 p-2 sm:flex-row sm:items-center xl:flex-1 xl:flex-nowrap">
-
-        <!-- Client Filter -->
-        <BaseSelect
-          v-model="filters.client_id"
-          :options="clientOptions"
-          :isLoading="isSearchingClients"
-          placeholder="All Clients"
-          searchable
-          class="w-full sm:w-40 xl:w-40"
-          @update:modelValue="applyFilters"
-          @search="onClientSearch"
-        />
-
-        <!-- Account Filter -->
-        <BaseSelect
-          v-model="filters.account_id"
-          :options="accountOptions"
-          :isLoading="isSearchingAccounts"
-          placeholder="All Accounts"
-          searchable
-          class="w-full sm:w-44 xl:w-44"
-          @update:modelValue="applyFilters"
-          @search="onAccountSearch"
-        />
-
-        <!-- Type Filter -->
-        <BaseSelect
-          v-model="filters.type"
-          :options="typeOptions"
-          placeholder="All Types"
-          class="w-full sm:w-36 xl:w-36"
-          @update:modelValue="applyFilters"
-        />
-
-        <!-- Date range -->
-        <BaseDatePicker
-          v-model="dateRangeValue"
-          :range="true"
-          placeholder="Filter by date range..."
-          class="w-full sm:w-60 xl:w-64"
-        />
-
-        <BaseSelect
-          :modelValue="store.pagination.per_page"
-          :options="store.perPageOptions"
-          placeholder="Per Page"
-          class="w-full sm:w-28 xl:w-28"
-          @update:modelValue="store.updatePerPage"
-        />
-
-        <!-- Clear -->
-        <button
-          v-if="hasFilters"
-          class="rounded-lg px-3 py-2 text-xs font-medium text-secondary-text hover:bg-background hover:text-primary-text transition-colors sm:flex-none"
-          @click="clearFilters"
-        >
-          Clear
-        </button>
-
-        <!-- Reload -->
-        <button
-          class="rounded-lg p-2 text-secondary-text hover:bg-background hover:text-primary-text transition-colors sm:flex-none flex items-center justify-center border border-primary-border hover:border-primary-border"
-          @click="refresh"
-          title="Refresh"
-          :disabled="store.loading"
-        >
-          <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': store.loading }" />
-        </button>
-      </div>
-    </div>
-
-    <!-- Table -->
-    <div class="w-full border border-primary-border rounded-xl overflow-x-auto bg-card-background">
-      <table class="w-full border-collapse">
-        <thead>
-          <tr class="border-b border-primary-border bg-card-background/50">
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">ID / Reference</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Trading Account</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Payment Method</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Type</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Amount</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Status</th>
-            <th class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Date</th>
-          </tr>
-        </thead>
-
-        <!-- Skeleton -->
-        <tbody v-if="store.loading">
-          <tr v-for="n in 8" :key="n" class="border-b border-primary-border animate-pulse">
-            <td class="p-3">
-              <div class="h-3.5 w-12 bg-background rounded mb-1.5" />
-              <div class="h-2.5 w-24 bg-background rounded" />
-            </td>
-            <td class="p-3">
-              <div class="h-3.5 w-28 bg-background rounded mb-1.5" />
-              <div class="h-2.5 w-16 bg-background rounded" />
-            </td>
-            <td class="p-3">
-              <div class="h-3.5 w-16 bg-background rounded mb-1.5" />
-              <div class="h-2.5 w-12 bg-background rounded" />
-            </td>
-            <td class="p-3"><div class="h-5 w-16 bg-background rounded-full" /></td>
-            <td class="p-3"><div class="h-3.5 w-14 bg-background rounded" /></td>
-            <td class="p-3"><div class="h-5 w-16 bg-background rounded-full" /></td>
-            <td class="p-3 flex justify-end"><div class="h-3.5 w-20 bg-background rounded" /></td>
-          </tr>
-        </tbody>
-
-        <!-- Empty -->
-        <tbody v-else-if="store.data.length === 0">
-          <tr>
-            <td colspan="7" class="py-16 text-center">
-              <div class="flex flex-col items-center gap-3">
-                <div class="w-12 h-12 rounded-full bg-card-background flex items-center justify-center">
-                  <BookOpen class="w-5 h-5 text-secondary-text" />
-                </div>
-                <p class="text-sm font-semibold text-primary-text">No ledger entries found</p>
-                <p class="text-xs text-secondary-text">Try adjusting your filters</p>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-
-        <!-- Data -->
-        <tbody v-else>
-          <tr
-            v-for="entry in store.data"
-            :key="entry.payment_id"
-            class="border-b border-primary-border last:border-none hover:bg-background/40 transition-colors"
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <template v-if="store.loading">
+          <div
+            v-for="n in 4"
+            :key="n"
+            class="bg-card-background border border-primary-border rounded-xl p-4 animate-pulse space-y-2"
           >
-            <!-- ID / Reference -->
-            <td class="p-3">
-              <p class="text-xs font-semibold text-primary-text">#{{ entry.payment_id }}</p>
-              <p v-if="entry.txid" class="text-[10px] text-secondary-text font-mono truncate max-w-37.5" :title="entry.txid">TXID: {{ entry.txid }}</p>
-              <p v-else-if="entry.external_payment_id" class="text-[10px] text-secondary-text truncate max-w-37.5">Ext: {{ entry.external_payment_id }}</p>
-            </td>
-
-            <!-- Trading Account -->
-            <td class="p-3">
-              <p class="text-xs font-medium text-primary-text">
-                <span
-                  @click="goToTradingAccount(entry.account_number)"
-                  class="cursor-pointer hover:text-primary transition-colors hover:underline"
-                >
-                  {{ entry.account_number }} · {{ entry.broker_label ?? '—' }}
-                </span>
-              </p>
-              <p class="text-[10px] text-secondary-text">Client: {{ entry.client_name }}</p>
-            </td>
-
-            <!-- Payment Method -->
-            <td class="p-3">
-              <p class="text-xs font-medium text-primary-text capitalize">{{ entry.method ?? '—' }}</p>
-              <p class="text-[10px] text-secondary-text capitalize">via {{ entry.gateway ?? '—' }}</p>
-            </td>
-
-            <!-- Type -->
-            <td class="p-3">
-              <span class="text-[11px] font-medium px-2 py-0.5 rounded-full border capitalize" :class="typeClass(entry.type)">
-                {{ formatType(entry.type) }}
-              </span>
-            </td>
-
-            <!-- Amount -->
-            <td class="p-3">
-              <span class="text-xs font-medium tabular-nums" :class="amountClass(entry.type, entry.amount)">
-                {{ entry.type === 'deposit' ? '+' : '-' }}{{ formatMoney(entry.amount, entry.broker_currency) }}
-              </span>
-            </td>
-
-            <!-- Status -->
-            <td class="p-3">
-              <span class="text-[11px] font-medium px-2 py-0.5 rounded-full border capitalize" :class="statusClass(entry.payment_status ?? entry.approval_status)">
-                {{ entry.approval_status ?? entry.payment_status ?? '—' }}
-              </span>
-            </td>
-
-            <!-- Date -->
-            <td class="p-3 text-xs text-secondary-text text-right whitespace-nowrap">{{ formatDate(entry.created_at) }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-      <div class="mt-4">
-        <Pagination
-          v-if="store.pagination.total_items > store.pagination.per_page"
-          :pagination="store.pagination"
-          @page-change="handlePageChange"
-        />
+            <div class="h-3 w-24 bg-background rounded" />
+            <div class="h-6 w-28 bg-background rounded" />
+          </div>
+        </template>
+        <template v-else>
+          <div
+            class="bg-card-background border border-primary-border rounded-xl p-4"
+          >
+            <p
+              class="text-[11px] uppercase tracking-wide text-secondary-text mb-1"
+            >
+              Total Deposit
+            </p>
+            <p class="text-xl font-medium text-green-700">
+              +${{ formatNum(store.summary.total_deposit) }}
+            </p>
+          </div>
+          <div
+            class="bg-card-background border border-primary-border rounded-xl p-4"
+          >
+            <p
+              class="text-[11px] uppercase tracking-wide text-secondary-text mb-1"
+            >
+              Total Withdrawal
+            </p>
+            <p class="text-xl font-medium text-red-700">
+              -${{ formatNum(store.summary.total_withdrawal) }}
+            </p>
+          </div>
+          <div
+            class="bg-card-background border border-primary-border rounded-xl p-4"
+          >
+            <p
+              class="text-[11px] uppercase tracking-wide text-secondary-text mb-1"
+            >
+              Trade PnL
+            </p>
+            <p
+              class="text-xl font-medium"
+              :class="
+                store.summary.total_pnl >= 0 ? 'text-green-700' : 'text-red-700'
+              "
+            >
+              {{ store.summary.total_pnl >= 0 ? "+" : "" }}${{
+                formatNum(store.summary.total_pnl)
+              }}
+            </p>
+          </div>
+          <div
+            class="bg-card-background border border-primary-border rounded-xl p-4"
+          >
+            <p
+              class="text-[11px] uppercase tracking-wide text-secondary-text mb-1"
+            >
+              Fee Paid
+            </p>
+            <p class="text-xl font-medium text-primary-text">
+              ${{ formatNum(store.summary.total_fee_paid) }}
+            </p>
+          </div>
+        </template>
       </div>
+
+      <!-- Filters -->
+      <div
+        class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3 mb-5"
+      >
+        <div
+          class="flex w-full min-w-0 flex-col gap-2 rounded-xl border border-primary-border bg-card-background/40 p-2 sm:flex-row sm:items-center xl:flex-1 xl:flex-nowrap"
+        >
+          <!-- Client Filter -->
+          <BaseSelect
+            v-model="filters.client_id"
+            :options="clientOptions"
+            :isLoading="isSearchingClients"
+            placeholder="All Clients"
+            searchable
+            class="w-full sm:w-40 xl:w-40"
+            @update:modelValue="applyFilters"
+            @search="onClientSearch"
+          />
+
+          <!-- Account Filter -->
+          <BaseSelect
+            v-model="filters.account_id"
+            :options="accountOptions"
+            :isLoading="isSearchingAccounts"
+            placeholder="All Accounts"
+            searchable
+            class="w-full sm:w-44 xl:w-44"
+            @update:modelValue="applyFilters"
+            @search="onAccountSearch"
+          />
+
+          <!-- Type Filter -->
+          <BaseSelect
+            v-model="filters.type"
+            :options="typeOptions"
+            placeholder="All Types"
+            class="w-full sm:w-36 xl:w-36"
+            @update:modelValue="applyFilters"
+          />
+
+          <!-- Date range -->
+          <BaseDatePicker
+            v-model="dateRangeValue"
+            :range="true"
+            placeholder="Filter by date range..."
+            class="w-full sm:w-60 xl:w-64"
+          />
+
+          <BaseSelect
+            :modelValue="store.pagination.per_page"
+            :options="store.perPageOptions"
+            placeholder="Per Page"
+            class="w-full sm:w-28 xl:w-28"
+            @update:modelValue="store.updatePerPage"
+          />
+
+          <!-- Clear -->
+          <button
+            v-if="hasFilters"
+            class="rounded-lg px-3 py-2 text-xs font-medium text-secondary-text hover:bg-background hover:text-primary-text transition-colors sm:flex-none"
+            @click="clearFilters"
+          >
+            Clear
+          </button>
+
+          <!-- Reload -->
+          <button
+            class="rounded-lg p-2 text-secondary-text hover:bg-background hover:text-primary-text transition-colors sm:flex-none flex items-center justify-center border border-primary-border hover:border-primary-border"
+            @click="refresh"
+            title="Refresh"
+            :disabled="store.loading"
+          >
+            <RefreshCw
+              class="w-3.5 h-3.5"
+              :class="{ 'animate-spin': store.loading }"
+            />
+          </button>
+        </div>
+      </div>
+
+      <!-- DataTable -->
+      <DataTable
+        :data="store.data"
+        :columns="walletColumns"
+        :pagination="store.pagination"
+        :loading="store.loading"
+        :per-page-options="[10, 25, 50, 100]"
+        row-key="payment_id"
+        table-key="client-wallet-transactions-table"
+        empty-title="No ledger entries found"
+        empty-text="Try adjusting your filters or date range."
+        @page-change="handlePageChange"
+        @per-page-change="handlePerPageChange"
+      >
+        <!-- Cell: ID / Reference -->
+        <template #cell-payment_id="{ row }">
+          <p class="text-xs font-semibold text-primary-text">
+            #{{ row.payment_id }}
+          </p>
+          <p
+            v-if="row.txid"
+            class="text-[10px] text-secondary-text font-mono truncate max-w-40"
+            :title="row.txid"
+          >
+            TXID: {{ row.txid }}
+          </p>
+          <p
+            v-else-if="row.external_payment_id"
+            class="text-[10px] text-secondary-text truncate max-w-40"
+          >
+            Ext: {{ row.external_payment_id }}
+          </p>
+        </template>
+
+        <!-- Cell: Trading Account -->
+        <template #cell-trading_account="{ row }">
+          <p class="text-xs font-medium text-primary-text">
+            <span
+              @click.stop="goToTradingAccount(row.account_number)"
+              class="cursor-pointer hover:text-primary transition-colors hover:underline"
+            >
+              {{ row.account_number }} · {{ row.broker_label || "—" }}
+            </span>
+          </p>
+          <p class="text-[10px] text-secondary-text">
+            Client: {{ row.client_name }}
+          </p>
+        </template>
+
+        <!-- Cell: Payment Method -->
+        <template #cell-method="{ row }">
+          <p class="text-xs font-medium text-primary-text capitalize">
+            {{ row.method ?? "—" }}
+          </p>
+          <p class="text-[10px] text-secondary-text capitalize">
+            via {{ row.gateway ?? "—" }}
+          </p>
+        </template>
+
+        <!-- Cell: Amount -->
+        <template #cell-amount="{ row }">
+          <span
+            class="text-xs font-medium tabular-nums"
+            :class="amountClass(row.type, row.amount)"
+          >
+            {{ row.type === "deposit" ? "+" : "-"
+            }}{{ formatMoney(row.amount, row.broker_currency) }}
+          </span>
+        </template>
+
+        <!-- Cell: Date -->
+        <template #cell-created_at="{ row }">
+          <span class="text-xs text-secondary-text whitespace-nowrap">{{
+            formatDate(row.created_at)
+          }}</span>
+        </template>
+      </DataTable>
     </div>
 
     <div v-else>
       <InternalTransfers />
     </div>
-
   </div>
 </template>
 
 <script setup>
-import { onMounted, ref, computed } from 'vue'
-import { BookOpen, RefreshCw } from 'lucide-vue-next'
-import { useClientLedgerStore } from '@/stores/clientLedger/clientLedger'
-import Pagination from '@/components/common/Pagination.vue'
-import BaseSelect from '@/components/common/BaseSelect.vue'
-import BaseDatePicker from '@/components/common/BaseDatePicker.vue'
-import InternalTransfers from './InternalTransfers.vue'
-import { useGoToTradingAccount } from '@/composables/useGoToTradingAccount'
+import { onMounted, ref, computed } from "vue";
+import { BookOpen, RefreshCw } from "lucide-vue-next";
+import { useClientLedgerStore } from "@/stores/clientLedger/clientLedger";
+import Pagination from "@/components/common/Pagination.vue";
+import BaseSelect from "@/components/common/BaseSelect.vue";
+import BaseDatePicker from "@/components/common/BaseDatePicker.vue";
+import InternalTransfers from "./InternalTransfers.vue";
+import { useGoToTradingAccount } from "@/composables/useGoToTradingAccount";
+import { formatDate } from "@/utils/timeFormatter";
 
-const activeTab = ref('transactions')
+const activeTab = ref("transactions");
 const tabs = [
-  { label: 'Account Transactions', value: 'transactions' },
-  { label: 'Internal Transfers', value: 'transfers' },
-]
+  { label: "Account Transactions", value: "transactions" },
+  { label: "Internal Transfers", value: "transfers" },
+];
 
-const store = useClientLedgerStore()
-const { goToTradingAccount } = useGoToTradingAccount()
+const store = useClientLedgerStore();
+const { goToTradingAccount } = useGoToTradingAccount();
 
-const filters = ref({ client_id: null, account_id: null, type: null, from_date: '', to_date: '' })
-const clientOptions = ref([])
-const accountOptions = ref([])
-const isSearchingClients = ref(false)
-const isSearchingAccounts = ref(false)
-let clientSearchTimer = null
-let accountSearchTimer = null
+const filters = ref({
+  client_id: null,
+  account_id: null,
+  type: null,
+  from_date: "",
+  to_date: "",
+});
+const clientOptions = ref([]);
+const accountOptions = ref([]);
+const isSearchingClients = ref(false);
+const isSearchingAccounts = ref(false);
+let clientSearchTimer = null;
+let accountSearchTimer = null;
 
 const typeOptions = computed(() =>
-  (store.filterOptions.types ?? []).map((t) => ({ label: formatType(t), value: t }))
-)
+  (store.filterOptions.types ?? []).map((t) => ({
+    label: formatType(t),
+    value: t,
+  })),
+);
 
 const onClientSearch = (query) => {
   if (!query.trim()) {
-    clientOptions.value = (store.filterOptions.clients ?? []).map((c) => ({ label: c.name, value: c.id }))
-    return
+    clientOptions.value = (store.filterOptions.clients ?? []).map((c) => ({
+      label: c.name,
+      value: c.id,
+    }));
+    return;
   }
 
-  clearTimeout(clientSearchTimer)
-  isSearchingClients.value = true
+  clearTimeout(clientSearchTimer);
+  isSearchingClients.value = true;
 
   clientSearchTimer = setTimeout(async () => {
     try {
-      const results = await store.fetchAllClients(query)
-      clientOptions.value = results
+      const results = await store.fetchAllClients(query);
+      clientOptions.value = results;
     } catch (err) {
-      clientOptions.value = []
+      clientOptions.value = [];
     } finally {
-      isSearchingClients.value = false
+      isSearchingClients.value = false;
     }
-  }, 300)
-}
+  }, 300);
+};
 
 const onAccountSearch = (query) => {
   if (!query.trim()) {
-    accountOptions.value = (store.filterOptions.accounts ?? []).map((a) => ({ label: `#${a.account_number} · ${a.broker_label ?? ''}`.trim(), value: a.id }))
-    return
+    accountOptions.value = (store.filterOptions.accounts ?? []).map((a) => ({
+      label: `#${a.account_number} · ${a.broker_label ?? ""}`.trim(),
+      value: a.id,
+    }));
+    return;
   }
 
-  clearTimeout(accountSearchTimer)
-  isSearchingAccounts.value = true
+  clearTimeout(accountSearchTimer);
+  isSearchingAccounts.value = true;
 
   accountSearchTimer = setTimeout(async () => {
     try {
-      const results = await store.fetchAllAccounts(query, filters.value.client_id)
-      accountOptions.value = results
+      const results = await store.fetchAllAccounts(
+        query,
+        filters.value.client_id,
+      );
+      accountOptions.value = results;
     } catch (err) {
-      accountOptions.value = []
+      accountOptions.value = [];
     } finally {
-      isSearchingAccounts.value = false
+      isSearchingAccounts.value = false;
     }
-  }, 300)
-}
+  }, 300);
+};
 
 onMounted(() => {
-  clientOptions.value = (store.filterOptions.clients ?? []).map((c) => ({ label: c.name, value: c.id }))
-  accountOptions.value = (store.filterOptions.accounts ?? []).map((a) => ({ label: `#${a.account_number} · ${a.broker_label ?? ''}`.trim(), value: a.id }))
+  clientOptions.value = (store.filterOptions.clients ?? []).map((c) => ({
+    label: c.name,
+    value: c.id,
+  }));
+  accountOptions.value = (store.filterOptions.accounts ?? []).map((a) => ({
+    label: `#${a.account_number} · ${a.broker_label ?? ""}`.trim(),
+    value: a.id,
+  }));
   // Initialize local filters from store to maintain state
-  filters.value = { ...store.filters }
-  store.fetchLedger()
-})
+  filters.value = { ...store.filters };
+  store.fetchLedger();
+});
 
 const dateRangeValue = computed({
   get() {
@@ -339,105 +368,188 @@ const dateRangeValue = computed({
       return {
         start: filters.value.from_date || null,
         end: filters.value.to_date || null,
-      }
+      };
     }
-    return null
+    return null;
   },
   set(val) {
     if (!val) {
-      filters.value.from_date = ''
-      filters.value.to_date = ''
+      filters.value.from_date = "";
+      filters.value.to_date = "";
     } else if (Array.isArray(val)) {
-      filters.value.from_date = val[0] || ''
-      filters.value.to_date = val[1] || ''
-    } else if (typeof val === 'object') {
-      filters.value.from_date = val.start || val.from || ''
-      filters.value.to_date = val.end || val.to || ''
+      filters.value.from_date = val[0] || "";
+      filters.value.to_date = val[1] || "";
+    } else if (typeof val === "object") {
+      filters.value.from_date = val.start || val.from || "";
+      filters.value.to_date = val.end || val.to || "";
     }
-    applyDateFilters()
+    applyDateFilters();
   },
-})
+});
 
-const hasFilters = computed(() =>
-  filters.value.client_id || filters.value.account_id || filters.value.type || filters.value.from_date || filters.value.to_date
-)
+const hasFilters = computed(
+  () =>
+    filters.value.client_id ||
+    filters.value.account_id ||
+    filters.value.type ||
+    filters.value.from_date ||
+    filters.value.to_date,
+);
 
-const hasCompleteDateRange = () => filters.value.from_date && filters.value.to_date
-const hasEmptyDateRange = () => !filters.value.from_date && !filters.value.to_date
+const hasCompleteDateRange = () =>
+  filters.value.from_date && filters.value.to_date;
+const hasEmptyDateRange = () =>
+  !filters.value.from_date && !filters.value.to_date;
 
 const getApplicableFilters = () => {
-  const nextFilters = { ...filters.value }
+  const nextFilters = { ...filters.value };
 
   if (!hasCompleteDateRange()) {
-    nextFilters.from_date = ''
-    nextFilters.to_date = ''
+    nextFilters.from_date = "";
+    nextFilters.to_date = "";
   }
 
-  return nextFilters
-}
+  return nextFilters;
+};
 
 const applyFilters = () => {
-  Object.assign(store.filters, getApplicableFilters())
-  store.applyFilters()
-}
+  Object.assign(store.filters, getApplicableFilters());
+  store.applyFilters();
+};
 
 const applyDateFilters = () => {
   if (hasCompleteDateRange() || hasEmptyDateRange()) {
-    applyFilters()
+    applyFilters();
   }
-}
+};
 
 const clearFilters = () => {
-  filters.value = { client_id: null, account_id: null, type: null, from_date: '', to_date: '' }
-  applyFilters()
-}
+  filters.value = {
+    client_id: null,
+    account_id: null,
+    type: null,
+    from_date: "",
+    to_date: "",
+  };
+  applyFilters();
+};
 
 const refresh = () => {
-  store.fetchLedger(true)
-}
+  store.fetchLedger(true);
+};
 
 const handlePageChange = (page) => {
-  store.setPage(page)
-}
+  store.setPage(page);
+};
 
-const formatNum = (val) => (val ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-const formatDate = (val) => new Date(val).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-const formatType = (t) => t?.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) ?? '—'
+const handlePerPageChange = ({ per_page }) => {
+  store.updatePerPage(per_page);
+};
 
-const typeClass = (type) => ({
-  deposit:    'bg-primary-green/10 text-primary-green border-primary-green/20',
-  withdrawal: 'bg-primary-red/10 text-primary-red border-primary-red/20',
-  trade_pnl:  'bg-primary-blue/10 text-primary-blue border-primary-blue/20',
-  fee_paid:   'bg-yellow-500/10 text-yellow-600 border-yellow-500/20',
-}[type] ?? 'bg-background text-secondary-text border-primary-border')
+const walletColumns = [
+  {
+    key: "payment_id",
+    label: "ID / Reference",
+    minWidth: 150,
+    resizable: true,
+  },
+  {
+    key: "trading_account",
+    label: "Trading Account",
+    minWidth: 180,
+    resizable: true,
+  },
+  { key: "method", label: "Payment Method", minWidth: 140, resizable: true },
+  {
+    key: "type",
+    label: "Type",
+    type: "badge",
+    minWidth: 110,
+    resizable: true,
+    badge: {
+      map: {
+        deposit: { label: "Deposit", variant: "success" },
+        withdrawal: { label: "Withdrawal", variant: "danger" },
+        trade_pnl: { label: "Trade PnL", variant: "info" },
+        fee_paid: { label: "Fee Paid", variant: "warning" },
+      },
+    },
+  },
+  { key: "amount", label: "Amount", minWidth: 140, resizable: true },
+  {
+    key: "approval_status",
+    label: "Status",
+    type: "badge",
+    minWidth: 120,
+    resizable: true,
+    // formatter: (val, row) => row.approval_status ?? row.payment_status ?? val ?? '—',
+    badge: {
+      map: {
+        approved: { label: "Approved", variant: "success" },
+        completed: { label: "Completed", variant: "success" },
+        paid: { label: "Paid", variant: "success" },
+        success: { label: "Success", variant: "success" },
+        pending: { label: "Pending", variant: "warning" },
+        processing: { label: "Processing", variant: "warning" },
+        rejected: { label: "Rejected", variant: "danger" },
+        failed: { label: "Failed", variant: "danger" },
+      },
+    },
+  },
+  {
+    key: "created_at",
+    label: "Date",
+    align: "right",
+    minWidth: 130,
+    resizable: true,
+  },
+];
+
+const formatNum = (val) =>
+  (val ?? 0).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+const formatType = (t) =>
+  t?.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) ?? "—";
+
+const typeClass = (type) =>
+  ({
+    deposit: "bg-primary-green/10 text-primary-green border-primary-green/20",
+    withdrawal: "bg-primary-red/10 text-primary-red border-primary-red/20",
+    trade_pnl: "bg-primary-blue/10 text-primary-blue border-primary-blue/20",
+    fee_paid: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20",
+  })[type] ?? "bg-background text-secondary-text border-primary-border";
 
 const amountClass = (type, amount) => {
-  if (type === 'deposit') return 'text-green-700'
-  if (type === 'withdrawal') return 'text-red-700'
-  if (type === 'trade_pnl') return amount >= 0 ? 'text-green-700' : 'text-red-700'
-  return 'text-secondary-text'
-}
+  if (type === "deposit") return "text-green-700";
+  if (type === "withdrawal") return "text-red-700";
+  if (type === "trade_pnl")
+    return amount >= 0 ? "text-green-700" : "text-red-700";
+  return "text-secondary-text";
+};
 
 const statusClass = (status) => {
   switch (status?.toLowerCase()) {
-    case 'success':
-    case 'approved':
-    case 'completed':
-      return 'bg-primary-green/10 text-primary-green border-primary-green/20'
-    case 'failed':
-    case 'rejected':
-      return 'bg-primary-red/10 text-primary-red border-primary-red/20'
-    case 'pending':
-    case 'processing':
-      return 'bg-primary-yellow/10 text-primary-yellow border-primary-yellow/20'
+    case "success":
+    case "approved":
+    case "completed":
+      return "bg-primary-green/10 text-primary-green border-primary-green/20";
+    case "failed":
+    case "rejected":
+      return "bg-primary-red/10 text-primary-red border-primary-red/20";
+    case "pending":
+    case "processing":
+      return "bg-primary-yellow/10 text-primary-yellow border-primary-yellow/20";
     default:
-      return 'bg-background text-secondary-text border-primary-border'
+      return "bg-background text-secondary-text border-primary-border";
   }
-}
+};
 
 const formatMoney = (amount, currency) => {
-  if (!currency) return `$${formatNum(amount)}`
-  return /^[A-Z]{3}$/.test(currency) ? `${currency} ${formatNum(amount)}` : `${currency}${formatNum(amount)}`
-}
-
+  if (!currency) return `$${formatNum(amount)}`;
+  return /^[A-Z]{3}$/.test(currency)
+    ? `${currency} ${formatNum(amount)}`
+    : `${currency}${formatNum(amount)}`;
+};
 </script>

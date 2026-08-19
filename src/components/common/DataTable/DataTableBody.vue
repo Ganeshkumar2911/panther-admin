@@ -127,10 +127,10 @@
             <!-- Type: Badge -->
             <template v-if="col.type === 'badge'">
               <span
-                class="inline-flex items-center text-[11px] font-medium px-2.5 py-0.5 rounded-full border transition"
-                :class="getBadgeClass(row[col.key], col)"
+                class="inline-flex items-center text-[11px] font-medium px-2.5 py-0.5 rounded-full border transition capitalize"
+                :class="getBadgeClass(getCellValue(row, col), col, row)"
               >
-                {{ getBadgeLabel(row[col.key], col) }}
+                {{ getBadgeLabel(getCellValue(row, col), col, row) }}
               </span>
             </template>
 
@@ -370,40 +370,82 @@ function handleActionSelect(item, row) {
   })
 }
 
-function getBadgeLabel(val, col) {
-  if (val === null || val === undefined || val === '') return '—'
-  const map = col.badge?.map
-  if (map && map[val]?.label) {
-    return map[val].label
+function getCellValue(row, col) {
+  if (typeof col.formatter === 'function') {
+    return col.formatter(row[col.key], row)
   }
-  return String(val).charAt(0).toUpperCase() + String(val).slice(1)
+  return row[col.key]
 }
 
-function getBadgeClass(val, col) {
+function getBadgeLabel(val, col, row) {
+  if (val === null || val === undefined || val === '') return '—'
+  
+  if (typeof col.badge?.label === 'function') {
+    return col.badge.label(val, row)
+  }
+
+  const rawVal = row?.[col.key]
   const map = col.badge?.map
-  const item = map ? map[val] : null
-  const variant = item?.variant || col.badge?.variant || 'default'
+  if (map) {
+    if (map[val]?.label) return map[val].label
+    if (map[rawVal]?.label) return map[rawVal].label
+  }
+
+  const str = String(val).replace(/_/g, ' ')
+  return str.charAt(0).toUpperCase() + str.slice(1)
+}
+
+function getBadgeClass(val, col, row) {
+  const rawVal = row?.[col.key]
+  
+  // 1. Direct custom class function/string on badge config
+  if (typeof col.badge?.class === 'function') {
+    return col.badge.class(val, row)
+  }
+  if (typeof col.badge?.class === 'string' && col.badge.class) {
+    return col.badge.class
+  }
+
+  // 2. Map lookup
+  const map = col.badge?.map
+  const item = map ? (map[val] || map[rawVal]) : null
+  
+  // 3. Variant resolution (string or function)
+  let variant = item?.variant
+  if (!variant && typeof col.badge?.variant === 'function') {
+    variant = col.badge.variant(val, row)
+  }
+  if (!variant) {
+    variant = col.badge?.variant || 'default'
+  }
 
   switch (variant) {
     case 'success':
+    case 'green':
       return 'bg-primary-green/10 text-primary-green border-primary-green/20'
     case 'warning':
+    case 'yellow':
       return 'bg-primary-yellow/10 text-primary-yellow border-primary-yellow/20'
     case 'danger':
+    case 'red':
       return 'bg-primary-red/10 text-primary-red border-primary-red/20'
     case 'info':
+    case 'blue':
     case 'primary':
-      return 'bg-primary/10 text-primary border-primary/20'
+      return 'bg-primary-blue/10 text-primary-blue border-primary-blue/20'
     default: {
       const lower = String(val).toLowerCase()
-      if (['approved', 'active', 'completed', 'success'].includes(lower)) {
+      if (['approved', 'active', 'completed', 'success', 'deposit', 'paid'].includes(lower)) {
         return 'bg-primary-green/10 text-primary-green border-primary-green/20'
       }
-      if (['pending', 'processing', 'in_review'].includes(lower)) {
+      if (['pending', 'processing', 'in_review', 'fee_paid'].includes(lower)) {
         return 'bg-primary-yellow/10 text-primary-yellow border-primary-yellow/20'
       }
-      if (['rejected', 'cancelled', 'failed', 'inactive', 'danger'].includes(lower)) {
+      if (['rejected', 'cancelled', 'failed', 'inactive', 'danger', 'withdrawal'].includes(lower)) {
         return 'bg-primary-red/10 text-primary-red border-primary-red/20'
+      }
+      if (['trade_pnl'].includes(lower)) {
+        return 'bg-primary-blue/10 text-primary-blue border-primary-blue/20'
       }
       return 'bg-secondary-text/10 text-secondary-text border-primary-border'
     }
