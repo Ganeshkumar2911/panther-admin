@@ -50,7 +50,7 @@
             <div class="h-6 w-px bg-primary-border/60" />
             <div>
               <span class="text-[9px] uppercase text-secondary-text block font-semibold">Perf Fee / Min Cap</span>
-              <span class="font-bold text-primary text-xs">{{ fmInfo.performance_fee }}% · ${{ fmInfo.min_capital }}</span>
+              <span class="font-bold text-primary text-xs">{{ fmInfo.performance_fee }}% · {{ formatCurrency(fmInfo.min_capital, activeCurrency) }}</span>
             </div>
           </div>
 
@@ -229,12 +229,12 @@
               <!-- Equity & PnL -->
               <td class="py-4 px-4 whitespace-nowrap">
                 <div class="space-y-0.5">
-                  <p class="text-xs font-extrabold text-primary-text">${{ fmt(row.equity) }}</p>
+                  <p class="text-xs font-extrabold text-primary-text">{{ formatCurrency(row.equity, getRowCurrency(row)) }}</p>
                   <p
                     class="text-[10px] font-bold"
                     :class="Number(row.net_profit || row.gross_pnl || 0) >= 0 ? 'text-emerald-500' : 'text-rose-500'"
                   >
-                    PnL: {{ Number(row.net_profit || row.gross_pnl || 0) >= 0 ? '+' : '' }}${{ fmt(row.net_profit || row.gross_pnl) }}
+                    PnL: {{ formatPnl(row.net_profit || row.gross_pnl, getRowCurrency(row)) }}
                   </p>
                 </div>
               </td>
@@ -246,7 +246,7 @@
                     {{ row.lot_type || 'fixed' }} <span class="text-secondary-text text-[10px] font-normal">({{ row.lot_value ?? '0' }})</span>
                   </p>
                   <p class="text-[10px] text-secondary-text">
-                    Trades: <span class="font-bold text-primary-text">{{ row.total_trades ?? 0 }}</span> · Fees: <span class="font-bold text-primary-text">${{ fmt(row.total_fees) }}</span>
+                    Trades: <span class="font-bold text-primary-text">{{ row.total_trades ?? 0 }}</span> · Fees: <span class="font-bold text-primary-text">{{ formatCurrency(row.total_fees, getRowCurrency(row)) }}</span>
                   </p>
                 </div>
               </td>
@@ -350,7 +350,7 @@
             </div>
             <div>
               <span class="text-[9px] text-secondary-text block uppercase font-semibold">Equity</span>
-              <span class="font-bold text-primary-text">${{ fmt(row.equity) }}</span>
+              <span class="font-bold text-primary-text">{{ formatCurrency(row.equity, getRowCurrency(row)) }}</span>
             </div>
             <div>
               <span class="text-[9px] text-secondary-text block uppercase font-semibold">Net PnL</span>
@@ -358,7 +358,7 @@
                 class="font-bold"
                 :class="Number(row.net_profit || row.gross_pnl || 0) >= 0 ? 'text-emerald-500' : 'text-rose-500'"
               >
-                ${{ fmt(row.net_profit || row.gross_pnl) }}
+                {{ formatPnl(row.net_profit || row.gross_pnl, getRowCurrency(row)) }}
               </span>
             </div>
             <div>
@@ -423,7 +423,7 @@ const goToTradeBook = (row) => {
       fm_id: fmId,
       account_number: row.account_number,
       trading_account_id: row.trading_account_id || row.account_id,
-      currency: row.broker_currency || row.currency || fmInfo?.broker_currency || fmInfo?.coverage_account?.broker_currency,
+      currency: getRowCurrency(row),
     },
   })
 }
@@ -484,6 +484,57 @@ const fmt = (val) => {
   const num = Number(val ?? 0)
   if (isNaN(num)) return '0.00'
   return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+const activeCurrency = computed(() => {
+  return (
+    route.query.currency ||
+    fmInfo.value?.broker_currency ||
+    fmInfo.value?.currency ||
+    fmInfo.value?.coverage_account?.broker_currency ||
+    fmInfo.value?.master_account?.broker_currency ||
+    'USD'
+  )
+})
+
+const getRowCurrency = (row) => {
+  return (
+    row?.broker_currency ||
+    row?.currency ||
+    row?.trading_account?.broker_currency ||
+    row?.account?.broker_currency ||
+    activeCurrency.value ||
+    'USD'
+  )
+}
+
+const getCurrencySymbol = (currency) => {
+  const c = String(currency || '').trim().toUpperCase()
+  if (c === 'USC' || c === 'CENT') return 'C'
+  if (c === 'CAD') return 'C$'
+  if (c === 'EUR') return '€'
+  if (c === 'GBP') return '£'
+  if (c === 'INR') return '₹'
+  if (c === 'JPY') return '¥'
+  if (c === 'USD') return '$'
+  return c ? `${c} ` : '$'
+}
+
+const formatCurrency = (val, currency = null) => {
+  if (val === null || val === undefined || isNaN(val)) return '—'
+  const num = Number(val)
+  if (isNaN(num)) return '—'
+  const sym = getCurrencySymbol(currency || activeCurrency.value)
+  return `${sym}${fmt(num)}`
+}
+
+const formatPnl = (val, currency = null) => {
+  if (val === null || val === undefined || isNaN(val)) return '—'
+  const num = Number(val)
+  if (isNaN(num)) return '—'
+  const sym = getCurrencySymbol(currency || activeCurrency.value)
+  const prefix = num >= 0 ? `+${sym}` : `-${sym}`
+  return `${prefix}${fmt(Math.abs(num))}`
 }
 
 const filteredFollowers = computed(() => {

@@ -94,7 +94,7 @@
             <DollarSign class="w-3.5 h-3.5 text-emerald-500" />
           </div>
           <p class="text-base font-extrabold text-primary-text font-mono">
-            ${{ fmt(activeOffer?.total_fees_collected) }}
+            {{ formatCurrency(activeOffer?.total_fees_collected) }}
           </p>
         </div>
 
@@ -116,7 +116,7 @@
             <Wallet class="w-3.5 h-3.5 text-indigo-400" />
           </div>
           <p class="text-base font-extrabold text-primary-text font-mono">
-            ${{ fmt(activeOffer?.minimum_balance) }}
+            {{ formatCurrency(activeOffer?.minimum_balance) }}
           </p>
         </div>
 
@@ -266,7 +266,7 @@
               </div>
               <div>
                 <p class="text-lg font-extrabold text-primary-text font-mono">
-                  ${{ fmt(activeOffer?.registration_fee) }}
+                  {{ formatCurrency(activeOffer?.registration_fee) }}
                 </p>
                 <p class="text-[10px] text-secondary-text mt-0.5">One-time entry</p>
               </div>
@@ -302,7 +302,7 @@
             <div class="bg-background border border-primary-border rounded-lg p-3 text-center">
               <p class="text-[10px] uppercase font-bold tracking-widest text-secondary-text">Minimum Balance</p>
               <p class="text-2xl font-black text-primary font-mono my-0.5">
-                ${{ fmt(activeOffer?.minimum_balance) }}
+                {{ formatCurrency(activeOffer?.minimum_balance) }}
               </p>
               <p class="text-[10px] text-secondary-text">Required capital to follow</p>
             </div>
@@ -877,6 +877,35 @@ const copyLink = async (linkValue) => {
 }
 
 const fmt = (v) => (v ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+
+const activeCurrency = computed(() => {
+  return (
+    route.query.currency ||
+    activeOffer.value?.broker_currency ||
+    activeOffer.value?.currency ||
+    'USD'
+  )
+})
+
+const getCurrencySymbol = (currency) => {
+  const c = String(currency || '').trim().toUpperCase()
+  if (c === 'USC' || c === 'CENT') return 'C'
+  if (c === 'CAD') return 'C$'
+  if (c === 'EUR') return '€'
+  if (c === 'GBP') return '£'
+  if (c === 'INR') return '₹'
+  if (c === 'JPY') return '¥'
+  if (c === 'USD') return '$'
+  return c ? `${c} ` : '$'
+}
+
+const formatCurrency = (val, currency = null) => {
+  if (val === null || val === undefined || isNaN(val)) return '—'
+  const num = Number(val)
+  if (isNaN(num)) return '—'
+  const sym = getCurrencySymbol(currency || activeCurrency.value)
+  return `${sym}${fmt(num)}`
+}
 const formatDate = (val) => val ? new Date(val).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
 const formatShare = (s) => (s === null || s === undefined || s === '') ? '—' : `${Number(s)}%`
 const formatAgentAccount = (a) => a?.trading_account_id ?? a?.account_number ?? a?.trading_account?.account_number ?? '—'
