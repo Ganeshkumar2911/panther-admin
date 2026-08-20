@@ -798,7 +798,7 @@ onMounted(() => {
                     'fi',
                     `fi-${getFlagCode(client.country)}`,
                     'fis',
-                    'w-4 h-3 flex-shrink-0',
+                    'w-4 h-3 shrink-0',
                   ]"
                 ></span>
                 <span>{{ cleanCountryLabel(client.country) || "—" }}</span>
@@ -906,7 +906,7 @@ onMounted(() => {
                   <span>{{ client.referral_link_code }}</span>
                 </span>
                 <p
-                  class="text-[10px] text-primary-text truncate max-w-[120px]"
+                  class="text-[10px] text-primary-text truncate max-w-30"
                   :title="client.referral_link_name"
                 >
                   {{ client.referral_link_name }}
@@ -962,7 +962,7 @@ onMounted(() => {
               </p>
             </td>
 
-            <td class="p-3 max-w-[220px]">
+            <td class="p-3 max-w-55">
               <div>
                 <div class="flex items-center justify-between gap-1 mb-1">
                   <span
@@ -1446,42 +1446,42 @@ onMounted(() => {
             <button
               v-if="hasPermission('client.update')"
               @click="openEditClientDialog(client)"
-              class="flex-1 min-w-[70px] text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer"
+              class="flex-1 min-w-17.5 text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer"
             >
               Edit
             </button>
             <button
               v-if="hasPermission('client.update')"
               @click="openManageTransactionsDialog(client)"
-              class="flex-1 min-w-[90px] text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer"
+              class="flex-1 min-w-22.5 text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer"
             >
               Transactions
             </button>
             <button
               v-if="hasPermission('client.update')"
               @click="openChangeIBDialog(client)"
-              class="flex-1 min-w-[80px] text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer"
+              class="flex-1 min-w-20 text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer"
             >
               Change IB
             </button>
             <button
               v-if="client.is_ib === false && hasPermission('client.update')"
               @click="openMakeIBDialog(client)"
-              class="flex-1 min-w-[80px] text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition animate-all duration-200 cursor-pointer"
+              class="flex-1 min-w-20 text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition animate-all duration-200 cursor-pointer"
             >
               Make IB
             </button>
             <button
               v-if="hasPermission('client.update')"
               @click="openUpdateReferralLinkDrawer(client)"
-              class="flex-1 min-w-[100px] text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer"
+              class="flex-1 min-w-25 text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer"
             >
               Referral Link
             </button>
             <button
               v-if="hasPermission('client.update')"
               @click="openChangeStatusDialog(client)"
-              class="flex-1 min-w-[70px] text-xs font-medium py-1.5 rounded-lg transition animate-all duration-200 cursor-pointer"
+              class="flex-1 min-w-17.5 text-xs font-medium py-1.5 rounded-lg transition animate-all duration-200 cursor-pointer"
               :class="
                 client.is_active
                   ? 'bg-primary-red/10 text-primary-red hover:bg-primary-red/20'
@@ -1496,7 +1496,7 @@ onMounted(() => {
                 hasPermission('client.delete')
               "
               @click="openDeleteClientDialog(client)"
-              class="flex-1 min-w-[70px] text-xs font-medium py-1.5 rounded-lg bg-primary-red/10 text-primary-red hover:bg-primary-red/20 transition animate-all duration-200 cursor-pointer"
+              class="flex-1 min-w-17.5 text-xs font-medium py-1.5 rounded-lg bg-primary-red/10 text-primary-red hover:bg-primary-red/20 transition animate-all duration-200 cursor-pointer"
             >
               Delete
             </button>
