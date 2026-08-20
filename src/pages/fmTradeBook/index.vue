@@ -925,7 +925,7 @@
                         : 'text-rose-500'
                     "
                   >
-                    {{ formatPnl(getTradePnl(item)) }}
+                    {{ getTradePnl(item) }}
                   </span>
                 </td>
                 <td
