@@ -83,6 +83,13 @@
                 >
                   {{ store.details.lot_type }}
                 </span>
+
+                <span
+                  v-if="store.details.broker_currency || store.details.currency"
+                  class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border border-primary-green/20 bg-primary-green/10 text-primary-green"
+                >
+                  {{ getCurrencySymbol(activeCurrency) }} {{ activeCurrency }}
+                </span>
               </div>
 
               <!-- Subtitle / Contact Row -->
@@ -114,19 +121,9 @@
 
           <!-- Right Quick Stat / Offer Identifier & Actions -->
           <div class="flex items-center gap-3 shrink-0 flex-wrap">
-            <!-- <div class="bg-background/80 border border-primary-border rounded-lg px-4 py-2.5 flex items-center gap-3 shadow-2xs">
-              <div class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
-                <Tag class="w-4 h-4" />
-              </div>
-              <div>
-                <span class="text-[10px] uppercase font-bold text-secondary-text tracking-wider block">Attached Offer</span>
-                <span class="text-xs font-black text-primary-text font-mono">Offer #{{ store.details.offer_id }}</span>
-              </div>
-            </div> -->
-
             <button
               class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-primary-border bg-background hover:bg-card-background text-primary-text hover:text-primary text-xs font-semibold transition-colors cursor-pointer shadow-2xs"
-              @click="router.push({ path: `/follower/trade-book/${route.params.id}`, query: { fm_id: route.query.fm_id, account_number: store.details?.account_number, trading_account_id: store.details?.trading_account_id, currency: store.details?.broker_currency || store.details?.currency } })"
+              @click="router.push({ path: `/follower/trade-book/${route.params.id}`, query: { fm_id: route.query.fm_id, account_number: store.details?.account_number, trading_account_id: store.details?.trading_account_id, currency: activeCurrency } })"
             >
               <BookOpen class="w-3.5 h-3.5 text-primary" />
               <span>Trade Book</span>
@@ -161,7 +158,7 @@
               <Wallet class="w-3.5 h-3.5 text-emerald-500" />
             </div>
             <p class="text-base sm:text-lg font-extrabold text-primary-text font-mono">
-              ${{ fmt(store.details.balance) }}
+              {{ formatCurrency(store.details.balance) }}
             </p>
           </div>
 
@@ -194,7 +191,7 @@
               <Shield class="w-3.5 h-3.5 text-amber-500" />
             </div>
             <p class="text-base sm:text-lg font-extrabold text-primary-text font-mono">
-              ${{ fmt(store.details.registration_fee) }}
+              {{ formatCurrency(store.details.registration_fee) }}
             </p>
           </div>
         </div>
@@ -263,7 +260,7 @@
               <div class="bg-background/60 border border-primary-border/60 rounded-lg p-3">
                 <p class="text-[10px] uppercase font-bold text-secondary-text tracking-wider mb-1">Available Balance</p>
                 <p class="text-sm font-black text-emerald-500 font-mono">
-                  ${{ fmt(store.details.balance) }}
+                  {{ formatCurrency(store.details.balance) }}
                 </p>
               </div>
 
@@ -399,7 +396,7 @@
               </div>
               <div class="flex items-center justify-between text-xs pt-2 border-t border-primary-border/60">
                 <span class="text-secondary-text">Registration Fee</span>
-                <span class="font-extrabold text-primary-text font-mono">${{ fmt(store.details.registration_fee) }}</span>
+                <span class="font-extrabold text-primary-text font-mono">{{ formatCurrency(store.details.registration_fee) }}</span>
               </div>
               <div class="flex items-center justify-between text-xs pt-2 border-t border-primary-border/60">
                 <span class="text-secondary-text">Subscription Date</span>
@@ -454,6 +451,35 @@ const editFollowerTarget = computed(() => {
 
 const onFollowerUpdated = () => {
   store.fetchDetails(route.params.id)
+}
+
+const activeCurrency = computed(() => {
+  return (
+    store.details?.broker_currency ||
+    store.details?.currency ||
+    route.query.currency ||
+    'USD'
+  )
+})
+
+const getCurrencySymbol = (currency) => {
+  const c = String(currency || '').trim().toUpperCase()
+  if (c === 'USC' || c === 'CENT') return 'C'
+  if (c === 'CAD') return 'C$'
+  if (c === 'EUR') return '€'
+  if (c === 'GBP') return '£'
+  if (c === 'INR') return '₹'
+  if (c === 'JPY') return '¥'
+  if (c === 'USD') return '$'
+  return c ? `${c} ` : '$'
+}
+
+const formatCurrency = (val, currency = null) => {
+  if (val === null || val === undefined || isNaN(val)) return '—'
+  const num = Number(val)
+  if (isNaN(num)) return '—'
+  const sym = getCurrencySymbol(currency || activeCurrency.value)
+  return `${sym}${fmt(num)}`
 }
 
 const fmt = (v) => (v ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })

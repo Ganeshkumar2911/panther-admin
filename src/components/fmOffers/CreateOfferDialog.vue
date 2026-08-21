@@ -129,26 +129,17 @@
                 </div>
               </div>
 
-              <div>
-                <label class="block text-xs font-semibold text-primary-text mb-1.5">Management Interval</label>
-                <BaseSelect
-                  v-model="form.management_fee_interval"
-                  :options="intervalOptions"
-                  placeholder="Select interval"
-                />
-              </div>
 
               <div>
                 <label class="block text-xs font-semibold text-primary-text mb-1.5">Registration Fee ({{ currencyLabel }})</label>
                 <div class="relative">
-                  <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-secondary-text pointer-events-none">{{ currencyLabel }}</span>
+                  <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-secondary-text pointer-events-none">{{ currencySymbol }}</span>
                   <input
                     v-model.number="form.registration_fee"
                     type="number"
                     min="0"
                     placeholder="e.g. 50"
-                    class="w-full pr-3.5 py-2.5 rounded-lg bg-card-background border border-primary-border text-primary-text text-sm outline-none focus:border-primary transition-colors placeholder:text-secondary-text"
-                    :class="isUsc ? 'pl-11' : 'pl-8'"
+                    class="w-full pr-3.5 py-2.5 rounded-lg bg-card-background border border-primary-border text-primary-text text-sm outline-none focus:border-primary transition-colors placeholder:text-secondary-text pl-8"
                   />
                 </div>
               </div>
@@ -165,14 +156,13 @@
             <div>
               <label class="block text-xs font-semibold text-primary-text mb-1.5">Minimum Balance / Capital ({{ currencyLabel }})</label>
               <div class="relative">
-                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-secondary-text pointer-events-none">{{ currencyLabel }}</span>
+                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-secondary-text pointer-events-none">{{ currencySymbol }}</span>
                 <input
                   v-model.number="form.minimum_balance"
                   type="number"
                   min="0"
                   :placeholder="isUsc ? 'e.g. 100000' : 'e.g. 1000'"
-                  class="w-full pr-3.5 py-2.5 rounded-lg bg-card-background border border-primary-border text-primary-text text-sm outline-none focus:border-primary transition-colors placeholder:text-secondary-text font-mono"
-                  :class="isUsc ? 'pl-11' : 'pl-8'"
+                  class="w-full pr-3.5 py-2.5 rounded-lg bg-card-background border border-primary-border text-primary-text text-sm outline-none focus:border-primary transition-colors placeholder:text-secondary-text font-mono pl-8"
                 />
               </div>
               <p class="text-[11px] text-secondary-text mt-1.5">
@@ -211,7 +201,6 @@ import { ref, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { X, Tag, Loader2 } from 'lucide-vue-next'
 import { useFmOffersStore } from '@/stores/fmOffers/fmOffers'
-import BaseSelect from '@/components/common/BaseSelect.vue'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -224,15 +213,16 @@ const store = useFmOffersStore()
 const route = useRoute()
 
 const fmCurrency = computed(() => {
-  if (props.currency) return props.currency.toUpperCase()
-  if (props.editOffer?.currency) return props.editOffer.currency.toUpperCase()
-  if (props.editOffer?.broker_currency) return props.editOffer.broker_currency.toUpperCase()
+  if (route.query.currency) return String(route.query.currency).trim().toUpperCase()
+  if (props.currency) return String(props.currency).trim().toUpperCase()
+  if (props.editOffer?.currency) return String(props.editOffer.currency).trim().toUpperCase()
+  if (props.editOffer?.broker_currency) return String(props.editOffer.broker_currency).trim().toUpperCase()
   try {
     const raw = localStorage.getItem('active_fm')
     if (raw) {
       const parsed = JSON.parse(raw)
       const c = parsed?.broker_currency || parsed?.currency || parsed?.coverage_account?.broker_currency
-      if (c) return String(c).toUpperCase()
+      if (c) return String(c).trim().toUpperCase()
     }
   } catch (e) {
     // ignore
@@ -240,8 +230,17 @@ const fmCurrency = computed(() => {
   return 'USD'
 })
 
-const isUsc = computed(() => fmCurrency.value === 'USC')
-const currencyLabel = computed(() => isUsc.value ? 'USC' : '$')
+const isUsc = computed(() => fmCurrency.value === 'USC' || fmCurrency.value === 'CENT')
+const currencySymbol = computed(() => {
+  if (isUsc.value) return 'C'
+  if (fmCurrency.value === 'CAD') return 'C$'
+  if (fmCurrency.value === 'EUR') return '€'
+  if (fmCurrency.value === 'GBP') return '£'
+  if (fmCurrency.value === 'INR') return '₹'
+  if (fmCurrency.value === 'JPY') return '¥'
+  return '$'
+})
+const currencyLabel = computed(() => isUsc.value ? 'Cent' : '$')
 
 function getDefaultForm() {
   return {
@@ -250,7 +249,6 @@ function getDefaultForm() {
     summary: '',
     performance_fee: null,
     management_fee: null,
-    management_fee_interval: 'monthly',
     registration_fee: null,
     minimum_balance: null,
   }
@@ -259,12 +257,6 @@ function getDefaultForm() {
 const form = ref(getDefaultForm())
 const isEditing = computed(() => !!props.editOffer)
 const loading = computed(() => isEditing.value ? store.updateLoading : store.createLoading)
-
-const intervalOptions = [
-  { label: 'Monthly', value: 'monthly' },
-  { label: 'Quarterly', value: 'quarterly' },
-  { label: 'Yearly', value: 'yearly' },
-]
 
 const isValid = computed(() => Boolean(form.value.name && form.value.visibility))
 
@@ -277,7 +269,6 @@ watch(() => props.open, (val) => {
       summary: props.editOffer.summary || props.editOffer.description || '',
       performance_fee: props.editOffer.performance_fee ?? null,
       management_fee: props.editOffer.management_fee ?? null,
-      management_fee_interval: props.editOffer.management_fee_interval || 'monthly',
       registration_fee: props.editOffer.registration_fee ?? null,
       minimum_balance: props.editOffer.minimum_balance ?? null,
     }

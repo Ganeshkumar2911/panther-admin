@@ -861,9 +861,17 @@ const onMenuSelect = (menuItem, item) => {
         query: { currency: item.broker_currency || item.currency || item.coverage_account?.broker_currency },
       })
     case 'offers':
-      return router.push({ name: 'fm-offers', params: { id: item.id } })
+      return router.push({
+        name: 'fm-offers',
+        params: { id: item.id },
+        query: { currency: item.broker_currency || item.currency || item.coverage_account?.broker_currency || item.master_account?.broker_currency },
+      })
     case 'followers':
-      return router.push({ name: 'fm-followers', params: { id: item.id } })
+      return router.push({
+        name: 'fm-followers',
+        params: { id: item.id },
+        query: { currency: item.broker_currency || item.currency || item.coverage_account?.broker_currency || item.master_account?.broker_currency },
+      })
     case 'settlement':
       return handleSettlement(item)
     case 'edit':
