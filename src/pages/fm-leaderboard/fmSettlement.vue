@@ -151,7 +151,7 @@
             </div>
             <div class="mt-2">
               <p class="text-xl font-bold text-primary-text tabular-nums">{{ summaryData.total_trades }}</p>
-              <p class="text-[10px] text-secondary-text mt-0.5">{{ summaryData.unique_followers }} Unique Follower{{ summaryData.unique_followers === 1 ? '' : 's' }}</p>
+              <p class="text-[10px] text-secondary-text mt-0.5">{{ summaryData.unique_users }} Client{{ summaryData.unique_users === 1 ? '' : 's' }} · {{ summaryData.unique_followers }} Follower{{ summaryData.unique_followers === 1 ? '' : 's' }}</p>
             </div>
           </div>
         </template>
@@ -162,16 +162,16 @@
         <div class="flex items-center gap-1.5 overflow-x-auto">
           <button
             class="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer shrink-0"
-            :class="activeTab === 'followers' ? 'bg-primary text-white' : 'bg-card-background border border-primary-border text-secondary-text hover:text-primary-text'"
-            @click="activeTab = 'followers'"
+            :class="activeTab === 'users' ? 'bg-primary text-white' : 'bg-card-background border border-primary-border text-secondary-text hover:text-primary-text'"
+            @click="activeTab = 'users'"
           >
             <Users class="w-3.5 h-3.5" />
-            Follower Trades
+            Client Summaries
             <span
               class="px-1.5 py-0.2 rounded-full text-[10px] font-semibold"
-              :class="activeTab === 'followers' ? 'bg-white/20 text-white' : 'bg-background text-secondary-text'"
+              :class="activeTab === 'users' ? 'bg-white/20 text-white' : 'bg-background text-secondary-text'"
             >
-              {{ store.settlement?.followers?.length ?? 0 }}
+              {{ store.settlement?.users_summary?.length ?? 0 }}
             </span>
           </button>
 
@@ -187,21 +187,6 @@
               :class="activeTab === 'ib_summary' ? 'bg-white/20 text-white' : 'bg-background text-secondary-text'"
             >
               {{ store.settlement?.ib_summary?.length ?? 0 }}
-            </span>
-          </button>
-
-          <button
-            class="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer shrink-0"
-            :class="activeTab === 'ib_distribution' ? 'bg-primary text-white' : 'bg-card-background border border-primary-border text-secondary-text hover:text-primary-text'"
-            @click="activeTab = 'ib_distribution'"
-          >
-            <GitBranch class="w-3.5 h-3.5" />
-            IB Distribution Logs
-            <span
-              class="px-1.5 py-0.2 rounded-full text-[10px] font-semibold"
-              :class="activeTab === 'ib_distribution' ? 'bg-white/20 text-white' : 'bg-background text-secondary-text'"
-            >
-              {{ store.settlement?.ib_distribution?.length ?? 0 }}
             </span>
           </button>
 
@@ -223,286 +208,161 @@
         </div>
 
         <!-- Search Bar -->
-        <div v-if="activeTab === 'followers' || activeTab === 'ib_distribution' || activeTab === 'ib_summary'" class="relative w-full sm:w-64">
+        <div v-if="activeTab === 'users' || activeTab === 'ib_summary'" class="relative w-full sm:w-64">
           <Search class="w-3.5 h-3.5 text-secondary-text absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="Search by name, email, ID..."
+            placeholder="Search by name, email, ID, account..."
             class="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg bg-card-background border border-primary-border text-primary-text placeholder:text-secondary-text outline-none focus:border-primary transition-colors"
           />
         </div>
       </div>
 
       <!-- ═══════════════════════════════════════════════════════════════ -->
-      <!-- TAB 1: FOLLOWER TRADES TABLE -->
+      <!-- TAB 1: CLIENTS SUMMARY TABLE -->
       <!-- ═══════════════════════════════════════════════════════════════ -->
-      <div v-if="activeTab === 'followers'">
+      <div v-if="activeTab === 'users'">
 
         <!-- Desktop Table -->
-        <div class="hidden lg:block border border-primary-border rounded-2xl overflow-hidden bg-card-background">
+        <div class="hidden lg:block border border-primary-border rounded-2xl overflow-hidden bg-card-background shadow-2xs">
           <div class="overflow-x-auto">
             <table class="w-full border-collapse">
               <thead>
                 <tr class="border-b border-primary-border bg-background/50">
-                  <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Follower</th>
-                  <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Account</th>
-                  <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Trade</th>
+                  <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Client</th>
+                  <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Accounts</th>
+                  <th class="text-center text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Trades</th>
                   <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Gross PnL</th>
-                  <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Profit > HWM</th>
                   <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Total Fee</th>
                   <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">FM Fee</th>
                   <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Broker Fee</th>
-                  <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">IB Pool</th>
+                  <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">IB Distributed</th>
                   <th class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Net PnL</th>
-                  <th class="text-center text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3 w-10">Details</th>
+                  <th class="text-center text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3 w-24">Action</th>
                 </tr>
               </thead>
 
               <tbody v-if="store.loading">
                 <tr v-for="n in 4" :key="n" class="border-b border-primary-border animate-pulse">
                   <td class="p-3"><div class="h-3 w-28 bg-background rounded" /></td>
-                  <td class="p-3"><div class="h-3 w-16 bg-background rounded" /></td>
-                  <td class="p-3"><div class="h-3 w-16 bg-background rounded" /></td>
-                  <td class="p-3"><div class="h-3 w-14 bg-background rounded" /></td>
+                  <td class="p-3"><div class="h-3 w-20 bg-background rounded" /></td>
+                  <td class="p-3"><div class="h-3 w-12 bg-background rounded mx-auto" /></td>
                   <td class="p-3"><div class="h-3 w-14 bg-background rounded" /></td>
                   <td class="p-3"><div class="h-3 w-14 bg-background rounded" /></td>
                   <td class="p-3"><div class="h-3 w-14 bg-background rounded" /></td>
                   <td class="p-3"><div class="h-3 w-14 bg-background rounded" /></td>
                   <td class="p-3"><div class="h-3 w-14 bg-background rounded" /></td>
                   <td class="p-3 flex justify-end"><div class="h-3 w-16 bg-background rounded" /></td>
-                  <td class="p-3"><div class="h-4 w-4 bg-background rounded mx-auto" /></td>
+                  <td class="p-3"><div class="h-6 w-16 bg-background rounded mx-auto" /></td>
                 </tr>
               </tbody>
 
               <tbody v-else>
-                <template v-for="f in filteredFollowers" :key="f.follower_id + '-' + f.trade_id">
-                  <tr
-                    class="border-b border-primary-border transition-colors cursor-pointer"
-                    :class="expandedFollowerKey === `${f.follower_id}-${f.trade_id}` ? 'bg-background/80' : 'hover:bg-background/40'"
-                    @click="toggleFollowerExpand(`${f.follower_id}-${f.trade_id}`)"
-                  >
-                    <!-- Follower -->
-                    <td class="p-3">
-                      <p class="text-xs font-semibold text-primary-text">{{ f.user_name }}</p>
-                      <p class="text-[11px] text-secondary-text">{{ f.user_email }}</p>
-                      <p class="text-[10px] text-secondary-text">User ID: #{{ f.user_id }}</p>
-                    </td>
+                <tr
+                  v-for="u in filteredUsers"
+                  :key="u.user_id"
+                  class="border-b border-primary-border hover:bg-background/40 transition-colors"
+                >
+                  <!-- Client Profile -->
+                  <td class="p-3">
+                    <p class="text-xs font-semibold text-primary-text">{{ u.user_name || 'Client' }}</p>
+                    <p class="text-[11px] text-secondary-text font-mono">{{ u.user_email }}</p>
+                    <div class="flex items-center gap-1.5 mt-0.5">
+                      <span class="text-[10px] text-secondary-text font-mono">User ID: #{{ u.user_id }}</span>
+                      <span v-if="u.phone_number" class="text-[10px] text-secondary-text">· {{ u.phone_number }}</span>
+                    </div>
+                  </td>
 
-                    <!-- Account -->
-                    <td class="p-3">
-                      <p class="text-xs font-mono font-medium text-primary-text">{{ f.account_number }}</p>
-                      <p class="text-[10px] text-secondary-text">Acc ID: {{ f.trading_account_id }}</p>
-                    </td>
-
-                    <!-- Trade / Symbol -->
-                    <td class="p-3">
-                      <span class="inline-block px-1.5 py-0.5 rounded text-[11px] font-semibold bg-background border border-primary-border text-primary-text">
-                        {{ f.symbol }}
-                      </span>
-                      <p class="text-[10px] text-secondary-text mt-0.5 font-mono">Trade #{{ f.trade_id }}</p>
-                    </td>
-
-                    <!-- Gross PnL -->
-                    <td class="p-3">
+                  <!-- Accounts & Follower Counts -->
+                  <td class="p-3">
+                    <div class="flex flex-wrap gap-1 mb-1">
                       <span
-                        class="text-xs font-semibold tabular-nums"
-                        :class="f.gross_pnl >= 0 ? 'text-primary-green' : 'text-primary-red'"
+                        v-for="acc in (u.account_numbers || [])"
+                        :key="acc"
+                        class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-background border border-primary-border text-primary-text"
                       >
-                        {{ f.gross_pnl > 0 ? '+' : '' }}{{ formatCurrency(f.gross_pnl, getRowCurrency(f)) }}
+                        {{ acc }}
                       </span>
-                    </td>
+                      <span v-if="!u.account_numbers?.length" class="text-[11px] text-secondary-text">—</span>
+                    </div>
+                    <p class="text-[10px] text-secondary-text">
+                      {{ u.followers_count }} Follower{{ u.followers_count === 1 ? '' : 's' }}
+                    </p>
+                  </td>
 
-                    <!-- Profit Above HWM -->
-                    <td class="p-3">
-                      <span class="text-xs font-medium text-primary-text tabular-nums">
-                        {{ formatCurrency(f.hwm?.profit_above_hwm, getRowCurrency(f)) }}
-                      </span>
-                    </td>
+                  <!-- Trades Count -->
+                  <td class="p-3 text-center">
+                    <span class="inline-block px-2 py-0.5 rounded text-xs font-mono font-bold bg-background border border-primary-border text-primary-text">
+                      {{ u.trades_count ?? 0 }}
+                    </span>
+                  </td>
 
-                    <!-- Total Fee -->
-                    <td class="p-3">
-                      <span class="text-xs font-medium text-primary-text tabular-nums">
-                        {{ formatCurrency(f.fee, getRowCurrency(f)) }}
-                      </span>
-                    </td>
+                  <!-- Gross PnL -->
+                  <td class="p-3">
+                    <span
+                      class="text-xs font-semibold tabular-nums"
+                      :class="u.gross_pnl >= 0 ? 'text-primary-green' : 'text-primary-red'"
+                    >
+                      {{ u.gross_pnl > 0 ? '+' : '' }}{{ formatCurrency(u.gross_pnl) }}
+                    </span>
+                  </td>
 
-                    <!-- FM Fee (Gross / Net) -->
-                    <td class="p-3">
-                      <p class="text-xs font-medium text-primary-text tabular-nums">{{ formatCurrency(f.distribution?.fm_net_after_agents ?? f.fm_fee, getRowCurrency(f)) }}</p>
-                      <p v-if="f.distribution?.fm_fee !== f.distribution?.fm_net_after_agents" class="text-[10px] text-secondary-text">
-                        Gross: {{ formatCurrency(f.fm_fee, getRowCurrency(f)) }}
-                      </p>
-                    </td>
+                  <!-- Total Fee -->
+                  <td class="p-3">
+                    <span class="text-xs font-medium text-primary-text tabular-nums">
+                      {{ formatCurrency(u.total_fee) }}
+                    </span>
+                  </td>
 
-                    <!-- Broker Fee (Gross / Net) -->
-                    <td class="p-3">
-                      <p class="text-xs font-medium text-primary-text tabular-nums">{{ formatCurrency(f.distribution?.broker_net ?? f.broker_net ?? f.broker_fee, getRowCurrency(f)) }}</p>
-                      <p v-if="f.broker_fee !== f.broker_net" class="text-[10px] text-secondary-text">
-                        Gross: {{ formatCurrency(f.broker_fee, getRowCurrency(f)) }}
-                      </p>
-                    </td>
+                  <!-- FM Fee -->
+                  <td class="p-3">
+                    <p class="text-xs font-medium text-primary-text tabular-nums">{{ formatCurrency(u.fm_net_after_agents ?? u.fm_fee) }}</p>
+                    <p v-if="u.fm_fee !== u.fm_net_after_agents && u.fm_fee != null" class="text-[10px] text-secondary-text">
+                      Gross: {{ formatCurrency(u.fm_fee) }}
+                    </p>
+                  </td>
 
-                    <!-- IB Pool -->
-                    <td class="p-3">
-                      <span class="text-xs font-medium text-primary-green tabular-nums">
-                        {{ formatCurrency(f.ib_pool, getRowCurrency(f)) }}
-                      </span>
-                    </td>
+                  <!-- Broker Fee -->
+                  <td class="p-3">
+                    <p class="text-xs font-medium text-primary-text tabular-nums">{{ formatCurrency(u.broker_net ?? u.broker_fee) }}</p>
+                    <p v-if="u.broker_fee !== u.broker_net && u.broker_fee != null" class="text-[10px] text-secondary-text">
+                      Gross: {{ formatCurrency(u.broker_fee) }}
+                    </p>
+                  </td>
 
-                    <!-- Net PnL -->
-                    <td class="p-3 text-right">
-                      <span
-                        class="text-xs font-bold tabular-nums"
-                        :class="f.net_pnl >= 0 ? 'text-primary-green' : 'text-primary-red'"
-                      >
-                        {{ f.net_pnl > 0 ? '+' : '' }}{{ formatCurrency(f.net_pnl, getRowCurrency(f)) }}
-                      </span>
-                    </td>
+                  <!-- IB Distributed -->
+                  <td class="p-3">
+                    <span class="text-xs font-medium text-primary-green tabular-nums">
+                      {{ formatCurrency(u.ib_distributed ?? u.ib_pool) }}
+                    </span>
+                  </td>
 
-                    <!-- Toggle Icon -->
-                    <td class="p-3 text-center">
-                      <ChevronDown
-                        class="w-4 h-4 text-secondary-text mx-auto transition-transform duration-200"
-                        :class="{ 'rotate-180 text-primary': expandedFollowerKey === `${f.follower_id}-${f.trade_id}` }"
-                      />
-                    </td>
-                  </tr>
+                  <!-- Net PnL -->
+                  <td class="p-3 text-right">
+                    <span
+                      class="text-xs font-bold tabular-nums"
+                      :class="u.net_pnl >= 0 ? 'text-primary-green' : 'text-primary-red'"
+                    >
+                      {{ u.net_pnl > 0 ? '+' : '' }}{{ formatCurrency(u.net_pnl) }}
+                    </span>
+                  </td>
 
-                  <!-- Accordion Expanded Breakdown -->
-                  <tr
-                    v-if="expandedFollowerKey === `${f.follower_id}-${f.trade_id}`"
-                    class="border-b border-primary-border bg-background/50"
-                  >
-                    <td colspan="11" class="p-4">
-                      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <!-- Action Details -->
+                  <td class="p-3 text-center">
+                    <button
+                      class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-xs font-medium transition-colors cursor-pointer"
+                      @click="goToUserDetails(u)"
+                    >
+                      <span>Details</span>
+                      <ChevronRight class="w-3.5 h-3.5" />
+                    </button>
+                  </td>
+                </tr>
 
-                        <!-- HWM Breakdown -->
-                        <div class="bg-card-background border border-primary-border rounded-xl p-3.5 space-y-2.5">
-                          <p class="text-xs font-semibold text-primary-text flex items-center gap-1.5">
-                            <Activity class="w-3.5 h-3.5 text-primary" /> High Water Mark (HWM)
-                          </p>
-                          <div class="space-y-1.5 text-xs">
-                            <div class="flex justify-between">
-                              <span class="text-secondary-text">Previous HWM:</span>
-                              <span class="font-mono text-primary-text">{{ formatCurrency(f.hwm?.previous_hwm, getRowCurrency(f)) }}</span>
-                            </div>
-                            <div class="flex justify-between">
-                              <span class="text-secondary-text">Current Total Before:</span>
-                              <span class="font-mono text-primary-text">{{ formatCurrency(f.hwm?.current_total_before, getRowCurrency(f)) }}</span>
-                            </div>
-                            <div class="flex justify-between">
-                              <span class="text-secondary-text">Profit Above HWM:</span>
-                              <span class="font-mono font-semibold text-primary-green">{{ formatCurrency(f.hwm?.profit_above_hwm, getRowCurrency(f)) }}</span>
-                            </div>
-                            <div class="flex justify-between border-t border-primary-border pt-1.5">
-                              <span class="text-secondary-text">New Equity:</span>
-                              <span class="font-mono font-semibold text-primary-text">{{ formatCurrency(f.hwm?.new_equity, getRowCurrency(f)) }}</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <!-- Config Shares -->
-                        <div class="bg-card-background border border-primary-border rounded-xl p-3.5 space-y-2.5">
-                          <p class="text-xs font-semibold text-primary-text flex items-center gap-1.5">
-                            <Sliders class="w-3.5 h-3.5 text-primary" /> Configuration & Splits
-                          </p>
-                          <div class="space-y-1.5 text-xs">
-                            <div class="flex justify-between">
-                              <span class="text-secondary-text">Performance Fee:</span>
-                              <span class="font-medium text-primary-text">{{ f.config?.performance_fee }}%</span>
-                            </div>
-                            <div class="flex justify-between">
-                              <span class="text-secondary-text">FM Share / Broker Share:</span>
-                              <span class="font-medium text-primary-text">{{ f.config?.fm_share }}% / {{ f.config?.broker_share }}%</span>
-                            </div>
-                            <div class="flex justify-between">
-                              <span class="text-secondary-text">IB Pool Percentage:</span>
-                              <span class="font-medium text-primary-text">{{ f.config?.ib_pool_percentage }}%</span>
-                            </div>
-                            <div class="flex justify-between border-t border-primary-border pt-1.5">
-                              <span class="text-secondary-text">Settlement Type:</span>
-                              <span class="font-medium capitalize text-primary-text">{{ f.config?.settlement_type }}</span>
-                            </div>
-                            <div class="flex justify-between text-[11px] text-secondary-text">
-                              <span>Offer #{{ f.config?.offer_id }}</span>
-                              <span>Join Link #{{ f.config?.join_link_id }}</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <!-- Fee Distribution & IB Splits -->
-                        <div class="bg-card-background border border-primary-border rounded-xl p-3.5 space-y-2.5">
-                          <p class="text-xs font-semibold text-primary-text flex items-center gap-1.5">
-                            <GitBranch class="w-3.5 h-3.5 text-primary" /> Trade Distribution
-                          </p>
-                          <div class="space-y-1.5 text-xs">
-                            <div class="flex justify-between">
-                              <span class="text-secondary-text">Total Calculated Fee:</span>
-                              <span class="font-mono font-medium text-primary-text">{{ formatCurrency(f.distribution?.total_fee, getRowCurrency(f)) }}</span>
-                            </div>
-                            <div class="flex justify-between">
-                              <span class="text-secondary-text">FM Fee (Net):</span>
-                              <span class="font-mono text-primary-text">{{ formatCurrency(f.distribution?.fm_net_after_agents, getRowCurrency(f)) }}</span>
-                            </div>
-                            <div class="flex justify-between">
-                              <span class="text-secondary-text">Broker Fee (Net):</span>
-                              <span class="font-mono text-primary-text">{{ formatCurrency(f.distribution?.broker_net, getRowCurrency(f)) }}</span>
-                            </div>
-                            <div class="flex justify-between">
-                              <span class="text-secondary-text">IB Pool / Distributed:</span>
-                              <span class="font-mono text-primary-green">{{ formatCurrency(f.distribution?.ib_pool, getRowCurrency(f)) }} / {{ formatCurrency(f.distribution?.ib_distributed, getRowCurrency(f)) }}</span>
-                            </div>
-                          </div>
-                        </div>
-
-                      </div>
-
-                      <!-- Per-trade IB Splits Table if available -->
-                      <div v-if="f.distribution?.ib_splits?.length" class="mt-3 bg-card-background border border-primary-border rounded-xl p-3">
-                        <p class="text-[11px] font-semibold text-secondary-text uppercase tracking-wider mb-2">
-                          IB Commission Splits for Trade #{{ f.trade_id }}
-                        </p>
-                        <div class="overflow-x-auto">
-                          <table class="w-full text-xs">
-                            <thead>
-                              <tr class="border-b border-primary-border text-[10px] text-secondary-text uppercase">
-                                <th class="text-left py-1.5 px-2 font-medium">IB Name</th>
-                                <th class="text-left py-1.5 px-2 font-medium">IB Email</th>
-                                <th class="text-left py-1.5 px-2 font-medium">Level</th>
-                                <th class="text-left py-1.5 px-2 font-medium">Pool Share %</th>
-                                <th class="text-left py-1.5 px-2 font-medium">Split %</th>
-                                <th class="text-right py-1.5 px-2 font-medium">Commission</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr
-                                v-for="split in f.distribution.ib_splits"
-                                :key="split.ib_id"
-                                class="border-b border-primary-border/50 last:border-none"
-                              >
-                                <td class="py-1.5 px-2 font-medium text-primary-text">
-                                  {{ split.ib_name }} (ID #{{ split.ib_user_id }})
-                                </td>
-                                <td class="py-1.5 px-2 text-secondary-text">{{ split.ib_email }}</td>
-                                <td class="py-1.5 px-2 text-secondary-text">L{{ split.ib_level }}</td>
-                                <td class="py-1.5 px-2 font-mono text-primary-text">{{ split.pool_share_pct }}%</td>
-                                <td class="py-1.5 px-2 font-mono text-primary-text">{{ split.split_percentage }}%</td>
-                                <td class="py-1.5 px-2 text-right font-mono font-semibold text-primary-green">
-                                  {{ formatCurrency(split.commission, getRowCurrency(f)) }}
-                                </td>
-                              </tr>
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                </template>
-
-                <tr v-if="filteredFollowers.length === 0">
-                  <td colspan="11" class="text-center py-10 text-xs text-secondary-text">
-                    No follower trades found matching your search.
+                <tr v-if="filteredUsers.length === 0">
+                  <td colspan="10" class="text-center py-10 text-xs text-secondary-text">
+                    No client records found matching your search.
                   </td>
                 </tr>
               </tbody>
@@ -510,25 +370,21 @@
           </div>
         </div>
 
-        <!-- Mobile Follower Cards -->
+        <!-- Mobile Client Cards -->
         <div class="lg:hidden space-y-3">
           <div
-            v-for="f in filteredFollowers"
-            :key="f.follower_id + '-' + f.trade_id"
-            class="bg-card-background border border-primary-border rounded-2xl p-4 space-y-3"
+            v-for="u in filteredUsers"
+            :key="u.user_id"
+            class="bg-card-background border border-primary-border rounded-2xl p-4 space-y-3 shadow-2xs"
           >
             <!-- Card Header -->
             <div class="flex items-start justify-between">
               <div>
-                <p class="text-xs font-semibold text-primary-text">{{ f.user_name }}</p>
-                <p class="text-[11px] text-secondary-text">{{ f.user_email }}</p>
+                <p class="text-xs font-semibold text-primary-text">{{ u.user_name || 'Client' }}</p>
+                <p class="text-[11px] text-secondary-text font-mono">{{ u.user_email }}</p>
                 <div class="flex items-center gap-2 mt-1">
-                  <span class="text-[10px] font-mono bg-background border border-primary-border px-1.5 py-0.5 rounded text-primary-text">
-                    {{ f.symbol }}
-                  </span>
-                  <span class="text-[10px] text-secondary-text font-mono">
-                    Trade #{{ f.trade_id }} · Acc {{ f.account_number }}
-                  </span>
+                  <span class="text-[10px] text-secondary-text font-mono">User ID: #{{ u.user_id }}</span>
+                  <span class="text-[10px] text-secondary-text font-mono">· {{ u.trades_count ?? 0 }} trades</span>
                 </div>
               </div>
 
@@ -536,106 +392,61 @@
                 <p class="text-[10px] text-secondary-text">Net PnL</p>
                 <span
                   class="text-sm font-bold tabular-nums"
-                  :class="f.net_pnl >= 0 ? 'text-primary-green' : 'text-primary-red'"
+                  :class="u.net_pnl >= 0 ? 'text-primary-green' : 'text-primary-red'"
                 >
-                  {{ f.net_pnl > 0 ? '+' : '' }}{{ formatCurrency(f.net_pnl, getRowCurrency(f)) }}
+                  {{ u.net_pnl > 0 ? '+' : '' }}{{ formatCurrency(u.net_pnl) }}
                 </span>
               </div>
+            </div>
+
+            <!-- Accounts chips -->
+            <div v-if="u.account_numbers?.length" class="flex flex-wrap gap-1">
+              <span
+                v-for="acc in u.account_numbers"
+                :key="acc"
+                class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-background border border-primary-border text-primary-text"
+              >
+                {{ acc }}
+              </span>
             </div>
 
             <!-- Card Metrics Grid -->
             <div class="grid grid-cols-2 gap-2 text-xs">
               <div class="bg-background rounded-xl p-2.5">
                 <p class="text-[10px] text-secondary-text">Gross PnL</p>
-                <p class="font-semibold tabular-nums mt-0.5" :class="f.gross_pnl >= 0 ? 'text-primary-green' : 'text-primary-red'">
-                  {{ f.gross_pnl > 0 ? '+' : '' }}{{ formatCurrency(f.gross_pnl, getRowCurrency(f)) }}
+                <p class="font-semibold tabular-nums mt-0.5" :class="u.gross_pnl >= 0 ? 'text-primary-green' : 'text-primary-red'">
+                  {{ u.gross_pnl > 0 ? '+' : '' }}{{ formatCurrency(u.gross_pnl) }}
                 </p>
               </div>
 
               <div class="bg-background rounded-xl p-2.5">
                 <p class="text-[10px] text-secondary-text">Total Fee</p>
-                <p class="font-semibold text-primary-text tabular-nums mt-0.5">{{ formatCurrency(f.fee, getRowCurrency(f)) }}</p>
+                <p class="font-semibold text-primary-text tabular-nums mt-0.5">{{ formatCurrency(u.total_fee) }}</p>
               </div>
 
               <div class="bg-background rounded-xl p-2.5">
                 <p class="text-[10px] text-secondary-text">FM Net Fee</p>
                 <p class="font-semibold text-primary-text tabular-nums mt-0.5">
-                  {{ formatCurrency(f.distribution?.fm_net_after_agents ?? f.fm_fee, getRowCurrency(f)) }}
+                  {{ formatCurrency(u.fm_net_after_agents ?? u.fm_fee) }}
                 </p>
               </div>
 
               <div class="bg-background rounded-xl p-2.5">
                 <p class="text-[10px] text-secondary-text">Broker Net</p>
                 <p class="font-semibold text-primary-text tabular-nums mt-0.5">
-                  {{ formatCurrency(f.distribution?.broker_net ?? f.broker_net ?? f.broker_fee, getRowCurrency(f)) }}
+                  {{ formatCurrency(u.broker_net ?? u.broker_fee) }}
                 </p>
               </div>
             </div>
 
-            <!-- Expand button for mobile -->
+            <!-- Action Details button -->
             <button
-              class="w-full flex items-center justify-center gap-1 py-1.5 text-[11px] font-medium text-secondary-text hover:text-primary-text border-t border-primary-border mt-1 cursor-pointer"
-              @click="toggleFollowerExpand(`${f.follower_id}-${f.trade_id}`)"
+              class="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-primary text-white text-xs font-medium hover:bg-primary-hover transition-colors cursor-pointer mt-2"
+              @click="goToUserDetails(u)"
             >
-              <span>{{ expandedFollowerKey === `${f.follower_id}-${f.trade_id}` ? 'Hide Details' : 'View Full Details' }}</span>
-              <ChevronDown
-                class="w-3.5 h-3.5 transition-transform"
-                :class="{ 'rotate-180': expandedFollowerKey === `${f.follower_id}-${f.trade_id}` }"
-              />
+              <span>View Client Breakdown & Trades</span>
+              <ChevronRight class="w-3.5 h-3.5" />
             </button>
-
-            <!-- Expanded mobile details -->
-            <div
-              v-if="expandedFollowerKey === `${f.follower_id}-${f.trade_id}`"
-              class="pt-2 space-y-3 border-t border-primary-border/60 text-xs"
-            >
-              <div class="bg-background rounded-xl p-3 space-y-1.5">
-                <p class="text-[11px] font-semibold text-primary-text">High Water Mark (HWM)</p>
-                <div class="flex justify-between text-[11px] text-secondary-text">
-                  <span>Previous HWM:</span>
-                  <span class="font-mono text-primary-text">{{ formatCurrency(f.hwm?.previous_hwm, getRowCurrency(f)) }}</span>
-                </div>
-                <div class="flex justify-between text-[11px] text-secondary-text">
-                  <span>Profit Above HWM:</span>
-                  <span class="font-mono text-primary-green">{{ formatCurrency(f.hwm?.profit_above_hwm, getRowCurrency(f)) }}</span>
-                </div>
-                <div class="flex justify-between text-[11px] text-secondary-text">
-                  <span>New Equity:</span>
-                  <span class="font-mono text-primary-text">{{ formatCurrency(f.hwm?.new_equity, getRowCurrency(f)) }}</span>
-                </div>
-              </div>
-
-              <div class="bg-background rounded-xl p-3 space-y-1.5">
-                <p class="text-[11px] font-semibold text-primary-text">Configuration</p>
-                <div class="flex justify-between text-[11px] text-secondary-text">
-                  <span>Performance Fee:</span>
-                  <span class="text-primary-text">{{ f.config?.performance_fee }}%</span>
-                </div>
-                <div class="flex justify-between text-[11px] text-secondary-text">
-                  <span>FM / Broker Share:</span>
-                  <span class="text-primary-text">{{ f.config?.fm_share }}% / {{ f.config?.broker_share }}%</span>
-                </div>
-                <div class="flex justify-between text-[11px] text-secondary-text">
-                  <span>IB Pool Share:</span>
-                  <span class="text-primary-text">{{ f.config?.ib_pool_percentage }}%</span>
-                </div>
-              </div>
-
-              <div v-if="f.distribution?.ib_splits?.length" class="bg-background rounded-xl p-3 space-y-2">
-                <p class="text-[11px] font-semibold text-primary-text">IB Splits</p>
-                <div
-                  v-for="split in f.distribution.ib_splits"
-                  :key="split.ib_id"
-                  class="flex items-center justify-between border-b border-primary-border/40 pb-1.5 last:border-none last:pb-0 text-[11px]"
-                >
-                  <div>
-                    <p class="font-medium text-primary-text">{{ split.ib_name }} (L{{ split.ib_level }})</p>
-                    <p class="text-[10px] text-secondary-text">{{ split.ib_email }}</p>
-                  </div>
-                  <span class="font-mono font-semibold text-primary-green">{{ formatCurrency(split.commission, getRowCurrency(f)) }}</span>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -645,7 +456,7 @@
       <!-- TAB 2: IB SUMMARY -->
       <!-- ═══════════════════════════════════════════════════════════════ -->
       <div v-else-if="activeTab === 'ib_summary'">
-        <div class="border border-primary-border rounded-2xl overflow-hidden bg-card-background">
+        <div class="border border-primary-border rounded-2xl overflow-hidden bg-card-background shadow-2xs">
           <div class="px-5 py-3.5 border-b border-primary-border flex items-center justify-between bg-card-background">
             <div class="flex items-center gap-2">
               <PieChart class="w-4 h-4 text-secondary-text" />
@@ -721,84 +532,10 @@
       </div>
 
       <!-- ═══════════════════════════════════════════════════════════════ -->
-      <!-- TAB 3: IB DISTRIBUTION LOGS -->
-      <!-- ═══════════════════════════════════════════════════════════════ -->
-      <div v-else-if="activeTab === 'ib_distribution'">
-        <div class="border border-primary-border rounded-2xl overflow-hidden bg-card-background">
-          <div class="px-5 py-3.5 border-b border-primary-border flex items-center justify-between bg-card-background">
-            <div class="flex items-center gap-2">
-              <GitBranch class="w-4 h-4 text-secondary-text" />
-              <span class="text-xs font-semibold text-primary-text">IB Distribution Breakdown (Per Trade)</span>
-            </div>
-            <span class="text-xs text-secondary-text">
-              {{ store.settlement?.ib_distribution?.length ?? 0 }} Records
-            </span>
-          </div>
-
-          <div class="overflow-x-auto">
-            <table class="w-full border-collapse">
-              <thead>
-                <tr class="border-b border-primary-border bg-background/50">
-                  <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Trade ID</th>
-                  <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">IB Partner</th>
-                  <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Level</th>
-                  <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Pool Share %</th>
-                  <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Split %</th>
-                  <th class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Commission</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                <tr
-                  v-for="(ib, idx) in filteredIbDistribution"
-                  :key="idx"
-                  class="border-b border-primary-border last:border-none hover:bg-background/40 transition-colors"
-                >
-                  <td class="p-3 font-mono text-xs font-semibold text-primary-text">
-                    #{{ ib.trade_id }}
-                  </td>
-
-                  <td class="p-3">
-                    <p class="text-xs font-semibold text-primary-text">{{ ib.ib_name }}</p>
-                    <p class="text-[11px] text-secondary-text">{{ ib.ib_email }}</p>
-                    <p class="text-[10px] text-secondary-text">User ID: #{{ ib.ib_user_id }}</p>
-                  </td>
-
-                  <td class="p-3">
-                    <span class="px-2 py-0.5 rounded text-[11px] font-medium bg-background border border-primary-border text-primary-text">
-                      Level {{ ib.ib_level }}
-                    </span>
-                  </td>
-
-                  <td class="p-3 font-mono text-xs text-primary-text">
-                    {{ ib.pool_share_pct }}%
-                  </td>
-
-                  <td class="p-3 font-mono text-xs text-primary-text">
-                    {{ ib.split_percentage }}%
-                  </td>
-
-                  <td class="p-3 text-right font-mono text-xs font-semibold text-primary-green">
-                    {{ formatCurrency(ib.commission) }}
-                  </td>
-                </tr>
-
-                <tr v-if="filteredIbDistribution.length === 0">
-                  <td colspan="6" class="text-center py-10 text-xs text-secondary-text">
-                    No IB distribution logs found.
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- ═══════════════════════════════════════════════════════════════ -->
-      <!-- TAB 4: AGENT DISTRIBUTION -->
+      <!-- TAB 3: AGENT DISTRIBUTION -->
       <!-- ═══════════════════════════════════════════════════════════════ -->
       <div v-else-if="activeTab === 'agent_distribution'">
-        <div class="border border-primary-border rounded-2xl overflow-hidden bg-card-background">
+        <div class="border border-primary-border rounded-2xl overflow-hidden bg-card-background shadow-2xs">
           <div class="px-5 py-3.5 border-b border-primary-border flex items-center justify-between bg-card-background">
             <div class="flex items-center gap-2">
               <Shield class="w-4 h-4 text-secondary-text" />
@@ -852,21 +589,18 @@
 
 <script setup>
 import { onMounted, computed, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import {
   PlayCircle,
   ReceiptText,
   Users,
-  GitBranch,
   Loader2,
   TrendingUp,
   TrendingDown,
   DollarSign,
   PieChart,
   Building2,
-  Activity,
-  Sliders,
-  ChevronDown,
+  ChevronRight,
   Search,
   RotateCw,
   Shield,
@@ -876,13 +610,13 @@ import RunSettlementConfirm from '@/components/fundManager/RunSettlementConfirm.
 import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
 const route = useRoute()
+const router = useRouter()
 const store = useRunSettlementStore()
 const { hasPermission } = usePermissionCheck()
 
 const confirmOpen = ref(false)
-const activeTab = ref('followers')
+const activeTab = ref('users')
 const searchQuery = ref('')
-const expandedFollowerKey = ref(null)
 const fmInfo = ref(null)
 
 const loadFmInfo = () => {
@@ -937,28 +671,14 @@ const formatCurrency = (val, currency = null) => {
   return `${isNegative ? '-' : ''}${sym}${formatted}`
 }
 
-const getRowCurrency = (row) => {
-  return (
-    row?.broker_currency ||
-    row?.currency ||
-    row?.trading_account?.broker_currency ||
-    row?.account?.broker_currency ||
-    activeCurrency.value ||
-    'USD'
-  )
-}
-
-const toggleFollowerExpand = (key) => {
-  expandedFollowerKey.value = expandedFollowerKey.value === key ? null : key
-}
-
 const summaryData = computed(() => {
   const s = store.settlement?.summary || {}
   return {
     total_pnl: s.total_pnl ?? store.settlement?.total_pnl ?? 0,
     total_fee: s.total_fee ?? store.settlement?.total_fee ?? 0,
-    total_trades: s.total_trades ?? store.settlement?.total_trades ?? 0,
-    unique_followers: s.unique_followers ?? (store.settlement?.followers ? new Set(store.settlement.followers.map(f => f.follower_id)).size : 0),
+    total_trades: s.total_trades ?? store.settlement?.unsettled_count ?? 0,
+    unique_followers: s.unique_followers ?? 0,
+    unique_users: s.unique_users ?? (store.settlement?.users_summary?.length ?? 0),
     total_fm_fee: s.total_fm_fee ?? 0,
     total_fm_net_after_agents: s.total_fm_net_after_agents ?? s.total_fm_fee ?? 0,
     total_broker_fee: s.total_broker_fee ?? 0,
@@ -973,31 +693,35 @@ const totalPnl = computed(() => summaryData.value.total_pnl)
 const hasEmptyData = computed(() => {
   if (store.loading) return false
   if (!store.settlement) return true
-  const followersCount = store.settlement?.followers?.length ?? 0
-  const tradesCount = store.settlement?.total_trades ?? store.settlement?.summary?.total_trades ?? 0
-  return followersCount === 0 && tradesCount === 0
+  const usersCount = store.settlement?.users_summary?.length ?? 0
+  const tradesCount = store.settlement?.unsettled_count ?? store.settlement?.summary?.total_trades ?? 0
+  return usersCount === 0 && tradesCount === 0
 })
 
 // Search filtered lists
-const filteredFollowers = computed(() => {
-  const list = store.settlement?.followers || []
+const filteredUsers = computed(() => {
+  const list = store.settlement?.users_summary || []
   if (!searchQuery.value.trim()) return list
   const q = searchQuery.value.toLowerCase().trim()
-  return list.filter(f =>
-    String(f.user_name || '').toLowerCase().includes(q) ||
-    String(f.user_email || '').toLowerCase().includes(q) ||
-    String(f.account_number || '').toLowerCase().includes(q) ||
-    String(f.user_id || '').includes(q) ||
-    String(f.trade_id || '').includes(q) ||
-    String(f.symbol || '').toLowerCase().includes(q)
-  )
+  return list.filter((u) => {
+    const accMatches = Array.isArray(u.account_numbers)
+      ? u.account_numbers.some((acc) => String(acc).toLowerCase().includes(q))
+      : false
+    return (
+      String(u.user_name || '').toLowerCase().includes(q) ||
+      String(u.user_email || '').toLowerCase().includes(q) ||
+      String(u.user_id || '').includes(q) ||
+      String(u.phone_number || '').includes(q) ||
+      accMatches
+    )
+  })
 })
 
 const filteredIbSummary = computed(() => {
   const list = store.settlement?.ib_summary || []
   if (!searchQuery.value.trim()) return list
   const q = searchQuery.value.toLowerCase().trim()
-  return list.filter(ib =>
+  return list.filter((ib) =>
     String(ib.ib_name || '').toLowerCase().includes(q) ||
     String(ib.ib_email || '').toLowerCase().includes(q) ||
     String(ib.ib_user_id || '').includes(q) ||
@@ -1005,17 +729,14 @@ const filteredIbSummary = computed(() => {
   )
 })
 
-const filteredIbDistribution = computed(() => {
-  const list = store.settlement?.ib_distribution || []
-  if (!searchQuery.value.trim()) return list
-  const q = searchQuery.value.toLowerCase().trim()
-  return list.filter(ib =>
-    String(ib.ib_name || '').toLowerCase().includes(q) ||
-    String(ib.ib_email || '').toLowerCase().includes(q) ||
-    String(ib.ib_user_id || '').includes(q) ||
-    String(ib.trade_id || '').includes(q)
-  )
-})
+const goToUserDetails = (user) => {
+  if (!user?.user_id) return
+  router.push({
+    name: 'fm-settlement-user-preview',
+    params: { id: route.params.id, userId: user.user_id },
+    query: { currency: activeCurrency.value },
+  })
+}
 
 const handleRun = async () => {
   await store.runSettlement()

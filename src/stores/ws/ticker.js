@@ -49,7 +49,7 @@ export const useTickerStore = defineStore("tickers", () => {
     for (let i = 0; i < data.length; i++) {
       const raw = data[i];
       if (!raw) continue;
-      const symbol = String(raw).replace(/[^A-Z0-9]/gi, "").toUpperCase();
+      const symbol = String(raw).trim();
       if (!symbol) continue;
 
       if (!tickerList.value.includes(symbol)) {
@@ -181,7 +181,9 @@ export const useTickerStore = defineStore("tickers", () => {
 
   /* ---------------- Get Last Price ---------------- */
   function getLastPrice(symbol) {
-    return lastPrices.value[symbol] || null;
+    if (!symbol) return null;
+    const s = String(symbol).trim();
+    return lastPrices.value[s] || lastPrices.value[symbol] || null;
   }
 
   return {

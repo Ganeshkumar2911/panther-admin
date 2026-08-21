@@ -182,6 +182,17 @@ const routes = [
         },
       },
       {
+        path: "/fm/settlement-preview/:id/user/:userId",
+        name: "fm-settlement-user-preview",
+        component: () => import("@/pages/fm-leaderboard/fmSettlementUser.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Client Settlement Details",
+          description: "Detailed client follower trades and commission splits.",
+          showBackButton: true,
+        },
+      },
+      {
         path: "/fm/offers/:id",
         name: "fm-offers",
         component: () => import("@/pages/fm-leaderboard/fmOffers.vue"),

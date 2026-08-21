@@ -19,7 +19,7 @@ class MatrixTicker {
       }
     }
 
-    const DEV_WS_URL = "https://w2llv2cm-2504.inc1.devtunnels.ms/";
+    const DEV_WS_URL = "https://admin.panthercapitals.com/";
     const PROD_WS_URL = isProdDomain
       ? "https://admin.panthercapitals.com/"
       : "https://1pz4zm0b-2504.euw.devtunnels.ms/";
