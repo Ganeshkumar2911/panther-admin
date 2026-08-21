@@ -4,6 +4,16 @@
     <!-- Header & Navigation -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div class="space-y-1">
+        <div class="flex items-center gap-2">
+          <button
+            class="flex items-center gap-1 text-xs font-medium text-secondary-text hover:text-primary-text transition-colors cursor-pointer"
+            @click="goBack"
+          >
+            <ArrowLeft class="w-3.5 h-3.5" />
+            <span>Back to Settlement Preview</span>
+          </button>
+        </div>
+
         <div class="flex items-center gap-2.5 flex-wrap pt-1">
           <h1 class="text-base font-bold text-primary-text">Client Settlement Details</h1>
           <span
@@ -118,7 +128,7 @@
             </div>
           </div>
 
-          <!-- Quick Accounts Count Badge -->
+          <!-- Quick Stats Count -->
           <div class="flex items-center gap-2 shrink-0 flex-wrap">
             <div class="flex items-center gap-2 bg-background/60 border border-primary-border/60 rounded-xl px-3 py-2 text-xs">
               <Users class="w-3.5 h-3.5 text-primary" />
@@ -128,7 +138,7 @@
             <div class="flex items-center gap-2 bg-background/60 border border-primary-border/60 rounded-xl px-3 py-2 text-xs">
               <Activity class="w-3.5 h-3.5 text-primary" />
               <span class="text-secondary-text">Total Trades:</span>
-              <span class="font-bold text-primary-text">{{ userSummary.trades_count ?? allTrades.length }}</span>
+              <span class="font-bold text-primary-text">{{ userSummary.trades_count ?? totalTradesCount }}</span>
             </div>
           </div>
         </div>
@@ -226,16 +236,16 @@
         <div class="flex items-center gap-1.5 overflow-x-auto">
           <button
             class="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer shrink-0"
-            :class="activeTab === 'trades' ? 'bg-primary text-white' : 'bg-card-background border border-primary-border text-secondary-text hover:text-primary-text'"
-            @click="activeTab = 'trades'"
+            :class="activeTab === 'settlements' ? 'bg-primary text-white' : 'bg-card-background border border-primary-border text-secondary-text hover:text-primary-text'"
+            @click="activeTab = 'settlements'"
           >
             <ReceiptText class="w-3.5 h-3.5" />
-            Followers & Trades
+            Follower Periods & Trades
             <span
               class="px-1.5 py-0.2 rounded-full text-[10px] font-semibold"
-              :class="activeTab === 'trades' ? 'bg-white/20 text-white' : 'bg-background text-secondary-text'"
+              :class="activeTab === 'settlements' ? 'bg-white/20 text-white' : 'bg-background text-secondary-text'"
             >
-              {{ allTrades.length }}
+              {{ followerList.length }} Sessions
             </span>
           </button>
 
@@ -277,634 +287,360 @@
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="Search trades, symbols, accounts..."
+            placeholder="Search periods, trades, symbols..."
             class="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg bg-card-background border border-primary-border text-primary-text placeholder:text-secondary-text outline-none focus:border-primary transition-colors"
           />
         </div>
       </div>
 
       <!-- ═══════════════════════════════════════════════════════════════ -->
-      <!-- TAB 1: FOLLOWERS & TRADES BREAKDOWN -->
+      <!-- TAB 1: FOLLOWER SESSIONS & PERIODS SETTLEMENT BREAKDOWN -->
       <!-- ═══════════════════════════════════════════════════════════════ -->
-      <div v-if="activeTab === 'trades'" class="space-y-5">
+      <div v-if="activeTab === 'settlements'" class="space-y-6">
 
-        <!-- View Mode Switcher & Follower Sessions Filter -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-card-background border border-primary-border rounded-2xl p-3.5 shadow-2xs">
-          <!-- View Mode: By Session vs Flat All Trades -->
-          <div class="flex items-center gap-1.5 bg-background p-1 rounded-xl border border-primary-border/60 shrink-0">
-            <button
-              class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer flex items-center gap-1.5"
-              :class="tradesViewMode === 'sessions' ? 'bg-primary text-white shadow-2xs' : 'text-secondary-text hover:text-primary-text'"
-              @click="tradesViewMode = 'sessions'"
-            >
-              <Users class="w-3.5 h-3.5" />
-              <span>By Follower Session ({{ followerList.length }})</span>
-            </button>
-            <button
-              class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer flex items-center gap-1.5"
-              :class="tradesViewMode === 'all_trades' ? 'bg-primary text-white shadow-2xs' : 'text-secondary-text hover:text-primary-text'"
-              @click="tradesViewMode = 'all_trades'"
-            >
-              <ReceiptText class="w-3.5 h-3.5" />
-              <span>All Trades Flat ({{ allTrades.length }})</span>
-            </button>
-          </div>
-
-          <!-- Session Filter Selector (when in sessions view) -->
-          <div v-if="tradesViewMode === 'sessions' && followerList.length > 1" class="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0">
-            <button
-              class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer shrink-0"
-              :class="selectedFollowerId === 'ALL' ? 'bg-primary text-white' : 'bg-background border border-primary-border text-secondary-text hover:text-primary-text'"
-              @click="selectedFollowerId = 'ALL'"
-            >
-              All Sessions ({{ followerList.length }})
-            </button>
-            <button
-              v-for="follower in followerList"
-              :key="follower.follower_id"
-              class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer shrink-0 flex items-center gap-1.5"
-              :class="selectedFollowerId === String(follower.follower_id) ? 'bg-primary text-white' : 'bg-background border border-primary-border text-secondary-text hover:text-primary-text'"
-              @click="selectedFollowerId = String(follower.follower_id)"
-            >
-              <span class="w-1.5 h-1.5 rounded-full" :class="follower.is_active ? 'bg-emerald-500' : 'bg-zinc-400'" />
-              <span class="font-mono font-semibold">Follower #{{ follower.follower_id }}</span>
-              <span class="text-[10px] opacity-80">({{ follower.account_number || 'Acc' }} · {{ follower.trades?.length ?? follower.summary?.trades_count ?? 0 }}t)</span>
-            </button>
-          </div>
+        <!-- Follower Session Filter Pills -->
+        <div v-if="followerList.length > 1" class="flex items-center gap-2 overflow-x-auto pb-1">
+          <span class="text-xs font-medium text-secondary-text shrink-0">Filter Session:</span>
+          <button
+            class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer shrink-0"
+            :class="selectedFollowerId === 'ALL' ? 'bg-primary text-white' : 'bg-card-background border border-primary-border text-secondary-text hover:text-primary-text'"
+            @click="selectedFollowerId = 'ALL'"
+          >
+            All Sessions ({{ followerList.length }})
+          </button>
+          <button
+            v-for="follower in followerList"
+            :key="follower.follower_id"
+            class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer shrink-0 flex items-center gap-1.5"
+            :class="selectedFollowerId === String(follower.follower_id) ? 'bg-primary text-white' : 'bg-card-background border border-primary-border text-secondary-text hover:text-primary-text'"
+            @click="selectedFollowerId = String(follower.follower_id)"
+          >
+            <span class="w-1.5 h-1.5 rounded-full" :class="follower.is_active ? 'bg-emerald-500' : 'bg-zinc-400'" />
+            <span class="font-mono font-semibold">Follower #{{ follower.follower_id }}</span>
+            <span class="text-[10px] opacity-80 font-mono">({{ follower.account_number }} · {{ follower.summary?.trades_count ?? 0 }}t)</span>
+          </button>
         </div>
 
-        <!-- ═══════════════════════════════════════════════════════════ -->
-        <!-- SESSIONS VIEW MODE -->
-        <!-- ═══════════════════════════════════════════════════════════ -->
-        <template v-if="tradesViewMode === 'sessions'">
-          <div
-            v-for="follower in displayedFollowers"
-            :key="follower.follower_id"
-            class="border border-primary-border rounded-2xl overflow-hidden bg-card-background shadow-2xs space-y-4 p-4 sm:p-5"
-          >
-            <!-- Follower Session Header Info -->
-            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-primary-border pb-4">
+        <!-- Follower Session Cards -->
+        <div
+          v-for="follower in displayedFollowers"
+          :key="follower.follower_id"
+          class="border border-primary-border rounded-2xl overflow-hidden bg-card-background shadow-2xs space-y-4 p-4 sm:p-5"
+        >
+          <!-- Follower Session Header -->
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-primary-border pb-4">
+            <div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-sm font-bold text-primary-text">
+                  Follower Session #{{ follower.follower_id }}
+                </span>
+                <span class="font-mono text-xs font-semibold px-2 py-0.5 rounded bg-background border border-primary-border text-primary-text">
+                  Account: {{ follower.account_number }}
+                </span>
+                <span
+                  class="text-[9px] uppercase font-bold px-2 py-0.5 rounded-full border inline-flex items-center gap-1"
+                  :class="follower.is_active ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'"
+                >
+                  <span class="w-1.5 h-1.5 rounded-full" :class="follower.is_active ? 'bg-emerald-500' : 'bg-zinc-400'" />
+                  {{ follower.is_active ? 'Active' : 'Inactive' }}
+                </span>
+                <span v-if="follower.joined_at" class="text-[10px] text-secondary-text bg-background px-2 py-0.5 rounded border border-primary-border">
+                  Joined: {{ formatDate(follower.joined_at) }}
+                </span>
+                <span class="text-[9px] uppercase font-bold px-2 py-0.5 rounded border text-secondary-text bg-background border-primary-border">
+                  Settlement: {{ follower.settlement_type || follower.config?.settlement_type }}
+                </span>
+              </div>
+
+              <!-- Configuration Chips -->
+              <div class="flex items-center gap-2 mt-2 text-[11px] text-secondary-text flex-wrap">
+                <span class="bg-background px-2 py-0.5 rounded border border-primary-border/60">
+                  Perf Fee: <strong class="text-primary-text">{{ follower.config?.performance_fee ?? 0 }}%</strong>
+                </span>
+                <span class="bg-background px-2 py-0.5 rounded border border-primary-border/60">
+                  FM Share: <strong class="text-primary-text">{{ follower.config?.fm_share ?? 0 }}%</strong>
+                </span>
+                <span class="bg-background px-2 py-0.5 rounded border border-primary-border/60">
+                  Broker Share: <strong class="text-primary-text">{{ follower.config?.broker_share ?? 0 }}%</strong>
+                </span>
+                <span class="bg-background px-2 py-0.5 rounded border border-primary-border/60">
+                  IB Pool: <strong class="text-primary-text">{{ follower.config?.ib_pool_percentage ?? 0 }}%</strong>
+                </span>
+                <span v-if="follower.config?.management_fee" class="bg-background px-2 py-0.5 rounded border border-primary-border/60">
+                  Mgmt Fee: <strong class="text-primary-text">{{ follower.config?.management_fee }}%</strong>
+                </span>
+                <span v-if="follower.config?.registration_fee" class="bg-background px-2 py-0.5 rounded border border-primary-border/60">
+                  Reg Fee: <strong class="text-primary-text">{{ follower.config?.registration_fee }}</strong>
+                </span>
+              </div>
+            </div>
+
+            <!-- Follower Session Totals Bar -->
+            <div class="flex items-center gap-3 bg-background/70 border border-primary-border rounded-xl px-3.5 py-2 text-xs shrink-0 flex-wrap">
               <div>
-                <div class="flex items-center gap-2 flex-wrap">
-                  <div class="flex items-center gap-1.5">
-                    <span class="text-sm font-bold text-primary-text">
-                      Follower Session #{{ follower.follower_id }}
-                    </span>
-                    <span class="font-mono text-xs font-semibold px-2 py-0.5 rounded bg-background border border-primary-border text-primary-text">
-                      Account: {{ follower.account_number || '#' + follower.trading_account_id }}
-                    </span>
-                  </div>
-
-                  <span
-                    class="text-[9px] uppercase font-bold px-2 py-0.5 rounded-full border inline-flex items-center gap-1"
-                    :class="follower.is_active ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'"
-                  >
-                    <span class="w-1.5 h-1.5 rounded-full" :class="follower.is_active ? 'bg-emerald-500' : 'bg-zinc-400'" />
-                    {{ follower.is_active ? 'Active' : 'Inactive' }}
-                  </span>
-
-                  <span v-if="follower.joined_at" class="text-[10px] text-secondary-text bg-background px-2 py-0.5 rounded border border-primary-border">
-                    Joined: {{ formatDate(follower.joined_at) }}
-                  </span>
-
-                  <span class="text-[9px] uppercase font-bold px-2 py-0.5 rounded border text-secondary-text bg-background border-primary-border">
-                    Settlement: {{ follower.settlement_type || follower.config?.settlement_type || 'Monthly' }}
-                  </span>
-                </div>
-
-                <!-- Configuration Chips -->
-                <div class="flex items-center gap-2 mt-2 text-[11px] text-secondary-text flex-wrap">
-                  <span class="bg-background px-2 py-0.5 rounded border border-primary-border/60">
-                    Perf Fee: <strong class="text-primary-text">{{ follower.config?.performance_fee ?? 0 }}%</strong>
-                  </span>
-                  <span class="bg-background px-2 py-0.5 rounded border border-primary-border/60">
-                    FM Share: <strong class="text-primary-text">{{ follower.config?.fm_share ?? 0 }}%</strong>
-                  </span>
-                  <span class="bg-background px-2 py-0.5 rounded border border-primary-border/60">
-                    Broker Share: <strong class="text-primary-text">{{ follower.config?.broker_share ?? 0 }}%</strong>
-                  </span>
-                  <span class="bg-background px-2 py-0.5 rounded border border-primary-border/60">
-                    IB Pool: <strong class="text-primary-text">{{ follower.config?.ib_pool_percentage ?? 0 }}%</strong>
-                  </span>
-                  <span v-if="follower.config?.management_fee" class="bg-background px-2 py-0.5 rounded border border-primary-border/60">
-                    Mgmt: <strong class="text-primary-text">{{ follower.config?.management_fee }}%</strong>
-                  </span>
-                </div>
+                <span class="text-[9px] uppercase text-secondary-text block">Trades</span>
+                <span class="font-bold text-primary-text font-mono">{{ follower.summary?.trades_count ?? 0 }}</span>
               </div>
-
-              <!-- Follower Session Summary Metrics Pill -->
-              <div class="flex items-center gap-3 bg-background/70 border border-primary-border rounded-xl px-3.5 py-2 text-xs shrink-0 flex-wrap">
-                <div>
-                  <span class="text-[9px] uppercase text-secondary-text block">Trades</span>
-                  <span class="font-bold text-primary-text font-mono">{{ follower.summary?.trades_count ?? follower.trades?.length ?? 0 }}</span>
-                </div>
-                <div class="h-6 w-px bg-primary-border/80" />
-                <div>
-                  <span class="text-[9px] uppercase text-secondary-text block">Gross PnL</span>
-                  <span
-                    class="font-bold font-mono"
-                    :class="(follower.summary?.gross_pnl ?? 0) >= 0 ? 'text-primary-green' : 'text-primary-red'"
-                  >
-                    {{ (follower.summary?.gross_pnl ?? 0) > 0 ? '+' : '' }}{{ formatCurrency(follower.summary?.gross_pnl ?? 0) }}
-                  </span>
-                </div>
-                <div class="h-6 w-px bg-primary-border/80" />
-                <div>
-                  <span class="text-[9px] uppercase text-secondary-text block">Total Fee</span>
-                  <span class="font-bold text-primary-text font-mono">{{ formatCurrency(follower.summary?.total_fee ?? 0) }}</span>
-                </div>
-                <div class="h-6 w-px bg-primary-border/80" />
-                <div>
-                  <span class="text-[9px] uppercase text-secondary-text block">Net PnL</span>
-                  <span
-                    class="font-bold font-mono"
-                    :class="(follower.summary?.net_pnl ?? 0) >= 0 ? 'text-primary-green' : 'text-primary-red'"
-                  >
-                    {{ (follower.summary?.net_pnl ?? 0) > 0 ? '+' : '' }}{{ formatCurrency(follower.summary?.net_pnl ?? 0) }}
-                  </span>
-                </div>
+              <div class="h-6 w-px bg-primary-border/80" />
+              <div>
+                <span class="text-[9px] uppercase text-secondary-text block">Gross PnL</span>
+                <span
+                  class="font-bold font-mono"
+                  :class="(follower.summary?.gross_pnl ?? 0) >= 0 ? 'text-primary-green' : 'text-primary-red'"
+                >
+                  {{ (follower.summary?.gross_pnl ?? 0) > 0 ? '+' : '' }}{{ formatCurrency(follower.summary?.gross_pnl ?? 0) }}
+                </span>
               </div>
-            </div>
-
-            <!-- Trades Table for this Follower Session -->
-            <div class="border border-primary-border rounded-xl overflow-hidden bg-card-background">
-              <div class="overflow-x-auto">
-                <table class="w-full border-collapse">
-                  <thead>
-                    <tr class="border-b border-primary-border bg-background/50">
-                      <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Trade ID</th>
-                      <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Symbol</th>
-                      <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Gross PnL</th>
-                      <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Profit > HWM</th>
-                      <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Total Fee</th>
-                      <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">FM Fee</th>
-                      <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Broker Fee</th>
-                      <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">IB Pool</th>
-                      <th class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Net PnL</th>
-                      <th class="text-center text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3 w-10">Details</th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    <template v-for="t in getFilteredTrades(follower.trades || [])" :key="t.trade_id">
-                      <tr
-                        class="border-b border-primary-border transition-colors cursor-pointer"
-                        :class="expandedTradeKey === `${follower.follower_id}-${t.trade_id}` ? 'bg-background/80' : 'hover:bg-background/40'"
-                        @click="toggleTradeExpand(`${follower.follower_id}-${t.trade_id}`)"
-                      >
-                        <!-- Trade ID -->
-                        <td class="p-3">
-                          <span class="font-mono text-xs font-semibold text-primary-text">#{{ t.trade_id }}</span>
-                        </td>
-
-                        <!-- Symbol -->
-                        <td class="p-3">
-                          <span class="inline-block px-1.5 py-0.5 rounded text-[11px] font-semibold bg-background border border-primary-border text-primary-text">
-                            {{ t.symbol }}
-                          </span>
-                        </td>
-
-                        <!-- Gross PnL -->
-                        <td class="p-3">
-                          <span
-                            class="text-xs font-semibold tabular-nums"
-                            :class="t.gross_pnl >= 0 ? 'text-primary-green' : 'text-primary-red'"
-                          >
-                            {{ t.gross_pnl > 0 ? '+' : '' }}{{ formatCurrency(t.gross_pnl) }}
-                          </span>
-                        </td>
-
-                        <!-- Profit Above HWM -->
-                        <td class="p-3">
-                          <span class="text-xs font-medium text-primary-text tabular-nums">
-                            {{ formatCurrency(t.hwm?.profit_above_hwm) }}
-                          </span>
-                        </td>
-
-                        <!-- Total Fee -->
-                        <td class="p-3">
-                          <span class="text-xs font-medium text-primary-text tabular-nums">
-                            {{ formatCurrency(t.fee ?? t.distribution?.total_fee) }}
-                          </span>
-                        </td>
-
-                        <!-- FM Fee -->
-                        <td class="p-3">
-                          <p class="text-xs font-medium text-primary-text tabular-nums">
-                            {{ formatCurrency(t.distribution?.fm_net_after_agents ?? t.fm_fee) }}
-                          </p>
-                          <p v-if="t.distribution?.fm_fee !== t.distribution?.fm_net_after_agents && t.distribution?.fm_fee != null" class="text-[10px] text-secondary-text">
-                            Gross: {{ formatCurrency(t.distribution?.fm_fee ?? t.fm_fee) }}
-                          </p>
-                        </td>
-
-                        <!-- Broker Fee -->
-                        <td class="p-3">
-                          <p class="text-xs font-medium text-primary-text tabular-nums">
-                            {{ formatCurrency(t.distribution?.broker_net ?? t.broker_net ?? t.broker_fee) }}
-                          </p>
-                          <p v-if="t.broker_fee !== t.broker_net && t.broker_fee != null" class="text-[10px] text-secondary-text">
-                            Gross: {{ formatCurrency(t.broker_fee) }}
-                          </p>
-                        </td>
-
-                        <!-- IB Pool -->
-                        <td class="p-3">
-                          <span class="text-xs font-medium text-primary-green tabular-nums">
-                            {{ formatCurrency(t.ib_pool ?? t.distribution?.ib_pool) }}
-                          </span>
-                        </td>
-
-                        <!-- Net PnL -->
-                        <td class="p-3 text-right">
-                          <span
-                            class="text-xs font-bold tabular-nums"
-                            :class="t.net_pnl >= 0 ? 'text-primary-green' : 'text-primary-red'"
-                          >
-                            {{ t.net_pnl > 0 ? '+' : '' }}{{ formatCurrency(t.net_pnl) }}
-                          </span>
-                        </td>
-
-                        <!-- Toggle Icon -->
-                        <td class="p-3 text-center">
-                          <ChevronDown
-                            class="w-4 h-4 text-secondary-text mx-auto transition-transform duration-200"
-                            :class="{ 'rotate-180 text-primary': expandedTradeKey === `${follower.follower_id}-${t.trade_id}` }"
-                          />
-                        </td>
-                      </tr>
-
-                      <!-- Accordion Expanded Breakdown -->
-                      <tr
-                        v-if="expandedTradeKey === `${follower.follower_id}-${t.trade_id}`"
-                        class="border-b border-primary-border bg-background/50"
-                      >
-                        <td colspan="10" class="p-4">
-                          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                            <!-- HWM Breakdown -->
-                            <div class="bg-card-background border border-primary-border rounded-xl p-3.5 space-y-2.5">
-                              <p class="text-xs font-semibold text-primary-text flex items-center gap-1.5">
-                                <Activity class="w-3.5 h-3.5 text-primary" /> High Water Mark (HWM)
-                              </p>
-                              <div class="space-y-1.5 text-xs">
-                                <div class="flex justify-between">
-                                  <span class="text-secondary-text">Previous HWM:</span>
-                                  <span class="font-mono text-primary-text">{{ formatCurrency(t.hwm?.previous_hwm) }}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                  <span class="text-secondary-text">Current Total Before:</span>
-                                  <span class="font-mono text-primary-text">{{ formatCurrency(t.hwm?.current_total_before) }}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                  <span class="text-secondary-text">Profit Above HWM:</span>
-                                  <span class="font-mono font-semibold text-primary-green">{{ formatCurrency(t.hwm?.profit_above_hwm) }}</span>
-                                </div>
-                                <div class="flex justify-between border-t border-primary-border pt-1.5">
-                                  <span class="text-secondary-text">New Equity:</span>
-                                  <span class="font-mono font-semibold text-primary-text">{{ formatCurrency(t.hwm?.new_equity) }}</span>
-                                </div>
-                              </div>
-                            </div>
-
-                            <!-- Fee Distribution Breakdown -->
-                            <div class="bg-card-background border border-primary-border rounded-xl p-3.5 space-y-2.5">
-                              <p class="text-xs font-semibold text-primary-text flex items-center gap-1.5">
-                                <GitBranch class="w-3.5 h-3.5 text-primary" /> Fee & Pool Splits
-                              </p>
-                              <div class="space-y-1.5 text-xs">
-                                <div class="flex justify-between">
-                                  <span class="text-secondary-text">Total Calculated Fee:</span>
-                                  <span class="font-mono font-medium text-primary-text">{{ formatCurrency(t.distribution?.total_fee ?? t.fee) }}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                  <span class="text-secondary-text">FM Fee (Net):</span>
-                                  <span class="font-mono text-primary-text">{{ formatCurrency(t.distribution?.fm_net_after_agents ?? t.fm_fee) }}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                  <span class="text-secondary-text">Broker Fee (Net):</span>
-                                  <span class="font-mono text-primary-text">{{ formatCurrency(t.distribution?.broker_net ?? t.broker_net ?? t.broker_fee) }}</span>
-                                </div>
-                                <div class="flex justify-between border-t border-primary-border pt-1.5">
-                                  <span class="text-secondary-text">IB Pool / Distributed:</span>
-                                  <span class="font-mono text-primary-green">{{ formatCurrency(t.distribution?.ib_pool ?? t.ib_pool) }} / {{ formatCurrency(t.distribution?.ib_distributed) }}</span>
-                                </div>
-                              </div>
-                            </div>
-
-                          </div>
-
-                          <!-- Per-trade IB Splits Table if available -->
-                          <div v-if="t.distribution?.ib_splits?.length" class="mt-3 bg-card-background border border-primary-border rounded-xl p-3">
-                            <p class="text-[11px] font-semibold text-secondary-text uppercase tracking-wider mb-2">
-                              IB Commission Splits for Trade #{{ t.trade_id }}
-                            </p>
-                            <div class="overflow-x-auto">
-                              <table class="w-full text-xs">
-                                <thead>
-                                  <tr class="border-b border-primary-border text-[10px] text-secondary-text uppercase">
-                                    <th class="text-left py-1.5 px-2 font-medium">IB Partner</th>
-                                    <th class="text-left py-1.5 px-2 font-medium">Level</th>
-                                    <th class="text-left py-1.5 px-2 font-medium">Role</th>
-                                    <th class="text-left py-1.5 px-2 font-medium">Pool Share %</th>
-                                    <th class="text-left py-1.5 px-2 font-medium">Split %</th>
-                                    <th class="text-right py-1.5 px-2 font-medium">Commission</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  <tr
-                                    v-for="split in t.distribution.ib_splits"
-                                    :key="split.ib_id + '-' + split.trade_id"
-                                    class="border-b border-primary-border/50 last:border-none"
-                                  >
-                                    <td class="py-1.5 px-2 font-medium text-primary-text">
-                                      {{ split.ib_name }} <span class="text-secondary-text text-[10px]">({{ split.ib_email }})</span>
-                                    </td>
-                                    <td class="py-1.5 px-2 text-secondary-text">L{{ split.ib_level }}</td>
-                                    <td class="py-1.5 px-2">
-                                      <span class="px-1.5 py-0.2 rounded text-[9px] uppercase font-bold bg-background border border-primary-border text-secondary-text">
-                                        {{ split.role || 'Partner' }}
-                                      </span>
-                                    </td>
-                                    <td class="py-1.5 px-2 font-mono text-primary-text">{{ split.pool_share_pct }}%</td>
-                                    <td class="py-1.5 px-2 font-mono text-primary-text">{{ split.split_percentage }}%</td>
-                                    <td class="py-1.5 px-2 text-right font-mono font-semibold text-primary-green">
-                                      {{ formatCurrency(split.commission) }}
-                                    </td>
-                                  </tr>
-                                </tbody>
-                              </table>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    </template>
-
-                    <tr v-if="getFilteredTrades(follower.trades || []).length === 0">
-                      <td colspan="10" class="text-center py-8 text-xs text-secondary-text">
-                        No trades found for this session.
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+              <div class="h-6 w-px bg-primary-border/80" />
+              <div>
+                <span class="text-[9px] uppercase text-secondary-text block">Total Fee</span>
+                <span class="font-bold text-primary-text font-mono">{{ formatCurrency(follower.summary?.total_fee ?? 0) }}</span>
+              </div>
+              <div class="h-6 w-px bg-primary-border/80" />
+              <div>
+                <span class="text-[9px] uppercase text-secondary-text block">Net PnL</span>
+                <span
+                  class="font-bold font-mono"
+                  :class="(follower.summary?.net_pnl ?? 0) >= 0 ? 'text-primary-green' : 'text-primary-red'"
+                >
+                  {{ (follower.summary?.net_pnl ?? 0) > 0 ? '+' : '' }}{{ formatCurrency(follower.summary?.net_pnl ?? 0) }}
+                </span>
               </div>
             </div>
           </div>
 
-          <div v-if="displayedFollowers.length === 0" class="text-center py-12 text-xs text-secondary-text border border-primary-border rounded-2xl bg-card-background">
-            No follower sessions matching the selected filter.
-          </div>
-        </template>
-
-        <!-- ═══════════════════════════════════════════════════════════ -->
-        <!-- ALL TRADES FLAT VIEW MODE -->
-        <!-- ═══════════════════════════════════════════════════════════ -->
-        <template v-else>
-          <div class="border border-primary-border rounded-2xl overflow-hidden bg-card-background shadow-2xs">
-            <div class="px-5 py-3.5 border-b border-primary-border flex items-center justify-between bg-card-background">
-              <div class="flex items-center gap-2">
-                <ReceiptText class="w-4 h-4 text-secondary-text" />
-                <span class="text-xs font-semibold text-primary-text">All Follower Trades across All Sessions</span>
-              </div>
-              <span class="text-xs text-secondary-text">
-                {{ filteredAllTrades.length }} of {{ allTrades.length }} Trades
+          <!-- Settlement Periods List for this Follower Session -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-primary-text uppercase tracking-wider">
+                Settlement Periods ({{ follower.periods?.length ?? 0 }})
               </span>
             </div>
 
-            <div class="overflow-x-auto">
-              <table class="w-full border-collapse">
-                <thead>
-                  <tr class="border-b border-primary-border bg-background/50">
-                    <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Trade ID</th>
-                    <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Session & Account</th>
-                    <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Symbol</th>
-                    <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Gross PnL</th>
-                    <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Profit > HWM</th>
-                    <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Total Fee</th>
-                    <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">FM Fee</th>
-                    <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Broker Fee</th>
-                    <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">IB Pool</th>
-                    <th class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Net PnL</th>
-                    <th class="text-center text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3 w-10">Details</th>
-                  </tr>
-                </thead>
+            <div
+              v-for="period in getFilteredPeriods(follower.periods || [])"
+              :key="period.period_key"
+              class="border border-primary-border rounded-xl overflow-hidden bg-background/50"
+            >
+              <!-- Period Header Row -->
+              <div
+                class="p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-3 cursor-pointer hover:bg-background transition-colors"
+                @click="togglePeriodExpand(`${follower.follower_id}-${period.period_key}`)"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-card-background border border-primary-border flex items-center justify-center text-primary font-bold text-xs shrink-0">
+                    <Calendar class="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span class="text-xs font-bold text-primary-text">
+                        {{ formatPeriodDate(period.period_key) }}
+                      </span>
+                      <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-card-background border border-primary-border text-secondary-text">
+                        {{ period.period_key }}
+                      </span>
+                      <span class="text-[9px] uppercase font-bold px-1.5 py-0.2 rounded bg-card-background border border-primary-border text-secondary-text">
+                        {{ period.period_type }}
+                      </span>
+                    </div>
+                    <p class="text-[11px] text-secondary-text mt-0.5">
+                      {{ period.trades_count }} Trade{{ period.trades_count === 1 ? '' : 's' }} executed in this settlement period
+                    </p>
+                  </div>
+                </div>
 
-                <tbody>
-                  <template v-for="t in filteredAllTrades" :key="t._follower_id + '-' + t.trade_id">
-                    <tr
-                      class="border-b border-primary-border transition-colors cursor-pointer"
-                      :class="expandedTradeKey === `flat-${t._follower_id}-${t.trade_id}` ? 'bg-background/80' : 'hover:bg-background/40'"
-                      @click="toggleTradeExpand(`flat-${t._follower_id}-${t.trade_id}`)"
+                <!-- Period Summary Metrics -->
+                <div class="flex items-center gap-4 text-xs shrink-0 flex-wrap justify-between md:justify-end">
+                  <div class="text-left md:text-right">
+                    <span class="text-[10px] text-secondary-text block">Gross PnL</span>
+                    <span
+                      class="font-mono font-semibold"
+                      :class="period.gross_pnl >= 0 ? 'text-primary-green' : 'text-primary-red'"
                     >
-                      <!-- Trade ID -->
-                      <td class="p-3">
-                        <span class="font-mono text-xs font-semibold text-primary-text">#{{ t.trade_id }}</span>
-                      </td>
+                      {{ period.gross_pnl > 0 ? '+' : '' }}{{ formatCurrency(period.gross_pnl) }}
+                    </span>
+                  </div>
 
-                      <!-- Session & Account -->
-                      <td class="p-3">
-                        <div class="flex items-center gap-1.5 flex-wrap">
-                          <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-primary/10 text-primary border border-primary/20">
-                            Follower #{{ t._follower_id }}
-                          </span>
-                          <span class="font-mono text-xs text-primary-text">{{ t.account_number }}</span>
-                        </div>
-                      </td>
+                  <div class="text-left md:text-right">
+                    <span class="text-[10px] text-secondary-text block">Fee</span>
+                    <span class="font-mono font-semibold text-primary-text">{{ formatCurrency(period.fee) }}</span>
+                  </div>
 
-                      <!-- Symbol -->
-                      <td class="p-3">
-                        <span class="inline-block px-1.5 py-0.5 rounded text-[11px] font-semibold bg-background border border-primary-border text-primary-text">
-                          {{ t.symbol }}
-                        </span>
-                      </td>
+                  <div class="text-left md:text-right">
+                    <span class="text-[10px] text-secondary-text block">FM Net</span>
+                    <span class="font-mono font-semibold text-primary-text">
+                      {{ formatCurrency(period.distribution?.fm_net_after_agents ?? period.fm_fee) }}
+                    </span>
+                  </div>
 
-                      <!-- Gross PnL -->
-                      <td class="p-3">
-                        <span
-                          class="text-xs font-semibold tabular-nums"
-                          :class="t.gross_pnl >= 0 ? 'text-primary-green' : 'text-primary-red'"
-                        >
-                          {{ t.gross_pnl > 0 ? '+' : '' }}{{ formatCurrency(t.gross_pnl) }}
-                        </span>
-                      </td>
-
-                      <!-- Profit Above HWM -->
-                      <td class="p-3">
-                        <span class="text-xs font-medium text-primary-text tabular-nums">
-                          {{ formatCurrency(t.hwm?.profit_above_hwm) }}
-                        </span>
-                      </td>
-
-                      <!-- Total Fee -->
-                      <td class="p-3">
-                        <span class="text-xs font-medium text-primary-text tabular-nums">
-                          {{ formatCurrency(t.fee ?? t.distribution?.total_fee) }}
-                        </span>
-                      </td>
-
-                      <!-- FM Fee -->
-                      <td class="p-3">
-                        <p class="text-xs font-medium text-primary-text tabular-nums">
-                          {{ formatCurrency(t.distribution?.fm_net_after_agents ?? t.fm_fee) }}
-                        </p>
-                        <p v-if="t.distribution?.fm_fee !== t.distribution?.fm_net_after_agents && t.distribution?.fm_fee != null" class="text-[10px] text-secondary-text">
-                          Gross: {{ formatCurrency(t.distribution?.fm_fee ?? t.fm_fee) }}
-                        </p>
-                      </td>
-
-                      <!-- Broker Fee -->
-                      <td class="p-3">
-                        <p class="text-xs font-medium text-primary-text tabular-nums">
-                          {{ formatCurrency(t.distribution?.broker_net ?? t.broker_net ?? t.broker_fee) }}
-                        </p>
-                        <p v-if="t.broker_fee !== t.broker_net && t.broker_fee != null" class="text-[10px] text-secondary-text">
-                          Gross: {{ formatCurrency(t.broker_fee) }}
-                        </p>
-                      </td>
-
-                      <!-- IB Pool -->
-                      <td class="p-3">
-                        <span class="text-xs font-medium text-primary-green tabular-nums">
-                          {{ formatCurrency(t.ib_pool ?? t.distribution?.ib_pool) }}
-                        </span>
-                      </td>
-
-                      <!-- Net PnL -->
-                      <td class="p-3 text-right">
-                        <span
-                          class="text-xs font-bold tabular-nums"
-                          :class="t.net_pnl >= 0 ? 'text-primary-green' : 'text-primary-red'"
-                        >
-                          {{ t.net_pnl > 0 ? '+' : '' }}{{ formatCurrency(t.net_pnl) }}
-                        </span>
-                      </td>
-
-                      <!-- Toggle Icon -->
-                      <td class="p-3 text-center">
-                        <ChevronDown
-                          class="w-4 h-4 text-secondary-text mx-auto transition-transform duration-200"
-                          :class="{ 'rotate-180 text-primary': expandedTradeKey === `flat-${t._follower_id}-${t.trade_id}` }"
-                        />
-                      </td>
-                    </tr>
-
-                    <!-- Accordion Expanded Breakdown -->
-                    <tr
-                      v-if="expandedTradeKey === `flat-${t._follower_id}-${t.trade_id}`"
-                      class="border-b border-primary-border bg-background/50"
+                  <div class="text-left md:text-right">
+                    <span class="text-[10px] text-secondary-text block">Net PnL</span>
+                    <span
+                      class="font-mono font-bold"
+                      :class="period.net_pnl >= 0 ? 'text-primary-green' : 'text-primary-red'"
                     >
-                      <td colspan="11" class="p-4">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {{ period.net_pnl > 0 ? '+' : '' }}{{ formatCurrency(period.net_pnl) }}
+                    </span>
+                  </div>
 
-                          <!-- HWM Breakdown -->
-                          <div class="bg-card-background border border-primary-border rounded-xl p-3.5 space-y-2.5">
-                            <p class="text-xs font-semibold text-primary-text flex items-center gap-1.5">
-                              <Activity class="w-3.5 h-3.5 text-primary" /> High Water Mark (HWM)
-                            </p>
-                            <div class="space-y-1.5 text-xs">
-                              <div class="flex justify-between">
-                                <span class="text-secondary-text">Previous HWM:</span>
-                                <span class="font-mono text-primary-text">{{ formatCurrency(t.hwm?.previous_hwm) }}</span>
-                              </div>
-                              <div class="flex justify-between">
-                                <span class="text-secondary-text">Current Total Before:</span>
-                                <span class="font-mono text-primary-text">{{ formatCurrency(t.hwm?.current_total_before) }}</span>
-                              </div>
-                              <div class="flex justify-between">
-                                <span class="text-secondary-text">Profit Above HWM:</span>
-                                <span class="font-mono font-semibold text-primary-green">{{ formatCurrency(t.hwm?.profit_above_hwm) }}</span>
-                              </div>
-                              <div class="flex justify-between border-t border-primary-border pt-1.5">
-                                <span class="text-secondary-text">New Equity:</span>
-                                <span class="font-mono font-semibold text-primary-text">{{ formatCurrency(t.hwm?.new_equity) }}</span>
-                              </div>
-                            </div>
-                          </div>
+                  <ChevronDown
+                    class="w-4 h-4 text-secondary-text transition-transform duration-200"
+                    :class="{ 'rotate-180 text-primary': expandedPeriodKey === `${follower.follower_id}-${period.period_key}` }"
+                  />
+                </div>
+              </div>
 
-                          <!-- Fee Distribution Breakdown -->
-                          <div class="bg-card-background border border-primary-border rounded-xl p-3.5 space-y-2.5">
-                            <p class="text-xs font-semibold text-primary-text flex items-center gap-1.5">
-                              <GitBranch class="w-3.5 h-3.5 text-primary" /> Fee & Pool Splits
-                            </p>
-                            <div class="space-y-1.5 text-xs">
-                              <div class="flex justify-between">
-                                <span class="text-secondary-text">Total Calculated Fee:</span>
-                                <span class="font-mono font-medium text-primary-text">{{ formatCurrency(t.distribution?.total_fee ?? t.fee) }}</span>
-                              </div>
-                              <div class="flex justify-between">
-                                <span class="text-secondary-text">FM Fee (Net):</span>
-                                <span class="font-mono text-primary-text">{{ formatCurrency(t.distribution?.fm_net_after_agents ?? t.fm_fee) }}</span>
-                              </div>
-                              <div class="flex justify-between">
-                                <span class="text-secondary-text">Broker Fee (Net):</span>
-                                <span class="font-mono text-primary-text">{{ formatCurrency(t.distribution?.broker_net ?? t.broker_net ?? t.broker_fee) }}</span>
-                              </div>
-                              <div class="flex justify-between border-t border-primary-border pt-1.5">
-                                <span class="text-secondary-text">IB Pool / Distributed:</span>
-                                <span class="font-mono text-primary-green">{{ formatCurrency(t.distribution?.ib_pool ?? t.ib_pool) }} / {{ formatCurrency(t.distribution?.ib_distributed) }}</span>
-                              </div>
-                            </div>
-                          </div>
+              <!-- Period Expanded Content -->
+              <div
+                v-if="expandedPeriodKey === `${follower.follower_id}-${period.period_key}`"
+                class="p-4 border-t border-primary-border bg-card-background space-y-4"
+              >
+                <!-- HWM & Distribution Cards Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <!-- HWM Details -->
+                  <div class="bg-background rounded-xl p-3.5 border border-primary-border/60 space-y-2 text-xs">
+                    <p class="text-xs font-semibold text-primary-text flex items-center gap-1.5">
+                      <Activity class="w-3.5 h-3.5 text-primary" /> High Water Mark (HWM)
+                    </p>
+                    <div class="space-y-1.5 pt-1">
+                      <div class="flex justify-between">
+                        <span class="text-secondary-text">Previous HWM:</span>
+                        <span class="font-mono text-primary-text">{{ formatCurrency(period.hwm?.previous_hwm) }}</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-secondary-text">Current Total Before:</span>
+                        <span class="font-mono text-primary-text">{{ formatCurrency(period.hwm?.current_total_before) }}</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-secondary-text">Profit Above HWM:</span>
+                        <span class="font-mono font-semibold text-primary-green">{{ formatCurrency(period.hwm?.profit_above_hwm) }}</span>
+                      </div>
+                      <div class="flex justify-between border-t border-primary-border/60 pt-1.5">
+                        <span class="text-secondary-text">New Equity:</span>
+                        <span class="font-mono font-semibold text-primary-text">{{ formatCurrency(period.hwm?.new_equity) }}</span>
+                      </div>
+                    </div>
+                  </div>
 
-                        </div>
+                  <!-- Fee Distribution Details -->
+                  <div class="bg-background rounded-xl p-3.5 border border-primary-border/60 space-y-2 text-xs">
+                    <p class="text-xs font-semibold text-primary-text flex items-center gap-1.5">
+                      <GitBranch class="w-3.5 h-3.5 text-primary" /> Fee & Pool Splits
+                    </p>
+                    <div class="space-y-1.5 pt-1">
+                      <div class="flex justify-between">
+                        <span class="text-secondary-text">Total Performance Fee:</span>
+                        <span class="font-mono font-medium text-primary-text">{{ formatCurrency(period.distribution?.total_fee ?? period.fee) }}</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-secondary-text">FM Share (Net):</span>
+                        <span class="font-mono text-primary-text">{{ formatCurrency(period.distribution?.fm_net_after_agents ?? period.fm_fee) }}</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-secondary-text">Broker Share (Net):</span>
+                        <span class="font-mono text-primary-text">{{ formatCurrency(period.distribution?.broker_net ?? period.broker_net ?? period.broker_fee) }}</span>
+                      </div>
+                      <div class="flex justify-between border-t border-primary-border/60 pt-1.5">
+                        <span class="text-secondary-text">IB Pool / Distributed:</span>
+                        <span class="font-mono text-primary-green">{{ formatCurrency(period.distribution?.ib_pool ?? period.ib_pool) }} / {{ formatCurrency(period.distribution?.ib_distributed) }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-                        <!-- Per-trade IB Splits Table if available -->
-                        <div v-if="t.distribution?.ib_splits?.length" class="mt-3 bg-card-background border border-primary-border rounded-xl p-3">
-                          <p class="text-[11px] font-semibold text-secondary-text uppercase tracking-wider mb-2">
-                            IB Commission Splits for Trade #{{ t.trade_id }} (Follower #{{ t._follower_id }})
-                          </p>
-                          <div class="overflow-x-auto">
-                            <table class="w-full text-xs">
-                              <thead>
-                                <tr class="border-b border-primary-border text-[10px] text-secondary-text uppercase">
-                                  <th class="text-left py-1.5 px-2 font-medium">IB Partner</th>
-                                  <th class="text-left py-1.5 px-2 font-medium">Level</th>
-                                  <th class="text-left py-1.5 px-2 font-medium">Role</th>
-                                  <th class="text-left py-1.5 px-2 font-medium">Pool Share %</th>
-                                  <th class="text-left py-1.5 px-2 font-medium">Split %</th>
-                                  <th class="text-right py-1.5 px-2 font-medium">Commission</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                <tr
-                                  v-for="split in t.distribution.ib_splits"
-                                  :key="split.ib_id + '-' + split.trade_id"
-                                  class="border-b border-primary-border/50 last:border-none"
-                                >
-                                  <td class="py-1.5 px-2 font-medium text-primary-text">
-                                    {{ split.ib_name }} <span class="text-secondary-text text-[10px]">({{ split.ib_email }})</span>
-                                  </td>
-                                  <td class="py-1.5 px-2 text-secondary-text">L{{ split.ib_level }}</td>
-                                  <td class="py-1.5 px-2">
-                                    <span class="px-1.5 py-0.2 rounded text-[9px] uppercase font-bold bg-background border border-primary-border text-secondary-text">
-                                      {{ split.role || 'Partner' }}
-                                    </span>
-                                  </td>
-                                  <td class="py-1.5 px-2 font-mono text-primary-text">{{ split.pool_share_pct }}%</td>
-                                  <td class="py-1.5 px-2 font-mono text-primary-text">{{ split.split_percentage }}%</td>
-                                  <td class="py-1.5 px-2 text-right font-mono font-semibold text-primary-green">
-                                    {{ formatCurrency(split.commission) }}
-                                  </td>
-                                </tr>
-                              </tbody>
-                            </table>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  </template>
+                <!-- IB Splits if present in this period -->
+                <div v-if="period.distribution?.ib_splits?.length" class="bg-background rounded-xl p-3.5 border border-primary-border/60">
+                  <p class="text-[11px] font-semibold text-secondary-text uppercase tracking-wider mb-2">
+                    IB Commission Splits for this Period
+                  </p>
+                  <div class="overflow-x-auto">
+                    <table class="w-full text-xs">
+                      <thead>
+                        <tr class="border-b border-primary-border text-[10px] text-secondary-text uppercase">
+                          <th class="text-left py-1.5 px-2 font-medium">IB Partner</th>
+                          <th class="text-left py-1.5 px-2 font-medium">Level</th>
+                          <th class="text-left py-1.5 px-2 font-medium">Role</th>
+                          <th class="text-left py-1.5 px-2 font-medium">Pool Share %</th>
+                          <th class="text-left py-1.5 px-2 font-medium">Split %</th>
+                          <th class="text-right py-1.5 px-2 font-medium">Commission</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr
+                          v-for="split in period.distribution.ib_splits"
+                          :key="split.ib_id"
+                          class="border-b border-primary-border/40 last:border-none"
+                        >
+                          <td class="py-1.5 px-2 font-medium text-primary-text">
+                            {{ split.ib_name }} <span class="text-secondary-text text-[10px]">({{ split.ib_email }})</span>
+                          </td>
+                          <td class="py-1.5 px-2 text-secondary-text">L{{ split.ib_level }}</td>
+                          <td class="py-1.5 px-2">
+                            <span class="px-1.5 py-0.2 rounded text-[9px] uppercase font-bold bg-card-background border border-primary-border text-secondary-text">
+                              {{ split.role || 'Partner' }}
+                            </span>
+                          </td>
+                          <td class="py-1.5 px-2 font-mono text-primary-text">{{ split.pool_share_pct }}%</td>
+                          <td class="py-1.5 px-2 font-mono text-primary-text">{{ split.split_percentage }}%</td>
+                          <td class="py-1.5 px-2 text-right font-mono font-semibold text-primary-green">
+                            {{ formatCurrency(split.commission) }}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
 
-                  <tr v-if="filteredAllTrades.length === 0">
-                    <td colspan="11" class="text-center py-10 text-xs text-secondary-text">
-                      No trades found matching your search.
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                <!-- Trades in this Period Table -->
+                <div class="space-y-2">
+                  <p class="text-[11px] font-semibold text-secondary-text uppercase tracking-wider">
+                    Closed Trades in this Period ({{ period.trades?.length ?? 0 }})
+                  </p>
+                  <div class="overflow-x-auto border border-primary-border/60 rounded-xl">
+                    <table class="w-full text-xs">
+                      <thead>
+                        <tr class="border-b border-primary-border/60 bg-background/80 text-[10px] text-secondary-text uppercase">
+                          <th class="text-left py-2 px-3 font-medium">Trade ID</th>
+                          <th class="text-left py-2 px-3 font-medium">Symbol</th>
+                          <th class="text-left py-2 px-3 font-medium">Account</th>
+                          <th class="text-left py-2 px-3 font-medium">Closed At</th>
+                          <th class="text-right py-2 px-3 font-medium">Gross PnL</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr
+                          v-for="t in period.trades"
+                          :key="t.trade_id"
+                          class="border-b border-primary-border/30 last:border-none hover:bg-background/40 transition-colors"
+                        >
+                          <td class="py-2 px-3 font-mono font-semibold text-primary-text">#{{ t.trade_id }}</td>
+                          <td class="py-2 px-3">
+                            <span class="inline-block px-1.5 py-0.5 rounded text-[11px] font-semibold bg-background border border-primary-border text-primary-text">
+                              {{ t.symbol }}
+                            </span>
+                          </td>
+                          <td class="py-2 px-3 font-mono text-secondary-text">{{ t.account_number }}</td>
+                          <td class="py-2 px-3 text-secondary-text">{{ formatDate(t.closed_at) }}</td>
+                          <td class="py-2 px-3 text-right font-mono font-semibold" :class="t.gross_pnl >= 0 ? 'text-primary-green' : 'text-primary-red'">
+                            {{ t.gross_pnl > 0 ? '+' : '' }}{{ formatCurrency(t.gross_pnl) }}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="getFilteredPeriods(follower.periods || []).length === 0" class="text-center py-6 text-xs text-secondary-text">
+              No periods matching search filter.
             </div>
           </div>
-        </template>
+        </div>
 
+        <div v-if="displayedFollowers.length === 0" class="text-center py-12 text-xs text-secondary-text border border-primary-border rounded-2xl bg-card-background">
+          No follower sessions matching the selected filter.
+        </div>
       </div>
 
       <!-- ═══════════════════════════════════════════════════════════════ -->
@@ -1051,6 +787,7 @@ import {
   PieChart,
   Building2,
   Activity,
+  Calendar,
   ChevronDown,
   Search,
   RotateCw,
@@ -1064,11 +801,10 @@ const route = useRoute()
 const router = useRouter()
 const store = useUserSettlementStore()
 
-const activeTab = ref('trades')
-const tradesViewMode = ref('sessions') // 'sessions' | 'all_trades'
+const activeTab = ref('settlements')
 const searchQuery = ref('')
 const selectedFollowerId = ref('ALL')
-const expandedTradeKey = ref(null)
+const expandedPeriodKey = ref(null)
 const fmInfo = ref(null)
 
 const loadFmInfo = () => {
@@ -1139,6 +875,21 @@ const formatDate = (isoString) => {
   }
 }
 
+const formatPeriodDate = (periodKey) => {
+  if (!periodKey) return ''
+  try {
+    const d = new Date(periodKey)
+    if (isNaN(d.getTime())) return periodKey
+    return d.toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    })
+  } catch (e) {
+    return periodKey
+  }
+}
+
 const userData = computed(() => store.data?.user || null)
 
 const userSummary = computed(() => {
@@ -1158,46 +909,29 @@ const displayedFollowers = computed(() => {
   )
 })
 
-const allTrades = computed(() => {
-  const trades = []
+const totalTradesCount = computed(() => {
+  let count = 0
   followerList.value.forEach((f) => {
-    if (Array.isArray(f.trades)) {
-      f.trades.forEach((t) => {
-        trades.push({
-          ...t,
-          _follower_id: f.follower_id,
-          _follower_is_active: f.is_active,
-          _follower_joined_at: f.joined_at,
-          account_number: t.account_number || f.account_number,
-        })
-      })
-    }
+    count += f.summary?.trades_count ?? f.trades?.length ?? 0
   })
-  return trades.sort((a, b) => (Number(a.trade_id) || 0) - (Number(b.trade_id) || 0))
+  return count
 })
 
-const filteredAllTrades = computed(() => {
-  if (!searchQuery.value.trim()) return allTrades.value
+const getFilteredPeriods = (periods) => {
+  if (!searchQuery.value.trim()) return periods
   const q = searchQuery.value.toLowerCase().trim()
-  return allTrades.value.filter((t) => {
-    return (
-      String(t.trade_id || '').includes(q) ||
-      String(t.symbol || '').toLowerCase().includes(q) ||
-      String(t.account_number || '').toLowerCase().includes(q) ||
-      String(t._follower_id || '').includes(q)
-    )
-  })
-})
-
-const getFilteredTrades = (trades) => {
-  if (!searchQuery.value.trim()) return trades
-  const q = searchQuery.value.toLowerCase().trim()
-  return trades.filter((t) => {
-    return (
-      String(t.trade_id || '').includes(q) ||
-      String(t.symbol || '').toLowerCase().includes(q) ||
-      String(t.account_number || '').toLowerCase().includes(q)
-    )
+  return periods.filter((p) => {
+    const periodMatches =
+      String(p.period_key || '').toLowerCase().includes(q) ||
+      String(p.period_type || '').toLowerCase().includes(q)
+    const tradeMatches = Array.isArray(p.trades)
+      ? p.trades.some(
+          (t) =>
+            String(t.trade_id || '').includes(q) ||
+            String(t.symbol || '').toLowerCase().includes(q)
+        )
+      : false
+    return periodMatches || tradeMatches
   })
 }
 
@@ -1216,8 +950,8 @@ const filteredIbDistribution = computed(() => {
   })
 })
 
-const toggleTradeExpand = (key) => {
-  expandedTradeKey.value = expandedTradeKey.value === key ? null : key
+const togglePeriodExpand = (key) => {
+  expandedPeriodKey.value = expandedPeriodKey.value === key ? null : key
 }
 
 const goBack = () => {
