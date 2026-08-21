@@ -803,7 +803,17 @@ const handlePerPageChange = (val) => {
 const handleSettlement = (item) => {
   if (!item || item.id == null) return
   setActiveFm(item)
-  router.push({ name: 'fm-settlement-preview', params: { id: item.id } })
+  router.push({
+    name: 'fm-settlement-preview',
+    params: { id: item.id },
+    query: {
+      currency:
+        item.broker_currency ||
+        item.currency ||
+        item.coverage_account?.broker_currency ||
+        item.master_account?.broker_currency,
+    },
+  })
 }
 
 const getRowActions = (item) => {

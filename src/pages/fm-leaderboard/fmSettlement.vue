@@ -4,8 +4,7 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
-        <div class="flex items-center gap-2.5">
-          <!-- <h1 class="text-lg font-semibold text-primary-text">Settlement Preview</h1> -->
+        <div class="flex items-center gap-2.5 flex-wrap">
           <span
             v-if="store.settlement?.preview"
             class="px-2 py-0.5 rounded-md text-[11px] font-medium bg-primary/10 text-primary border border-primary/20"
@@ -18,10 +17,12 @@
           >
             Settlement #{{ store.settlement.settlement_id }}
           </span>
+          <span
+            class="px-2 py-0.5 rounded-md text-[11px] font-semibold font-mono bg-card-background text-primary border border-primary-border uppercase"
+          >
+            {{ activeCurrency }}
+          </span>
         </div>
-        <!-- <p class="text-xs text-secondary-text mt-1">
-          Review follower trades, commission distributions, and IB payouts before executing settlement.
-        </p> -->
       </div>
 
       <div class="flex items-center gap-2.5">
@@ -88,7 +89,7 @@
                 class="text-xl font-bold tabular-nums"
                 :class="totalPnl >= 0 ? 'text-primary-green' : 'text-primary-red'"
               >
-                {{ totalPnl >= 0 ? '+' : '' }}${{ fmt(totalPnl) }}
+                {{ totalPnl > 0 ? '+' : '' }}{{ formatCurrency(totalPnl) }}
               </p>
               <p class="text-[10px] text-secondary-text mt-0.5 truncate">{{ store.settlement?.fm_name }} (FM #{{ store.settlement?.fm_id }})</p>
             </div>
@@ -101,7 +102,7 @@
               <DollarSign class="w-3.5 h-3.5 text-secondary-text" />
             </div>
             <div class="mt-2">
-              <p class="text-xl font-bold text-primary-text tabular-nums">${{ fmt(summaryData.total_fee) }}</p>
+              <p class="text-xl font-bold text-primary-text tabular-nums">{{ formatCurrency(summaryData.total_fee) }}</p>
               <p class="text-[10px] text-secondary-text mt-0.5">Performance Fee</p>
             </div>
           </div>
@@ -113,8 +114,8 @@
               <PieChart class="w-3.5 h-3.5 text-secondary-text" />
             </div>
             <div class="mt-2">
-              <p class="text-xl font-bold text-primary-text tabular-nums">${{ fmt(summaryData.total_fm_net_after_agents) }}</p>
-              <p class="text-[10px] text-secondary-text mt-0.5">Gross: ${{ fmt(summaryData.total_fm_fee) }}</p>
+              <p class="text-xl font-bold text-primary-text tabular-nums">{{ formatCurrency(summaryData.total_fm_net_after_agents) }}</p>
+              <p class="text-[10px] text-secondary-text mt-0.5">Gross: {{ formatCurrency(summaryData.total_fm_fee) }}</p>
             </div>
           </div>
 
@@ -125,8 +126,8 @@
               <Building2 class="w-3.5 h-3.5 text-secondary-text" />
             </div>
             <div class="mt-2">
-              <p class="text-xl font-bold text-primary-text tabular-nums">${{ fmt(summaryData.total_broker_net) }}</p>
-              <p class="text-[10px] text-secondary-text mt-0.5">Gross: ${{ fmt(summaryData.total_broker_fee) }}</p>
+              <p class="text-xl font-bold text-primary-text tabular-nums">{{ formatCurrency(summaryData.total_broker_net) }}</p>
+              <p class="text-[10px] text-secondary-text mt-0.5">Gross: {{ formatCurrency(summaryData.total_broker_fee) }}</p>
             </div>
           </div>
 
@@ -137,7 +138,7 @@
               <GitBranch class="w-3.5 h-3.5 text-secondary-text" />
             </div>
             <div class="mt-2">
-              <p class="text-xl font-bold text-primary-green tabular-nums">${{ fmt(summaryData.total_ib_distributed) }}</p>
+              <p class="text-xl font-bold text-primary-green tabular-nums">{{ formatCurrency(summaryData.total_ib_distributed) }}</p>
               <p class="text-[10px] text-secondary-text mt-0.5">{{ store.settlement?.ib_summary?.length ?? 0 }} IBs Benefiting</p>
             </div>
           </div>
@@ -308,44 +309,44 @@
                         class="text-xs font-semibold tabular-nums"
                         :class="f.gross_pnl >= 0 ? 'text-primary-green' : 'text-primary-red'"
                       >
-                        {{ f.gross_pnl >= 0 ? '+' : '' }}${{ fmt(f.gross_pnl) }}
+                        {{ f.gross_pnl > 0 ? '+' : '' }}{{ formatCurrency(f.gross_pnl, getRowCurrency(f)) }}
                       </span>
                     </td>
 
                     <!-- Profit Above HWM -->
                     <td class="p-3">
                       <span class="text-xs font-medium text-primary-text tabular-nums">
-                        ${{ fmt(f.hwm?.profit_above_hwm) }}
+                        {{ formatCurrency(f.hwm?.profit_above_hwm, getRowCurrency(f)) }}
                       </span>
                     </td>
 
                     <!-- Total Fee -->
                     <td class="p-3">
                       <span class="text-xs font-medium text-primary-text tabular-nums">
-                        ${{ fmt(f.fee) }}
+                        {{ formatCurrency(f.fee, getRowCurrency(f)) }}
                       </span>
                     </td>
 
                     <!-- FM Fee (Gross / Net) -->
                     <td class="p-3">
-                      <p class="text-xs font-medium text-primary-text tabular-nums">${{ fmt(f.distribution?.fm_net_after_agents ?? f.fm_fee) }}</p>
+                      <p class="text-xs font-medium text-primary-text tabular-nums">{{ formatCurrency(f.distribution?.fm_net_after_agents ?? f.fm_fee, getRowCurrency(f)) }}</p>
                       <p v-if="f.distribution?.fm_fee !== f.distribution?.fm_net_after_agents" class="text-[10px] text-secondary-text">
-                        Gross: ${{ fmt(f.fm_fee) }}
+                        Gross: {{ formatCurrency(f.fm_fee, getRowCurrency(f)) }}
                       </p>
                     </td>
 
                     <!-- Broker Fee (Gross / Net) -->
                     <td class="p-3">
-                      <p class="text-xs font-medium text-primary-text tabular-nums">${{ fmt(f.distribution?.broker_net ?? f.broker_net ?? f.broker_fee) }}</p>
+                      <p class="text-xs font-medium text-primary-text tabular-nums">{{ formatCurrency(f.distribution?.broker_net ?? f.broker_net ?? f.broker_fee, getRowCurrency(f)) }}</p>
                       <p v-if="f.broker_fee !== f.broker_net" class="text-[10px] text-secondary-text">
-                        Gross: ${{ fmt(f.broker_fee) }}
+                        Gross: {{ formatCurrency(f.broker_fee, getRowCurrency(f)) }}
                       </p>
                     </td>
 
                     <!-- IB Pool -->
                     <td class="p-3">
                       <span class="text-xs font-medium text-primary-green tabular-nums">
-                        ${{ fmt(f.ib_pool) }}
+                        {{ formatCurrency(f.ib_pool, getRowCurrency(f)) }}
                       </span>
                     </td>
 
@@ -355,7 +356,7 @@
                         class="text-xs font-bold tabular-nums"
                         :class="f.net_pnl >= 0 ? 'text-primary-green' : 'text-primary-red'"
                       >
-                        {{ f.net_pnl >= 0 ? '+' : '' }}${{ fmt(f.net_pnl) }}
+                        {{ f.net_pnl > 0 ? '+' : '' }}{{ formatCurrency(f.net_pnl, getRowCurrency(f)) }}
                       </span>
                     </td>
 
@@ -384,19 +385,19 @@
                           <div class="space-y-1.5 text-xs">
                             <div class="flex justify-between">
                               <span class="text-secondary-text">Previous HWM:</span>
-                              <span class="font-mono text-primary-text">${{ fmt(f.hwm?.previous_hwm) }}</span>
+                              <span class="font-mono text-primary-text">{{ formatCurrency(f.hwm?.previous_hwm, getRowCurrency(f)) }}</span>
                             </div>
                             <div class="flex justify-between">
                               <span class="text-secondary-text">Current Total Before:</span>
-                              <span class="font-mono text-primary-text">${{ fmt(f.hwm?.current_total_before) }}</span>
+                              <span class="font-mono text-primary-text">{{ formatCurrency(f.hwm?.current_total_before, getRowCurrency(f)) }}</span>
                             </div>
                             <div class="flex justify-between">
                               <span class="text-secondary-text">Profit Above HWM:</span>
-                              <span class="font-mono font-semibold text-primary-green">${{ fmt(f.hwm?.profit_above_hwm) }}</span>
+                              <span class="font-mono font-semibold text-primary-green">{{ formatCurrency(f.hwm?.profit_above_hwm, getRowCurrency(f)) }}</span>
                             </div>
                             <div class="flex justify-between border-t border-primary-border pt-1.5">
                               <span class="text-secondary-text">New Equity:</span>
-                              <span class="font-mono font-semibold text-primary-text">${{ fmt(f.hwm?.new_equity) }}</span>
+                              <span class="font-mono font-semibold text-primary-text">{{ formatCurrency(f.hwm?.new_equity, getRowCurrency(f)) }}</span>
                             </div>
                           </div>
                         </div>
@@ -438,19 +439,19 @@
                           <div class="space-y-1.5 text-xs">
                             <div class="flex justify-between">
                               <span class="text-secondary-text">Total Calculated Fee:</span>
-                              <span class="font-mono font-medium text-primary-text">${{ fmt(f.distribution?.total_fee) }}</span>
+                              <span class="font-mono font-medium text-primary-text">{{ formatCurrency(f.distribution?.total_fee, getRowCurrency(f)) }}</span>
                             </div>
                             <div class="flex justify-between">
                               <span class="text-secondary-text">FM Fee (Net):</span>
-                              <span class="font-mono text-primary-text">${{ fmt(f.distribution?.fm_net_after_agents) }}</span>
+                              <span class="font-mono text-primary-text">{{ formatCurrency(f.distribution?.fm_net_after_agents, getRowCurrency(f)) }}</span>
                             </div>
                             <div class="flex justify-between">
                               <span class="text-secondary-text">Broker Fee (Net):</span>
-                              <span class="font-mono text-primary-text">${{ fmt(f.distribution?.broker_net) }}</span>
+                              <span class="font-mono text-primary-text">{{ formatCurrency(f.distribution?.broker_net, getRowCurrency(f)) }}</span>
                             </div>
                             <div class="flex justify-between">
                               <span class="text-secondary-text">IB Pool / Distributed:</span>
-                              <span class="font-mono text-primary-green">${{ fmt(f.distribution?.ib_pool) }} / ${{ fmt(f.distribution?.ib_distributed) }}</span>
+                              <span class="font-mono text-primary-green">{{ formatCurrency(f.distribution?.ib_pool, getRowCurrency(f)) }} / {{ formatCurrency(f.distribution?.ib_distributed, getRowCurrency(f)) }}</span>
                             </div>
                           </div>
                         </div>
@@ -488,7 +489,7 @@
                                 <td class="py-1.5 px-2 font-mono text-primary-text">{{ split.pool_share_pct }}%</td>
                                 <td class="py-1.5 px-2 font-mono text-primary-text">{{ split.split_percentage }}%</td>
                                 <td class="py-1.5 px-2 text-right font-mono font-semibold text-primary-green">
-                                  ${{ fmt(split.commission) }}
+                                  {{ formatCurrency(split.commission, getRowCurrency(f)) }}
                                 </td>
                               </tr>
                             </tbody>
@@ -537,7 +538,7 @@
                   class="text-sm font-bold tabular-nums"
                   :class="f.net_pnl >= 0 ? 'text-primary-green' : 'text-primary-red'"
                 >
-                  {{ f.net_pnl >= 0 ? '+' : '' }}${{ fmt(f.net_pnl) }}
+                  {{ f.net_pnl > 0 ? '+' : '' }}{{ formatCurrency(f.net_pnl, getRowCurrency(f)) }}
                 </span>
               </div>
             </div>
@@ -547,26 +548,26 @@
               <div class="bg-background rounded-xl p-2.5">
                 <p class="text-[10px] text-secondary-text">Gross PnL</p>
                 <p class="font-semibold tabular-nums mt-0.5" :class="f.gross_pnl >= 0 ? 'text-primary-green' : 'text-primary-red'">
-                  {{ f.gross_pnl >= 0 ? '+' : '' }}${{ fmt(f.gross_pnl) }}
+                  {{ f.gross_pnl > 0 ? '+' : '' }}{{ formatCurrency(f.gross_pnl, getRowCurrency(f)) }}
                 </p>
               </div>
 
               <div class="bg-background rounded-xl p-2.5">
                 <p class="text-[10px] text-secondary-text">Total Fee</p>
-                <p class="font-semibold text-primary-text tabular-nums mt-0.5">${{ fmt(f.fee) }}</p>
+                <p class="font-semibold text-primary-text tabular-nums mt-0.5">{{ formatCurrency(f.fee, getRowCurrency(f)) }}</p>
               </div>
 
               <div class="bg-background rounded-xl p-2.5">
                 <p class="text-[10px] text-secondary-text">FM Net Fee</p>
                 <p class="font-semibold text-primary-text tabular-nums mt-0.5">
-                  ${{ fmt(f.distribution?.fm_net_after_agents ?? f.fm_fee) }}
+                  {{ formatCurrency(f.distribution?.fm_net_after_agents ?? f.fm_fee, getRowCurrency(f)) }}
                 </p>
               </div>
 
               <div class="bg-background rounded-xl p-2.5">
                 <p class="text-[10px] text-secondary-text">Broker Net</p>
                 <p class="font-semibold text-primary-text tabular-nums mt-0.5">
-                  ${{ fmt(f.distribution?.broker_net ?? f.broker_net ?? f.broker_fee) }}
+                  {{ formatCurrency(f.distribution?.broker_net ?? f.broker_net ?? f.broker_fee, getRowCurrency(f)) }}
                 </p>
               </div>
             </div>
@@ -592,15 +593,15 @@
                 <p class="text-[11px] font-semibold text-primary-text">High Water Mark (HWM)</p>
                 <div class="flex justify-between text-[11px] text-secondary-text">
                   <span>Previous HWM:</span>
-                  <span class="font-mono text-primary-text">${{ fmt(f.hwm?.previous_hwm) }}</span>
+                  <span class="font-mono text-primary-text">{{ formatCurrency(f.hwm?.previous_hwm, getRowCurrency(f)) }}</span>
                 </div>
                 <div class="flex justify-between text-[11px] text-secondary-text">
                   <span>Profit Above HWM:</span>
-                  <span class="font-mono text-primary-green">${{ fmt(f.hwm?.profit_above_hwm) }}</span>
+                  <span class="font-mono text-primary-green">{{ formatCurrency(f.hwm?.profit_above_hwm, getRowCurrency(f)) }}</span>
                 </div>
                 <div class="flex justify-between text-[11px] text-secondary-text">
                   <span>New Equity:</span>
-                  <span class="font-mono text-primary-text">${{ fmt(f.hwm?.new_equity) }}</span>
+                  <span class="font-mono text-primary-text">{{ formatCurrency(f.hwm?.new_equity, getRowCurrency(f)) }}</span>
                 </div>
               </div>
 
@@ -631,7 +632,7 @@
                     <p class="font-medium text-primary-text">{{ split.ib_name }} (L{{ split.ib_level }})</p>
                     <p class="text-[10px] text-secondary-text">{{ split.ib_email }}</p>
                   </div>
-                  <span class="font-mono font-semibold text-primary-green">${{ fmt(split.commission) }}</span>
+                  <span class="font-mono font-semibold text-primary-green">{{ formatCurrency(split.commission, getRowCurrency(f)) }}</span>
                 </div>
               </div>
             </div>
@@ -651,7 +652,7 @@
               <span class="text-xs font-semibold text-primary-text">IB Settlement Summary</span>
             </div>
             <span class="text-xs text-secondary-text">
-              Total Commission: <span class="font-semibold text-primary-green">${{ fmt(summaryData.total_ib_distributed) }}</span>
+              Total Commission: <span class="font-semibold text-primary-green">{{ formatCurrency(summaryData.total_ib_distributed) }}</span>
             </span>
           </div>
 
@@ -703,7 +704,7 @@
 
                   <td class="p-3 text-right">
                     <span class="text-xs font-bold font-mono text-primary-green">
-                      ${{ fmt(ib.total_commission) }}
+                      {{ formatCurrency(ib.total_commission) }}
                     </span>
                   </td>
                 </tr>
@@ -778,7 +779,7 @@
                   </td>
 
                   <td class="p-3 text-right font-mono text-xs font-semibold text-primary-green">
-                    ${{ fmt(ib.commission) }}
+                    {{ formatCurrency(ib.commission) }}
                   </td>
                 </tr>
 
@@ -804,7 +805,7 @@
               <span class="text-xs font-semibold text-primary-text">Agent Distribution</span>
             </div>
             <span class="text-xs text-secondary-text">
-              Total Agent Distributed: <span class="font-semibold text-primary-text">${{ fmt(summaryData.total_agent_distributed) }}</span>
+              Total Agent Distributed: <span class="font-semibold text-primary-text">{{ formatCurrency(summaryData.total_agent_distributed) }}</span>
             </span>
           </div>
 
@@ -827,7 +828,7 @@
                   class="border-b border-primary-border last:border-none"
                 >
                   <td class="p-3 text-xs font-medium text-primary-text">{{ agent.name || agent.email || 'Agent' }}</td>
-                  <td class="p-3 text-right text-xs font-semibold text-primary-green tabular-nums">${{ fmt(agent.commission) }}</td>
+                  <td class="p-3 text-right text-xs font-semibold text-primary-green tabular-nums">{{ formatCurrency(agent.commission) }}</td>
                 </tr>
               </tbody>
             </table>
@@ -841,6 +842,7 @@
     <RunSettlementConfirm
       :open="confirmOpen"
       :settlement="store.settlement"
+      :currency="activeCurrency"
       :run-loading="store.runLoading"
       @close="confirmOpen = false"
       @confirm="handleRun"
@@ -850,6 +852,7 @@
 
 <script setup>
 import { onMounted, computed, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import {
   PlayCircle,
   ReceiptText,
@@ -872,6 +875,7 @@ import { useRunSettlementStore } from '@/stores/fmLeaderboard/runSettlement'
 import RunSettlementConfirm from '@/components/fundManager/RunSettlementConfirm.vue'
 import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
+const route = useRoute()
 const store = useRunSettlementStore()
 const { hasPermission } = usePermissionCheck()
 
@@ -879,6 +883,70 @@ const confirmOpen = ref(false)
 const activeTab = ref('followers')
 const searchQuery = ref('')
 const expandedFollowerKey = ref(null)
+const fmInfo = ref(null)
+
+const loadFmInfo = () => {
+  try {
+    const raw = localStorage.getItem('active_fm')
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (String(parsed?.id) === String(route.params.id)) {
+        fmInfo.value = parsed
+      }
+    }
+  } catch (e) {
+    console.error('Failed to load active FM from localStorage:', e)
+  }
+}
+
+const activeCurrency = computed(() => {
+  return (
+    route.query.currency ||
+    store.settlement?.broker_currency ||
+    store.settlement?.currency ||
+    fmInfo.value?.broker_currency ||
+    fmInfo.value?.currency ||
+    fmInfo.value?.coverage_account?.broker_currency ||
+    fmInfo.value?.master_account?.broker_currency ||
+    'USD'
+  )
+})
+
+const getCurrencySymbol = (currency) => {
+  const c = String(currency || '').trim().toUpperCase()
+  if (c === 'USC' || c === 'CENT') return 'C'
+  if (c === 'CAD') return 'C$'
+  if (c === 'EUR') return '€'
+  if (c === 'GBP') return '£'
+  if (c === 'INR') return '₹'
+  if (c === 'JPY') return '¥'
+  if (c === 'USD') return '$'
+  return c ? `${c} ` : '$'
+}
+
+const formatCurrency = (val, currency = null) => {
+  if (val === null || val === undefined || val === '') return '—'
+  const num = Number(val)
+  if (isNaN(num)) return '—'
+  const sym = getCurrencySymbol(currency || activeCurrency.value)
+  const isNegative = num < 0
+  const formatted = Math.abs(num).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
+  return `${isNegative ? '-' : ''}${sym}${formatted}`
+}
+
+const getRowCurrency = (row) => {
+  return (
+    row?.broker_currency ||
+    row?.currency ||
+    row?.trading_account?.broker_currency ||
+    row?.account?.broker_currency ||
+    activeCurrency.value ||
+    'USD'
+  )
+}
 
 const toggleFollowerExpand = (key) => {
   expandedFollowerKey.value = expandedFollowerKey.value === key ? null : key
@@ -954,12 +1022,8 @@ const handleRun = async () => {
   confirmOpen.value = false
 }
 
-const fmt = (v) => Number(v || 0).toLocaleString('en-US', {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-})
-
 onMounted(() => {
+  loadFmInfo()
   store.fetchSettlement()
 })
 </script>

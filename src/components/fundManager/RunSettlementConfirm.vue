@@ -24,23 +24,28 @@
           <div class="border-t border-primary-border" />
           <div class="flex items-center justify-between">
             <span class="text-xs text-secondary-text">Total PnL</span>
-            <span class="text-xs font-bold font-mono text-primary-green">${{ fmt(settlement?.summary?.total_pnl ?? settlement?.total_pnl) }}</span>
+            <span
+              class="text-xs font-bold font-mono"
+              :class="totalPnl >= 0 ? 'text-primary-green' : 'text-primary-red'"
+            >
+              {{ totalPnl > 0 ? '+' : '' }}{{ formatCurrency(totalPnl) }}
+            </span>
           </div>
           <div class="flex items-center justify-between">
             <span class="text-xs text-secondary-text">Total Fee</span>
-            <span class="text-xs font-semibold font-mono text-primary-text">${{ fmt(settlement?.summary?.total_fee ?? settlement?.total_fee) }}</span>
+            <span class="text-xs font-semibold font-mono text-primary-text">{{ formatCurrency(settlement?.summary?.total_fee ?? settlement?.total_fee) }}</span>
           </div>
           <div class="flex items-center justify-between">
             <span class="text-xs text-secondary-text">FM Net Share</span>
-            <span class="text-xs font-semibold font-mono text-primary-text">${{ fmt(settlement?.summary?.total_fm_net_after_agents) }}</span>
+            <span class="text-xs font-semibold font-mono text-primary-text">{{ formatCurrency(settlement?.summary?.total_fm_net_after_agents) }}</span>
           </div>
           <div class="flex items-center justify-between">
             <span class="text-xs text-secondary-text">Broker Net Share</span>
-            <span class="text-xs font-semibold font-mono text-primary-text">${{ fmt(settlement?.summary?.total_broker_net) }}</span>
+            <span class="text-xs font-semibold font-mono text-primary-text">{{ formatCurrency(settlement?.summary?.total_broker_net) }}</span>
           </div>
           <div class="flex items-center justify-between">
             <span class="text-xs text-secondary-text">IB Payout</span>
-            <span class="text-xs font-semibold font-mono text-primary-green">${{ fmt(settlement?.summary?.total_ib_distributed) }}</span>
+            <span class="text-xs font-semibold font-mono text-primary-green">{{ formatCurrency(settlement?.summary?.total_ib_distributed) }}</span>
           </div>
           <div class="border-t border-primary-border" />
           <div class="flex items-center justify-between">
@@ -72,13 +77,41 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { X, PlayCircle, Loader2 } from 'lucide-vue-next'
 
-defineProps({
+const props = defineProps({
   open: { type: Boolean, default: false },
   settlement: { type: Object, default: null },
+  currency: { type: String, default: 'USD' },
   runLoading: { type: Boolean, default: false },
 })
 const emit = defineEmits(['close', 'confirm'])
-const fmt = (v) => Number(v || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+
+const totalPnl = computed(() => Number(props.settlement?.summary?.total_pnl ?? props.settlement?.total_pnl ?? 0))
+
+const getCurrencySymbol = (currency) => {
+  const c = String(currency || '').trim().toUpperCase()
+  if (c === 'USC' || c === 'CENT') return 'C'
+  if (c === 'CAD') return 'C$'
+  if (c === 'EUR') return '€'
+  if (c === 'GBP') return '£'
+  if (c === 'INR') return '₹'
+  if (c === 'JPY') return '¥'
+  if (c === 'USD') return '$'
+  return c ? `${c} ` : '$'
+}
+
+const formatCurrency = (val) => {
+  if (val === null || val === undefined || val === '') return '—'
+  const num = Number(val)
+  if (isNaN(num)) return '—'
+  const sym = getCurrencySymbol(props.currency)
+  const isNegative = num < 0
+  const formatted = Math.abs(num).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
+  return `${isNegative ? '-' : ''}${sym}${formatted}`
+}
 </script>
