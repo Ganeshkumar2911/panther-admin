@@ -1,16 +1,52 @@
 <template>
-  <div class="px-4 pb-8">
+  <div class="px-4 pb-8 space-y-6">
 
-    <!-- Header -->
-    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
-      <BaseSelect
-        :modelValue="store.pagination.per_page"
-        :options="store.perPageOptions"
-        placeholder="Per page..."
-        class="w-28 sm:w-32"
-        @update:modelValue="store.updatePerPage"
-      />
+    <!-- Header & Controls -->
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <!-- Search & Filters -->
+      <div class="flex flex-wrap items-center gap-2.5 flex-1 min-w-[240px]">
+        <div class="relative w-full sm:w-64">
+          <Search class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-secondary-text" />
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Search methods, gateways..."
+            class="w-full pl-8 pr-7 py-2 bg-card-background border border-primary-border rounded-lg text-xs text-primary-text placeholder:text-secondary-text/60 outline-none focus:border-primary transition-all shadow-2xs"
+          />
+          <button
+            v-if="searchQuery"
+            class="absolute right-2 top-1/2 -translate-y-1/2 text-secondary-text hover:text-primary-text p-0.5 cursor-pointer"
+            @click="searchQuery = ''"
+          >
+            <X class="w-3 h-3" />
+          </button>
+        </div>
 
+        <!-- Gateway Filter Pills -->
+        <div class="hidden md:flex items-center p-0.5 bg-card-background border border-primary-border rounded-lg text-xs">
+          <button
+            v-for="filter in gatewayFilters"
+            :key="filter.value"
+            class="px-2.5 py-1 rounded-md font-medium transition cursor-pointer"
+            :class="selectedGatewayFilter === filter.value
+              ? 'bg-primary text-white font-semibold shadow-2xs'
+              : 'text-secondary-text hover:text-primary-text'"
+            @click="selectedGatewayFilter = filter.value"
+          >
+            {{ filter.label }}
+          </button>
+        </div>
+
+        <BaseSelect
+          :modelValue="store.pagination.per_page"
+          :options="store.perPageOptions"
+          placeholder="Per page..."
+          class="w-24 sm:w-28"
+          @update:modelValue="store.updatePerPage"
+        />
+      </div>
+
+      <!-- Action Buttons -->
       <div class="flex items-center gap-2.5 ml-auto">
         <button
           v-if="hasPermission('payment_methods.view')"
@@ -23,7 +59,7 @@
 
         <button
           v-if="hasPermission('payment_methods.create')"
-          class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all active:scale-95 cursor-pointer"
+          class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all active:scale-95 cursor-pointer shadow-xs"
           @click="handleOpenCreate"
         >
           <Plus class="w-3.5 h-3.5" />
@@ -32,253 +68,313 @@
       </div>
     </div>
 
-    <!-- Summary Cards -->
-    <!-- <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-      <template v-if="store.loading">
-        <div v-for="n in 3" :key="n" class="bg-card-background border border-primary-border rounded-xl p-4 animate-pulse space-y-2">
-          <div class="h-3 w-24 bg-background rounded" />
-          <div class="h-6 w-20 bg-background rounded" />
-        </div>
-      </template>
-      <template v-else>
-        <div class="bg-card-background border border-primary-border rounded-xl p-4">
-          <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-1">Total Wallets</p>
-          <p class="text-2xl font-bold text-primary-text">{{ store.records.length }}</p>
-        </div>
-        <div class="bg-card-background border border-primary-border rounded-xl p-4">
-          <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-1">Active Wallets</p>
-          <p class="text-2xl font-bold text-primary-green">{{ activeCount }}</p>
-        </div>
-        <div class="bg-card-background border border-primary-border rounded-xl p-4">
-          <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-1">Total Confirmed Balance</p>
-          <p class="text-2xl font-bold text-primary-text">{{ formatNum(totalConfirmed) }}</p>
-        </div>
-      </template>
-    </div> -->
 
-    <!-- Skeleton Cards -->
+    <!-- Skeleton Cards on Loading -->
     <div v-if="store.loading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div v-for="n in 6" :key="n" class="bg-card-background border border-primary-border rounded-xl p-5 animate-pulse space-y-3">
+      <div v-for="n in 6" :key="n" class="bg-card-background border border-primary-border rounded-2xl p-5 animate-pulse space-y-4 shadow-2xs">
         <div class="flex items-center justify-between">
-          <div class="h-4 w-28 bg-background rounded" />
+          <div class="h-5 w-28 bg-background rounded-full" />
           <div class="h-5 w-14 bg-background rounded-full" />
         </div>
         <div class="space-y-2">
-          <div class="h-3 w-full bg-background rounded" />
-          <div class="h-3 w-3/4 bg-background rounded" />
+          <div class="h-4 w-3/4 bg-background rounded" />
           <div class="h-3 w-1/2 bg-background rounded" />
         </div>
-        <div class="flex items-center justify-between pt-2">
-          <div class="h-3 w-20 bg-background rounded" />
-          <div class="h-5 w-10 bg-background rounded-full" />
+        <div class="h-20 bg-background/50 rounded-xl" />
+        <div class="grid grid-cols-3 gap-2">
+          <div class="h-10 bg-background rounded-lg" />
+          <div class="h-10 bg-background rounded-lg" />
+          <div class="h-10 bg-background rounded-lg" />
         </div>
       </div>
     </div>
 
     <!-- Empty State -->
-    <div v-else-if="store.records.length === 0" class="flex flex-col items-center gap-4 py-20">
-      <div class="w-14 h-14 rounded-2xl bg-card-background border border-primary-border flex items-center justify-center">
-        <Wallet class="w-6 h-6 text-secondary-text" />
+    <div v-else-if="filteredRecords.length === 0" class="flex flex-col items-center gap-4 py-20 bg-card-background border border-dashed border-primary-border rounded-2xl">
+      <div class="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+        <Wallet class="w-6 h-6" />
       </div>
-      <div class="text-center">
-        <p class="text-sm font-semibold text-primary-text">No payment methods found</p>
-        <p class="text-xs text-secondary-text mt-1">Sync wallets to import available payment methods.</p>
+      <div class="text-center space-y-1">
+        <p class="text-sm font-bold text-primary-text">No payment methods found</p>
+        <p class="text-xs text-secondary-text max-w-sm mx-auto">
+          {{ searchQuery ? 'No methods match your search filter.' : 'Create payment methods or aggregator gateways to start accepting client deposits and payouts.' }}
+        </p>
       </div>
+      <button
+        v-if="hasPermission('payment_methods.create')"
+        class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition cursor-pointer shadow-xs"
+        @click="handleOpenCreate"
+      >
+        <Plus class="w-3.5 h-3.5" />
+        <span>Create First Payment Method</span>
+      </button>
     </div>
 
-    <!-- Cards Grid -->
-    <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <!-- Payment Method Cards Grid -->
+    <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4.5">
       <div
-        v-for="record in store.records"
+        v-for="record in filteredRecords"
         :key="record.id"
-        class="bg-card-background border border-primary-border rounded-2xl p-5 flex flex-col gap-5 hover:border-primary/40 transition-all duration-300 group relative overflow-hidden"
+        class="bg-card-background border border-primary-border rounded-2xl p-5 flex flex-col justify-between gap-4.5 transition-all duration-200 group relative shadow-2xs hover:shadow-md"
       >
-        <!-- Top accent gradient -->
-        <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+        <!-- Top Accent Gradient Line -->
+        <div class="absolute inset-x-0 top-0 h-1 opacity-0" />
 
-        <!-- Header: Label + Active Toggle -->
-        <div class="flex items-center justify-between gap-3">
-          <div class="flex-1 min-w-0">
+        <div class="space-y-4">
+          <!-- Card Header: Gateway & Badges + Active Switch & Edit Action -->
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex flex-wrap items-center gap-1.5 min-w-0">
+              <!-- Gateway Badge -->
+              <span
+                class="text-[10px] font-bold font-mono px-2.5 py-0.5 rounded-md border uppercase tracking-wider"
+                :class="getGatewayBadgeClass(record.gateway)"
+              >
+                {{ record.gateway || 'GATEWAY' }}
+              </span>
+
+              <!-- Method Type Badge -->
+              <span
+                v-if="record.method_type"
+                class="text-[9px] font-semibold px-2 py-0.5 rounded-md bg-background border border-primary-border text-secondary-text uppercase"
+              >
+                {{ record.method_type }}
+              </span>
+
+              <!-- Aggregator Code Badge -->
+              <span
+                v-if="record.payment_method_code"
+                class="text-[9px] font-mono font-bold px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20"
+              >
+                {{ record.payment_method_code }}
+              </span>
+            </div>
+
+            <!-- Header Quick Actions -->
+            <div class="flex items-center gap-2 shrink-0">
+              <!-- Edit Button -->
+              <button
+                v-if="hasPermission('payment_methods.update')"
+                class="w-7 h-7 flex items-center justify-center rounded-lg bg-background border border-primary-border hover:border-primary/40 text-secondary-text hover:text-primary transition cursor-pointer shadow-2xs"
+                title="Edit Payment Method"
+                @click="handleOpenEdit(record)"
+              >
+                <Pencil class="w-3.5 h-3.5" />
+              </button>
+
+              <!-- Active Toggle Switch -->
+              <button
+                v-if="hasPermission('payment_methods.update')"
+                type="button"
+                :disabled="store.updateLoading && togglingId === record.id"
+                class="relative w-10 h-5.5 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 cursor-pointer"
+                :class="record.is_active ? 'bg-primary-green' : 'bg-primary-border'"
+                :title="record.is_active ? 'Click to deactivate' : 'Click to activate'"
+                @click="toggleActive(record)"
+              >
+                <span
+                  v-if="!(store.updateLoading && togglingId === record.id)"
+                  class="absolute top-0.5 left-0.5 w-4.5 h-4.5 rounded-full bg-white transition-transform duration-200 shadow-xs"
+                  :class="record.is_active ? 'translate-x-4.5' : 'translate-x-0'"
+                />
+                <Loader2
+                  v-else
+                  class="absolute inset-0 m-auto w-3.5 h-3.5 text-white animate-spin"
+                />
+              </button>
+            </div>
+          </div>
+
+          <!-- Label & Inline Edit -->
+          <div>
             <div v-if="editingId === record.id && hasPermission('payment_methods.update')" class="flex items-center gap-1.5">
               <input
                 v-model="editingLabel"
                 ref="labelInput"
                 type="text"
-                class="flex-1 min-w-0 px-2 py-1 rounded-lg bg-background border border-primary text-primary-text text-xs outline-none"
+                class="flex-1 min-w-0 px-2.5 py-1 rounded-lg bg-background border border-primary text-primary-text text-xs outline-none"
                 @keydown.enter="saveLabel(record)"
                 @keydown.escape="cancelEdit"
               />
               <div class="flex items-center gap-1">
                 <button
-                  class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-background transition-colors cursor-pointer"
+                  class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-background transition cursor-pointer"
                   :disabled="store.updateLoading"
                   @click="saveLabel(record)"
                 >
                   <Loader2 v-if="store.updateLoading && savingId === record.id" class="w-3.5 h-3.5 text-secondary-text animate-spin" />
                   <Check v-else class="w-3.5 h-3.5 text-primary-green" />
                 </button>
-                <button class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-background transition-colors cursor-pointer" @click="cancelEdit">
+                <button class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-background transition cursor-pointer" @click="cancelEdit">
                   <X class="w-3.5 h-3.5 text-secondary-text" />
                 </button>
               </div>
             </div>
+
             <div
               v-else
               class="flex items-center gap-1.5 group/label"
               :class="hasPermission('payment_methods.update') ? 'cursor-pointer' : ''"
               @click="hasPermission('payment_methods.update') && startEdit(record)"
             >
-              <p class="text-sm font-semibold text-primary-text truncate">{{ record.wallet_label || 'Untitled Wallet' }}</p>
+              <h3 class="text-sm font-bold text-primary-text truncate" :title="record.wallet_label">
+                {{ record.wallet_label || 'Untitled Method' }}
+              </h3>
               <Pencil v-if="hasPermission('payment_methods.update')" class="w-3 h-3 text-secondary-text opacity-0 group-hover/label:opacity-100 transition-opacity shrink-0" />
             </div>
-            <p class="text-[10px] font-mono text-secondary-text mt-0.5 uppercase">System ID: #{{ record.id }}</p>
+
+            <div class="flex items-center gap-2 mt-0.5 text-[10px] text-secondary-text font-mono">
+              <span v-if="record.remarks" class="truncate opacity-80" :title="record.remarks">{{ record.remarks }}</span>
+            </div>
           </div>
 
-          <div class="flex items-center gap-3">
-            <button
-              v-if="hasPermission('payment_methods.update')"
-              class="w-8 h-8 flex items-center justify-center rounded-lg bg-background border border-primary-border hover:border-primary/40 transition-all hover:shadow-sm group/edit cursor-pointer"
-              @click="handleOpenEdit(record)"
-            >
-              <Pencil class="w-3.5 h-3.5 text-secondary-text group-hover/edit:text-primary transition-colors" />
-            </button>
-
-           <button
-            v-if="hasPermission('payment_methods.update')"
-            type="button"
-            :disabled="store.updateLoading && togglingId === record.id"
-            @click="toggleActive(record)"
-            class="relative w-11 h-6 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 focus:outline-none cursor-pointer"
-            :class="record.is_active ? 'bg-primary' : 'bg-primary-border'"
-          >
+          <!-- Operation Badges Row (Deposit, Withdrawal, Defaults) -->
+          <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
+            <!-- Deposit Capability -->
             <span
-              v-if="!(store.updateLoading && togglingId === record.id)"
-              class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform duration-200"
-              :class="record.is_active ? 'translate-x-5' : 'translate-x-0'"
-            />
-
-            <Loader2
-              v-else
-              class="absolute inset-0 m-auto w-4 h-4 text-white animate-spin"
-            />
-            </button>
-          </div>
-        </div>
-
-        <!-- Balance Section -->
-        <!-- <div class="bg-background/50 rounded-2xl p-4 border border-primary-border/50">
-          <div class="flex items-center justify-between mb-1">
-            <span class="text-[10px] font-semibold uppercase tracking-wider text-secondary-text">Confirmed Balance</span>
-            <span
-              class="text-[9px] font-bold px-1.5 py-0.5 rounded-md border"
-              :class="record.is_active
+              class="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-md border"
+              :class="record.enable_deposit
                 ? 'bg-primary-green/10 text-primary-green border-primary-green/20'
-                : 'bg-primary-red/10 text-primary-red border-primary-red/20'"
+                : 'bg-background text-secondary-text/60 border-primary-border'"
             >
-              {{ record.is_active ? 'ACTIVE' : 'INACTIVE' }}
+              <ArrowDownLeft class="w-3 h-3" />
+              <span>Deposit: {{ record.enable_deposit ? 'ON' : 'OFF' }}</span>
             </span>
-          </div>
-          <p class="text-xl font-bold text-primary-green truncate">
-            {{ formatNum(record.balance_confirmed) }}
-          </p>
-          <div class="flex items-center gap-1.5 mt-2 pt-2 border-t border-primary-border/30">
-            <span class="text-[10px] text-secondary-text">Pending:</span>
-            <span class="text-[10px] font-semibold text-primary-text">{{ formatNum(record.balance_pending) }}</span>
-          </div>
-        </div> -->
 
-        <!-- Dynamic Details Area -->
-        <div class="bg-background/25 rounded-xl p-3.5 border border-primary-border/40 space-y-2.5 text-xs">
-          <!-- Method Type Badge & Indicator -->
-          <div class="flex items-center justify-between pb-2 border-b border-primary-border/20">
-            <span class="text-[10px] font-bold uppercase tracking-wider text-secondary-text">Payment Gateway</span>
+            <!-- Withdrawal Capability -->
             <span
-              class="text-[9px] font-semibold px-2 py-0.5 rounded-full border uppercase"
-              :class="[
-                (record.method_type || record.gateway) === 'bank'
-                  ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
-                  : (record.method_type || record.gateway) === 'upi'
-                  ? 'bg-purple-500/10 text-purple-400 border-purple-500/20'
-                  : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-              ]"
+              class="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-md border"
+              :class="record.enable_withdrawal
+                ? 'bg-primary-blue/10 text-primary-blue border-primary-blue/20'
+                : 'bg-background text-secondary-text/60 border-primary-border'"
             >
-              {{ record.method_type || record.gateway || 'crypto' }}
+              <ArrowUpRight class="w-3 h-3" />
+              <span>Withdraw: {{ record.enable_withdrawal ? 'ON' : 'OFF' }}</span>
+            </span>
+
+            <!-- Default Deposit Star Badge -->
+            <span
+              v-if="record.is_default_deposit"
+              class="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-amber-500/10 text-amber-500 border border-amber-500/20"
+              title="Default Deposit Method"
+            >
+              <Star class="w-2.5 h-2.5 fill-amber-500" />
+              <span>Def. Deposit</span>
+            </span>
+
+            <!-- Default Withdrawal Star Badge -->
+            <span
+              v-if="record.is_default_withdrawal"
+              class="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-amber-500/10 text-amber-500 border border-amber-500/20"
+              title="Default Withdrawal Method"
+            >
+              <Star class="w-2.5 h-2.5 fill-amber-500" />
+              <span>Def. Withdrawal</span>
             </span>
           </div>
 
-          <!-- Bank Fields -->
-          <div v-if="(record.method_type || record.gateway) === 'bank'" class="grid grid-cols-2 gap-2 text-[11px]">
-            <div>
-              <p class="text-[9px] text-secondary-text uppercase">Bank Name</p>
-              <p class="font-medium text-primary-text truncate" :title="record.bank_name">{{ record.bank_name }}</p>
+          <!-- Dynamic Client Meta Fields Box (`meta_data`) -->
+          <div class="bg-background/40 rounded-xl p-3 border border-primary-border/60 space-y-2 text-xs">
+            <div class="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-secondary-text pb-1.5 border-b border-primary-border/30">
+              <span class="flex items-center gap-1">
+                <FormInput class="w-3 h-3 text-primary" />
+                <span>Client Form Inputs</span>
+              </span>
+              <span>
+                {{ (record.meta_data?.deposit_fields?.length || 0) + (record.meta_data?.withdrawal_fields?.length || 0) }} field(s)
+              </span>
             </div>
-            <div>
-              <p class="text-[9px] text-secondary-text uppercase">Account Holder</p>
-              <p class="font-medium text-primary-text truncate" :title="record.account_name">{{ record.account_name }}</p>
+
+            <!-- Direct Credentials (if manual UPI/Bank) -->
+            <div v-if="record.upi_id" class="text-[11px] font-mono">
+              <span class="text-[9px] uppercase text-secondary-text block">UPI ID:</span>
+              <span class="text-primary font-bold break-all select-all">{{ record.upi_id }}</span>
             </div>
-            <div class="col-span-2">
-              <p class="text-[9px] text-secondary-text uppercase">Account Number</p>
-              <p class="font-mono font-medium text-primary-text truncate" :title="record.account_number">{{ record.account_number }}</p>
+
+            <div v-else-if="record.bank_name || record.account_number" class="text-[11px] grid grid-cols-2 gap-1.5 font-mono">
+              <div v-if="record.bank_name">
+                <span class="text-[9px] uppercase text-secondary-text block font-sans">Bank:</span>
+                <span class="text-primary-text font-medium truncate">{{ record.bank_name }}</span>
+              </div>
+              <div v-if="record.account_number">
+                <span class="text-[9px] uppercase text-secondary-text block font-sans">A/C Number:</span>
+                <span class="text-primary-text font-medium truncate">{{ record.account_number }}</span>
+              </div>
             </div>
-            <div>
-              <p class="text-[9px] text-secondary-text uppercase">IFSC Code</p>
-              <p class="font-mono font-medium text-primary-text">{{ record.ifsc_code }}</p>
-            </div>
-            <div v-if="record.swift_code">
-              <p class="text-[9px] text-secondary-text uppercase">SWIFT Code</p>
-              <p class="font-mono font-medium text-primary-text">{{ record.swift_code }}</p>
+
+            <!-- Meta Data Fields Badges -->
+            <div class="space-y-1.5 pt-0.5">
+              <!-- Deposit Fields Summary -->
+              <div class="flex items-start gap-1.5 text-[10px]">
+                <span class="text-secondary-text font-semibold shrink-0">Deposit:</span>
+                <div v-if="record.meta_data?.deposit_fields && record.meta_data.deposit_fields.length > 0" class="flex flex-wrap gap-1">
+                  <span
+                    v-for="(f, i) in record.meta_data.deposit_fields"
+                    :key="i"
+                    class="px-1.5 py-0.2 rounded bg-card-background border border-primary-border text-[9px] font-mono text-primary-text"
+                  >
+                    {{ f.label || f.key }}<span v-if="f.required" class="text-primary-red">*</span>
+                  </span>
+                </div>
+                <span v-else class="text-secondary-text/70 italic">Standard flow (no extra fields)</span>
+              </div>
+
+              <!-- Withdrawal Fields Summary -->
+              <div class="flex items-start gap-1.5 text-[10px]">
+                <span class="text-secondary-text font-semibold shrink-0">Withdraw:</span>
+                <div v-if="record.meta_data?.withdrawal_fields && record.meta_data.withdrawal_fields.length > 0" class="flex flex-wrap gap-1">
+                  <span
+                    v-for="(f, i) in record.meta_data.withdrawal_fields"
+                    :key="i"
+                    class="px-1.5 py-0.2 rounded bg-card-background border border-primary-border text-[9px] font-mono text-primary-text"
+                  >
+                    {{ f.label || f.key }}<span v-if="f.required" class="text-primary-red">*</span>
+                  </span>
+                </div>
+                <span v-else class="text-secondary-text/70 italic">Standard flow (no extra fields)</span>
+              </div>
             </div>
           </div>
 
-          <!-- UPI Fields -->
-          <div v-else-if="(record.method_type || record.gateway) === 'upi'" class="space-y-1 text-[11px]">
-            <div>
-              <p class="text-[9px] text-secondary-text uppercase">UPI ID / VPA</p>
-              <p class="font-mono font-medium text-primary-text break-all select-all">{{ record.upi_id }}</p>
-            </div>
-          </div>
+          <!-- Transaction Limits Grid with Tooltips -->
+          <div class="grid grid-cols-3 gap-2 pt-1 border-t border-primary-border/40">
+            <Tooltip :text="getDepositTooltip(record)" block position="center">
+              <div class="text-center p-2 rounded-xl bg-background/30 border border-primary-border/20 cursor-help">
+                <p class="text-[9px] text-secondary-text mb-0.5">Deposit Limit</p>
+                <p class="text-[11px] font-bold text-primary-text truncate font-mono">
+                  {{ formatLimitRange(record.minimum_deposit_amount, record.maximum_deposit_amount) }}
+                </p>
+              </div>
+            </Tooltip>
 
-          <!-- Crypto Fields -->
-          <div v-else class="grid grid-cols-2 gap-2 text-[11px]">
-            <div>
-              <p class="text-[9px] text-secondary-text uppercase">Wallet ID</p>
-              <p class="font-mono font-medium text-primary-text truncate" :title="record.wallet_id">{{ record.wallet_id || '—' }}</p>
-            </div>
-            <!-- <div>
-              <p class="text-[9px] text-secondary-text uppercase">Confirmed Balance</p>
-              <p class="font-semibold text-primary-green truncate">{{ formatNum(record.balance_confirmed) }}</p>
-            </div> -->
-            <div v-if="record.wallet_address" class="col-span-2">
-              <p class="text-[9px] text-secondary-text uppercase">Wallet Address</p>
-              <p class="font-mono font-medium text-primary-text truncate" :title="record.wallet_address">{{ record.wallet_address }}</p>
-            </div>
-            <div v-if="record.balance_pending > 0" class="col-span-2">
-              <p class="text-[9px] text-secondary-text uppercase">Pending Balance</p>
-              <p class="font-medium text-secondary-text truncate">{{ formatNum(record.balance_pending) }}</p>
-            </div>
+            <Tooltip :text="getWithdrawTooltip(record)" block position="center">
+              <div class="text-center p-2 rounded-xl bg-background/30 border border-primary-border/20 cursor-help">
+                <p class="text-[9px] text-secondary-text mb-0.5">Withdraw Limit</p>
+                <p class="text-[11px] font-bold text-primary-text truncate font-mono">
+                  {{ formatLimitRange(record.minimum_withdrawal_amount, record.maximum_withdrawal_amount) }}
+                </p>
+              </div>
+            </Tooltip>
+
+            <Tooltip :text="getDailyWdTooltip(record)" block position="center">
+              <div class="text-center p-2 rounded-xl bg-background/30 border border-primary-border/20 cursor-help">
+                <p class="text-[9px] text-secondary-text mb-0.5">Max WD / Day</p>
+                <p class="text-[11px] font-bold text-primary-text truncate font-mono">
+                  {{ record.maximum_withdrawals_per_day ? `${record.maximum_withdrawals_per_day}` : 'Unlimited' }}
+                </p>
+              </div>
+            </Tooltip>
           </div>
         </div>
 
-        <!-- Transaction Limits -->
-        <div class="grid grid-cols-3 gap-2 pt-4 border-t border-primary-border/50">
-          <div class="text-center p-2 rounded-xl bg-background/30 border border-primary-border/20">
-            <p class="text-[9px] text-secondary-text mb-0.5">Min Deposit</p>
-            <p class="text-[11px] font-semibold text-primary-text truncate">{{ formatShortNum(record.minimum_deposit_amount) }}</p>
+        <!-- Footer: Created At Timestamp -->
+        <div class="pt-2 border-t border-primary-border/40 flex items-center justify-between text-[9px] text-secondary-text">
+          <div class="flex items-center gap-1">
+            <Clock class="w-3 h-3 text-secondary-text/60" />
+            <span>Created: {{ formatDate(record.created_at) }}</span>
           </div>
-          <div class="text-center p-2 rounded-xl bg-background/30 border border-primary-border/20">
-            <p class="text-[9px] text-secondary-text mb-0.5">Max Withdraw</p>
-            <p class="text-[11px] font-semibold text-primary-text truncate">{{ formatShortNum(record.maximum_withdrawal_amount) }}</p>
-          </div>
-          <div class="text-center p-2 rounded-xl bg-background/30 border border-primary-border/20">
-            <p class="text-[9px] text-secondary-text mb-0.5">Max WD / Day</p>
-            <p class="text-[11px] font-semibold text-primary-text truncate">{{ record.maximum_withdrawals_per_day ?? '—' }}</p>
-          </div>
-        </div>
-
-        <!-- Timestamp -->
-        <div class="flex items-center gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
-          <span class="w-1 h-1 rounded-full bg-secondary-text" />
-          <p class="text-[9px] text-secondary-text uppercase tracking-tighter">Created: {{ formatDate(record.created_at) }}</p>
+          <span v-if="record.withdraw_notification_emails?.length" class="text-primary font-medium">
+            {{ record.withdraw_notification_emails.length }} email alert(s)
+          </span>
         </div>
       </div>
     </div>
@@ -292,7 +388,7 @@
       />
     </div>
 
-    <!-- Edit Dialog -->
+    <!-- Edit / Create Dialog -->
     <EditPaymentMethodDialog
       :open="isEditDialogOpen"
       :paymentMethod="selectedPaymentMethod"
@@ -310,7 +406,21 @@
 
 <script setup>
 import { onMounted, ref, computed, nextTick } from 'vue'
-import { RefreshCw, Wallet, Pencil, Check, X, Loader2, Settings2, Plus, Coins } from 'lucide-vue-next'
+import {
+  Wallet,
+  Pencil,
+  Check,
+  X,
+  Loader2,
+  Plus,
+  Coins,
+  Search,
+  ArrowDownLeft,
+  ArrowUpRight,
+  Star,
+  FormInput,
+  Clock,
+} from 'lucide-vue-next'
 import { usePaymentMethodsStore } from '@/stores/paymentMethods/paymentMethods'
 import Pagination from '@/components/common/Pagination.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
@@ -321,22 +431,55 @@ import { usePermissionCheck } from '@/composables/usePermissionCheck'
 const store = usePaymentMethodsStore()
 const { hasPermission } = usePermissionCheck()
 
-// ── Currency Rates Drawer state ──
+// ── Drawer & Dialog States ──
 const isCurrencyDrawerOpen = ref(false)
-
-// ── Edit label state ──
-const editingId    = ref(null)
-const editingLabel = ref('')
-const savingId     = ref(null)
-const labelInput   = ref(null)
-
-// ── Toggle state ──
-const togglingId = ref(null)
-
-// ── Edit Dialog state ──
 const isEditDialogOpen = ref(false)
 const selectedPaymentMethod = ref(null)
 
+// ── Search & Filter State ──
+const searchQuery = ref('')
+const selectedGatewayFilter = ref('all')
+
+const gatewayFilters = [
+  { label: 'All', value: 'all' },
+  { label: 'Paymaxis', value: 'paymaxis' },
+  { label: 'UPI', value: 'upi' },
+  { label: 'Bank', value: 'bank' },
+  { label: 'Crypto', value: 'crypto' },
+  { label: 'Internal', value: 'internal' },
+]
+
+// ── Inline Edit Label State ──
+const editingId = ref(null)
+const editingLabel = ref('')
+const savingId = ref(null)
+const labelInput = ref(null)
+const togglingId = ref(null)
+
+// ── Computed Filtered Records ──
+const filteredRecords = computed(() => {
+  let list = store.records || []
+
+  if (selectedGatewayFilter.value !== 'all') {
+    list = list.filter((r) => (r.gateway || '').toLowerCase() === selectedGatewayFilter.value.toLowerCase())
+  }
+
+  const q = searchQuery.value.trim().toLowerCase()
+  if (q) {
+    list = list.filter(
+      (r) =>
+        (r.wallet_label && r.wallet_label.toLowerCase().includes(q)) ||
+        (r.gateway && r.gateway.toLowerCase().includes(q)) ||
+        (r.method_type && r.method_type.toLowerCase().includes(q)) ||
+        (r.payment_method_code && r.payment_method_code.toLowerCase().includes(q)) ||
+        (r.remarks && r.remarks.toLowerCase().includes(q))
+    )
+  }
+
+  return list
+})
+
+// ── Handlers ──
 const handleOpenEdit = (record) => {
   selectedPaymentMethod.value = record
   isEditDialogOpen.value = true
@@ -347,20 +490,15 @@ const handleOpenCreate = () => {
   isEditDialogOpen.value = true
 }
 
-// ── Computed summary ──
-const activeCount     = computed(() => store.records.filter(r => r.is_active).length)
-const totalConfirmed  = computed(() => store.records.reduce((sum, r) => sum + (r.balance_confirmed ?? 0), 0))
-
-// ── Methods ──
 const startEdit = async (record) => {
-  editingId.value    = record.id
+  editingId.value = record.id
   editingLabel.value = record.wallet_label ?? ''
   await nextTick()
   labelInput.value?.focus()
 }
 
 const cancelEdit = () => {
-  editingId.value    = null
+  editingId.value = null
   editingLabel.value = ''
 }
 
@@ -368,7 +506,7 @@ const saveLabel = async (record) => {
   if (!editingLabel.value.trim()) return
   savingId.value = record.id
   await store.updatePaymentMethod(record.id, { wallet_label: editingLabel.value.trim() })
-  savingId.value  = null
+  savingId.value = null
   editingId.value = null
 }
 
@@ -383,12 +521,46 @@ const handlePageChange = (page) => {
   store.fetchPaymentMethods(true)
 }
 
-const formatNum = (val) =>
-  (val ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 })
+// ── Helpers ──
+const getGatewayBadgeClass = (gateway) => {
+  const g = (gateway || '').toLowerCase()
+  if (g.includes('paymaxis')) return 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'
+  if (g.includes('upi')) return 'bg-purple-500/10 text-purple-400 border-purple-500/20'
+  if (g.includes('bank')) return 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+  if (g.includes('crypto') || g.includes('coinsbuy')) return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+  if (g.includes('internal')) return 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+  return 'bg-primary/10 text-primary border-primary/20'
+}
 
-const formatShortNum = (val) => {
-  if (val === 0) return '0.00'
-  return (val ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+const formatLimitRange = (min, max) => {
+  const minNum = Number(min) || 0
+  const maxNum = Number(max) || 0
+
+  if (minNum === 0 && maxNum === 0) return 'No Limit'
+  if (minNum > 0 && maxNum === 0) return `$${minNum.toLocaleString()} min`
+  if (minNum === 0 && maxNum > 0) return `Up to $${maxNum.toLocaleString()}`
+  return `$${minNum.toLocaleString()} – $${maxNum.toLocaleString()}`
+}
+
+const getDepositTooltip = (record) => {
+  const min = Number(record.minimum_deposit_amount) || 0
+  const max = Number(record.maximum_deposit_amount) || 0
+  const minStr = min > 0 ? `$${min.toLocaleString()}` : '$0 (No Min)'
+  const maxStr = max > 0 ? `$${max.toLocaleString()}` : 'No Max Limit'
+  return `Deposit: Min ${minStr} • Max ${maxStr}`
+}
+
+const getWithdrawTooltip = (record) => {
+  const min = Number(record.minimum_withdrawal_amount) || 0
+  const max = Number(record.maximum_withdrawal_amount) || 0
+  const minStr = min > 0 ? `$${min.toLocaleString()}` : '$0 (No Min)'
+  const maxStr = max > 0 ? `$${max.toLocaleString()}` : 'No Max Limit'
+  return `Withdrawal: Min ${minStr} • Max ${maxStr}`
+}
+
+const getDailyWdTooltip = (record) => {
+  const count = record.maximum_withdrawals_per_day
+  return count ? `Daily Limit: Max ${count} withdrawal(s) per day` : 'Daily Limit: Unlimited withdrawals allowed'
 }
 
 const formatDate = (dateStr) => {
