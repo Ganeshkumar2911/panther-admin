@@ -1,147 +1,291 @@
 <template>
-  <div class="px-4">
+  <div class="px-4 pb-8 space-y-6">
 
     <!-- Summary Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-      <template v-if="store.loading">
-        <div v-for="n in 3" :key="n" class="bg-card-background border border-primary-border rounded-xl p-4 animate-pulse space-y-2">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <template v-if="store.loading && !store.records?.length">
+        <div v-for="n in 3" :key="n" class="bg-card-background border border-primary-border rounded-2xl p-4 animate-pulse space-y-2">
           <div class="h-3 w-24 bg-background rounded" />
           <div class="h-6 w-32 bg-background rounded" />
         </div>
       </template>
       <template v-else>
-        <div class="bg-card-background border border-primary-border rounded-xl p-4">
-          <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-1">Total Fees</p>
-          <p class="text-2xl font-medium text-primary-text">${{ formatNum(store.summary.total_fees) }}</p>
+        <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-medium uppercase tracking-wide text-secondary-text">Total Fees</span>
+            <DollarSign class="w-4 h-4 text-secondary-text" />
+          </div>
+          <div class="mt-2">
+            <p class="text-2xl font-bold text-primary-text tabular-nums">${{ formatNum(store.summary.total_fees) }}</p>
+            <p class="text-[10px] text-secondary-text mt-0.5">Aggregated performance fees</p>
+          </div>
         </div>
-        <div class="bg-card-background border border-primary-border rounded-xl p-4">
-          <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-1">Broker Net</p>
-          <p class="text-2xl font-medium text-green-700">${{ formatNum(store.summary.broker_net) }}</p>
+
+        <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-medium uppercase tracking-wide text-secondary-text">Broker Net</span>
+            <Building2 class="w-4 h-4 text-primary-green" />
+          </div>
+          <div class="mt-2">
+            <p class="text-2xl font-bold text-primary-green tabular-nums">${{ formatNum(store.summary.broker_net) }}</p>
+            <p class="text-[10px] text-secondary-text mt-0.5">Net broker commission</p>
+          </div>
         </div>
-        <div class="bg-card-background border border-primary-border rounded-xl p-4">
-          <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-1">IB Pool</p>
-          <p class="text-2xl font-medium text-primary-text">${{ formatNum(store.summary.ib_pool) }}</p>
+
+        <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-medium uppercase tracking-wide text-secondary-text">IB Pool</span>
+            <GitBranch class="w-4 h-4 text-secondary-text" />
+          </div>
+          <div class="mt-2">
+            <p class="text-2xl font-bold text-primary-text tabular-nums">${{ formatNum(store.summary.ib_pool) }}</p>
+            <p class="text-[10px] text-secondary-text mt-0.5">Distributed to partner network</p>
+          </div>
         </div>
       </template>
     </div>
 
-    <!-- Filter bar -->
-    <div class="flex items-center gap-3 mb-4">
-      <BaseSelect
-        :modelValue="store.pagination.per_page"
-        :options="store.perPageOptions"
-        placeholder="Per page..."
+    <!-- Filter Bar -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-card-background border border-primary-border rounded-xl p-2.5">
+      <div class="flex items-center gap-2 flex-wrap flex-1">
+        <!-- FM ID Filter -->
+        <div class="relative w-full sm:w-44 h-9">
+          <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-secondary-text pointer-events-none" />
+          <input
+            v-model="fmIdInput"
+            type="number"
+            placeholder="Filter by FM ID..."
+            class="w-full h-full pl-8 pr-7 text-xs rounded-lg bg-background border border-primary-border text-primary-text outline-none focus:border-primary transition-colors placeholder:text-secondary-text"
+            @keyup.enter="handleApplyFmFilter"
+          />
+          <button
+            v-if="fmIdInput"
+            @click="clearFmFilter"
+            class="absolute right-2 top-1/2 -translate-y-1/2 text-secondary-text hover:text-primary-text cursor-pointer"
+          >
+            <X class="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        <!-- Apply FM button -->
+        <button
+          v-if="fmIdInput && String(fmIdInput) !== String(store.filters.fm_id)"
+          @click="handleApplyFmFilter"
+          class="px-3 py-2 rounded-lg bg-primary text-white text-xs font-medium hover:bg-primary-hover transition-colors cursor-pointer"
+        >
+          Apply
+        </button>
+
+        <!-- Per page selector -->
+        <BaseSelect
+          :modelValue="store.pagination.per_page"
+          :options="store.perPageOptions"
+          placeholder="Per page..."
           class="w-28 sm:w-32"
-        @update:modelValue="store.updatePerPage"
-      />
+          @update:modelValue="store.updatePerPage"
+        />
+
+        <!-- Reset Button -->
+        <button
+          v-if="store.filters.fm_id || fmIdInput"
+          type="button"
+          class="rounded-lg px-2.5 py-2 text-xs font-medium text-secondary-text hover:bg-background hover:text-primary-text transition-colors cursor-pointer flex items-center gap-1.5"
+          @click="clearFmFilter"
+        >
+          <RotateCcw class="w-3.5 h-3.5" />
+          Reset Filter
+        </button>
+      </div>
+
+      <!-- Refresh Button -->
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          :disabled="store.loading"
+          class="inline-flex items-center justify-center rounded-lg border border-primary-border p-2 text-secondary-text transition-colors hover:text-primary-text hover:bg-background disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+          title="Refresh"
+          @click="() => store.fetchSettlements()"
+        >
+          <RotateCw class="h-3.5 w-3.5" :class="{ 'animate-spin': store.loading }" />
+        </button>
+      </div>
     </div>
 
     <!-- Table -->
-    <div class="w-full border border-primary-border rounded-xl overflow-x-auto">
-      <table class="w-full border-collapse">
-        <thead>
-          <tr class="border-b border-primary-border">
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">ID</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">FM</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Period</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Net Profit</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">- Fee</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">FM Share</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">IB's Share</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Broker Net</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Followers</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Trades Count</th>
-            <th class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Status</th>
-            <th class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Action</th>
-          </tr>
-        </thead>
+    <div class="w-full border border-primary-border rounded-2xl overflow-hidden bg-card-background shadow-2xs">
+      <div class="overflow-x-auto">
+        <table class="w-full border-collapse">
+          <thead>
+            <tr class="border-b border-primary-border bg-background/50">
+              <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">ID</th>
+              <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">FM Details</th>
+              <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Executed / Period</th>
+              <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Type</th>
+              <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Net Profit</th>
+              <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Gross Fee</th>
+              <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">FM Share</th>
+              <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">IB's Share</th>
+              <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Broker Net</th>
+              <th class="text-center text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Followers</th>
+              <th class="text-center text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Trades</th>
+              <th class="text-center text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Status</th>
+              <th class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3 w-36">Actions</th>
+            </tr>
+          </thead>
 
-        <!-- Skeleton -->
-        <tbody v-if="store.loading">
-          <tr v-for="n in 8" :key="n" class="border-b border-primary-border animate-pulse">
-            <td class="p-3"><div class="h-3 w-10 bg-card-background rounded" /></td>
-            <td class="p-3"><div class="h-3 w-24 bg-card-background rounded" /></td>
-            <td class="p-3"><div class="h-3 w-28 bg-card-background rounded" /></td>
-            <td class="p-3"><div class="h-3 w-16 bg-card-background rounded" /></td>
-            <td class="p-3"><div class="h-3 w-14 bg-card-background rounded" /></td>
-            <td class="p-3"><div class="h-3 w-14 bg-card-background rounded" /></td>
-            <td class="p-3"><div class="h-3 w-12 bg-card-background rounded" /></td>
-            <td class="p-3"><div class="h-3 w-14 bg-card-background rounded" /></td>
-            <td class="p-3"><div class="h-3 w-10 bg-card-background rounded" /></td>
-            <td class="p-3 flex justify-end"><div class="h-5 w-16 bg-card-background rounded-full" /></td>
-            <td class="p-3 flex justify-end"><div class="h-5 w-14 bg-card-background rounded" /></td>
-          </tr>
-        </tbody>
+          <!-- Skeleton -->
+          <tbody v-if="store.loading">
+            <tr v-for="n in 8" :key="n" class="border-b border-primary-border animate-pulse">
+              <td class="p-3"><div class="h-3 w-10 bg-background rounded" /></td>
+              <td class="p-3"><div class="h-3 w-28 bg-background rounded" /></td>
+              <td class="p-3"><div class="h-3 w-28 bg-background rounded" /></td>
+              <td class="p-3"><div class="h-3 w-14 bg-background rounded" /></td>
+              <td class="p-3"><div class="h-3 w-16 bg-background rounded" /></td>
+              <td class="p-3"><div class="h-3 w-14 bg-background rounded" /></td>
+              <td class="p-3"><div class="h-3 w-14 bg-background rounded" /></td>
+              <td class="p-3"><div class="h-3 w-12 bg-background rounded" /></td>
+              <td class="p-3"><div class="h-3 w-14 bg-background rounded" /></td>
+              <td class="p-3"><div class="h-3 w-10 bg-background rounded mx-auto" /></td>
+              <td class="p-3"><div class="h-3 w-10 bg-background rounded mx-auto" /></td>
+              <td class="p-3"><div class="h-5 w-16 bg-background rounded-full mx-auto" /></td>
+              <td class="p-3 flex justify-end"><div class="h-6 w-24 bg-background rounded" /></td>
+            </tr>
+          </tbody>
 
-        <!-- Empty -->
-        <tbody v-else-if="!store.records || store.records.length === 0">
-          <tr>
-            <td colspan="12" class="py-16 text-center">
-              <div class="flex flex-col items-center gap-3">
-                <div class="w-12 h-12 rounded-full bg-card-background flex items-center justify-center">
-                  <ReceiptText class="w-5 h-5 text-secondary-text" />
+          <!-- Empty -->
+          <tbody v-else-if="!store.records || store.records.length === 0">
+            <tr>
+              <td colspan="13" class="py-16 text-center">
+                <div class="flex flex-col items-center gap-3">
+                  <div class="w-12 h-12 rounded-full bg-card-background border border-primary-border flex items-center justify-center">
+                    <ReceiptText class="w-5 h-5 text-secondary-text" />
+                  </div>
+                  <p class="text-sm font-semibold text-primary-text">No settlements found</p>
+                  <p class="text-xs text-secondary-text">Try adjusting your filters or search criteria</p>
+                  <button
+                    v-if="store.filters.fm_id"
+                    class="mt-2 px-3 py-1.5 text-xs font-medium rounded-lg bg-primary text-white hover:bg-primary-hover transition-colors cursor-pointer"
+                    @click="clearFmFilter"
+                  >
+                    Clear FM Filter
+                  </button>
                 </div>
-                <p class="text-sm font-medium text-primary-text">No settlements found</p>
-                <p class="text-xs text-secondary-text">Try adjusting your filters</p>
-              </div>
-            </td>
-          </tr>
-        </tbody>
+              </td>
+            </tr>
+          </tbody>
 
-        <!-- Data -->
-        <tbody v-else>
-          <tr
-            v-for="row in store.records"
-            :key="row.settlement_id"
-            class="border-b border-primary-border last:border-none hover:bg-card-background transition-colors"
-          >
-            <td class="p-3 text-xs font-medium text-primary-text">#{{ row.settlement_id }}</td>
+          <!-- Data -->
+          <tbody v-else>
+            <tr
+              v-for="row in store.records"
+              :key="row.settlement_id"
+              class="border-b border-primary-border last:border-none hover:bg-background/40 transition-colors cursor-pointer"
+              @click="goToDetail(row.settlement_id)"
+            >
+              <!-- Settlement ID -->
+              <td class="p-3 text-xs font-bold font-mono text-primary">#{{ row.settlement_id }}</td>
 
-            <td class="p-3">
-              <p class="text-xs font-medium text-primary-text">{{ row.fm_name }}</p>
-              <p class="text-[11px] text-secondary-text">ID {{ row.fm_id }}</p>
-            </td>
+              <!-- FM Details -->
+              <td class="p-3">
+                <p class="text-xs font-semibold text-primary-text">{{ row.fm_name || 'FM' }}</p>
+                <p class="text-[11px] text-secondary-text font-mono">FM ID: #{{ row.fm_id }}</p>
+              </td>
 
-            <td class="p-3 text-xs text-secondary-text">{{ row.period }}</td>
+              <!-- Executed / Period -->
+              <td class="p-3">
+                <p class="text-xs font-medium text-primary-text">{{ formatDate(row.executed_at) || row.period }}</p>
+                <p v-if="row.settlement_period_start" class="text-[10px] text-secondary-text mt-0.5">
+                  {{ formatDateShort(row.settlement_period_start) }} – {{ formatDateShort(row.settlement_period_end) }}
+                </p>
+              </td>
 
-            <td class="p-3">
-              <span class="text-xs font-medium tabular-nums" :class="row.net_profit >= 0 ? 'text-green-700' : 'text-red-700'">
-                {{ row.net_profit >= 0 ? '+' : '' }}${{ formatNum(row.net_profit) }}
-              </span>
-            </td>
+              <!-- Settlement Type -->
+              <td class="p-3">
+                <span
+                  v-if="row.settlement_type"
+                  class="px-1.5 py-0.5 rounded text-[10px] uppercase font-bold bg-background border border-primary-border text-secondary-text"
+                >
+                  {{ row.settlement_type }}
+                </span>
+                <span v-else class="text-xs text-secondary-text">—</span>
+              </td>
 
-            <td class="p-3 text-xs text-primary-text tabular-nums">${{ formatNum(row.gross_fee) }}</td>
+              <!-- Net Profit -->
+              <td class="p-3">
+                <span
+                  class="text-xs font-bold tabular-nums"
+                  :class="row.net_profit >= 0 ? 'text-primary-green' : 'text-primary-red'"
+                >
+                  {{ row.net_profit >= 0 ? '+' : '' }}${{ formatNum(row.net_profit) }}
+                </span>
+              </td>
 
-            <td class="p-3 text-xs text-primary-text tabular-nums">${{ formatNum(row.fm_share) }}</td>
+              <!-- Gross Fee -->
+              <td class="p-3 text-xs font-medium text-primary-text tabular-nums">${{ formatNum(row.gross_fee) }}</td>
 
-            <td class="p-3 text-xs text-primary-text tabular-nums">${{ formatNum(row.ib_pool) }}</td>
+              <!-- FM Share -->
+              <td class="p-3 text-xs text-primary-text tabular-nums">${{ formatNum(row.fm_share) }}</td>
 
-            <td class="p-3 text-xs text-primary-text tabular-nums">${{ formatNum(row.broker_net) }}</td>
+              <!-- IB's Share -->
+              <td class="p-3 text-xs text-primary-text tabular-nums">${{ formatNum(row.ib_pool) }}</td>
 
-            <td class="p-3 text-xs text-secondary-text">{{ row.followers_count }}</td>
+              <!-- Broker Net -->
+              <td class="p-3 text-xs text-primary-green font-medium tabular-nums">${{ formatNum(row.broker_net) }}</td>
 
-            <td class="p-3 text-xs text-secondary-text">{{ row.trades_count }}</td>
+              <!-- Followers Count -->
+              <td class="p-3 text-center">
+                <span class="inline-block px-2 py-0.5 rounded text-xs font-mono font-medium bg-background border border-primary-border text-primary-text">
+                  {{ row.followers_count ?? 0 }}
+                </span>
+              </td>
 
-            <td class="p-3 text-right">
-              <span class="text-[11px] font-medium px-2 py-0.5 rounded-full border capitalize" :class="statusClass(row.status)">
-                {{ row.status }}
-              </span>
-            </td>
+              <!-- Trades Count -->
+              <td class="p-3 text-center">
+                <span class="inline-block px-2 py-0.5 rounded text-xs font-mono font-bold bg-background border border-primary-border text-primary-text">
+                  {{ row.trades_count ?? 0 }}
+                </span>
+              </td>
 
-            <td class="p-3 text-right">
-              <button
-                v-if="hasPermission('settlement.trades')"
-                @click="goToTrade(row.settlement_id)"
-                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary-border text-xs text-secondary-text hover:text-primary-text hover:bg-background transition-colors ml-auto cursor-pointer"
-              >
-                <BarChart2 class="w-3.5 h-3.5" /> Trades
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+              <!-- Status -->
+              <td class="p-3 text-center">
+                <span
+                  class="text-[10px] font-medium px-2 py-0.5 rounded-full border capitalize inline-block"
+                  :class="statusClass(row.status)"
+                >
+                  {{ row.status }}
+                </span>
+              </td>
+
+              <!-- Actions -->
+              <td class="p-3 text-right" @click.stop>
+                <div class="flex items-center justify-end gap-1.5">
+                  <button
+                    class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-xs font-medium transition-colors cursor-pointer"
+                    title="View Settlement Details"
+                    @click="goToDetail(row.settlement_id)"
+                  >
+                    <Eye class="w-3.5 h-3.5" />
+                    <span>View</span>
+                  </button>
+
+                  <button
+                    v-if="hasPermission('settlement.trades')"
+                    class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-primary-border text-xs text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer"
+                    title="View Flat Trades"
+                    @click="goToTrade(row.settlement_id)"
+                  >
+                    <BarChart2 class="w-3.5 h-3.5" />
+                    <span>Trades</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
+    <!-- Pagination -->
     <div class="mt-4">
       <Pagination
         v-if="store.pagination.total_items > store.pagination.per_page"
@@ -154,54 +298,101 @@
 </template>
 
 <script setup>
-import { onMounted, ref, computed } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { ReceiptText } from 'lucide-vue-next'
+import {
+  ReceiptText,
+  DollarSign,
+  Building2,
+  GitBranch,
+  Search,
+  X,
+  RotateCcw,
+  RotateCw,
+  Eye,
+  BarChart2,
+} from 'lucide-vue-next'
 import { useSettlementsStore } from '@/stores/settlements/settlements'
 import Pagination from '@/components/common/Pagination.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
-import { BarChart2 } from 'lucide-vue-next'
 import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
 const router = useRouter()
 const store = useSettlementsStore()
 const { hasPermission } = usePermissionCheck()
 
-const filters = ref({ fm_id: null, status: null, from_date: '', to_date: '' })
+const fmIdInput = ref('')
 
-const statusOptions = [
-  { label: 'Completed', value: 'completed' },
-  { label: 'Pending', value: 'pending' },
-  { label: 'Failed', value: 'failed' },
-]
+const handleApplyFmFilter = () => {
+  store.filters.fm_id = fmIdInput.value ? Number(fmIdInput.value) : null
+  store.applyFilters()
+}
 
-const hasFilters = computed(() =>
-  filters.value.fm_id || filters.value.status || filters.value.from_date || filters.value.to_date
-)
-
-const applyFilters = () => store.applyFilters(filters.value)
-
-const clearFilters = () => {
-  filters.value = { fm_id: null, status: null, from_date: '', to_date: '' }
-  applyFilters()
+const clearFmFilter = () => {
+  fmIdInput.value = ''
+  store.filters.fm_id = null
+  store.applyFilters()
 }
 
 const handlePageChange = (page) => {
   store.setPage(page)
-  store.fetchSettlements(true)
 }
 
-const formatNum = (val) => (val ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+const formatNum = (val) =>
+  (Number(val) || 0).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
 
-const statusClass = (s) => ({
-  completed: 'bg-primary-green/50 text-green-800 border-green-200',
-  pending:   'bg-yellow-50 text-yellow-800 border-yellow-200',
-  failed:    'bg-primary-red/50 text-red-800 border-red-200',
-}[s] ?? 'bg-background text-secondary-text border-primary-border')
+const formatDate = (val) => {
+  if (!val) return '—'
+  try {
+    const d = new Date(val)
+    if (isNaN(d.getTime())) return String(val)
+    return d.toLocaleString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    })
+  } catch (e) {
+    return String(val)
+  }
+}
+
+const formatDateShort = (val) => {
+  if (!val) return ''
+  try {
+    const d = new Date(val)
+    if (isNaN(d.getTime())) return String(val)
+    return d.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    })
+  } catch (e) {
+    return String(val)
+  }
+}
+
+const statusClass = (s) =>
+  ({
+    completed: 'bg-primary-green/20 text-green-700 border-green-300 dark:bg-primary-green/10 dark:text-green-400 dark:border-green-500/20',
+    pending: 'bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-yellow-500/10 dark:text-yellow-400 dark:border-yellow-500/20',
+    failed: 'bg-primary-red/20 text-red-700 border-red-300 dark:bg-primary-red/10 dark:text-red-400 dark:border-red-500/20',
+  }[String(s).toLowerCase()] ?? 'bg-background text-secondary-text border-primary-border')
+
+const goToDetail = (settlementId) => {
+  router.push(`/settlement/details/${settlementId}`)
+}
 
 const goToTrade = (settlementId) => {
   router.push(`/settlement/trade/${settlementId}`)
 }
 
-onMounted(() => store.fetchSettlements())
+onMounted(() => {
+  store.fetchSettlements()
+})
 </script>

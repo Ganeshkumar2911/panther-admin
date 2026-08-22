@@ -279,6 +279,28 @@ const routes = [
         },
       },
       {
+        path: "/settlement/details/:id",
+        name: "settlement-details",
+        component: () => import("@/pages/settlements/detail.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Settlement Details",
+          description: "View client summaries and distributions for this settlement.",
+          showBackButton: true,
+        },
+      },
+      {
+        path: "/settlement/details/:id/user/:userId",
+        name: "settlement-user-depth",
+        component: () => import("@/pages/settlements/user.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Client Settlement Breakdown",
+          description: "Detailed follower trades and period breakdown for this client.",
+          showBackButton: true,
+        },
+      },
+      {
         path: "/settlement/trade/:id",
         name: "settlement-trades",
         component: () => import("@/pages/settlements/trades.vue"),
