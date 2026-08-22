@@ -113,7 +113,7 @@ const handleCloseSummary = () => {
     <Transition name="backdrop">
       <div
         v-if="open"
-        class="fixed inset-0 z-[100] bg-black/45 backdrop-blur-xs cursor-pointer"
+        class="fixed inset-0 z-100 bg-black/45 backdrop-blur-xs cursor-pointer"
         @click="emit('close')"
       />
     </Transition>
@@ -122,7 +122,7 @@ const handleCloseSummary = () => {
     <Transition name="drawer">
       <div
         v-if="open"
-        class="fixed right-0 top-0 bottom-0 z-[101] w-full max-w-md bg-card-background border-l border-primary-border flex flex-col shadow-2xl"
+        class="fixed right-0 top-0 bottom-0 z-101 w-full max-w-md bg-card-background border-l border-primary-border flex flex-col shadow-2xl"
         role="dialog"
         aria-modal="true"
       >

@@ -143,7 +143,7 @@ const hasActiveFilters = computed(() => {
       <div class="flex xl:hidden items-center gap-1.5 shrink-0">
         <button
           @click="emit('refresh')"
-          class="flex items-center gap-1.5 px-2.5 py-1.5 h-[34px] rounded-lg text-xs font-medium text-secondary-text hover:text-primary-text bg-background border border-primary-border hover:bg-card-background transition-colors cursor-pointer whitespace-nowrap"
+          class="flex items-center gap-1.5 px-2.5 py-1.5 h-8.5 rounded-lg text-xs font-medium text-secondary-text hover:text-primary-text bg-background border border-primary-border hover:bg-card-background transition-colors cursor-pointer whitespace-nowrap"
           title="Refresh Leads Data"
         >
           <RefreshCw class="w-3 h-3 text-primary" />
@@ -153,7 +153,7 @@ const hasActiveFilters = computed(() => {
         <button
           v-if="hasActiveFilters"
           @click="emit('reset-filters')"
-          class="flex items-center gap-1.5 px-2.5 py-1.5 h-[34px] rounded-lg text-xs font-medium text-secondary-text hover:text-primary-text bg-background border border-primary-border hover:bg-card-background transition-colors cursor-pointer whitespace-nowrap"
+          class="flex items-center gap-1.5 px-2.5 py-1.5 h-8.5 rounded-lg text-xs font-medium text-secondary-text hover:text-primary-text bg-background border border-primary-border hover:bg-card-background transition-colors cursor-pointer whitespace-nowrap"
           title="Reset Filters"
         >
           <RotateCcw class="w-3 h-3 text-amber-500" />
@@ -165,14 +165,14 @@ const hasActiveFilters = computed(() => {
     <!-- Filter Inputs Grid/Flex -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:flex xl:items-center gap-2.5 flex-1 min-w-0">
       <!-- Search Input -->
-      <div class="relative sm:col-span-2 lg:col-span-1 xl:flex-1 xl:min-w-[180px]">
+      <div class="relative sm:col-span-2 lg:col-span-1 xl:flex-1 xl:min-w-45">
         <Search class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-secondary-text" />
         <input
           type="text"
           :value="localSearchQuery"
           @input="handleSearchInput"
           placeholder="Search lead name, email, phone..."
-          class="w-full pl-9 pr-3 py-1.5 text-xs bg-background border border-primary-border rounded-lg text-primary-text placeholder-secondary-text focus:outline-none focus:border-primary transition-colors h-[38px]"
+          class="w-full pl-9 pr-3 py-1.5 text-xs bg-background border border-primary-border rounded-lg text-primary-text placeholder-secondary-text focus:outline-none focus:border-primary transition-colors h-9.5"
         />
       </div>
 
@@ -225,7 +225,7 @@ const hasActiveFilters = computed(() => {
     <div class="hidden xl:flex items-center gap-2 shrink-0">
       <button
         @click="emit('refresh')"
-        class="flex items-center gap-1.5 px-3 py-2 h-[38px] rounded-lg text-xs font-medium text-secondary-text hover:text-primary-text bg-background border border-primary-border hover:bg-card-background transition-colors cursor-pointer whitespace-nowrap"
+        class="flex items-center gap-1.5 px-3 py-2 h-9.5 rounded-lg text-xs font-medium text-secondary-text hover:text-primary-text bg-background border border-primary-border hover:bg-card-background transition-colors cursor-pointer whitespace-nowrap"
       >
         <RefreshCw class="w-3 h-3" />
         <span>Refresh</span>
@@ -234,7 +234,7 @@ const hasActiveFilters = computed(() => {
       <button
         v-if="hasActiveFilters"
         @click="emit('reset-filters')"
-        class="flex items-center gap-1.5 px-3 py-2 h-[38px] rounded-lg text-xs font-medium text-secondary-text hover:text-primary-text bg-background border border-primary-border hover:bg-card-background transition-colors cursor-pointer whitespace-nowrap"
+        class="flex items-center gap-1.5 px-3 py-2 h-9.5 rounded-lg text-xs font-medium text-secondary-text hover:text-primary-text bg-background border border-primary-border hover:bg-card-background transition-colors cursor-pointer whitespace-nowrap"
       >
         <RotateCcw class="w-3 h-3" />
         <span>Reset</span>

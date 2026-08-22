@@ -83,7 +83,7 @@
         class="bg-card-background border border-primary-border rounded-2xl p-5 flex flex-col gap-5 hover:border-primary/40 transition-all duration-300 group relative overflow-hidden"
       >
         <!-- Top accent gradient -->
-        <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+        <div class="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-transparent via-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
         <!-- Header: Label + Active Toggle -->
         <div class="flex items-center justify-between gap-3">

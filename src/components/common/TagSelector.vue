@@ -148,7 +148,7 @@ const availableSearchResults = computed(() => {
   <div ref="dropdownRef" class="relative w-full space-y-2">
     <!-- Selected Chips Container -->
     <div
-      class="flex flex-wrap items-center gap-1.5 min-h-[42px] p-2 rounded-lg border border-primary-border bg-background focus-within:border-primary transition-colors"
+      class="flex flex-wrap items-center gap-1.5 min-h-10.5 p-2 rounded-lg border border-primary-border bg-background focus-within:border-primary transition-colors"
       :class="{ 'opacity-60 pointer-events-none': disabled }"
     >
       <TagChip
@@ -161,7 +161,7 @@ const availableSearchResults = computed(() => {
       />
 
       <!-- Search Input inline -->
-      <div v-if="!isLimitReached" class="flex-1 min-w-[120px]">
+      <div v-if="!isLimitReached" class="flex-1 min-w-30">
         <input
           v-model="searchInput"
           type="text"
