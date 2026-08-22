@@ -424,6 +424,10 @@ const goToTradeBook = (row) => {
       account_number: row.account_number,
       trading_account_id: row.trading_account_id || row.account_id,
       currency: getRowCurrency(row),
+      user_name: row.user_name || row.name || row.account_name,
+      broker_group: row.broker_group,
+      copy_ratio: row.copy_ratio,
+      is_active: row.is_active,
     },
   })
 }

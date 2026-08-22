@@ -646,7 +646,6 @@
             <Layers class="w-3.5 h-3.5" />
             <span>Positions</span>
             <span
-              v-if="positionsBadgeCount > 0"
               class="px-1.5 py-0.2 rounded-md text-[10px] font-mono font-bold"
               :class="
                 store.activeTab === 'positions'
@@ -654,7 +653,7 @@
                   : 'bg-card-background text-secondary-text'
               "
             >
-              {{ positionsBadgeCount }}
+              {{ store.summary.total_positions ?? "" }}
             </span>
           </button>
 
@@ -670,7 +669,6 @@
             <Clock class="w-3.5 h-3.5" />
             <span>Orders</span>
             <span
-              v-if="ordersBadgeCount > 0"
               class="px-1.5 py-0.2 rounded-md text-[10px] font-mono font-bold"
               :class="
                 store.activeTab === 'orders'
@@ -678,7 +676,7 @@
                   : 'bg-card-background text-secondary-text'
               "
             >
-              {{ ordersBadgeCount }}
+              {{ store.summary.total_orders ?? "0" }}
             </span>
           </button>
 
@@ -694,7 +692,6 @@
             <CheckCircle2 class="w-3.5 h-3.5" />
             <span>Deals History</span>
             <span
-              v-if="dealsBadgeCount > 0"
               class="px-1.5 py-0.2 rounded-md text-[10px] font-mono font-bold"
               :class="
                 store.activeTab === 'deals'
@@ -702,7 +699,7 @@
                   : 'bg-card-background text-secondary-text'
               "
             >
-              {{ dealsBadgeCount }}
+              {{ store.summary.total_deals ?? "" }}
             </span>
           </button>
         </div>
@@ -1350,6 +1347,9 @@ const activeStatus = computed(() => {
   if (store.accountInfo) {
     return store.accountInfo.is_active ?? store.accountInfo.status === "active";
   }
+  if (route.query.is_active !== undefined) {
+    return route.query.is_active === "true" || route.query.is_active === true;
+  }
   return true;
 });
 
@@ -1358,10 +1358,12 @@ const headerTitle = computed(() => {
     return (
       store.accountInfo?.name ||
       store.accountInfo?.user_name ||
-      "Follower Account"
+      route.query.user_name ||
+      route.query.name ||
+      (accountNumber.value ? `Account #${accountNumber.value}` : "Follower Trade Book")
     );
   }
-  return store.accountInfo?.label_name || "Fund Manager Master Account";
+  return store.accountInfo?.label_name || route.query.name || "Fund Manager Master Account";
 });
 
 const accountNumber = computed(() => {
@@ -1377,16 +1379,19 @@ const brokerGroup = computed(() => {
   return (
     store.accountInfo?.broker_group ||
     store.accountInfo?.master_account?.broker_group ||
+    route.query.broker_group ||
     ""
   );
 });
 
 const leverageOrRatio = computed(() => {
-  if (isFollowerMode.value && store.accountInfo?.copy_ratio) {
-    return `Ratio: ${store.accountInfo.copy_ratio}x`;
+  const copyRatio = store.accountInfo?.copy_ratio || route.query.copy_ratio;
+  if (isFollowerMode.value && copyRatio) {
+    return `Ratio: ${copyRatio}x`;
   }
-  if (store.accountInfo?.broker_leverage) {
-    return `1:${store.accountInfo.broker_leverage}`;
+  const lev = store.accountInfo?.broker_leverage || route.query.broker_leverage;
+  if (lev) {
+    return `1:${lev}`;
   }
   return "";
 });
@@ -1396,40 +1401,6 @@ const currentTableCount = computed(() => {
   if (store.activeTab === "orders") return store.orders.length;
   if (store.activeTab === "deals") return store.deals.length;
   return store.positions.length;
-});
-
-// Tab Badge Counts
-const positionsBadgeCount = computed(() => {
-  if (store.activeTab === "positions") {
-    return (
-      store.summary.total_positions ??
-      store.pagination.total_items ??
-      store.positions.length
-    );
-  }
-  return store.positions.length;
-});
-
-const ordersBadgeCount = computed(() => {
-  if (store.activeTab === "orders") {
-    return (
-      store.summary.total_orders ??
-      store.pagination.total_items ??
-      store.orders.length
-    );
-  }
-  return store.orders.length;
-});
-
-const dealsBadgeCount = computed(() => {
-  if (store.activeTab === "deals") {
-    return (
-      store.summary.total_deals ??
-      store.pagination.total_items ??
-      store.deals.length
-    );
-  }
-  return store.deals.length;
 });
 
 // Filter dropdown options (Dynamic per active Tab)
@@ -1736,7 +1707,6 @@ const initContext = () => {
       id: targetId,
       info: null,
     });
-    store.fetchFollowerInfo(targetId);
   } else {
     try {
       const raw = localStorage.getItem("active_fm");
