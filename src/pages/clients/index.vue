@@ -14,6 +14,7 @@ import {
   Trash2,
   Link2,
   LogIn,
+  SlidersHorizontal,
   X,
 } from "lucide-vue-next";
 import ConfirmationDialog from "@/components/common/ConfirmationDialog.vue";
@@ -29,6 +30,7 @@ import DeleteClientDialog from "@/components/common/DeleteClientDialog.vue";
 import Tooltip from "@/components/common/Tooltip.vue";
 import UpdateReferralLinkDrawer from "@/components/common/UpdateReferralLinkDrawer.vue";
 import ClientLoginModal from "@/components/common/ClientLoginModal.vue";
+import ManageTransactionsDialog from "@/components/common/ManageTransactionsDialog.vue";
 import { useRouter } from "vue-router";
 import { useGoToTradingAccount } from "@/composables/useGoToTradingAccount";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
@@ -61,6 +63,9 @@ const selectedClientForDelete = ref(null);
 
 const updateReferralLinkDrawerOpen = ref(false);
 const selectedClientForReferralLink = ref(null);
+
+const manageTransactionsDialogOpen = ref(false);
+const selectedClientForTransactions = ref(null);
 
 const clientLoginModalOpen = ref(false);
 const selectedClientForLogin = ref(null);
@@ -97,8 +102,19 @@ function getRowActions(client) {
   const actions = [];
 
   if (hasPermission("client.update")) {
+    actions.push({ action: "edit", label: "Edit Client", icon: Pencil });
+  }
+
+  if (hasPermission("system_setting.manager_transection_setting")) {
+    actions.push({
+      action: "manageTransactions",
+      label: "Manage Transactions",
+      icon: SlidersHorizontal,
+    });
+  }
+
+  if (hasPermission("client.update")) {
     actions.push(
-      { action: "edit", label: "Edit Client", icon: Pencil },
       { action: "changeIB", label: "Change IB", icon: UserPen },
       {
         action: "makeIB",
@@ -118,7 +134,7 @@ function getRowActions(client) {
         icon: client.is_active ? UserX : UserCheck,
         danger: client.is_active,
         success: !client.is_active,
-      }
+      },
     );
   }
 
@@ -150,12 +166,21 @@ function getRowActions(client) {
   return actions;
 }
 
+const chooseBgColor = {
+  live: "bg-primary-green/10 text-primary-green border border-primary-green/20 hover:bg-primary-green/20",
+  demo: "bg-primary-yellow/10 text-primary-yellow border border-primary-yellow/20 hover:bg-primary-yellow/20",
+  copy_trading:
+    "bg-primary-red/10 text-primary-red border border-primary-red/20 hover:bg-primary-red/20",
+};
+
 function onMenuSelect(item, client) {
   switch (item.action) {
     case "clientLogin":
       return handleClientLogin(client);
     case "edit":
       return openEditClientDialog(client);
+    case "manageTransactions":
+      return openManageTransactionsDialog(client);
     case "changeIB":
       return openChangeIBDialog(client);
     case "makeIB":
@@ -197,6 +222,12 @@ const handleDeleteSuccess = () => {
 };
 
 const { goToTradingAccount } = useGoToTradingAccount();
+
+const expandedAccountsMap = ref({});
+
+const toggleExpandAccounts = (id) => {
+  expandedAccountsMap.value[id] = !expandedAccountsMap.value[id];
+};
 
 const openChangeIBDialog = (client) => {
   selectedClientForChangeIB.value = client;
@@ -285,6 +316,20 @@ const handleUpdateReferralLinkSuccess = () => {
   store.fetchClients(store.pagination.page);
 };
 
+const openManageTransactionsDialog = (client) => {
+  selectedClientForTransactions.value = client;
+  manageTransactionsDialogOpen.value = true;
+};
+
+const closeManageTransactionsDialog = () => {
+  manageTransactionsDialogOpen.value = false;
+  selectedClientForTransactions.value = null;
+};
+
+const handleManageTransactionsSuccess = () => {
+  store.fetchClients(store.pagination.page);
+};
+
 import apiRequest from "@/api/request";
 import urls from "@/api/urls";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
@@ -314,7 +359,10 @@ const staffOptions = computed(() => {
 
 const promptAssignStaff = (client, staffId) => {
   if (!hasPermission("client.update")) {
-    snackbar.show("You do not have permission to assign or update staff.", "error");
+    snackbar.show(
+      "You do not have permission to assign or update staff.",
+      "error",
+    );
     return;
   }
 
@@ -418,10 +466,10 @@ const handleCancelAssignStaff = () => {
 const getKycClass = (status) => {
   const s = (status || "").toLowerCase();
   if (s === "approved")
-    return "bg-green-500/10 text-green-700 border-green-500/20";
+    return "bg-primary-green/10 text-primary-green border border-primary-green/20";
   if (s === "pending")
-    return "bg-yellow-500/10 text-yellow-700 border-yellow-500/20";
-  return "bg-red-500/10 text-red-700 border-red-500/20";
+    return "bg-primary-yellow/10 text-primary-yellow border border-primary-yellow/20";
+  return "bg-primary-red/10 text-primary-red border border-primary-red/20";
 };
 
 onMounted(() => {
@@ -750,7 +798,7 @@ onMounted(() => {
                     'fi',
                     `fi-${getFlagCode(client.country)}`,
                     'fis',
-                    'w-4 h-3 flex-shrink-0',
+                    'w-4 h-3 shrink-0',
                   ]"
                 ></span>
                 <span>{{ cleanCountryLabel(client.country) || "—" }}</span>
@@ -775,7 +823,8 @@ onMounted(() => {
             <td class="p-3 whitespace-nowrap" @click.stop>
               <div
                 v-if="
-                  (client.staff_assigned?.name || client.assigned_staff?.name) &&
+                  (client.staff_assigned?.name ||
+                    client.assigned_staff?.name) &&
                   editingStaffClientId !== client.id
                 "
                 class="flex items-center justify-between gap-2 group"
@@ -808,7 +857,10 @@ onMounted(() => {
                   <Pencil class="w-3 h-3" />
                 </button>
               </div>
-              <div v-else-if="hasPermission('client.update')" class="w-44 flex items-center gap-1">
+              <div
+                v-else-if="hasPermission('client.update')"
+                class="w-44 flex items-center gap-1"
+              >
                 <div class="flex-1">
                   <BaseSelect
                     :model-value="
@@ -854,7 +906,7 @@ onMounted(() => {
                   <span>{{ client.referral_link_code }}</span>
                 </span>
                 <p
-                  class="text-[10px] text-primary-text truncate max-w-[120px]"
+                  class="text-[10px] text-primary-text truncate max-w-30"
                   :title="client.referral_link_name"
                 >
                   {{ client.referral_link_name }}
@@ -910,36 +962,75 @@ onMounted(() => {
               </p>
             </td>
 
-            <td class="p-3 max-w-[200px]">
+            <td class="p-3 max-w-55">
               <div>
-                <span
-                  class="text-xs font-semibold text-primary-text block mb-1"
-                >
-                  {{ client.total_accounts || 0 }} Acct{{
-                    (client.total_accounts || 0) !== 1 ? "s" : ""
-                  }}
-                </span>
-
-                <div
-                  v-if="client.account_numbers?.length"
-                  class="flex flex-wrap gap-1 mb-1 max-h-10 overflow-y-auto"
-                >
+                <div class="flex items-center justify-between gap-1 mb-1">
                   <span
-                    v-for="num in client.account_numbers"
-                    :key="num"
-                    @click="goToTradingAccount(num)"
-                    class="font-mono text-[9px] px-1 py-0.5 rounded bg-background border border-primary-border text-secondary-text cursor-pointer hover:bg-primary-hover/10 hover:text-primary transition-all duration-150"
+                    class="text-xs font-semibold text-primary-text block"
                   >
-                    {{ num }}
+                    {{ client.total_accounts || client.accounts?.length || 0 }} Acct{{
+                      (client.total_accounts || client.accounts?.length || 0) !== 1 ? "s" : ""
+                    }}
                   </span>
+                  <button
+                    v-if="client.accounts?.length > 2"
+                    type="button"
+                    @click="toggleExpandAccounts(client.id)"
+                    class="text-[9px] font-medium text-primary hover:underline cursor-pointer focus:outline-none"
+                  >
+                    {{ expandedAccountsMap[client.id] ? "Show Less" : "Show All" }}
+                  </button>
                 </div>
 
                 <div
-                  v-if="client.account_types?.length"
-                  class="text-[9px] text-secondary-text capitalize truncate"
+                  v-if="client.accounts?.length > 0"
+                  class="flex flex-wrap gap-1 items-center"
                 >
-                  {{ client.account_types.join(", ") }}
+                  <!-- Collapsed view: show first 2 accounts + "+N more" badge -->
+                  <template v-if="!expandedAccountsMap[client.id]">
+                    <span
+                      v-for="(acc, idx) in client.accounts.slice(0, 2)"
+                      :key="acc.account_number || acc || idx"
+                      @click="goToTradingAccount(acc.account_number || acc)"
+                      :title="`Trading Account: #${acc.account_number || acc}${acc.account_type ? ' (' + acc.account_type + ')' : ''} — Click to view`"
+                      class="font-mono text-[9px] px-1.5 py-0.5 rounded-md cursor-pointer hover:scale-105 active:scale-95 transition-all duration-150 inline-block border"
+                      :class="[
+                        chooseBgColor[acc.account_type] ||
+                          'bg-background text-secondary-text border-primary-border',
+                      ]"
+                    >
+                      {{ acc.account_number || acc }}
+                    </span>
+
+                    <button
+                      v-if="client.accounts.length > 2"
+                      type="button"
+                      @click="toggleExpandAccounts(client.id)"
+                      class="font-mono text-[9px] font-semibold px-1.5 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors cursor-pointer inline-block"
+                      title="Click to view all accounts"
+                    >
+                      +{{ client.accounts.length - 2 }} more
+                    </button>
+                  </template>
+
+                  <!-- Expanded view: show all accounts inline cleanly -->
+                  <template v-else>
+                    <span
+                      v-for="(acc, idx) in client.accounts"
+                      :key="acc.account_number || acc || idx"
+                      @click="goToTradingAccount(acc.account_number || acc)"
+                      :title="`Trading Account: #${acc.account_number || acc}${acc.account_type ? ' (' + acc.account_type + ')' : ''} — Click to view`"
+                      class="font-mono text-[9px] px-1.5 py-0.5 rounded-md cursor-pointer hover:scale-105 active:scale-95 transition-all duration-150 inline-block border"
+                      :class="[
+                        chooseBgColor[acc.account_type] ||
+                          'bg-background text-secondary-text border-primary-border',
+                      ]"
+                    >
+                      {{ acc.account_number || acc }}
+                    </span>
+                  </template>
                 </div>
+                <span v-else class="text-xs text-secondary-text">—</span>
               </div>
             </td>
 
@@ -966,7 +1057,7 @@ onMounted(() => {
                   class="text-[11px] font-medium px-2 py-0.5 rounded-full border transition-all duration-200 cursor-pointer focus:outline-none hover:scale-105 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
                   :class="
                     client.is_active
-                      ? 'bg-green-500/10 text-green-700 border-green-500/20 hover:bg-green-500/20'
+                      ? 'bg-primary-green/10 text-primary-green border-primary-green/20 hover:bg-primary-green/20'
                       : 'bg-background text-secondary-text border-primary-border hover:bg-secondary-text/10'
                   "
                 >
@@ -1057,7 +1148,7 @@ onMounted(() => {
               class="text-[10px] font-medium px-2 py-0.5 rounded-full border transition-all duration-200 cursor-pointer focus:outline-none hover:scale-105 active:scale-95"
               :class="
                 client.is_active
-                  ? 'bg-green-500/10 text-green-700 border-green-500/20 hover:bg-green-500/20'
+                  ? 'bg-primary-green/10 text-primary-green border-primary-green/20 hover:bg-primary-green/20'
                   : 'bg-background text-secondary-text border-primary-border hover:bg-secondary-text/10'
               "
               @click="openChangeStatusDialog(client)"
@@ -1158,7 +1249,9 @@ onMounted(() => {
                   }}
                 </div>
                 <p class="font-medium text-primary-text text-xs truncate">
-                  {{ client.staff_assigned?.name || client.assigned_staff?.name }}
+                  {{
+                    client.staff_assigned?.name || client.assigned_staff?.name
+                  }}
                 </p>
               </div>
               <button
@@ -1171,7 +1264,10 @@ onMounted(() => {
                 <Pencil class="w-3 h-3" />
               </button>
             </div>
-            <div v-else-if="hasPermission('client.update')" class="w-full mt-1 flex items-center gap-1">
+            <div
+              v-else-if="hasPermission('client.update')"
+              class="w-full mt-1 flex items-center gap-1"
+            >
               <div class="flex-1">
                 <BaseSelect
                   :model-value="
@@ -1265,24 +1361,61 @@ onMounted(() => {
             </p>
           </div>
           <div class="bg-background rounded-lg px-3 py-2 col-span-2">
-            <p class="text-[10px] text-secondary-text mb-0.5">
-              Accounts ({{ client.total_accounts || 0 }})
-            </p>
-            <div class="flex flex-wrap gap-1 mt-1">
-              <span
-                v-for="num in client.account_numbers"
-                :key="num"
-                @click="goToTradingAccount(num)"
-                class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-card-background border border-primary-border text-secondary-text cursor-pointer hover:bg-primary-hover/10 hover:text-primary transition-all duration-150"
+            <div class="flex items-center justify-between mb-1">
+              <p class="text-[10px] text-secondary-text">
+                Accounts ({{ client.total_accounts || (client.accounts?.length || client.account_numbers?.length || 0) }})
+              </p>
+              <button
+                v-if="(client.accounts?.length > 4) || (client.account_numbers?.length > 4)"
+                type="button"
+                @click="toggleExpandAccounts(`mobile_${client.id}`)"
+                class="text-[9px] font-medium text-primary hover:underline cursor-pointer focus:outline-none"
               >
-                {{ num }}
-              </span>
-              <span
-                v-if="!client.account_numbers?.length"
-                class="text-secondary-text"
-                >—</span
-              >
+                {{ expandedAccountsMap[`mobile_${client.id}`] ? "Show Less" : "Show All" }}
+              </button>
             </div>
+
+            <div
+              v-if="(client.accounts?.length || client.account_numbers?.length)"
+              class="flex flex-wrap gap-1"
+            >
+              <template v-if="!expandedAccountsMap[`mobile_${client.id}`]">
+                <span
+                  v-for="(num, idx) in (client.accounts || client.account_numbers).slice(0, 4)"
+                  :key="num.account_number || num || idx"
+                  @click="goToTradingAccount(num.account_number || num)"
+                  class="font-mono text-[10px] px-1.5 py-0.5 rounded border cursor-pointer transition-all duration-150"
+                  :class="[
+                    chooseBgColor[num.account_type] ||
+                      'bg-card-background border-primary-border text-secondary-text hover:text-primary',
+                  ]"
+                >
+                  {{ num.account_number || num }}
+                </span>
+                <span
+                  v-if="(client.accounts || client.account_numbers).length > 4"
+                  @click="toggleExpandAccounts(`mobile_${client.id}`)"
+                  class="font-mono text-[9px] font-semibold px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition cursor-pointer"
+                >
+                  +{{ (client.accounts || client.account_numbers).length - 4 }} more
+                </span>
+              </template>
+              <template v-else>
+                <span
+                  v-for="(num, idx) in (client.accounts || client.account_numbers)"
+                  :key="num.account_number || num || idx"
+                  @click="goToTradingAccount(num.account_number || num)"
+                  class="font-mono text-[10px] px-1.5 py-0.5 rounded border cursor-pointer transition-all duration-150"
+                  :class="[
+                    chooseBgColor[num.account_type] ||
+                      'bg-card-background border-primary-border text-secondary-text hover:text-primary',
+                  ]"
+                >
+                  {{ num.account_number || num }}
+                </span>
+              </template>
+            </div>
+            <p v-else class="text-secondary-text text-xs">—</p>
             <p
               v-if="client.account_types?.length"
               class="text-[10px] text-secondary-text mt-1 capitalize"
@@ -1313,39 +1446,46 @@ onMounted(() => {
             <button
               v-if="hasPermission('client.update')"
               @click="openEditClientDialog(client)"
-              class="flex-1 min-w-[70px] text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer"
+              class="flex-1 min-w-17.5 text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer"
             >
               Edit
             </button>
             <button
               v-if="hasPermission('client.update')"
+              @click="openManageTransactionsDialog(client)"
+              class="flex-1 min-w-22.5 text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer"
+            >
+              Transactions
+            </button>
+            <button
+              v-if="hasPermission('client.update')"
               @click="openChangeIBDialog(client)"
-              class="flex-1 min-w-[80px] text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer"
+              class="flex-1 min-w-20 text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer"
             >
               Change IB
             </button>
             <button
               v-if="client.is_ib === false && hasPermission('client.update')"
               @click="openMakeIBDialog(client)"
-              class="flex-1 min-w-[80px] text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition animate-all duration-200 cursor-pointer"
+              class="flex-1 min-w-20 text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition animate-all duration-200 cursor-pointer"
             >
               Make IB
             </button>
             <button
               v-if="hasPermission('client.update')"
               @click="openUpdateReferralLinkDrawer(client)"
-              class="flex-1 min-w-[100px] text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer"
+              class="flex-1 min-w-25 text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer"
             >
               Referral Link
             </button>
             <button
               v-if="hasPermission('client.update')"
               @click="openChangeStatusDialog(client)"
-              class="flex-1 min-w-[70px] text-xs font-medium py-1.5 rounded-lg transition animate-all duration-200 cursor-pointer"
+              class="flex-1 min-w-17.5 text-xs font-medium py-1.5 rounded-lg transition animate-all duration-200 cursor-pointer"
               :class="
                 client.is_active
-                  ? 'bg-red-500/10 text-red-600 hover:bg-red-500/20'
-                  : 'bg-green-500/10 text-green-600 hover:bg-green-500/20'
+                  ? 'bg-primary-red/10 text-primary-red hover:bg-primary-red/20'
+                  : 'bg-primary-green/10 text-primary-green hover:bg-primary-green/20'
               "
             >
               Status
@@ -1356,7 +1496,7 @@ onMounted(() => {
                 hasPermission('client.delete')
               "
               @click="openDeleteClientDialog(client)"
-              class="flex-1 min-w-[70px] text-xs font-medium py-1.5 rounded-lg bg-red-500/10 text-red-600 hover:bg-red-500/20 transition animate-all duration-200 cursor-pointer"
+              class="flex-1 min-w-17.5 text-xs font-medium py-1.5 rounded-lg bg-primary-red/10 text-primary-red hover:bg-primary-red/20 transition animate-all duration-200 cursor-pointer"
             >
               Delete
             </button>
@@ -1429,6 +1569,14 @@ onMounted(() => {
       @success="handleUpdateReferralLinkSuccess"
     />
 
+    <!-- Manage Transactions Dialog -->
+    <ManageTransactionsDialog
+      :open="manageTransactionsDialogOpen"
+      :client="selectedClientForTransactions || {}"
+      @close="closeManageTransactionsDialog"
+      @success="handleManageTransactionsSuccess"
+    />
+
     <!-- Client Login Confirmation Modal -->
     <ClientLoginModal
       :open="clientLoginModalOpen"
@@ -1439,7 +1587,9 @@ onMounted(() => {
     <!-- Assign / Reassign Staff Confirmation Dialog -->
     <ConfirmationDialog
       :open="assignDialog.open"
-      :title="assignDialog.isEdit ? 'Reassign Staff Member' : 'Assign Staff Member'"
+      :title="
+        assignDialog.isEdit ? 'Reassign Staff Member' : 'Assign Staff Member'
+      "
       :message="
         assignDialog.isEdit
           ? `Are you sure you want to reassign staff for client '${

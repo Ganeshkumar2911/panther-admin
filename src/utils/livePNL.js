@@ -1,53 +1,46 @@
-import { useTickerStore } from '@/stores/ws/ticker'
+import { useTickerStore } from "@/stores/ws/ticker";
 
 export function livePNL(trade) {
-
   // ✅ If trade already closed
   // return backend pnl only
-  if (trade?.status !== 'OPEN') {
-    return Number(trade?.pnl || 0).toFixed(2)
+  if (trade?.status !== "OPEN") {
+    return Number(trade?.pnl || 0).toFixed(2);
   }
 
-  const tickerStore = useTickerStore()
+  const tickerStore = useTickerStore();
 
   // ✅ Get live market data
-  const livePrice = tickerStore.getLastPrice(trade?.symbol)
+  const livePrice = tickerStore.getLastPrice(trade?.symbol);
 
   if (!livePrice) {
-    return '0.00'
+    return "0.00";
   }
 
-  const entryPrice = Number(trade?.entry_price || 0)
+  const entryPrice = Number(trade?.entry_price || 0);
 
   // support both lot & quantity
-  const lot = Number(
-    trade?.lot ||
-    trade?.quantity ||
-    1
-  )
+  const lot = Number(trade?.lot || trade?.quantity || 1);
 
-  let pnl = 0
+  let pnl = 0;
 
   // ✅ BUY Trade
-  if (trade?.type === 'BUY') {
-
+  if (trade?.type === "BUY") {
     // close happens at BID
-    const currentPrice = Number(livePrice?.bid || 0)
+    const currentPrice = Number(livePrice?.bid || 0);
 
-    pnl = (currentPrice - entryPrice) * lot
+    pnl = (currentPrice - entryPrice) * lot;
   }
 
   // ✅ SELL Trade
-  else if (trade?.type === 'SELL') {
-
+  else if (trade?.type === "SELL") {
     // close happens at ASK
-    const currentPrice = Number(livePrice?.ask || 0)
+    const currentPrice = Number(livePrice?.ask || 0);
 
-    pnl = (entryPrice - currentPrice) * lot
+    pnl = (entryPrice - currentPrice) * lot;
   }
 
-  const contractSize = Number(livePrice?.contract || 1)
-  pnl = pnl * contractSize
+  const contractSize = Number(livePrice?.contract || 1);
+  pnl = pnl * contractSize;
 
-  return Number(pnl).toFixed(3)
+  return Number(pnl).toFixed(3);
 }

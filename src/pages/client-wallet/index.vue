@@ -185,8 +185,8 @@
             <!-- ID / Reference -->
             <td class="p-3">
               <p class="text-xs font-semibold text-primary-text">#{{ entry.payment_id }}</p>
-              <p v-if="entry.txid" class="text-[10px] text-secondary-text font-mono truncate max-w-[150px]" :title="entry.txid">TXID: {{ entry.txid }}</p>
-              <p v-else-if="entry.external_payment_id" class="text-[10px] text-secondary-text truncate max-w-[150px]">Ext: {{ entry.external_payment_id }}</p>
+              <p v-if="entry.txid" class="text-[10px] text-secondary-text font-mono truncate max-w-37.5" :title="entry.txid">TXID: {{ entry.txid }}</p>
+              <p v-else-if="entry.external_payment_id" class="text-[10px] text-secondary-text truncate max-w-37.5">Ext: {{ entry.external_payment_id }}</p>
             </td>
 
             <!-- Trading Account -->

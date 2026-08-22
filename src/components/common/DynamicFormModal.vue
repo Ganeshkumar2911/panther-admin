@@ -5,7 +5,7 @@
       <Transition name="backdrop">
         <div
           v-if="open"
-          class="fixed inset-0 z-[100] bg-black/50 backdrop-blur-xs cursor-pointer"
+          class="fixed inset-0 z-100 bg-black/50 backdrop-blur-xs cursor-pointer"
           @click="handleBackdropClick"
         />
       </Transition>
@@ -14,7 +14,7 @@
       <Transition name="drawer">
         <div
           v-if="open"
-          class="fixed right-0 top-0 bottom-0 z-[101] w-full bg-card-background border-l border-primary-border flex flex-col shadow-2xl transform transition-all duration-300"
+          class="fixed right-0 top-0 bottom-0 z-101 w-full bg-card-background border-l border-primary-border flex flex-col shadow-2xl transform transition-all duration-300"
           :class="maxWidth || 'max-w-md sm:max-w-lg'"
           role="dialog"
           aria-modal="true"
@@ -174,7 +174,7 @@
                     class="sr-only peer"
                   />
                   <div
-                    class="w-9 h-5 bg-background border border-primary-border rounded-full peer peer-focus:outline-none peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-secondary-text after:border-primary-border after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary peer-checked:after:bg-white"
+                    class="w-9 h-5 bg-background border border-primary-border rounded-full peer peer-focus:outline-none peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-secondary-text after:border-primary-border after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary peer-checked:after:bg-white"
                   />
                 </label>
               </div>

@@ -1,55 +1,54 @@
 // stores/dashboard/dashboard.js
-import { defineStore } from 'pinia'
-import { ref, reactive } from 'vue'
-import apiRequest from '@/api/request'
-import urls from '@/api/urls'
-import { useSnackbarStore } from '@/stores/snackbar/snackbar'
+import { defineStore } from "pinia";
+import { ref, reactive } from "vue";
+import apiRequest from "@/api/request";
+import urls from "@/api/urls";
+import { useSnackbarStore } from "@/stores/snackbar/snackbar";
 
-export const useDashboardStore = defineStore('dashboard', () => {
-  const dashboard = ref(null)
-  const revenueAnalytics = ref(null)
+export const useDashboardStore = defineStore("dashboard", () => {
+  const dashboard = ref(null);
+  const userAccounts = ref({});
+  const revenueAnalytics = ref(null);
 
-  const dashboardLoading = ref(false)
-  const revenueLoading = ref(false)
+  const dashboardLoading = ref(false);
+  const revenueLoading = ref(false);
+  const userAccountsLoading = ref(false);
 
-  const error = ref(null)
+  const error = ref(null);
 
   const revenueFilters = reactive({
-    range: 'weekly',
-  })
+    range: "weekly",
+  });
 
   const dashboardFilters = reactive({
-    start_date: '',
-    end_date: '',
-  })
+    start_date: "",
+    end_date: "",
+  });
 
-  const snackbar = useSnackbarStore()
+  const snackbar = useSnackbarStore();
 
   // ─── Dashboard ─────────────────────────────────────────────
   const fetchDashboard = () => {
-    dashboardLoading.value = true
+    dashboardLoading.value = true;
 
     const successHandler = (res) => {
-      dashboard.value = res?.data || null
+      dashboard.value = res?.data || null;
 
-      dashboardLoading.value = false
-    }
+      dashboardLoading.value = false;
+    };
 
     const failureHandler = (err) => {
-      dashboardLoading.value = false
+      dashboardLoading.value = false;
 
-      error.value = err
+      error.value = err;
 
-      snackbar.show(
-        err?.message || 'Failed to fetch dashboard.',
-        'error'
-      )
-    }
+      snackbar.show(err?.message || "Failed to fetch dashboard.", "error");
+    };
 
-    const params = {}
+    const params = {};
     if (dashboardFilters.start_date && dashboardFilters.end_date) {
-      params.start_date = dashboardFilters.start_date
-      params.end_date = dashboardFilters.end_date
+      params.start_date = dashboardFilters.start_date;
+      params.end_date = dashboardFilters.end_date;
     }
 
     apiRequest(urls.KEYS.GET, urls.dashboard.list, {
@@ -58,29 +57,52 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
       onSuccess: successHandler,
       onFailure: failureHandler,
-    })
-  }
+    });
+  };
+
+  const fetchLiveUserAccounts = () => {
+    userAccountsLoading.value = true;
+
+    const successHandler = (res) => {
+      userAccounts.value = res?.data || null;
+
+      userAccountsLoading.value = false;
+    };
+
+    const failureHandler = (err) => {
+      userAccountsLoading.value = false;
+
+      error.value = err;
+
+      snackbar.show(err?.message || "Failed to fetch dashboard.", "error");
+    };
+    apiRequest(urls.KEYS.GET, urls.dashboard.accounts, {
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+    });
+  };
 
   // ─── Revenue Analytics ────────────────────────────────────
   const fetchRevenueAnalytics = () => {
-    revenueLoading.value = true
+    revenueLoading.value = true;
 
     const successHandler = (res) => {
-      revenueAnalytics.value = res?.data || null
+      revenueAnalytics.value = res?.data || null;
 
-      revenueLoading.value = false
-    }
+      revenueLoading.value = false;
+    };
 
     const failureHandler = (err) => {
-      revenueLoading.value = false
+      revenueLoading.value = false;
 
-      error.value = err
+      error.value = err;
 
       snackbar.show(
-        err?.message || 'Failed to fetch revenue analytics.',
-        'error'
-      )
-    }
+        err?.message || "Failed to fetch revenue analytics.",
+        "error",
+      );
+    };
 
     apiRequest(urls.KEYS.GET, urls.dashboard.revenueAnalytics, {
       isTokenRequired: true,
@@ -91,54 +113,59 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
       onSuccess: successHandler,
       onFailure: failureHandler,
-    })
-  }
+    });
+  };
 
   // ─── Filters ──────────────────────────────────────────────
   const setRevenueFilters = (nextFilters = {}) => {
-    Object.assign(revenueFilters, nextFilters)
-  }
+    Object.assign(revenueFilters, nextFilters);
+  };
 
   const applyRevenueFilters = () => {
-    fetchRevenueAnalytics()
-  }
+    fetchRevenueAnalytics();
+  };
 
   const resetRevenueFilters = () => {
-    revenueFilters.range = 'weekly'
+    revenueFilters.range = "weekly";
 
-    fetchRevenueAnalytics()
-  }
+    fetchRevenueAnalytics();
+  };
 
   const setDashboardFilters = (nextFilters = {}) => {
-    Object.assign(dashboardFilters, nextFilters)
-  }
+    Object.assign(dashboardFilters, nextFilters);
+  };
 
   const applyDashboardFilters = () => {
-    fetchDashboard()
-  }
+    fetchDashboard();
+  };
 
   const resetDashboardFilters = () => {
-    dashboardFilters.start_date = ''
-    dashboardFilters.end_date = ''
+    dashboardFilters.start_date = "";
+    dashboardFilters.end_date = "";
 
-    fetchDashboard()
-  }
+    fetchDashboard();
+  };
 
   // ─── Reset ────────────────────────────────────────────────
   const reset = () => {
-    dashboard.value = null
-    revenueAnalytics.value = null
+    dashboard.value = null;
+    revenueAnalytics.value = null;
 
-    dashboardLoading.value = false
-    revenueLoading.value = false
+    dashboardLoading.value = false;
+    revenueLoading.value = false;
 
-    error.value = null
+    error.value = null;
 
-    revenueFilters.range = 'weekly'
+    revenueFilters.range = "weekly";
 
-    dashboardFilters.start_date = ''
-    dashboardFilters.end_date = ''
-  }
+    dashboardFilters.start_date = "";
+    dashboardFilters.end_date = "";
+  };
+
+  const updateUserAccountsFromSocket = (data) => {
+    if (!data) return;
+    userAccounts.value = data;
+  };
 
   return {
     dashboard,
@@ -152,8 +179,13 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
     error,
 
+    userAccounts,
+    userAccountsLoading,
+
     fetchDashboard,
     fetchRevenueAnalytics,
+    fetchLiveUserAccounts,
+    updateUserAccountsFromSocket,
 
     setRevenueFilters,
     applyRevenueFilters,
@@ -164,5 +196,5 @@ export const useDashboardStore = defineStore('dashboard', () => {
     resetDashboardFilters,
 
     reset,
-  }
-})
+  };
+});

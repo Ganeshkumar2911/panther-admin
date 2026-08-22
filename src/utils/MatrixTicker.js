@@ -6,7 +6,20 @@ class MatrixTicker {
       typeof window !== "undefined" &&
       window.location.hostname === "admin.panthercapitals.com";
 
-    const DEV_WS_URL = "https://zpj8dpf6-2504.inc1.devtunnels.ms/";
+    const customBaseUrl =
+      typeof window !== "undefined"
+        ? localStorage.getItem("custom_base_url")
+        : null;
+
+    let customWsUrl = null;
+    if (customBaseUrl) {
+      customWsUrl = customBaseUrl.trim().replace(/\/admin\/?$/, "");
+      if (!customWsUrl.endsWith("/")) {
+        customWsUrl += "/";
+      }
+    }
+
+    const DEV_WS_URL = "https://admin.panthercapitals.com/";
     const PROD_WS_URL = isProdDomain
       ? "https://admin.panthercapitals.com/"
       : "https://1pz4zm0b-2504.euw.devtunnels.ms/";
@@ -18,7 +31,9 @@ class MatrixTicker {
         window.location.hostname.includes("devtunnels.ms") ||
         window.location.port !== "");
 
-    this.root = isProdDomain ? PROD_WS_URL : isDev ? DEV_WS_URL : PROD_WS_URL;
+    this.root =
+      customWsUrl ||
+      (isProdDomain ? PROD_WS_URL : isDev ? DEV_WS_URL : PROD_WS_URL);
     this.token = token;
 
     this.auto_reconnect = reconnect;
@@ -44,6 +59,7 @@ class MatrixTicker {
       new_deposit: [],
       new_withdrawal: [],
       new_notification: [],
+      live_user_count_update: [],
     };
 
     this.current_reconnection_count = 0;
@@ -127,6 +143,10 @@ class MatrixTicker {
 
     this.ws.on("new_notification", (data) => {
       this.trigger("new_notification", [data]);
+    });
+
+    this.ws.on("live_user_count_update", (data) => {
+      this.trigger("live_user_count_update", [data]);
     });
   }
 
