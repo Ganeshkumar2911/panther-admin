@@ -107,9 +107,9 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-  position: {
-    type: String,
-    default: "bottom", // 'bottom' | 'top'
+  disabled: {
+    type: Boolean,
+    default: false,
   },
 });
 
@@ -358,6 +358,7 @@ function scrollToHighlighted() {
 }
 
 function toggle() {
+  if (props.disabled) return;
   isOpen.value = !isOpen.value;
   if (isOpen.value) {
     searchQuery.value = "";
@@ -520,10 +521,13 @@ onBeforeUnmount(() => {
       ref="triggerRef"
       type="button"
       :aria-expanded="isOpen"
-      aria-haspopup="listbox"
+      :disabled="disabled"
       @click="toggle"
       :class="[
-        'flex items-center justify-between w-full min-w-0 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out focus:outline-none cursor-pointer select-none border border-primary-border',
+        'flex items-center justify-between w-full min-w-0 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out focus:outline-none select-none border border-primary-border',
+        disabled
+          ? 'opacity-60 cursor-not-allowed bg-background/50 pointer-events-none'
+          : 'cursor-pointer',
         triggerBgClass,
       ]"
     >

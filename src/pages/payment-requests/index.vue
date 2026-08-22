@@ -80,22 +80,12 @@
         />
 
         <!-- Date Range -->
-        <div
-          class="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:w-[310px] xl:flex-none"
-        >
-          <input
-            v-model="store.filters.from_date"
-            type="date"
-            class="w-full px-3 py-2 text-xs rounded-lg bg-background border border-primary-border text-primary-text outline-none focus:border-primary transition-colors"
-            @change="onDateChange"
-          />
-          <input
-            v-model="store.filters.to_date"
-            type="date"
-            class="w-full px-3 py-2 text-xs rounded-lg bg-background border border-primary-border text-primary-text outline-none focus:border-primary transition-colors"
-            @change="onDateChange"
-          />
-        </div>
+        <BaseDatePicker
+          v-model="dateRangeValue"
+          :range="true"
+          placeholder="Filter by date range..."
+          class="w-full sm:w-60 xl:w-64"
+        />
 
         <BaseSelect
           :modelValue="store.pagination.per_page"
@@ -487,7 +477,7 @@
 </template>
 
 <script setup>
-import { onMounted, computed, ref } from "vue";
+import { onMounted, computed, ref, watch } from "vue";
 import { Receipt, Check, X, RefreshCw, Copy } from "lucide-vue-next";
 import { usePaymentRequestsStore } from "@/stores/paymentRequests/paymentRequests";
 import { useProfileStore } from "@/stores/profile/profile";
@@ -559,10 +549,12 @@ const onClientSearch = (q) => {
   clearTimeout(clientTimer);
   clientTimer = setTimeout(async () => {
     const res = await store.fetchAllClients(q);
+
     const data = res?.data || res || [];
     clientOptions.value = (data || []).map((c) => ({
-      label: c.label || c.email,
+      label: c.label,
       value: c.value,
+      email: c.email,
     }));
   }, 350);
 };
@@ -591,12 +583,31 @@ const statusOptions = [
   { label: "Rejected", value: "rejected" },
 ];
 
-// ── Date range: only apply when both dates selected ──
-const onDateChange = () => {
-  if (store.filters.from_date && store.filters.to_date) {
+// ── Date range computed wrapper for BaseDatePicker ──
+const dateRangeValue = computed({
+  get() {
+    if (store.filters.from_date || store.filters.to_date) {
+      return {
+        start: store.filters.from_date || null,
+        end: store.filters.to_date || null,
+      };
+    }
+    return null;
+  },
+  set(val) {
+    if (!val) {
+      store.filters.from_date = "";
+      store.filters.to_date = "";
+    } else if (Array.isArray(val)) {
+      store.filters.from_date = val[0] || "";
+      store.filters.to_date = val[1] || "";
+    } else if (typeof val === "object") {
+      store.filters.from_date = val.start || val.from || "";
+      store.filters.to_date = val.end || val.to || "";
+    }
     store.applyFilters();
-  }
-};
+  },
+});
 
 // ── Filters active check ──
 const hasFilters = computed(

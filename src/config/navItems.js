@@ -194,5 +194,9 @@ export const navItems = [
     to: "/tags",
     icon: Tag,
     permission: "tags.view",
+    label: "System Settings",
+    to: "/settings",
+    icon: Settings,
+    permission: ["system_setting.view"],
   },
 ];

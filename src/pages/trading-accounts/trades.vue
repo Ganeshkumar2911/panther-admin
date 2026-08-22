@@ -478,19 +478,5 @@ const formatDate = (val) =>
     year: "numeric",
   });
 
-// update ticker subscriptions based on symbols present in the trade list
-watch(
-  () => store.data,
-  (newData) => {
-    if (newData && newData.length > 0) {
-      const uniqueSymbols = [
-        ...new Set(newData.map((trade) => trade.symbol)),
-      ].filter(Boolean);
-      tickerStore.updateTickerList(uniqueSymbols);
-    }
-  },
-  { deep: true },
-);
-
 onMounted(() => store.fetchTrades(accountId, store.side));
 </script>

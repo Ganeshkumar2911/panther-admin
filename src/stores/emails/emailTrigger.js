@@ -1,372 +1,334 @@
-import { defineStore } from 'pinia'
-import { ref, reactive } from 'vue'
+import { defineStore } from "pinia";
+import { ref, reactive } from "vue";
 
-import apiRequest from '@/api/request'
-import urls from '@/api/urls'
+import apiRequest from "@/api/request";
+import urls from "@/api/urls";
 
-import { useSnackbarStore } from '@/stores/snackbar/snackbar'
+import { useSnackbarStore } from "@/stores/snackbar/snackbar";
 
-export const useEmailTriggerStore = defineStore(
-  'emailTrigger',
-  () => {
-    const snackbar = useSnackbarStore()
+export const useEmailTriggerStore = defineStore("emailTrigger", () => {
+  const snackbar = useSnackbarStore();
 
-    // ─────────────────────────────────────
-    // State
-    // ─────────────────────────────────────
+  // ─────────────────────────────────────
+  // State
+  // ─────────────────────────────────────
 
-    const loading = ref(false)
+  const loading = ref(false);
 
-    const sendLoading = ref(false)
+  const sendLoading = ref(false);
 
-    const searchTemplatesLoading = ref(false)
+  const searchTemplatesLoading = ref(false);
 
-    const searchClientsLoading = ref(false)
+  const searchClientsLoading = ref(false);
 
-    const error = ref(null)
+  const error = ref(null);
 
-    const isFetched = ref(false)
+  const isFetched = ref(false);
 
-    // ─────────────────────────────────────
-    // Existing Template Flow
-    // ─────────────────────────────────────
+  // ─────────────────────────────────────
+  // Existing Template Flow
+  // ─────────────────────────────────────
 
-    const selectedTemplate = ref(null)
+  const selectedTemplate = ref(null);
 
-    const templateOptions = ref([])
+  const templateOptions = ref([]);
 
-    const selectedRecipients = ref([])
+  const selectedRecipients = ref([]);
 
-    // ─────────────────────────────────────
-    // Custom Email Flow
-    // ─────────────────────────────────────
+  // ─────────────────────────────────────
+  // Custom Email Flow
+  // ─────────────────────────────────────
 
-    const customEmail = reactive({
-      subject: '',
-      body_html: '',
-      variables: [],
-    })
+  const customEmail = reactive({
+    subject: "",
+    body_html: "",
+    tag: "",
+    variables: [],
+  });
 
-    // ─────────────────────────────────────
-    // Client Search
-    // ─────────────────────────────────────
+  // ─────────────────────────────────────
+  // Client Search
+  // ─────────────────────────────────────
 
-    const clientOptions = ref([])
+  const clientOptions = ref([]);
 
-    // ─────────────────────────────────────
-    // Parse Variables
-    // ─────────────────────────────────────
+  // ─────────────────────────────────────
+  // Parse Variables
+  // ─────────────────────────────────────
 
-    const parseVariables = (html = '') => {
-      const matches =
-        html.match(/{{(.*?)}}/g)?.map(item =>
-          item.replace('{{', '').replace('}}', '').trim()
-        ) || []
+  const parseVariables = (html = "") => {
+    const matches =
+      html
+        .match(/{{(.*?)}}/g)
+        ?.map((item) => item.replace("{{", "").replace("}}", "").trim()) || [];
 
-      return [...new Set(matches)]
+    return [...new Set(matches)];
+  };
+
+  // ─────────────────────────────────────
+  // Search Templates
+  // ─────────────────────────────────────
+
+  const searchTemplates = (search = "") => {
+    searchTemplatesLoading.value = true;
+
+    const successHandler = (res) => {
+      templateOptions.value = (res?.data || []).map((template) => ({
+        label: template.name,
+        value: template.id,
+        ...template,
+      }));
+
+      searchTemplatesLoading.value = false;
+    };
+
+    const failureHandler = (err) => {
+      searchTemplatesLoading.value = false;
+
+      error.value = err;
+
+      snackbar.show(err?.message || "Failed to fetch templates.", "error");
+    };
+
+    apiRequest(urls.KEYS.GET, urls.emailTemplates.list, {
+      params: {
+        search,
+      },
+
+      isTokenRequired: true,
+
+      onSuccess: successHandler,
+
+      onFailure: failureHandler,
+    });
+  };
+
+  // ─────────────────────────────────────
+  // Search Clients
+  // ─────────────────────────────────────
+
+  const searchClients = (search = "") => {
+    searchClientsLoading.value = true;
+
+    const successHandler = (res) => {
+      clientOptions.value = (res?.data || []).map((client) => ({
+        label: `${client.name} (${client.email})`,
+        value: client.id,
+        email: client.email,
+        name: client.name,
+      }));
+
+      searchClientsLoading.value = false;
+    };
+
+    const failureHandler = (err) => {
+      searchClientsLoading.value = false;
+
+      error.value = err;
+
+      snackbar.show(err?.message || "Failed to fetch clients.", "error");
+    };
+
+    apiRequest(urls.KEYS.GET, urls.clientLedger.allClients, {
+      params: {
+        search,
+      },
+
+      isTokenRequired: true,
+
+      onSuccess: successHandler,
+
+      onFailure: failureHandler,
+    });
+  };
+
+  // ─────────────────────────────────────
+  // Send Existing Template
+  // ─────────────────────────────────────
+
+  const sendTemplateEmail = (targetGroup = null) => {
+    if (!selectedTemplate.value) {
+      snackbar.show("Please select a template.", "error");
+      return;
     }
-
-    // ─────────────────────────────────────
-    // Search Templates
-    // ─────────────────────────────────────
-
-    const searchTemplates = (search = '') => {
-      searchTemplatesLoading.value = true
-
-      const successHandler = (res) => {
-        templateOptions.value = (res?.data || []).map(template => ({
-          label: template.name,
-          value: template.id,
-          ...template,
-        }))
-
-        searchTemplatesLoading.value = false
-      }
-
-      const failureHandler = (err) => {
-        searchTemplatesLoading.value = false
-
-        error.value = err
-
-        snackbar.show(
-          err?.message || 'Failed to fetch templates.',
-          'error'
-        )
-      }
-
-      apiRequest(
-        urls.KEYS.GET,
-        urls.emailTemplates.list,
-        {
-          params: {
-            search,
-          },
-
-          isTokenRequired: true,
-
-          onSuccess: successHandler,
-
-          onFailure: failureHandler,
-        }
-      )
-    }
-
-    // ─────────────────────────────────────
-    // Search Clients
-    // ─────────────────────────────────────
-
-    const searchClients = (search = '') => {
-      searchClientsLoading.value = true
-
-      const successHandler = (res) => {
-        clientOptions.value = (res?.data || []).map(client => ({
-          label: `${client.name} (${client.email})`,
-          value: client.id,
-          email: client.email,
-          name: client.name,
-        }))
-
-        searchClientsLoading.value = false
-      }
-
-      const failureHandler = (err) => {
-        searchClientsLoading.value = false
-
-        error.value = err
-
-        snackbar.show(
-          err?.message || 'Failed to fetch clients.',
-          'error'
-        )
-      }
-
-      apiRequest(
-        urls.KEYS.GET,
-        urls.clientLedger.allClients,
-        {
-          params: {
-            search,
-          },
-
-          isTokenRequired: true,
-
-          onSuccess: successHandler,
-
-          onFailure: failureHandler,
-        }
-      )
-    }
-
-    // ─────────────────────────────────────
-    // Send Existing Template
-    // ─────────────────────────────────────
-
-    const sendTemplateEmail = (targetGroup = null) => {
-      if (!selectedTemplate.value) {
-        snackbar.show('Please select a template.', 'error')
-        return
-      }
 
     if (!targetGroup && !selectedRecipients.value.length) {
-    snackbar.show('Please select recipients.', 'error')
-    return
-  }
-
-      sendLoading.value = true
-
-      const payload = {
-         emails: targetGroup || selectedRecipients.value.map(item => item.email),
-
-
-        template_code: selectedTemplate.value.code,
-
-        variables:
-          selectedTemplate.value.available_variables || [],
-      }
-
-      const successHandler = (res) => {
-        sendLoading.value = false
-
-        snackbar.show(
-          res?.message || 'Email sent successfully.',
-          'success'
-        )
-
-        if (onSuccessCallback) {
-          onSuccessCallback()
-        }
-      }
-
-      const failureHandler = (err) => {
-        sendLoading.value = false
-
-        error.value = err
-
-        snackbar.show(
-          err?.message || 'Failed to send email.',
-          'error'
-        )
-      }
-
-      apiRequest(
-        urls.KEYS.POST,
-        urls.emailTemplates.manual,
-        {
-          data: payload,
-
-          isTokenRequired: true,
-
-          onSuccess: successHandler,
-
-          onFailure: failureHandler,
-        }
-      )
+      snackbar.show("Please select recipients.", "error");
+      return;
     }
 
-    // ─────────────────────────────────────
-    // Send Custom Email
-    // ─────────────────────────────────────
+    sendLoading.value = true;
 
-    const sendCustomEmail = (targetGroup = null) => {
-      if (!customEmail.subject) {
-        snackbar.show('Subject is required.', 'error')
-        return
+    const payload = {
+      emails: targetGroup || selectedRecipients.value.map((item) => item.email),
+
+      template_code: selectedTemplate.value.code,
+
+      variables: selectedTemplate.value.available_variables || [],
+    };
+
+    const successHandler = (res) => {
+      sendLoading.value = false;
+
+      snackbar.show(res?.message || "Email sent successfully.", "success");
+
+      if (onSuccessCallback) {
+        onSuccessCallback();
       }
+    };
 
-      if (!customEmail.body_html) {
-        snackbar.show('Email body is required.', 'error')
-        return
-      }
+    const failureHandler = (err) => {
+      sendLoading.value = false;
 
-      if (!targetGroup && !selectedRecipients.value.length) {
-    snackbar.show('Please select recipients.', 'error')
-    return
-  }
+      error.value = err;
 
-      sendLoading.value = true
+      snackbar.show(err?.message || "Failed to send email.", "error");
+    };
 
-      const payload = {
-         emails: targetGroup || selectedRecipients.value.map(item => item.email),
+    apiRequest(urls.KEYS.POST, urls.emailTemplates.manual, {
+      data: payload,
 
+      isTokenRequired: true,
 
-        subject: customEmail.subject,
+      onSuccess: successHandler,
 
-        body_html: customEmail.body_html,
+      onFailure: failureHandler,
+    });
+  };
 
-        variables: parseVariables(
-          customEmail.body_html
-        ),
-      }
+  // ─────────────────────────────────────
+  // Send Custom Email
+  // ─────────────────────────────────────
 
-      const successHandler = (res) => {
-        sendLoading.value = false
-
-        snackbar.show(
-          res?.message || 'Email sent successfully.',
-          'success'
-        )
-
-        if (onSuccessCallback) {
-          onSuccessCallback()
-        }
-      }
-
-      const failureHandler = (err) => {
-        sendLoading.value = false
-
-        error.value = err
-
-        snackbar.show(
-          err?.message || 'Failed to send email.',
-          'error'
-        )
-      }
-
-      apiRequest(
-        urls.KEYS.POST,
-        urls.emailTemplates.manual,
-        {
-          data: payload,
-
-          isTokenRequired: true,
-
-          onSuccess: successHandler,
-
-          onFailure: failureHandler,
-        }
-      )
+  const sendCustomEmail = (targetGroup = null) => {
+    // alert("clicked")
+    if (!customEmail.subject) {
+      snackbar.show("Subject is required.", "error");
+      return;
     }
 
-    // ─────────────────────────────────────
-    // Reset
-    // ─────────────────────────────────────
-
-    const reset = () => {
-      loading.value = false
-
-      sendLoading.value = false
-
-      searchTemplatesLoading.value = false
-
-      searchClientsLoading.value = false
-
-      error.value = null
-
-      isFetched.value = false
-
-      selectedTemplate.value = null
-
-      templateOptions.value = []
-
-      selectedRecipients.value = []
-
-      clientOptions.value = []
-
-      Object.assign(customEmail, {
-        subject: '',
-        body_html: '',
-        variables: [],
-      })
+    if (!customEmail.body_html) {
+      snackbar.show("Email body is required.", "error");
+      return;
     }
 
-    // ─────────────────────────────────────
-    // Success Callback
-    // ─────────────────────────────────────
-
-    let onSuccessCallback = null
-
-    const setOnSuccessCallback = (callback) => {
-      onSuccessCallback = callback
+    if (!targetGroup && !selectedRecipients.value.length) {
+      snackbar.show("Please select recipients.", "error");
+      return;
     }
 
-    return {
-      loading,
-      sendLoading,
-      searchTemplatesLoading,
-      searchClientsLoading,
+    sendLoading.value = true;
 
-      error,
-      isFetched,
+    const payload = {
+      emails: targetGroup || selectedRecipients.value.map((item) => item.email),
 
-      selectedTemplate,
-      templateOptions,
+      subject: customEmail.subject,
 
-      selectedRecipients,
-      clientOptions,
+      body_html: customEmail.body_html,
 
-      customEmail,
+      tag: customEmail.tag,
 
-      searchTemplates,
-      searchClients,
+      variables: parseVariables(customEmail.body_html),
+    };
 
-      parseVariables,
+    const successHandler = (res) => {
+      sendLoading.value = false;
 
-      sendTemplateEmail,
-      sendCustomEmail,
+      snackbar.show(res?.message || "Email sent successfully.", "success");
 
-      reset,
+      if (onSuccessCallback) {
+        onSuccessCallback();
+      }
+    };
 
-      setOnSuccessCallback,
-    }
-  }
-)
+    const failureHandler = (err) => {
+      sendLoading.value = false;
+
+      error.value = err;
+
+      snackbar.show(err?.message || "Failed to send email.", "error");
+    };
+
+    apiRequest(urls.KEYS.POST, urls.emailTemplates.manual, {
+      data: payload,
+
+      isTokenRequired: true,
+
+      onSuccess: successHandler,
+
+      onFailure: failureHandler,
+    });
+  };
+
+  // ─────────────────────────────────────
+  // Reset
+  // ─────────────────────────────────────
+
+  const reset = () => {
+    loading.value = false;
+
+    sendLoading.value = false;
+
+    searchTemplatesLoading.value = false;
+
+    searchClientsLoading.value = false;
+
+    error.value = null;
+
+    isFetched.value = false;
+
+    selectedTemplate.value = null;
+
+    templateOptions.value = [];
+
+    selectedRecipients.value = [];
+
+    clientOptions.value = [];
+
+    Object.assign(customEmail, {
+      subject: "",
+      body_html: "",
+      variables: [],
+    });
+  };
+
+  // ─────────────────────────────────────
+  // Success Callback
+  // ─────────────────────────────────────
+
+  let onSuccessCallback = null;
+
+  const setOnSuccessCallback = (callback) => {
+    onSuccessCallback = callback;
+  };
+
+  return {
+    loading,
+    sendLoading,
+    searchTemplatesLoading,
+    searchClientsLoading,
+
+    error,
+    isFetched,
+
+    selectedTemplate,
+    templateOptions,
+
+    selectedRecipients,
+    clientOptions,
+
+    customEmail,
+
+    searchTemplates,
+    searchClients,
+
+    parseVariables,
+
+    sendTemplateEmail,
+    sendCustomEmail,
+
+    reset,
+
+    setOnSuccessCallback,
+  };
+});

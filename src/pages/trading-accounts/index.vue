@@ -14,6 +14,7 @@ import {
   Pencil,
   Power,
   Layers,
+  SlidersHorizontal,
 } from "lucide-vue-next";
 import Pagination from "@/components/common/Pagination.vue";
 import DropdownMenu from "@/components/common/DropdownMenu.vue";
@@ -22,6 +23,7 @@ import DepositWithdrawalDialog from "@/components/trading-accounts/DepositWithdr
 import AddEditAccount from "@/components/trading-accounts/AddEditAccount.vue";
 import ToggleTradingDialog from "@/components/trading-accounts/ToggleTradingDialog.vue";
 import ChangeTradingGroupDrawer from "@/components/trading-accounts/ChangeTradingGroupDrawer.vue";
+import ManageTransactionsDialog from "@/components/common/ManageTransactionsDialog.vue";
 import { useAccountsStore } from "@/stores/tradingAccounts/tradingAccounts";
 import { useProfileStore } from "@/stores/profile/profile";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
@@ -78,6 +80,11 @@ const toggleTradingDialog = ref({
 });
 
 const changeGroupDrawer = ref({
+  open: false,
+  account: null,
+});
+
+const manageTransactionsDialog = ref({
   open: false,
   account: null,
 });
@@ -234,7 +241,11 @@ const closeDepositWithdrawalDialog = () => {
 
 const openToggleTrading = (acc) => {
   if (!hasPermission("trading_account.update")) return;
-  if (acc?.account_type === "copy_trading" || acc?.trading_type === "copy_trading") return;
+  if (
+    acc?.account_type === "copy_trading" ||
+    acc?.trading_type === "copy_trading"
+  )
+    return;
   toggleTradingDialog.value = {
     open: true,
     account: acc,
@@ -257,6 +268,20 @@ const openChangeGroup = (acc) => {
 
 const closeChangeGroup = () => {
   changeGroupDrawer.value = {
+    open: false,
+    account: null,
+  };
+};
+
+const openManageTransactions = (acc) => {
+  manageTransactionsDialog.value = {
+    open: true,
+    account: acc,
+  };
+};
+
+const closeManageTransactions = () => {
+  manageTransactionsDialog.value = {
     open: false,
     account: null,
   };
@@ -335,6 +360,11 @@ function getRowActions(acc) {
       { action: "deposit", label: "Deposit", icon: DollarSign },
       { action: "withdraw", label: "Withdraw", icon: ArrowDownUp },
       {
+        action: "manageRestrictions",
+        label: "Manage Restrictions",
+        icon: SlidersHorizontal,
+      },
+      {
         action: "changePassword",
         label: "Change Password",
         icon: RotateCcwKey,
@@ -352,13 +382,17 @@ function getRowActions(acc) {
         icon: Power,
         danger: acc.is_active,
         success: !acc.is_active,
-        hidden: acc.trading_type === "copy_trading" || acc.account_type === "copy_trading",
+        hidden:
+          acc.trading_type === "copy_trading" ||
+          acc.account_type === "copy_trading",
       },
       {
         action: "changeGroup",
         label: "Change Trading Group",
         icon: Layers,
-        hidden: acc.trading_type === "copy_trading" || acc.account_type === "copy_trading",
+        hidden:
+          acc.trading_type === "copy_trading" ||
+          acc.account_type === "copy_trading",
       },
     );
   }
@@ -384,6 +418,10 @@ function onMenuSelect(item, acc) {
       setActiveCurrency(acc);
       openDepositWithdrawalDialog(acc, "withdrawal");
       break;
+    case "manageRestrictions":
+      setActiveCurrency(acc);
+      openManageTransactions(acc);
+      break;
     case "changePassword":
       setActiveCurrency(acc);
       openChangePassword(acc);
@@ -408,7 +446,8 @@ onMounted(() => {
     profile.fetchUserProfile();
   }
 
-  const querySearch = route.query.search || route.query.search_query || route.query.email;
+  const querySearch =
+    route.query.search || route.query.search_query || route.query.email;
   if (querySearch) {
     store.setFilters({
       search_query: String(querySearch).trim(),
@@ -426,7 +465,7 @@ watch(
         search_query: String(newSearch).trim(),
       });
     }
-  }
+  },
 );
 
 onBeforeUnmount(() => clearTimeout(searchTimer));
@@ -856,11 +895,17 @@ onBeforeUnmount(() => clearTimeout(searchTimer));
                 class="text-[11px] font-medium px-2.5 py-1 rounded-full capitalize whitespace-nowrap text-white transition-all flex items-center gap-1"
                 :class="[
                   acc.is_active ? 'bg-primary-green/100' : 'bg-primary-red/100',
-                  hasPermission('trading_account.update') && acc.account_type !== 'copy_trading' && acc.trading_type !== 'copy_trading'
+                  hasPermission('trading_account.update') &&
+                  acc.account_type !== 'copy_trading' &&
+                  acc.trading_type !== 'copy_trading'
                     ? 'hover:opacity-80 active:scale-95 cursor-pointer'
-                    : 'cursor-not-allowed opacity-80'
+                    : 'cursor-not-allowed opacity-80',
                 ]"
-                :disabled="!hasPermission('trading_account.update') || acc.account_type === 'copy_trading' || acc.trading_type === 'copy_trading'"
+                :disabled="
+                  !hasPermission('trading_account.update') ||
+                  acc.account_type === 'copy_trading' ||
+                  acc.trading_type === 'copy_trading'
+                "
                 @click="openToggleTrading(acc)"
               >
                 {{ acc.is_active ? "Active" : "Inactive" }}
@@ -923,6 +968,13 @@ onBeforeUnmount(() => clearTimeout(searchTimer));
       :account="changeGroupDrawer.account"
       @close="closeChangeGroup"
       @updated="store.fetchAccounts()"
+    />
+
+    <ManageTransactionsDialog
+      :open="manageTransactionsDialog.open"
+      :account="manageTransactionsDialog.account"
+      @close="closeManageTransactions"
+      @success="store.fetchAccounts(true)"
     />
   </div>
 </template>

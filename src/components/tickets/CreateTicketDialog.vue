@@ -51,11 +51,22 @@
           <p class="text-xs text-secondary-text mb-1.5">
             Subject <span class="text-primary-red">*</span>
           </p>
+          <BaseSelect
+            v-model="form.subjectCategory"
+            :options="subjectOptions"
+            placeholder="Select subject"
+          />
+        </div>
+
+        <div v-if="form.subjectCategory === 'others'">
+          <p class="text-xs text-secondary-text mb-1.5">
+            Please specify other issue <span class="text-primary-red">*</span>
+          </p>
           <input
             ref="firstInput"
             v-model="form.subject"
             type="text"
-            placeholder="e.g. MT5 Deposit Issue"
+            placeholder="Describe the issue"
             :disabled="platformTicketsStore.actionLoading"
             class="w-full px-3 py-2.5 rounded-lg bg-background border border-primary-border text-primary-text text-sm outline-none focus:border-primary transition-colors placeholder:text-secondary-text disabled:opacity-50"
           />
@@ -146,6 +157,7 @@ const firstInput = ref(null);
 
 const form = ref({
   user_id: null,
+  subjectCategory: null,
   subject: "",
   description: "",
   priority: "medium",
@@ -155,6 +167,15 @@ const form = ref({
 const clientOptions = ref([]);
 const isSearchingClients = ref(false);
 let clientSearchTimer = null;
+
+const subjectOptions = [
+  { label: "Deposit & Withdrawal", value: "Deposit & Withdrawal" },
+  { label: "Trading (MT5)", value: "Trading (MT5)" },
+  { label: "Copy Trading", value: "Copy Trading" },
+  { label: "Promotion", value: "Promotion" },
+  { label: "Introducing broker", value: "Introducing broker" },
+  { label: "Others issue", value: "others" },
+];
 
 const priorityOptions = [
   { label: "Low", value: "low" },
@@ -173,10 +194,17 @@ const dueAtOptions = [
 ];
 
 const isValid = computed(() => {
+  const hasUser = Boolean(form.value.user_id);
+  const hasCategory = Boolean(form.value.subjectCategory);
+  const hasDescription = Boolean(form.value.description?.trim());
+  const hasSubject =
+    form.value.subjectCategory === "others"
+      ? Boolean(form.value.subject?.trim())
+      : Boolean(form.value.subjectCategory);
+
   const hasRequiredFields =
-    form.value.user_id &&
-    form.value.subject.trim() &&
-    form.value.description.trim();
+    hasUser && hasCategory && hasSubject && hasDescription;
+
   if (form.value.priority === "urgent") {
     return hasRequiredFields && Boolean(form.value.due_at);
   }
@@ -209,12 +237,25 @@ watch(
     if (val) {
       form.value = {
         user_id: null,
+        subjectCategory: null,
         subject: "",
         description: "",
         priority: "medium",
         due_at: null,
       };
       onClientSearch("");
+      nextTick(() => firstInput.value?.focus());
+    }
+  },
+);
+
+watch(
+  () => form.value.subjectCategory,
+  (newCategory) => {
+    if (newCategory !== "others") {
+      form.value.subject = newCategory || "";
+    } else {
+      form.value.subject = "";
       nextTick(() => firstInput.value?.focus());
     }
   },
@@ -231,6 +272,14 @@ watch(
 
 const submit = () => {
   if (!isValid.value) return;
-  platformTicketsStore.createTicketForUser(form.value, () => emit("close"));
+  const payload = {
+    ...form.value,
+    subjectCategory: form.value.subjectCategory,
+    subject:
+      form.value.subjectCategory === "others"
+        ? form.value.subject
+        : form.value.subjectCategory,
+  };
+  platformTicketsStore.createTicketForUser(payload, () => emit("close"));
 };
 </script>

@@ -256,6 +256,24 @@
           >
             <Plus class="w-3.5 h-3.5" /> Create Ticket
           </button>
+
+          <Tooltip text="Refresh" position="right">
+            <button
+              type="button"
+              :disabled="platformTicketsStore.isLoading"
+              class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text transition-colors hover:text-primary-text hover:bg-background disabled:opacity-60 disabled:cursor-not-allowed"
+              @click="
+                () => {
+                  platformTicketsStore.fetchTickets(true);
+                }
+              "
+            >
+              <RefreshCw
+                class="h-3.5 w-3.5"
+                :class="{ 'animate-spin': platformTicketsStore.isLoading }"
+              />
+            </button>
+          </Tooltip>
         </div>
       </div>
 
@@ -564,7 +582,7 @@
 <script setup>
 import { onMounted, onBeforeUnmount, ref, computed, watch } from "vue";
 import { useRouter } from "vue-router";
-import { Search, Plus, Eye, Ticket as TicketIcon, Pencil, X } from "lucide-vue-next";
+import { Search, Plus, Eye, Ticket as TicketIcon, Pencil, X, RefreshCw } from "lucide-vue-next";
 import { useTicketsStore } from "@/stores/tickets/tickets";
 import { usePlatfromTicketsStore } from "@/stores/platformTickets/platformTickets";
 import { useRbacStaffStore } from "@/stores/rbac/staff";
@@ -710,7 +728,8 @@ const handleYourTicketsPageChange = (page) => {
 
 const priorityClass = (p) =>
   ({
-    urgent: "bg-primary-red/30 text-primary-red border border-primary-red/50 font-medium",
+    urgent:
+      "bg-primary-red/30 text-primary-red border border-primary-red/50 font-medium",
     high: "bg-primary-red/20 text-primary-red border border-primary-red/30",
     medium:
       "bg-primary-yellow/20 text-primary-yellow border border-primary-yellow/30",

@@ -61,7 +61,8 @@ const routes = [
         meta: {
           requiresAuth: true,
           title: "Lead Management",
-          description: "Track and manage leads throughout their onboarding journey.",
+          description:
+            "Track and manage leads throughout their onboarding journey.",
         },
       },
       {
@@ -177,6 +178,83 @@ const routes = [
           requiresAuth: true,
           title: "FM Settlement Preview",
           description: "Preview settlement details for a Fund Manager.",
+          showBackButton: true,
+        },
+      },
+      {
+        path: "/fm/settlement-preview/:id/user/:userId",
+        name: "fm-settlement-user-preview",
+        component: () => import("@/pages/fm-leaderboard/fmSettlementUser.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Client Settlement Details",
+          description: "Detailed client follower trades and commission splits.",
+          showBackButton: true,
+        },
+      },
+      {
+        path: "/fm/offers/:id",
+        name: "fm-offers",
+        component: () => import("@/pages/fm-leaderboard/fmOffers.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "FM Offers",
+          description: "View and manage offers for a Fund Manager.",
+          showBackButton: true,
+        },
+      },
+      {
+        path: "/fm-offers/:id",
+        name: "fm-offer-details",
+        component: () => import("@/pages/fm-leaderboard/offerDetails.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Offer Join Links & Agents",
+          description: "Manage campaign links, additional agents, and offer configuration.",
+          showBackButton: true,
+        },
+      },
+      {
+        path: "/fm/followers/:id",
+        name: "fm-followers",
+        component: () => import("@/pages/fm-leaderboard/fmFollowers.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "FM Followers & Clients",
+          description: "View followers and clients assigned to a Fund Manager.",
+          showBackButton: true,
+        },
+      },
+      {
+        path: "/follower-info/:id",
+        name: "follower-info",
+        component: () => import("@/pages/fm-leaderboard/followerDetails.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Follower Details",
+          description: "View subscription, account, and fee details for this follower.",
+          showBackButton: true,
+        },
+      },
+      {
+        path: "/fm/trade-book/:id",
+        name: "fm-trade-book",
+        component: () => import("@/pages/fmTradeBook/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Fund Manager Trade Book",
+          description: "Live positions, orders, and deal execution history for Fund Manager master account.",
+          showBackButton: true,
+        },
+      },
+      {
+        path: "/follower/trade-book/:id",
+        name: "follower-trade-book",
+        component: () => import("@/pages/fmTradeBook/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Follower Trade Book",
+          description: "Live positions, orders, and deal execution history for follower trading account.",
           showBackButton: true,
         },
       },
@@ -302,7 +380,8 @@ const routes = [
         meta: {
           requiresAuth: true,
           title: "Media Library",
-          description: "Manage image folders and media assets across the platform.",
+          description:
+            "Manage image folders and media assets across the platform.",
         },
       },
       {
@@ -332,6 +411,17 @@ const routes = [
         name: "mains",
         component: () => import("@/pages/e-mails/index.vue"),
         meta: {
+          requiresAuth: true,
+          title: "Email Management",
+          description: "Manage platfrom e-mails and templates",
+        },
+      },
+      {
+        path: "/e-mails/logs-details/:tagId",
+        name: "email-logs-details",
+        component: () => import("@/pages/e-mails/EmailLogDetails.vue"),
+        meta: {
+          showBackButton: true,
           requiresAuth: true,
           title: "Email Management",
           description: "Manage platfrom e-mails and templates",
@@ -417,6 +507,14 @@ const routes = [
           requiresAuth: true,
           title: "Tag Management",
           description: "Manage tags and entity assignments.",
+        path: "/settings",
+        name: "settings",
+        component: () => import("@/pages/settings/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "System Settings",
+          description:
+            "Configure system-wide settings, transaction restrictions, and miscellaneous platform settings.",
         },
       },
     ],
