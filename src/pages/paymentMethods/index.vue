@@ -137,7 +137,7 @@
             type="button"
             :disabled="store.updateLoading && togglingId === record.id"
             @click="toggleActive(record)"
-            class="relative w-11 h-6 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 focus:outline-none cursor-pointer"
+            class="relative w-11 h-6 rounded-full transition-colors shrink-0 disabled:opacity-50 focus:outline-none cursor-pointer"
             :class="record.is_active ? 'bg-primary' : 'bg-primary-border'"
           >
             <span

@@ -190,7 +190,7 @@
 
               <td class="p-3">
                 <span
-                  class="text-[10px] font-bold px-2 py-0.5 rounded-full border capitalize uppercase"
+                  class="text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase"
                   :class="String(row.order_type || row.type).toLowerCase() === 'buy'
                     ? 'bg-primary-green/20 text-green-700 border-green-300 dark:bg-primary-green/10 dark:text-green-400'
                     : 'bg-primary-red/20 text-red-700 border-red-300 dark:bg-primary-red/10 dark:text-red-400'"

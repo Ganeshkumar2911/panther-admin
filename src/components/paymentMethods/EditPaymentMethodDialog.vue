@@ -416,7 +416,7 @@
                     type="button"
                     :disabled="submitting"
                     @click="form.enable_deposit = !form.enable_deposit"
-                    class="relative w-11 h-6 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 focus:outline-none"
+                    class="relative w-11 h-6 rounded-full transition-colors shrink-0 disabled:opacity-50 focus:outline-none"
                     :class="
                       form.enable_deposit ? 'bg-primary' : 'bg-primary-border'
                     "
@@ -439,7 +439,7 @@
                     type="button"
                     :disabled="submitting"
                     @click="form.is_default_deposit = !form.is_default_deposit"
-                    class="relative w-11 h-6 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 focus:outline-none"
+                    class="relative w-11 h-6 rounded-full transition-colors shrink-0 disabled:opacity-50 focus:outline-none"
                     :class="
                       form.is_default_deposit
                         ? 'bg-primary'
@@ -476,7 +476,7 @@
                     type="button"
                     :disabled="submitting"
                     @click="form.enable_withdrawal = !form.enable_withdrawal"
-                    class="relative w-11 h-6 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 focus:outline-none"
+                    class="relative w-11 h-6 rounded-full transition-colors shrink-0 disabled:opacity-50 focus:outline-none"
                     :class="
                       form.enable_withdrawal
                         ? 'bg-primary'
@@ -505,7 +505,7 @@
                     @click="
                       form.is_default_withdrawal = !form.is_default_withdrawal
                     "
-                    class="relative w-11 h-6 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 focus:outline-none"
+                    class="relative w-11 h-6 rounded-full transition-colors shrink-0 disabled:opacity-50 focus:outline-none"
                     :class="
                       form.is_default_withdrawal
                         ? 'bg-primary'
@@ -542,7 +542,7 @@
                 type="button"
                 :disabled="submitting"
                 @click="form.is_active = !form.is_active"
-                class="relative w-11 h-6 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 focus:outline-none"
+                class="relative w-11 h-6 rounded-full transition-colors shrink-0 disabled:opacity-50 focus:outline-none"
                 :class="
                   form.is_active ? 'bg-primary-green' : 'bg-primary-border'
                 "
@@ -605,7 +605,7 @@
                   :key="email"
                   class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-background border border-primary-border text-primary-text text-xs font-medium"
                 >
-                  <span class="truncate max-w-[200px]">{{ email }}</span>
+                  <span class="truncate max-w-50">{{ email }}</span>
                   <button
                     type="button"
                     @click="removeEmail(idx)"

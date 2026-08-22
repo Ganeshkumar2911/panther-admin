@@ -274,7 +274,7 @@ const totalTagsCount = computed(() => tagsStore.pagination.total_items || 0)
             v-model="localSearch"
             type="text"
             placeholder="Search by name, slug..."
-            class="w-full h-[38px] pl-9 pr-8 text-xs rounded-lg border border-primary-border bg-background text-primary-text placeholder-secondary-text focus:outline-none focus:border-primary transition-colors"
+            class="w-full h-9.5 pl-9 pr-8 text-xs rounded-lg border border-primary-border bg-background text-primary-text placeholder-secondary-text focus:outline-none focus:border-primary transition-colors"
             @input="handleSearchInput"
           />
           <button
@@ -311,7 +311,7 @@ const totalTagsCount = computed(() => tagsStore.pagination.total_items || 0)
         <!-- Sort Order Toggle -->
         <button
           type="button"
-          class="h-[38px] px-3 rounded-lg border border-primary-border bg-background text-secondary-text hover:text-primary-text hover:bg-card-background transition-colors flex items-center justify-center gap-1.5 shrink-0 cursor-pointer select-none"
+          class="h-9.5 px-3 rounded-lg border border-primary-border bg-background text-secondary-text hover:text-primary-text hover:bg-card-background transition-colors flex items-center justify-center gap-1.5 shrink-0 cursor-pointer select-none"
           :title="`Sort order: ${tagsStore.filters.sort_order.toUpperCase()}`"
           @click="toggleSortOrder"
         >
@@ -323,7 +323,7 @@ const totalTagsCount = computed(() => tagsStore.pagination.total_items || 0)
         <button
           v-if="hasActiveFilters"
           type="button"
-          class="h-[38px] px-3 rounded-lg border border-primary-border bg-background text-secondary-text hover:text-primary-red hover:border-primary-red/30 transition-colors flex items-center gap-1.5 text-xs font-medium shrink-0 cursor-pointer"
+          class="h-9.5 px-3 rounded-lg border border-primary-border bg-background text-secondary-text hover:text-primary-red hover:border-primary-red/30 transition-colors flex items-center gap-1.5 text-xs font-medium shrink-0 cursor-pointer"
           title="Reset all filters"
           @click="resetFilters"
         >

@@ -4,7 +4,7 @@
       <Transition name="backdrop">
         <div
           v-if="open"
-          class="fixed inset-0 z-[100] bg-black/50"
+          class="fixed inset-0 z-100 bg-black/50"
           @click="emit('close')"
         />
       </Transition>
@@ -12,7 +12,7 @@
       <Transition name="drawer">
         <div
           v-if="open"
-          class="fixed right-0 top-0 bottom-0 z-[101] w-full max-w-lg bg-card-background border-l border-primary-border flex flex-col"
+          class="fixed right-0 top-0 bottom-0 z-101 w-full max-w-lg bg-card-background border-l border-primary-border flex flex-col"
           @click.stop
         >
           <!-- Header -->
@@ -32,7 +32,7 @@
                   </h2>
                   <span
                     v-if="store.unreadCount > 0"
-                    class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-primary text-white min-w-[18px] text-center"
+                    class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-primary text-white min-w-4.5 text-center"
                   >
                     {{ store.unreadCount }}
                   </span>
@@ -154,7 +154,7 @@
                 v-for="item in filteredMyNotifications"
                 :key="item.id"
                 class="relative px-5 py-4 hover:bg-background transition-colors"
-                :class="{ 'bg-primary/[0.02]': !item.is_read }"
+                :class="{ 'bg-primary/2': !item.is_read }"
               >
                 <!-- Unread bar -->
                 <div

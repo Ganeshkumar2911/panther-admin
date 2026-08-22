@@ -32,6 +32,9 @@ import DeleteClientDialog from "@/components/common/DeleteClientDialog.vue";
 import Tooltip from "@/components/common/Tooltip.vue";
 import UpdateReferralLinkDrawer from "@/components/common/UpdateReferralLinkDrawer.vue";
 import ClientLoginModal from "@/components/common/ClientLoginModal.vue";
+import ManageTransactionsDialog from "@/components/common/ManageTransactionsDialog.vue";
+import TagChip from "@/components/common/TagChip.vue";
+import TagAssignmentModal from "@/components/common/TagAssignmentModal.vue";
 import { useRouter } from "vue-router";
 import { useGoToTradingAccount } from "@/composables/useGoToTradingAccount";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
@@ -590,7 +593,7 @@ onMounted(() => {
           <button
             type="button"
             @click="toggleClientTagMode"
-            class="h-[38px] px-2 rounded-lg text-[10px] font-bold tracking-wider uppercase border transition-colors flex items-center justify-center shrink-0 cursor-pointer"
+            class="h-9.5 px-2 rounded-lg text-[10px] font-bold tracking-wider uppercase border transition-colors flex items-center justify-center shrink-0 cursor-pointer"
             :class="
               store.filters.tag_mode === 'and'
                 ? 'bg-primary-500/20 border-primary text-primary'
@@ -883,7 +886,7 @@ onMounted(() => {
             </td>
 
             <!-- Tags Column -->
-            <td class="p-3 max-w-[180px]" @click.stop>
+            <td class="p-3 max-w-45" @click.stop>
               <div class="flex flex-wrap items-center gap-1">
                 <TagChip
                   v-for="tag in client.tags || []"
@@ -1780,6 +1783,17 @@ onMounted(() => {
       :loading="assignDialog.loading"
       @confirm="handleConfirmAssignStaff"
       @cancel="handleCancelAssignStaff"
+    />
+
+    <!-- Tag Assignment Modal -->
+    <TagAssignmentModal
+      :open="tagModal.open"
+      :entity-type="tagModal.entityType"
+      :entity-id="tagModal.entityId"
+      :entity-ids="tagModal.entityIds"
+      :current-tags="tagModal.currentTags"
+      @close="tagModal.open = false"
+      @updated="handleTagModalUpdated"
     />
   </div>
 </template>
