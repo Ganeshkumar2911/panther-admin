@@ -25,7 +25,6 @@ export const useLeadStore = defineStore("lead", () => {
     priority: "",
     country: "",
     tag_ids: "",
-    tag_mode: "or",
   });
 
   const currentLead = ref(null);
@@ -74,7 +73,6 @@ export const useLeadStore = defineStore("lead", () => {
     if (filters.priority) params.priority = filters.priority;
     if (filters.country) params.country = filters.country;
     if (filters.tag_ids) params.tag_ids = filters.tag_ids;
-    if (filters.tag_mode) params.tag_mode = filters.tag_mode;
 
     return new Promise((resolve, reject) => {
       const successHandler = (res) => {
@@ -336,6 +334,7 @@ export const useLeadStore = defineStore("lead", () => {
     filters.source = "";
     filters.priority = "";
     filters.country = "";
+    filters.tag_ids = "";
     fetchLeads(1);
   };
 

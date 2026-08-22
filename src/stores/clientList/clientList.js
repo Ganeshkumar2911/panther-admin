@@ -19,7 +19,6 @@ export const useClientListStore = defineStore('clientList', () => {
     search: '',
     ib_id: '',
     tag_ids: '',
-    tag_mode: 'or',
   })
 
   const perPageOptions = [
@@ -54,10 +53,6 @@ export const useClientListStore = defineStore('clientList', () => {
 
     if (filters.tag_ids) {
       params.tag_ids = filters.tag_ids
-    }
-
-    if (filters.tag_mode) {
-      params.tag_mode = filters.tag_mode
     }
 
     return params
@@ -170,7 +165,6 @@ export const useClientListStore = defineStore('clientList', () => {
     filters.search = ''
     filters.ib_id = ''
     filters.tag_ids = ''
-    filters.tag_mode = 'or'
 
     ibOptions.value = []
 
@@ -191,7 +185,6 @@ export const useClientListStore = defineStore('clientList', () => {
     filters.search = ''
     filters.ib_id = ''
     filters.tag_ids = ''
-    filters.tag_mode = 'or'
 
     ibOptions.value = []
 

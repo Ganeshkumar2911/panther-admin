@@ -89,22 +89,30 @@ export const useTagsStore = defineStore("tags", () => {
 
   // 2. Search Tags (Autocomplete)
   const searchTags = (query = "", options = {}) => {
-    const cacheKey = `${query.trim().toLowerCase()}_${options.entityType || ""}_${options.assignableOnly !== false}_${options.status || ""}`;
+    const qTrimmed = query ? query.trim() : "";
+    const status = options.status || "active";
+    const sortBy = options.sortBy || options.sort_by || "usage_count";
+    const sortOrder = options.sortOrder || options.sort_order || "desc";
+    const page = options.page || 1;
+    const perPage = options.perPage || options.limit || options.per_page || 20;
+
+    const cacheKey = `${qTrimmed.toLowerCase()}_${status}_${sortBy}_${sortOrder}_${page}_${perPage}`;
     if (searchCache.has(cacheKey) && !options.force) {
       return Promise.resolve(searchCache.get(cacheKey));
     }
 
     const params = {
-      q: query,
-      assignable_only: options.assignableOnly !== false ? "true" : "false",
-      limit: options.limit || 20,
+      page,
+      per_page: perPage,
+      status,
+      sort_by: sortBy,
+      sort_order: sortOrder,
     };
-    if (options.status) params.status = options.status;
+    if (qTrimmed) params.search = qTrimmed;
     if (options.color) params.color = options.color;
-    if (options.entityType) params.entity_type = options.entityType;
 
     return new Promise((resolve, reject) => {
-      apiRequest(urls.KEYS.GET, urls.tags.search, {
+      apiRequest(urls.KEYS.GET, urls.tags.list, {
         isTokenRequired: true,
         params,
         onSuccess: (res) => {

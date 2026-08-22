@@ -53,7 +53,6 @@ watch(
     leadStore.filters.source,
     leadStore.filters.priority,
     leadStore.filters.tag_ids,
-    leadStore.filters.tag_mode,
   ],
   () => {
     leadStore.fetchLeads(1);
@@ -245,7 +244,6 @@ function handleImportCSV() {
       v-model:selectedSource="leadStore.filters.source"
       v-model:selectedPriority="leadStore.filters.priority"
       v-model:selectedTagIds="leadStore.filters.tag_ids"
-      v-model:selectedTagMode="leadStore.filters.tag_mode"
       :stages="leadStageStore.stages"
       :staff-list="rbacStaffStore.records"
       @reset-filters="leadStore.resetFilters"

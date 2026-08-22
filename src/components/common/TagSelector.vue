@@ -64,9 +64,11 @@ const performSearch = async (q) => {
   isOpen.value = true
   try {
     const results = await tagsStore.searchTags(q, {
-      assignableOnly: true,
-      entityType: props.entityType,
-      limit: 15,
+      page: 1,
+      perPage: 20,
+      status: 'active',
+      sortBy: 'usage_count',
+      sortOrder: 'desc',
     })
     searchResults.value = results
     lastSearchedQuery = q

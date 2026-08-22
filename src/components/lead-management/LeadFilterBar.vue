@@ -25,7 +25,6 @@ const props = defineProps({
   selectedPriority: { type: String, default: '' },
   selectedDate: { type: String, default: '' },
   selectedTagIds: { type: String, default: '' },
-  selectedTagMode: { type: String, default: 'or' },
 })
 
 const emit = defineEmits([
@@ -37,7 +36,6 @@ const emit = defineEmits([
   'update:selectedPriority',
   'update:selectedDate',
   'update:selectedTagIds',
-  'update:selectedTagMode',
   'reset-filters',
   'refresh',
 ])
@@ -115,11 +113,6 @@ const tagOptions = computed(() => {
   }
   return options
 })
-
-const toggleTagMode = () => {
-  const nextMode = props.selectedTagMode === 'and' ? 'or' : 'and'
-  emit('update:selectedTagMode', nextMode)
-}
 
 const hasActiveFilters = computed(() => {
   return (
@@ -217,25 +210,14 @@ const hasActiveFilters = computed(() => {
       </div>
 
       <!-- Tag Filter -->
-      <div class="w-full xl:w-44 shrink-0 flex items-center gap-1">
-        <div class="flex-1 min-w-0">
-          <BaseSelect
-            :model-value="selectedTagIds"
-            @update:model-value="emit('update:selectedTagIds', $event)"
-            :options="tagOptions"
-            placeholder="All Tags"
-            variant="surface"
-          />
-        </div>
-        <button
-          type="button"
-          @click="toggleTagMode"
-          class="h-[38px] px-2 rounded-lg text-[10px] font-bold tracking-wider uppercase border transition-colors flex items-center justify-center shrink-0 cursor-pointer"
-          :class="selectedTagMode === 'and' ? 'bg-primary-500/20 border-primary text-primary' : 'bg-background border-primary-border text-secondary-text hover:text-primary-text'"
-          :title="`Tag match mode: ${selectedTagMode.toUpperCase()} (click to switch to ${selectedTagMode === 'and' ? 'OR' : 'AND'})`"
-        >
-          {{ selectedTagMode.toUpperCase() }}
-        </button>
+      <div class="w-full xl:w-44 shrink-0">
+        <BaseSelect
+          :model-value="selectedTagIds"
+          @update:model-value="emit('update:selectedTagIds', $event)"
+          :options="tagOptions"
+          placeholder="All Tags"
+          variant="surface"
+        />
       </div>
     </div>
 

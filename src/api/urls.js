@@ -277,7 +277,7 @@ const urls = {
   },
   tags: {
     list: "/tags",
-    search: "/tags/search",
+    search: "/tags",
     limits: "/tags/limits",
     create: "/tags",
     byId: (id) => `/tags/${id}`,
@@ -286,7 +286,8 @@ const urls = {
     deactivate: (id) => `/tags/${id}/deactivate`,
     delete: (id) => `/tags/${id}`,
     assignments: (type, id) => `/tags/assignments/${type}/${id}`,
-    removeAssignment: (type, id, tagId) => `/tags/assignments/${type}/${id}/${tagId}`,
+    removeAssignment: (type, id, tagId) =>
+      `/tags/assignments/${type}/${id}/${tagId}`,
     bulkAssignments: (type) => `/tags/assignments/${type}/bulk`,
     leadTags: (leadId) => `/lead/${leadId}/tags`,
     removeLeadTag: (leadId, tagId) => `/lead/${leadId}/tags/${tagId}`,

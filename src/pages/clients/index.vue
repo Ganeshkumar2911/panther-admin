@@ -152,7 +152,9 @@ const onIbSearch = (query) => {
   ibSearchTimer = setTimeout(() => store.searchIbs(query), 350);
 };
 
-const hasFilters = computed(() => store.filters.search || store.filters.ib_id);
+const hasFilters = computed(
+  () => store.filters.search || store.filters.ib_id || store.filters.tag_ids
+);
 
 const handlePageChange = (page) => store.fetchClients(page);
 
@@ -534,11 +536,6 @@ const getKycClass = (status) => {
   return "bg-primary-red/10 text-primary-red border border-primary-red/20";
 };
 
-const toggleClientTagMode = () => {
-  store.filters.tag_mode = store.filters.tag_mode === "and" ? "or" : "and";
-  store.applyFilters();
-};
-
 onMounted(() => {
   store.fetchClients();
   tagsStore.fetchTags();
@@ -579,31 +576,14 @@ onMounted(() => {
           @update:modelValue="store.applyFilters()"
         />
 
-        <!-- Tag Filter & Mode -->
-        <div class="flex items-center gap-1 w-full sm:w-56 xl:w-56">
-          <div class="flex-1 min-w-0">
-            <BaseSelect
-              v-model="store.filters.tag_ids"
-              :options="tagOptions"
-              placeholder="All Tags..."
-              class="w-full"
-              @update:modelValue="store.applyFilters()"
-            />
-          </div>
-          <button
-            type="button"
-            @click="toggleClientTagMode"
-            class="h-9.5 px-2 rounded-lg text-[10px] font-bold tracking-wider uppercase border transition-colors flex items-center justify-center shrink-0 cursor-pointer"
-            :class="
-              store.filters.tag_mode === 'and'
-                ? 'bg-primary-500/20 border-primary text-primary'
-                : 'bg-background border-primary-border text-secondary-text hover:text-primary-text'
-            "
-            :title="`Tag match mode: ${(store.filters.tag_mode || 'or').toUpperCase()}`"
-          >
-            {{ (store.filters.tag_mode || "or").toUpperCase() }}
-          </button>
-        </div>
+        <!-- Tag Filter -->
+        <BaseSelect
+          v-model="store.filters.tag_ids"
+          :options="tagOptions"
+          placeholder="All Tags..."
+          class="w-full sm:w-56 xl:w-56"
+          @update:modelValue="store.applyFilters()"
+        />
 
         <button
           v-if="selectedClientIds.length > 0"
