@@ -917,15 +917,16 @@
                 <td class="py-3 px-3 text-right font-mono text-secondary-text">
                   {{ formatPrice(item.price_close ?? item.exit_price) }}
                 </td>
-                <td class="py-3 px-3 text-right font-mono font-bold">
+                <td class="py-3 px-3 text-right font-mono font-bold whitespace-nowrap">
                   <span
+                    class="tabular-nums transition-colors duration-200"
                     :class="
-                      Number(getTradePnl(item)) >= 0
+                      Number(livePNL(item)) >= 0
                         ? 'text-emerald-500'
                         : 'text-rose-500'
                     "
                   >
-                    {{ getTradePnl(item) }}
+                    {{ formatPnl(livePNL(item)) }}
                   </span>
                 </td>
                 <td
@@ -1682,13 +1683,7 @@ const formatCurrency = (val) => {
   return isUsc.value ? `${prefix}USC ${formatted}` : `${prefix}$${formatted}`;
 };
 
-const isOpenTrade = (trade) => {
-  if (!trade) return false;
-  const status = String(trade.status || "").toUpperCase();
-  if (status === "OPEN") return true;
-  if (status === "CLOSED") return false;
-  return Boolean(trade.is_open);
-};
+
 
 const formatPnl = (val) => {
   if (val === null || val === undefined || val === "") return "-";
@@ -1716,22 +1711,7 @@ const formatDate = (val) => {
   return formatTime(val);
 };
 
-const getTradePnl = (trade) => {
-  if (!trade) return 0;
 
-  if (isOpenTrade(trade)) {
-    let pnl = Number(livePNL(trade));
-    if (isNaN(pnl)) pnl = 0;
-    if (isUsc.value) {
-      pnl = pnl * 100;
-    }
-    return pnl;
-  }
-
-  const apiProfit = trade.profit ?? trade.profit_raw ?? trade.pnl ?? 0;
-  const num = Number(apiProfit);
-  return isNaN(num) ? 0 : num;
-};
 
 const goBack = () => {
   if (isFollowerMode.value) {
