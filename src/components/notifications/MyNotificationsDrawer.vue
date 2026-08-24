@@ -87,33 +87,24 @@
               />
             </div>
             <div class="grid grid-cols-3 gap-2">
-              <select
+              <BaseSelect
                 v-model="selectedReadStatus"
-                class="px-2 py-1.5 text-xs rounded-lg bg-background border border-primary-border text-primary-text outline-none focus:border-primary transition-colors"
-              >
-                <option :value="null">All Status</option>
-                <option value="unread">Unread</option>
-                <option value="read">Read</option>
-              </select>
-              <select
+                :options="readStatusOptions"
+                placeholder="All Status"
+                variant="surface"
+              />
+              <BaseSelect
                 v-model="selectedPriority"
-                class="px-2 py-1.5 text-xs rounded-lg bg-background border border-primary-border text-primary-text outline-none focus:border-primary transition-colors"
-              >
-                <option :value="null">All Priority</option>
-                <option value="HIGH">High</option>
-                <option value="MEDIUM">Medium</option>
-                <option value="LOW">Low</option>
-              </select>
-              <select
+                :options="priorityOptions"
+                placeholder="All Priority"
+                variant="surface"
+              />
+              <BaseSelect
                 v-model="selectedType"
-                class="px-2 py-1.5 text-xs rounded-lg bg-background border border-primary-border text-primary-text outline-none focus:border-primary transition-colors"
-              >
-                <option :value="null">All Types</option>
-                <option value="ANNOUNCEMENT">Announcement</option>
-                <option value="SYSTEM">System</option>
-                <option value="PROMOTION">Promotion</option>
-                <option value="ALERT">Alert</option>
-              </select>
+                :options="typeOptions"
+                placeholder="All Types"
+                variant="surface"
+              />
             </div>
           </div>
 
@@ -313,6 +304,7 @@ import {
   Loader2,
 } from "lucide-vue-next";
 import Tooltip from "../common/Tooltip.vue";
+import BaseSelect from "@/components/common/BaseSelect.vue";
 
 const props = defineProps({ open: { type: Boolean, default: false } });
 const emit = defineEmits(["close"]);
@@ -344,6 +336,27 @@ const searchQuery = ref("");
 const selectedReadStatus = ref(null);
 const selectedPriority = ref(null);
 const selectedType = ref(null);
+
+const readStatusOptions = [
+  { label: "All Status", value: null },
+  { label: "Unread", value: "unread" },
+  { label: "Read", value: "read" },
+];
+
+const priorityOptions = [
+  { label: "All Priority", value: null },
+  { label: "High", value: "HIGH" },
+  { label: "Medium", value: "MEDIUM" },
+  { label: "Low", value: "LOW" },
+];
+
+const typeOptions = [
+  { label: "All Types", value: null },
+  { label: "Announcement", value: "ANNOUNCEMENT" },
+  { label: "System", value: "SYSTEM" },
+  { label: "Promotion", value: "PROMOTION" },
+  { label: "Alert", value: "ALERT" },
+];
 
 watch(
   () => props.open,
