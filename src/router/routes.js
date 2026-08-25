@@ -129,6 +129,17 @@ const routes = [
         },
       },
       {
+        path: "/payment-requests/logs",
+        name: "payment-gateway-logs",
+        component: () => import("@/pages/payment-requests/logs.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Payment Gateway Logs",
+          description: "View and inspect payment gateway logs and transactions.",
+          showBackButton: true,
+        },
+      },
+      {
         path: "/payment-methods",
         name: "payment-methods",
         component: () => import("@/pages/paymentMethods/index.vue"),

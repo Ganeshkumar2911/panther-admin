@@ -98,17 +98,31 @@
         <!-- Clear -->
         <button
           v-if="hasFilters"
-          class="rounded-lg px-3 py-2 text-xs font-medium text-secondary-text hover:bg-background hover:text-primary-text transition-colors sm:flex-none"
+          class="rounded-lg px-3 py-2 text-xs font-medium text-secondary-text hover:bg-background hover:text-primary-text transition-colors sm:flex-none cursor-pointer"
           @click="store.resetFilters()"
         >
           Clear
+        </button>
+
+        <!-- Logs Button -->
+        <button
+          v-if="
+            hasPermission('payment_requests.platform_view') ||
+            hasPermission('payment_request.platform_view')
+          "
+          type="button"
+          class="inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-3 py-2 text-xs font-semibold text-primary transition-all hover:bg-primary/20 hover:border-primary/50 sm:flex-none cursor-pointer"
+          @click="router.push('/payment-requests/logs')"
+        >
+          <FileText class="h-3.5 w-3.5" />
+          <span>Logs</span>
         </button>
 
         <Tooltip text="Refresh" position="right">
           <button
             type="button"
             :disabled="store.loading"
-            class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text transition-colors hover:text-primary-text hover:bg-background disabled:opacity-60 disabled:cursor-not-allowed"
+            class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text transition-colors hover:text-primary-text hover:bg-background disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
             @click="
               () => {
                 store.fetchRequests(true);
@@ -331,7 +345,7 @@
                     textSize="8px"
                   >
                     <span
-                      class="truncate max-w-[120px] inline-block align-bottom font-mono text-primary-text font-medium"
+                      class="truncate max-w-30 inline-block align-bottom font-mono text-primary-text font-medium"
                     >
                       {{ getAddress(req) }}
                     </span>
@@ -351,14 +365,14 @@
                 </p>
                 <p
                   v-if="req.txid"
-                  class="text-[10px] text-secondary-text font-mono truncate max-w-[140px]"
+                  class="text-[10px] text-secondary-text font-mono truncate max-w-35"
                   :title="req.txid"
                 >
                   TX: {{ req.txid }}
                 </p>
                 <p
                   v-if="req.external_payment_id"
-                  class="text-[10px] text-secondary-text font-mono truncate max-w-[140px]"
+                  class="text-[10px] text-secondary-text font-mono truncate max-w-35"
                   :title="req.external_payment_id"
                 >
                   Ref: {{ req.external_payment_id }}
@@ -388,7 +402,7 @@
                 </span>
                 <p
                   v-if="req.rejection_reason"
-                  class="text-[10px] text-red-500 max-w-[140px] leading-tight mt-1"
+                  class="text-[10px] text-red-500 max-w-35 leading-tight mt-1"
                   :title="req.rejection_reason"
                 >
                   {{ req.rejection_reason }}
@@ -478,7 +492,8 @@
 
 <script setup>
 import { onMounted, computed, ref, watch } from "vue";
-import { Receipt, Check, X, RefreshCw, Copy } from "lucide-vue-next";
+import { useRouter } from "vue-router";
+import { Receipt, Check, X, RefreshCw, Copy, FileText } from "lucide-vue-next";
 import { usePaymentRequestsStore } from "@/stores/paymentRequests/paymentRequests";
 import { useProfileStore } from "@/stores/profile/profile";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
@@ -490,6 +505,7 @@ import ChangePaymentStatusDialog from "@/components/paymentRequests/ChangePaymen
 import { formatDate } from "@/utils/timeFormatter";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 
+const router = useRouter();
 const store = usePaymentRequestsStore();
 const profileStore = useProfileStore();
 const snackbar = useSnackbarStore();
