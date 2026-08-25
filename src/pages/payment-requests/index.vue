@@ -140,51 +140,51 @@
 
     <!-- Table -->
     <div class="w-full border border-primary-border rounded-xl overflow-x-auto">
-      <table class="w-full border-collapse">
+      <table class="w-full min-w-275 border-collapse text-left">
         <thead>
           <tr class="border-b border-primary-border bg-card-background">
             <th
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3"
+              class="w-16 min-w-16 text-left text-[11px] font-semibold text-secondary-text uppercase tracking-wider px-3 py-3"
             >
               ID
             </th>
             <th
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3"
+              class="min-w-40 text-left text-[11px] font-semibold text-secondary-text uppercase tracking-wider px-3 py-3"
             >
               User
             </th>
             <th
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3"
+              class="min-w-32.5 text-left text-[11px] font-semibold text-secondary-text uppercase tracking-wider px-3 py-3"
             >
               Account
             </th>
             <th
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3"
+              class="min-w-22.5 text-left text-[11px] font-semibold text-secondary-text uppercase tracking-wider px-3 py-3"
             >
               Type
             </th>
             <th
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3"
+              class="min-w-32.5 text-left text-[11px] font-semibold text-secondary-text uppercase tracking-wider px-3 py-3"
             >
               Amount
             </th>
             <th
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3"
+              class="min-w-45 text-left text-[11px] font-semibold text-secondary-text uppercase tracking-wider px-3 py-3"
             >
               Method & Reference
             </th>
             <th
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3"
+              class="min-w-32.5 text-left text-[11px] font-semibold text-secondary-text uppercase tracking-wider px-3 py-3"
             >
               Status
             </th>
             <th
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3"
+              class="min-w-35 text-left text-[11px] font-semibold text-secondary-text uppercase tracking-wider px-3 py-3"
             >
               Timing
             </th>
             <th
-              class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3"
+              class="min-w-35 text-right text-[11px] font-semibold text-secondary-text uppercase tracking-wider px-3 py-3"
             >
               Actions
             </th>
@@ -272,169 +272,262 @@
           <tr
             v-for="req in store.records"
             :key="req.id"
-            class="border-b border-primary-border last:border-none bg-card-background hover:bg-background transition-colors"
+            class="border-b border-primary-border last:border-none bg-card-background hover:bg-background/80 transition-colors"
           >
-            <td class="px-3 py-3.5 text-xs font-medium text-primary-text">
+            <!-- ID -->
+            <td class="px-3 py-3 text-xs font-semibold text-primary-text/80 font-mono w-16 min-w-16">
               #{{ req.id }}
             </td>
 
-            <td class="px-3 py-3.5">
-              <div class="space-y-0.5">
-                <p class="text-xs font-medium text-primary-text">
+            <!-- User -->
+            <td class="px-3 py-3 min-w-40">
+              <div class="space-y-0.5 max-w-48">
+                <p class="text-xs font-semibold text-primary-text truncate" :title="req.user_name">
                   {{ req.user_name || "—" }}
                 </p>
-                <p class="text-[11px] text-secondary-text">
+                <p class="text-[11px] text-secondary-text truncate font-mono" :title="req.user_email">
                   {{ req.user_email || "—" }}
-                </p>
-                <!-- <p class="text-[11px] text-secondary-text">ID {{ req.user_id }}</p> -->
-              </div>
-            </td>
-            <td class="px-3 py-3.5">
-              <div class="space-y-0.5">
-                <p class="text-xs font-medium text-primary-text">
-                  {{ req.trading_account_number || "IB Wallet Withdrawal" }}
-                </p>
-                <!-- <p class="text-[11px] text-secondary-text">Account ID {{ req.trading_account_id }}</p> -->
-                <p
-                  class="text-[11px] text-secondary-text capitalize font-medium"
-                >
-                  {{ req.account_type }} {{ req.broker_currency }}
                 </p>
               </div>
             </td>
 
-            <td class="px-3 py-3.5">
+            <!-- Account -->
+            <td class="px-3 py-3 min-w-32.5">
+              <div class="space-y-0.5 max-w-40">
+                <p class="text-xs font-semibold text-primary-text font-mono">
+                  {{ req.trading_account_number ? `#${req.trading_account_number}` : "IB Wallet" }}
+                </p>
+                <p class="text-[11px] text-secondary-text capitalize">
+                  <span v-if="req.account_type">{{ req.account_type }}</span>
+                  <span v-if="req.broker_currency" class="uppercase font-medium text-primary-text/70 ml-1">
+                    · {{ req.broker_currency }}
+                  </span>
+                </p>
+              </div>
+            </td>
+
+            <!-- Type -->
+            <td class="px-3 py-3 min-w-22.5">
               <span
-                class="text-[11px] font-semibold px-2 py-0.5 rounded-full border capitalize"
+                class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full border capitalize inline-block"
                 :class="
                   req.type?.toLowerCase() === 'deposit'
                     ? 'bg-primary-blue/10 text-primary-blue border-primary-blue/20'
                     : 'bg-primary-red/10 text-primary-red border-primary-red/20'
                 "
-                >{{ req.type }}</span
               >
+                {{ req.type }}
+              </span>
             </td>
 
-            <td class="px-3 py-3.5">
+            <!-- Amount & Conversion -->
+            <td class="px-3 py-3 min-w-32.5">
               <div class="space-y-0.5">
-                <p class="text-xs font-semibold text-primary-text tabular-nums">
-                  ${{ fmt(req.amount) }}
-                </p>
-                <!-- <p class="text-[11px] text-secondary-text">{{ req.currency }} <span v-if="req.broker_currency && req.broker_currency !== req.currency" class="opacity-50">({{ req.broker_currency }})</span></p> -->
-              </div>
-            </td>
+                <div class="flex items-baseline gap-1">
+                  <span class="text-xs font-bold text-primary-text tabular-nums">
+                    ${{ fmt(req.amount) }}
+                  </span>
+                  <span v-if="req.currency && req.currency !== 'USD'" class="text-[10px] text-secondary-text font-medium uppercase">
+                    {{ req.currency }}
+                  </span>
+                </div>
 
-            <td class="px-3 py-3.5">
-              <div class="space-y-1">
-                <p class="text-xs text-primary-text capitalize font-medium">
-                  {{ req.gateway }} &middot; {{ req.method }}
-                </p>
-                <p class="text-[11px] text-secondary-text capitalize">
-                  {{ req.acquirer }}
-                </p>
-                <p
-                  v-if="
-                    req.type?.toLowerCase() === 'withdrawal' && getAddress(req)
-                  "
-                  class="text-[10px] text-secondary-text font-mono flex items-center gap-1.5"
+                <!-- Paid Amount & Rate Tag (Compact) -->
+                <div
+                  v-if="req.paid_amount != null && req.paid_currency"
+                  class="flex items-center gap-1 text-[11px] text-secondary-text tabular-nums"
                 >
-                  <span>Address:</span>
+                  <span class="font-medium text-emerald-400">
+                    {{ fmt(req.paid_amount) }} {{ req.paid_currency }}
+                  </span>
                   <Tooltip
-                    :text="getAddress(req)"
-                    position="bottom"
-                    textSize="8px"
+                    v-if="req.conversion_rate?.units_per_usd"
+                    :text="`Exchange Rate: 1 ${req.conversion_rate.account_currency || 'USD'} = ${fmtRate(req.conversion_rate.units_per_usd)} ${req.conversion_rate.payment_currency}`"
+                    position="center"
                   >
-                    <span
-                      class="truncate max-w-30 inline-block align-bottom font-mono text-primary-text font-medium"
-                    >
-                      {{ getAddress(req) }}
+                    <span class="text-[9px] text-secondary-text/70 cursor-help underline decoration-dotted font-mono">
+                      (@{{ fmtRate(req.conversion_rate.units_per_usd) }})
                     </span>
                   </Tooltip>
-                  <button
-                    type="button"
-                    class="p-0.5 hover:text-primary transition-colors cursor-pointer shrink-0 text-secondary-text"
-                    title="Copy address"
-                    @click.stop="copyToClipboard(getAddress(req), req.id)"
-                  >
-                    <Check
-                      v-if="copiedAddressMap[req.id]"
-                      class="w-3 h-3 text-emerald-400"
-                    />
-                    <Copy v-else class="w-3 h-3" />
-                  </button>
-                </p>
-                <p
-                  v-if="req.txid"
-                  class="text-[10px] text-secondary-text font-mono truncate max-w-35"
-                  :title="req.txid"
-                >
-                  TX: {{ req.txid }}
-                </p>
-                <p
-                  v-if="req.external_payment_id"
-                  class="text-[10px] text-secondary-text font-mono truncate max-w-35"
-                  :title="req.external_payment_id"
-                >
-                  Ref: {{ req.external_payment_id }}
-                </p>
-              </div>
-            </td>
-
-            <td class="px-3 py-3.5">
-              <div class="flex flex-col gap-1.5 items-start">
-                <span
-                  class="text-[11px] font-medium px-2 py-0.5 rounded-full capitalize"
-                  :class="[
-                    approvalStatusClass(req.approval_status),
-                    req.approval_status === 'pending' &&
-                    (hasPermission('payment_requests.approve') ||
-                      hasPermission('payment_requests.reject'))
-                      ? 'cursor-pointer hover:opacity-80 transition-opacity'
-                      : '',
-                  ]"
-                  @click="
-                    req.approval_status === 'pending' &&
-                    (hasPermission('payment_requests.approve') ||
-                      hasPermission('payment_requests.reject'))
-                  "
-                >
-                  {{ req.approval_status }}
-                </span>
-                <p
-                  v-if="req.rejection_reason"
-                  class="text-[10px] text-red-500 max-w-35 leading-tight mt-1"
-                  :title="req.rejection_reason"
-                >
-                  {{ req.rejection_reason }}
-                </p>
-              </div>
-            </td>
-
-            <td class="px-3 py-3.5">
-              <div class="space-y-1.5">
-                <div class="flex flex-col">
-                  <span
-                    class="text-[10px] text-secondary-text uppercase font-semibold"
-                    >Created</span
-                  >
-                  <span class="text-xs text-primary-text">{{
-                    formatDate(req.created_at)
-                  }}</span>
-                </div>
-                <div v-if="req.approved_at" class="flex flex-col">
-                  <span
-                    class="text-[10px] text-secondary-text uppercase font-semibold"
-                    >Processed</span
-                  >
-                  <span class="text-xs text-primary-text">{{
-                    formatDate(req.approved_at)
-                  }}</span>
-                  <!-- <span class="text-[10px] text-secondary-text">By ID {{ req.approved_by }}</span> -->
                 </div>
               </div>
             </td>
 
-            <td class="px-3 py-3.5">
+            <!-- Gateway, Method & Identifiers -->
+            <td class="px-3 py-3 min-w-42.5">
+              <div class="space-y-1">
+                <!-- Gateway & Method -->
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="text-[11px] font-semibold text-primary-text capitalize">
+                    {{ req.gateway || "—" }}
+                  </span>
+                  <span
+                    v-if="req.method"
+                    class="text-[9px] font-medium px-1.5 py-0.2 rounded bg-background border border-primary-border text-secondary-text capitalize shrink-0"
+                  >
+                    {{ req.method }}
+                  </span>
+                  <span
+                    v-if="req.acquirer && req.acquirer.toLowerCase() !== (req.gateway || '').toLowerCase()"
+                    class="text-[8px] px-1 py-0.2 rounded bg-background/50 border border-primary-border text-secondary-text/80 capitalize shrink-0"
+                    :title="`Acquirer: ${req.acquirer}`"
+                  >
+                    {{ req.acquirer }}
+                  </span>
+                </div>
+
+                <!-- Identifiers: Address / TX / Ref -->
+                <div class="flex flex-col gap-0.5 text-[10px]">
+                  <!-- Address (Crypto) -->
+                  <div
+                    v-if="getAddress(req)"
+                    class="flex items-center gap-1 font-mono text-[10px] text-secondary-text"
+                  >
+                    <span class="text-[9px] text-secondary-text/60 shrink-0">Addr:</span>
+                    <Tooltip :text="getAddress(req)" position="center" textSize="9px">
+                      <span class="text-primary-text font-medium cursor-help hover:underline">
+                        {{ truncateMiddle(getAddress(req), 6, 4) }}
+                      </span>
+                    </Tooltip>
+                    <button
+                      type="button"
+                      class="inline-flex items-center justify-center w-4 h-4 rounded hover:bg-background border border-transparent hover:border-primary-border text-secondary-text hover:text-primary transition-colors cursor-pointer shrink-0"
+                      title="Copy address"
+                      @click.stop="copyToClipboard(getAddress(req), `addr_${req.id}`)"
+                    >
+                      <Check
+                        v-if="copiedMap[`addr_${req.id}`]"
+                        class="w-2.5 h-2.5 text-emerald-400 shrink-0"
+                      />
+                      <Copy v-else class="w-2.5 h-2.5 shrink-0" />
+                    </button>
+                  </div>
+
+                  <!-- TXID -->
+                  <div
+                    v-if="req.txid"
+                    class="flex items-center gap-1 font-mono text-[10px] text-secondary-text"
+                  >
+                    <span class="text-[9px] text-secondary-text/60 shrink-0">TX:</span>
+                    <Tooltip :text="req.txid" position="center" textSize="9px">
+                      <span class="text-primary-text font-medium cursor-help hover:underline">
+                        {{ truncateMiddle(req.txid, 6, 4) }}
+                      </span>
+                    </Tooltip>
+                    <button
+                      type="button"
+                      class="inline-flex items-center justify-center w-4 h-4 rounded hover:bg-background border border-transparent hover:border-primary-border text-secondary-text hover:text-primary transition-colors cursor-pointer shrink-0"
+                      title="Copy TX ID"
+                      @click.stop="copyToClipboard(req.txid, `tx_${req.id}`)"
+                    >
+                      <Check
+                        v-if="copiedMap[`tx_${req.id}`]"
+                        class="w-2.5 h-2.5 text-emerald-400 shrink-0"
+                      />
+                      <Copy v-else class="w-2.5 h-2.5 shrink-0" />
+                    </button>
+                  </div>
+
+                  <!-- Reference ID -->
+                  <div
+                    v-if="req.external_payment_id"
+                    class="flex items-center gap-1 font-mono text-[10px] text-secondary-text"
+                  >
+                    <span class="text-[9px] text-secondary-text/60 shrink-0">Ref:</span>
+                    <Tooltip :text="req.external_payment_id" position="center" textSize="9px">
+                      <span class="text-primary-text font-medium cursor-help hover:underline">
+                        {{ truncateMiddle(req.external_payment_id, 6, 4) }}
+                      </span>
+                    </Tooltip>
+                    <button
+                      type="button"
+                      class="inline-flex items-center justify-center w-4 h-4 rounded hover:bg-background border border-transparent hover:border-primary-border text-secondary-text hover:text-primary transition-colors cursor-pointer shrink-0"
+                      title="Copy Reference ID"
+                      @click.stop="copyToClipboard(req.external_payment_id, `ref_${req.id}`)"
+                    >
+                      <Check
+                        v-if="copiedMap[`ref_${req.id}`]"
+                        class="w-2.5 h-2.5 text-emerald-400 shrink-0"
+                      />
+                      <Copy v-else class="w-2.5 h-2.5 shrink-0" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </td>
+
+            <!-- Status (Approval & Payment Status) -->
+            <td class="px-3 py-3 min-w-32.5">
+              <div class="flex flex-col gap-1 items-start">
+                <!-- Approval Status Badge -->
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span
+                    class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full border capitalize inline-flex items-center gap-1 shrink-0"
+                    :class="[
+                      approvalStatusClass(req.approval_status),
+                      req.approval_status === 'pending' &&
+                      (hasPermission('payment_requests.approve') ||
+                        hasPermission('payment_requests.reject'))
+                        ? 'cursor-pointer hover:opacity-80 transition-opacity'
+                        : '',
+                    ]"
+                    @click="
+                      req.approval_status === 'pending' &&
+                      (hasPermission('payment_requests.approve') ||
+                        hasPermission('payment_requests.reject'))
+                        ? openChangeStatusDialog(req)
+                        : null
+                    "
+                  >
+                    <span class="w-1.5 h-1.5 rounded-full bg-current opacity-80 shrink-0"></span>
+                    <span>{{ req.approval_status || '—' }}</span>
+                  </span>
+
+                  <!-- Rejection Tooltip Icon -->
+                  <Tooltip
+                    v-if="req.rejection_reason"
+                    :text="`Reason: ${req.rejection_reason}`"
+                    position="center"
+                  >
+                    <span class="p-0.5 text-primary-red cursor-help bg-primary-red/10 border border-primary-red/20 rounded inline-flex items-center justify-center shrink-0">
+                      <AlertCircle class="w-3 h-3 shrink-0" />
+                    </span>
+                  </Tooltip>
+                </div>
+
+                <!-- Payment Status (Compact dot indicator) -->
+                <div
+                  v-if="req.payment_status"
+                  class="flex items-center gap-1.5 text-[10px] text-secondary-text shrink-0"
+                >
+                  <span
+                    class="w-1.5 h-1.5 rounded-full shrink-0"
+                    :class="paymentStatusDotClass(req.payment_status)"
+                  ></span>
+                  <span class="capitalize font-medium">{{ req.payment_status }}</span>
+                </div>
+              </div>
+            </td>
+
+            <!-- Timing -->
+            <td class="px-3 py-3 min-w-35 whitespace-nowrap">
+              <div class="space-y-0.5 text-[11px]">
+                <div class="text-primary-text font-medium">
+                  {{ formatDate(req.created_at) }}
+                </div>
+                <div v-if="req.approved_at" class="text-[10px] text-secondary-text flex items-center gap-1">
+                  <span class="text-secondary-text/60">Done:</span>
+                  <span>{{ formatDate(req.approved_at) }}</span>
+                </div>
+                <div v-else-if="req.converted_at" class="text-[10px] text-secondary-text flex items-center gap-1">
+                  <span class="text-secondary-text/60">Conv:</span>
+                  <span>{{ formatDate(req.converted_at) }}</span>
+                </div>
+              </div>
+            </td>
+
+            <!-- Actions -->
+            <td class="px-3 py-3 min-w-35">
               <div class="flex items-center justify-end gap-1.5">
                 <template v-if="req.approval_status === 'pending'">
                   <button
@@ -454,7 +547,7 @@
                     Reject
                   </button>
                 </template>
-                <span v-else class="text-[11px] text-secondary-text"
+                <span v-else class="text-[11px] text-secondary-text font-medium"
                   >Processed</span
                 >
               </div>
@@ -493,7 +586,7 @@
 <script setup>
 import { onMounted, computed, ref, watch } from "vue";
 import { useRouter } from "vue-router";
-import { Receipt, Check, X, RefreshCw, Copy, FileText } from "lucide-vue-next";
+import { Receipt, Check, X, RefreshCw, Copy, FileText, AlertCircle } from "lucide-vue-next";
 import { usePaymentRequestsStore } from "@/stores/paymentRequests/paymentRequests";
 import { useProfileStore } from "@/stores/profile/profile";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
@@ -511,20 +604,74 @@ const profileStore = useProfileStore();
 const snackbar = useSnackbarStore();
 const { hasPermission } = usePermissionCheck();
 
-const copiedAddressMap = ref({});
+const copiedMap = ref({});
+
+const truncateMiddle = (str, start = 6, end = 4) => {
+  if (!str) return "";
+  const s = String(str);
+  if (s.length <= start + end + 2) return s;
+  return `${s.slice(0, start)}...${s.slice(-end)}`;
+};
 
 const getAddress = (req) =>
   req?.address || req?.wallet_address || req?.details?.address || "";
 
-const copyToClipboard = (text, reqId) => {
+const copyToClipboard = (text, key) => {
   if (!text) return;
-  navigator.clipboard.writeText(text);
-  copiedAddressMap.value[reqId] = true;
-  snackbar.show("Wallet address copied to clipboard", "success");
-  setTimeout(() => {
-    copiedAddressMap.value[reqId] = false;
-  }, 2000);
+  const str = String(text).trim();
+
+  const onSuccess = () => {
+    copiedMap.value[key] = true;
+    snackbar.show("Copied to clipboard", "success");
+    setTimeout(() => {
+      copiedMap.value[key] = false;
+    }, 2000);
+  };
+
+  if (navigator?.clipboard?.writeText) {
+    navigator.clipboard
+      .writeText(str)
+      .then(onSuccess)
+      .catch(() => {
+        fallbackCopy(str, onSuccess);
+      });
+  } else {
+    fallbackCopy(str, onSuccess);
+  }
 };
+
+const fallbackCopy = (str, onSuccess) => {
+  try {
+    const el = document.createElement("textarea");
+    el.value = str;
+    el.setAttribute("readonly", "");
+    el.style.position = "fixed";
+    el.style.left = "-9999px";
+    el.style.top = "-9999px";
+    el.style.opacity = "0";
+    document.body.appendChild(el);
+    el.focus();
+    el.select();
+    const successful = document.execCommand("copy");
+    document.body.removeChild(el);
+    if (successful) {
+      onSuccess();
+    } else {
+      snackbar.show("Unable to copy", "error");
+    }
+  } catch (e) {
+    snackbar.show("Unable to copy", "error");
+  }
+};
+
+const paymentStatusDotClass = (s) =>
+  ({
+    paid: "bg-primary-green",
+    pending: "bg-primary-yellow",
+    processing: "bg-blue-400",
+    failed: "bg-primary-red",
+    rejected: "bg-primary-red",
+  })[s?.toLowerCase()] ?? "bg-secondary-text";
 
 // ── Client / Account search options (populated from store methods) ──
 const clientOptions = ref([]);
@@ -595,6 +742,7 @@ const typeOptions = [
 
 const statusOptions = [
   { label: "Pending", value: "pending" },
+  { label: "Processing", value: "processing" },
   { label: "Approved", value: "approved" },
   { label: "Rejected", value: "rejected" },
 ];
@@ -679,23 +827,35 @@ const paymentStatusClass = (s) =>
     paid: "bg-primary-green/10 text-primary-green border-primary-green/20",
     pending:
       "bg-primary-yellow/10 text-primary-yellow border-primary-yellow/20",
+    processing: "bg-blue-500/10 text-blue-400 border-blue-500/20",
     failed: "bg-primary-red/10 text-primary-red border-primary-red/20",
-  })[s] ?? "bg-background text-secondary-text border-primary-border";
+    rejected: "bg-primary-red/10 text-primary-red border-primary-red/20",
+  })[s?.toLowerCase()] ?? "bg-background text-secondary-text border-primary-border";
 
 const approvalStatusClass = (s) =>
   ({
     pending:
       "bg-primary-yellow/10 text-primary-yellow border-primary-yellow/20",
+    processing: "bg-blue-500/10 text-blue-400 border-blue-500/20",
     approved: "bg-primary-green/10 text-primary-green border-primary-green/20",
     rejected: "bg-primary-red/10 text-primary-red border-primary-red/20",
-  })[s] ?? "bg-background text-secondary-text border-primary-border";
+  })[s?.toLowerCase()] ?? "bg-background text-secondary-text border-primary-border";
 
 const fmt = (v) =>
   (v ?? 0).toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
-// const formatDate = (v) => v ? new Date(v).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
+
+const fmtRate = (v) => {
+  if (v == null) return "—";
+  const num = Number(v);
+  if (Number.isNaN(num)) return "—";
+  return num.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 4,
+  });
+};
 
 const isConfirmLoading = computed(() =>
   confirmDialog.value.action === "approve"

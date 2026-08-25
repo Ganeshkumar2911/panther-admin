@@ -56,6 +56,18 @@
               <p class="text-sm font-medium text-primary-text">
                 {{ formattedAmount }}
               </p>
+              <p v-if="request?.paid_amount != null && request?.paid_currency" class="text-xs text-emerald-400 font-medium mt-0.5">
+                Paid: {{ request.paid_amount }} {{ request.paid_currency }}
+              </p>
+            </div>
+            <div>
+              <p class="text-[11px] text-secondary-text">Gateway & Method</p>
+              <p class="text-sm font-medium capitalize text-primary-text">
+                {{ request?.gateway ?? '—' }}
+                <span v-if="request?.method" class="text-secondary-text text-xs">
+                  · {{ request.method }}
+                </span>
+              </p>
             </div>
             <div>
               <p class="text-[11px] text-secondary-text">User</p>
@@ -65,20 +77,25 @@
             </div>
             <div>
               <p class="text-[11px] text-secondary-text">Email</p>
-              <p class="text-sm font-medium text-primary-text">
+              <p class="text-sm font-medium text-primary-text truncate" :title="request?.user_email">
                 {{ request?.user_email ?? '—' }}
               </p>
             </div>
             <div>
               <p class="text-[11px] text-secondary-text">Account</p>
               <p class="text-sm font-medium text-primary-text">
-                {{ request?.trading_account_number ?? '—' }}
+                {{ request?.trading_account_number ?? 'IB Wallet Withdrawal' }}
+                <span v-if="request?.account_type" class="text-xs text-secondary-text capitalize">
+                  ({{ request.account_type }})
+                </span>
               </p>
             </div>
-            <div>
-              <p class="text-[11px] text-secondary-text">User ID / Account ID</p>
-              <p class="text-sm font-medium text-primary-text">
-                {{ request?.user_id ?? '—' }} / {{ request?.trading_account_id ?? '—' }}
+            <div v-if="request?.txid || request?.external_payment_id">
+              <p class="text-[11px] text-secondary-text">
+                {{ request?.txid ? 'TX ID' : 'Reference ID' }}
+              </p>
+              <p class="text-xs font-mono text-primary-text truncate" :title="request?.txid || request?.external_payment_id">
+                {{ request?.txid || request?.external_payment_id }}
               </p>
             </div>
           </div>
