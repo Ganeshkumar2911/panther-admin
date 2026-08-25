@@ -1,9 +1,222 @@
 import { defineStore } from "pinia";
-import { ref, reactive } from "vue";
+import { ref, reactive, computed } from "vue";
 import apiRequest from "@/api/request";
 import urls from "@/api/urls";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
 import { useTickerStore } from "@/stores/ws/ticker";
+
+// Default schema fallback matching API contract
+const defaultFilterSchema = {
+  deals: {
+    action: {
+      aliases: ["type", "order_type"],
+      multi: true,
+      options: [
+        { label: "BUY", value: "BUY" },
+        { label: "SELL", value: "SELL" },
+      ],
+      type: "enum",
+    },
+    entry: {
+      multi: true,
+      options: [
+        { label: "IN", value: "IN" },
+        { label: "OUT", value: "OUT" },
+        { label: "INOUT", value: "INOUT" },
+        { label: "OUT_BY", value: "OUT_BY" },
+      ],
+      type: "enum",
+    },
+    from_date: {
+      aliases: ["time_from"],
+      type: "date",
+    },
+    result: {
+      options: [
+        { label: "profit", value: "profit" },
+        { label: "loss", value: "loss" },
+        { label: "breakeven", value: "breakeven" },
+      ],
+      type: "enum",
+    },
+    search: {
+      type: "string",
+    },
+    symbol: {
+      aliases: ["symbols"],
+      multi: true,
+      type: "string",
+    },
+    to_date: {
+      aliases: ["time_to"],
+      type: "date",
+    },
+  },
+  follower_book: {
+    include: {
+      default: "all",
+      multi: true,
+      options: [
+        { label: "positions", value: "positions" },
+        { label: "orders", value: "orders" },
+        { label: "deals", value: "deals" },
+        { label: "all", value: "all" },
+      ],
+      type: "enum",
+    },
+    section_overrides: {
+      note: "Prefix any filter with a section name, e.g. positions_status=OPEN or deals_per_page=50.",
+      prefixes: ["positions_", "orders_", "deals_"],
+      type: "meta",
+    },
+  },
+  master_trades: {
+    closed_from: {
+      type: "date",
+    },
+    closed_to: {
+      type: "date",
+    },
+    from_date: {
+      aliases: ["opened_from"],
+      type: "date",
+    },
+    order_type: {
+      aliases: ["type", "action"],
+      multi: true,
+      options: [
+        { label: "BUY", value: "BUY" },
+        { label: "SELL", value: "SELL" },
+      ],
+      type: "enum",
+    },
+    result: {
+      options: [
+        { label: "profit", value: "profit" },
+        { label: "loss", value: "loss" },
+        { label: "breakeven", value: "breakeven" },
+      ],
+      type: "enum",
+    },
+    search: {
+      type: "string",
+    },
+    status: {
+      multi: true,
+      options: [
+        { label: "OPEN", value: "OPEN" },
+        { label: "CLOSED", value: "CLOSED" },
+      ],
+      type: "enum",
+    },
+    symbol: {
+      aliases: ["symbols"],
+      multi: true,
+      type: "string",
+    },
+    to_date: {
+      aliases: ["opened_to"],
+      type: "date",
+    },
+    trade_source: {
+      multi: true,
+      options: [
+        { label: "manual", value: "manual" },
+        { label: "sync", value: "sync" },
+      ],
+      type: "enum",
+    },
+  },
+  orders: {
+    from_date: {
+      aliases: ["setup_from"],
+      type: "date",
+    },
+    search: {
+      type: "string",
+    },
+    state: {
+      multi: true,
+      options: [
+        { label: "STARTED", value: "STARTED" },
+        { label: "PLACED", value: "PLACED" },
+        { label: "CANCELED", value: "CANCELED" },
+        { label: "PARTIAL", value: "PARTIAL" },
+        { label: "FILLED", value: "FILLED" },
+        { label: "REJECTED", value: "REJECTED" },
+        { label: "EXPIRED", value: "EXPIRED" },
+      ],
+      type: "enum",
+    },
+    symbol: {
+      aliases: ["symbols"],
+      multi: true,
+      type: "string",
+    },
+    to_date: {
+      aliases: ["setup_to"],
+      type: "date",
+    },
+    type: {
+      aliases: ["order_type", "action"],
+      multi: true,
+      options: [
+        { label: "BUY", value: "BUY" },
+        { label: "SELL", value: "SELL" },
+      ],
+      type: "enum",
+    },
+  },
+  positions: {
+    action: {
+      aliases: ["type", "order_type"],
+      multi: true,
+      options: [
+        { label: "BUY", value: "BUY" },
+        { label: "SELL", value: "SELL" },
+      ],
+      type: "enum",
+    },
+    closed_from: {
+      type: "date",
+    },
+    closed_to: {
+      type: "date",
+    },
+    from_date: {
+      aliases: ["opened_from"],
+      type: "date",
+    },
+    result: {
+      options: [
+        { label: "profit", value: "profit" },
+        { label: "loss", value: "loss" },
+        { label: "breakeven", value: "breakeven" },
+      ],
+      type: "enum",
+    },
+    search: {
+      type: "string",
+    },
+    status: {
+      multi: true,
+      options: [
+        { label: "OPEN", value: "OPEN" },
+        { label: "CLOSED", value: "CLOSED" },
+      ],
+      type: "enum",
+    },
+    symbol: {
+      aliases: ["symbols"],
+      multi: true,
+      type: "string",
+    },
+    to_date: {
+      aliases: ["opened_to"],
+      type: "date",
+    },
+  },
+};
 
 export const useFmTradeBookStore = defineStore("fmTradeBook", () => {
   const snackbar = useSnackbarStore();
@@ -51,15 +264,8 @@ export const useFmTradeBookStore = defineStore("fmTradeBook", () => {
     realized_pnl: 0,
   });
 
-  // Filter options from backend
-  const availableFilters = ref({
-    symbols: [],
-    types: [],
-    statuses: [],
-    order_states: [],
-    deal_entries: [],
-    accounts: [],
-  });
+  // Filter definitions from API
+  const availableFilters = ref(defaultFilterSchema);
 
   // Pagination
   const pagination = ref({
@@ -71,23 +277,30 @@ export const useFmTradeBookStore = defineStore("fmTradeBook", () => {
     has_prev: false,
   });
 
-  // Filter State
+  // Filter State (Dynamic key-values)
   const filters = reactive({
     search: "",
-    status: "",
-    type: "",
-    symbol: "",
-    start_date: "",
-    end_date: "",
-    from_date: "",
-    to_date: "",
-    sort_by: "time_create",
+    sort_by: "",
     sort_order: "desc",
   });
 
   const isLoading = ref(false);
   const isRefreshing = ref(false);
   const followerLoading = ref(false);
+
+  // Active section key based on mode and tab
+  const currentSectionKey = computed(() => {
+    if (mode.value === "fm") return "master_trades";
+    if (activeTab.value === "orders") return "orders";
+    if (activeTab.value === "deals") return "deals";
+    return "positions";
+  });
+
+  // Current active section filter definitions
+  const currentSectionFilters = computed(() => {
+    if (!availableFilters.value) return {};
+    return availableFilters.value[currentSectionKey.value] || {};
+  });
 
   // Set context before fetching
   const setContext = ({ type = "fm", id = null, info = null }) => {
@@ -124,20 +337,36 @@ export const useFmTradeBookStore = defineStore("fmTradeBook", () => {
     });
   };
 
-  // Fetch Filter Metadata
+  // Fetch Filter Metadata from API
   const fetchFilters = () => {
     const successHandler = (res) => {
       if (res?.data) {
         availableFilters.value = res.data;
 
-        if (Array.isArray(res.data.symbols) && res.data.symbols.length > 0) {
-          tickerStore.updateTickerList(res.data.symbols);
+        // If symbols exist in any filter section, subscribe to ticker store
+        const extractedSymbols = [];
+        Object.values(res.data).forEach((section) => {
+          if (section && typeof section === "object") {
+            if (Array.isArray(section.symbol?.options)) {
+              section.symbol.options.forEach((opt) => {
+                const s = typeof opt === "string" ? opt : opt.value;
+                if (s) extractedSymbols.push(s);
+              });
+            }
+            if (Array.isArray(section.symbols)) {
+              extractedSymbols.push(...section.symbols);
+            }
+          }
+        });
+
+        if (extractedSymbols.length > 0) {
+          tickerStore.updateTickerList([...new Set(extractedSymbols)]);
         }
       }
     };
 
     const failureHandler = (err) => {
-      console.warn("Could not load trade book filter options:", err);
+      console.warn("Could not load trade book filter options from API:", err);
     };
 
     apiRequest(urls.KEYS.GET, urls.tradeBook.filters, {
@@ -147,7 +376,7 @@ export const useFmTradeBookStore = defineStore("fmTradeBook", () => {
     });
   };
 
-  // Build Request Parameters
+  // Build Request Parameters dynamically based on active filters and schema
   const buildParams = () => {
     const params = {
       page: pagination.value.page,
@@ -172,39 +401,45 @@ export const useFmTradeBookStore = defineStore("fmTradeBook", () => {
       params.account_number = accountInfo.value.account_number;
     }
 
+    // Dynamic filters from current active section
+    const sectionSchema = currentSectionFilters.value;
+    Object.keys(sectionSchema).forEach((fieldKey) => {
+      const fieldDef = sectionSchema[fieldKey];
+      if (fieldDef?.type === "meta") return;
+
+      const val = filters[fieldKey];
+      if (val !== undefined && val !== null && val !== "") {
+        params[fieldKey] = Array.isArray(val) ? val.join(",") : val;
+      }
+    });
+
+    // Support search
     if (filters.search && filters.search.trim() !== "") {
       params.search = filters.search.trim();
     }
 
-    if (filters.status && filters.status !== "") {
-      if (activeTab.value === "orders") {
-        params.state = filters.status;
-        params.status = filters.status;
-      } else if (activeTab.value === "deals") {
-        params.entry = filters.status;
-        params.status = filters.status;
-      } else {
-        params.status = filters.status;
-      }
-    }
-
-    if (filters.type && filters.type !== "") {
-      params.type = filters.type;
-      params.action = filters.type;
-    }
-
-    if (filters.symbol && filters.symbol !== "") {
-      params.symbol = filters.symbol;
-    }
-
-    if (filters.start_date && filters.start_date !== "") {
-      params.start_date = filters.start_date;
+    // Backwards compatibility mappings for date ranges
+    if (filters.start_date && !params.from_date) {
       params.from_date = filters.start_date;
+      params.start_date = filters.start_date;
+    }
+    if (filters.end_date && !params.to_date) {
+      params.to_date = filters.end_date;
+      params.end_date = filters.end_date;
+    }
+    if (params.from_date && !params.start_date) {
+      params.start_date = params.from_date;
+    }
+    if (params.to_date && !params.end_date) {
+      params.end_date = params.to_date;
     }
 
-    if (filters.end_date && filters.end_date !== "") {
-      params.end_date = filters.end_date;
-      params.to_date = filters.end_date;
+    // Backwards compatibility mappings for status/state/action/type
+    if (params.order_type && !params.type) {
+      params.type = params.order_type;
+    }
+    if (params.action && !params.type) {
+      params.type = params.action;
     }
 
     return params;
@@ -220,23 +455,12 @@ export const useFmTradeBookStore = defineStore("fmTradeBook", () => {
 
     let endpoint = urls.tradeBook.positions;
     let lookUpKey = null;
-    let params = buildParams();
+    const params = buildParams();
 
     // FM Mode uses master-trades endpoint: GET /trade-book/master-trades/:fm_id
     if (mode.value === "fm" && contextId.value) {
       endpoint = urls.tradeBook.masterTrades;
       lookUpKey = contextId.value;
-      params = {
-        page: pagination.value.page,
-        per_page: pagination.value.per_page,
-        sort_order: filters.sort_order || "desc",
-      };
-      if (filters.sort_by) params.sort_by = filters.sort_by;
-      if (filters.search) params.search = filters.search.trim();
-      if (filters.status) params.status = filters.status;
-      if (filters.symbol) params.symbol = filters.symbol;
-      if (filters.start_date) params.start_date = filters.start_date;
-      if (filters.end_date) params.end_date = filters.end_date;
     } else {
       // Follower mode uses positions / orders / deals
       if (activeTab.value === "orders") {
@@ -322,8 +546,7 @@ export const useFmTradeBookStore = defineStore("fmTradeBook", () => {
     activeTab.value = tab;
     summary.value = {};
     pagination.value.page = 1;
-    filters.status = "";
-    filters.type = "";
+    resetFilters(false);
 
     // Set default sort for active tab
     if (tab === "positions") {
@@ -347,31 +570,49 @@ export const useFmTradeBookStore = defineStore("fmTradeBook", () => {
     }, 400);
   };
 
-  const setStatusFilter = (statusVal) => {
-    filters.status = statusVal;
+  // Dynamic filter setter for any key
+  const setDynamicFilter = (key, value) => {
+    filters[key] = value;
     pagination.value.page = 1;
     fetchTradesData(true);
+  };
+
+  // Dynamic date range setter
+  const setDynamicDateRange = (fromKey, toKey, rangeVal) => {
+    if (rangeVal && Array.isArray(rangeVal) && rangeVal.length === 2) {
+      filters[fromKey] = rangeVal[0];
+      filters[toKey] = rangeVal[1];
+      if (fromKey === "from_date") {
+        filters.start_date = rangeVal[0];
+        filters.end_date = rangeVal[1];
+      }
+    } else {
+      filters[fromKey] = "";
+      filters[toKey] = "";
+      if (fromKey === "from_date") {
+        filters.start_date = "";
+        filters.end_date = "";
+      }
+    }
+    pagination.value.page = 1;
+    fetchTradesData(true);
+  };
+
+  // Backward compatible setters
+  const setStatusFilter = (statusVal) => {
+    setDynamicFilter("status", statusVal);
   };
 
   const setTypeFilter = (typeVal) => {
-    filters.type = typeVal;
-    pagination.value.page = 1;
-    fetchTradesData(true);
+    setDynamicFilter("type", typeVal);
   };
 
   const setSymbolFilter = (symVal) => {
-    filters.symbol = symVal;
-    pagination.value.page = 1;
-    fetchTradesData(true);
+    setDynamicFilter("symbol", symVal);
   };
 
   const setDateFilter = (startDate, endDate) => {
-    filters.start_date = startDate || "";
-    filters.end_date = endDate || "";
-    filters.from_date = startDate || "";
-    filters.to_date = endDate || "";
-    pagination.value.page = 1;
-    fetchTradesData(true);
+    setDynamicDateRange("from_date", "to_date", startDate && endDate ? [startDate, endDate] : null);
   };
 
   const setSort = (sortBy, sortOrder) => {
@@ -392,15 +633,13 @@ export const useFmTradeBookStore = defineStore("fmTradeBook", () => {
     fetchTradesData(true);
   };
 
-  const resetFilters = () => {
-    filters.search = "";
-    filters.status = "";
-    filters.type = "";
-    filters.symbol = "";
-    filters.start_date = "";
-    filters.end_date = "";
-    filters.from_date = "";
-    filters.to_date = "";
+  const resetFilters = (fetch = true) => {
+    // Clear all dynamic filter keys in filters
+    Object.keys(filters).forEach((key) => {
+      if (key === "sort_by" || key === "sort_order") return;
+      filters[key] = "";
+    });
+
     if (activeTab.value === "positions") {
       filters.sort_by = "time_create";
     } else if (activeTab.value === "orders") {
@@ -412,7 +651,10 @@ export const useFmTradeBookStore = defineStore("fmTradeBook", () => {
     }
     filters.sort_order = "desc";
     pagination.value.page = 1;
-    fetchTradesData(true);
+
+    if (fetch) {
+      fetchTradesData(true);
+    }
   };
 
   const resetAll = () => {
@@ -423,6 +665,7 @@ export const useFmTradeBookStore = defineStore("fmTradeBook", () => {
     accountInfo.value = null;
     activeTab.value = "positions";
     pagination.value.page = 1;
+    resetFilters(false);
   };
 
   return {
@@ -435,6 +678,8 @@ export const useFmTradeBookStore = defineStore("fmTradeBook", () => {
     deals,
     summary,
     availableFilters,
+    currentSectionKey,
+    currentSectionFilters,
     pagination,
     filters,
     isLoading,
@@ -446,6 +691,8 @@ export const useFmTradeBookStore = defineStore("fmTradeBook", () => {
     fetchTradesData,
     setActiveTab,
     setSearch,
+    setDynamicFilter,
+    setDynamicDateRange,
     setStatusFilter,
     setTypeFilter,
     setSymbolFilter,
