@@ -385,7 +385,7 @@
                   >
                     <span class="text-[9px] text-secondary-text/60 shrink-0">Addr:</span>
                     <Tooltip :text="getAddress(req)" position="center" textSize="9px">
-                      <span class="text-primary-text font-medium cursor-help hover:underline">
+                      <span class="text-primary-text cursor-help text-[9px] hover:underline">
                         {{ truncateMiddle(getAddress(req), 6, 4) }}
                       </span>
                     </Tooltip>
