@@ -161,6 +161,9 @@ const urls = {
     approve: "/payment-requests/approve/",
     reject: "/payment-requests/reject/",
   },
+  paymentGatewayData: {
+    list: "/payment-gateway-data",
+  },
   paymentSettings: {
     bulkRestrictions: "/clients/transaction-restrictions/bulk",
   },
