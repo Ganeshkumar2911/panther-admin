@@ -14,14 +14,42 @@ const allTabs = [
   {
     label: "Settings",
     value: "settings",
+    permission: [
+      "watchlist.view",
+      "watchlist.manage",
+      "watchlist.settings_view",
+      "watchlist.settings_update",
+      "watchlist.settings",
+      "watchlist.update",
+    ],
   },
   {
     label: "Symbol Catalog",
     value: "symbols",
+    permission: [
+      "watchlist.view",
+      "watchlist.manage",
+      "watchlist.symbols",
+      "watchlist.symbol_view",
+      "watchlist.symbol_create",
+      "watchlist.symbol_update",
+      "watchlist.symbol_delete",
+      "watchlist.create",
+      "watchlist.update",
+      "watchlist.delete",
+    ],
   },
   {
     label: "Excel Import",
     value: "import",
+    permission: [
+      "watchlist.view",
+      "watchlist.manage",
+      "watchlist.import",
+      "watchlist.import_export",
+      "watchlist.symbol_create",
+      "watchlist.create",
+    ],
   },
 ];
 
@@ -86,6 +114,7 @@ function switchTab(tabValue) {
   <div class="pb-12 max-w-screen-2xl mx-auto space-y-5">
     <!-- Top Tabs Navigation (matching Panther Admin tabs) -->
     <div
+      v-if="tabs.length > 0"
       class="flex items-center gap-1 bg-card-background border border-primary-border rounded-xl p-1.5 w-fit shadow-xs"
     >
       <button
@@ -106,7 +135,13 @@ function switchTab(tabValue) {
 
     <!-- Active Tab Component -->
     <transition name="fade" mode="out-in">
-      <component :is="activeComponent" @switch-tab="switchTab" />
+      <component :is="activeComponent" v-if="tabs.length > 0" @switch-tab="switchTab" />
+      <div
+        v-else
+        class="py-16 text-center text-sm text-secondary-text bg-card-background border border-primary-border rounded-xl"
+      >
+        You do not have permission to view Watchlist.
+      </div>
     </transition>
   </div>
 </template>

@@ -1,17 +1,27 @@
 <script setup>
-import { ref, onMounted, watch } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import {
   Sliders,
   CheckCircle2,
   RotateCcw,
   Info,
   Loader2,
+  Lock,
 } from "lucide-vue-next";
 import { useWatchlistStore } from "@/stores/watchlist/watchlist";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 
 const store = useWatchlistStore();
 const { hasPermission } = usePermissionCheck();
+
+const canUpdateSettings = computed(() => {
+  return hasPermission([
+    "watchlist.update",
+    "watchlist.manage",
+    "watchlist.settings_update",
+    "watchlist.settings",
+  ]);
+});
 
 const form = ref({
   max_watchlists_per_user: 5,
@@ -39,10 +49,12 @@ watch(
 );
 
 function onFieldChange() {
+  if (!canUpdateSettings.value) return;
   isDirty.value = true;
 }
 
 async function handleSave() {
+  if (!canUpdateSettings.value) return;
   await store.saveSettings({
     max_watchlists_per_user: Number(form.value.max_watchlists_per_user) || 0,
     max_symbols_per_watchlist:
@@ -117,8 +129,9 @@ function handleReset() {
             v-model.number="form.max_watchlists_per_user"
             type="number"
             min="0"
+            :disabled="!canUpdateSettings || store.settingsSaving"
             placeholder="0 for unlimited"
-            class="input-field px-4 py-2.5 text-sm"
+            class="input-field px-4 py-2.5 text-sm disabled:opacity-60 disabled:cursor-not-allowed"
             @input="onFieldChange"
           />
           <p class="text-xs text-secondary-text flex items-center gap-1.5">
@@ -139,8 +152,9 @@ function handleReset() {
             v-model.number="form.max_symbols_per_watchlist"
             type="number"
             min="0"
+            :disabled="!canUpdateSettings || store.settingsSaving"
             placeholder="0 for unlimited"
-            class="input-field px-4 py-2.5 text-sm"
+            class="input-field px-4 py-2.5 text-sm disabled:opacity-60 disabled:cursor-not-allowed"
             @input="onFieldChange"
           />
           <p class="text-xs text-secondary-text flex items-center gap-1.5">
@@ -165,6 +179,7 @@ function handleReset() {
 
       <!-- Action Buttons -->
       <div
+        v-if="canUpdateSettings"
         class="mt-8 pt-5 border-t border-primary-border flex items-center gap-3"
       >
         <button
@@ -189,6 +204,13 @@ function handleReset() {
           <RotateCcw class="w-3.5 h-3.5" />
           <span>Reset Draft</span>
         </button>
+      </div>
+      <div
+        v-else
+        class="mt-8 pt-5 border-t border-primary-border flex items-center gap-2 text-xs text-secondary-text"
+      >
+        <Lock class="w-3.5 h-3.5" />
+        <span>You have view-only access to Watchlist Settings.</span>
       </div>
     </div>
   </div>
