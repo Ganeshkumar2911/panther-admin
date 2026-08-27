@@ -325,6 +325,41 @@ const defaultDisplayFmt = computed(() => {
   return isTimeEnabled.value ? "MMM D, YYYY HH:mm" : "MMM D, YYYY";
 });
 
+const matchedPreset = computed(() => {
+  if (!isRangeMode.value) return null;
+  const { start, end } = parseModelValue(props.modelValue);
+  if (!start || !end) return null;
+
+  if (activePresetLabel.value) {
+    const found = activePresets.value.find((p) => p.label === activePresetLabel.value);
+    if (found) {
+      try {
+        const [s, e] = found.getValue();
+        const sM = parseDate(s);
+        const eM = parseDate(e);
+        if (sM && eM && sM.isSame(start, "day") && eM.isSame(end, "day")) {
+          return found;
+        }
+      } catch {
+        // ignore
+      }
+    }
+  }
+
+  return (
+    activePresets.value.find((p) => {
+      try {
+        const [s, e] = p.getValue();
+        const sM = parseDate(s);
+        const eM = parseDate(e);
+        return sM && eM && sM.isSame(start, "day") && eM.isSame(end, "day");
+      } catch {
+        return false;
+      }
+    }) || null
+  );
+});
+
 const displayLabel = computed(() => {
   const { start, end } = parseModelValue(props.modelValue);
   if (!start) {
@@ -338,10 +373,22 @@ const displayLabel = computed(() => {
   }
 
   if (start.isSame(end, "day") && !isTimeEnabled.value) {
+    const isToday = start.isSame(moment(), "day");
+    const isYesterday = start.isSame(moment().subtract(1, "day"), "day");
+    if (isToday) return "Today";
+    if (isYesterday) return "Yesterday";
     return start.format(fmt);
   }
 
-  return `${start.format(fmt)} - ${end.format(fmt)}`;
+  if (matchedPreset.value) {
+    return `${matchedPreset.value.label} (${start.format("MMM D")} - ${end.format("MMM D")})`;
+  }
+
+  if (start.year() === end.year()) {
+    return `${start.format("MMM D")} - ${end.format("MMM D, YYYY")}`;
+  }
+
+  return `${start.format("MMM D, YYYY")} - ${end.format("MMM D, YYYY")}`;
 });
 
 const draftSummaryText = computed(() => {
@@ -539,7 +586,7 @@ function initFromModel() {
   if (end) {
     endTime.value = { hours: end.hours(), minutes: end.minutes() };
   }
-  activePresetLabel.value = null;
+  activePresetLabel.value = matchedPreset.value?.label || null;
 }
 
 function toggle() {

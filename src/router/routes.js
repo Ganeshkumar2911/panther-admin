@@ -135,7 +135,8 @@ const routes = [
         meta: {
           requiresAuth: true,
           title: "Payment Gateway Logs",
-          description: "View and inspect payment gateway logs and transactions.",
+          description:
+            "View and inspect payment gateway logs and transactions.",
           showBackButton: true,
         },
       },
@@ -221,7 +222,8 @@ const routes = [
         meta: {
           requiresAuth: true,
           title: "Offer Join Links & Agents",
-          description: "Manage campaign links, additional agents, and offer configuration.",
+          description:
+            "Manage campaign links, additional agents, and offer configuration.",
           showBackButton: true,
         },
       },
@@ -243,7 +245,8 @@ const routes = [
         meta: {
           requiresAuth: true,
           title: "Follower Details",
-          description: "View subscription, account, and fee details for this follower.",
+          description:
+            "View subscription, account, and fee details for this follower.",
           showBackButton: true,
         },
       },
@@ -254,7 +257,8 @@ const routes = [
         meta: {
           requiresAuth: true,
           title: "Fund Manager Trade Book",
-          description: "Live positions, orders, and deal execution history for Fund Manager master account.",
+          description:
+            "Live positions, orders, and deal execution history for Fund Manager master account.",
           showBackButton: true,
         },
       },
@@ -265,7 +269,8 @@ const routes = [
         meta: {
           requiresAuth: true,
           title: "Follower Trade Book",
-          description: "Live positions, orders, and deal execution history for follower trading account.",
+          description:
+            "Live positions, orders, and deal execution history for follower trading account.",
           showBackButton: true,
         },
       },
@@ -296,7 +301,8 @@ const routes = [
         meta: {
           requiresAuth: true,
           title: "Settlement Details",
-          description: "View client summaries and distributions for this settlement.",
+          description:
+            "View client summaries and distributions for this settlement.",
           showBackButton: true,
         },
       },
@@ -307,7 +313,8 @@ const routes = [
         meta: {
           requiresAuth: true,
           title: "Client Settlement Breakdown",
-          description: "Detailed follower trades and period breakdown for this client.",
+          description:
+            "Detailed follower trades and period breakdown for this client.",
           showBackButton: true,
         },
       },
@@ -468,6 +475,17 @@ const routes = [
           requiresAuth: true,
           title: "Telegram",
           description: "Manage Telegram",
+        },
+      },
+      {
+        path: "/watchlist",
+        name: "watchlist",
+        component: () => import("@/pages/watchlist/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Watchlist Management",
+          description:
+            "Manage watchlist limits, symbol catalog, and excel imports.",
         },
       },
       {
