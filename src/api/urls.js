@@ -282,6 +282,13 @@ const urls = {
     importTemplate: "/lead/import/template",
     import: "/lead/import",
   },
+  watchlist: {
+    settings: "/watchlist/settings",
+    symbols: "/watchlist/symbols",
+    symbolDetail: (id) => `/watchlist/symbols/${id}`,
+    import: "/watchlist/symbols/import",
+    template: "/watchlist/symbols/template",
+  },
 };
 
 export default urls;
