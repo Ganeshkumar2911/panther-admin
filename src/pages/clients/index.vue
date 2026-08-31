@@ -54,12 +54,12 @@ const canAssignTags = computed(() => {
 });
 
 const visibleTags = (tags) => {
-  if (!tags) return [];
+  if (!tags || !Array.isArray(tags)) return [];
   return tags.slice(0, 2);
 };
 
 const remainingTags = (tags) => {
-  if (!tags) return [];
+  if (!tags || !Array.isArray(tags)) return [];
   return tags.slice(2);
 };
 

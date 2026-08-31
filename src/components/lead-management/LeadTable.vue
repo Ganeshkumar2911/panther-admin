@@ -3,6 +3,7 @@ import { ref, computed } from "vue";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import Pagination from "@/components/common/Pagination.vue";
 import TagChip from "@/components/common/TagChip.vue";
+import Tooltip from "@/components/common/Tooltip.vue";
 import { getFlagCode, cleanCountryLabel } from "@/utils/countries";
 import { formatDate } from "@/utils/timeFormatter";
 import {
@@ -53,13 +54,23 @@ const canAssignTags = computed(() => {
   );
 });
 
+const visibleTags = (tags) => {
+  if (!tags || !Array.isArray(tags)) return [];
+  return tags.slice(0, 2);
+};
+
+const remainingTags = (tags) => {
+  if (!tags || !Array.isArray(tags)) return [];
+  return tags.slice(2);
+};
+
 const isAllSelected = computed(() => {
-  if (!props.leads || props.leads.length === 0) return false;
+  if (!props.leads || !Array.isArray(props.leads) || props.leads.length === 0) return false;
   return props.leads.every((l) => selectedLeadIds.value.includes(l.id));
 });
 
 const isSomeSelected = computed(() => {
-  if (!props.leads || props.leads.length === 0) return false;
+  if (!props.leads || !Array.isArray(props.leads) || props.leads.length === 0) return false;
   return (
     selectedLeadIds.value.length > 0 &&
     selectedLeadIds.value.length < props.leads.length
@@ -235,8 +246,8 @@ function formatSourceLabel(source) {
         <span
           class="text-[11px] text-secondary-text bg-background border border-primary-border px-2.5 py-0.5 rounded-full font-medium"
         >
-          Showing {{ leads.length }} of
-          {{ formattedPagination.total_items || leads.length }} Leads
+          Showing {{ (leads && leads.length) || 0 }} of
+          {{ formattedPagination.total_items || (leads && leads.length) || 0 }} Leads
         </span>
       </div>
 
@@ -274,7 +285,7 @@ function formatSourceLabel(source) {
 
     <!-- Empty State -->
     <div
-      v-else-if="!loading && leads.length === 0"
+      v-else-if="!loading && (!leads || leads.length === 0)"
       class="py-16 text-center space-y-3 px-4"
     >
       <div
@@ -394,12 +405,40 @@ function formatSourceLabel(source) {
             <td class="px-4 py-3.5 max-w-[200px]" @click.stop>
               <div class="flex flex-wrap items-center gap-1">
                 <TagChip
-                  v-for="tag in (lead.tags || [])"
+                  v-for="tag in visibleTags(lead.tags)"
                   :key="tag.id"
                   :tag="tag"
                   size="sm"
                 />
+                <Tooltip
+                  v-if="remainingTags(lead.tags).length"
+                  position="center"
+                  maxWidth="280px"
+                >
+                  <span
+                    class="inline-flex items-center text-[10px] font-semibold px-1.5 py-0.5 rounded border border-primary-border bg-background/80 text-secondary-text hover:text-primary-text cursor-help transition-colors"
+                  >
+                    +{{ remainingTags(lead.tags).length }}
+                  </span>
+
+                  <template #content>
+                    <div class="p-1">
+                      <p class="text-[10px] uppercase font-semibold text-secondary-text tracking-wider mb-1.5">
+                        Additional Tags
+                      </p>
+                      <div class="flex flex-wrap gap-1 max-w-64">
+                        <TagChip
+                          v-for="tag in remainingTags(lead.tags)"
+                          :key="tag.id"
+                          :tag="tag"
+                          size="sm"
+                        />
+                      </div>
+                    </div>
+                  </template>
+                </Tooltip>
                 <button
+                  v-if="canAssignTags"
                   type="button"
                   @click="emit('manage-tags', lead)"
                   class="p-1 rounded hover:bg-white/10 text-secondary-text hover:text-primary-text transition-colors cursor-pointer"
@@ -546,7 +585,7 @@ function formatSourceLabel(source) {
 
     <!-- Pagination Footer -->
     <div
-      v-if="leads.length > 0"
+      v-if="leads && leads.length > 0"
       class="px-5 py-3 border-t border-primary-border flex flex-wrap items-center justify-between gap-3 bg-background/30"
     >
       <div class="flex items-center gap-4">
