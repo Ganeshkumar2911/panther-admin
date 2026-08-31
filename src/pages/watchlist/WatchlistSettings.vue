@@ -15,12 +15,7 @@ const store = useWatchlistStore();
 const { hasPermission } = usePermissionCheck();
 
 const canUpdateSettings = computed(() => {
-  return hasPermission([
-    "watchlist.update",
-    "watchlist.manage",
-    "watchlist.settings_update",
-    "watchlist.settings",
-  ]);
+  return hasPermission("watchlist.settings_update");
 });
 
 const form = ref({
@@ -73,7 +68,7 @@ function handleReset() {
 </script>
 
 <template>
-  <div class="space-y-6 pt-2">
+  <div class="space-y-4">
     <!-- Header Summary -->
     <div
       class="flex flex-col sm:flex-row sm:items-center justify-between gap-3"

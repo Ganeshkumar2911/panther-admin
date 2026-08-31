@@ -13,6 +13,7 @@ import {
   RefreshCw,
 } from 'lucide-vue-next'
 import { useWatchlistStore } from '@/stores/watchlist/watchlist'
+import { usePermissionCheck } from '@/composables/usePermissionCheck'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import SymbolModal from '@/components/watchlist/SymbolModal.vue'
 import ConfirmationDialog from '@/components/common/ConfirmationDialog.vue'
@@ -21,6 +22,7 @@ import Pagination from '@/components/common/Pagination.vue'
 const emit = defineEmits(['switchTab'])
 
 const store = useWatchlistStore()
+const { hasPermission } = usePermissionCheck()
 
 // Filter Options
 const statusOptions = [
@@ -95,7 +97,7 @@ function resetFilters() {
 </script>
 
 <template>
-  <div class="space-y-6 pt-2">
+  <div class="space-y-4">
     <!-- Header & Action Buttons -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
@@ -117,6 +119,7 @@ function resetFilters() {
         </button>
 
         <button
+          v-if="hasPermission('watchlist.symbols_import')"
           type="button"
           class="px-3.5 py-2 rounded-xl text-xs font-semibold text-secondary-text border border-primary-border bg-card-background hover:text-primary-text hover:bg-background transition-colors flex items-center gap-2 cursor-pointer"
           @click="emit('switchTab', 'import')"
@@ -126,6 +129,7 @@ function resetFilters() {
         </button>
 
         <button
+          v-if="hasPermission('watchlist.symbols_create')"
           type="button"
           class="px-4 py-2 rounded-xl text-xs font-semibold bg-primary text-white hover:bg-primary-hover transition-colors flex items-center gap-2 cursor-pointer shadow-xs"
           @click="openCreateModal"
@@ -336,6 +340,7 @@ function resetFilters() {
                 <td class="px-4 py-3.5 text-right">
                   <div class="flex items-center justify-end gap-1.5">
                     <button
+                      v-if="hasPermission('watchlist.symbols_update')"
                       type="button"
                       class="p-1.5 rounded-lg text-secondary-text hover:text-primary hover:bg-background transition-colors cursor-pointer"
                       title="Edit Symbol"
@@ -344,6 +349,7 @@ function resetFilters() {
                       <Pencil class="w-3.5 h-3.5" />
                     </button>
                     <button
+                      v-if="hasPermission('watchlist.symbols_delete')"
                       type="button"
                       class="p-1.5 rounded-lg text-secondary-text hover:text-primary-red hover:bg-background transition-colors cursor-pointer"
                       title="Delete Symbol"

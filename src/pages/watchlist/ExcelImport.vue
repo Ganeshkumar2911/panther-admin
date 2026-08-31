@@ -86,7 +86,7 @@ function formatFileSize(bytes) {
 </script>
 
 <template>
-  <div class="space-y-6 pt-2">
+  <div class="space-y-4">
     <!-- Header & Download Template -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
