@@ -23,6 +23,7 @@ import {
   FolderOpen,
   Bell,
   Tag,
+  BookmarkCheck,
 } from "lucide-vue-next";
 
 export const navItems = [
@@ -146,6 +147,20 @@ export const navItems = [
     to: "/group-config",
     icon: Settings,
     permission: ["group.group_view", "group.category_view"],
+  },
+  {
+    label: "Watchlist",
+    to: "/watchlist",
+    icon: BookmarkCheck,
+    permission: [
+      "watchlist.settings_view",
+      "watchlist.settings_update",
+      "watchlist.symbols_view",
+      "watchlist.symbols_create",
+      "watchlist.symbols_update",
+      "watchlist.symbols_delete",
+      "watchlist.symbols_import",
+    ],
   },
   {
     label: "Company Integrations",

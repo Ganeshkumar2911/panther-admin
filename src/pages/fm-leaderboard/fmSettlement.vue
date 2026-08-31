@@ -26,6 +26,22 @@
       </div>
 
       <div class="flex items-center gap-2.5">
+        <!-- Amount View Toggle -->
+        <div class="flex items-center rounded-lg border border-primary-border bg-card-background overflow-hidden">
+          <button
+            v-for="opt in amountViewOptions"
+            :key="opt.value"
+            :disabled="store.loading"
+            class="px-3 py-2 text-xs font-medium transition-colors cursor-pointer disabled:opacity-50"
+            :class="store.amountView === opt.value
+              ? 'bg-primary text-white'
+              : 'text-secondary-text hover:text-primary-text hover:bg-background'"
+            @click="switchAmountView(opt.value)"
+          >
+            {{ opt.label }}
+          </button>
+        </div>
+
         <button
           :disabled="store.loading"
           class="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-primary-border bg-card-background hover:bg-background text-xs font-medium text-secondary-text hover:text-primary-text transition-colors disabled:opacity-50 cursor-pointer"
@@ -89,7 +105,14 @@
                 class="text-xl font-bold tabular-nums"
                 :class="totalPnl >= 0 ? 'text-primary-green' : 'text-primary-red'"
               >
-                {{ totalPnl > 0 ? '+' : '' }}{{ formatCurrency(totalPnl) }}
+                {{ totalPnl > 0 ? '+' : '' }}{{ formatCurrency(totalPnl, isBothView ? accountCurrency : null) }}
+              </p>
+              <p
+                v-if="isBothView && usdSummaryData"
+                class="text-[11px] font-mono tabular-nums mt-0.5"
+                :class="usdSummaryData.total_pnl >= 0 ? 'text-primary-green/90' : 'text-primary-red/90'"
+              >
+                ≈ {{ usdSummaryData.total_pnl > 0 ? '+' : '' }}{{ formatCurrency(usdSummaryData.total_pnl, 'USD') }} USD
               </p>
               <p class="text-[10px] text-secondary-text mt-0.5 truncate">{{ store.settlement?.fm_name }} (FM #{{ store.settlement?.fm_id }})</p>
             </div>
@@ -102,7 +125,15 @@
               <DollarSign class="w-3.5 h-3.5 text-secondary-text" />
             </div>
             <div class="mt-2">
-              <p class="text-xl font-bold text-primary-text tabular-nums">{{ formatCurrency(summaryData.total_fee) }}</p>
+              <p class="text-xl font-bold text-primary-text tabular-nums">
+                {{ formatCurrency(summaryData.total_fee, isBothView ? accountCurrency : null) }}
+              </p>
+              <p
+                v-if="isBothView && usdSummaryData"
+                class="text-[11px] font-mono text-secondary-text mt-0.5"
+              >
+                ≈ {{ formatCurrency(usdSummaryData.total_fee, 'USD') }} USD
+              </p>
               <p class="text-[10px] text-secondary-text mt-0.5">Performance Fee</p>
             </div>
           </div>
@@ -114,8 +145,21 @@
               <PieChart class="w-3.5 h-3.5 text-secondary-text" />
             </div>
             <div class="mt-2">
-              <p class="text-xl font-bold text-primary-text tabular-nums">{{ formatCurrency(summaryData.total_fm_net_after_agents) }}</p>
-              <p class="text-[10px] text-secondary-text mt-0.5">Gross: {{ formatCurrency(summaryData.total_fm_fee) }}</p>
+              <p class="text-xl font-bold text-primary-text tabular-nums">
+                {{ formatCurrency(summaryData.total_fm_net_after_agents, isBothView ? accountCurrency : null) }}
+              </p>
+              <p
+                v-if="isBothView && usdSummaryData"
+                class="text-[11px] font-mono text-secondary-text mt-0.5"
+              >
+                ≈ {{ formatCurrency(usdSummaryData.total_fm_net_after_agents, 'USD') }} USD
+              </p>
+              <p class="text-[10px] text-secondary-text mt-0.5">
+                Gross: {{ formatCurrency(summaryData.total_fm_fee, isBothView ? accountCurrency : null) }}
+                <template v-if="isBothView && usdSummaryData">
+                  / {{ formatCurrency(usdSummaryData.total_fm_fee, 'USD') }}
+                </template>
+              </p>
             </div>
           </div>
 
@@ -126,8 +170,21 @@
               <Building2 class="w-3.5 h-3.5 text-secondary-text" />
             </div>
             <div class="mt-2">
-              <p class="text-xl font-bold text-primary-text tabular-nums">{{ formatCurrency(summaryData.total_broker_net) }}</p>
-              <p class="text-[10px] text-secondary-text mt-0.5">Gross: {{ formatCurrency(summaryData.total_broker_fee) }}</p>
+              <p class="text-xl font-bold text-primary-text tabular-nums">
+                {{ formatCurrency(summaryData.total_broker_net, isBothView ? accountCurrency : null) }}
+              </p>
+              <p
+                v-if="isBothView && usdSummaryData"
+                class="text-[11px] font-mono text-secondary-text mt-0.5"
+              >
+                ≈ {{ formatCurrency(usdSummaryData.total_broker_net, 'USD') }} USD
+              </p>
+              <p class="text-[10px] text-secondary-text mt-0.5">
+                Gross: {{ formatCurrency(summaryData.total_broker_fee, isBothView ? accountCurrency : null) }}
+                <template v-if="isBothView && usdSummaryData">
+                  / {{ formatCurrency(usdSummaryData.total_broker_fee, 'USD') }}
+                </template>
+              </p>
             </div>
           </div>
 
@@ -138,8 +195,16 @@
               <GitBranch class="w-3.5 h-3.5 text-secondary-text" />
             </div>
             <div class="mt-2">
-              <p class="text-xl font-bold text-primary-green tabular-nums">{{ formatCurrency(summaryData.total_ib_distributed) }}</p>
-              <p class="text-[10px] text-secondary-text mt-0.5">{{ store.settlement?.ib_summary?.length ?? 0 }} IBs Benefiting</p>
+              <p class="text-xl font-bold text-primary-green tabular-nums">
+                {{ formatCurrency(summaryData.total_ib_distributed, isBothView ? accountCurrency : null) }}
+              </p>
+              <p
+                v-if="isBothView && usdSummaryData"
+                class="text-[11px] font-mono text-primary-green/90 mt-0.5"
+              >
+                ≈ {{ formatCurrency(usdSummaryData.total_ib_distributed, 'USD') }} USD
+              </p>
+              <p class="text-[10px] text-secondary-text mt-0.5">{{ rawIbList.length }} IBs Benefiting</p>
             </div>
           </div>
 
@@ -171,14 +236,14 @@
               class="px-1.5 py-0.2 rounded-full text-[10px] font-semibold"
               :class="activeTab === 'users' ? 'bg-white/20 text-white' : 'bg-background text-secondary-text'"
             >
-              {{ store.settlement?.users_summary?.length ?? 0 }}
+              {{ rawUsersList.length }}
             </span>
           </button>
 
           <button
             class="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer shrink-0"
             :class="activeTab === 'ib_summary' ? 'bg-primary text-white' : 'bg-card-background border border-primary-border text-secondary-text hover:text-primary-text'"
-            @click="activeTab = 'ib_summary'"
+            @click="activeTab === 'ib_summary'"
           >
             <PieChart class="w-3.5 h-3.5" />
             IB Summary
@@ -186,7 +251,7 @@
               class="px-1.5 py-0.2 rounded-full text-[10px] font-semibold"
               :class="activeTab === 'ib_summary' ? 'bg-white/20 text-white' : 'bg-background text-secondary-text'"
             >
-              {{ store.settlement?.ib_summary?.length ?? 0 }}
+              {{ rawIbList.length }}
             </span>
           </button>
 
@@ -300,52 +365,106 @@
 
                   <!-- Gross PnL -->
                   <td class="p-3">
-                    <span
+                    <p
                       class="text-xs font-semibold tabular-nums"
                       :class="u.gross_pnl >= 0 ? 'text-primary-green' : 'text-primary-red'"
                     >
-                      {{ u.gross_pnl > 0 ? '+' : '' }}{{ formatCurrency(u.gross_pnl) }}
-                    </span>
+                      {{ u.gross_pnl > 0 ? '+' : '' }}{{ formatCurrency(u.gross_pnl, isBothView ? accountCurrency : null) }}
+                    </p>
+                    <p
+                      v-if="isBothView && u.usd"
+                      class="text-[10px] font-mono tabular-nums mt-0.5"
+                      :class="u.usd.gross_pnl >= 0 ? 'text-primary-green/80' : 'text-primary-red/80'"
+                    >
+                      {{ u.usd.gross_pnl > 0 ? '+' : '' }}{{ formatCurrency(u.usd.gross_pnl, 'USD') }} USD
+                    </p>
                   </td>
 
                   <!-- Total Fee -->
                   <td class="p-3">
-                    <span class="text-xs font-medium text-primary-text tabular-nums">
-                      {{ formatCurrency(u.total_fee) }}
-                    </span>
+                    <p class="text-xs font-medium text-primary-text tabular-nums">
+                      {{ formatCurrency(u.total_fee, isBothView ? accountCurrency : null) }}
+                    </p>
+                    <p
+                      v-if="isBothView && u.usd"
+                      class="text-[10px] font-mono text-secondary-text tabular-nums mt-0.5"
+                    >
+                      {{ formatCurrency(u.usd.total_fee, 'USD') }} USD
+                    </p>
                   </td>
 
                   <!-- FM Fee -->
                   <td class="p-3">
-                    <p class="text-xs font-medium text-primary-text tabular-nums">{{ formatCurrency(u.fm_net_after_agents ?? u.fm_fee) }}</p>
-                    <p v-if="u.fm_fee !== u.fm_net_after_agents && u.fm_fee != null" class="text-[10px] text-secondary-text">
-                      Gross: {{ formatCurrency(u.fm_fee) }}
+                    <p class="text-xs font-medium text-primary-text tabular-nums">
+                      {{ formatCurrency(u.fm_net_after_agents ?? u.fm_fee, isBothView ? accountCurrency : null) }}
+                    </p>
+                    <p
+                      v-if="isBothView && u.usd"
+                      class="text-[10px] font-mono text-secondary-text tabular-nums mt-0.5"
+                    >
+                      {{ formatCurrency(u.usd.fm_net_after_agents ?? u.usd.fm_fee, 'USD') }} USD
+                    </p>
+                    <p
+                      v-if="u.fm_fee !== u.fm_net_after_agents && u.fm_fee != null"
+                      class="text-[10px] text-secondary-text"
+                    >
+                      Gross: {{ formatCurrency(u.fm_fee, isBothView ? accountCurrency : null) }}
+                      <template v-if="isBothView && u.usd">
+                        / {{ formatCurrency(u.usd.fm_fee, 'USD') }}
+                      </template>
                     </p>
                   </td>
 
                   <!-- Broker Fee -->
                   <td class="p-3">
-                    <p class="text-xs font-medium text-primary-text tabular-nums">{{ formatCurrency(u.broker_net ?? u.broker_fee) }}</p>
-                    <p v-if="u.broker_fee !== u.broker_net && u.broker_fee != null" class="text-[10px] text-secondary-text">
-                      Gross: {{ formatCurrency(u.broker_fee) }}
+                    <p class="text-xs font-medium text-primary-text tabular-nums">
+                      {{ formatCurrency(u.broker_net ?? u.broker_fee, isBothView ? accountCurrency : null) }}
+                    </p>
+                    <p
+                      v-if="isBothView && u.usd"
+                      class="text-[10px] font-mono text-secondary-text tabular-nums mt-0.5"
+                    >
+                      {{ formatCurrency(u.usd.broker_net ?? u.usd.broker_fee, 'USD') }} USD
+                    </p>
+                    <p
+                      v-if="u.broker_fee !== u.broker_net && u.broker_fee != null"
+                      class="text-[10px] text-secondary-text"
+                    >
+                      Gross: {{ formatCurrency(u.broker_fee, isBothView ? accountCurrency : null) }}
+                      <template v-if="isBothView && u.usd">
+                        / {{ formatCurrency(u.usd.broker_fee, 'USD') }}
+                      </template>
                     </p>
                   </td>
 
                   <!-- IB Distributed -->
                   <td class="p-3">
-                    <span class="text-xs font-medium text-primary-green tabular-nums">
-                      {{ formatCurrency(u.ib_distributed ?? u.ib_pool) }}
-                    </span>
+                    <p class="text-xs font-medium text-primary-green tabular-nums">
+                      {{ formatCurrency(u.ib_distributed ?? u.ib_pool, isBothView ? accountCurrency : null) }}
+                    </p>
+                    <p
+                      v-if="isBothView && u.usd"
+                      class="text-[10px] font-mono text-primary-green/80 tabular-nums mt-0.5"
+                    >
+                      {{ formatCurrency(u.usd.ib_distributed ?? u.usd.ib_pool, 'USD') }} USD
+                    </p>
                   </td>
 
                   <!-- Net PnL -->
                   <td class="p-3 text-right">
-                    <span
+                    <p
                       class="text-xs font-bold tabular-nums"
                       :class="u.net_pnl >= 0 ? 'text-primary-green' : 'text-primary-red'"
                     >
-                      {{ u.net_pnl > 0 ? '+' : '' }}{{ formatCurrency(u.net_pnl) }}
-                    </span>
+                      {{ u.net_pnl > 0 ? '+' : '' }}{{ formatCurrency(u.net_pnl, isBothView ? accountCurrency : null) }}
+                    </p>
+                    <p
+                      v-if="isBothView && u.usd"
+                      class="text-[10px] font-mono tabular-nums mt-0.5"
+                      :class="u.usd.net_pnl >= 0 ? 'text-primary-green/80' : 'text-primary-red/80'"
+                    >
+                      {{ u.usd.net_pnl > 0 ? '+' : '' }}{{ formatCurrency(u.usd.net_pnl, 'USD') }} USD
+                    </p>
                   </td>
 
                   <!-- Action Details -->
@@ -390,12 +509,19 @@
 
               <div class="text-right">
                 <p class="text-[10px] text-secondary-text">Net PnL</p>
-                <span
+                <p
                   class="text-sm font-bold tabular-nums"
                   :class="u.net_pnl >= 0 ? 'text-primary-green' : 'text-primary-red'"
                 >
-                  {{ u.net_pnl > 0 ? '+' : '' }}{{ formatCurrency(u.net_pnl) }}
-                </span>
+                  {{ u.net_pnl > 0 ? '+' : '' }}{{ formatCurrency(u.net_pnl, isBothView ? accountCurrency : null) }}
+                </p>
+                <p
+                  v-if="isBothView && u.usd"
+                  class="text-[10px] font-mono tabular-nums mt-0.5"
+                  :class="u.usd.net_pnl >= 0 ? 'text-primary-green/80' : 'text-primary-red/80'"
+                >
+                  {{ u.usd.net_pnl > 0 ? '+' : '' }}{{ formatCurrency(u.usd.net_pnl, 'USD') }} USD
+                </p>
               </div>
             </div>
 
@@ -415,26 +541,53 @@
               <div class="bg-background rounded-xl p-2.5">
                 <p class="text-[10px] text-secondary-text">Gross PnL</p>
                 <p class="font-semibold tabular-nums mt-0.5" :class="u.gross_pnl >= 0 ? 'text-primary-green' : 'text-primary-red'">
-                  {{ u.gross_pnl > 0 ? '+' : '' }}{{ formatCurrency(u.gross_pnl) }}
+                  {{ u.gross_pnl > 0 ? '+' : '' }}{{ formatCurrency(u.gross_pnl, isBothView ? accountCurrency : null) }}
+                </p>
+                <p
+                  v-if="isBothView && u.usd"
+                  class="text-[10px] font-mono tabular-nums mt-0.5"
+                  :class="u.usd.gross_pnl >= 0 ? 'text-primary-green/80' : 'text-primary-red/80'"
+                >
+                  {{ u.usd.gross_pnl > 0 ? '+' : '' }}{{ formatCurrency(u.usd.gross_pnl, 'USD') }} USD
                 </p>
               </div>
 
               <div class="bg-background rounded-xl p-2.5">
                 <p class="text-[10px] text-secondary-text">Total Fee</p>
-                <p class="font-semibold text-primary-text tabular-nums mt-0.5">{{ formatCurrency(u.total_fee) }}</p>
+                <p class="font-semibold text-primary-text tabular-nums mt-0.5">
+                  {{ formatCurrency(u.total_fee, isBothView ? accountCurrency : null) }}
+                </p>
+                <p
+                  v-if="isBothView && u.usd"
+                  class="text-[10px] font-mono text-secondary-text tabular-nums mt-0.5"
+                >
+                  {{ formatCurrency(u.usd.total_fee, 'USD') }} USD
+                </p>
               </div>
 
               <div class="bg-background rounded-xl p-2.5">
                 <p class="text-[10px] text-secondary-text">FM Net Fee</p>
                 <p class="font-semibold text-primary-text tabular-nums mt-0.5">
-                  {{ formatCurrency(u.fm_net_after_agents ?? u.fm_fee) }}
+                  {{ formatCurrency(u.fm_net_after_agents ?? u.fm_fee, isBothView ? accountCurrency : null) }}
+                </p>
+                <p
+                  v-if="isBothView && u.usd"
+                  class="text-[10px] font-mono text-secondary-text tabular-nums mt-0.5"
+                >
+                  {{ formatCurrency(u.usd.fm_net_after_agents ?? u.usd.fm_fee, 'USD') }} USD
                 </p>
               </div>
 
               <div class="bg-background rounded-xl p-2.5">
                 <p class="text-[10px] text-secondary-text">Broker Net</p>
                 <p class="font-semibold text-primary-text tabular-nums mt-0.5">
-                  {{ formatCurrency(u.broker_net ?? u.broker_fee) }}
+                  {{ formatCurrency(u.broker_net ?? u.broker_fee, isBothView ? accountCurrency : null) }}
+                </p>
+                <p
+                  v-if="isBothView && u.usd"
+                  class="text-[10px] font-mono text-secondary-text tabular-nums mt-0.5"
+                >
+                  {{ formatCurrency(u.usd.broker_net ?? u.usd.broker_fee, 'USD') }} USD
                 </p>
               </div>
             </div>
@@ -463,7 +616,13 @@
               <span class="text-xs font-semibold text-primary-text">IB Settlement Summary</span>
             </div>
             <span class="text-xs text-secondary-text">
-              Total Commission: <span class="font-semibold text-primary-green">{{ formatCurrency(summaryData.total_ib_distributed) }}</span>
+              Total Commission:
+              <span class="font-semibold text-primary-green">
+                {{ formatCurrency(summaryData.total_ib_distributed, isBothView ? accountCurrency : null) }}
+              </span>
+              <span v-if="isBothView && usdSummaryData" class="text-xs text-secondary-text ml-1">
+                (≈ {{ formatCurrency(usdSummaryData.total_ib_distributed, 'USD') }} USD)
+              </span>
             </span>
           </div>
 
@@ -514,9 +673,15 @@
                   </td>
 
                   <td class="p-3 text-right">
-                    <span class="text-xs font-bold font-mono text-primary-green">
-                      {{ formatCurrency(ib.total_commission) }}
-                    </span>
+                    <p class="text-xs font-bold font-mono text-primary-green">
+                      {{ formatCurrency(ib.total_commission, isBothView ? accountCurrency : null) }}
+                    </p>
+                    <p
+                      v-if="isBothView && ib.usd"
+                      class="text-[10px] font-mono text-primary-green/80 mt-0.5"
+                    >
+                      {{ formatCurrency(ib.usd.total_commission, 'USD') }} USD
+                    </p>
                   </td>
                 </tr>
 
@@ -542,7 +707,13 @@
               <span class="text-xs font-semibold text-primary-text">Agent Distribution</span>
             </div>
             <span class="text-xs text-secondary-text">
-              Total Agent Distributed: <span class="font-semibold text-primary-text">{{ formatCurrency(summaryData.total_agent_distributed) }}</span>
+              Total Agent Distributed:
+              <span class="font-semibold text-primary-text">
+                {{ formatCurrency(summaryData.total_agent_distributed, isBothView ? accountCurrency : null) }}
+              </span>
+              <span v-if="isBothView && usdSummaryData" class="text-xs text-secondary-text ml-1">
+                (≈ {{ formatCurrency(usdSummaryData.total_agent_distributed, 'USD') }} USD)
+              </span>
             </span>
           </div>
 
@@ -565,7 +736,9 @@
                   class="border-b border-primary-border last:border-none"
                 >
                   <td class="p-3 text-xs font-medium text-primary-text">{{ agent.name || agent.email || 'Agent' }}</td>
-                  <td class="p-3 text-right text-xs font-semibold text-primary-green tabular-nums">{{ formatCurrency(agent.commission) }}</td>
+                  <td class="p-3 text-right text-xs font-semibold text-primary-green tabular-nums">
+                    {{ formatCurrency(agent.commission, isBothView ? accountCurrency : null) }}
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -579,7 +752,7 @@
     <RunSettlementConfirm
       :open="confirmOpen"
       :settlement="store.settlement"
-      :currency="activeCurrency"
+      :currency="payoutCurrency"
       :run-loading="store.runLoading"
       @close="confirmOpen = false"
       @confirm="handleRun"
@@ -633,22 +806,65 @@ const loadFmInfo = () => {
   }
 }
 
-const activeCurrency = computed(() => {
+// Currency computation
+const accountCurrency = computed(() => {
   return (
-    route.query.currency ||
-    store.settlement?.broker_currency ||
-    store.settlement?.currency ||
+    store.settlement?.currency?.account_currency ||
+    store.settlement?.amounts?.account_units?.currency ||
+    store.settlement?.display?.currency ||
     fmInfo.value?.broker_currency ||
     fmInfo.value?.currency ||
     fmInfo.value?.coverage_account?.broker_currency ||
     fmInfo.value?.master_account?.broker_currency ||
+    route.query.currency ||
+    'USC'
+  )
+})
+
+const payoutCurrency = computed(() => {
+  return (
+    store.settlement?.currency?.payout_currency ||
+    store.settlement?.amounts?.usd?.currency ||
     'USD'
   )
 })
 
+const activeCurrency = computed(() => {
+  if (store.amountView === 'usd') {
+    return payoutCurrency.value
+  }
+  if (store.amountView === 'account_units') {
+    return accountCurrency.value
+  }
+  // If 'both'
+  const acc = accountCurrency.value
+  const pay = payoutCurrency.value
+  if (acc && pay && acc.toUpperCase() !== pay.toUpperCase()) {
+    return `${acc} & ${pay}`
+  }
+  return acc || pay || 'USD'
+})
+
+const isBothView = computed(() => store.amountView === 'both')
+
+const amountViewOptions = computed(() => {
+  const acc = accountCurrency.value || 'USC'
+  const pay = payoutCurrency.value || 'USD'
+  return [
+    { label: `${acc} (Account Units)`, value: 'account_units' },
+    { label: `${pay}`, value: 'usd' },
+    { label: 'Both', value: 'both' },
+  ]
+})
+
+const switchAmountView = (view) => {
+  if (store.amountView === view || store.loading) return
+  store.fetchSettlement(view)
+}
+
 const getCurrencySymbol = (currency) => {
   const c = String(currency || '').trim().toUpperCase()
-  if (c === 'USC' || c === 'CENT') return 'C'
+  if (c === 'USC' || c === 'CENT' || c === 'CENTS') return 'C'
   if (c === 'CAD') return 'C$'
   if (c === 'EUR') return '€'
   if (c === 'GBP') return '£'
@@ -662,7 +878,8 @@ const formatCurrency = (val, currency = null) => {
   if (val === null || val === undefined || val === '') return '—'
   const num = Number(val)
   if (isNaN(num)) return '—'
-  const sym = getCurrencySymbol(currency || activeCurrency.value)
+  const cur = currency || (store.amountView === 'usd' ? payoutCurrency.value : accountCurrency.value)
+  const sym = getCurrencySymbol(cur)
   const isNegative = num < 0
   const formatted = Math.abs(num).toLocaleString('en-US', {
     minimumFractionDigits: 2,
@@ -671,14 +888,39 @@ const formatCurrency = (val, currency = null) => {
   return `${isNegative ? '-' : ''}${sym}${formatted}`
 }
 
+// Summary Metrics Data
 const summaryData = computed(() => {
-  const s = store.settlement?.summary || {}
+  let s = {}
+  if (store.amountView === 'usd') {
+    s = store.settlement?.amounts?.usd?.summary || store.settlement?.display?.summary || store.settlement?.summary || {}
+  } else if (store.amountView === 'both') {
+    s = store.settlement?.amounts?.account_units?.summary || store.settlement?.summary_account_units || store.settlement?.display?.summary || store.settlement?.summary || {}
+  } else {
+    // account_units
+    s = store.settlement?.amounts?.account_units?.summary || store.settlement?.display?.summary || store.settlement?.summary_account_units || store.settlement?.summary || {}
+  }
+
   return {
     total_pnl: s.total_pnl ?? store.settlement?.total_pnl ?? 0,
     total_fee: s.total_fee ?? store.settlement?.total_fee ?? 0,
     total_trades: s.total_trades ?? store.settlement?.unsettled_count ?? 0,
     unique_followers: s.unique_followers ?? 0,
-    unique_users: s.unique_users ?? (store.settlement?.users_summary?.length ?? 0),
+    unique_users: s.unique_users ?? rawUsersList.value.length,
+    total_fm_fee: s.total_fm_fee ?? 0,
+    total_fm_net_after_agents: s.total_fm_net_after_agents ?? s.total_fm_fee ?? 0,
+    total_broker_fee: s.total_broker_fee ?? 0,
+    total_broker_net: s.total_broker_net ?? s.total_broker_fee ?? 0,
+    total_ib_distributed: s.total_ib_distributed ?? 0,
+    total_agent_distributed: s.total_agent_distributed ?? 0,
+  }
+})
+
+const usdSummaryData = computed(() => {
+  if (!isBothView.value) return null
+  const s = store.settlement?.amounts?.usd?.summary || store.settlement?.summary || {}
+  return {
+    total_pnl: s.total_pnl ?? 0,
+    total_fee: s.total_fee ?? 0,
     total_fm_fee: s.total_fm_fee ?? 0,
     total_fm_net_after_agents: s.total_fm_net_after_agents ?? s.total_fm_fee ?? 0,
     total_broker_fee: s.total_broker_fee ?? 0,
@@ -690,17 +932,117 @@ const summaryData = computed(() => {
 
 const totalPnl = computed(() => summaryData.value.total_pnl)
 
+// Raw users list with dual data support
+const rawUsersList = computed(() => {
+  if (store.amountView === 'usd') {
+    return (
+      store.settlement?.amounts?.usd?.users_summary ||
+      store.settlement?.display?.users_summary ||
+      store.settlement?.users_summary ||
+      []
+    )
+  }
+
+  if (store.amountView === 'both') {
+    const accUsers =
+      store.settlement?.amounts?.account_units?.users_summary ||
+      store.settlement?.display?.users_summary ||
+      store.settlement?.users_summary ||
+      []
+    const usdUsers = store.settlement?.amounts?.usd?.users_summary || []
+
+    const usdMap = new Map()
+    usdUsers.forEach((u) => {
+      if (u.user_id != null) usdMap.set(String(u.user_id), u)
+    })
+
+    return accUsers.map((u, idx) => {
+      const usdU = usdMap.get(String(u.user_id)) || usdUsers[idx] || {}
+      return {
+        ...u,
+        usd: {
+          gross_pnl: usdU.gross_pnl ?? u.gross_pnl,
+          total_fee: usdU.total_fee ?? u.total_fee,
+          fm_fee: usdU.fm_fee ?? u.fm_fee,
+          fm_net_after_agents: usdU.fm_net_after_agents ?? u.fm_net_after_agents ?? usdU.fm_fee,
+          broker_fee: usdU.broker_fee ?? u.broker_fee,
+          broker_net: usdU.broker_net ?? u.broker_net ?? usdU.broker_fee,
+          ib_distributed: usdU.ib_distributed ?? u.ib_distributed ?? usdU.ib_pool,
+          net_pnl: usdU.net_pnl ?? u.net_pnl,
+        },
+      }
+    })
+  }
+
+  // Default: account_units
+  return (
+    store.settlement?.amounts?.account_units?.users_summary ||
+    store.settlement?.display?.users_summary ||
+    store.settlement?.users_summary ||
+    []
+  )
+})
+
+// Raw IB list with dual data support
+const rawIbList = computed(() => {
+  if (store.amountView === 'usd') {
+    return (
+      store.settlement?.amounts?.usd?.ib_summary ||
+      store.settlement?.display?.ib_summary ||
+      store.settlement?.ib_summary ||
+      []
+    )
+  }
+
+  if (store.amountView === 'both') {
+    const accIbs =
+      store.settlement?.amounts?.account_units?.ib_summary ||
+      store.settlement?.display?.ib_summary ||
+      store.settlement?.ib_summary ||
+      []
+    const usdIbs = store.settlement?.amounts?.usd?.ib_summary || []
+
+    const usdMap = new Map()
+    usdIbs.forEach((ib) => {
+      const key = ib.ib_id != null ? `id_${ib.ib_id}` : `uid_${ib.ib_user_id}`
+      usdMap.set(key, ib)
+    })
+
+    return accIbs.map((ib, idx) => {
+      const key = ib.ib_id != null ? `id_${ib.ib_id}` : `uid_${ib.ib_user_id}`
+      const usdIb = usdMap.get(key) || usdIbs[idx] || {}
+      return {
+        ...ib,
+        usd: {
+          total_commission: usdIb.total_commission ?? ib.total_commission,
+        },
+      }
+    })
+  }
+
+  // Default: account_units
+  return (
+    store.settlement?.amounts?.account_units?.ib_summary ||
+    store.settlement?.display?.ib_summary ||
+    store.settlement?.ib_summary ||
+    []
+  )
+})
+
 const hasEmptyData = computed(() => {
   if (store.loading) return false
   if (!store.settlement) return true
-  const usersCount = store.settlement?.users_summary?.length ?? 0
-  const tradesCount = store.settlement?.unsettled_count ?? store.settlement?.summary?.total_trades ?? 0
+  const usersCount = rawUsersList.value.length
+  const tradesCount =
+    store.settlement?.unsettled_count ??
+    summaryData.value.total_trades ??
+    0
   return usersCount === 0 && tradesCount === 0
 })
 
 // Search filtered lists
 const filteredUsers = computed(() => {
-  const list = store.settlement?.users_summary || []
+  const list = rawUsersList.value
   if (!searchQuery.value.trim()) return list
   const q = searchQuery.value.toLowerCase().trim()
   return list.filter((u) => {
@@ -718,7 +1060,7 @@ const filteredUsers = computed(() => {
 })
 
 const filteredIbSummary = computed(() => {
-  const list = store.settlement?.ib_summary || []
+  const list = rawIbList.value
   if (!searchQuery.value.trim()) return list
   const q = searchQuery.value.toLowerCase().trim()
   return list.filter((ib) =>
@@ -734,7 +1076,10 @@ const goToUserDetails = (user) => {
   router.push({
     name: 'fm-settlement-user-preview',
     params: { id: route.params.id, userId: user.user_id },
-    query: { currency: activeCurrency.value },
+    query: {
+      currency: store.amountView === 'usd' ? payoutCurrency.value : accountCurrency.value,
+      amount_view: store.amountView,
+    },
   })
 }
 

@@ -224,6 +224,7 @@ const urls = {
       updateRole: "/rbac/users/role",
       updateStatus: "/rbac/users/status",
       delete: "/rbac/users",
+      resetPassword: "/rbac/users/reset-password",
     },
     userPermissions: {
       me: "/rbac/me/permissions",
@@ -304,6 +305,13 @@ const urls = {
     userTags: (userId) => `/users/${userId}/tags`,
     removeUserTag: (userId, tagId) => `/users/${userId}/tags/${tagId}`,
     userBulk: "/users/tags/bulk",
+  },
+  watchlist: {
+    settings: "/watchlist/settings",
+    symbols: "/watchlist/symbols",
+    symbolDetail: (id) => `/watchlist/symbols/${id}`,
+    import: "/watchlist/symbols/import",
+    template: "/watchlist/symbols/template",
   },
 };
 
