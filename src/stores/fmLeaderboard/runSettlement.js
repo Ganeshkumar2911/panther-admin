@@ -15,7 +15,7 @@ export const useRunSettlementStore = defineStore('runSettlement', () => {
   const loading = ref(false)
   const runLoading = ref(false)
   const error = ref(null)
-  const amountView = ref('both')
+  const amountView = ref('account_units')
 
   const fetchSettlement = (view) => {
     if (view) {
@@ -97,7 +97,7 @@ export const useRunSettlementStore = defineStore('runSettlement', () => {
     loading.value = false
     runLoading.value = false
     error.value = null
-    amountView.value = 'both'
+    amountView.value = 'account_units'
   }
 
   return {
