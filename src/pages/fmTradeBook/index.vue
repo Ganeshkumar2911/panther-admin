@@ -713,10 +713,13 @@
         </div>
       </div>
 
-      <!-- Filters Row -->
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <!-- Search Input -->
-        <div class="relative flex-1 min-w-50 max-w-sm">
+      <!-- Filters Row (Single Unified Row) -->
+      <div class="flex items-center gap-2.5 overflow-x-auto pb-1 flex-nowrap">
+        <!-- Search Input (if enabled in filter schema) -->
+        <div
+          v-if="hasSearchFilter"
+          class="relative w-48 sm:w-56 shrink-0"
+        >
           <Search
             class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-text pointer-events-none"
           />
@@ -736,50 +739,45 @@
           </button>
         </div>
 
-        <!-- Dropdowns & Datepicker Controls -->
-        <div class="flex flex-wrap items-center gap-2.5">
-          <!-- Status / State / Entry Filter (Dynamic per active Tab) -->
-          <div class="w-36">
-            <BaseSelect
-              :modelValue="store.filters.status"
-              :options="statusOptions"
-              :placeholder="statusPlaceholder"
-              @update:modelValue="store.setStatusFilter"
-            />
-          </div>
-
-          <!-- Type / Action Filter -->
-          <div class="w-32">
-            <BaseSelect
-              :modelValue="store.filters.type"
-              :options="typeOptions"
-              placeholder="Side / Action"
-              @update:modelValue="store.setTypeFilter"
-            />
-          </div>
-
-          <!-- Date Range Filter -->
-          <div class="w-56">
-            <BaseDatePicker
-              :modelValue="dateRange"
-              range
-              placeholder="Select date range"
-              valueFormat="YYYY-MM-DD"
-              @update:modelValue="handleDateRangeChange"
-              @clear="handleDateRangeClear"
-            />
-          </div>
-
-          <!-- Reset Filter Button -->
-          <button
-            v-if="hasActiveFilters"
-            class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg text-secondary-text hover:text-primary-text bg-background border border-primary-border hover:border-primary/40 transition-colors cursor-pointer shadow-2xs"
-            @click="handleResetFilters"
-          >
-            <RotateCcw class="w-3.5 h-3.5" />
-            <span>Reset</span>
-          </button>
+        <!-- Dynamic Enum Select Filters -->
+        <div
+          v-for="enumFilter in dynamicEnumFilters"
+          :key="enumFilter.key"
+          class="w-32 sm:w-36 shrink-0"
+        >
+          <BaseSelect
+            :modelValue="store.filters[enumFilter.key]"
+            :options="enumFilter.options"
+            :placeholder="enumFilter.label"
+            @update:modelValue="(val) => store.setDynamicFilter(enumFilter.key, val)"
+          />
         </div>
+
+        <!-- Dynamic Date Range Pickers (Opened / Time / Setup / Closed) -->
+        <div
+          v-for="dateFilter in dynamicDateRangeFilters"
+          :key="dateFilter.fromKey"
+          class="min-w-48 sm:min-w-60 shrink-0"
+        >
+          <BaseDatePicker
+            :modelValue="getDateRangeValue(dateFilter.fromKey, dateFilter.toKey)"
+            range
+            :placeholder="dateFilter.placeholder"
+            valueFormat="YYYY-MM-DD"
+            @update:modelValue="(val) => handleDateRangeUpdate(dateFilter.fromKey, dateFilter.toKey, val)"
+            @clear="handleDateRangeUpdate(dateFilter.fromKey, dateFilter.toKey, null)"
+          />
+        </div>
+
+        <!-- Reset Filter Button -->
+        <button
+          v-if="hasActiveFilters"
+          class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg text-secondary-text hover:text-primary-text bg-background border border-primary-border hover:border-primary/40 transition-colors cursor-pointer shadow-2xs shrink-0"
+          @click="handleResetFilters"
+        >
+          <RotateCcw class="w-3.5 h-3.5" />
+          <span>Reset</span>
+        </button>
       </div>
     </div>
 
@@ -1333,7 +1331,6 @@ const route = useRoute();
 const router = useRouter();
 
 const searchInput = ref("");
-const dateRange = ref(null);
 
 // Mode detection: checks route name and params
 const isFollowerMode = computed(() => {
@@ -1403,86 +1400,123 @@ const currentTableCount = computed(() => {
   return store.positions.length;
 });
 
-// Filter dropdown options (Dynamic per active Tab)
-const statusPlaceholder = computed(() => {
-  if (store.activeTab === "orders") return "Order State";
-  if (store.activeTab === "deals") return "Entry Type";
-  return "Status";
+// Dynamic Field Label Formatter
+const formatFieldLabel = (key) => {
+  const customMap = {
+    status: "Status",
+    state: "Order State",
+    entry: "Entry Type",
+    action: "Action",
+    order_type: "Order Type",
+    type: "Side / Action",
+    result: "Result",
+    trade_source: "Trade Source",
+    symbol: "Symbol",
+    from_date: "From Date",
+    to_date: "To Date",
+    closed_from: "Closed From",
+    closed_to: "Closed To",
+  };
+  if (customMap[key]) return customMap[key];
+  return key
+    .split("_")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+};
+
+// Check if search filter exists in active section schema
+const hasSearchFilter = computed(() => {
+  const schema = store.currentSectionFilters || {};
+  return schema.search !== undefined ? !!schema.search : true;
 });
 
-const statusOptions = computed(() => {
-  if (store.activeTab === "orders") {
-    if (store.availableFilters?.order_states?.length) {
-      return store.availableFilters.order_states.map((s) => ({
-        label: s.label || String(s).toUpperCase(),
-        value: s.value !== undefined ? s.value : s,
-      }));
+// Dynamic Enum Filters generated directly from API response schema
+const dynamicEnumFilters = computed(() => {
+  const schema = store.currentSectionFilters || {};
+  const list = [];
+
+  Object.entries(schema).forEach(([key, fieldDef]) => {
+    if (fieldDef?.type === "enum" && Array.isArray(fieldDef?.options)) {
+      const label = formatFieldLabel(key);
+      const options = [
+        { label: `All ${label}`, value: "" },
+        ...fieldDef.options.map((opt) => ({
+          label: typeof opt === "string" ? opt : (opt.label || opt.value),
+          value: typeof opt === "string" ? opt : opt.value,
+        })),
+      ];
+
+      list.push({
+        key,
+        label,
+        options,
+        multi: !!fieldDef.multi,
+      });
     }
-    return [
-      { label: "All States", value: "" },
-      { label: "Filled", value: "FILLED" },
-      { label: "Rejected", value: "REJECTED" },
-    ];
-  }
+  });
 
-  if (store.activeTab === "deals") {
-    if (store.availableFilters?.deal_entries?.length) {
-      return store.availableFilters.deal_entries.map((e) => ({
-        label: e.label || String(e).toUpperCase(),
-        value: e.value !== undefined ? e.value : e,
-      }));
-    }
-    return [
-      { label: "All Entries", value: "" },
-      { label: "IN (Entry)", value: "IN" },
-      { label: "OUT (Exit)", value: "OUT" },
-    ];
-  }
-
-  // Positions / Master trades
-  if (store.availableFilters?.statuses?.length) {
-    return store.availableFilters.statuses.map((s) => ({
-      label: s.label || String(s).toUpperCase(),
-      value: s.value !== undefined ? s.value : s,
-    }));
-  }
-  return [
-    { label: "All Statuses", value: "" },
-    { label: "Open", value: "OPEN" },
-    { label: "Closed", value: "CLOSED" },
-  ];
+  return list;
 });
 
-const typeOptions = computed(() => {
-  if (store.activeTab === "deals") {
-    return [
-      { label: "All Actions", value: "" },
-      { label: "BUY", value: "BUY" },
-      { label: "SELL", value: "SELL" },
-    ];
+// Dynamic Date Range Filters generated directly from API schema (pairs from_date/to_date and closed_from/closed_to)
+const dynamicDateRangeFilters = computed(() => {
+  const schema = store.currentSectionFilters || {};
+  const ranges = [];
+
+  // 1. Primary Opened / Setup / Time date range (from_date / to_date)
+  if (schema.from_date || schema.to_date) {
+    const isClosedAlsoPresent = !!schema.closed_from;
+    ranges.push({
+      fromKey: "from_date",
+      toKey: "to_date",
+      placeholder: isClosedAlsoPresent ? "Opened date range" : "Select date range",
+    });
   }
 
-  if (store.availableFilters?.types?.length) {
-    return store.availableFilters.types.map((t) => ({
-      label: t.label || String(t).toUpperCase(),
-      value: t.value !== undefined ? t.value : t,
-    }));
+  // 2. Closed date range (closed_from / closed_to)
+  if (schema.closed_from || schema.closed_to) {
+    ranges.push({
+      fromKey: "closed_from",
+      toKey: "closed_to",
+      placeholder: "Closed date range",
+    });
   }
-  return [
-    { label: "All Sides", value: "" },
-    { label: "Buy", value: "BUY" },
-    { label: "Sell", value: "SELL" },
-  ];
+
+  return ranges;
 });
+
+const getDateRangeValue = (fromKey, toKey) => {
+  const from = store.filters[fromKey] || (fromKey === "from_date" ? store.filters.start_date : "");
+  const to = store.filters[toKey] || (toKey === "to_date" ? store.filters.end_date : "");
+  if (from && to) {
+    return [from, to];
+  }
+  return null;
+};
+
+const handleDateRangeUpdate = (fromKey, toKey, val) => {
+  store.setDynamicDateRange(fromKey, toKey, val);
+};
 
 const hasActiveFilters = computed(() => {
+  const schema = store.currentSectionFilters || {};
+  const hasDynamicActive = Object.keys(schema).some((key) => {
+    const val = store.filters[key];
+    return val !== undefined && val !== null && val !== "";
+  });
+
   return (
+    hasDynamicActive ||
     !!store.filters.search ||
     !!store.filters.status ||
     !!store.filters.type ||
     !!store.filters.symbol ||
+    !!store.filters.from_date ||
+    !!store.filters.to_date ||
     !!store.filters.start_date ||
-    !!store.filters.end_date
+    !!store.filters.end_date ||
+    !!store.filters.closed_from ||
+    !!store.filters.closed_to
   );
 });
 
@@ -1499,23 +1533,8 @@ const clearSearch = () => {
   store.setSearch("");
 };
 
-const handleDateRangeChange = (val) => {
-  dateRange.value = val;
-  if (val && Array.isArray(val) && val.length === 2) {
-    store.setDateFilter(val[0], val[1]);
-  } else if (!val) {
-    store.setDateFilter("", "");
-  }
-};
-
-const handleDateRangeClear = () => {
-  dateRange.value = null;
-  store.setDateFilter("", "");
-};
-
 const handleResetFilters = () => {
   searchInput.value = "";
-  dateRange.value = null;
   store.resetFilters();
 };
 
