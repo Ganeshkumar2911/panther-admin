@@ -551,6 +551,16 @@ const routes = [
         },
       },
       {
+        path: "/tags",
+        name: "tags",
+        component: () => import("@/pages/tags/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Tag Management",
+          description: "Manage tags and entity assignments.",
+        },
+      },
+      {
         path: "/settings",
         name: "settings",
         component: () => import("@/pages/settings/index.vue"),

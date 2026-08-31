@@ -22,6 +22,7 @@ import {
   Target,
   FolderOpen,
   Bell,
+  Tag,
   BookmarkCheck,
 } from "lucide-vue-next";
 
@@ -204,9 +205,15 @@ export const navItems = [
     permission: ["xtention_dev.view"],
   },
   {
+    label: "Tag Management",
+    to: "/tags",
+    icon: Tag,
+    permission: ["tags.view"],
+  },
+  {
     label: "System Settings",
     to: "/settings",
     icon: Settings,
-    permission: ["system_setting.view"],
+    permission: ["system_settings.view"],
   },
 ];

@@ -3,6 +3,7 @@ import { ref, watch, computed } from "vue";
 import { useLeadStore } from "@/stores/lead/lead";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import { formatDate } from "@/utils/timeFormatter";
+import TagChip from "@/components/common/TagChip.vue";
 import {
   X,
   Phone,
@@ -14,6 +15,8 @@ import {
   Loader2,
   History,
   UserCheck,
+  Tag,
+  Plus,
 } from "lucide-vue-next";
 
 const props = defineProps({
@@ -24,7 +27,7 @@ const props = defineProps({
   staffList: { type: Array, default: () => [] },
 });
 
-const emit = defineEmits(["close", "move-stage", "edit-lead", "assign-staff"]);
+const emit = defineEmits(["close", "move-stage", "edit-lead", "assign-staff", "manage-tags"]);
 
 const leadStore = useLeadStore();
 
@@ -164,6 +167,36 @@ function handleAssignStaff(staffId) {
           </div>
 
           <template v-else>
+            <!-- Assigned Tags Section -->
+            <div class="bg-background/80 border border-primary-border/80 rounded-2xl p-4 space-y-2">
+              <div class="flex items-center justify-between">
+                <h3 class="text-xs font-semibold text-secondary-text uppercase tracking-wider flex items-center gap-1.5">
+                  <Tag class="w-3.5 h-3.5 text-primary" />
+                  Assigned Tags
+                </h3>
+                <button
+                  type="button"
+                  @click="emit('manage-tags', activeLead)"
+                  class="px-2 py-1 text-[11px] font-medium rounded-lg bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors flex items-center gap-1 cursor-pointer"
+                >
+                  <Plus class="w-3 h-3" />
+                  <span>Manage Tags</span>
+                </button>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-1.5 pt-1">
+                <template v-if="activeLead.tags && activeLead.tags.length > 0">
+                  <TagChip
+                    v-for="tag in activeLead.tags"
+                    :key="tag.id"
+                    :tag="tag"
+                    size="md"
+                  />
+                </template>
+                <span v-else class="text-xs text-secondary-text italic">No tags assigned</span>
+              </div>
+            </div>
+
             <!-- Section 1: Basic Information -->
             <div
               class="bg-background/80 border border-primary-border/80 rounded-2xl p-4 space-y-3"

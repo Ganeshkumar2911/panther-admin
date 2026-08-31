@@ -1,7 +1,8 @@
 <script setup>
-import { computed } from "vue";
+import { ref, computed } from "vue";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import Pagination from "@/components/common/Pagination.vue";
+import TagChip from "@/components/common/TagChip.vue";
 import { getFlagCode, cleanCountryLabel } from "@/utils/countries";
 import { formatDate } from "@/utils/timeFormatter";
 import {
@@ -14,8 +15,10 @@ import {
   Plus,
   Loader2,
   UserCheck,
+  Tag,
 } from "lucide-vue-next";
 import DropdownMenu from "@/components/common/DropdownMenu.vue";
+import { usePermissionCheck } from "@/composables/usePermissionCheck";
 
 const props = defineProps({
   leads: { type: Array, required: true },
@@ -37,7 +40,48 @@ const emit = defineEmits([
   "page-change",
   "per-page-change",
   "assign-staff",
+  "manage-tags",
+  "bulk-manage-tags",
 ]);
+
+const { hasPermission, hasAnyPermission } = usePermissionCheck();
+
+const canAssignTags = computed(() => {
+  return (
+    hasAnyPermission(["tags.assign", "tags.update", "tags.remove"]) ||
+    hasPermission("lead.update")
+  );
+});
+
+const isAllSelected = computed(() => {
+  if (!props.leads || props.leads.length === 0) return false;
+  return props.leads.every((l) => selectedLeadIds.value.includes(l.id));
+});
+
+const isSomeSelected = computed(() => {
+  if (!props.leads || props.leads.length === 0) return false;
+  return (
+    selectedLeadIds.value.length > 0 &&
+    selectedLeadIds.value.length < props.leads.length
+  );
+});
+
+const toggleSelectAll = () => {
+  if (isAllSelected.value) {
+    selectedLeadIds.value = [];
+  } else {
+    selectedLeadIds.value = props.leads.map((l) => l.id);
+  }
+};
+
+const toggleSelectLead = (leadId) => {
+  const idx = selectedLeadIds.value.indexOf(leadId);
+  if (idx > -1) {
+    selectedLeadIds.value.splice(idx, 1);
+  } else {
+    selectedLeadIds.value.push(leadId);
+  }
+};
 
 const perPageOptions = [
   { value: 10, label: "10" },
@@ -195,6 +239,17 @@ function formatSourceLabel(source) {
           {{ formattedPagination.total_items || leads.length }} Leads
         </span>
       </div>
+
+      <div v-if="canAssignTags && selectedLeadIds.length > 0" class="flex items-center gap-2">
+        <button
+          type="button"
+          @click="emit('bulk-manage-tags', selectedLeadIds)"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary hover:bg-primary-hover text-white transition-colors cursor-pointer"
+        >
+          <Tag class="w-3.5 h-3.5" />
+          <span>Manage Tags ({{ selectedLeadIds.length }})</span>
+        </button>
+      </div>
     </div>
 
     <!-- Skeleton Loading -->
@@ -246,12 +301,26 @@ function formatSourceLabel(source) {
     <!-- Table Container -->
     <div v-else class="overflow-x-auto no-scrollbar">
       <table class="w-full text-left border-collapse min-w-[1000px]">
-        <thead>
-          <tr
-            class="border-b border-primary-border bg-background/50 text-[11px] font-semibold text-secondary-text uppercase tracking-wider"
-          >
+        <thead class="group/head bg-background/50 text-[11px] font-semibold text-secondary-text uppercase tracking-wider">
+          <tr class="border-b border-primary-border">
+            <th v-if="canAssignTags" class="px-3 py-3 w-10 text-center">
+              <input
+                type="checkbox"
+                :checked="isAllSelected"
+                :indeterminate.prop="isSomeSelected"
+                @change="toggleSelectAll"
+                class="custom-checkbox transition-opacity duration-150 cursor-pointer"
+                :class="[
+                  selectedLeadIds.length > 0 || isAllSelected
+                    ? 'opacity-100'
+                    : 'opacity-0 group-hover/head:opacity-100'
+                ]"
+                title="Select all leads"
+              />
+            </th>
             <th class="px-5 py-3">Lead Code</th>
             <th class="px-5 py-3">Lead</th>
+            <th class="px-4 py-3">Tags</th>
             <th class="px-4 py-3">Phone</th>
             <th class="px-4 py-3">Country</th>
             <th class="px-4 py-3">Source</th>
@@ -267,8 +336,28 @@ function formatSourceLabel(source) {
           <tr
             v-for="lead in leads"
             :key="lead.id"
-            class="hover:bg-background/80 transition-colors group cursor-pointer"
+            class="transition-colors group cursor-pointer"
+            :class="[
+              selectedLeadIds.includes(lead.id)
+                ? 'bg-primary/5 dark:bg-primary/10 hover:bg-primary/10 dark:hover:bg-primary/15'
+                : 'hover:bg-background/80'
+            ]"
           >
+            <!-- Select Checkbox -->
+            <td v-if="canAssignTags" class="px-3 py-3.5 text-center w-10" @click.stop>
+              <input
+                type="checkbox"
+                :checked="selectedLeadIds.includes(lead.id)"
+                @change="toggleSelectLead(lead.id)"
+                class="custom-checkbox transition-opacity duration-150 cursor-pointer"
+                :class="[
+                  selectedLeadIds.length > 0 || selectedLeadIds.includes(lead.id)
+                    ? 'opacity-100'
+                    : 'opacity-0 group-hover:opacity-100'
+                ]"
+              />
+            </td>
+
             <!-- Lead Code -->
             <td
               class="px-5 py-3.5 font-mono text-[11px] text-secondary-text whitespace-nowrap"
@@ -298,6 +387,26 @@ function formatSourceLabel(source) {
                     {{ lead.email }}
                   </p>
                 </div>
+              </div>
+            </td>
+
+            <!-- Tags Column -->
+            <td class="px-4 py-3.5 max-w-[200px]" @click.stop>
+              <div class="flex flex-wrap items-center gap-1">
+                <TagChip
+                  v-for="tag in (lead.tags || [])"
+                  :key="tag.id"
+                  :tag="tag"
+                  size="sm"
+                />
+                <button
+                  type="button"
+                  @click="emit('manage-tags', lead)"
+                  class="p-1 rounded hover:bg-white/10 text-secondary-text hover:text-primary-text transition-colors cursor-pointer"
+                  title="Manage Tags"
+                >
+                  <Plus class="w-3 h-3" />
+                </button>
               </div>
             </td>
 
