@@ -15,40 +15,25 @@ const allTabs = [
     label: "Settings",
     value: "settings",
     permission: [
-      "watchlist.view",
-      "watchlist.manage",
       "watchlist.settings_view",
       "watchlist.settings_update",
-      "watchlist.settings",
-      "watchlist.update",
     ],
   },
   {
     label: "Symbol Catalog",
     value: "symbols",
     permission: [
-      "watchlist.view",
-      "watchlist.manage",
-      "watchlist.symbols",
-      "watchlist.symbol_view",
-      "watchlist.symbol_create",
-      "watchlist.symbol_update",
-      "watchlist.symbol_delete",
-      "watchlist.create",
-      "watchlist.update",
-      "watchlist.delete",
+      "watchlist.symbols_view",
+      "watchlist.symbols_create",
+      "watchlist.symbols_update",
+      "watchlist.symbols_delete",
     ],
   },
   {
     label: "Excel Import",
     value: "import",
     permission: [
-      "watchlist.view",
-      "watchlist.manage",
-      "watchlist.import",
-      "watchlist.import_export",
-      "watchlist.symbol_create",
-      "watchlist.create",
+      "watchlist.symbols_import",
     ],
   },
 ];
@@ -111,21 +96,21 @@ function switchTab(tabValue) {
 </script>
 
 <template>
-  <div class="pb-12 max-w-screen-2xl mx-auto space-y-5">
-    <!-- Top Tabs Navigation (matching Panther Admin tabs) -->
+  <div class="px-4">
+    <!-- Tabs -->
     <div
       v-if="tabs.length > 0"
-      class="flex items-center gap-1 bg-card-background border border-primary-border rounded-xl p-1.5 w-fit shadow-xs"
+      class="flex items-center gap-1 bg-card-background border border-primary-border rounded-lg p-1 w-fit mb-4"
     >
       <button
         v-for="tab in tabs"
         :key="tab.value"
         type="button"
-        class="cursor-pointer px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-150 select-none"
+        class="cursor-pointer px-4 py-2 rounded-md text-xs font-medium transition-colors"
         :class="
           activeTab === tab.value
-            ? 'bg-primary text-white shadow-xs'
-            : 'text-secondary-text hover:text-primary-text hover:bg-background/60'
+            ? 'bg-primary text-white'
+            : 'text-secondary-text hover:text-primary-text'
         "
         @click="activeTab = tab.value"
       >
@@ -134,15 +119,13 @@ function switchTab(tabValue) {
     </div>
 
     <!-- Active Tab Component -->
-    <transition name="fade" mode="out-in">
-      <component :is="activeComponent" v-if="tabs.length > 0" @switch-tab="switchTab" />
-      <div
-        v-else
-        class="py-16 text-center text-sm text-secondary-text bg-card-background border border-primary-border rounded-xl"
-      >
-        You do not have permission to view Watchlist.
-      </div>
-    </transition>
+    <component :is="activeComponent" v-if="tabs.length > 0" @switch-tab="switchTab" />
+    <div
+      v-else
+      class="py-12 text-center text-sm text-secondary-text bg-card-background border border-primary-border rounded-lg"
+    >
+      You do not have permission to view Watchlist.
+    </div>
   </div>
 </template>
 
