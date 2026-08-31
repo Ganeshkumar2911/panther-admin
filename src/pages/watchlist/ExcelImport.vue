@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import {
   UploadCloud,
   FileSpreadsheet,
@@ -11,11 +11,25 @@ import {
   FileText,
   Trash2,
   Info,
+  Lock,
   Table as TableIcon,
 } from 'lucide-vue-next'
 import { useWatchlistStore } from '@/stores/watchlist/watchlist'
+import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
 const store = useWatchlistStore()
+const { hasPermission } = usePermissionCheck()
+
+const canImport = computed(() =>
+  hasPermission([
+    'watchlist.import',
+    'watchlist.import_export',
+    'watchlist.create',
+    'watchlist.update',
+    'watchlist.manage',
+    'watchlist.symbol_create',
+  ])
+)
 
 const importMode = ref('upsert')
 const selectedFile = ref(null)
@@ -41,6 +55,7 @@ const sampleTemplateRows = [
 ]
 
 function onFileSelect(e) {
+  if (!canImport.value) return
   const files = e.target.files
   if (files && files.length > 0) {
     selectedFile.value = files[0]
@@ -49,6 +64,7 @@ function onFileSelect(e) {
 
 function onDrop(e) {
   e.preventDefault()
+  if (!canImport.value) return
   isDragging.value = false
   const files = e.dataTransfer.files
   if (files && files.length > 0) {
@@ -72,7 +88,7 @@ function clearSelectedFile() {
 }
 
 async function handleStartImport() {
-  if (!selectedFile.value) return
+  if (!selectedFile.value || !canImport.value) return
   await store.importFile(selectedFile.value, importMode.value)
 }
 
@@ -299,22 +315,25 @@ function formatFileSize(bytes) {
         <!-- Active Dropzone / Selected State -->
         <div
           v-if="!selectedFile"
-          class="border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all duration-200"
-          :class="
-            isDragging
-              ? 'border-primary bg-primary/10 scale-[0.99]'
-              : 'border-primary-border bg-background hover:border-primary/60 hover:bg-background/80'
-          "
-          @dragover.prevent="isDragging = true"
+          class="border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-200"
+          :class="[
+            !canImport
+              ? 'opacity-60 cursor-not-allowed border-primary-border bg-background/50'
+              : isDragging
+                ? 'border-primary bg-primary/10 scale-[0.99] cursor-pointer'
+                : 'border-primary-border bg-background hover:border-primary/60 hover:bg-background/80 cursor-pointer'
+          ]"
+          @dragover.prevent="canImport && (isDragging = true)"
           @dragleave.prevent="isDragging = false"
           @drop="onDrop"
-          @click="fileInputRef?.click()"
+          @click="canImport && fileInputRef?.click()"
         >
           <div class="w-12 h-12 rounded-2xl bg-primary/10 text-primary mx-auto flex items-center justify-center mb-3">
             <UploadCloud class="w-6 h-6" />
           </div>
           <p class="text-sm font-semibold text-primary-text mb-1">
-            Drop your spreadsheet here, or <span class="text-primary underline">browse</span>
+            <span v-if="canImport">Drop your spreadsheet here, or <span class="text-primary underline">browse</span></span>
+            <span v-else>Import permission required to upload spreadsheet</span>
           </p>
           <p class="text-xs text-secondary-text">
             Supports Microsoft Excel (<code class="font-mono">.xlsx</code>, <code class="font-mono">.xls</code>) and CSV (<code class="font-mono">.csv</code>)
@@ -352,7 +371,7 @@ function formatFileSize(bytes) {
       </div>
 
       <!-- Action Buttons -->
-      <div class="pt-2 flex items-center gap-3">
+      <div v-if="canImport" class="pt-2 flex items-center gap-3">
         <button
           type="button"
           :disabled="!selectedFile || store.importLoading"
@@ -374,6 +393,10 @@ function formatFileSize(bytes) {
           <RotateCcw class="w-3.5 h-3.5" />
           <span>Clear File</span>
         </button>
+      </div>
+      <div v-else class="pt-2 flex items-center gap-2 text-xs text-secondary-text">
+        <Lock class="w-3.5 h-3.5" />
+        <span>You have view-only permission. Spreadsheet importing is disabled.</span>
       </div>
 
       <!-- 3. Import Results Banner -->

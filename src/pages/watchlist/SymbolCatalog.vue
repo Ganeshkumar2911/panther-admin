@@ -13,6 +13,7 @@ import {
   RefreshCw,
 } from 'lucide-vue-next'
 import { useWatchlistStore } from '@/stores/watchlist/watchlist'
+import { usePermissionCheck } from '@/composables/usePermissionCheck'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import SymbolModal from '@/components/watchlist/SymbolModal.vue'
 import ConfirmationDialog from '@/components/common/ConfirmationDialog.vue'
@@ -21,6 +22,45 @@ import Pagination from '@/components/common/Pagination.vue'
 const emit = defineEmits(['switchTab'])
 
 const store = useWatchlistStore()
+const { hasPermission } = usePermissionCheck()
+
+// Permissions
+const canCreateSymbol = computed(() =>
+  hasPermission([
+    'watchlist.create',
+    'watchlist.manage',
+    'watchlist.symbol_create',
+    'watchlist.symbols',
+  ])
+)
+
+const canEditSymbol = computed(() =>
+  hasPermission([
+    'watchlist.update',
+    'watchlist.manage',
+    'watchlist.symbol_update',
+    'watchlist.symbols',
+  ])
+)
+
+const canDeleteSymbol = computed(() =>
+  hasPermission([
+    'watchlist.delete',
+    'watchlist.manage',
+    'watchlist.symbol_delete',
+    'watchlist.symbols',
+  ])
+)
+
+const canImport = computed(() =>
+  hasPermission([
+    'watchlist.import',
+    'watchlist.import_export',
+    'watchlist.create',
+    'watchlist.manage',
+    'watchlist.symbol_create',
+  ])
+)
 
 // Filter Options
 const statusOptions = [
@@ -47,11 +87,13 @@ onMounted(() => {
 })
 
 function openCreateModal() {
+  if (!canCreateSymbol.value) return
   selectedSymbol.value = null
   modalOpen.value = true
 }
 
 function openEditModal(symbol) {
+  if (!canEditSymbol.value) return
   selectedSymbol.value = { ...symbol }
   modalOpen.value = true
 }
@@ -59,8 +101,10 @@ function openEditModal(symbol) {
 async function handleSaveSymbol(payload) {
   try {
     if (selectedSymbol.value?.id) {
+      if (!canEditSymbol.value) return
       await store.updateSymbol(selectedSymbol.value.id, payload)
     } else {
+      if (!canCreateSymbol.value) return
       await store.createSymbol(payload)
     }
     modalOpen.value = false
@@ -70,11 +114,13 @@ async function handleSaveSymbol(payload) {
 }
 
 function confirmDelete(symbol) {
+  if (!canDeleteSymbol.value) return
   symbolToDelete.value = symbol
   deleteDialogOpen.value = true
 }
 
 async function handleDeleteConfirmed() {
+  if (!canDeleteSymbol.value) return
   if (symbolToDelete.value) {
     try {
       await store.deleteSymbol(symbolToDelete.value.id)
@@ -117,6 +163,7 @@ function resetFilters() {
         </button>
 
         <button
+          v-if="canImport"
           type="button"
           class="px-3.5 py-2 rounded-xl text-xs font-semibold text-secondary-text border border-primary-border bg-card-background hover:text-primary-text hover:bg-background transition-colors flex items-center gap-2 cursor-pointer"
           @click="emit('switchTab', 'import')"
@@ -126,6 +173,7 @@ function resetFilters() {
         </button>
 
         <button
+          v-if="canCreateSymbol"
           type="button"
           class="px-4 py-2 rounded-xl text-xs font-semibold bg-primary text-white hover:bg-primary-hover transition-colors flex items-center gap-2 cursor-pointer shadow-xs"
           @click="openCreateModal"
@@ -249,7 +297,10 @@ function resetFilters() {
               <th class="px-4 py-3.5 text-[11px] font-semibold text-secondary-text uppercase tracking-wider">
                 Status
               </th>
-              <th class="px-4 py-3.5 text-[11px] font-semibold text-secondary-text uppercase tracking-wider text-right">
+              <th
+                v-if="canEditSymbol || canDeleteSymbol"
+                class="px-4 py-3.5 text-[11px] font-semibold text-secondary-text uppercase tracking-wider text-right"
+              >
                 Actions
               </th>
             </tr>
@@ -264,13 +315,13 @@ function resetFilters() {
                 <td class="px-4 py-4"><div class="h-4 w-24 bg-background rounded" /></td>
                 <td class="px-4 py-4"><div class="h-4 w-8 bg-background rounded" /></td>
                 <td class="px-4 py-4"><div class="h-4 w-16 bg-background rounded" /></td>
-                <td class="px-4 py-4 text-right"><div class="h-4 w-16 bg-background rounded ml-auto" /></td>
+                <td v-if="canEditSymbol || canDeleteSymbol" class="px-4 py-4 text-right"><div class="h-4 w-16 bg-background rounded ml-auto" /></td>
               </tr>
             </template>
 
             <!-- Empty State -->
             <tr v-else-if="store.symbols.length === 0">
-              <td colspan="6" class="px-4 py-12 text-center">
+              <td :colspan="canEditSymbol || canDeleteSymbol ? 6 : 5" class="px-4 py-12 text-center">
                 <div class="max-w-xs mx-auto flex flex-col items-center justify-center text-center">
                   <div class="w-12 h-12 rounded-full bg-background border border-primary-border flex items-center justify-center text-secondary-text mb-3">
                     <ListFilter class="w-5 h-5" />
@@ -280,6 +331,7 @@ function resetFilters() {
                     No catalog symbols match your query. Try adjusting your filters or add a new symbol.
                   </p>
                   <button
+                    v-if="canCreateSymbol"
                     type="button"
                     class="mt-4 px-3.5 py-1.5 rounded-lg text-xs font-medium bg-primary text-white hover:bg-primary-hover transition-colors cursor-pointer"
                     @click="openCreateModal"
@@ -333,9 +385,10 @@ function resetFilters() {
                 </td>
 
                 <!-- Actions -->
-                <td class="px-4 py-3.5 text-right">
+                <td v-if="canEditSymbol || canDeleteSymbol" class="px-4 py-3.5 text-right">
                   <div class="flex items-center justify-end gap-1.5">
                     <button
+                      v-if="canEditSymbol"
                       type="button"
                       class="p-1.5 rounded-lg text-secondary-text hover:text-primary hover:bg-background transition-colors cursor-pointer"
                       title="Edit Symbol"
@@ -344,6 +397,7 @@ function resetFilters() {
                       <Pencil class="w-3.5 h-3.5" />
                     </button>
                     <button
+                      v-if="canDeleteSymbol"
                       type="button"
                       class="p-1.5 rounded-lg text-secondary-text hover:text-primary-red hover:bg-background transition-colors cursor-pointer"
                       title="Delete Symbol"
