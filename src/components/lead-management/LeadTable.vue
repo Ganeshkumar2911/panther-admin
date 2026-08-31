@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import Pagination from "@/components/common/Pagination.vue";
 import TagChip from "@/components/common/TagChip.vue";
@@ -46,6 +46,15 @@ const emit = defineEmits([
 ]);
 
 const { hasPermission, hasAnyPermission } = usePermissionCheck();
+
+const selectedLeadIds = ref([]);
+
+watch(
+  () => props.leads,
+  () => {
+    selectedLeadIds.value = [];
+  }
+);
 
 const canAssignTags = computed(() => {
   return (
