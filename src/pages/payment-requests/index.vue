@@ -288,6 +288,44 @@
                 <p class="text-[11px] text-secondary-text truncate font-mono" :title="req.user_email">
                   {{ req.user_email || "—" }}
                 </p>
+                <div
+                  v-if="getRequestTags(req).length"
+                  class="flex flex-wrap items-center gap-1 pt-1"
+                >
+                  <TagChip
+                    v-for="tag in visibleTags(getRequestTags(req))"
+                    :key="tag.id"
+                    :tag="tag"
+                    size="sm"
+                  />
+                  <Tooltip
+                    v-if="remainingTags(getRequestTags(req)).length"
+                    position="center"
+                    maxWidth="280px"
+                  >
+                    <span
+                      class="inline-flex items-center text-[10px] font-semibold px-1.5 py-0.5 rounded border border-primary-border bg-background/80 text-secondary-text hover:text-primary-text cursor-help transition-colors"
+                    >
+                      +{{ remainingTags(getRequestTags(req)).length }}
+                    </span>
+
+                    <template #content>
+                      <div class="p-1">
+                        <p class="text-[10px] uppercase font-semibold text-secondary-text tracking-wider mb-1.5">
+                          Additional Tags
+                        </p>
+                        <div class="flex flex-wrap gap-1 max-w-64">
+                          <TagChip
+                            v-for="tag in remainingTags(getRequestTags(req))"
+                            :key="tag.id"
+                            :tag="tag"
+                            size="sm"
+                          />
+                        </div>
+                      </div>
+                    </template>
+                  </Tooltip>
+                </div>
               </div>
             </td>
 
@@ -593,6 +631,7 @@ import { useSnackbarStore } from "@/stores/snackbar/snackbar";
 import Pagination from "@/components/common/Pagination.vue";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import Tooltip from "@/components/common/Tooltip.vue";
+import TagChip from "@/components/common/TagChip.vue";
 import PaymentRequestConfirmDialog from "@/components/paymentRequests/PaymentRequestConfirmDialog.vue";
 import ChangePaymentStatusDialog from "@/components/paymentRequests/ChangePaymentStatusDialog.vue";
 import { formatDate } from "@/utils/timeFormatter";
@@ -605,6 +644,41 @@ const snackbar = useSnackbarStore();
 const { hasPermission } = usePermissionCheck();
 
 const copiedMap = ref({});
+
+// Dummy tags for testing/demonstration
+const DUMMY_TAGS = [
+  { id: 1, name: "VIP", color: "#F59E0B" },
+  { id: 2, name: "High Volume", color: "#3B82F6" },
+  { id: 3, name: "KYC Verified", color: "#10B981" },
+  { id: 4, name: "Priority", color: "#EF4444" },
+  { id: 5, name: "Copy Trader", color: "#8B5CF6" },
+  { id: 6, name: "Risk Alert", color: "#EC4899" },
+  { id: 7, name: "Affiliate", color: "#6366F1" },
+  { id: 8, name: "Fast Payout", color: "#14B8A6" },
+  { id: 9, name: "Institutional", color: "#F97316" },
+  { id: 10, name: "Whale", color: "#06B6D4" },
+];
+
+const getRequestTags = (req) => {
+  if (req.tags && req.tags.length) return req.tags;
+  // Return dummy tags for testing if request has no tags
+  return DUMMY_TAGS;
+};
+
+const visibleTags = (tags) => {
+  if (!tags) return [];
+  return tags.slice(0, 2);
+};
+
+const remainingTags = (tags) => {
+  if (!tags) return [];
+  return tags.slice(2);
+};
+
+const remainingTagsText = (tags) => {
+  const remaining = remainingTags(tags);
+  return remaining.map((t) => t.name).join(", ");
+};
 
 const truncateMiddle = (str, start = 6, end = 4) => {
   if (!str) return "";

@@ -60,6 +60,11 @@ const isAllClientsSelected = computed(() => {
   return store.data.every((c) => selectedClientIds.value.includes(c.id));
 });
 
+const isSomeClientsSelected = computed(() => {
+  if (!store.data || store.data.length === 0) return false;
+  return selectedClientIds.value.length > 0 && !isAllClientsSelected.value;
+});
+
 const toggleSelectAllClients = () => {
   if (isAllClientsSelected.value) {
     selectedClientIds.value = [];
@@ -641,7 +646,7 @@ onMounted(() => {
 
         <button
           v-if="hasPermission('client.create')"
-          class="flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all active:scale-95 cursor-pointer sm:flex-none"
+          class="flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all active:scale-95 cursor-pointer sm:flex-none shadow-sm"
           @click="openCreateClientDialog"
         >
           <Plus class="w-3.5 h-3.5" />
@@ -650,28 +655,78 @@ onMounted(() => {
       </div>
     </div>
 
+    <!-- Floating / Top Bulk Actions Bar -->
+    <Transition
+      enter-active-class="transition duration-200 ease-out"
+      enter-from-class="opacity-0 -translate-y-2"
+      enter-to-class="opacity-100 translate-y-0"
+      leave-active-class="transition duration-150 ease-in"
+      leave-from-class="opacity-100 translate-y-0"
+      leave-to-class="opacity-0 -translate-y-2"
+    >
+      <div
+        v-if="selectedClientIds.length > 0"
+        class="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 rounded-xl bg-primary/10 border border-primary/25 text-xs text-primary-text mb-4 shadow-sm"
+      >
+        <div class="flex items-center gap-2.5">
+          <span
+            class="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-md bg-primary text-white text-[11px] font-bold shadow-xs"
+          >
+            {{ selectedClientIds.length }}
+          </span>
+          <span class="font-medium text-xs">
+            Client{{ selectedClientIds.length > 1 ? "s" : "" }} selected
+          </span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            @click="openBulkClientTagModal"
+            class="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold shadow-sm transition-all cursor-pointer"
+          >
+            <Tag class="w-3.5 h-3.5" />
+            <span>Manage Tags ({{ selectedClientIds.length }})</span>
+          </button>
+          <button
+            type="button"
+            @click="selectedClientIds = []"
+            class="px-2.5 py-1.5 rounded-lg text-xs font-medium text-secondary-text hover:text-primary-text hover:bg-card-background/70 transition-colors cursor-pointer"
+          >
+            Clear Selection
+          </button>
+        </div>
+      </div>
+    </Transition>
+
     <!-- Desktop Table -->
     <div
-      class="hidden md:block w-full border border-primary-border rounded-xl overflow-x-auto"
+      class="hidden md:block w-full border border-primary-border rounded-xl overflow-x-auto shadow-xs bg-card-background/40"
     >
       <table class="w-full border-collapse">
-        <thead>
+        <thead class="group/head bg-background/80 backdrop-blur-sm sticky top-0 z-10">
           <tr class="border-b border-primary-border">
             <th class="p-3 w-10 text-center">
               <input
                 type="checkbox"
                 :checked="isAllClientsSelected"
+                :indeterminate.prop="isSomeClientsSelected"
                 @change="toggleSelectAllClients"
-                class="rounded border-primary-border bg-background text-primary focus:ring-primary cursor-pointer"
+                class="custom-checkbox transition-opacity duration-150"
+                :class="[
+                  selectedClientIds.length > 0 || isAllClientsSelected
+                    ? 'opacity-100'
+                    : 'opacity-0 group-hover/head:opacity-100'
+                ]"
+                title="Select all clients"
               />
             </th>
             <th
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
+              class="text-left text-[11px] font-semibold text-secondary-text uppercase tracking-wider p-3"
             >
               Client
             </th>
             <th
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
+              class="text-left text-[11px] font-semibold text-secondary-text uppercase tracking-wider p-3"
             >
               Tags
             </th>
@@ -840,15 +895,25 @@ onMounted(() => {
           <tr
             v-for="client in store.data"
             :key="client.id"
-            class="border-b border-primary-border last:border-none hover:bg-card-background transition-colors"
+            class="group border-b border-primary-border last:border-none transition-colors duration-150"
+            :class="[
+              selectedClientIds.includes(client.id)
+                ? 'bg-primary/5 dark:bg-primary/10 hover:bg-primary/10 dark:hover:bg-primary/15'
+                : 'hover:bg-card-background/70'
+            ]"
           >
             <!-- Select Checkbox -->
-            <td class="p-3 text-center" @click.stop>
+            <td class="p-3 text-center w-10" @click.stop>
               <input
                 type="checkbox"
                 :checked="selectedClientIds.includes(client.id)"
                 @change="toggleSelectClient(client.id)"
-                class="rounded border-primary-border bg-background text-primary focus:ring-primary cursor-pointer"
+                class="custom-checkbox transition-opacity duration-150"
+                :class="[
+                  selectedClientIds.length > 0 || selectedClientIds.includes(client.id)
+                    ? 'opacity-100'
+                    : 'opacity-0 group-hover:opacity-100'
+                ]"
               />
             </td>
 
@@ -1252,10 +1317,24 @@ onMounted(() => {
         v-else
         v-for="client in store.data"
         :key="client.id"
-        class="bg-card-background border border-primary-border rounded-2xl p-4 space-y-3"
+        class="border rounded-2xl p-4 space-y-3 transition-colors duration-150"
+        :class="[
+          selectedClientIds.includes(client.id)
+            ? 'bg-primary/5 dark:bg-primary/10 border-primary/40 shadow-xs'
+            : 'bg-card-background border-primary-border'
+        ]"
       >
-        <div class="flex items-start justify-between">
+        <div class="flex items-start justify-between gap-2">
           <div class="flex items-center gap-2.5 min-w-0">
+            <!-- Mobile Select Checkbox -->
+            <div class="shrink-0" @click.stop>
+              <input
+                type="checkbox"
+                :checked="selectedClientIds.includes(client.id)"
+                @change="toggleSelectClient(client.id)"
+                class="custom-checkbox"
+              />
+            </div>
             <div
               class="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-xs font-medium text-white shrink-0"
             >

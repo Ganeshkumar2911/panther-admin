@@ -4,7 +4,7 @@ import { ref, computed } from "vue";
 const props = defineProps({
   text: {
     type: String,
-    required: true,
+    default: "",
   },
   position: {
     type: String,
@@ -175,7 +175,7 @@ const handleMouseLeave = () => {
         :class="computedTextSizeClass"
         :style="computedFontSizeStyle"
       >
-        {{ text }}
+        <slot name="content">{{ text }}</slot>
       </div>
     </div>
   </div>
@@ -207,14 +207,15 @@ const handleMouseLeave = () => {
 
 .tooltip-content {
   position: relative;
-  background: rgba(0, 0, 0, 0.92);
-  color: #fff;
-  padding: 6px 12px;
-  border-radius: 6px;
+  background: var(--color-card-background);
+  color: var(--color-primary-text);
+  border: 1px solid var(--color-primary-border);
+  padding: 8px 12px;
+  border-radius: 8px;
   font-size: 12px;
   font-weight: 500;
   line-height: 1.4;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
   white-space: normal;
   word-break: break-word;
   text-align: left;
@@ -226,23 +227,25 @@ const handleMouseLeave = () => {
   position: absolute;
   width: 8px;
   height: 8px;
-  background: rgba(0, 0, 0, 0.9);
+  background: var(--color-card-background);
+  border-right: 1px solid var(--color-primary-border);
+  border-bottom: 1px solid var(--color-primary-border);
   left: 50%;
-  bottom: -4px;
+  bottom: -5px;
   transform: translateX(-50%) rotate(45deg);
 }
 
 /* START */
 .tooltip-popup.position-start .tooltip-content::after {
   left: 16px;
-  bottom: -4px;
+  bottom: -5px;
   transform: rotate(45deg);
 }
 
 /* CENTER */
 .tooltip-popup.position-center .tooltip-content::after {
   left: 50%;
-  bottom: -4px;
+  bottom: -5px;
   transform: translateX(-50%) rotate(45deg);
 }
 
@@ -250,32 +253,42 @@ const handleMouseLeave = () => {
 .tooltip-popup.position-end .tooltip-content::after {
   left: auto;
   right: 16px;
-  bottom: -4px;
+  bottom: -5px;
   transform: rotate(45deg);
 }
 
 /* RIGHT */
 .tooltip-popup.position-right .tooltip-content::after {
-  left: -4px;
+  left: -5px;
   top: 50%;
   bottom: auto;
+  border-right: none;
+  border-bottom: 1px solid var(--color-primary-border);
+  border-left: 1px solid var(--color-primary-border);
   transform: translateY(-50%) rotate(45deg);
 }
 
 /* LEFT */
 .tooltip-popup.position-left .tooltip-content::after {
   left: auto;
-  right: -4px;
+  right: -5px;
   top: 50%;
   bottom: auto;
+  border-bottom: none;
+  border-right: 1px solid var(--color-primary-border);
+  border-top: 1px solid var(--color-primary-border);
   transform: translateY(-50%) rotate(45deg);
 }
 
 /* BOTTOM */
 .tooltip-popup.position-bottom .tooltip-content::after {
   left: 50%;
-  top: -4px;
+  top: -5px;
   bottom: auto;
+  border-right: none;
+  border-bottom: none;
+  border-top: 1px solid var(--color-primary-border);
+  border-left: 1px solid var(--color-primary-border);
   transform: translateX(-50%) rotate(45deg);
 }
 
