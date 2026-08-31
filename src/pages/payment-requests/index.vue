@@ -289,24 +289,24 @@
                   {{ req.user_email || "—" }}
                 </p>
                 <div
-                  v-if="getRequestTags(req).length"
+                  v-if="req.tags && req.tags.length"
                   class="flex flex-wrap items-center gap-1 pt-1"
                 >
                   <TagChip
-                    v-for="tag in visibleTags(getRequestTags(req))"
+                    v-for="tag in visibleTags(req.tags)"
                     :key="tag.id"
                     :tag="tag"
                     size="sm"
                   />
                   <Tooltip
-                    v-if="remainingTags(getRequestTags(req)).length"
+                    v-if="remainingTags(req.tags).length"
                     position="center"
                     maxWidth="280px"
                   >
                     <span
                       class="inline-flex items-center text-[10px] font-semibold px-1.5 py-0.5 rounded border border-primary-border bg-background/80 text-secondary-text hover:text-primary-text cursor-help transition-colors"
                     >
-                      +{{ remainingTags(getRequestTags(req)).length }}
+                      +{{ remainingTags(req.tags).length }}
                     </span>
 
                     <template #content>
@@ -316,7 +316,7 @@
                         </p>
                         <div class="flex flex-wrap gap-1 max-w-64">
                           <TagChip
-                            v-for="tag in remainingTags(getRequestTags(req))"
+                            v-for="tag in remainingTags(req.tags)"
                             :key="tag.id"
                             :tag="tag"
                             size="sm"
@@ -645,26 +645,6 @@ const { hasPermission } = usePermissionCheck();
 
 const copiedMap = ref({});
 
-// Dummy tags for testing/demonstration
-const DUMMY_TAGS = [
-  { id: 1, name: "VIP", color: "#F59E0B" },
-  { id: 2, name: "High Volume", color: "#3B82F6" },
-  { id: 3, name: "KYC Verified", color: "#10B981" },
-  { id: 4, name: "Priority", color: "#EF4444" },
-  { id: 5, name: "Copy Trader", color: "#8B5CF6" },
-  { id: 6, name: "Risk Alert", color: "#EC4899" },
-  { id: 7, name: "Affiliate", color: "#6366F1" },
-  { id: 8, name: "Fast Payout", color: "#14B8A6" },
-  { id: 9, name: "Institutional", color: "#F97316" },
-  { id: 10, name: "Whale", color: "#06B6D4" },
-];
-
-const getRequestTags = (req) => {
-  if (req.tags && req.tags.length) return req.tags;
-  // Return dummy tags for testing if request has no tags
-  return DUMMY_TAGS;
-};
-
 const visibleTags = (tags) => {
   if (!tags) return [];
   return tags.slice(0, 2);
@@ -673,11 +653,6 @@ const visibleTags = (tags) => {
 const remainingTags = (tags) => {
   if (!tags) return [];
   return tags.slice(2);
-};
-
-const remainingTagsText = (tags) => {
-  const remaining = remainingTags(tags);
-  return remaining.map((t) => t.name).join(", ");
 };
 
 const truncateMiddle = (str, start = 6, end = 4) => {

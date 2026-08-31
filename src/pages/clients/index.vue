@@ -53,6 +53,16 @@ const canAssignTags = computed(() => {
   );
 });
 
+const visibleTags = (tags) => {
+  if (!tags) return [];
+  return tags.slice(0, 2);
+};
+
+const remainingTags = (tags) => {
+  if (!tags) return [];
+  return tags.slice(2);
+};
+
 const selectedClientIds = ref([]);
 const tagModal = ref({
   open: false,
@@ -946,11 +956,38 @@ onMounted(() => {
             <td class="p-3 max-w-45" @click.stop>
               <div class="flex flex-wrap items-center gap-1">
                 <TagChip
-                  v-for="tag in client.tags || []"
+                  v-for="tag in visibleTags(client.tags)"
                   :key="tag.id"
                   :tag="tag"
                   size="sm"
                 />
+                <Tooltip
+                  v-if="remainingTags(client.tags).length"
+                  position="center"
+                  maxWidth="280px"
+                >
+                  <span
+                    class="inline-flex items-center text-[10px] font-semibold px-1.5 py-0.5 rounded border border-primary-border bg-background/80 text-secondary-text hover:text-primary-text cursor-help transition-colors"
+                  >
+                    +{{ remainingTags(client.tags).length }}
+                  </span>
+
+                  <template #content>
+                    <div class="p-1">
+                      <p class="text-[10px] uppercase font-semibold text-secondary-text tracking-wider mb-1.5">
+                        Additional Tags
+                      </p>
+                      <div class="flex flex-wrap gap-1 max-w-64">
+                        <TagChip
+                          v-for="tag in remainingTags(client.tags)"
+                          :key="tag.id"
+                          :tag="tag"
+                          size="sm"
+                        />
+                      </div>
+                    </div>
+                  </template>
+                </Tooltip>
                 <button
                   v-if="canAssignTags"
                   type="button"
