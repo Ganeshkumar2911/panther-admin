@@ -15,21 +15,23 @@ export const useRunSettlementStore = defineStore('runSettlement', () => {
   const loading = ref(false)
   const runLoading = ref(false)
   const error = ref(null)
+  const amountView = ref('both')
 
-  const fetchSettlement = () => {
+  const fetchSettlement = (view) => {
+    if (view) {
+      amountView.value = view
+    }
+
     loading.value = true
-
     error.value = null
 
     const successHandler = (res) => {
       settlement.value = res?.data || null
-
       loading.value = false
     }
 
     const failureHandler = (err) => {
       loading.value = false
-
       error.value = err
 
       snackbar.show(
@@ -40,6 +42,7 @@ export const useRunSettlementStore = defineStore('runSettlement', () => {
 
     apiRequest(urls.KEYS.GET, urls.fm.settlementPreview, {
       look_up_key: route.params.id,
+      params: { amount_view: amountView.value },
       isTokenRequired: true,
       onSuccess: successHandler,
       onFailure: failureHandler,
@@ -94,6 +97,7 @@ export const useRunSettlementStore = defineStore('runSettlement', () => {
     loading.value = false
     runLoading.value = false
     error.value = null
+    amountView.value = 'both'
   }
 
   return {
@@ -101,6 +105,7 @@ export const useRunSettlementStore = defineStore('runSettlement', () => {
     loading,
     runLoading,
     error,
+    amountView,
 
     fetchSettlement,
     runSettlement,

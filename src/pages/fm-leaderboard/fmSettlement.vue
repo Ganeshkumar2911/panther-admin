@@ -26,6 +26,22 @@
       </div>
 
       <div class="flex items-center gap-2.5">
+        <!-- Amount View Toggle -->
+        <div class="flex items-center rounded-lg border border-primary-border bg-card-background overflow-hidden">
+          <button
+            v-for="opt in amountViewOptions"
+            :key="opt.value"
+            :disabled="store.loading"
+            class="px-3 py-2 text-xs font-medium transition-colors cursor-pointer disabled:opacity-50"
+            :class="store.amountView === opt.value
+              ? 'bg-primary text-white'
+              : 'text-secondary-text hover:text-primary-text hover:bg-background'"
+            @click="switchAmountView(opt.value)"
+          >
+            {{ opt.label }}
+          </button>
+        </div>
+
         <button
           :disabled="store.loading"
           class="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-primary-border bg-card-background hover:bg-background text-xs font-medium text-secondary-text hover:text-primary-text transition-colors disabled:opacity-50 cursor-pointer"
@@ -618,6 +634,17 @@ const confirmOpen = ref(false)
 const activeTab = ref('users')
 const searchQuery = ref('')
 const fmInfo = ref(null)
+
+const amountViewOptions = [
+  { label: 'Both', value: 'both' },
+  { label: 'USD', value: 'usd' },
+  { label: 'Account Units', value: 'account_units' },
+]
+
+const switchAmountView = (view) => {
+  if (store.amountView === view || store.loading) return
+  store.fetchSettlement(view)
+}
 
 const loadFmInfo = () => {
   try {
