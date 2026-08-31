@@ -224,6 +224,7 @@ const urls = {
       updateRole: "/rbac/users/role",
       updateStatus: "/rbac/users/status",
       delete: "/rbac/users",
+      resetPassword: "/rbac/users/reset-password",
     },
     userPermissions: {
       me: "/rbac/me/permissions",
