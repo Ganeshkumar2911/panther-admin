@@ -41,10 +41,17 @@ import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import { getFlagCode, cleanCountryLabel } from "@/utils/countries";
 
 const router = useRouter();
-const { hasPermission } = usePermissionCheck();
+const { hasPermission, hasAnyPermission } = usePermissionCheck();
 
 const store = useClientListStore();
 const tagsStore = useTagsStore();
+
+const canAssignTags = computed(() => {
+  return (
+    hasAnyPermission(["tags.assign", "tags.update", "tags.remove"]) ||
+    hasPermission("client.update")
+  );
+});
 
 const selectedClientIds = ref([]);
 const tagModal = ref({
@@ -665,7 +672,7 @@ onMounted(() => {
       leave-to-class="opacity-0 -translate-y-2"
     >
       <div
-        v-if="selectedClientIds.length > 0"
+        v-if="canAssignTags && selectedClientIds.length > 0"
         class="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 rounded-xl bg-primary/10 border border-primary/25 text-xs text-primary-text mb-4 shadow-sm"
       >
         <div class="flex items-center gap-2.5">
@@ -705,7 +712,7 @@ onMounted(() => {
       <table class="w-full border-collapse">
         <thead class="group/head bg-background/80 backdrop-blur-sm sticky top-0 z-10">
           <tr class="border-b border-primary-border">
-            <th class="p-3 w-10 text-center">
+            <th v-if="canAssignTags" class="p-3 w-10 text-center">
               <input
                 type="checkbox"
                 :checked="isAllClientsSelected"
@@ -903,7 +910,7 @@ onMounted(() => {
             ]"
           >
             <!-- Select Checkbox -->
-            <td class="p-3 text-center w-10" @click.stop>
+            <td v-if="canAssignTags" class="p-3 text-center w-10" @click.stop>
               <input
                 type="checkbox"
                 :checked="selectedClientIds.includes(client.id)"
@@ -945,6 +952,7 @@ onMounted(() => {
                   size="sm"
                 />
                 <button
+                  v-if="canAssignTags"
                   type="button"
                   @click="openClientTagModal(client)"
                   class="p-1 rounded hover:bg-white/10 text-secondary-text hover:text-primary-text transition-colors cursor-pointer"
@@ -1327,7 +1335,7 @@ onMounted(() => {
         <div class="flex items-start justify-between gap-2">
           <div class="flex items-center gap-2.5 min-w-0">
             <!-- Mobile Select Checkbox -->
-            <div class="shrink-0" @click.stop>
+            <div v-if="canAssignTags" class="shrink-0" @click.stop>
               <input
                 type="checkbox"
                 :checked="selectedClientIds.includes(client.id)"

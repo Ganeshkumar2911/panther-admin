@@ -72,10 +72,10 @@ const sortOptions = [
 ]
 
 const perPageOptions = [
-  { label: '10 / page', value: 10 },
-  { label: '20 / page', value: 20 },
-  { label: '50 / page', value: 50 },
-  { label: '100 / page', value: 100 },
+  { label: '10', value: 10 },
+  { label: '20', value: 20 },
+  { label: '50', value: 50 },
+  { label: '100', value: 100 },
 ]
 
 const hasActiveFilters = computed(() => {

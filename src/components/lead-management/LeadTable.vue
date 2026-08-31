@@ -18,6 +18,7 @@ import {
   Tag,
 } from "lucide-vue-next";
 import DropdownMenu from "@/components/common/DropdownMenu.vue";
+import { usePermissionCheck } from "@/composables/usePermissionCheck";
 
 const props = defineProps({
   leads: { type: Array, required: true },
@@ -43,11 +44,26 @@ const emit = defineEmits([
   "bulk-manage-tags",
 ]);
 
-const selectedLeadIds = ref([]);
+const { hasPermission, hasAnyPermission } = usePermissionCheck();
+
+const canAssignTags = computed(() => {
+  return (
+    hasAnyPermission(["tags.assign", "tags.update", "tags.remove"]) ||
+    hasPermission("lead.update")
+  );
+});
 
 const isAllSelected = computed(() => {
   if (!props.leads || props.leads.length === 0) return false;
   return props.leads.every((l) => selectedLeadIds.value.includes(l.id));
+});
+
+const isSomeSelected = computed(() => {
+  if (!props.leads || props.leads.length === 0) return false;
+  return (
+    selectedLeadIds.value.length > 0 &&
+    selectedLeadIds.value.length < props.leads.length
+  );
 });
 
 const toggleSelectAll = () => {
@@ -224,7 +240,7 @@ function formatSourceLabel(source) {
         </span>
       </div>
 
-      <div v-if="selectedLeadIds.length > 0" class="flex items-center gap-2">
+      <div v-if="canAssignTags && selectedLeadIds.length > 0" class="flex items-center gap-2">
         <button
           type="button"
           @click="emit('bulk-manage-tags', selectedLeadIds)"
@@ -285,16 +301,21 @@ function formatSourceLabel(source) {
     <!-- Table Container -->
     <div v-else class="overflow-x-auto no-scrollbar">
       <table class="w-full text-left border-collapse min-w-[1000px]">
-        <thead>
-          <tr
-            class="border-b border-primary-border bg-background/50 text-[11px] font-semibold text-secondary-text uppercase tracking-wider"
-          >
-            <th class="px-3 py-3 w-10 text-center">
+        <thead class="group/head bg-background/50 text-[11px] font-semibold text-secondary-text uppercase tracking-wider">
+          <tr class="border-b border-primary-border">
+            <th v-if="canAssignTags" class="px-3 py-3 w-10 text-center">
               <input
                 type="checkbox"
                 :checked="isAllSelected"
+                :indeterminate.prop="isSomeSelected"
                 @change="toggleSelectAll"
-                class="rounded border-primary-border bg-background text-primary focus:ring-primary cursor-pointer"
+                class="custom-checkbox transition-opacity duration-150 cursor-pointer"
+                :class="[
+                  selectedLeadIds.length > 0 || isAllSelected
+                    ? 'opacity-100'
+                    : 'opacity-0 group-hover/head:opacity-100'
+                ]"
+                title="Select all leads"
               />
             </th>
             <th class="px-5 py-3">Lead Code</th>
@@ -315,15 +336,25 @@ function formatSourceLabel(source) {
           <tr
             v-for="lead in leads"
             :key="lead.id"
-            class="hover:bg-background/80 transition-colors group cursor-pointer"
+            class="transition-colors group cursor-pointer"
+            :class="[
+              selectedLeadIds.includes(lead.id)
+                ? 'bg-primary/5 dark:bg-primary/10 hover:bg-primary/10 dark:hover:bg-primary/15'
+                : 'hover:bg-background/80'
+            ]"
           >
             <!-- Select Checkbox -->
-            <td class="px-3 py-3.5 text-center" @click.stop>
+            <td v-if="canAssignTags" class="px-3 py-3.5 text-center w-10" @click.stop>
               <input
                 type="checkbox"
                 :checked="selectedLeadIds.includes(lead.id)"
                 @change="toggleSelectLead(lead.id)"
-                class="rounded border-primary-border bg-background text-primary focus:ring-primary cursor-pointer"
+                class="custom-checkbox transition-opacity duration-150 cursor-pointer"
+                :class="[
+                  selectedLeadIds.length > 0 || selectedLeadIds.includes(lead.id)
+                    ? 'opacity-100'
+                    : 'opacity-0 group-hover:opacity-100'
+                ]"
               />
             </td>
 
