@@ -242,7 +242,7 @@ const totalTagsCount = computed(() => tagsStore.pagination.total_items || 0)
         </div>
       </div>
 
-      <div class="p-4 rounded-lg bg-card-background border border-primary-border flex items-center justify-between">
+      <!-- <div class="p-4 rounded-lg bg-card-background border border-primary-border flex items-center justify-between">
         <div>
           <p class="text-xs text-secondary-text">Lead Tag Limit (Env)</p>
           <p class="text-xl font-bold text-primary-green mt-1">{{ tagsStore.limits.lead || 10 }} chips / lead</p>
@@ -260,7 +260,7 @@ const totalTagsCount = computed(() => tagsStore.pagination.total_items || 0)
         <div class="p-3 rounded-lg bg-primary-blue/10 text-primary-blue">
           <Users class="w-5 h-5" />
         </div>
-      </div>
+      </div> -->
     </div>
 
     <!-- Filter Bar -->
