@@ -44,8 +44,7 @@ const routes = [
         },
       },
       {
-        path: "client/details/:id",
-        name: "client-details",
+        path: "/client/details/:id",
         component: () => import("@/pages/client-details/index.vue"),
         meta: {
           showBackButton: true,
@@ -53,6 +52,74 @@ const routes = [
           title: "Clients Details",
           description: "View and manage client info.",
         },
+        children: [
+          {
+            path: "",
+            name: "client-details",
+            component: () => import("@/pages/client-details/overview.vue"),
+            meta: {
+              showBackButton: true,
+              requiresAuth: true,
+              title: "Clients Details",
+              description: "View and manage client info.",
+            },
+          },
+          {
+            path: "profile",
+            name: "client-details-profile",
+            component: () => import("@/pages/client-details/profile.vue"),
+            meta: {
+              showBackButton: true,
+              requiresAuth: true,
+              title: "Client Profile & KYC",
+              description: "View client profile and KYC.",
+            },
+          },
+          {
+            path: "financials",
+            name: "client-details-financials",
+            component: () => import("@/pages/client-details/financial.vue"),
+            meta: {
+              showBackButton: true,
+              requiresAuth: true,
+              title: "Client Financials",
+              description: "View client financials.",
+            },
+          },
+          {
+            path: "trading",
+            name: "client-details-trading",
+            component: () => import("@/pages/client-details/trading.vue"),
+            meta: {
+              showBackButton: true,
+              requiresAuth: true,
+              title: "Client Trading",
+              description: "View client trading details.",
+            },
+          },
+          {
+            path: "crm",
+            name: "client-details-crm",
+            component: () => import("@/pages/client-details/crm&support.vue"),
+            meta: {
+              showBackButton: true,
+              requiresAuth: true,
+              title: "Client CRM & Support",
+              description: "View client CRM and support tickets.",
+            },
+          },
+          {
+            path: "marketing",
+            name: "client-details-marketing",
+            component: () => import("@/pages/client-details/marketing.vue"),
+            meta: {
+              showBackButton: true,
+              requiresAuth: true,
+              title: "Client Marketing",
+              description: "View client marketing details.",
+            },
+          },
+        ],
       },
       {
         path: "/lead-management",

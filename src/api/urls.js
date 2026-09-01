@@ -44,6 +44,10 @@ const urls = {
     updateReferralLink: "/clients/referral-link",
     userDashboard: "/user-dashboard",
   },
+  clientDepth: {
+    overview: "/overview",
+    kyc: "/user/kyc-details",
+  },
   clientLedger: {
     list: "/ledger/clients",
     allClients: "/search/clients",

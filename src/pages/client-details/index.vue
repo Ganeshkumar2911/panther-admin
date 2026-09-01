@@ -249,9 +249,12 @@
             v-for="tab in tabs"
             :key="tab.key"
             :to="tab.to"
-            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap"
-            active-class="bg-primary text-white"
-            exact-active-class="bg-primary text-white"
+            class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap"
+            :class="
+              isTabActive(tab)
+                ? 'bg-primary text-white shadow-xs'
+                : 'text-secondary-text hover:bg-card-background hover:text-primary-text'
+            "
           >
             <component :is="tab.icon" class="w-4 h-4" />
             {{ tab.label }}
@@ -330,14 +333,13 @@ const quickActions = [
 ];
 
 // ─── Top Tabs ─────────────────────────────────────────────────────────────────
-const activeTab = ref("overview");
 const route = useRoute();
 
-const tabs = [
+const tabs = computed(() => [
   {
     key: "overview",
     label: "Overview",
-    to: `/client/details/${route.params.id}/`,
+    to: `/client/details/${route.params.id}`,
     icon: Activity,
   },
   {
@@ -370,7 +372,20 @@ const tabs = [
     to: `/client/details/${route.params.id}/marketing`,
     icon: Megaphone,
   },
-];
+]);
+
+const isTabActive = (tab) => {
+  const currentPath = route.path.replace(/\/$/, "");
+  const targetPath = tab.to.replace(/\/$/, "");
+  if (tab.key === "overview") {
+    return (
+      currentPath === targetPath ||
+      route.name === "client-details" ||
+      route.name === "client-details-overview"
+    );
+  }
+  return currentPath === targetPath || currentPath.startsWith(targetPath);
+};
 
 // ─── Sidebar ──────────────────────────────────────────────────────────────────
 const expanded = ref({
