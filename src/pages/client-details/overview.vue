@@ -460,9 +460,7 @@ const defaultOverview = {
 const loadOverview = () => {
   const userId = route.params.id;
   if (userId) {
-    clientDepthStore.fetchClientOverview(userId).catch(() => {
-      // Gracefully retained fallback if backend endpoint isn't connected yet
-    });
+    clientDepthStore.fetchClientOverview(userId);
   }
 };
 

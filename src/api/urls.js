@@ -47,6 +47,9 @@ const urls = {
   clientDepth: {
     overview: "/overview",
     kyc: "/user/kyc-details",
+    userUpdate: "/user-update",
+    updateKyc: "/user/kyc-details",
+    uploadDocument: "/user-document-upload",
   },
   clientLedger: {
     list: "/ledger/clients",

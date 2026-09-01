@@ -47,14 +47,14 @@
                 </div>
               </div>
 
-              <button
+              <!-- <button
                 type="button"
                 @click="triggerPhotoUpload"
                 class="mt-3.5 border border-primary-border rounded-xl px-3 py-1.5 text-xs font-semibold text-primary-text hover:bg-background transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
               >
                 <Upload class="w-3.5 h-3.5 text-secondary-text" />
                 Upload Photo
-              </button>
+              </button> -->
               <input
                 ref="photoInputRef"
                 type="file"
@@ -75,7 +75,7 @@
                   Full Name
                 </p>
                 <p class="font-bold text-primary-text text-sm">
-                  {{ user.name || "Testing One" }}
+                  {{ user.name || "—" }}
                 </p>
               </div>
 
@@ -199,11 +199,11 @@
         </div>
 
         <!-- 2. Contact Preferences Card -->
-        <div
+        <!-- <div
           class="bg-card-background border border-primary-border rounded-2xl p-5 sm:p-6 shadow-xs transition-all hover:border-primary/30"
-        >
+        > -->
           <!-- Card Header -->
-          <div class="flex items-start justify-between gap-3 pb-5 border-b border-primary-border/60">
+          <!-- <div class="flex items-start justify-between gap-3 pb-5 border-b border-primary-border/60">
             <div>
               <h3 class="text-base sm:text-lg font-bold text-primary-text">
                 Contact Preferences
@@ -220,12 +220,12 @@
               <Pencil class="w-3.5 h-3.5" />
               Edit Preferences
             </button>
-          </div>
+          </div> -->
 
           <!-- Preferences 2x2 Grid -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-5">
+          <!-- <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-5"> -->
             <!-- Email Notifications -->
-            <div
+            <!-- <div
               class="border border-primary-border/70 rounded-xl p-3.5 flex items-center justify-between gap-3 bg-background/50 hover:bg-background transition-colors"
             >
               <div class="flex items-center gap-3 min-w-0">
@@ -247,10 +247,10 @@
               >
                 {{ preferences.email ? 'Enabled' : 'Disabled' }}
               </span>
-            </div>
+            </div> -->
 
             <!-- SMS Notifications -->
-            <div
+            <!-- <div
               class="border border-primary-border/70 rounded-xl p-3.5 flex items-center justify-between gap-3 bg-background/50 hover:bg-background transition-colors"
             >
               <div class="flex items-center gap-3 min-w-0">
@@ -272,10 +272,10 @@
               >
                 {{ preferences.sms ? 'Enabled' : 'Disabled' }}
               </span>
-            </div>
+            </div> -->
 
             <!-- Phone Calls -->
-            <div
+            <!-- <div
               class="border border-primary-border/70 rounded-xl p-3.5 flex items-center justify-between gap-3 bg-background/50 hover:bg-background transition-colors"
             >
               <div class="flex items-center gap-3 min-w-0">
@@ -297,10 +297,10 @@
               >
                 {{ preferences.phone ? 'Enabled' : 'Disabled' }}
               </span>
-            </div>
+            </div> -->
 
             <!-- Marketing Updates -->
-            <div
+            <!-- <div
               class="border border-primary-border/70 rounded-xl p-3.5 flex items-center justify-between gap-3 bg-background/50 hover:bg-background transition-colors"
             >
               <div class="flex items-center gap-3 min-w-0">
@@ -322,6 +322,55 @@
               >
                 {{ preferences.marketing ? 'Enabled' : 'Disabled' }}
               </span>
+            </div> -->
+          <!-- </div> -->
+        <!-- </div> -->
+
+        <!-- 4. KYC Notes Card -->
+        <div
+          class="bg-card-background border border-primary-border rounded-2xl p-5 sm:p-6 shadow-xs transition-all hover:border-primary/30"
+        >
+          <!-- Card Header -->
+          <div class="flex items-start justify-between gap-3 pb-4 border-b border-primary-border/60">
+            <div>
+              <h3 class="text-base sm:text-lg font-bold text-primary-text">
+                KYC Notes
+              </h3>
+              <p class="text-xs text-secondary-text mt-0.5">
+                Add internal notes related to client KYC verification.
+              </p>
+            </div>
+            <button
+              type="button"
+              @click="openAddNoteModal"
+              class="border border-primary-border rounded-xl px-3.5 py-1.5 text-xs font-semibold text-primary hover:bg-background transition-colors flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs"
+            >
+              <Plus class="w-3.5 h-3.5" />
+              Add Note
+            </button>
+          </div>
+
+          <!-- Notes List or Empty State -->
+          <div class="pt-5">
+            <div v-if="allNotes.length === 0" class="py-8 flex flex-col items-center justify-center text-center">
+              <FileText class="w-10 h-10 text-secondary-text/40 mb-2" />
+              <p class="text-xs text-secondary-text font-medium">
+                No notes added yet.
+              </p>
+            </div>
+
+            <div v-else class="space-y-3">
+              <div
+                v-for="(note, i) in allNotes"
+                :key="i"
+                class="border border-primary-border/70 rounded-xl p-3 bg-background/50"
+              >
+                <div class="flex items-center justify-between text-[11px] text-secondary-text mb-1">
+                  <span class="font-bold text-primary-text">{{ note.author || 'Admin' }}</span>
+                  <span>{{ note.date || note.created_at || 'Just now' }}</span>
+                </div>
+                <p class="text-xs text-primary-text font-medium">{{ note.text || note.note }}</p>
+              </div>
             </div>
           </div>
         </div>
@@ -340,14 +389,14 @@
                 KYC Verification
               </h3>
               <p class="text-xs text-secondary-text mt-0.5">
-                Track and manage client verification status and documents.
+                Client identity document verification for Forex compliance.
               </p>
             </div>
             <button
               type="button"
               @click="refreshKycStatus"
               :disabled="clientDepthStore.kycLoading"
-              class="border border-primary-border rounded-xl px-3 py-1.5 text-xs font-semibold text-primary hover:bg-background transition-colors flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs disabled:opacity-50"
+              class="border border-primary-border rounded-xl px-3.5 py-1.5 text-xs font-semibold text-secondary-text hover:text-primary-text hover:bg-background transition-colors flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs disabled:opacity-50"
             >
               <RefreshCw class="w-3.5 h-3.5" :class="clientDepthStore.kycLoading ? 'animate-spin' : ''" />
               Refresh
@@ -420,12 +469,12 @@
             </template>
           </div>
 
-          <!-- Document Checklist Section -->
+          <!-- Document Checklist Section (3 Fields) -->
           <div class="space-y-3 pt-2">
             <div>
               <h4 class="text-sm font-bold text-primary-text">Document Checklist</h4>
               <p class="text-xs text-secondary-text mt-0.5">
-                Please upload valid documents to proceed.
+                Please upload valid documents to proceed with verification.
               </p>
             </div>
 
@@ -472,7 +521,7 @@
                         </span>
                         <span
                           v-if="doc.verification_status"
-                          class="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                          class="text-[10px] font-bold px-2 py-0.5 rounded-full capitalize"
                           :class="getVerificationStatusBadgeClass(doc.verification_status)"
                         >
                           {{ doc.verification_status }}
@@ -485,68 +534,45 @@
                       {{ doc.remarks || '—' }}
                     </td>
 
-                    <!-- Action Button -->
+                    <!-- Action Buttons -->
                     <td class="py-3 px-4 text-right">
-                      <button
-                        type="button"
-                        @click="handleDocumentAction(doc)"
-                        class="border border-primary-border rounded-lg px-3 py-1 text-xs font-semibold text-primary hover:bg-background transition-colors cursor-pointer shadow-2xs"
-                      >
-                        {{ doc.action || (doc.uploaded ? 'View' : 'Upload') }}
-                      </button>
+                      <div class="flex items-center justify-end gap-1.5">
+                        <!-- If Document Uploaded: View & Edit buttons -->
+                        <template v-if="doc.uploaded">
+                          <button
+                            type="button"
+                            @click="openViewDoc(doc)"
+                            class="border border-primary-border rounded-lg px-2.5 py-1 text-xs font-semibold text-primary hover:bg-background transition-colors cursor-pointer shadow-2xs flex items-center gap-1"
+                          >
+                            <Eye class="w-3 h-3" />
+                            View
+                          </button>
+                          <button
+                            type="button"
+                            @click="openEditDoc(doc)"
+                            class="border border-primary-border rounded-lg px-2.5 py-1 text-xs font-semibold text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer shadow-2xs flex items-center gap-1"
+                          >
+                            <Pencil class="w-3 h-3" />
+                            Edit
+                          </button>
+                        </template>
+
+                        <!-- If Document Not Uploaded: Upload button -->
+                        <template v-else>
+                          <button
+                            type="button"
+                            @click="openUploadDoc(doc)"
+                            class="bg-primary hover:bg-primary-hover text-white rounded-lg px-3 py-1 text-xs font-semibold transition-all cursor-pointer shadow-2xs flex items-center gap-1"
+                          >
+                            <Upload class="w-3 h-3" />
+                            Upload
+                          </button>
+                        </template>
+                      </div>
                     </td>
                   </tr>
                 </tbody>
               </table>
-            </div>
-          </div>
-        </div>
-
-        <!-- 4. KYC Notes Card -->
-        <div
-          class="bg-card-background border border-primary-border rounded-2xl p-5 sm:p-6 shadow-xs transition-all hover:border-primary/30"
-        >
-          <!-- Card Header -->
-          <div class="flex items-start justify-between gap-3 pb-4 border-b border-primary-border/60">
-            <div>
-              <h3 class="text-base sm:text-lg font-bold text-primary-text">
-                KYC Notes
-              </h3>
-              <p class="text-xs text-secondary-text mt-0.5">
-                Add internal notes related to client KYC verification.
-              </p>
-            </div>
-            <button
-              type="button"
-              @click="openAddNoteModal"
-              class="border border-primary-border rounded-xl px-3.5 py-1.5 text-xs font-semibold text-primary hover:bg-background transition-colors flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs"
-            >
-              <Plus class="w-3.5 h-3.5" />
-              Add Note
-            </button>
-          </div>
-
-          <!-- Notes List or Empty State -->
-          <div class="pt-5">
-            <div v-if="allNotes.length === 0" class="py-8 flex flex-col items-center justify-center text-center">
-              <FileText class="w-10 h-10 text-secondary-text/40 mb-2" />
-              <p class="text-xs text-secondary-text font-medium">
-                No notes added yet.
-              </p>
-            </div>
-
-            <div v-else class="space-y-3">
-              <div
-                v-for="(note, i) in allNotes"
-                :key="i"
-                class="border border-primary-border/70 rounded-xl p-3 bg-background/50"
-              >
-                <div class="flex items-center justify-between text-[11px] text-secondary-text mb-1">
-                  <span class="font-bold text-primary-text">{{ note.author || 'Admin' }}</span>
-                  <span>{{ note.date || note.created_at || 'Just now' }}</span>
-                </div>
-                <p class="text-xs text-primary-text font-medium">{{ note.text || note.note }}</p>
-              </div>
             </div>
           </div>
         </div>
@@ -559,9 +585,9 @@
     >
       <!-- Left Info -->
       <div class="shrink-0 w-full md:w-auto">
-        <h4 class="text-base font-bold text-primary-blue">KYC Pending?</h4>
+        <h4 class="text-base font-bold text-primary-blue">KYC Verification</h4>
         <p class="text-xs text-secondary-text mt-0.5">
-          Help the client complete verification quickly.
+          Staff members can upload client identity proof for verification.
         </p>
       </div>
 
@@ -570,9 +596,9 @@
         <!-- Step 1 -->
         <div class="flex items-start gap-2.5">
           <div>
-            <p class="font-bold text-primary-text">1. Upload Documents</p>
+            <p class="font-bold text-primary-text">1. Upload ID Proof</p>
             <p class="text-[11px] text-secondary-text">
-              Ensure all required documents are clear and valid.
+              Front & Back photos of Aadhaar, PAN, or Passport.
             </p>
           </div>
         </div>
@@ -582,9 +608,9 @@
         <!-- Step 2 -->
         <div class="flex items-start gap-2.5">
           <div>
-            <p class="font-bold text-primary-text">2. Wait for Verification</p>
+            <p class="font-bold text-primary-text">2. Document Review</p>
             <p class="text-[11px] text-secondary-text">
-              Our team will review and verify your documents.
+              Compliance team reviews uploaded documents.
             </p>
           </div>
         </div>
@@ -594,9 +620,9 @@
         <!-- Step 3 -->
         <div class="flex items-start gap-2.5">
           <div>
-            <p class="font-bold text-primary-text">3. Get Verified</p>
+            <p class="font-bold text-primary-text">3. Verification Complete</p>
             <p class="text-[11px] text-secondary-text">
-              Once verified, you will gain full access to all features.
+              Trading account fully unrestricted for deposits & withdrawals.
             </p>
           </div>
         </div>
@@ -613,144 +639,33 @@
       </button>
     </div>
 
-    <!-- ─── MODALS & DIALOGS ────────────────────────────────────── -->
+    <!-- ─── MODALS & DRAWERS ────────────────────────────────────── -->
 
-    <!-- Edit Profile Modal -->
-    <div
-      v-if="editProfileModalOpen"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4"
-    >
-      <div class="bg-card-background border border-primary-border rounded-2xl p-6 w-full max-w-lg shadow-xl space-y-4">
-        <div class="flex items-center justify-between border-b border-primary-border pb-3">
-          <h3 class="font-bold text-primary-text text-base">Edit Profile Information</h3>
-          <button @click="editProfileModalOpen = false" class="text-secondary-text hover:text-primary-text">
-            <X class="w-5 h-5" />
-          </button>
-        </div>
+    <!-- 1. Edit Client Profile Drawer -->
+    <EditClientProfileDrawer
+      :open="editProfileDrawerOpen"
+      :client="clientForEdit"
+      @close="closeEditProfileDrawer"
+      @success="handleProfileEditSuccess"
+    />
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-          <div>
-            <label class="font-semibold text-secondary-text mb-1 block">Full Name</label>
-            <input v-model="editForm.name" class="input-field p-2.5" />
-          </div>
-          <div>
-            <label class="font-semibold text-secondary-text mb-1 block">Date of Birth</label>
-            <input v-model="editForm.date_of_birth" type="date" class="input-field p-2.5" />
-          </div>
-          <div>
-            <label class="font-semibold text-secondary-text mb-1 block">Gender</label>
-            <select v-model="editForm.gender" class="input-field p-2.5">
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-          <div>
-            <label class="font-semibold text-secondary-text mb-1 block">Preferred Language</label>
-            <input v-model="editForm.preferred_language" class="input-field p-2.5" />
-          </div>
-          <div>
-            <label class="font-semibold text-secondary-text mb-1 block">Nationality</label>
-            <input v-model="editForm.nationality" class="input-field p-2.5" />
-          </div>
-          <div>
-            <label class="font-semibold text-secondary-text mb-1 block">Country</label>
-            <input v-model="editForm.country" class="input-field p-2.5" />
-          </div>
-          <div class="sm:col-span-2">
-            <label class="font-semibold text-secondary-text mb-1 block">Address</label>
-            <input v-model="editForm.address" class="input-field p-2.5" />
-          </div>
-          <div>
-            <label class="font-semibold text-secondary-text mb-1 block">ZIP / Postal Code</label>
-            <input v-model="editForm.zip_code" class="input-field p-2.5" />
-          </div>
-        </div>
+    <!-- 2. Upload / Edit KYC Document Modal -->
+    <UploadKycDocumentModal
+      :open="uploadDocModalOpen"
+      :client="clientForEdit"
+      :existingDoc="selectedDoc"
+      @close="closeUploadDocModal"
+      @success="handleUploadDocSuccess"
+    />
 
-        <div class="flex items-center justify-end gap-2 pt-3 border-t border-primary-border">
-          <button
-            type="button"
-            @click="editProfileModalOpen = false"
-            class="px-4 py-2 text-xs font-semibold text-secondary-text hover:bg-background rounded-xl border border-primary-border"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            @click="saveProfileInfo"
-            class="px-4 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-hover rounded-xl shadow-xs"
-          >
-            Save Changes
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Edit Contact Preferences Modal -->
-    <div
-      v-if="editPreferencesModalOpen"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4"
-    >
-      <div class="bg-card-background border border-primary-border rounded-2xl p-6 w-full max-w-md shadow-xl space-y-4">
-        <div class="flex items-center justify-between border-b border-primary-border pb-3">
-          <h3 class="font-bold text-primary-text text-base">Edit Contact Preferences</h3>
-          <button @click="editPreferencesModalOpen = false" class="text-secondary-text hover:text-primary-text">
-            <X class="w-5 h-5" />
-          </button>
-        </div>
-
-        <div class="space-y-3 text-xs">
-          <label class="flex items-center justify-between p-3 border border-primary-border rounded-xl cursor-pointer hover:bg-background">
-            <div>
-              <p class="font-bold text-primary-text">Email Notifications</p>
-              <p class="text-[11px] text-secondary-text">Receive updates via email</p>
-            </div>
-            <input type="checkbox" v-model="preferences.email" class="w-4 h-4 accent-primary" />
-          </label>
-
-          <label class="flex items-center justify-between p-3 border border-primary-border rounded-xl cursor-pointer hover:bg-background">
-            <div>
-              <p class="font-bold text-primary-text">SMS Notifications</p>
-              <p class="text-[11px] text-secondary-text">Receive updates via SMS</p>
-            </div>
-            <input type="checkbox" v-model="preferences.sms" class="w-4 h-4 accent-primary" />
-          </label>
-
-          <label class="flex items-center justify-between p-3 border border-primary-border rounded-xl cursor-pointer hover:bg-background">
-            <div>
-              <p class="font-bold text-primary-text">Phone Calls</p>
-              <p class="text-[11px] text-secondary-text">Receive updates via phone</p>
-            </div>
-            <input type="checkbox" v-model="preferences.phone" class="w-4 h-4 accent-primary" />
-          </label>
-
-          <label class="flex items-center justify-between p-3 border border-primary-border rounded-xl cursor-pointer hover:bg-background">
-            <div>
-              <p class="font-bold text-primary-text">Marketing Updates</p>
-              <p class="text-[11px] text-secondary-text">Receive marketing communications</p>
-            </div>
-            <input type="checkbox" v-model="preferences.marketing" class="w-4 h-4 accent-primary" />
-          </label>
-        </div>
-
-        <div class="flex items-center justify-end gap-2 pt-3 border-t border-primary-border">
-          <button
-            type="button"
-            @click="editPreferencesModalOpen = false"
-            class="px-4 py-2 text-xs font-semibold text-secondary-text hover:bg-background rounded-xl border border-primary-border"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            @click="editPreferencesModalOpen = false; snackbar.show('Preferences updated successfully!', 'success')"
-            class="px-4 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-hover rounded-xl shadow-xs"
-          >
-            Save
-          </button>
-        </div>
-      </div>
-    </div>
+    <!-- 3. View KYC Document Modal -->
+    <ViewKycDocumentModal
+      :open="viewDocModalOpen"
+      :doc="selectedDoc"
+      :status="kycStatus"
+      @close="closeViewDocModal"
+      @edit="openEditDoc(selectedDoc)"
+    />
 
     <!-- Add Note Modal -->
     <div
@@ -802,21 +717,24 @@ import { useRoute } from "vue-router";
 import { useClientDepthStore } from "@/stores/clientDepth/clientDepth";
 import { getFlagCode, cleanCountryLabel } from "@/utils/countries";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
+import EditClientProfileDrawer from "@/components/clientDetails/EditClientProfileDrawer.vue";
+import UploadKycDocumentModal from "@/components/clientDetails/UploadKycDocumentModal.vue";
+import ViewKycDocumentModal from "@/components/clientDetails/ViewKycDocumentModal.vue";
 import {
   User,
   Pencil,
   Check,
   Upload,
   Mail,
-  MessageSquare,
-  Phone,
-  Megaphone,
   RefreshCw,
   ChevronRight,
-  CheckCircle2,
-  AlertCircle,
   Plus,
   FileText,
+  FileCheck,
+  FileUp,
+  Eye,
+  CheckCircle2,
+  AlertCircle,
   X,
 } from "lucide-vue-next";
 
@@ -827,7 +745,7 @@ const clientDepthStore = useClientDepthStore();
 // ─── User Profile State ───────────────────────────────────────────────────────
 const user = ref({});
 
-onMounted(() => {
+const loadClientFromStorage = () => {
   try {
     const raw = localStorage.getItem("active_client");
     if (raw) {
@@ -836,28 +754,40 @@ onMounted(() => {
   } catch {
     user.value = {};
   }
-  loadKyc();
+};
+
+const clientForEdit = computed(() => {
+  return {
+    ...user.value,
+    id: user.value?.id || route.params.id,
+  };
+});
+
+const loadKyc = (force = false) => {
+  const userId = route.params.id || user.value?.id;
+  if (userId) {
+    clientDepthStore.fetchClientKyc(userId, force);
+  }
+};
+
+onMounted(() => {
+  loadClientFromStorage();
+  loadKyc(true);
 });
 
 watch(
   () => route.params.id,
   (newId) => {
-    if (newId) loadKyc();
-  }
+    if (newId) {
+      loadClientFromStorage();
+      loadKyc(true);
+    }
+  },
 );
-
-const loadKyc = () => {
-  const userId = route.params.id;
-  if (userId) {
-    clientDepthStore.fetchClientKyc(userId).catch(() => {
-      // Gracefully falls back to mock/defaults until backend response is active
-    });
-  }
-};
 
 const formattedDob = computed(() => {
   const dob = user.value.date_of_birth || user.value.dob;
-  if (!dob) return "15 Apr 1995";
+  if (!dob) return "—";
   try {
     return new Date(dob).toLocaleDateString("en-GB", {
       day: "2-digit",
@@ -883,208 +813,264 @@ const handlePhotoUpload = (e) => {
   }
 };
 
-// ─── Contact Preferences ──────────────────────────────────────────────────────
-const preferences = ref({
-  email: true,
-  sms: false,
-  phone: true,
-  marketing: false,
-});
-
-const editPreferencesModalOpen = ref(false);
-const openPreferencesModal = () => {
-  editPreferencesModalOpen.value = true;
-};
-
-// ─── Edit Profile ─────────────────────────────────────────────────────────────
-const editProfileModalOpen = ref(false);
-const editForm = ref({
-  name: "",
-  date_of_birth: "",
-  gender: "Male",
-  preferred_language: "English",
-  nationality: "",
-  country: "",
-  address: "",
-  zip_code: "",
-});
+// ─── Edit Profile Drawer State ────────────────────────────────────────────────
+const editProfileDrawerOpen = ref(false);
 
 const openEditProfileModal = () => {
-  editForm.value = {
-    name: user.value.name || "Testing One",
-    date_of_birth: user.value.date_of_birth || "1995-04-15",
-    gender: user.value.gender || "Male",
-    preferred_language: user.value.preferred_language || "English",
-    nationality: user.value.nationality || "",
-    country: user.value.country || "",
-    address: user.value.address || "",
-    zip_code: user.value.zip_code || user.value.postal_code || "",
+  editProfileDrawerOpen.value = true;
+};
+
+const closeEditProfileDrawer = () => {
+  editProfileDrawerOpen.value = false;
+};
+
+const handleProfileEditSuccess = (updatedClient) => {
+  if (updatedClient) {
+    user.value = { ...user.value, ...updatedClient };
+  } else {
+    loadClientFromStorage();
+  }
+};
+
+// ─── KYC Document Helpers & Formatters ────────────────────────────────────────
+const formatDocType = (type) => {
+  if (!type) return "National ID Card";
+  const map = {
+    aadhaar: "Aadhaar Card",
+    pan: "PAN Card",
+    passport: "Passport",
+    driving_license: "Driving License",
+    voter_id: "Voter ID Card",
+    national_id: "National Identity Card",
+    address_proof: "Address Proof",
+    selfie: "Selfie Photo",
+    other: "Official Identity Document",
   };
-  editProfileModalOpen.value = true;
+  return map[type] || String(type).replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 };
 
-const saveProfileInfo = () => {
-  Object.assign(user.value, editForm.value);
+const formatDate = (val) => {
+  if (!val) return "—";
   try {
-    localStorage.setItem("active_client", JSON.stringify(user.value));
-  } catch {}
-  editProfileModalOpen.value = false;
-  snackbar.show("Profile updated successfully!", "success");
+    return new Date(val).toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  } catch {
+    return val;
+  }
 };
 
-// ─── KYC Dynamic Resolvers & Fallbacks ────────────────────────────────────────
-const defaultKyc = {
-  status: "Pending",
-  message: "Complete the remaining steps to get verified.",
-  completed_steps: 2,
-  total_steps: 3,
-  steps: [
-    { number: 1, label: "Personal Info", status: "completed", statusText: "Completed" },
-    { number: 2, label: "Documents", status: "pending", statusText: "Pending" },
-    { number: 3, label: "Verification", status: "pending", statusText: "Pending" },
-  ],
-  documents: [
-    {
-      id: "identity",
-      type: "identity",
-      title: "Proof of Identity",
-      subtitle: "Passport, ID Card, or Driver's License",
-      uploaded: true,
-      verification_status: "Unverified",
-      remarks: "Waiting for verification",
-      action: "View",
-    },
-    {
-      id: "address",
-      type: "address",
-      title: "Proof of Address",
-      subtitle: "Utility Bill, Bank Statement, etc.",
-      uploaded: true,
-      verification_status: "Unverified",
-      remarks: "Waiting for verification",
-      action: "View",
-    },
-    {
-      id: "selfie",
-      type: "selfie",
-      title: "Selfie Photo",
-      subtitle: "Clear selfie for verification",
-      uploaded: false,
-      verification_status: null,
-      remarks: "Required",
-      action: "Upload",
-    },
-  ],
-  notes: [],
+const getStatusBadgeClass = (s) => {
+  const status = String(s || "").toLowerCase();
+  if (status === "approved" || status === "verified")
+    return "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20";
+  if (status === "pending" || status === "in_progress" || status === "under review" || status === "unverified")
+    return "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20";
+  if (status === "rejected")
+    return "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20";
+  return "bg-zinc-500/10 text-zinc-500 border border-zinc-500/20";
 };
 
+const getVerificationStatusBadgeClass = (status) => {
+  const s = String(status || "").toLowerCase();
+  if (s === "verified" || s === "approved")
+    return "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20";
+  if (s === "unverified" || s === "pending" || s === "in_progress" || s === "under review")
+    return "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20";
+  if (s === "rejected")
+    return "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20";
+  return "bg-secondary-text/10 text-secondary-text";
+};
+
+// ─── KYC Response Resolver ───────────────────────────────────────────────────
 const kycData = computed(() => {
-  return clientDepthStore.kycData || defaultKyc;
+  return clientDepthStore.kycData || null;
 });
 
 const kycStatus = computed(() => {
   return (
-    kycData.value?.status ||
     kycData.value?.kyc_status ||
+    kycData.value?.status ||
     user.value?.kyc_status ||
     "Pending"
   );
 });
 
 const kycStatusMessage = computed(() => {
-  return (
-    kycData.value?.message ||
-    kycData.value?.status_message ||
-    "Complete the remaining steps to get verified."
-  );
+  const isUploaded = !!kycData.value?.docs_uploaded;
+  const s = String(kycStatus.value || "").toLowerCase();
+  if (isUploaded) {
+    if (s === "approved" || s === "verified") {
+      return "All identity documents verified successfully.";
+    }
+    if (s === "rejected") {
+      return kycData.value?.kyc_reject_reason || "Document was rejected. Please re-upload a clear copy.";
+    }
+    return "Document uploaded. Waiting for admin review.";
+  }
+  return "Please upload identity document to get verified.";
 });
 
+// ─── 3-Field Document Checklist Resolver ──────────────────────────────────────
+const documentChecklist = computed(() => {
+  const k = clientDepthStore.kycData || {};
+  const isUploaded = !!k.docs_uploaded;
+  const docType = k.doc_type || "pan";
+  const docPath = k.doc_path || {};
+  const frontUrl = docPath.front || k.front || k.front_url || null;
+  const backUrl = docPath.back || k.back || k.back_url || null;
+  const status = k.kyc_status || (k.doc_approved ? "approved" : (isUploaded ? "pending" : null));
+  const remarks = k.kyc_reject_reason || (k.doc_approved ? "Approved" : (isUploaded ? "Waiting for verification" : "Required"));
+
+  // Check which row matches doc_type
+  const isAddress = docType?.toLowerCase() === "address_proof" || docType?.toLowerCase() === "address";
+  const isSelfie = docType?.toLowerCase() === "selfie";
+  const isIdentity = !isAddress && !isSelfie;
+
+  return [
+    {
+      id: "identity",
+      type: "identity",
+      doc_type: isIdentity ? docType : "pan",
+      title: "Proof of Identity",
+      subtitle: isIdentity && isUploaded ? formatDocType(docType) : "Passport, ID Card, or Driver's License",
+      uploaded: isIdentity ? isUploaded : false,
+      verification_status: isIdentity && isUploaded ? status : null,
+      remarks: isIdentity && isUploaded ? remarks : "Required",
+      front: isIdentity ? frontUrl : null,
+      back: isIdentity ? backUrl : null,
+      doc_path: isIdentity ? docPath : null,
+    },
+    {
+      id: "address",
+      type: "address",
+      doc_type: isAddress ? docType : "address_proof",
+      title: "Proof of Address",
+      subtitle: isAddress && isUploaded ? formatDocType(docType) : "Utility Bill, Bank Statement, etc.",
+      uploaded: isAddress ? isUploaded : false,
+      verification_status: isAddress && isUploaded ? status : null,
+      remarks: isAddress && isUploaded ? remarks : "Required",
+      front: isAddress ? frontUrl : null,
+      back: isAddress ? backUrl : null,
+      doc_path: isAddress ? docPath : null,
+    },
+    {
+      id: "selfie",
+      type: "selfie",
+      doc_type: "selfie",
+      title: "Selfie Photo",
+      subtitle: "Clear selfie for verification",
+      uploaded: isSelfie ? isUploaded : false,
+      verification_status: isSelfie && isUploaded ? status : null,
+      remarks: isSelfie && isUploaded ? remarks : "Required",
+      front: isSelfie ? frontUrl : null,
+      back: null,
+      doc_path: isSelfie ? docPath : null,
+    },
+  ];
+});
+
+// ─── Stepper Progress Logic ───────────────────────────────────────────────────
 const completedStepsCount = computed(() => {
-  return (
-    kycData.value?.completed_steps ??
-    kycData.value?.progress?.completed_steps ??
-    2
-  );
+  let count = 1; // Personal Info
+  if (kycData.value?.docs_uploaded) count += 1;
+  const s = (kycStatus.value || "").toLowerCase();
+  if (s === "approved" || s === "verified") count += 1;
+  return count;
 });
 
-const totalStepsCount = computed(() => {
-  return (
-    kycData.value?.total_steps ??
-    kycData.value?.progress?.total_steps ??
-    3
-  );
-});
+const totalStepsCount = ref(3);
 
 const progressPercentage = computed(() => {
   return Math.min(
     100,
-    Math.round((completedStepsCount.value / (totalStepsCount.value || 1)) * 100)
+    Math.round((completedStepsCount.value / (totalStepsCount.value || 3)) * 100)
   );
 });
 
 const stepperSteps = computed(() => {
-  if (Array.isArray(kycData.value?.steps) && kycData.value.steps.length > 0) {
-    return kycData.value.steps;
-  }
-  return defaultKyc.steps;
+  const isDocUploaded = !!kycData.value?.docs_uploaded;
+  const s = (kycStatus.value || "").toLowerCase();
+  const isVerified = s === "approved" || s === "verified";
+  const isRejected = s === "rejected";
+
+  return [
+    {
+      number: 1,
+      label: "Personal Info",
+      status: "completed",
+      statusText: "Completed",
+    },
+    {
+      number: 2,
+      label: "Document Upload",
+      status: isDocUploaded ? "completed" : "pending",
+      statusText: isDocUploaded ? "Uploaded" : "Pending",
+    },
+    {
+      number: 3,
+      label: "Verification",
+      status: isVerified ? "completed" : (isRejected ? "rejected" : (isDocUploaded ? "in_progress" : "pending")),
+      statusText: isVerified ? "Approved" : (isRejected ? "Rejected" : (isDocUploaded ? "Under Review" : "Pending")),
+    },
+  ];
 });
 
-const documentChecklist = computed(() => {
-  if (Array.isArray(kycData.value?.documents) && kycData.value.documents.length > 0) {
-    return kycData.value.documents;
-  }
-  if (Array.isArray(kycData.value?.document_checklist) && kycData.value.document_checklist.length > 0) {
-    return kycData.value.document_checklist;
-  }
-  return defaultKyc.documents;
-});
-
-const localNotes = ref([]);
-const allNotes = computed(() => {
-  const apiNotes = kycData.value?.notes || [];
-  return [...localNotes.value, ...apiNotes];
-});
-
-// ─── Helpers for Badges & Actions ─────────────────────────────────────────────
 function getStepBadgeClass(status) {
   if (status === "completed") return "bg-primary-green text-white";
   if (status === "pending" || status === "in_progress") return "bg-primary-yellow text-white";
+  if (status === "rejected") return "bg-primary-red text-white";
   return "bg-primary-border text-secondary-text";
 }
 
 function getStepTextClass(status) {
   if (status === "completed") return "text-primary-green";
   if (status === "pending" || status === "in_progress") return "text-primary-yellow";
+  if (status === "rejected") return "text-primary-red";
   return "text-secondary-text";
 }
 
-function getVerificationStatusBadgeClass(status) {
-  const s = String(status).toLowerCase();
-  if (s === "verified" || s === "approved") return "bg-primary-green/10 text-primary-green";
-  if (s === "unverified" || s === "pending") return "bg-primary-yellow/10 text-primary-yellow";
-  if (s === "rejected") return "bg-primary-red/10 text-primary-red";
-  return "bg-secondary-text/10 text-secondary-text";
-}
+// ─── Upload & View Modals State ───────────────────────────────────────────────
+const selectedDoc = ref(null);
+const uploadDocModalOpen = ref(false);
+const viewDocModalOpen = ref(false);
 
-const handleDocumentAction = (doc) => {
-  if (doc.uploaded) {
-    snackbar.show(`Opening document preview for ${doc.title}...`, "info");
-  } else {
-    snackbar.show(`Please upload document for ${doc.title}`, "info");
+const openViewDoc = (doc) => {
+  selectedDoc.value = doc;
+  viewDocModalOpen.value = true;
+};
+
+const openEditDoc = (doc) => {
+  selectedDoc.value = doc;
+  uploadDocModalOpen.value = true;
+};
+
+const openUploadDoc = (doc) => {
+  selectedDoc.value = doc;
+  uploadDocModalOpen.value = true;
+};
+
+const closeUploadDocModal = () => {
+  uploadDocModalOpen.value = false;
+};
+
+const closeViewDocModal = () => {
+  viewDocModalOpen.value = false;
+};
+
+const handleUploadDocSuccess = (docData) => {
+  const userId = route.params.id || user.value?.id;
+  if (userId) {
+    clientDepthStore.fetchClientKyc(userId, true);
   }
 };
 
 const refreshKycStatus = () => {
   const userId = route.params.id;
   if (!userId) return;
-  clientDepthStore
-    .fetchClientKyc(userId)
-    .then(() => {
-      snackbar.show("KYC verification status refreshed!", "success");
-    })
-    .catch(() => {
-      snackbar.show("KYC status refreshed", "info");
-    });
+  clientDepthStore.fetchClientKyc(userId, true);
 };
 
 const sendKycInstructions = () => {
@@ -1092,6 +1078,12 @@ const sendKycInstructions = () => {
 };
 
 // ─── KYC Notes ────────────────────────────────────────────────────────────────
+const localNotes = ref([]);
+const allNotes = computed(() => {
+  const apiNotes = kycData.value?.notes || [];
+  return [...localNotes.value, ...apiNotes];
+});
+
 const addNoteModalOpen = ref(false);
 const newNoteText = ref("");
 
