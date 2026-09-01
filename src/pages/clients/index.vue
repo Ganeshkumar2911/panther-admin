@@ -15,10 +15,12 @@ import {
   Link2,
   LogIn,
   SlidersHorizontal,
+  Tag,
   X,
 } from "lucide-vue-next";
 import ConfirmationDialog from "@/components/common/ConfirmationDialog.vue";
 import { useClientListStore } from "@/stores/clientList/clientList";
+import { useTagsStore } from "@/stores/tags/tags";
 import Pagination from "@/components/common/Pagination.vue";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import DropdownMenu from "@/components/common/DropdownMenu.vue";
@@ -31,15 +33,107 @@ import Tooltip from "@/components/common/Tooltip.vue";
 import UpdateReferralLinkDrawer from "@/components/common/UpdateReferralLinkDrawer.vue";
 import ClientLoginModal from "@/components/common/ClientLoginModal.vue";
 import ManageTransactionsDialog from "@/components/common/ManageTransactionsDialog.vue";
+import TagChip from "@/components/common/TagChip.vue";
+import TagAssignmentModal from "@/components/common/TagAssignmentModal.vue";
 import { useRouter } from "vue-router";
 import { useGoToTradingAccount } from "@/composables/useGoToTradingAccount";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import { getFlagCode, cleanCountryLabel } from "@/utils/countries";
 
 const router = useRouter();
-const { hasPermission } = usePermissionCheck();
+const { hasPermission, hasAnyPermission } = usePermissionCheck();
 
 const store = useClientListStore();
+const tagsStore = useTagsStore();
+
+const canAssignTags = computed(() => {
+  return (
+    hasAnyPermission(["tags.assign", "tags.update", "tags.remove"]) ||
+    hasPermission("client.update")
+  );
+});
+
+const visibleTags = (tags) => {
+  if (!tags || !Array.isArray(tags)) return [];
+  return tags.slice(0, 2);
+};
+
+const remainingTags = (tags) => {
+  if (!tags || !Array.isArray(tags)) return [];
+  return tags.slice(2);
+};
+
+const selectedClientIds = ref([]);
+const tagModal = ref({
+  open: false,
+  entityType: "user",
+  entityId: null,
+  entityIds: [],
+  currentTags: [],
+});
+
+const isAllClientsSelected = computed(() => {
+  if (!store.data || store.data.length === 0) return false;
+  return store.data.every((c) => selectedClientIds.value.includes(c.id));
+});
+
+const isSomeClientsSelected = computed(() => {
+  if (!store.data || store.data.length === 0) return false;
+  return selectedClientIds.value.length > 0 && !isAllClientsSelected.value;
+});
+
+const toggleSelectAllClients = () => {
+  if (isAllClientsSelected.value) {
+    selectedClientIds.value = [];
+  } else {
+    selectedClientIds.value = store.data.map((c) => c.id);
+  }
+};
+
+const toggleSelectClient = (clientId) => {
+  const idx = selectedClientIds.value.indexOf(clientId);
+  if (idx > -1) {
+    selectedClientIds.value.splice(idx, 1);
+  } else {
+    selectedClientIds.value.push(clientId);
+  }
+};
+
+const openClientTagModal = (client) => {
+  tagModal.value = {
+    open: true,
+    entityType: "user",
+    entityId: client.id,
+    entityIds: [],
+    currentTags: client.tags || [],
+  };
+};
+
+const openBulkClientTagModal = () => {
+  if (selectedClientIds.value.length === 0) return;
+  tagModal.value = {
+    open: true,
+    entityType: "user",
+    entityId: null,
+    entityIds: [...selectedClientIds.value],
+    currentTags: [],
+  };
+};
+
+const handleTagModalUpdated = () => {
+  store.fetchClients(store.pagination.page);
+};
+
+const tagOptions = computed(() => {
+  const options = [{ label: "All Tags", value: "" }];
+  (tagsStore.tags || []).forEach((t) => {
+    options.push({
+      label: t.name,
+      value: String(t.id),
+    });
+  });
+  return options;
+});
 
 let searchTimer = null;
 let ibSearchTimer = null;
@@ -80,7 +174,9 @@ const onIbSearch = (query) => {
   ibSearchTimer = setTimeout(() => store.searchIbs(query), 350);
 };
 
-const hasFilters = computed(() => store.filters.search || store.filters.ib_id);
+const hasFilters = computed(
+  () => store.filters.search || store.filters.ib_id || store.filters.tag_ids
+);
 
 const handlePageChange = (page) => store.fetchClients(page);
 
@@ -100,18 +196,6 @@ const formatDate = (val) =>
 
 function getRowActions(client) {
   const actions = [];
-
-  if (hasPermission("client.update")) {
-    actions.push({ action: "edit", label: "Edit Client", icon: Pencil });
-  }
-
-  if (hasPermission("system_setting.manager_transection_setting")) {
-    actions.push({
-      action: "manageTransactions",
-      label: "Manage Transactions",
-      icon: SlidersHorizontal,
-    });
-  }
 
   if (hasPermission("client.update")) {
     actions.push(
@@ -180,6 +264,8 @@ const chooseBgColor = {
 
 function onMenuSelect(item, client) {
   switch (item.action) {
+    case "manageTags":
+      return openClientTagModal(client);
     case "clientLogin":
       return handleClientLogin(client);
     case "edit":
@@ -479,6 +565,7 @@ const getKycClass = (status) => {
 
 onMounted(() => {
   store.fetchClients();
+  tagsStore.fetchTags();
   rbacStaffStore.fetchStaff(false);
 });
 </script>
@@ -515,6 +602,25 @@ onMounted(() => {
           @search="onIbSearch"
           @update:modelValue="store.applyFilters()"
         />
+
+        <!-- Tag Filter -->
+        <BaseSelect
+          v-model="store.filters.tag_ids"
+          :options="tagOptions"
+          placeholder="All Tags..."
+          class="w-full sm:w-56 xl:w-56"
+          @update:modelValue="store.applyFilters()"
+        />
+
+        <button
+          v-if="selectedClientIds.length > 0"
+          type="button"
+          @click="openBulkClientTagModal"
+          class="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all cursor-pointer shrink-0"
+        >
+          <Tag class="w-3.5 h-3.5" />
+          <span>Manage Tags ({{ selectedClientIds.length }})</span>
+        </button>
 
         <button
           v-if="hasFilters"
@@ -557,7 +663,7 @@ onMounted(() => {
 
         <button
           v-if="hasPermission('client.create')"
-          class="flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all active:scale-95 cursor-pointer sm:flex-none"
+          class="flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all active:scale-95 cursor-pointer sm:flex-none shadow-sm"
           @click="openCreateClientDialog"
         >
           <Plus class="w-3.5 h-3.5" />
@@ -566,17 +672,80 @@ onMounted(() => {
       </div>
     </div>
 
+    <!-- Floating / Top Bulk Actions Bar -->
+    <Transition
+      enter-active-class="transition duration-200 ease-out"
+      enter-from-class="opacity-0 -translate-y-2"
+      enter-to-class="opacity-100 translate-y-0"
+      leave-active-class="transition duration-150 ease-in"
+      leave-from-class="opacity-100 translate-y-0"
+      leave-to-class="opacity-0 -translate-y-2"
+    >
+      <div
+        v-if="canAssignTags && selectedClientIds.length > 0"
+        class="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 rounded-xl bg-primary/10 border border-primary/25 text-xs text-primary-text mb-4 shadow-sm"
+      >
+        <div class="flex items-center gap-2.5">
+          <span
+            class="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-md bg-primary text-white text-[11px] font-bold shadow-xs"
+          >
+            {{ selectedClientIds.length }}
+          </span>
+          <span class="font-medium text-xs">
+            Client{{ selectedClientIds.length > 1 ? "s" : "" }} selected
+          </span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            @click="openBulkClientTagModal"
+            class="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold shadow-sm transition-all cursor-pointer"
+          >
+            <Tag class="w-3.5 h-3.5" />
+            <span>Manage Tags ({{ selectedClientIds.length }})</span>
+          </button>
+          <button
+            type="button"
+            @click="selectedClientIds = []"
+            class="px-2.5 py-1.5 rounded-lg text-xs font-medium text-secondary-text hover:text-primary-text hover:bg-card-background/70 transition-colors cursor-pointer"
+          >
+            Clear Selection
+          </button>
+        </div>
+      </div>
+    </Transition>
+
     <!-- Desktop Table -->
     <div
-      class="hidden md:block w-full border border-primary-border rounded-xl overflow-x-auto"
+      class="hidden md:block w-full border border-primary-border rounded-xl overflow-x-auto shadow-xs bg-card-background/40"
     >
       <table class="w-full border-collapse">
-        <thead>
+        <thead class="group/head bg-background/80 backdrop-blur-sm sticky top-0 z-10">
           <tr class="border-b border-primary-border">
+            <th v-if="canAssignTags" class="p-3 w-10 text-center">
+              <input
+                type="checkbox"
+                :checked="isAllClientsSelected"
+                :indeterminate.prop="isSomeClientsSelected"
+                @change="toggleSelectAllClients"
+                class="custom-checkbox transition-opacity duration-150"
+                :class="[
+                  selectedClientIds.length > 0 || isAllClientsSelected
+                    ? 'opacity-100'
+                    : 'opacity-0 group-hover/head:opacity-100'
+                ]"
+                title="Select all clients"
+              />
+            </th>
             <th
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
+              class="text-left text-[11px] font-semibold text-secondary-text uppercase tracking-wider p-3"
             >
               Client
+            </th>
+            <th
+              class="text-left text-[11px] font-semibold text-secondary-text uppercase tracking-wider p-3"
+            >
+              Tags
             </th>
             <th
               class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
@@ -743,8 +912,28 @@ onMounted(() => {
           <tr
             v-for="client in store.data"
             :key="client.id"
-            class="border-b border-primary-border last:border-none hover:bg-card-background transition-colors"
+            class="group border-b border-primary-border last:border-none transition-colors duration-150"
+            :class="[
+              selectedClientIds.includes(client.id)
+                ? 'bg-primary/5 dark:bg-primary/10 hover:bg-primary/10 dark:hover:bg-primary/15'
+                : 'hover:bg-card-background/70'
+            ]"
           >
+            <!-- Select Checkbox -->
+            <td v-if="canAssignTags" class="p-3 text-center w-10" @click.stop>
+              <input
+                type="checkbox"
+                :checked="selectedClientIds.includes(client.id)"
+                @change="toggleSelectClient(client.id)"
+                class="custom-checkbox transition-opacity duration-150"
+                :class="[
+                  selectedClientIds.length > 0 || selectedClientIds.includes(client.id)
+                    ? 'opacity-100'
+                    : 'opacity-0 group-hover:opacity-100'
+                ]"
+              />
+            </td>
+
             <td class="p-3">
               <div class="flex items-center gap-2.5">
                 <div
@@ -760,6 +949,54 @@ onMounted(() => {
                     ID: {{ client.id }}
                   </p>
                 </div>
+              </div>
+            </td>
+
+            <!-- Tags Column -->
+            <td class="p-3 max-w-45" @click.stop>
+              <div class="flex flex-wrap items-center gap-1">
+                <TagChip
+                  v-for="tag in visibleTags(client.tags)"
+                  :key="tag.id"
+                  :tag="tag"
+                  size="sm"
+                />
+                <Tooltip
+                  v-if="remainingTags(client.tags).length"
+                  position="center"
+                  maxWidth="280px"
+                >
+                  <span
+                    class="inline-flex items-center text-[10px] font-semibold px-1.5 py-0.5 rounded border border-primary-border bg-background/80 text-secondary-text hover:text-primary-text cursor-help transition-colors"
+                  >
+                    +{{ remainingTags(client.tags).length }}
+                  </span>
+
+                  <template #content>
+                    <div class="p-1">
+                      <p class="text-[10px] uppercase font-semibold text-secondary-text tracking-wider mb-1.5">
+                        Additional Tags
+                      </p>
+                      <div class="flex flex-wrap gap-1 max-w-64">
+                        <TagChip
+                          v-for="tag in remainingTags(client.tags)"
+                          :key="tag.id"
+                          :tag="tag"
+                          size="sm"
+                        />
+                      </div>
+                    </div>
+                  </template>
+                </Tooltip>
+                <button
+                  v-if="canAssignTags"
+                  type="button"
+                  @click="openClientTagModal(client)"
+                  class="p-1 rounded hover:bg-white/10 text-secondary-text hover:text-primary-text transition-colors cursor-pointer"
+                  title="Manage Tags"
+                >
+                  <Plus class="w-3 h-3" />
+                </button>
               </div>
             </td>
 
@@ -970,11 +1207,16 @@ onMounted(() => {
             <td class="p-3 max-w-55">
               <div>
                 <div class="flex items-center justify-between gap-1 mb-1">
-                  <span
-                    class="text-xs font-semibold text-primary-text block"
-                  >
-                    {{ client.total_accounts || client.accounts?.length || 0 }} Acct{{
-                      (client.total_accounts || client.accounts?.length || 0) !== 1 ? "s" : ""
+                  <span class="text-xs font-semibold text-primary-text block">
+                    {{
+                      client.total_accounts || client.accounts?.length || 0
+                    }}
+                    Acct{{
+                      (client.total_accounts ||
+                        client.accounts?.length ||
+                        0) !== 1
+                        ? "s"
+                        : ""
                     }}
                   </span>
                   <button
@@ -983,7 +1225,9 @@ onMounted(() => {
                     @click="toggleExpandAccounts(client.id)"
                     class="text-[9px] font-medium text-primary hover:underline cursor-pointer focus:outline-none"
                   >
-                    {{ expandedAccountsMap[client.id] ? "Show Less" : "Show All" }}
+                    {{
+                      expandedAccountsMap[client.id] ? "Show Less" : "Show All"
+                    }}
                   </button>
                 </div>
 
@@ -1118,10 +1362,24 @@ onMounted(() => {
         v-else
         v-for="client in store.data"
         :key="client.id"
-        class="bg-card-background border border-primary-border rounded-2xl p-4 space-y-3"
+        class="border rounded-2xl p-4 space-y-3 transition-colors duration-150"
+        :class="[
+          selectedClientIds.includes(client.id)
+            ? 'bg-primary/5 dark:bg-primary/10 border-primary/40 shadow-xs'
+            : 'bg-card-background border-primary-border'
+        ]"
       >
-        <div class="flex items-start justify-between">
+        <div class="flex items-start justify-between gap-2">
           <div class="flex items-center gap-2.5 min-w-0">
+            <!-- Mobile Select Checkbox -->
+            <div v-if="canAssignTags" class="shrink-0" @click.stop>
+              <input
+                type="checkbox"
+                :checked="selectedClientIds.includes(client.id)"
+                @change="toggleSelectClient(client.id)"
+                class="custom-checkbox"
+              />
+            </div>
             <div
               class="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-xs font-medium text-white shrink-0"
             >
@@ -1368,25 +1626,39 @@ onMounted(() => {
           <div class="bg-background rounded-lg px-3 py-2 col-span-2">
             <div class="flex items-center justify-between mb-1">
               <p class="text-[10px] text-secondary-text">
-                Accounts ({{ client.total_accounts || (client.accounts?.length || client.account_numbers?.length || 0) }})
+                Accounts ({{
+                  client.total_accounts ||
+                  client.accounts?.length ||
+                  client.account_numbers?.length ||
+                  0
+                }})
               </p>
               <button
-                v-if="(client.accounts?.length > 4) || (client.account_numbers?.length > 4)"
+                v-if="
+                  client.accounts?.length > 4 ||
+                  client.account_numbers?.length > 4
+                "
                 type="button"
                 @click="toggleExpandAccounts(`mobile_${client.id}`)"
                 class="text-[9px] font-medium text-primary hover:underline cursor-pointer focus:outline-none"
               >
-                {{ expandedAccountsMap[`mobile_${client.id}`] ? "Show Less" : "Show All" }}
+                {{
+                  expandedAccountsMap[`mobile_${client.id}`]
+                    ? "Show Less"
+                    : "Show All"
+                }}
               </button>
             </div>
 
             <div
-              v-if="(client.accounts?.length || client.account_numbers?.length)"
+              v-if="client.accounts?.length || client.account_numbers?.length"
               class="flex flex-wrap gap-1"
             >
               <template v-if="!expandedAccountsMap[`mobile_${client.id}`]">
                 <span
-                  v-for="(num, idx) in (client.accounts || client.account_numbers).slice(0, 4)"
+                  v-for="(num, idx) in (
+                    client.accounts || client.account_numbers
+                  ).slice(0, 4)"
                   :key="num.account_number || num || idx"
                   @click="goToTradingAccount(num.account_number || num)"
                   class="font-mono text-[10px] px-1.5 py-0.5 rounded border cursor-pointer transition-all duration-150"
@@ -1402,12 +1674,16 @@ onMounted(() => {
                   @click="toggleExpandAccounts(`mobile_${client.id}`)"
                   class="font-mono text-[9px] font-semibold px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition cursor-pointer"
                 >
-                  +{{ (client.accounts || client.account_numbers).length - 4 }} more
+                  +{{
+                    (client.accounts || client.account_numbers).length - 4
+                  }}
+                  more
                 </span>
               </template>
               <template v-else>
                 <span
-                  v-for="(num, idx) in (client.accounts || client.account_numbers)"
+                  v-for="(num, idx) in client.accounts ||
+                  client.account_numbers"
                   :key="num.account_number || num || idx"
                   @click="goToTradingAccount(num.account_number || num)"
                   class="font-mono text-[10px] px-1.5 py-0.5 rounded border cursor-pointer transition-all duration-150"
@@ -1616,6 +1892,17 @@ onMounted(() => {
       :loading="assignDialog.loading"
       @confirm="handleConfirmAssignStaff"
       @cancel="handleCancelAssignStaff"
+    />
+
+    <!-- Tag Assignment Modal -->
+    <TagAssignmentModal
+      :open="tagModal.open"
+      :entity-type="tagModal.entityType"
+      :entity-id="tagModal.entityId"
+      :entity-ids="tagModal.entityIds"
+      :current-tags="tagModal.currentTags"
+      @close="tagModal.open = false"
+      @updated="handleTagModalUpdated"
     />
   </div>
 </template>

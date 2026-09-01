@@ -160,8 +160,86 @@
                 />
               </div>
 
-              <!-- Account Status Switcher (Active/Inactive) -->
+              <!-- Follower Account Type -->
               <div class="flex flex-col gap-1.5">
+                <label class="text-xs font-semibold text-secondary-text"
+                  >Follower Account Type</label
+                >
+                <BaseSelect
+                  :modelValue="form.follower_account_type"
+                  :options="followerAccountTypeOptions"
+                  placeholder="Select follower account type"
+                  @update:modelValue="form.follower_account_type = Number($event)"
+                />
+              </div>
+
+              <!-- Follower Account Type Action (Only when changed in Edit mode) -->
+              <div
+                v-if="props.mode === 'edit' && isFollowerAccountTypeChanged"
+                class="flex flex-col gap-2 sm:col-span-2 p-3.5 bg-amber-500/10 border border-amber-500/20 rounded-xl"
+              >
+                <div class="flex items-center gap-1.5">
+                  <AlertTriangle class="w-4 h-4 text-amber-500 shrink-0" />
+                  <label class="text-xs font-bold text-primary-text"
+                    >Follower Account Type Action</label
+                  >
+                </div>
+                <p class="text-[11px] text-secondary-text leading-relaxed">
+                  You changed the follower account type. Choose how to handle existing followers:
+                </p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-0.5">
+                  <label
+                    class="flex items-start gap-2.5 p-2.5 rounded-lg border cursor-pointer transition-colors"
+                    :class="
+                      form.follower_account_type_action === 'keep'
+                        ? 'bg-primary/10 border-primary text-primary-text'
+                        : 'bg-background border-primary-border text-secondary-text'
+                    "
+                  >
+                    <input
+                      type="radio"
+                      value="keep"
+                      v-model="form.follower_account_type_action"
+                      class="mt-0.5 text-primary focus:ring-primary h-4 w-4"
+                    />
+                    <div>
+                      <span class="text-xs font-semibold block text-primary-text"
+                        >Keep</span
+                      >
+                      <span class="text-[11px] block text-secondary-text"
+                        >Update type only</span
+                      >
+                    </div>
+                  </label>
+
+                  <label
+                    class="flex items-start gap-2.5 p-2.5 rounded-lg border cursor-pointer transition-colors"
+                    :class="
+                      form.follower_account_type_action === 'unfollow_and_settle'
+                        ? 'bg-rose-500/10 border-rose-500 text-primary-text'
+                        : 'bg-background border-primary-border text-secondary-text'
+                    "
+                  >
+                    <input
+                      type="radio"
+                      value="unfollow_and_settle"
+                      v-model="form.follower_account_type_action"
+                      class="mt-0.5 text-rose-500 focus:ring-rose-500 h-4 w-4"
+                    />
+                    <div>
+                      <span class="text-xs font-semibold block text-primary-text"
+                        >Unfollow &amp; Settle</span
+                      >
+                      <span class="text-[11px] block text-secondary-text"
+                        >Same client unfollow per affected account, then update type</span
+                      >
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Account Status Switcher (Active/Inactive) -->
+              <div class="flex flex-col gap-1.5 sm:col-span-2">
                 <label class="text-xs font-semibold text-secondary-text"
                   >Account Status</label
                 >
@@ -823,6 +901,7 @@ import {
   Server,
   MapPin,
   ShieldCheck,
+  AlertTriangle,
 } from "lucide-vue-next";
 import { useFmLeaderboardStore } from "@/stores/fmLeaderboard/fmLeaderboard";
 import BaseSelect from "@/components/common/BaseSelect.vue";
@@ -861,6 +940,12 @@ const intervalOptions = [
 const visibilityOptions = [
   { label: "Public", value: "public" },
   { label: "Private", value: "private" },
+];
+
+const followerAccountTypeOptions = [
+  { label: "Copy trading only (default)", value: 1 },
+  { label: "Real account only", value: 2 },
+  { label: "Both options", value: 3 },
 ];
 
 const currencyOptions = [
@@ -919,6 +1004,8 @@ const form = ref({
   password: "",
   label_name: "",
   visibility_type: "public",
+  follower_account_type: 1,
+  follower_account_type_action: "keep",
   is_active: true,
 
   // Broker / MT5
@@ -1039,9 +1126,22 @@ const onGroupPresetSelect = (groupValue) => {
 };
 
 // Reset & Auto-fill form fields when drawer opens
+const originalFollowerAccountType = ref(null);
+
+const isFollowerAccountTypeChanged = computed(() => {
+  if (props.mode !== "edit" || originalFollowerAccountType.value == null) return false;
+  return Number(form.value.follower_account_type) !== Number(originalFollowerAccountType.value);
+});
+
 const resetForm = () => {
   selectedGroupValue.value = "";
   if (props.mode === "edit" && props.item) {
+    const initialFollowerType =
+      props.item.follower_account_type != null
+        ? Number(props.item.follower_account_type)
+        : 1;
+    originalFollowerAccountType.value = initialFollowerType;
+
     const u = props.item.user || {};
     form.value = {
       email: u.email ?? props.item.email ?? "",
@@ -1049,6 +1149,8 @@ const resetForm = () => {
       password: "",
       label_name: props.item.label_name ?? u.name ?? props.item.name ?? "",
       visibility_type: props.item.visibility_type ?? "public",
+      follower_account_type: initialFollowerType,
+      follower_account_type_action: "keep",
       is_active: props.item.is_active ?? u.is_active ?? true,
 
       broker_group:
@@ -1097,6 +1199,7 @@ const resetForm = () => {
         u.kyc_reject_reason ?? props.item.kyc_reject_reason ?? "",
     };
   } else {
+    originalFollowerAccountType.value = null;
     // Add mode initial defaults matching new payload schema
     form.value = {
       email: "",
@@ -1104,6 +1207,8 @@ const resetForm = () => {
       password: "",
       label_name: "",
       visibility_type: "public",
+      follower_account_type: 1,
+      follower_account_type_action: "keep",
       is_active: true,
 
       broker_group: "real\\FM",
@@ -1251,6 +1356,7 @@ const handleSubmit = async () => {
       password: form.value.password,
       label_name: form.value.label_name?.trim() || form.value.name.trim(),
       visibility_type: form.value.visibility_type || "public",
+      follower_account_type: Number(form.value.follower_account_type) || 1,
       is_active: Boolean(form.value.is_active),
 
       broker_group: form.value.broker_group.trim(),
@@ -1292,6 +1398,7 @@ const handleSubmit = async () => {
     const editPayload = {
       label_name: form.value.label_name?.trim() || form.value.name.trim(),
       is_active: Boolean(form.value.is_active),
+      follower_account_type: Number(form.value.follower_account_type) || 1,
       min_capital: Number(form.value.min_capital) || 0,
       performance_fee: Number(form.value.performance_fee) || 0,
       fm_share: Number(form.value.fm_share) || 0,
@@ -1339,6 +1446,11 @@ const handleSubmit = async () => {
 
     if (form.value.password && form.value.password.trim() !== "") {
       editPayload.password = form.value.password.trim();
+    }
+
+    if (isFollowerAccountTypeChanged.value) {
+      editPayload.follower_account_type_action =
+        form.value.follower_account_type_action || "keep";
     }
 
     await store.editFundManager(props.item.id, editPayload);

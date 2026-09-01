@@ -9,14 +9,6 @@
       >
         <!-- Left Title & Meta -->
         <div class="flex items-center gap-3">
-          <button
-            class="p-2 rounded-lg border border-primary-border bg-background text-secondary-text hover:text-primary-text hover:bg-card-background transition-colors cursor-pointer"
-            @click="goBack"
-            title="Go Back"
-          >
-            <ArrowLeft class="w-4 h-4" />
-          </button>
-
           <div>
             <div class="flex items-center gap-2.5 flex-wrap">
               <h1

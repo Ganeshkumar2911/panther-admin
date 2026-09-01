@@ -361,6 +361,25 @@
                 </Tooltip>
                 <span v-else class="text-[11px] text-secondary-text">—</span>
               </div>
+
+              <div class="flex items-center justify-between">
+                <span class="text-secondary-text text-[11px]">Follower Account Type</span>
+                <span
+                  class="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md border"
+                  :class="{
+                    'bg-primary/10 text-primary border-primary/20': Number(item.follower_account_type) === 1,
+                    'bg-indigo-500/10 text-indigo-500 border-indigo-500/20': Number(item.follower_account_type) === 2,
+                    'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20': Number(item.follower_account_type) === 3,
+                  }"
+                >
+                  {{ getFollowerAccountTypeLabel(item.follower_account_type) }}
+                </span>
+              </div>
+
+              <div class="flex items-center justify-between">
+                <span class="text-secondary-text text-[11px]">Settlement Time</span>
+                <span class="font-medium text-primary-text text-[11px] font-mono">{{ item.settlement_time || '—' }}</span>
+              </div>
             </div>
           </div>
 
@@ -502,6 +521,16 @@
                     <p class="text-[10px] text-secondary-text capitalize">
                       {{ item.settlement || item.settlement_type }} ({{ item.settlement_time }})
                     </p>
+                    <span
+                      class="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-md border inline-block mt-0.5"
+                      :class="{
+                        'bg-primary/10 text-primary border-primary/20': Number(item.follower_account_type) === 1,
+                        'bg-indigo-500/10 text-indigo-500 border-indigo-500/20': Number(item.follower_account_type) === 2,
+                        'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20': Number(item.follower_account_type) === 3,
+                      }"
+                    >
+                      {{ getFollowerAccountTypeLabel(item.follower_account_type) }}
+                    </span>
                   </div>
                 </td>
 
@@ -569,6 +598,14 @@
               <div>
                 <span class="text-[10px] text-secondary-text block uppercase">Coverage Account</span>
                 <span class="font-mono text-primary-text font-bold">{{ item.coverage_account?.account_number || `#${item.coverage_account_id}` }}</span>
+              </div>
+              <div>
+                <span class="text-[10px] text-secondary-text block uppercase">Follower Type</span>
+                <span class="font-bold text-primary-text">{{ getFollowerAccountTypeLabel(item.follower_account_type) }}</span>
+              </div>
+              <div>
+                <span class="text-[10px] text-secondary-text block uppercase">Settlement Time</span>
+                <span class="font-mono text-primary-text font-bold">{{ item.settlement_time || '—' }}</span>
               </div>
             </div>
 
@@ -762,6 +799,12 @@ const getKycBadgeClass = (status) => {
   if (status === 'pending') return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
   if (status === 'rejected') return 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
   return 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'
+}
+
+const getFollowerAccountTypeLabel = (type) => {
+  if (Number(type) === 2) return 'Real account only'
+  if (Number(type) === 3) return 'Both options'
+  return 'Copy trading only'
 }
 
 const handleAdd = () => {

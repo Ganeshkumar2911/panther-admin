@@ -678,9 +678,13 @@
                   :key="idx"
                   class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/10 border border-primary/20 text-xs text-primary font-mono"
                 >
-                  <span>{{ email }}</span>
-                  <button type="button" class="hover:text-primary-red cursor-pointer" @click="removeEmail(idx)">
-                    <X class="w-3 h-3" />
+                  <span class="truncate max-w-50">{{ email }}</span>
+                  <button
+                    type="button"
+                    @click="removeEmail(idx)"
+                    class="w-4 h-4 flex items-center justify-center rounded-full hover:bg-primary-red/10 text-secondary-text hover:text-primary-red transition-colors focus:outline-none shrink-0 cursor-pointer"
+                  >
+                    <X class="w-2.5 h-2.5" />
                   </button>
                 </span>
               </div>

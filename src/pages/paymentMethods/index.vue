@@ -117,8 +117,8 @@
         :key="record.id"
         class="bg-card-background border border-primary-border rounded-2xl p-5 flex flex-col justify-between gap-4.5 transition-all duration-200 group relative shadow-2xs hover:shadow-md"
       >
-        <!-- Top Accent Gradient Line -->
-        <div class="absolute inset-x-0 top-0 h-1 opacity-0" />
+        <!-- Top accent gradient -->
+        <div class="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-transparent via-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
         <div class="space-y-4">
           <!-- Card Header: Gateway & Badges + Active Switch & Edit Action -->
