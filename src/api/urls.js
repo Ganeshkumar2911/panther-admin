@@ -50,6 +50,8 @@ const urls = {
     userUpdate: "/user-update",
     updateKyc: "/user/kyc-details",
     uploadDocument: "/user-document-upload",
+    userCharts: "/user-charts",
+    accountDetails: "/account-details",
   },
   clientLedger: {
     list: "/ledger/clients",

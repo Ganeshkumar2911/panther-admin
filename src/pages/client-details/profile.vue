@@ -1,7 +1,7 @@
 <template>
   <div class="bg-background space-y-5 pt-4 pb-8 overflow-y-auto no-scrollbar">
     <!-- Main 2-Column Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+    <div class="grid grid-cols-1 gap-5">
       <!-- ─── LEFT COLUMN ─────────────────────────────────────────── -->
       <div class="flex flex-col gap-5">
         <!-- 1. Profile Information Card -->
@@ -327,10 +327,9 @@
         <!-- </div> -->
 
         <!-- 4. KYC Notes Card -->
-        <div
+        <!-- <div
           class="bg-card-background border border-primary-border rounded-2xl p-5 sm:p-6 shadow-xs transition-all hover:border-primary/30"
         >
-          <!-- Card Header -->
           <div class="flex items-start justify-between gap-3 pb-4 border-b border-primary-border/60">
             <div>
               <h3 class="text-base sm:text-lg font-bold text-primary-text">
@@ -350,7 +349,6 @@
             </button>
           </div>
 
-          <!-- Notes List or Empty State -->
           <div class="pt-5">
             <div v-if="allNotes.length === 0" class="py-8 flex flex-col items-center justify-center text-center">
               <FileText class="w-10 h-10 text-secondary-text/40 mb-2" />
@@ -373,7 +371,7 @@
               </div>
             </div>
           </div>
-        </div>
+        </div> -->
       </div>
 
       <!-- ─── RIGHT COLUMN ────────────────────────────────────────── -->
@@ -580,64 +578,64 @@
     </div>
 
     <!-- ─── BOTTOM FULL-WIDTH BANNER: KYC PENDING? ──────────────── -->
-    <div
+    <!-- <div
       class="bg-primary-blue/5 border border-primary-blue/20 rounded-2xl p-5 sm:p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xs"
-    >
+    > -->
       <!-- Left Info -->
-      <div class="shrink-0 w-full md:w-auto">
+      <!-- <div class="shrink-0 w-full md:w-auto">
         <h4 class="text-base font-bold text-primary-blue">KYC Verification</h4>
         <p class="text-xs text-secondary-text mt-0.5">
           Staff members can upload client identity proof for verification.
         </p>
-      </div>
+      </div> -->
 
       <!-- Center 3-Step Guide -->
-      <div class="flex-1 flex flex-col sm:flex-row items-start sm:items-center justify-center gap-4 sm:gap-6 w-full text-xs">
+      <!-- <div class="flex-1 flex flex-col sm:flex-row items-start sm:items-center justify-center gap-4 sm:gap-6 w-full text-xs"> -->
         <!-- Step 1 -->
-        <div class="flex items-start gap-2.5">
+        <!-- <div class="flex items-start gap-2.5">
           <div>
             <p class="font-bold text-primary-text">1. Upload ID Proof</p>
             <p class="text-[11px] text-secondary-text">
               Front & Back photos of Aadhaar, PAN, or Passport.
             </p>
           </div>
-        </div>
+        </div> -->
 
-        <ChevronRight class="w-4 h-4 text-primary-blue/60 shrink-0 hidden sm:block" />
+        <!-- <ChevronRight class="w-4 h-4 text-primary-blue/60 shrink-0 hidden sm:block" /> -->
 
         <!-- Step 2 -->
-        <div class="flex items-start gap-2.5">
+        <!-- <div class="flex items-start gap-2.5">
           <div>
             <p class="font-bold text-primary-text">2. Document Review</p>
             <p class="text-[11px] text-secondary-text">
               Compliance team reviews uploaded documents.
             </p>
           </div>
-        </div>
+        </div> -->
 
-        <ChevronRight class="w-4 h-4 text-primary-blue/60 shrink-0 hidden sm:block" />
+        <!-- <ChevronRight class="w-4 h-4 text-primary-blue/60 shrink-0 hidden sm:block" /> -->
 
         <!-- Step 3 -->
-        <div class="flex items-start gap-2.5">
+        <!-- <div class="flex items-start gap-2.5">
           <div>
             <p class="font-bold text-primary-text">3. Verification Complete</p>
             <p class="text-[11px] text-secondary-text">
               Trading account fully unrestricted for deposits & withdrawals.
             </p>
           </div>
-        </div>
-      </div>
+        </div> -->
+      <!-- </div> -->
 
       <!-- Right Action Button -->
-      <button
+      <!-- <button
         type="button"
         @click="sendKycInstructions"
         class="w-full md:w-auto bg-primary-blue hover:bg-primary-blue/90 text-white font-semibold text-xs sm:text-sm px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shrink-0 shadow-xs"
       >
         <Mail class="w-4 h-4" />
         Send Instructions
-      </button>
-    </div>
+      </button> -->
+    <!-- </div> -->
 
     <!-- ─── MODALS & DRAWERS ────────────────────────────────────── -->
 
@@ -943,32 +941,32 @@ const documentChecklist = computed(() => {
       back: isIdentity ? backUrl : null,
       doc_path: isIdentity ? docPath : null,
     },
-    {
-      id: "address",
-      type: "address",
-      doc_type: isAddress ? docType : "address_proof",
-      title: "Proof of Address",
-      subtitle: isAddress && isUploaded ? formatDocType(docType) : "Utility Bill, Bank Statement, etc.",
-      uploaded: isAddress ? isUploaded : false,
-      verification_status: isAddress && isUploaded ? status : null,
-      remarks: isAddress && isUploaded ? remarks : "Required",
-      front: isAddress ? frontUrl : null,
-      back: isAddress ? backUrl : null,
-      doc_path: isAddress ? docPath : null,
-    },
-    {
-      id: "selfie",
-      type: "selfie",
-      doc_type: "selfie",
-      title: "Selfie Photo",
-      subtitle: "Clear selfie for verification",
-      uploaded: isSelfie ? isUploaded : false,
-      verification_status: isSelfie && isUploaded ? status : null,
-      remarks: isSelfie && isUploaded ? remarks : "Required",
-      front: isSelfie ? frontUrl : null,
-      back: null,
-      doc_path: isSelfie ? docPath : null,
-    },
+    // {
+    //   id: "address",
+    //   type: "address",
+    //   doc_type: isAddress ? docType : "address_proof",
+    //   title: "Proof of Address",
+    //   subtitle: isAddress && isUploaded ? formatDocType(docType) : "Utility Bill, Bank Statement, etc.",
+    //   uploaded: isAddress ? isUploaded : false,
+    //   verification_status: isAddress && isUploaded ? status : null,
+    //   remarks: isAddress && isUploaded ? remarks : "Required",
+    //   front: isAddress ? frontUrl : null,
+    //   back: isAddress ? backUrl : null,
+    //   doc_path: isAddress ? docPath : null,
+    // },
+    // {
+    //   id: "selfie",
+    //   type: "selfie",
+    //   doc_type: "selfie",
+    //   title: "Selfie Photo",
+    //   subtitle: "Clear selfie for verification",
+    //   uploaded: isSelfie ? isUploaded : false,
+    //   verification_status: isSelfie && isUploaded ? status : null,
+    //   remarks: isSelfie && isUploaded ? remarks : "Required",
+    //   front: isSelfie ? frontUrl : null,
+    //   back: null,
+    //   doc_path: isSelfie ? docPath : null,
+    // },
   ];
 });
 

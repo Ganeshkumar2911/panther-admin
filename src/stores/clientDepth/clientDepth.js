@@ -212,6 +212,80 @@ export const useClientDepthStore = defineStore("clientDepth", () => {
     );
   };
 
+  // ─── User Charts State & Action ───────────────────────────
+  const userChartsData = ref(null);
+  const userChartsLoading = ref(false);
+  const userChartsFetched = ref(false);
+  const userChartsError = ref(null);
+
+  const fetchUserCharts = (userId, params = {}, force = false) => {
+    if (!userId) return;
+    if (userChartsFetched.value && !force && Object.keys(params).length === 0) return;
+
+    userChartsLoading.value = true;
+    userChartsError.value = null;
+
+    const successHandler = (res) => {
+      userChartsData.value = res?.data || res || null;
+      userChartsLoading.value = false;
+      userChartsFetched.value = true;
+    };
+
+    const failureHandler = (err) => {
+      userChartsLoading.value = false;
+      userChartsError.value = err;
+      snackbar.show(
+        err?.message || "Failed to fetch user charts data.",
+        "error",
+      );
+    };
+
+    apiRequest(urls.KEYS.GET, urls.clientDepth.userCharts, {
+      // look_up_key: userId,
+      params: { user_id: userId, ...params },
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+    });
+  };
+
+  // ─── Account Details State & Action ───────────────────────
+  const accountDetailsData = ref(null);
+  const accountDetailsLoading = ref(false);
+  const accountDetailsFetched = ref(false);
+  const accountDetailsError = ref(null);
+
+  const fetchAccountDetails = (userId, params = {}, force = false) => {
+    if (!userId) return;
+    if (accountDetailsFetched.value && !force && Object.keys(params).length === 0) return;
+
+    accountDetailsLoading.value = true;
+    accountDetailsError.value = null;
+
+    const successHandler = (res) => {
+      accountDetailsData.value = res?.data || res || null;
+      accountDetailsLoading.value = false;
+      accountDetailsFetched.value = true;
+    };
+
+    const failureHandler = (err) => {
+      accountDetailsLoading.value = false;
+      accountDetailsError.value = err;
+      snackbar.show(
+        err?.message || "Failed to fetch account details.",
+        "error",
+      );
+    };
+
+    apiRequest(urls.KEYS.GET, urls.clientDepth.accountDetails, {
+      // look_up_key: userId,
+      params: { user_id: userId, ...params },
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+    });
+  };
+
   // ─── Reset Store ──────────────────────────────────────────
   const reset = () => {
     overviewData.value = null;
@@ -223,6 +297,16 @@ export const useClientDepthStore = defineStore("clientDepth", () => {
     kycLoading.value = false;
     kycFetched.value = false;
     kycError.value = null;
+
+    userChartsData.value = null;
+    userChartsLoading.value = false;
+    userChartsFetched.value = false;
+    userChartsError.value = null;
+
+    accountDetailsData.value = null;
+    accountDetailsLoading.value = false;
+    accountDetailsFetched.value = false;
+    accountDetailsError.value = null;
 
     isSubmittingProfile.value = false;
     isSubmittingKyc.value = false;
@@ -241,12 +325,24 @@ export const useClientDepthStore = defineStore("clientDepth", () => {
     kycFetched,
     kycError,
 
+    userChartsData,
+    userChartsLoading,
+    userChartsFetched,
+    userChartsError,
+
+    accountDetailsData,
+    accountDetailsLoading,
+    accountDetailsFetched,
+    accountDetailsError,
+
     isSubmittingProfile,
     isSubmittingKyc,
     isUploadingDoc,
 
     fetchClientOverview,
     fetchClientKyc,
+    fetchUserCharts,
+    fetchAccountDetails,
     updateClientProfile,
     updateClientKyc,
     uploadClientDocument,
