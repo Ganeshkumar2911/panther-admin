@@ -1,6 +1,12 @@
 <template>
   <div class="px-4 pb-8 space-y-6">
 
+    <!-- Note Banner -->
+    <div v-if="store.note" class="bg-primary/5 border border-primary/20 rounded-xl p-3.5 flex items-start gap-2.5 text-xs text-secondary-text">
+      <Info class="w-4 h-4 text-primary shrink-0 mt-0.5" />
+      <span class="leading-relaxed">{{ store.note }}</span>
+    </div>
+
     <!-- Summary Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
       <template v-if="store.loading && !store.records?.length">
@@ -16,7 +22,7 @@
             <DollarSign class="w-4 h-4 text-secondary-text" />
           </div>
           <div class="mt-2">
-            <p class="text-2xl font-bold text-primary-text tabular-nums">${{ formatNum(store.summary.total_fees) }}</p>
+            <p class="text-2xl font-bold text-primary-text tabular-nums">{{ topCurrencySymbol }}{{ formatNum(store.summary.total_fees) }}</p>
             <p class="text-[10px] text-secondary-text mt-0.5">Aggregated performance fees</p>
           </div>
         </div>
@@ -27,7 +33,7 @@
             <Building2 class="w-4 h-4 text-primary-green" />
           </div>
           <div class="mt-2">
-            <p class="text-2xl font-bold text-primary-green tabular-nums">${{ formatNum(store.summary.broker_net) }}</p>
+            <p class="text-2xl font-bold text-primary-green tabular-nums">{{ topCurrencySymbol }}{{ formatNum(store.summary.broker_net) }}</p>
             <p class="text-[10px] text-secondary-text mt-0.5">Net broker commission</p>
           </div>
         </div>
@@ -38,7 +44,7 @@
             <GitBranch class="w-4 h-4 text-secondary-text" />
           </div>
           <div class="mt-2">
-            <p class="text-2xl font-bold text-primary-text tabular-nums">${{ formatNum(store.summary.ib_pool) }}</p>
+            <p class="text-2xl font-bold text-primary-text tabular-nums">{{ topCurrencySymbol }}{{ formatNum(store.summary.ib_pool ?? store.summary.ib_distributed) }}</p>
             <p class="text-[10px] text-secondary-text mt-0.5">Distributed to partner network</p>
           </div>
         </div>
@@ -75,6 +81,21 @@
         >
           Apply
         </button>
+
+        <!-- Amount View Toggle -->
+        <div v-if="store.currency?.available_views?.length" class="flex items-center rounded-lg border border-primary-border bg-card-background overflow-hidden h-9">
+          <button
+            v-for="v in store.currency.available_views"
+            :key="v.key"
+            :disabled="store.loading"
+            class="px-3 h-full text-xs font-medium transition-colors cursor-pointer disabled:opacity-50"
+            :class="store.filters.amount_view === v.key ? 'bg-primary text-white' : 'text-secondary-text hover:text-primary-text hover:bg-background'"
+            :title="v.description"
+            @click="store.setAmountView(v.key)"
+          >
+            {{ v.label }}
+          </button>
+        </div>
 
         <!-- Per page selector -->
         <BaseSelect
@@ -214,23 +235,31 @@
               <td class="p-3">
                 <span
                   class="text-xs font-bold tabular-nums"
-                  :class="row.net_profit >= 0 ? 'text-primary-green' : 'text-primary-red'"
+                  :class="getNetProfit(row) >= 0 ? 'text-primary-green' : 'text-primary-red'"
                 >
-                  {{ row.net_profit >= 0 ? '+' : '' }}${{ formatNum(row.net_profit) }}
+                  {{ formatNetProfit(row) }}
                 </span>
               </td>
 
               <!-- Gross Fee -->
-              <td class="p-3 text-xs font-medium text-primary-text tabular-nums">${{ formatNum(row.gross_fee) }}</td>
+              <td class="p-3 text-xs font-medium text-primary-text tabular-nums">
+                {{ formatValWithCurrency(getGrossFee(row), row) }}
+              </td>
 
               <!-- FM Share -->
-              <td class="p-3 text-xs text-primary-text tabular-nums">${{ formatNum(row.fm_share) }}</td>
+              <td class="p-3 text-xs text-primary-text tabular-nums">
+                {{ formatValWithCurrency(getFmShare(row), row) }}
+              </td>
 
               <!-- IB's Share -->
-              <td class="p-3 text-xs text-primary-text tabular-nums">${{ formatNum(row.ib_pool) }}</td>
+              <td class="p-3 text-xs text-primary-text tabular-nums">
+                {{ formatValWithCurrency(getIbShare(row), row) }}
+              </td>
 
               <!-- Broker Net -->
-              <td class="p-3 text-xs text-primary-green font-medium tabular-nums">${{ formatNum(row.broker_net) }}</td>
+              <td class="p-3 text-xs text-primary-green font-medium tabular-nums">
+                {{ formatValWithCurrency(getBrokerNet(row), row) }}
+              </td>
 
               <!-- Followers Count -->
               <td class="p-3 text-center">
@@ -298,7 +327,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   ReceiptText,
@@ -311,6 +340,7 @@ import {
   RotateCw,
   Eye,
   BarChart2,
+  Info,
 } from 'lucide-vue-next'
 import { useSettlementsStore } from '@/stores/settlements/settlements'
 import Pagination from '@/components/common/Pagination.vue'
@@ -343,6 +373,75 @@ const formatNum = (val) =>
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })
+
+const getCurrencySymbol = (currency) => {
+  const c = String(currency || '').trim().toUpperCase()
+  if (c === 'USC' || c === 'CENT' || c === 'CENTS') return 'C'
+  if (c === 'CAD') return 'C$'
+  if (c === 'EUR') return '€'
+  if (c === 'GBP') return '£'
+  if (c === 'INR') return '₹'
+  if (c === 'JPY') return '¥'
+  if (c === 'USD') return '$'
+  return c ? `${c} ` : '$'
+}
+
+const getRecordCurrency = (row) => {
+  if (row.currency) {
+    if (row.currency.selected_view === 'usd') {
+      return row.currency.payout_currency || 'USD'
+    }
+    return row.currency.account_currency || (row.amounts_in_account_units ? 'USC' : 'USD')
+  }
+  return row.amounts_in_account_units ? 'USC' : 'USD'
+}
+
+const formatValWithCurrency = (val, row) => {
+  const curr = getRecordCurrency(row)
+  const sym = getCurrencySymbol(curr)
+  const num = Number(val) || 0
+  const isNegative = num < 0
+  const formatted = Math.abs(num).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
+  return `${isNegative ? '-' : ''}${sym}${formatted}`
+}
+
+const formatNetProfit = (row) => {
+  const val = getNetProfit(row)
+  const curr = getRecordCurrency(row)
+  const sym = getCurrencySymbol(curr)
+  const num = Number(val) || 0
+  const sign = num > 0 ? '+' : num < 0 ? '-' : ''
+  const formatted = Math.abs(num).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
+  return `${sign}${sym}${formatted}`
+}
+
+const topCurrencySymbol = computed(() => {
+  const c = store.currency
+  if (!c) return '$'
+  const cur = c.selected_view === 'usd' ? (c.payout_currency || 'USD') : (c.account_currency || 'USD')
+  return getCurrencySymbol(cur)
+})
+
+const getNetProfit = (row) =>
+  row.display?.net_profit ?? row.display?.gross_pnl ?? row.net_profit ?? row.gross_pnl ?? 0
+
+const getGrossFee = (row) =>
+  row.display?.gross_fee ?? row.gross_fee ?? 0
+
+const getFmShare = (row) =>
+  row.display?.fm_share ?? row.display?.fm_net_after_agents ?? row.fm_share ?? row.fm_net_after_agents ?? 0
+
+const getIbShare = (row) =>
+  row.display?.ib_pool ?? row.display?.ib_distributed ?? row.ib_pool ?? row.ib_distributed ?? 0
+
+const getBrokerNet = (row) =>
+  row.display?.broker_net ?? row.broker_net ?? 0
 
 const formatDate = (val) => {
   if (!val) return '—'
@@ -396,3 +495,4 @@ onMounted(() => {
   store.fetchSettlements()
 })
 </script>
+
