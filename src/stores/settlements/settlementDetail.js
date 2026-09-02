@@ -10,9 +10,14 @@ export const useSettlementDetailStore = defineStore('settlementDetail', () => {
   const settlement = ref(null)
   const loading = ref(false)
   const error = ref(null)
+  const amountView = ref('account_units')
 
-  const fetchSettlementDetail = (settlementId) => {
+  const fetchSettlementDetail = (settlementId, view) => {
     if (!settlementId) return
+    if (view) {
+      amountView.value = view
+    }
+
     loading.value = true
     error.value = null
 
@@ -32,6 +37,7 @@ export const useSettlementDetailStore = defineStore('settlementDetail', () => {
 
     apiRequest(urls.KEYS.GET, urls.settlements.list, {
       look_up_key: settlementId,
+      params: { amount_view: amountView.value },
       isTokenRequired: true,
       onSuccess: successHandler,
       onFailure: failureHandler,
@@ -42,12 +48,14 @@ export const useSettlementDetailStore = defineStore('settlementDetail', () => {
     settlement.value = null
     loading.value = false
     error.value = null
+    amountView.value = 'account_units'
   }
 
   return {
     settlement,
     loading,
     error,
+    amountView,
     fetchSettlementDetail,
     reset,
   }
