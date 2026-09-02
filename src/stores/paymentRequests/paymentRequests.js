@@ -157,9 +157,8 @@ export const usePaymentRequestsStore = defineStore("paymentRequests", () => {
   // Approve Request
   // ─────────────────────────────────────
 
-  const approveRequest = (id) => {
+  const approveRequest = (id, payload = null) => {
     approveLoading.value = true;
-
     error.value = null;
 
     const successHandler = (res) => {
@@ -167,39 +166,40 @@ export const usePaymentRequestsStore = defineStore("paymentRequests", () => {
         res?.message || "Payment request approved successfully.",
         "success",
       );
-
       fetchRequests(true);
     };
 
     const failureHandler = (err) => {
       error.value = err;
-
       snackbar.show(
         err?.message || "Failed to approve payment request.",
         "error",
       );
     };
 
-    return apiRequest(urls.KEYS.POST, urls.paymentRequests.approve, {
+    const options = {
       look_up_key: id,
-
       isTokenRequired: true,
-
       onSuccess: successHandler,
       onFailure: failureHandler,
       onFinally: () => {
         approveLoading.value = false;
       },
-    });
+    };
+
+    if (payload) {
+      options.data = payload;
+    }
+
+    return apiRequest(urls.KEYS.POST, urls.paymentRequests.approve, options);
   };
 
   // ─────────────────────────────────────
   // Reject Request
   // ─────────────────────────────────────
 
-  const rejectRequest = (id) => {
+  const rejectRequest = (id, payload = null) => {
     rejectLoading.value = true;
-
     error.value = null;
 
     const successHandler = (res) => {
@@ -207,30 +207,32 @@ export const usePaymentRequestsStore = defineStore("paymentRequests", () => {
         res?.message || "Payment request rejected successfully.",
         "success",
       );
-
       fetchRequests(true);
     };
 
     const failureHandler = (err) => {
       error.value = err;
-
       snackbar.show(
         err?.message || "Failed to reject payment request.",
         "error",
       );
     };
 
-    return apiRequest(urls.KEYS.POST, urls.paymentRequests.reject, {
+    const options = {
       look_up_key: id,
-
       isTokenRequired: true,
-
       onSuccess: successHandler,
       onFailure: failureHandler,
       onFinally: () => {
         rejectLoading.value = false;
       },
-    });
+    };
+
+    if (payload) {
+      options.data = payload;
+    }
+
+    return apiRequest(urls.KEYS.POST, urls.paymentRequests.reject, options);
   };
 
   // ─────────────────────────────────────

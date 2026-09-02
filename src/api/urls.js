@@ -156,6 +156,11 @@ const urls = {
     update: "/payments/currency-rates",
     delete: "/payments/currency-rates",
   },
+  bankAccounts: {
+    adminList: (userId) => `/users/bank-accounts/${userId}`,
+    enableEdit: (userId, accountId) =>
+      `/users/bank-accounts/${userId}/${accountId}/enable-edit`,
+  },
   paymentRequests: {
     list: "/payment-requests",
     approve: "/payment-requests/approve/",

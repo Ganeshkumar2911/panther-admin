@@ -930,16 +930,16 @@ const closeConfirmDialog = () => {
   };
 };
 
-const handleConfirm = async () => {
+const handleConfirm = async (payload) => {
   if (!confirmDialog.value.request) return;
 
   const requestId = confirmDialog.value.request.id;
 
   try {
     if (confirmDialog.value.action === "approve") {
-      await store.approveRequest(requestId);
+      await store.approveRequest(requestId, payload);
     } else {
-      await store.rejectRequest(requestId);
+      await store.rejectRequest(requestId, payload);
     }
   } finally {
     closeConfirmDialog();
