@@ -199,6 +199,7 @@ function getRowActions(client) {
 
   if (hasPermission("client.update")) {
     actions.push(
+      { action: "edit", label: "Edit Client", icon: Pencil },
       { action: "changeIB", label: "Change IB", icon: UserPen },
       {
         action: "makeIB",
@@ -211,11 +212,11 @@ function getRowActions(client) {
         label: "Update Referral Link",
         icon: Link2,
       },
-      {
-        action: "depth",
-        label: "Client Depth",
-        icon: Eye,
-      },
+      // {
+      //   action: "depth",
+      //   label: "Client Depth",
+      //   icon: Eye,
+      // },
       { divider: true },
       {
         action: "toggleStatus",

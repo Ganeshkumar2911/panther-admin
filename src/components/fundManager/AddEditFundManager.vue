@@ -1130,7 +1130,10 @@ const originalFollowerAccountType = ref(null);
 
 const isFollowerAccountTypeChanged = computed(() => {
   if (props.mode !== "edit" || originalFollowerAccountType.value == null) return false;
-  return Number(form.value.follower_account_type) !== Number(originalFollowerAccountType.value);
+  return (
+    Number(form.value.follower_account_type) === 2 &&
+    Number(originalFollowerAccountType.value) !== 2
+  );
 });
 
 const resetForm = () => {
