@@ -53,7 +53,19 @@
               </p>
             </div>
             <div>
-              <p class="text-[11px] text-secondary-text">Amount</p>
+              <div class="flex items-center justify-between">
+                <p class="text-[11px] text-secondary-text">Amount</p>
+                <button
+                  v-if="canEdit"
+                  type="button"
+                  class="text-[11px] text-primary hover:underline inline-flex items-center gap-1 font-medium cursor-pointer"
+                  title="Edit Bank Transfer Amount"
+                  @click="handleEdit"
+                >
+                  <Pencil class="w-2.5 h-2.5" />
+                  <span>Edit</span>
+                </button>
+              </div>
               <p class="text-sm font-medium text-primary-text">
                 {{ formattedAmount }}
               </p>
@@ -222,7 +234,8 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { AlertTriangle, CheckCircle2, Loader2, X, Upload, Paperclip } from 'lucide-vue-next'
+import { AlertTriangle, CheckCircle2, Loader2, X, Upload, Paperclip, Pencil } from 'lucide-vue-next'
+import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -231,12 +244,36 @@ const props = defineProps({
   loading: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['close', 'confirm'])
+const emit = defineEmits(['close', 'confirm', 'edit'])
+
+const { hasPermission } = usePermissionCheck()
 
 const rejectionReason = ref('')
 const reasonError = ref(false)
 const selectedFile = ref(null)
 const fileInputRef = ref(null)
+
+const canEdit = computed(() => {
+  if (!props.request) return false
+  if (!hasPermission('payment_requests.approve')) return false
+
+  const gateway = (props.request.gateway || '').trim().toLowerCase().replace(/[\s_-]+/g, '_')
+  const method = (props.request.method || '').trim().toLowerCase().replace(/[\s_-]+/g, ' ')
+  const status = (props.request.approval_status || '').trim().toLowerCase()
+  const type = (props.request.type || '').trim().toLowerCase()
+
+  const isBankTransfer = gateway === 'bank_transfer' || gateway === 'banktransfer'
+  const isBankTransaction = method === 'bank transaction' || method === 'bank transfer'
+  const isPending = status === 'pending'
+  const isValidType = type === 'deposit' || type === 'withdrawal'
+
+  return isBankTransfer && isBankTransaction && isPending && isValidType
+})
+
+const handleEdit = () => {
+  emit('close')
+  emit('edit', props.request)
+}
 
 const actionMeta = {
   approve: {

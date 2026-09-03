@@ -165,6 +165,7 @@ const urls = {
     list: "/payment-requests",
     approve: "/payment-requests/approve/",
     reject: "/payment-requests/reject/",
+    updateAmount: (id) => `/payment-requests/${id}/amount`,
   },
   paymentGatewayData: {
     list: "/payment-gateway-data",

@@ -10,9 +10,13 @@ export const useSettlementUserStore = defineStore('settlementUser', () => {
   const data = ref(null)
   const loading = ref(false)
   const error = ref(null)
+  const amountView = ref('account_units')
 
-  const fetchSettlementUser = (settlementId, userId) => {
+  const fetchSettlementUser = (settlementId, userId, view) => {
     if (!settlementId || !userId) return
+    if (view) {
+      amountView.value = view
+    }
     loading.value = true
     error.value = null
 
@@ -32,6 +36,7 @@ export const useSettlementUserStore = defineStore('settlementUser', () => {
 
     apiRequest(urls.KEYS.GET, urls.settlements.list, {
       look_up_key: `${settlementId}/user/${userId}`,
+      params: { amount_view: amountView.value },
       isTokenRequired: true,
       onSuccess: successHandler,
       onFailure: failureHandler,
@@ -42,12 +47,14 @@ export const useSettlementUserStore = defineStore('settlementUser', () => {
     data.value = null
     loading.value = false
     error.value = null
+    amountView.value = 'account_units'
   }
 
   return {
     data,
     loading,
     error,
+    amountView,
     fetchSettlementUser,
     reset,
   }

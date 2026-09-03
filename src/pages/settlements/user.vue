@@ -6,7 +6,7 @@
     >
       <div class="space-y-1">
         <div class="flex items-center gap-2.5 flex-wrap pt-1">
-          <button
+          <!-- <button
             class="p-2 rounded-xl border border-primary-border bg-card-background hover:bg-background text-secondary-text hover:text-primary-text transition-colors cursor-pointer mr-1"
             title="Back to Settlement Details"
             @click="goBack"
@@ -16,7 +16,7 @@
 
           <h1 class="text-base font-bold text-primary-text">
             Client Settlement Details
-          </h1>
+          </h1> -->
 
           <span
             v-if="store.data?.settlement_id"
@@ -48,11 +48,27 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-2.5">
+      <div class="flex items-center gap-2.5 flex-wrap">
+        <!-- Amount View Toggle -->
+        <div class="flex items-center rounded-lg border border-primary-border bg-card-background overflow-hidden">
+          <button
+            v-for="opt in amountViewOptions"
+            :key="opt.value"
+            :disabled="store.loading"
+            class="px-3 py-2 text-xs font-medium transition-colors cursor-pointer disabled:opacity-50"
+            :class="store.amountView === opt.value
+              ? 'bg-primary text-white'
+              : 'text-secondary-text hover:text-primary-text hover:bg-background'"
+            @click="switchAmountView(opt.value)"
+          >
+            {{ opt.label }}
+          </button>
+        </div>
+
         <button
           :disabled="store.loading"
           class="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-primary-border bg-card-background hover:bg-background text-xs font-medium text-secondary-text hover:text-primary-text transition-colors disabled:opacity-50 cursor-pointer"
-          @click="loadData"
+          @click="loadData()"
         >
           <RotateCw
             class="w-3.5 h-3.5"
@@ -91,7 +107,7 @@
 
     <!-- Empty State -->
     <div
-      v-else-if="!store.data || !userData"
+      v-else-if="!store.data || (!userData.user_id && !store.data?.display)"
       class="flex flex-col items-center justify-center py-20 gap-4 bg-card-background border border-primary-border rounded-2xl"
     >
       <div
@@ -129,8 +145,9 @@
             >
               {{
                 (
-                  userData.user?.name ||
                   userData.user_name ||
+                  userData.user?.name ||
+                  userData.name ||
                   "U"
                 )[0].toUpperCase()
               }}
@@ -139,8 +156,9 @@
               <div class="flex items-center gap-2 flex-wrap">
                 <h2 class="text-base font-bold text-primary-text truncate">
                   {{
-                    userData.user?.name ||
                     userData.user_name ||
+                    userData.user?.name ||
+                    userData.name ||
                     "Client Details"
                   }}
                 </h2>
@@ -148,8 +166,8 @@
                   class="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md border text-secondary-text bg-background border-primary-border"
                 >
                   User ID: #{{
-                    userData.user?.user_id ||
                     userData.user_id ||
+                    userData.user?.user_id ||
                     route.params.userId
                   }}
                 </span>
@@ -158,18 +176,18 @@
                 class="flex items-center gap-3 text-xs text-secondary-text mt-1.5 flex-wrap font-medium"
               >
                 <span
-                  v-if="userData.user?.email || userData.user_email"
+                  v-if="userData.user_email || userData.user?.email || userData.email"
                   class="flex items-center gap-1 font-mono text-primary-text select-all"
                 >
                   <Mail class="w-3.5 h-3.5 text-primary shrink-0" />
-                  {{ userData.user?.email || userData.user_email }}
+                  {{ userData.user_email || userData.user?.email || userData.email }}
                 </span>
                 <span
-                  v-if="userData.user?.phone_number || userData.phone_number"
+                  v-if="userData.phone_number || userData.user?.phone_number"
                   class="flex items-center gap-1 text-secondary-text"
                 >
                   <Phone class="w-3.5 h-3.5 text-secondary-text shrink-0" />
-                  {{ userData.user?.phone_number || userData.phone_number }}
+                  {{ userData.phone_number || userData.user?.phone_number }}
                 </span>
               </div>
             </div>
@@ -226,7 +244,14 @@
               "
             >
               {{ userSummary.net_pnl > 0 ? "+" : ""
-              }}{{ formatCurrency(userSummary.net_pnl) }}
+              }}{{ formatCurrency(userSummary.net_pnl, isBothView ? accountCurrency : null) }}
+            </p>
+            <p
+              v-if="isBothView && usdUserSummary"
+              class="text-[11px] font-mono tabular-nums mt-0.5"
+              :class="usdUserSummary.net_pnl >= 0 ? 'text-primary-green/90' : 'text-primary-red/90'"
+            >
+              ≈ {{ usdUserSummary.net_pnl > 0 ? "+" : "" }}{{ formatCurrency(usdUserSummary.net_pnl, "USD") }} USD
             </p>
             <p class="text-[10px] text-secondary-text mt-0.5">
               After deductions
@@ -259,7 +284,14 @@
               "
             >
               {{ userSummary.gross_pnl > 0 ? "+" : ""
-              }}{{ formatCurrency(userSummary.gross_pnl) }}
+              }}{{ formatCurrency(userSummary.gross_pnl, isBothView ? accountCurrency : null) }}
+            </p>
+            <p
+              v-if="isBothView && usdUserSummary"
+              class="text-[11px] font-mono tabular-nums mt-0.5"
+              :class="usdUserSummary.gross_pnl >= 0 ? 'text-primary-green/90' : 'text-primary-red/90'"
+            >
+              ≈ {{ usdUserSummary.gross_pnl > 0 ? "+" : "" }}{{ formatCurrency(usdUserSummary.gross_pnl, "USD") }} USD
             </p>
             <p class="text-[10px] text-secondary-text mt-0.5">
               Raw Trading Profit
@@ -280,7 +312,13 @@
           </div>
           <div class="mt-2">
             <p class="text-xl font-bold text-primary-text tabular-nums">
-              {{ formatCurrency(userSummary.total_fee) }}
+              {{ formatCurrency(userSummary.total_fee, isBothView ? accountCurrency : null) }}
+            </p>
+            <p
+              v-if="isBothView && usdUserSummary"
+              class="text-[11px] font-mono text-secondary-text mt-0.5"
+            >
+              ≈ {{ formatCurrency(usdUserSummary.total_fee, "USD") }} USD
             </p>
             <p class="text-[10px] text-secondary-text mt-0.5">
               Performance Fee
@@ -307,8 +345,15 @@
                     userSummary.fm_share ??
                     userSummary.fm_fee ??
                     0,
+                  isBothView ? accountCurrency : null
                 )
               }}
+            </p>
+            <p
+              v-if="isBothView && usdUserSummary"
+              class="text-[11px] font-mono text-secondary-text mt-0.5"
+            >
+              ≈ {{ formatCurrency(usdUserSummary.fm_net_after_agents ?? usdUserSummary.fm_fee ?? 0, "USD") }} USD
             </p>
             <p class="text-[10px] text-secondary-text mt-0.5">FM Share</p>
           </div>
@@ -330,8 +375,15 @@
               {{
                 formatCurrency(
                   userSummary.broker_net ?? userSummary.broker_fee ?? 0,
+                  isBothView ? accountCurrency : null
                 )
               }}
+            </p>
+            <p
+              v-if="isBothView && usdUserSummary"
+              class="text-[11px] font-mono text-secondary-text mt-0.5"
+            >
+              ≈ {{ formatCurrency(usdUserSummary.broker_net ?? usdUserSummary.broker_fee ?? 0, "USD") }} USD
             </p>
             <p class="text-[10px] text-secondary-text mt-0.5">
               Broker Net Share
@@ -355,8 +407,15 @@
               {{
                 formatCurrency(
                   userSummary.ib_distributed ?? userSummary.ib_pool ?? 0,
+                  isBothView ? accountCurrency : null
                 )
               }}
+            </p>
+            <p
+              v-if="isBothView && usdUserSummary"
+              class="text-[11px] font-mono text-primary-green/90 mt-0.5"
+            >
+              ≈ {{ formatCurrency(usdUserSummary.ib_distributed ?? usdUserSummary.ib_pool ?? 0, "USD") }} USD
             </p>
             <p class="text-[10px] text-secondary-text mt-0.5">
               Commission Pool
@@ -545,13 +604,19 @@
                 <span
                   class="font-bold font-mono"
                   :class="
-                    (follower.summary?.gross_pnl ?? 0) >= 0
+                    getFollowerGrossPnl(follower) >= 0
                       ? 'text-primary-green'
                       : 'text-primary-red'
                   "
                 >
-                  {{ (follower.summary?.gross_pnl ?? 0) > 0 ? "+" : ""
-                  }}{{ formatCurrency(follower.summary?.gross_pnl ?? 0) }}
+                  {{ getFollowerGrossPnl(follower) > 0 ? "+" : ""
+                  }}{{ formatCurrency(getFollowerGrossPnl(follower), isBothView ? accountCurrency : null) }}
+                </span>
+                <span
+                  v-if="isBothView && getFollowerGrossPnlUsd(follower) != null"
+                  class="text-[10px] font-mono text-secondary-text block"
+                >
+                  ≈ {{ getFollowerGrossPnlUsd(follower) > 0 ? "+" : "" }}{{ formatCurrency(getFollowerGrossPnlUsd(follower), 'USD') }}
                 </span>
               </div>
               <div class="h-6 w-px bg-primary-border" />
@@ -560,8 +625,14 @@
                   >Total Fee</span
                 >
                 <span class="font-bold text-primary-text font-mono">{{
-                  formatCurrency(follower.summary?.total_fee ?? 0)
+                  formatCurrency(getFollowerTotalFee(follower), isBothView ? accountCurrency : null)
                 }}</span>
+                <span
+                  v-if="isBothView && getFollowerTotalFeeUsd(follower) != null"
+                  class="text-[10px] font-mono text-secondary-text block"
+                >
+                  ≈ {{ formatCurrency(getFollowerTotalFeeUsd(follower), 'USD') }}
+                </span>
               </div>
               <div class="h-6 w-px bg-primary-border" />
               <div>
@@ -571,13 +642,19 @@
                 <span
                   class="font-bold font-mono"
                   :class="
-                    (follower.summary?.net_pnl ?? 0) >= 0
+                    getFollowerNetPnl(follower) >= 0
                       ? 'text-primary-green'
                       : 'text-primary-red'
                   "
                 >
-                  {{ (follower.summary?.net_pnl ?? 0) > 0 ? "+" : ""
-                  }}{{ formatCurrency(follower.summary?.net_pnl ?? 0) }}
+                  {{ getFollowerNetPnl(follower) > 0 ? "+" : ""
+                  }}{{ formatCurrency(getFollowerNetPnl(follower), isBothView ? accountCurrency : null) }}
+                </span>
+                <span
+                  v-if="isBothView && getFollowerNetPnlUsd(follower) != null"
+                  class="text-[10px] font-mono text-secondary-text block"
+                >
+                  ≈ {{ getFollowerNetPnlUsd(follower) > 0 ? "+" : "" }}{{ formatCurrency(getFollowerNetPnlUsd(follower), 'USD') }}
                 </span>
               </div>
             </div>
@@ -651,13 +728,19 @@
                     <span
                       class="font-mono font-semibold"
                       :class="
-                        period.gross_pnl >= 0
+                        getPeriodGrossPnl(period) >= 0
                           ? 'text-primary-green'
                           : 'text-primary-red'
                       "
                     >
-                      {{ period.gross_pnl > 0 ? "+" : ""
-                      }}{{ formatCurrency(period.gross_pnl) }}
+                      {{ getPeriodGrossPnl(period) > 0 ? "+" : ""
+                      }}{{ formatCurrency(getPeriodGrossPnl(period), isBothView ? accountCurrency : null) }}
+                    </span>
+                    <span
+                      v-if="isBothView && getPeriodGrossPnlUsd(period) != null"
+                      class="text-[10px] font-normal text-secondary-text block"
+                    >
+                      ≈ {{ getPeriodGrossPnlUsd(period) > 0 ? "+" : "" }}{{ formatCurrency(getPeriodGrossPnlUsd(period), 'USD') }}
                     </span>
                   </div>
 
@@ -667,8 +750,14 @@
                     >
                     <span
                       class="font-mono font-semibold text-primary-text"
-                      >{{ formatCurrency(period.fee) }}</span
+                      >{{ formatCurrency(getPeriodFee(period), isBothView ? accountCurrency : null) }}</span
                     >
+                    <span
+                      v-if="isBothView && getPeriodFeeUsd(period) != null"
+                      class="text-[10px] font-normal text-secondary-text block"
+                    >
+                      ≈ {{ formatCurrency(getPeriodFeeUsd(period), 'USD') }}
+                    </span>
                   </div>
 
                   <div class="text-left md:text-right">
@@ -678,13 +767,19 @@
                     <span
                       class="font-mono font-bold"
                       :class="
-                        period.net_pnl >= 0
+                        getPeriodNetPnl(period) >= 0
                           ? 'text-primary-green'
                           : 'text-primary-red'
                       "
                     >
-                      {{ period.net_pnl > 0 ? "+" : ""
-                      }}{{ formatCurrency(period.net_pnl) }}
+                      {{ getPeriodNetPnl(period) > 0 ? "+" : ""
+                      }}{{ formatCurrency(getPeriodNetPnl(period), isBothView ? accountCurrency : null) }}
+                    </span>
+                    <span
+                      v-if="isBothView && getPeriodNetPnlUsd(period) != null"
+                      class="text-[10px] font-normal text-secondary-text block"
+                    >
+                      ≈ {{ getPeriodNetPnlUsd(period) > 0 ? "+" : "" }}{{ formatCurrency(getPeriodNetPnlUsd(period), 'USD') }}
                     </span>
                   </div>
 
@@ -957,13 +1052,21 @@
                           <td
                             class="py-2 px-3 text-right font-mono font-semibold"
                             :class="
-                              t.gross_pnl >= 0
+                              getTradeGrossPnl(t) >= 0
                                 ? 'text-primary-green'
                                 : 'text-primary-red'
                             "
                           >
-                            {{ t.gross_pnl > 0 ? "+" : ""
-                            }}{{ formatCurrency(t.gross_pnl) }}
+                            <div>
+                              {{ getTradeGrossPnl(t) > 0 ? "+" : ""
+                              }}{{ formatCurrency(getTradeGrossPnl(t), isBothView ? accountCurrency : null) }}
+                            </div>
+                            <div
+                              v-if="isBothView && getTradeGrossPnlUsd(t) != null"
+                              class="text-[10px] font-normal text-secondary-text"
+                            >
+                              ≈ {{ getTradeGrossPnlUsd(t) > 0 ? "+" : "" }}{{ formatCurrency(getTradeGrossPnlUsd(t), 'USD') }}
+                            </div>
                           </td>
                         </tr>
                       </tbody>
@@ -1216,14 +1319,58 @@ const searchQuery = ref("");
 const selectedFollowerId = ref("ALL");
 const expandedPeriodKey = ref(null);
 
-const activeCurrency = computed(() => {
+const accountCurrency = computed(() => {
   return (
-    route.query.currency ||
+    store.data?.currency?.account_currency ||
+    store.data?.amounts?.account_units?.currency ||
+    store.data?.display?.currency ||
     store.data?.broker_currency ||
     store.data?.currency ||
+    route.query.currency ||
+    "USC"
+  );
+});
+
+const payoutCurrency = computed(() => {
+  return (
+    store.data?.currency?.payout_currency ||
+    store.data?.amounts?.usd?.currency ||
     "USD"
   );
 });
+
+const activeCurrency = computed(() => {
+  if (store.amountView === "usd") {
+    return payoutCurrency.value;
+  }
+  if (store.amountView === "account_units") {
+    return accountCurrency.value;
+  }
+  const acc = accountCurrency.value;
+  const pay = payoutCurrency.value;
+  if (acc && pay && acc.toUpperCase() !== pay.toUpperCase()) {
+    return `${acc} & ${pay}`;
+  }
+  return acc || pay || "USD";
+});
+
+const isBothView = computed(() => store.amountView === "both");
+
+const amountViewOptions = computed(() => {
+  const acc = accountCurrency.value || "USC";
+  const pay = payoutCurrency.value || "USD";
+  return [
+    { label: `${acc} (Account Units)`, value: "account_units" },
+    { label: `${pay}`, value: "usd" },
+    { label: "Both", value: "both" },
+  ];
+});
+
+const switchAmountView = (view) => {
+  if (store.amountView === view || store.loading) return;
+  router.replace({ query: { ...route.query, amount_view: view } });
+  store.fetchSettlementUser(route.params.id, route.params.userId, view);
+};
 
 const getCurrencySymbol = (currency) => {
   const c = String(currency || "")
@@ -1243,7 +1390,10 @@ const formatCurrency = (val, currency = null) => {
   if (val === null || val === undefined || val === "") return "—";
   const num = Number(val);
   if (isNaN(num)) return "—";
-  const sym = getCurrencySymbol(currency || activeCurrency.value);
+  const cur =
+    currency ||
+    (store.amountView === "usd" ? payoutCurrency.value : accountCurrency.value);
+  const sym = getCurrencySymbol(cur);
   const isNegative = num < 0;
   const formatted = Math.abs(num).toLocaleString("en-US", {
     minimumFractionDigits: 2,
@@ -1285,14 +1435,49 @@ const formatPeriodDate = (periodKey) => {
   }
 };
 
-const userData = computed(() => store.data?.user || null);
+const displayData = computed(() => store.data?.display || {});
+
+const userData = computed(() => {
+  const d = displayData.value;
+  const u = store.data?.user || {};
+  return {
+    ...u,
+    ...d,
+    user_name: d.user_name || u.name || u.user_name || "Client",
+    user_email: d.user_email || u.email || u.user_email || "",
+    phone_number: d.phone_number || u.phone_number || "",
+    user_id: d.user_id || u.user_id || route.params.userId,
+    followers: u.followers || d.followers || [],
+  };
+});
 
 const userSummary = computed(() => {
-  return userData.value?.summary || {};
+  const d = displayData.value;
+  if (store.amountView === "usd") {
+    const usdUser = store.data?.amounts?.usd?.users_summary?.find(
+      (item) => String(item.user_id) === String(route.params.userId)
+    );
+    if (usdUser) return usdUser;
+  }
+  if (store.amountView === "account_units" || store.amountView === "both") {
+    const accUser = store.data?.amounts?.account_units?.users_summary?.find(
+      (item) => String(item.user_id) === String(route.params.userId)
+    );
+    if (accUser) return accUser;
+  }
+  return d;
+});
+
+const usdUserSummary = computed(() => {
+  if (!isBothView.value) return null;
+  const list = store.data?.amounts?.usd?.users_summary || [];
+  const found = list.find((item) => String(item.user_id) === String(route.params.userId));
+  if (found) return found;
+  return store.data?.amounts?.usd?.summary || null;
 });
 
 const followerList = computed(() => {
-  return userData.value?.followers || [];
+  return store.data?.user?.followers || userData.value?.followers || [];
 });
 
 const displayedFollowers = computed(() => {
@@ -1303,6 +1488,145 @@ const displayedFollowers = computed(() => {
     (f) => String(f.follower_id) === String(selectedFollowerId.value),
   );
 });
+
+const getFollowerGrossPnl = (follower) => {
+  if (store.amountView === "account_units" || store.amountView === "both") {
+    if (follower.summary?.gross_pnl_account_units != null) {
+      return follower.summary.gross_pnl_account_units;
+    }
+    if (
+      displayData.value.follower_ids?.includes(follower.follower_id) &&
+      displayData.value.gross_pnl != null
+    ) {
+      return displayData.value.gross_pnl;
+    }
+    if (follower.summary?.gross_pnl != null && accountCurrency.value === "USC") {
+      return Number((follower.summary.gross_pnl * 100).toFixed(2));
+    }
+  }
+  return follower.summary?.gross_pnl ?? 0;
+};
+
+const getFollowerTotalFee = (follower) => {
+  if (store.amountView === "account_units" || store.amountView === "both") {
+    if (follower.summary?.fee_account_units != null) {
+      return follower.summary.fee_account_units;
+    }
+    if (
+      displayData.value.follower_ids?.includes(follower.follower_id) &&
+      displayData.value.total_fee != null
+    ) {
+      return displayData.value.total_fee;
+    }
+    if (follower.summary?.total_fee != null && accountCurrency.value === "USC") {
+      return Number((follower.summary.total_fee * 100).toFixed(2));
+    }
+  }
+  return follower.summary?.total_fee ?? 0;
+};
+
+const getFollowerNetPnl = (follower) => {
+  if (store.amountView === "account_units" || store.amountView === "both") {
+    if (follower.summary?.net_pnl_account_units != null) {
+      return follower.summary.net_pnl_account_units;
+    }
+    if (
+      displayData.value.follower_ids?.includes(follower.follower_id) &&
+      displayData.value.net_pnl != null
+    ) {
+      return displayData.value.net_pnl;
+    }
+    if (follower.summary?.net_pnl != null && accountCurrency.value === "USC") {
+      return Number((follower.summary.net_pnl * 100).toFixed(2));
+    }
+  }
+  return follower.summary?.net_pnl ?? 0;
+};
+
+const getFollowerGrossPnlUsd = (follower) => follower.summary?.gross_pnl ?? null;
+const getFollowerTotalFeeUsd = (follower) => follower.summary?.total_fee ?? null;
+const getFollowerNetPnlUsd = (follower) => follower.summary?.net_pnl ?? null;
+
+const getPeriodGrossPnl = (p) => {
+  if (store.amountView === "account_units" || store.amountView === "both") {
+    if (p.gross_pnl_account_units != null) return p.gross_pnl_account_units;
+    if (Array.isArray(p.trades) && p.trades.length) {
+      const sum = p.trades.reduce(
+        (acc, t) =>
+          acc +
+          (t.gross_pnl_account_units ??
+            (t.gross_pnl != null && accountCurrency.value === "USC"
+              ? t.gross_pnl * 100
+              : t.gross_pnl) ??
+            0),
+        0
+      );
+      return Number(sum.toFixed(2));
+    }
+    if (p.gross_pnl != null && accountCurrency.value === "USC") {
+      return Number((p.gross_pnl * 100).toFixed(2));
+    }
+  }
+  return p.gross_pnl ?? 0;
+};
+
+const getPeriodFee = (p) => {
+  if (store.amountView === "account_units" || store.amountView === "both") {
+    if (p.fee_account_units != null) return p.fee_account_units;
+    if (Array.isArray(p.trades) && p.trades.length) {
+      const sum = p.trades.reduce(
+        (acc, t) =>
+          acc +
+          (t.fee_account_units ??
+            (t.fee != null && accountCurrency.value === "USC"
+              ? t.fee * 100
+              : t.fee) ??
+            0),
+        0
+      );
+      return Number(sum.toFixed(2));
+    }
+    if (p.fee != null && accountCurrency.value === "USC") {
+      return Number((p.fee * 100).toFixed(2));
+    }
+  }
+  return p.fee ?? 0;
+};
+
+const getPeriodNetPnl = (p) => {
+  if (store.amountView === "account_units" || store.amountView === "both") {
+    if (p.net_pnl_account_units != null) return p.net_pnl_account_units;
+    if (Array.isArray(p.trades) && p.trades.length) {
+      const sum = p.trades.reduce(
+        (acc, t) =>
+          acc +
+          (t.net_pnl_account_units ??
+            (t.net_pnl != null && accountCurrency.value === "USC"
+              ? t.net_pnl * 100
+              : t.net_pnl) ??
+            0),
+        0
+      );
+      return Number(sum.toFixed(2));
+    }
+    if (p.net_pnl != null && accountCurrency.value === "USC") {
+      return Number((p.net_pnl * 100).toFixed(2));
+    }
+  }
+  return p.net_pnl ?? 0;
+};
+
+const getPeriodGrossPnlUsd = (p) => p.gross_pnl ?? null;
+const getPeriodFeeUsd = (p) => p.fee ?? null;
+const getPeriodNetPnlUsd = (p) => p.net_pnl ?? null;
+
+const getTradeGrossPnl = (t) => {
+  if (store.amountView === "account_units" || store.amountView === "both") {
+    return t.gross_pnl_account_units ?? t.gross_pnl ?? 0;
+  }
+  return t.gross_pnl ?? 0;
+};
+const getTradeGrossPnlUsd = (t) => t.gross_pnl ?? null;
 
 const totalTradesCount = computed(() => {
   let count = 0;
@@ -1337,7 +1661,12 @@ const getFilteredPeriods = (periods) => {
 };
 
 const filteredIbDistribution = computed(() => {
-  const list = store.data?.ib_distribution || [];
+  const list =
+    (store.amountView === "usd"
+      ? store.data?.amounts?.usd?.ib_distribution
+      : null) ||
+    store.data?.ib_distribution ||
+    [];
   if (!searchQuery.value.trim()) return list;
   const q = searchQuery.value.toLowerCase().trim();
   return list.filter((ib) => {
@@ -1377,13 +1706,15 @@ const goBack = () => {
     path: `/settlement/details/${route.params.id}`,
     query: {
       currency: activeCurrency.value,
-      amount_view: route.query.amount_view,
+      amount_view: store.amountView,
     },
   });
 };
 
-const loadData = () => {
-  store.fetchSettlementUser(route.params.id, route.params.userId);
+const loadData = (view = null) => {
+  const targetView =
+    view || route.query.amount_view || store.amountView || "account_units";
+  store.fetchSettlementUser(route.params.id, route.params.userId, targetView);
 };
 
 onMounted(() => {
