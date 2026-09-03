@@ -115,7 +115,9 @@
 
           <!-- Bank Details Section (if available) -->
           <div v-if="bankInfo" class="mt-3 pt-3 border-t border-primary-border">
-            <p class="text-[11px] uppercase tracking-wider text-secondary-text font-semibold mb-2">User Bank Details</p>
+            <p class="text-[11px] uppercase tracking-wider text-secondary-text font-semibold mb-2">
+              {{ bankInfo.isCompanyBank ? 'Company Bank Details' : 'User Beneficiary Bank Details' }}
+            </p>
             <div class="grid grid-cols-2 gap-2 text-xs">
               <div v-if="bankInfo.account_name">
                 <span class="text-secondary-text text-[10px]">Name:</span>
@@ -129,9 +131,17 @@
                 <span class="text-secondary-text text-[10px]">Bank:</span>
                 <p class="font-medium text-primary-text">{{ bankInfo.bank }}</p>
               </div>
-              <div v-if="bankInfo.bank_branch_code || bankInfo.ifsc_code">
+              <div v-if="bankInfo.bank_branch_code">
                 <span class="text-secondary-text text-[10px]">IFSC / Code:</span>
-                <p class="font-mono font-medium text-primary-text">{{ bankInfo.bank_branch_code || bankInfo.ifsc_code }}</p>
+                <p class="font-mono font-medium text-primary-text">{{ bankInfo.bank_branch_code }}</p>
+              </div>
+              <div v-if="bankInfo.bank_branch">
+                <span class="text-secondary-text text-[10px]">Branch:</span>
+                <p class="font-medium text-primary-text">{{ bankInfo.bank_branch }}</p>
+              </div>
+              <div v-if="bankInfo.account_type">
+                <span class="text-secondary-text text-[10px]">Type:</span>
+                <p class="font-medium text-primary-text uppercase">{{ bankInfo.account_type }}</p>
               </div>
             </div>
           </div>
@@ -321,7 +331,41 @@ const formattedAmount = computed(() => {
 })
 
 const bankInfo = computed(() => {
-  return props.request?.bank_details || props.request?.bank_account || props.request?.user_bank_account || null
+  if (!props.request) return null
+  let raw = props.request.raw_payload
+  if (typeof raw === 'string') {
+    try {
+      raw = JSON.parse(raw)
+    } catch {
+      raw = null
+    }
+  }
+
+  const direct = props.request?.bank_details || props.request?.bank_account || props.request?.user_bank_account || null
+  const source = raw || direct
+  if (!source) return null
+
+  if (source.company_bank) {
+    return {
+      isCompanyBank: true,
+      account_name: source.company_bank.account_name,
+      account_number: source.company_bank.account_number,
+      bank: source.company_bank.bank_name,
+      bank_branch_code: source.company_bank.ifsc_code || source.company_bank.swift_code,
+      bank_branch: source.company_bank.branch_name,
+      account_type: '',
+    }
+  }
+
+  return {
+    isCompanyBank: false,
+    account_name: source.account_name || direct?.account_name || direct?.account_holder_name || props.request?.user_name || '',
+    account_number: source.account_number || direct?.account_number || direct?.account_no || '',
+    bank: source.bank || source.bank_name || direct?.bank || '',
+    bank_branch_code: source.bank_branch_code || source.ifsc_code || direct?.bank_branch_code || direct?.ifsc_code || '',
+    bank_branch: source.bank_branch || direct?.bank_branch || direct?.branch || '',
+    account_type: source.account_type || direct?.account_type || '',
+  }
 })
 
 const handleFileSelected = (e) => {
