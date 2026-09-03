@@ -17,8 +17,10 @@ import {
   SlidersHorizontal,
   Tag,
   X,
+  Landmark,
 } from "lucide-vue-next";
 import ConfirmationDialog from "@/components/common/ConfirmationDialog.vue";
+import ClientBankAccountsDialog from "@/components/common/ClientBankAccountsDialog.vue";
 import { useClientListStore } from "@/stores/clientList/clientList";
 import { useTagsStore } from "@/stores/tags/tags";
 import Pagination from "@/components/common/Pagination.vue";
@@ -175,7 +177,7 @@ const onIbSearch = (query) => {
 };
 
 const hasFilters = computed(
-  () => store.filters.search || store.filters.ib_id || store.filters.tag_ids
+  () => store.filters.search || store.filters.ib_id || store.filters.tag_ids,
 );
 
 const handlePageChange = (page) => store.fetchClients(page);
@@ -228,6 +230,14 @@ function getRowActions(client) {
     );
   }
 
+  if (hasAnyPermission(["user_bank_accounts.enable_edit"])) {
+    actions.push({
+      action: "viewBankAccounts",
+      label: "Bank Accounts",
+      icon: Landmark,
+    });
+  }
+
   if (hasPermission("xtention_dev.login_as_client")) {
     if (actions.length > 0) {
       actions.push({ divider: true });
@@ -265,6 +275,8 @@ const chooseBgColor = {
 
 function onMenuSelect(item, client) {
   switch (item.action) {
+    case "viewBankAccounts":
+      return openClientBankAccountsDialog(client);
     case "manageTags":
       return openClientTagModal(client);
     case "clientLogin":
@@ -287,6 +299,19 @@ function onMenuSelect(item, client) {
       return openDeleteClientDialog(client);
   }
 }
+
+const clientBankAccountsDialogOpen = ref(false);
+const selectedClientForBankAccounts = ref(null);
+
+const openClientBankAccountsDialog = (client) => {
+  selectedClientForBankAccounts.value = client;
+  clientBankAccountsDialogOpen.value = true;
+};
+
+const closeClientBankAccountsDialog = () => {
+  clientBankAccountsDialogOpen.value = false;
+  selectedClientForBankAccounts.value = null;
+};
 
 const handleClientLogin = (client) => {
   if (!client?.id) return;
@@ -721,7 +746,9 @@ onMounted(() => {
       class="hidden md:block w-full border border-primary-border rounded-xl overflow-x-auto shadow-xs bg-card-background/40"
     >
       <table class="w-full border-collapse">
-        <thead class="group/head bg-background/80 backdrop-blur-sm sticky top-0 z-10">
+        <thead
+          class="group/head bg-background/80 backdrop-blur-sm sticky top-0 z-10"
+        >
           <tr class="border-b border-primary-border">
             <th v-if="canAssignTags" class="p-3 w-10 text-center">
               <input
@@ -733,7 +760,7 @@ onMounted(() => {
                 :class="[
                   selectedClientIds.length > 0 || isAllClientsSelected
                     ? 'opacity-100'
-                    : 'opacity-0 group-hover/head:opacity-100'
+                    : 'opacity-0 group-hover/head:opacity-100',
                 ]"
                 title="Select all clients"
               />
@@ -917,7 +944,7 @@ onMounted(() => {
             :class="[
               selectedClientIds.includes(client.id)
                 ? 'bg-primary/5 dark:bg-primary/10 hover:bg-primary/10 dark:hover:bg-primary/15'
-                : 'hover:bg-card-background/70'
+                : 'hover:bg-card-background/70',
             ]"
           >
             <!-- Select Checkbox -->
@@ -928,9 +955,10 @@ onMounted(() => {
                 @change="toggleSelectClient(client.id)"
                 class="custom-checkbox transition-opacity duration-150"
                 :class="[
-                  selectedClientIds.length > 0 || selectedClientIds.includes(client.id)
+                  selectedClientIds.length > 0 ||
+                  selectedClientIds.includes(client.id)
                     ? 'opacity-100'
-                    : 'opacity-0 group-hover:opacity-100'
+                    : 'opacity-0 group-hover:opacity-100',
                 ]"
               />
             </td>
@@ -975,7 +1003,9 @@ onMounted(() => {
 
                   <template #content>
                     <div class="p-1">
-                      <p class="text-[10px] uppercase font-semibold text-secondary-text tracking-wider mb-1.5">
+                      <p
+                        class="text-[10px] uppercase font-semibold text-secondary-text tracking-wider mb-1.5"
+                      >
                         Additional Tags
                       </p>
                       <div class="flex flex-wrap gap-1 max-w-64">
@@ -1209,9 +1239,7 @@ onMounted(() => {
               <div>
                 <div class="flex items-center justify-between gap-1 mb-1">
                   <span class="text-xs font-semibold text-primary-text block">
-                    {{
-                      client.total_accounts || client.accounts?.length || 0
-                    }}
+                    {{ client.total_accounts || client.accounts?.length || 0 }}
                     Acct{{
                       (client.total_accounts ||
                         client.accounts?.length ||
@@ -1367,7 +1395,7 @@ onMounted(() => {
         :class="[
           selectedClientIds.includes(client.id)
             ? 'bg-primary/5 dark:bg-primary/10 border-primary/40 shadow-xs'
-            : 'bg-card-background border-primary-border'
+            : 'bg-card-background border-primary-border',
         ]"
       >
         <div class="flex items-start justify-between gap-2">
@@ -1675,9 +1703,7 @@ onMounted(() => {
                   @click="toggleExpandAccounts(`mobile_${client.id}`)"
                   class="font-mono text-[9px] font-semibold px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition cursor-pointer"
                 >
-                  +{{
-                    (client.accounts || client.account_numbers).length - 4
-                  }}
+                  +{{ (client.accounts || client.account_numbers).length - 4 }}
                   more
                 </span>
               </template>
@@ -1904,6 +1930,13 @@ onMounted(() => {
       :current-tags="tagModal.currentTags"
       @close="tagModal.open = false"
       @updated="handleTagModalUpdated"
+    />
+
+    <!-- Saved Bank Accounts Dialog -->
+    <ClientBankAccountsDialog
+      :open="clientBankAccountsDialogOpen"
+      :client="selectedClientForBankAccounts"
+      @close="closeClientBankAccountsDialog"
     />
   </div>
 </template>

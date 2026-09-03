@@ -5,7 +5,7 @@
     @click="handleClose"
   >
     <div
-      class="w-full max-w-lg rounded-2xl border border-primary-border bg-card-background shadow-2xl"
+      class="w-full max-w-lg rounded-2xl border border-primary-border bg-card-background shadow-2xl overflow-hidden"
       @click.stop
     >
       <div class="flex items-start justify-between gap-4 border-b border-primary-border px-5 py-4">
@@ -27,7 +27,7 @@
         </div>
 
         <button
-          class="flex h-8 w-8 items-center justify-center rounded-lg text-secondary-text transition-colors hover:bg-background hover:text-primary-text disabled:cursor-not-allowed disabled:opacity-50"
+          class="flex h-8 w-8 items-center justify-center rounded-lg text-secondary-text transition-colors hover:bg-background hover:text-primary-text disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
           :disabled="loading"
           @click="handleClose"
         >
@@ -35,10 +35,11 @@
         </button>
       </div>
 
-      <div class="space-y-4 px-5 py-5">
+      <div class="space-y-4 px-5 py-5 max-h-[70vh] overflow-y-auto">
+        <!-- Details Card -->
         <div class="rounded-xl border border-primary-border bg-background/60 p-4">
-          <p class="text-[11px] uppercase tracking-[0.2em] text-secondary-text">
-            Request
+          <p class="text-[11px] uppercase tracking-[0.2em] text-secondary-text font-bold">
+            Request Summary
           </p>
           <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
@@ -52,7 +53,19 @@
               </p>
             </div>
             <div>
-              <p class="text-[11px] text-secondary-text">Amount</p>
+              <div class="flex items-center justify-between">
+                <p class="text-[11px] text-secondary-text">Amount</p>
+                <button
+                  v-if="canEdit"
+                  type="button"
+                  class="text-[11px] text-primary hover:underline inline-flex items-center gap-1 font-medium cursor-pointer"
+                  title="Edit Bank Transfer Amount"
+                  @click="handleEdit"
+                >
+                  <Pencil class="w-2.5 h-2.5" />
+                  <span>Edit</span>
+                </button>
+              </div>
               <p class="text-sm font-medium text-primary-text">
                 {{ formattedAmount }}
               </p>
@@ -90,15 +103,111 @@
                 </span>
               </p>
             </div>
-            <div v-if="request?.txid || request?.external_payment_id">
+            <div v-if="request?.txid || request?.external_payment_id || request?.utr">
               <p class="text-[11px] text-secondary-text">
-                {{ request?.txid ? 'TX ID' : 'Reference ID' }}
+                {{ request?.utr ? 'UTR / Ref' : (request?.txid ? 'TX ID' : 'Reference ID') }}
               </p>
-              <p class="text-xs font-mono text-primary-text truncate" :title="request?.txid || request?.external_payment_id">
-                {{ request?.txid || request?.external_payment_id }}
+              <p class="text-xs font-mono text-primary-text truncate" :title="request?.utr || request?.txid || request?.external_payment_id">
+                {{ request?.utr || request?.txid || request?.external_payment_id }}
               </p>
             </div>
           </div>
+
+          <!-- Bank Details Section (if available) -->
+          <div v-if="bankInfo" class="mt-3 pt-3 border-t border-primary-border">
+            <p class="text-[11px] uppercase tracking-wider text-secondary-text font-semibold mb-2">
+              {{ bankInfo.isCompanyBank ? 'Company Bank Details' : 'User Beneficiary Bank Details' }}
+            </p>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <div v-if="bankInfo.account_name">
+                <span class="text-secondary-text text-[10px]">Name:</span>
+                <p class="font-medium text-primary-text">{{ bankInfo.account_name }}</p>
+              </div>
+              <div v-if="bankInfo.account_number">
+                <span class="text-secondary-text text-[10px]">Account No:</span>
+                <p class="font-mono font-medium text-primary-text">{{ bankInfo.account_number }}</p>
+              </div>
+              <div v-if="bankInfo.bank">
+                <span class="text-secondary-text text-[10px]">Bank:</span>
+                <p class="font-medium text-primary-text">{{ bankInfo.bank }}</p>
+              </div>
+              <div v-if="bankInfo.bank_branch_code">
+                <span class="text-secondary-text text-[10px]">IFSC / Code:</span>
+                <p class="font-mono font-medium text-primary-text">{{ bankInfo.bank_branch_code }}</p>
+              </div>
+              <div v-if="bankInfo.bank_branch">
+                <span class="text-secondary-text text-[10px]">Branch:</span>
+                <p class="font-medium text-primary-text">{{ bankInfo.bank_branch }}</p>
+              </div>
+              <div v-if="bankInfo.account_type">
+                <span class="text-secondary-text text-[10px]">Type:</span>
+                <p class="font-medium text-primary-text uppercase">{{ bankInfo.account_type }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- User Deposit Proof Link (if available) -->
+          <div v-if="request?.proof_url" class="mt-3 pt-3 border-t border-primary-border flex items-center justify-between text-xs">
+            <span class="text-secondary-text text-[11px]">User Payment Proof:</span>
+            <a
+              :href="request.proof_url"
+              target="_blank"
+              class="text-primary hover:underline font-medium inline-flex items-center gap-1 text-xs"
+            >
+              <Paperclip class="w-3.5 h-3.5" />
+              View User Proof
+            </a>
+          </div>
+        </div>
+
+        <!-- Rejection Reason Input -->
+        <div v-if="action === 'reject'" class="space-y-1.5">
+          <label class="block text-xs font-semibold text-primary-text">
+            Rejection Reason <span class="text-primary-red">*</span>
+          </label>
+          <textarea
+            v-model="rejectionReason"
+            rows="2"
+            placeholder="Enter reason for rejecting this payment request..."
+            class="w-full rounded-xl border border-primary-border bg-background p-3 text-xs text-primary-text outline-none focus:border-primary placeholder:text-secondary-text transition-colors"
+          />
+          <p v-if="reasonError" class="text-[11px] text-primary-red">
+            Please specify a rejection reason.
+          </p>
+        </div>
+
+        <!-- Document Proof Upload -->
+        <div class="space-y-1.5">
+          <label class="block text-xs font-semibold text-primary-text">
+            Admin Document Proof <span class="text-secondary-text font-normal">(Optional)</span>
+          </label>
+          <div class="flex items-center gap-2">
+            <input
+              ref="fileInputRef"
+              type="file"
+              accept=".png,.jpg,.jpeg,.gif,.webp,.pdf,.doc,.docx"
+              class="hidden"
+              @change="handleFileSelected"
+            />
+            <button
+              type="button"
+              class="px-3 py-2 rounded-xl border border-primary-border bg-background hover:bg-card-background text-xs font-medium text-primary-text flex items-center gap-2 transition-colors cursor-pointer"
+              @click="fileInputRef?.click()"
+            >
+              <Upload class="w-3.5 h-3.5 text-secondary-text" />
+              <span>{{ selectedFile ? selectedFile.name : 'Attach File (Proof / Receipt)' }}</span>
+            </button>
+            <button
+              v-if="selectedFile"
+              type="button"
+              class="p-1 rounded-lg text-secondary-text hover:text-primary-red transition-colors cursor-pointer"
+              title="Remove file"
+              @click="selectedFile = null"
+            >
+              <X class="w-4 h-4" />
+            </button>
+          </div>
+          <p class="text-[10px] text-secondary-text">Supported: PNG, JPG, PDF, DOC (max 10MB)</p>
         </div>
 
         <div class="rounded-xl border px-4 py-3" :class="dialogTone.notice">
@@ -113,17 +222,17 @@
 
       <div class="flex gap-3 border-t border-primary-border px-5 py-4">
         <button
-          class="flex-1 rounded-lg border border-primary-border px-4 py-2.5 text-xs font-medium text-secondary-text transition-colors hover:bg-background hover:text-primary-text disabled:cursor-not-allowed disabled:opacity-50"
+          class="flex-1 rounded-lg border border-primary-border px-4 py-2.5 text-xs font-medium text-secondary-text transition-colors hover:bg-background hover:text-primary-text disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
           :disabled="loading"
           @click="handleClose"
         >
           Cancel
         </button>
         <button
-          class="flex-1 flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-xs font-medium text-black transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+          class="flex-1 flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-xs font-medium text-black transition-colors disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer shadow-sm"
           :class="dialogTone.button"
           :disabled="loading"
-          @click="emit('confirm')"
+          @click="handleSubmit"
         >
           <Loader2 v-if="loading" class="h-3.5 w-3.5 animate-spin" />
           <span>{{ loading ? loadingLabel : confirmLabel }}</span>
@@ -134,8 +243,9 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { AlertTriangle, CheckCircle2, Loader2, X } from 'lucide-vue-next'
+import { computed, ref, watch } from 'vue'
+import { AlertTriangle, CheckCircle2, Loader2, X, Upload, Paperclip, Pencil } from 'lucide-vue-next'
+import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -144,7 +254,36 @@ const props = defineProps({
   loading: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['close', 'confirm'])
+const emit = defineEmits(['close', 'confirm', 'edit'])
+
+const { hasPermission } = usePermissionCheck()
+
+const rejectionReason = ref('')
+const reasonError = ref(false)
+const selectedFile = ref(null)
+const fileInputRef = ref(null)
+
+const canEdit = computed(() => {
+  if (!props.request) return false
+  if (!hasPermission('payment_requests.approve')) return false
+
+  const gateway = (props.request.gateway || '').trim().toLowerCase().replace(/[\s_-]+/g, '_')
+  const method = (props.request.method || '').trim().toLowerCase().replace(/[\s_-]+/g, ' ')
+  const status = (props.request.approval_status || '').trim().toLowerCase()
+  const type = (props.request.type || '').trim().toLowerCase()
+
+  const isBankTransfer = gateway === 'bank_transfer' || gateway === 'banktransfer'
+  const isBankTransaction = method === 'bank transaction' || method === 'bank transfer'
+  const isPending = status === 'pending'
+  const isValidType = type === 'deposit' || type === 'withdrawal'
+
+  return isBankTransfer && isBankTransaction && isPending && isValidType
+})
+
+const handleEdit = () => {
+  emit('close')
+  emit('edit', props.request)
+}
 
 const actionMeta = {
   approve: {
@@ -184,17 +323,92 @@ const confirmationText = computed(() => dialogTone.value.confirmationText)
 
 const formattedAmount = computed(() => {
   const amount = Number(props.request?.amount ?? 0)
-
   if (Number.isNaN(amount)) return '—'
-
   return `${props.request?.currency ?? ''} ${amount.toLocaleString('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`.trim()
 })
 
+const bankInfo = computed(() => {
+  if (!props.request) return null
+  let raw = props.request.raw_payload
+  if (typeof raw === 'string') {
+    try {
+      raw = JSON.parse(raw)
+    } catch {
+      raw = null
+    }
+  }
+
+  const direct = props.request?.bank_details || props.request?.bank_account || props.request?.user_bank_account || null
+  const source = raw || direct
+  if (!source) return null
+
+  if (source.company_bank) {
+    return {
+      isCompanyBank: true,
+      account_name: source.company_bank.account_name,
+      account_number: source.company_bank.account_number,
+      bank: source.company_bank.bank_name,
+      bank_branch_code: source.company_bank.ifsc_code || source.company_bank.swift_code,
+      bank_branch: source.company_bank.branch_name,
+      account_type: '',
+    }
+  }
+
+  return {
+    isCompanyBank: false,
+    account_name: source.account_name || direct?.account_name || direct?.account_holder_name || props.request?.user_name || '',
+    account_number: source.account_number || direct?.account_number || direct?.account_no || '',
+    bank: source.bank || source.bank_name || direct?.bank || '',
+    bank_branch_code: source.bank_branch_code || source.ifsc_code || direct?.bank_branch_code || direct?.ifsc_code || '',
+    bank_branch: source.bank_branch || direct?.bank_branch || direct?.branch || '',
+    account_type: source.account_type || direct?.account_type || '',
+  }
+})
+
+const handleFileSelected = (e) => {
+  const file = e.target?.files?.[0]
+  if (file) {
+    selectedFile.value = file
+  }
+}
+
+const handleSubmit = () => {
+  if (props.action === 'reject' && !rejectionReason.value.trim()) {
+    reasonError.value = true
+    return
+  }
+  reasonError.value = false
+
+  if (selectedFile.value || (props.action === 'reject' && rejectionReason.value.trim())) {
+    const formData = new FormData()
+    if (props.action === 'reject' && rejectionReason.value.trim()) {
+      formData.append('reason', rejectionReason.value.trim())
+    }
+    if (selectedFile.value) {
+      formData.append('admin_document_proof', selectedFile.value)
+    }
+    emit('confirm', formData)
+  } else {
+    emit('confirm', null)
+  }
+}
+
 const handleClose = () => {
   if (props.loading) return
   emit('close')
 }
+
+watch(
+  () => props.open,
+  (val) => {
+    if (val) {
+      rejectionReason.value = ''
+      reasonError.value = false
+      selectedFile.value = null
+    }
+  }
+)
 </script>
