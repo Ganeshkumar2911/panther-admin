@@ -24,7 +24,7 @@ const presetUrls = [
   },
   {
     label: "Lokesh",
-    value: "https://ls01t281-5001.inc1.devtunnels.ms",
+    value: "https://ls01t281-2504.inc1.devtunnels.ms",
   },
   {
     label: "Production",
