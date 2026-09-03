@@ -24,6 +24,7 @@ import {
   Bell,
   Tag,
   BookmarkCheck,
+  Newspaper,
 } from "lucide-vue-next";
 
 export const navItems = [
@@ -127,6 +128,12 @@ export const navItems = [
     to: "/media",
     icon: FolderOpen,
     permission: ["media.view"],
+  },
+  {
+    label: "Blogs",
+    to: "/blogs",
+    icon: Newspaper,
+    permission: ["blog.view"],
   },
   {
     label: "Telegram",

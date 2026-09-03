@@ -436,6 +436,17 @@ const routes = [
         },
       },
       {
+        path: "/blogs",
+        name: "blogs",
+        component: () => import("@/pages/blog/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Blog Management",
+          description:
+            "Create, edit, and publish market insights, educational guides, and platform updates.",
+        },
+      },
+      {
         path: "/platform-tickets/:id",
         name: "platform-tickets-details",
         component: () => import("@/pages/platformTickets/ticketDetails.vue"),
