@@ -7,9 +7,18 @@ import { useSnackbarStore } from "@/stores/snackbar/snackbar";
 
 export const useClientDepthStore = defineStore("clientDepth", () => {
   const overviewData = ref(null);
+  const activeClient = ref(null);
   const loading = ref(false);
   const isFetched = ref(false);
   const error = ref(null);
+
+  const setActiveClient = (client) => {
+    if (!client) return;
+    activeClient.value = { ...(activeClient.value || {}), ...client };
+    try {
+      localStorage.setItem("active_client", JSON.stringify(activeClient.value));
+    } catch {}
+  };
 
   const kycData = ref(null);
   const kycLoading = ref(false);
@@ -95,6 +104,14 @@ export const useClientDepthStore = defineStore("clientDepth", () => {
         res?.message || "Profile details updated successfully.",
         "success",
       );
+      if (res?.data || profileData) {
+        const merged = {
+          ...(activeClient.value || {}),
+          ...profileData,
+          ...(res?.data || {}),
+        };
+        setActiveClient(merged);
+      }
       fetchClientOverview(userId, true);
       if (typeof callback === "function") callback(null, res);
     };
@@ -315,6 +332,7 @@ export const useClientDepthStore = defineStore("clientDepth", () => {
 
   return {
     overviewData,
+    activeClient,
     loading,
     isLoading: loading,
     isFetched,
@@ -339,6 +357,7 @@ export const useClientDepthStore = defineStore("clientDepth", () => {
     isSubmittingKyc,
     isUploadingDoc,
 
+    setActiveClient,
     fetchClientOverview,
     fetchClientKyc,
     fetchUserCharts,

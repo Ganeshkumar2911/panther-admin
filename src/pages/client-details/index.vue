@@ -126,15 +126,21 @@
           <p class="text-secondary-text font-extralight text-xs">
             Quick Actions
           </p>
-          <div class="flex items-center gap-1 mt-2">
-            <button
+          <div class="flex items-center gap-1.5 mt-2">
+            <Tooltip
               v-for="action in quickActions"
               :key="action.label"
-              :title="action.label"
-              class="cursor-pointer border border-primary-border p-2 rounded-lg text-secondary-text hover:bg-background hover:text-primary-text transition-colors"
+              :text="action.label"
+              position="bottom"
             >
-              <component :is="action.icon" class="w-4 h-4" />
-            </button>
+              <button
+                type="button"
+                :aria-label="action.label"
+                class="cursor-pointer border border-primary-border p-2 rounded-lg text-secondary-text hover:bg-background hover:text-primary-text transition-colors"
+              >
+                <component :is="action.icon" class="w-4 h-4" />
+              </button>
+            </Tooltip>
           </div>
         </div>
       </div>
@@ -267,8 +273,10 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { getFlagCode, cleanCountryLabel } from "@/utils/countries";
+import Tooltip from "@/components/common/Tooltip.vue";
+import { useClientDepthStore } from "@/stores/clientDepth/clientDepth";
 import {
   User,
   Info,
@@ -288,16 +296,57 @@ import {
 } from "lucide-vue-next";
 import { useRoute } from "vue-router";
 
-// ─── User from localStorage ───────────────────────────────────────────────────
-const user = ref({});
+const clientDepthStore = useClientDepthStore();
 
-onMounted(() => {
+// ─── Reactive Client User State ───────────────────────────────────────────────
+const localStoredUser = ref({});
+
+const loadUserFromStorage = () => {
   try {
     const raw = localStorage.getItem("active_client");
-    if (raw) user.value = JSON.parse(raw);
+    if (raw) {
+      localStoredUser.value = JSON.parse(raw);
+    }
   } catch {
-    user.value = {};
+    localStoredUser.value = {};
   }
+};
+
+const handleProfileUpdated = (e) => {
+  if (e?.detail) {
+    localStoredUser.value = { ...localStoredUser.value, ...e.detail };
+    clientDepthStore.setActiveClient(e.detail);
+  } else {
+    loadUserFromStorage();
+  }
+};
+
+const handleStorageChange = (e) => {
+  if (e.key === "active_client") {
+    loadUserFromStorage();
+  }
+};
+
+onMounted(() => {
+  loadUserFromStorage();
+  if (!clientDepthStore.activeClient && Object.keys(localStoredUser.value).length > 0) {
+    clientDepthStore.setActiveClient(localStoredUser.value);
+  }
+  window.addEventListener("client-profile-updated", handleProfileUpdated);
+  window.addEventListener("storage", handleStorageChange);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("client-profile-updated", handleProfileUpdated);
+  window.removeEventListener("storage", handleStorageChange);
+});
+
+const user = computed(() => {
+  return {
+    ...localStoredUser.value,
+    ...(clientDepthStore.overviewData?.user || {}),
+    ...(clientDepthStore.activeClient || {}),
+  };
 });
 
 const initials = computed(() => {
@@ -354,18 +403,18 @@ const tabs = computed(() => [
     to: `/client/details/${route.params.id}/financials`,
     icon: CreditCard,
   },
-  {
-    key: "trading",
-    label: "Trading",
-    to: `/client/details/${route.params.id}/trading`,
-    icon: BarChart2,
-  },
-  {
-    key: "crm",
-    label: "CRM & Support",
-    to: `/client/details/${route.params.id}/crm`,
-    icon: Headphones,
-  },
+  // {
+  //   key: "trading",
+  //   label: "Trading",
+  //   to: `/client/details/${route.params.id}/trading`,
+  //   icon: BarChart2,
+  // },
+  // {
+  //   key: "crm",
+  //   label: "CRM & Support",
+  //   to: `/client/details/${route.params.id}/crm`,
+  //   icon: Headphones,
+  // },
   {
     key: "marketing",
     label: "Marketing",

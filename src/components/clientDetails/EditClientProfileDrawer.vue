@@ -398,9 +398,13 @@ const handleSubmit = () => {
         ...payload,
         ...(res?.data || {}),
       };
+      clientDepthStore.setActiveClient(updatedClient);
       try {
         localStorage.setItem("active_client", JSON.stringify(updatedClient));
       } catch {}
+      window.dispatchEvent(
+        new CustomEvent("client-profile-updated", { detail: updatedClient })
+      );
       emit("success", updatedClient);
       closeDrawer();
     }

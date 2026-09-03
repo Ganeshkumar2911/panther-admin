@@ -276,6 +276,8 @@ const urls = {
     },
     images: {
       list: "/media-images",
+      links: "/media/images/links",
+      clientLinks: "/media/images/links",
       create: "/create-media-image",
       update: "/media-images",
       delete: "/media-images",

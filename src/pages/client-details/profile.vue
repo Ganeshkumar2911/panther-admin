@@ -1,17 +1,17 @@
 <template>
-  <div class="bg-background space-y-5 pt-4 pb-8 overflow-y-auto no-scrollbar">
-    <!-- Main 2-Column Grid -->
-    <div class="grid grid-cols-1 gap-5">
+  <div class="space-y-5 pt-4 pb-12">
+    <!-- ─── MAIN 2-COLUMN GRID ───────────────────────────────────── -->
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-3 items-stretch">
       <!-- ─── LEFT COLUMN ─────────────────────────────────────────── -->
-      <div class="flex flex-col gap-5">
+      <div class="flex flex-col gap-3 h-full">
         <!-- 1. Profile Information Card -->
         <div
-          class="bg-card-background border border-primary-border rounded-2xl p-5 sm:p-6 shadow-xs transition-all hover:border-primary/30"
+          class="flex-[1.3] bg-card-background border border-primary-border rounded-md p-5 sm:p-6 shadow-xs transition-all hover:border-primary/30"
         >
           <!-- Card Header -->
           <div class="flex items-start justify-between gap-3 pb-5 border-b border-primary-border/60">
             <div>
-              <h3 class="text-base sm:text-lg font-bold text-primary-text">
+              <h3 class="text-base min-[1650px]:text-lg font-bold text-primary-text">
                 Profile Information
               </h3>
               <p class="text-xs text-secondary-text mt-0.5">
@@ -29,9 +29,9 @@
           </div>
 
           <!-- Card Body -->
-          <div class="flex flex-col sm:flex-row items-start gap-6 pt-5">
+          <div class="flex flex-col sm:flex-row items-start gap-4 pt-5">
             <!-- Avatar / Photo Area -->
-            <div class="flex flex-col items-center shrink-0 w-full sm:w-auto">
+            <div class="flex flex-col items-center shrink-0 w-full sm:w-36">
               <div class="relative">
                 <div
                   class="w-24 h-24 rounded-full bg-primary-green/10 border border-primary-green/20 flex items-center justify-center text-primary-green"
@@ -47,14 +47,14 @@
                 </div>
               </div>
 
-              <!-- <button
+              <button
                 type="button"
                 @click="triggerPhotoUpload"
                 class="mt-3.5 border border-primary-border rounded-xl px-3 py-1.5 text-xs font-semibold text-primary-text hover:bg-background transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
               >
                 <Upload class="w-3.5 h-3.5 text-secondary-text" />
                 Upload Photo
-              </button> -->
+              </button>
               <input
                 ref="photoInputRef"
                 type="file"
@@ -67,145 +67,142 @@
               </span>
             </div>
 
-            <!-- Profile Details Grid -->
-            <div class="flex-1 w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-y-4 gap-x-4 text-xs">
-              <!-- Full Name -->
-              <div>
-                <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text mb-0.5">
-                  Full Name
-                </p>
-                <p class="font-bold text-primary-text text-sm">
-                  {{ user.name || "—" }}
-                </p>
-              </div>
-
-              <!-- Date of Birth -->
-              <div>
-                <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text mb-0.5">
-                  Date of Birth
-                </p>
-                <p class="font-semibold text-primary-text text-sm">
-                  {{ formattedDob }}
-                </p>
-              </div>
-
-              <!-- Gender -->
-              <div>
-                <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text mb-0.5">
-                  Gender
-                </p>
-                <p class="font-semibold text-primary-text text-sm">
-                  {{ user.gender || "Male" }}
-                </p>
-              </div>
-
-              <!-- Email Address -->
-              <div class="sm:col-span-2">
-                <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text mb-0.5">
-                  Email Address
-                </p>
-                <div class="flex items-center gap-2 flex-wrap">
-                  <span class="font-semibold text-primary-text break-all">
-                    {{ user.email || "—" }}
-                  </span>
-                  <span
-                    class="bg-primary-green/10 text-primary-green text-[10px] font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1"
-                  >
-                    <Check class="w-3 h-3 stroke-[3]" />
-                    Verified
-                  </span>
+            <!-- Profile Details with Vertical & Horizontal Borders -->
+            <div class="flex-1 w-full sm:border-l sm:border-primary-border/60 sm:pl-4 space-y-0 text-xs">
+              <!-- Row 1: Full Name, Date of Birth, Gender -->
+              <div class="flex flex-col sm:flex-row justify-between gap-4 pb-4 border-b border-primary-border/60">
+                <div>
+                  <p class="text-[11px] sm:text-xs text-secondary-text font-medium mb-1">
+                    Full Name
+                  </p>
+                  <p class="font-semibold text-primary-text text-xs sm:text-[12px]">
+                    {{ user.name || "—" }}
+                  </p>
+                </div>
+                <div>
+                  <p class="text-[11px] sm:text-xs text-secondary-text font-medium mb-1">
+                    Date of Birth
+                  </p>
+                  <p class="font-semibold text-primary-text text-xs sm:text-[12px]">
+                    {{ formattedDob }}
+                  </p>
+                </div>
+                <div>
+                  <p class="text-[11px] sm:text-xs text-secondary-text font-medium mb-1">
+                    Gender
+                  </p>
+                  <p class="font-semibold text-primary-text text-xs sm:text-[12px]">
+                    {{ user.gender || "Male" }}
+                  </p>
                 </div>
               </div>
 
-              <!-- Phone Number -->
-              <div>
-                <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text mb-0.5">
-                  Phone Number
-                </p>
-                <div class="flex items-center gap-2 flex-wrap">
-                  <span class="font-semibold text-primary-text">
-                    {{ user.phone_number || "—" }}
-                  </span>
-                  <span
-                    v-if="user.phone_number"
-                    class="bg-primary-green/10 text-primary-green text-[10px] font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1"
-                  >
-                    Verified
-                  </span>
-                  <span
-                    v-else
-                    class="bg-primary-red/10 text-primary-red text-[10px] font-bold px-2 py-0.5 rounded-full"
-                  >
-                    Not Verified
-                  </span>
+              <!-- Row 2: Email Address, Phone Number -->
+              <div class="flex flex-col sm:flex-row justify-between gap-4 py-4 border-b border-primary-border/60">
+                <div>
+                  <p class="text-[11px] sm:text-xs text-secondary-text font-medium mb-1">
+                    Email Address
+                  </p>
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class="font-semibold text-primary-text text-xs sm:text-[12px] break-all">
+                      {{ user.email || "—" }}
+                    </span>
+                    <span
+                      class="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[11px] font-semibold px-2 py-0.5 rounded-md inline-flex items-center gap-1"
+                    >
+                      <Check class="w-3 h-3 stroke-[3]" />
+                      Verified
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <p class="text-[11px] sm:text-xs text-secondary-text font-medium mb-1">
+                    Phone Number
+                  </p>
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class="font-semibold text-primary-text text-xs sm:text-[12px]">
+                      {{ user.phone_number || "—" }}
+                    </span>
+                    <span
+                      v-if="user.phone_number"
+                      class="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[11px] font-semibold px-2 py-0.5 rounded-md inline-flex items-center gap-1"
+                    >
+                      <Check class="w-3 h-3 stroke-[3]" />
+                      Verified
+                    </span>
+                    <span
+                      v-else
+                      class="bg-rose-500/10 text-rose-600 dark:text-rose-400 text-[11px] font-semibold px-2 py-0.5 rounded-md"
+                    >
+                      Not Verified
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              <!-- Country of Residence -->
-              <div>
-                <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text mb-0.5">
-                  Country of Residence
-                </p>
-                <p class="font-semibold text-primary-text flex items-center gap-1.5">
-                  <span
-                    v-if="user.country && getFlagCode(user.country)"
-                    :class="['fi', `fi-${getFlagCode(user.country)}`, 'fis', 'w-4 h-3 flex-shrink-0']"
-                  ></span>
-                  <span>{{ cleanCountryLabel(user.country) || "—" }}</span>
-                </p>
+              <!-- Row 3: Country of Residence, Nationality, Preferred Language -->
+              <div class="flex flex-col sm:flex-row justify-between gap-4 py-4 border-b border-primary-border/60">
+                <div>
+                  <p class="text-[11px] sm:text-xs text-secondary-text font-medium mb-1">
+                    Country of Residence
+                  </p>
+                  <p class="font-semibold text-primary-text text-xs sm:text-[12px] flex items-center gap-1.5">
+                    <span
+                      v-if="user.country && getFlagCode(user.country)"
+                      :class="['fi', `fi-${getFlagCode(user.country)}`, 'fis', 'w-4 h-3 flex-shrink-0']"
+                    ></span>
+                    <span>{{ cleanCountryLabel(user.country) || "—" }}</span>
+                  </p>
+                </div>
+                <div>
+                  <p class="text-[11px] sm:text-xs text-secondary-text font-medium mb-1">
+                    Nationality
+                  </p>
+                  <p class="font-semibold text-primary-text text-xs sm:text-[12px]">
+                    {{ user.nationality || "—" }}
+                  </p>
+                </div>
+                <div>
+                  <p class="text-[11px] sm:text-xs text-secondary-text font-medium mb-1">
+                    Preferred Language
+                  </p>
+                  <p class="font-semibold text-primary-text text-xs sm:text-[12px]">
+                    {{ user.preferred_language || "English" }}
+                  </p>
+                </div>
               </div>
 
-              <!-- Nationality -->
-              <div>
-                <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text mb-0.5">
-                  Nationality
-                </p>
-                <p class="font-semibold text-primary-text">
-                  {{ user.nationality || "—" }}
-                </p>
-              </div>
-
-              <!-- Preferred Language -->
-              <div>
-                <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text mb-0.5">
-                  Preferred Language
-                </p>
-                <p class="font-semibold text-primary-text">
-                  {{ user.preferred_language || "English" }}
-                </p>
-              </div>
-
-              <!-- Address -->
-              <div class="sm:col-span-2">
-                <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text mb-0.5">
-                  Address
-                </p>
-                <p class="font-semibold text-primary-text">
-                  {{ user.address || "—" }}
-                </p>
-              </div>
-
-              <!-- ZIP / Postal Code -->
-              <div>
-                <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text mb-0.5">
-                  ZIP / Postal Code
-                </p>
-                <p class="font-semibold text-primary-text">
-                  {{ user.zip_code || user.postal_code || "—" }}
-                </p>
+              <!-- Row 4: Address, ZIP / Postal Code -->
+              <div class="flex flex-col sm:flex-row justify-between gap-4 pt-4">
+                <div>
+                  <p class="text-[11px] sm:text-xs text-secondary-text font-medium mb-1">
+                    Address
+                  </p>
+                  <p class="font-bold text-primary-text text-xs sm:text-[12px]">
+                    {{ user.address || "—" }}
+                  </p>
+                </div>
+                <div>
+                  <p class="text-[11px] sm:text-xs text-secondary-text font-medium mb-1">
+                    ZIP / Postal Code
+                  </p>
+                  <p class="font-bold text-primary-text text-xs sm:text-[12px]">
+                    {{ user.zip_code || user.postal_code || "—" }}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
         <!-- 2. Contact Preferences Card -->
-        <!-- <div
-          class="bg-card-background border border-primary-border rounded-2xl p-5 sm:p-6 shadow-xs transition-all hover:border-primary/30"
-        > -->
+        <div
+          class="flex-1 bg-card-background border border-primary-border rounded-md p-5 sm:p-6 shadow-xs transition-all hover:border-primary/30 flex flex-col justify-between"
+        >
           <!-- Card Header -->
-          <!-- <div class="flex items-start justify-between gap-3 pb-5 border-b border-primary-border/60">
+          <div class="flex items-start justify-between gap-3 pb-5 border-b border-primary-border/60">
             <div>
-              <h3 class="text-base sm:text-lg font-bold text-primary-text">
+              <h3 class="text-base min-[1650px]:text-lg font-bold text-primary-text">
                 Contact Preferences
               </h3>
               <p class="text-xs text-secondary-text mt-0.5">
@@ -220,12 +217,12 @@
               <Pencil class="w-3.5 h-3.5" />
               Edit Preferences
             </button>
-          </div> -->
+          </div>
 
           <!-- Preferences 2x2 Grid -->
-          <!-- <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-5"> -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-5 flex-1 content-start">
             <!-- Email Notifications -->
-            <!-- <div
+            <div
               class="border border-primary-border/70 rounded-xl p-3.5 flex items-center justify-between gap-3 bg-background/50 hover:bg-background transition-colors"
             >
               <div class="flex items-center gap-3 min-w-0">
@@ -247,10 +244,10 @@
               >
                 {{ preferences.email ? 'Enabled' : 'Disabled' }}
               </span>
-            </div> -->
+            </div>
 
             <!-- SMS Notifications -->
-            <!-- <div
+            <div
               class="border border-primary-border/70 rounded-xl p-3.5 flex items-center justify-between gap-3 bg-background/50 hover:bg-background transition-colors"
             >
               <div class="flex items-center gap-3 min-w-0">
@@ -272,10 +269,10 @@
               >
                 {{ preferences.sms ? 'Enabled' : 'Disabled' }}
               </span>
-            </div> -->
+            </div>
 
             <!-- Phone Calls -->
-            <!-- <div
+            <div
               class="border border-primary-border/70 rounded-xl p-3.5 flex items-center justify-between gap-3 bg-background/50 hover:bg-background transition-colors"
             >
               <div class="flex items-center gap-3 min-w-0">
@@ -297,10 +294,10 @@
               >
                 {{ preferences.phone ? 'Enabled' : 'Disabled' }}
               </span>
-            </div> -->
+            </div>
 
             <!-- Marketing Updates -->
-            <!-- <div
+            <div
               class="border border-primary-border/70 rounded-xl p-3.5 flex items-center justify-between gap-3 bg-background/50 hover:bg-background transition-colors"
             >
               <div class="flex items-center gap-3 min-w-0">
@@ -322,72 +319,25 @@
               >
                 {{ preferences.marketing ? 'Enabled' : 'Disabled' }}
               </span>
-            </div> -->
-          <!-- </div> -->
-        <!-- </div> -->
-
-        <!-- 4. KYC Notes Card -->
-        <!-- <div
-          class="bg-card-background border border-primary-border rounded-2xl p-5 sm:p-6 shadow-xs transition-all hover:border-primary/30"
-        >
-          <div class="flex items-start justify-between gap-3 pb-4 border-b border-primary-border/60">
-            <div>
-              <h3 class="text-base sm:text-lg font-bold text-primary-text">
-                KYC Notes
-              </h3>
-              <p class="text-xs text-secondary-text mt-0.5">
-                Add internal notes related to client KYC verification.
-              </p>
-            </div>
-            <button
-              type="button"
-              @click="openAddNoteModal"
-              class="border border-primary-border rounded-xl px-3.5 py-1.5 text-xs font-semibold text-primary hover:bg-background transition-colors flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs"
-            >
-              <Plus class="w-3.5 h-3.5" />
-              Add Note
-            </button>
-          </div>
-
-          <div class="pt-5">
-            <div v-if="allNotes.length === 0" class="py-8 flex flex-col items-center justify-center text-center">
-              <FileText class="w-10 h-10 text-secondary-text/40 mb-2" />
-              <p class="text-xs text-secondary-text font-medium">
-                No notes added yet.
-              </p>
-            </div>
-
-            <div v-else class="space-y-3">
-              <div
-                v-for="(note, i) in allNotes"
-                :key="i"
-                class="border border-primary-border/70 rounded-xl p-3 bg-background/50"
-              >
-                <div class="flex items-center justify-between text-[11px] text-secondary-text mb-1">
-                  <span class="font-bold text-primary-text">{{ note.author || 'Admin' }}</span>
-                  <span>{{ note.date || note.created_at || 'Just now' }}</span>
-                </div>
-                <p class="text-xs text-primary-text font-medium">{{ note.text || note.note }}</p>
-              </div>
             </div>
           </div>
-        </div> -->
+        </div>
       </div>
 
       <!-- ─── RIGHT COLUMN ────────────────────────────────────────── -->
-      <div class="flex flex-col gap-5">
+      <div class="flex flex-col gap-3 h-full">
         <!-- 3. KYC Verification Card -->
         <div
-          class="bg-card-background border border-primary-border rounded-2xl p-5 sm:p-6 shadow-xs space-y-6 transition-all hover:border-primary/30"
+          class="bg-card-background border border-primary-border rounded-md p-5 sm:p-6 shadow-xs space-y-6 transition-all hover:border-primary/30"
         >
           <!-- Card Header -->
           <div class="flex items-start justify-between gap-3 pb-5 border-b border-primary-border/60">
             <div>
-              <h3 class="text-base sm:text-lg font-bold text-primary-text">
+              <h3 class="text-base min-[1650px]:text-lg font-bold text-primary-text">
                 KYC Verification
               </h3>
               <p class="text-xs text-secondary-text mt-0.5">
-                Client identity document verification for Forex compliance.
+                Track and manage client verification status and documents.
               </p>
             </div>
             <button
@@ -403,7 +353,7 @@
 
           <!-- Status & Progress Hero Box -->
           <div
-            class="bg-primary-yellow/5 border border-primary-yellow/20 rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-4 flex-wrap"
+            class="bg-primary-yellow/5 border border-primary-yellow/20 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
           >
             <div class="flex items-center gap-4 min-w-0">
               <!-- Orange Shield / Badge Icon -->
@@ -413,10 +363,10 @@
                 A
               </div>
               <div class="min-w-0">
-                <p class="text-xs font-semibold uppercase tracking-wider text-secondary-text">
+                <p class="text-xs font-semibold tracking-wider text-secondary-text">
                   Current Status
                 </p>
-                <p class="text-xl sm:text-2xl font-bold text-primary-yellow capitalize mt-0.5">
+                <p class="text-xl min-[1650px]:text-2xl font-bold text-primary-yellow capitalize mt-0.5">
                   {{ kycStatus }}
                 </p>
                 <p class="text-xs text-secondary-text mt-0.5">
@@ -426,12 +376,12 @@
             </div>
 
             <!-- Progress Indicator -->
-            <div class="flex flex-col items-end shrink-0 w-full sm:w-auto">
+            <div class="flex flex-col sm:items-start shrink-0 w-full sm:w-auto">
               <span class="text-xs font-semibold text-secondary-text">Progress</span>
               <span class="text-sm font-extrabold text-primary-text mt-0.5">
                 {{ completedStepsCount }} / {{ totalStepsCount }}
               </span>
-              <div class="w-36 h-2 rounded-full bg-primary-border/80 overflow-hidden mt-1.5">
+              <div class="w-full sm:w-36 h-2 rounded-full bg-primary-border/80 overflow-hidden mt-1.5">
                 <div
                   class="h-full bg-primary-yellow rounded-full transition-all duration-500"
                   :style="{ width: `${progressPercentage}%` }"
@@ -472,7 +422,7 @@
             <div>
               <h4 class="text-sm font-bold text-primary-text">Document Checklist</h4>
               <p class="text-xs text-secondary-text mt-0.5">
-                Please upload valid documents to proceed with verification.
+                Please upload valid documents to proceed.
               </p>
             </div>
 
@@ -560,7 +510,7 @@
                           <button
                             type="button"
                             @click="openUploadDoc(doc)"
-                            class="bg-primary hover:bg-primary-hover text-white rounded-lg px-3 py-1 text-xs font-semibold transition-all cursor-pointer shadow-2xs flex items-center gap-1"
+                            class="border border-primary text-primary hover:bg-primary/10 rounded-lg px-3 py-1 text-xs font-semibold transition-all cursor-pointer shadow-2xs flex items-center gap-1"
                           >
                             <Upload class="w-3 h-3" />
                             Upload
@@ -574,68 +524,115 @@
             </div>
           </div>
         </div>
+
+        <!-- 4. KYC Notes Card -->
+        <div
+          class="flex-1 min-h-[220px] max-h-[340px] bg-card-background border border-primary-border rounded-md p-5 sm:p-6 shadow-xs transition-all hover:border-primary/30 flex flex-col justify-between overflow-hidden"
+        >
+          <div class="flex items-start justify-between gap-3 pb-4 border-b border-primary-border/60">
+            <div>
+              <h3 class="text-base min-[1650px]:text-lg font-bold text-primary-text">
+                KYC Notes
+              </h3>
+              <p class="text-xs text-secondary-text mt-0.5">
+                Add internal notes related to client KYC verification.
+              </p>
+            </div>
+            <button
+              type="button"
+              @click="openAddNoteModal"
+              class="border border-primary-border rounded-xl px-3.5 py-1.5 text-xs font-semibold text-primary hover:bg-background transition-colors flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs"
+            >
+              <Plus class="w-3.5 h-3.5" />
+              Add Note
+            </button>
+          </div>
+
+          <div class="pt-4 flex-1 flex flex-col justify-start overflow-hidden">
+            <div v-if="allNotes.length === 0" class="py-8 flex flex-col items-center justify-center text-center my-auto">
+              <FileText class="w-10 h-10 text-secondary-text/40 mb-2" />
+              <p class="text-xs text-secondary-text font-medium">
+                No notes added yet.
+              </p>
+            </div>
+
+            <div v-else class="space-y-3 overflow-y-auto no-scrollbar max-h-52 pr-1">
+              <div
+                v-for="(note, i) in allNotes"
+                :key="i"
+                class="border border-primary-border/70 rounded-xl p-3 bg-background/50"
+              >
+                <div class="flex items-center justify-between text-[11px] text-secondary-text mb-1">
+                  <span class="font-bold text-primary-text">{{ note.author || 'Admin' }}</span>
+                  <span>{{ note.date || note.created_at || 'Just now' }}</span>
+                </div>
+                <p class="text-xs text-primary-text font-medium">{{ note.text || note.note }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- ─── BOTTOM FULL-WIDTH BANNER: KYC PENDING? ──────────────── -->
-    <!-- <div
-      class="bg-primary-blue/5 border border-primary-blue/20 rounded-2xl p-5 sm:p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xs"
-    > -->
+    <div
+      class="bg-primary-blue/5 border border-primary-blue/20 rounded-2xl p-5 sm:p-6 flex flex-col lg:flex-row items-center justify-between gap-6 shadow-xs"
+    >
       <!-- Left Info -->
-      <!-- <div class="shrink-0 w-full md:w-auto">
-        <h4 class="text-base font-bold text-primary-blue">KYC Verification</h4>
+      <div class="shrink-0 w-full lg:w-auto">
+        <h4 class="text-base font-bold text-primary-blue">KYC Pending?</h4>
         <p class="text-xs text-secondary-text mt-0.5">
-          Staff members can upload client identity proof for verification.
+          Help the client complete verification quickly.
         </p>
-      </div> -->
+      </div>
 
       <!-- Center 3-Step Guide -->
-      <!-- <div class="flex-1 flex flex-col sm:flex-row items-start sm:items-center justify-center gap-4 sm:gap-6 w-full text-xs"> -->
+      <div class="flex-1 flex flex-col sm:flex-row items-start sm:items-center justify-center gap-4 sm:gap-6 w-full text-xs">
         <!-- Step 1 -->
-        <!-- <div class="flex items-start gap-2.5">
+        <div class="flex items-start gap-2.5">
           <div>
-            <p class="font-bold text-primary-text">1. Upload ID Proof</p>
+            <p class="font-bold text-primary-text">1. Upload Documents</p>
             <p class="text-[11px] text-secondary-text">
-              Front & Back photos of Aadhaar, PAN, or Passport.
+              Ensure all required documents are clear and valid.
             </p>
           </div>
-        </div> -->
+        </div>
 
-        <!-- <ChevronRight class="w-4 h-4 text-primary-blue/60 shrink-0 hidden sm:block" /> -->
+        <ChevronRight class="w-4 h-4 text-primary-blue/60 shrink-0 hidden sm:block" />
 
         <!-- Step 2 -->
-        <!-- <div class="flex items-start gap-2.5">
+        <div class="flex items-start gap-2.5">
           <div>
-            <p class="font-bold text-primary-text">2. Document Review</p>
+            <p class="font-bold text-primary-text">2. Wait for Verification</p>
             <p class="text-[11px] text-secondary-text">
-              Compliance team reviews uploaded documents.
+              Our team will review and verify your documents.
             </p>
           </div>
-        </div> -->
+        </div>
 
-        <!-- <ChevronRight class="w-4 h-4 text-primary-blue/60 shrink-0 hidden sm:block" /> -->
+        <ChevronRight class="w-4 h-4 text-primary-blue/60 shrink-0 hidden sm:block" />
 
         <!-- Step 3 -->
-        <!-- <div class="flex items-start gap-2.5">
+        <div class="flex items-start gap-2.5">
           <div>
-            <p class="font-bold text-primary-text">3. Verification Complete</p>
+            <p class="font-bold text-primary-text">3. Get Verified</p>
             <p class="text-[11px] text-secondary-text">
-              Trading account fully unrestricted for deposits & withdrawals.
+              Once verified, you will gain full access to all features.
             </p>
           </div>
-        </div> -->
-      <!-- </div> -->
+        </div>
+      </div>
 
       <!-- Right Action Button -->
-      <!-- <button
+      <button
         type="button"
         @click="sendKycInstructions"
-        class="w-full md:w-auto bg-primary-blue hover:bg-primary-blue/90 text-white font-semibold text-xs sm:text-sm px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shrink-0 shadow-xs"
+        class="w-full lg:w-auto bg-primary hover:bg-primary-hover text-white font-semibold text-xs sm:text-sm px-5 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shrink-0 shadow-xs"
       >
         <Mail class="w-4 h-4" />
         Send Instructions
-      </button> -->
-    <!-- </div> -->
+      </button>
+    </div>
 
     <!-- ─── MODALS & DRAWERS ────────────────────────────────────── -->
 
@@ -665,7 +662,58 @@
       @edit="openEditDoc(selectedDoc)"
     />
 
-    <!-- Add Note Modal -->
+    <!-- 4. Edit Preferences Modal -->
+    <div
+      v-if="editPreferencesModalOpen"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4"
+    >
+      <div class="bg-card-background border border-primary-border rounded-2xl p-6 w-full max-w-md shadow-xl space-y-4">
+        <div class="flex items-center justify-between border-b border-primary-border pb-3">
+          <h3 class="font-bold text-primary-text text-base">Edit Contact Preferences</h3>
+          <button @click="editPreferencesModalOpen = false" class="text-secondary-text hover:text-primary-text">
+            <X class="w-5 h-5" />
+          </button>
+        </div>
+
+        <div class="space-y-3 text-xs">
+          <label class="flex items-center justify-between p-3 rounded-xl border border-primary-border cursor-pointer hover:bg-background">
+            <span>Email Notifications</span>
+            <input type="checkbox" v-model="preferences.email" class="w-4 h-4 accent-primary" />
+          </label>
+          <label class="flex items-center justify-between p-3 rounded-xl border border-primary-border cursor-pointer hover:bg-background">
+            <span>SMS Notifications</span>
+            <input type="checkbox" v-model="preferences.sms" class="w-4 h-4 accent-primary" />
+          </label>
+          <label class="flex items-center justify-between p-3 rounded-xl border border-primary-border cursor-pointer hover:bg-background">
+            <span>Phone Calls</span>
+            <input type="checkbox" v-model="preferences.phone" class="w-4 h-4 accent-primary" />
+          </label>
+          <label class="flex items-center justify-between p-3 rounded-xl border border-primary-border cursor-pointer hover:bg-background">
+            <span>Marketing Updates</span>
+            <input type="checkbox" v-model="preferences.marketing" class="w-4 h-4 accent-primary" />
+          </label>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-primary-border">
+          <button
+            type="button"
+            @click="editPreferencesModalOpen = false"
+            class="px-4 py-2 text-xs font-semibold text-secondary-text hover:bg-background rounded-xl border border-primary-border"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            @click="savePreferences"
+            class="px-4 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-hover rounded-xl shadow-xs"
+          >
+            Save Preferences
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. Add Note Modal -->
     <div
       v-if="addNoteModalOpen"
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4"
@@ -684,7 +732,7 @@
             v-model="newNoteText"
             rows="4"
             placeholder="Type your verification notes or observations here..."
-            class="input-field p-3 resize-none"
+            class="input-field p-3 resize-none w-full border border-primary-border rounded-xl bg-background text-primary-text text-xs"
           ></textarea>
         </div>
 
@@ -728,12 +776,13 @@ import {
   ChevronRight,
   Plus,
   FileText,
-  FileCheck,
-  FileUp,
   Eye,
   CheckCircle2,
   AlertCircle,
   X,
+  Phone,
+  MessageSquare,
+  Megaphone,
 } from "lucide-vue-next";
 
 const route = useRoute();
@@ -741,18 +790,26 @@ const snackbar = useSnackbarStore();
 const clientDepthStore = useClientDepthStore();
 
 // ─── User Profile State ───────────────────────────────────────────────────────
-const user = ref({});
+const localStoredUser = ref({});
 
 const loadClientFromStorage = () => {
   try {
     const raw = localStorage.getItem("active_client");
     if (raw) {
-      user.value = JSON.parse(raw);
+      localStoredUser.value = JSON.parse(raw);
     }
   } catch {
-    user.value = {};
+    localStoredUser.value = {};
   }
 };
+
+const user = computed(() => {
+  return {
+    ...localStoredUser.value,
+    ...(clientDepthStore.activeClient || {}),
+    ...(clientDepthStore.overviewData?.user || {}),
+  };
+});
 
 const clientForEdit = computed(() => {
   return {
@@ -811,6 +868,24 @@ const handlePhotoUpload = (e) => {
   }
 };
 
+// ─── Contact Preferences ──────────────────────────────────────────────────────
+const preferences = ref({
+  email: true,
+  sms: false,
+  phone: true,
+  marketing: false,
+});
+const editPreferencesModalOpen = ref(false);
+
+const openPreferencesModal = () => {
+  editPreferencesModalOpen.value = true;
+};
+
+const savePreferences = () => {
+  editPreferencesModalOpen.value = false;
+  snackbar.show("Contact preferences updated successfully!", "success");
+};
+
 // ─── Edit Profile Drawer State ────────────────────────────────────────────────
 const editProfileDrawerOpen = ref(false);
 
@@ -824,7 +899,8 @@ const closeEditProfileDrawer = () => {
 
 const handleProfileEditSuccess = (updatedClient) => {
   if (updatedClient) {
-    user.value = { ...user.value, ...updatedClient };
+    localStoredUser.value = { ...localStoredUser.value, ...updatedClient };
+    clientDepthStore.setActiveClient(updatedClient);
   } else {
     loadClientFromStorage();
   }
@@ -832,7 +908,7 @@ const handleProfileEditSuccess = (updatedClient) => {
 
 // ─── KYC Document Helpers & Formatters ────────────────────────────────────────
 const formatDocType = (type) => {
-  if (!type) return "National ID Card";
+  if (!type) return "Passport, ID Card, or Driver's License";
   const map = {
     aadhaar: "Aadhaar Card",
     pan: "PAN Card",
@@ -845,30 +921,6 @@ const formatDocType = (type) => {
     other: "Official Identity Document",
   };
   return map[type] || String(type).replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-};
-
-const formatDate = (val) => {
-  if (!val) return "—";
-  try {
-    return new Date(val).toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
-  } catch {
-    return val;
-  }
-};
-
-const getStatusBadgeClass = (s) => {
-  const status = String(s || "").toLowerCase();
-  if (status === "approved" || status === "verified")
-    return "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20";
-  if (status === "pending" || status === "in_progress" || status === "under review" || status === "unverified")
-    return "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20";
-  if (status === "rejected")
-    return "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20";
-  return "bg-zinc-500/10 text-zinc-500 border border-zinc-500/20";
 };
 
 const getVerificationStatusBadgeClass = (status) => {
@@ -898,61 +950,56 @@ const kycStatus = computed(() => {
 
 const kycStatusMessage = computed(() => {
   const isUploaded = !!kycData.value?.docs_uploaded;
-  const s = String(kycStatus.value || "").toLowerCase();
-  if (isUploaded) {
-    if (s === "approved" || s === "verified") {
-      return "All identity documents verified successfully.";
-    }
-    if (s === "rejected") {
-      return kycData.value?.kyc_reject_reason || "Document was rejected. Please re-upload a clear copy.";
-    }
-    return "Document uploaded. Waiting for admin review.";
+  const s = (kycStatus.value || "").toLowerCase();
+  if (s === "approved" || s === "verified") {
+    return "Client identity verification completed.";
   }
-  return "Please upload identity document to get verified.";
+  if (s === "rejected") {
+    return kycData.value?.kyc_reject_reason || "Document rejected. Please upload valid proof.";
+  }
+  if (isUploaded) {
+    return "Complete the remaining steps to get verified.";
+  }
+  return "Complete the remaining steps to get verified.";
 });
 
 // ─── 3-Field Document Checklist Resolver ──────────────────────────────────────
 const documentChecklist = computed(() => {
   const k = clientDepthStore.kycData || {};
   const isUploaded = !!k.docs_uploaded;
-  const docType = k.doc_type || "pan";
+  const docType = k.doc_type || "passport";
   const docPath = k.doc_path || {};
   const frontUrl = docPath.front || k.front || k.front_url || null;
   const backUrl = docPath.back || k.back || k.back_url || null;
-  const status = k.kyc_status || (k.doc_approved ? "approved" : (isUploaded ? "pending" : null));
+  const status = k.kyc_status || (k.doc_approved ? "approved" : (isUploaded ? "unverified" : null));
   const remarks = k.kyc_reject_reason || (k.doc_approved ? "Approved" : (isUploaded ? "Waiting for verification" : "Required"));
-
-  // Check which row matches doc_type
-  const isAddress = docType?.toLowerCase() === "address_proof" || docType?.toLowerCase() === "address";
-  const isSelfie = docType?.toLowerCase() === "selfie";
-  const isIdentity = !isAddress && !isSelfie;
 
   return [
     {
       id: "identity",
       type: "identity",
-      doc_type: isIdentity ? docType : "pan",
+      doc_type: docType,
       title: "Proof of Identity",
-      subtitle: isIdentity && isUploaded ? formatDocType(docType) : "Passport, ID Card, or Driver's License",
-      uploaded: isIdentity ? isUploaded : false,
-      verification_status: isIdentity && isUploaded ? status : null,
-      remarks: isIdentity && isUploaded ? remarks : "Required",
-      front: isIdentity ? frontUrl : null,
-      back: isIdentity ? backUrl : null,
-      doc_path: isIdentity ? docPath : null,
+      subtitle: isUploaded ? formatDocType(docType) : "Passport, ID Card, or Driver's License",
+      uploaded: isUploaded,
+      verification_status: isUploaded ? status : null,
+      remarks: isUploaded ? remarks : "Waiting for verification",
+      front: frontUrl,
+      back: backUrl,
+      doc_path: docPath,
     },
     // {
     //   id: "address",
     //   type: "address",
-    //   doc_type: isAddress ? docType : "address_proof",
+    //   doc_type: "address_proof",
     //   title: "Proof of Address",
-    //   subtitle: isAddress && isUploaded ? formatDocType(docType) : "Utility Bill, Bank Statement, etc.",
-    //   uploaded: isAddress ? isUploaded : false,
-    //   verification_status: isAddress && isUploaded ? status : null,
-    //   remarks: isAddress && isUploaded ? remarks : "Required",
-    //   front: isAddress ? frontUrl : null,
-    //   back: isAddress ? backUrl : null,
-    //   doc_path: isAddress ? docPath : null,
+    //   subtitle: "Utility Bill, Bank Statement, etc.",
+    //   uploaded: isUploaded,
+    //   verification_status: isUploaded ? "unverified" : null,
+    //   remarks: isUploaded ? "Waiting for verification" : "Waiting for verification",
+    //   front: frontUrl,
+    //   back: backUrl,
+    //   doc_path: docPath,
     // },
     // {
     //   id: "selfie",
@@ -960,12 +1007,12 @@ const documentChecklist = computed(() => {
     //   doc_type: "selfie",
     //   title: "Selfie Photo",
     //   subtitle: "Clear selfie for verification",
-    //   uploaded: isSelfie ? isUploaded : false,
-    //   verification_status: isSelfie && isUploaded ? status : null,
-    //   remarks: isSelfie && isUploaded ? remarks : "Required",
-    //   front: isSelfie ? frontUrl : null,
+    //   uploaded: false,
+    //   verification_status: null,
+    //   remarks: "Required",
+    //   front: null,
     //   back: null,
-    //   doc_path: isSelfie ? docPath : null,
+    //   doc_path: null,
     // },
   ];
 });
@@ -1003,15 +1050,15 @@ const stepperSteps = computed(() => {
     },
     {
       number: 2,
-      label: "Document Upload",
+      label: "Documents",
       status: isDocUploaded ? "completed" : "pending",
-      statusText: isDocUploaded ? "Uploaded" : "Pending",
+      statusText: isDocUploaded ? "Pending" : "Pending",
     },
     {
       number: 3,
       label: "Verification",
       status: isVerified ? "completed" : (isRejected ? "rejected" : (isDocUploaded ? "in_progress" : "pending")),
-      statusText: isVerified ? "Approved" : (isRejected ? "Rejected" : (isDocUploaded ? "Under Review" : "Pending")),
+      statusText: isVerified ? "Approved" : (isRejected ? "Rejected" : (isDocUploaded ? "Pending" : "Pending")),
     },
   ];
 });
@@ -1058,7 +1105,7 @@ const closeViewDocModal = () => {
   viewDocModalOpen.value = false;
 };
 
-const handleUploadDocSuccess = (docData) => {
+const handleUploadDocSuccess = () => {
   const userId = route.params.id || user.value?.id;
   if (userId) {
     clientDepthStore.fetchClientKyc(userId, true);

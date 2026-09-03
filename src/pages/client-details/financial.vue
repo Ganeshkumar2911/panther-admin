@@ -7,7 +7,7 @@
           Financial Summary
         </h3>
         <p class="text-xs text-secondary-text mt-0.5">
-          Overview of client's financial activity across all accounts.
+          Overview of client's financial activity across all trading accounts.
         </p>
       </div>
     </div>
@@ -46,7 +46,7 @@
             ${{ formatCurrency(totalDeposits) }}
           </p>
           <p class="text-[11px] text-secondary-text font-medium mt-0.5 whitespace-nowrap">
-            {{ depositCount }} Deposits
+            {{ depositCount }} {{ depositCount === 1 ? 'Deposit' : 'Deposits' }}
           </p>
         </div>
         <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary-green/10 flex items-center justify-center shrink-0 text-primary-green">
@@ -66,7 +66,7 @@
             ${{ formatCurrency(totalWithdrawals) }}
           </p>
           <p class="text-[11px] text-secondary-text font-medium mt-0.5 whitespace-nowrap">
-            {{ withdrawalCount }} Withdrawals
+            {{ withdrawalCount }} {{ withdrawalCount === 1 ? 'Withdrawal' : 'Withdrawals' }}
           </p>
         </div>
         <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary-red/10 flex items-center justify-center shrink-0 text-primary-red">
@@ -74,7 +74,33 @@
         </div>
       </div>
 
-      <!-- 3. Total Equity -->
+      <!-- 3. Net Cashflow -->
+      <div
+        class="bg-card-background border border-primary-border rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-2.5 transition-all hover:border-primary/30 shadow-xs"
+      >
+        <div class="min-w-0 flex-1">
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text truncate">
+            Net Cashflow
+          </p>
+          <p
+            class="text-lg sm:text-xl xl:text-2xl font-extrabold mt-1 whitespace-nowrap"
+            :class="netCashflow >= 0 ? 'text-primary-green' : 'text-primary-red'"
+          >
+            {{ netCashflow >= 0 ? '+' : '' }}${{ formatCurrency(netCashflow) }}
+          </p>
+          <p class="text-[11px] text-secondary-text font-medium mt-0.5 whitespace-nowrap">
+            Deposit - Withdrawal
+          </p>
+        </div>
+        <div
+          class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0"
+          :class="netCashflow >= 0 ? 'bg-primary-green/10 text-primary-green' : 'bg-primary-red/10 text-primary-red'"
+        >
+          <Wallet class="w-4.5 h-4.5 sm:w-5 sm:h-5" />
+        </div>
+      </div>
+
+      <!-- 4. Total Equity -->
       <div
         class="bg-card-background border border-primary-border rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-2.5 transition-all hover:border-primary/30 shadow-xs"
       >
@@ -86,7 +112,7 @@
             ${{ formatCurrency(totalEquity) }}
           </p>
           <p class="text-[11px] text-secondary-text font-medium mt-0.5 whitespace-nowrap">
-            All Accounts
+            {{ totalAccountsCount }} {{ totalAccountsCount === 1 ? 'Account' : 'Accounts' }}
           </p>
         </div>
         <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary-blue/10 flex items-center justify-center shrink-0 text-primary-blue">
@@ -94,7 +120,7 @@
         </div>
       </div>
 
-      <!-- 4. Total PnL -->
+      <!-- 5. Total PnL -->
       <div
         class="bg-card-background border border-primary-border rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-2.5 transition-all hover:border-primary/30 shadow-xs"
       >
@@ -106,34 +132,17 @@
             class="text-lg sm:text-xl xl:text-2xl font-extrabold mt-1 whitespace-nowrap"
             :class="totalPnl >= 0 ? 'text-primary-green' : 'text-primary-red'"
           >
-            ${{ formatCurrency(totalPnl) }}
+            {{ totalPnl >= 0 ? '+' : '' }}${{ formatCurrency(totalPnl) }}
           </p>
           <p class="text-[11px] text-secondary-text font-medium mt-0.5 whitespace-nowrap">
             Realized + Unrealized
           </p>
         </div>
-        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary-green/10 flex items-center justify-center shrink-0 text-primary-green">
+        <div
+          class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0"
+          :class="totalPnl >= 0 ? 'bg-primary-green/10 text-primary-green' : 'bg-primary-red/10 text-primary-red'"
+        >
           <DollarSign class="w-4.5 h-4.5 sm:w-5 sm:h-5" />
-        </div>
-      </div>
-
-      <!-- 5. Referral Earnings -->
-      <div
-        class="bg-card-background border border-primary-border rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-2.5 transition-all hover:border-primary/30 shadow-xs"
-      >
-        <div class="min-w-0 flex-1">
-          <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text truncate">
-            Referral Earnings
-          </p>
-          <p class="text-lg sm:text-xl xl:text-2xl font-extrabold text-accent mt-1 whitespace-nowrap">
-            ${{ formatCurrency(referralEarnings) }}
-          </p>
-          <p class="text-[11px] text-secondary-text font-medium mt-0.5 whitespace-nowrap">
-            Total Earnings
-          </p>
-        </div>
-        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-accent/10 flex items-center justify-center shrink-0 text-accent">
-          <Users class="w-4.5 h-4.5 sm:w-5 sm:h-5" />
         </div>
       </div>
     </div>
@@ -165,19 +174,19 @@
           <!-- Refresh Button -->
           <button
             type="button"
-            @click="refreshFinancialData"
-            :disabled="isRefreshing"
+            @click="refreshChartsData"
+            :disabled="isChartsRefreshing || clientDepthStore.userChartsLoading"
             class="border border-primary-border bg-card-background hover:bg-background rounded-xl p-2.5 text-secondary-text hover:text-primary-text transition-colors cursor-pointer shadow-2xs disabled:opacity-50"
-            title="Refresh Financial Data"
+            title="Refresh Charts Data"
           >
-            <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': isRefreshing }" />
+            <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': isChartsRefreshing || clientDepthStore.userChartsLoading }" />
           </button>
         </div>
       </div>
 
       <!-- Skeletons for Charts -->
       <div
-        v-if="isChartsInitialLoading"
+        v-if="isChartsLoading"
         class="grid grid-cols-1 lg:grid-cols-2 gap-5 animate-pulse"
       >
         <!-- Chart 1 Skeleton -->
@@ -351,14 +360,22 @@
         class="bg-card-background border border-primary-border rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col justify-between transition-all hover:border-primary/30 min-h-[380px]"
       >
         <div class="flex flex-col h-full">
-          <!-- Header -->
-          <div class="pb-3.5 border-b border-primary-border/60 shrink-0">
-            <h4 class="text-sm sm:text-base font-bold text-primary-text">
-              Account Overview
-            </h4>
-            <p class="text-xs text-secondary-text mt-0.5">
-              Summary of all trading accounts.
-            </p>
+          <!-- Header with count badge -->
+          <div class="pb-3.5 border-b border-primary-border/60 shrink-0 flex items-center justify-between gap-2">
+            <div>
+              <h4 class="text-sm sm:text-base font-bold text-primary-text">
+                Account Overview
+              </h4>
+              <p class="text-xs text-secondary-text mt-0.5">
+                Summary of all trading accounts.
+              </p>
+            </div>
+            <span
+              v-if="tradingAccounts.length > 0"
+              class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-primary/10 text-primary shrink-0"
+            >
+              {{ accountsPagination.total_items ?? tradingAccounts.length }} {{ (accountsPagination.total_items ?? tradingAccounts.length) === 1 ? 'Account' : 'Accounts' }}
+            </span>
           </div>
 
           <!-- Accounts Table Scrollable Container with Fixed Max-Height -->
@@ -420,6 +437,11 @@
               <p class="text-[11px] text-secondary-text mt-0.5">This client does not have any active trading accounts.</p>
             </div>
           </div>
+
+          <!-- Accounts Pagination -->
+          <div v-if="accountsPagination && accountsPagination.total_pages > 1" class="pt-3 border-t border-primary-border/50 shrink-0 flex justify-end">
+            <Pagination :pagination="accountsPagination" @page-change="handleAccountsPageChange" />
+          </div>
         </div>
       </div>
 
@@ -428,14 +450,22 @@
         class="bg-card-background border border-primary-border rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col justify-between transition-all hover:border-primary/30 min-h-[380px]"
       >
         <div class="flex flex-col h-full">
-          <!-- Header -->
-          <div class="pb-3.5 border-b border-primary-border/60 shrink-0">
-            <h4 class="text-sm sm:text-base font-bold text-primary-text">
-              Recent Transactions
-            </h4>
-            <p class="text-xs text-secondary-text mt-0.5">
-              Latest financial transactions.
-            </p>
+          <!-- Header with count badge -->
+          <div class="pb-3.5 border-b border-primary-border/60 shrink-0 flex items-center justify-between gap-2">
+            <div>
+              <h4 class="text-sm sm:text-base font-bold text-primary-text">
+                Recent Transactions
+              </h4>
+              <p class="text-xs text-secondary-text mt-0.5">
+                Latest financial deposits and withdrawals.
+              </p>
+            </div>
+            <span
+              v-if="recentTransactions.length > 0"
+              class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-primary/10 text-primary shrink-0"
+            >
+              {{ transactionsPagination.total_items ?? recentTransactions.length }} {{ (transactionsPagination.total_items ?? recentTransactions.length) === 1 ? 'Transaction' : 'Transactions' }}
+            </span>
           </div>
 
           <!-- Transactions Table Scrollable Container with Fixed Max-Height -->
@@ -496,6 +526,11 @@
               <p class="text-[11px] text-secondary-text mt-0.5">There are no deposits or withdrawals recorded for this client.</p>
             </div>
           </div>
+
+          <!-- Transactions Pagination -->
+          <div v-if="transactionsPagination && transactionsPagination.total_pages > 1" class="pt-3 border-t border-primary-border/50 shrink-0 flex justify-end">
+            <Pagination :pagination="transactionsPagination" @page-change="handleTransactionsPageChange" />
+          </div>
         </div>
       </div>
     </div>
@@ -508,12 +543,13 @@ import { useRoute } from "vue-router";
 import { useClientDepthStore } from "@/stores/clientDepth/clientDepth";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
 import BaseSelect from "@/components/common/BaseSelect.vue";
+import Pagination from "@/components/common/Pagination.vue";
 import {
   ArrowDownLeft,
   ArrowUpRight,
   BarChart2,
   DollarSign,
-  Users,
+  Wallet,
   RefreshCw,
   Loader2,
 } from "lucide-vue-next";
@@ -547,8 +583,9 @@ const route = useRoute();
 const clientDepthStore = useClientDepthStore();
 const snackbar = useSnackbarStore();
 
-// ─── Filter State ─────────────────────────────────────────────────────────────
+// ─── Filter & Refresh State ───────────────────────────────────────────────────
 const selectedPeriod = ref("6M");
+const isChartsRefreshing = ref(false);
 
 const periodOptions = [
   { label: "1 Month", value: "1M" },
@@ -572,7 +609,7 @@ const handlePeriodChange = (val) => {
   }
 };
 
-// ─── Fetch & Refresh Financial Data ───────────────────────────────────────────
+// ─── Fetch Initial Financial Data ─────────────────────────────────────────────
 const loadFinancialData = (force = false) => {
   const userId = route.params.id;
   if (userId) {
@@ -582,14 +619,28 @@ const loadFinancialData = (force = false) => {
   }
 };
 
-const refreshFinancialData = () => {
-  loadFinancialData(true);
-  snackbar.show("Refreshing financial data...", "info");
+// ─── Refresh ONLY Charts Data ─────────────────────────────────────────────────
+const refreshChartsData = () => {
+  const userId = route.params.id;
+  if (!userId) return;
+  isChartsRefreshing.value = true;
+  snackbar.show("Refreshing performance charts...", "info");
+  clientDepthStore.fetchUserCharts(
+    userId,
+    { months: periodMonthsMap[selectedPeriod.value] || 6 },
+    true
+  );
 };
 
-const isRefreshing = computed(() => {
-  return clientDepthStore.userChartsLoading || clientDepthStore.accountDetailsLoading || clientDepthStore.loading;
-});
+// Auto-reset isChartsRefreshing once userChartsLoading finishes
+watch(
+  () => clientDepthStore.userChartsLoading,
+  (loading) => {
+    if (!loading) {
+      isChartsRefreshing.value = false;
+    }
+  }
+);
 
 onMounted(() => {
   loadFinancialData();
@@ -605,17 +656,23 @@ watch(
 // ─── Loading Skeletons State Resolvers ─────────────────────────────────────────
 const isTopMetricsLoading = computed(() => {
   return (
-    (clientDepthStore.userChartsLoading && !clientDepthStore.userChartsFetched) ||
+    (clientDepthStore.accountDetailsLoading && !clientDepthStore.accountDetailsFetched) ||
     (clientDepthStore.loading && !clientDepthStore.isFetched)
   );
 });
 
-const isChartsInitialLoading = computed(() => {
-  return clientDepthStore.userChartsLoading && !clientDepthStore.userChartsFetched;
+const isChartsLoading = computed(() => {
+  return (
+    isChartsRefreshing.value ||
+    clientDepthStore.userChartsLoading ||
+    !clientDepthStore.userChartsFetched
+  );
 });
 
 const isTablesInitialLoading = computed(() => {
-  return clientDepthStore.accountDetailsLoading && !clientDepthStore.accountDetailsFetched;
+  return (
+    clientDepthStore.accountDetailsLoading && !clientDepthStore.accountDetailsFetched
+  );
 });
 
 // ─── Reactive Data Resolvers from API Store ───────────────────────────────────
@@ -623,9 +680,15 @@ const overviewData = computed(() => clientDepthStore.overviewData || {});
 const userChartsData = computed(() => clientDepthStore.userChartsData || {});
 const chartsSummary = computed(() => userChartsData.value?.summary || {});
 const accountDetailsData = computed(() => clientDepthStore.accountDetailsData || {});
+const accountSummary = computed(() => accountDetailsData.value?.summary || {});
+const accountsPagination = computed(() => accountDetailsData.value?.accounts_pagination || {});
+const transactionsPagination = computed(() => accountDetailsData.value?.transactions_pagination || {});
 
-// Top Metric Cards values
+// ─── Top Metric Cards Values ──────────────────────────────────────────────────
 const totalDeposits = computed(() => {
+  if (accountSummary.value?.total_deposit !== undefined && accountSummary.value?.total_deposit !== null) {
+    return Number(accountSummary.value.total_deposit);
+  }
   if (chartsSummary.value?.total_deposit !== undefined && chartsSummary.value?.total_deposit !== null) {
     return Number(chartsSummary.value.total_deposit);
   }
@@ -637,12 +700,16 @@ const totalDeposits = computed(() => {
 
 const depositCount = computed(() => {
   if (recentTransactions.value && recentTransactions.value.length > 0) {
-    return recentTransactions.value.filter((t) => String(t.type).toLowerCase() === "deposit").length;
+    const count = recentTransactions.value.filter((t) => String(t.type).toLowerCase() === "deposit").length;
+    if (count > 0) return count;
   }
   return overviewData.value?.deposit_count || 0;
 });
 
 const totalWithdrawals = computed(() => {
+  if (accountSummary.value?.total_withdrawal !== undefined && accountSummary.value?.total_withdrawal !== null) {
+    return Number(accountSummary.value.total_withdrawal);
+  }
   if (chartsSummary.value?.total_withdrawal !== undefined && chartsSummary.value?.total_withdrawal !== null) {
     return Number(chartsSummary.value.total_withdrawal);
   }
@@ -654,12 +721,23 @@ const totalWithdrawals = computed(() => {
 
 const withdrawalCount = computed(() => {
   if (recentTransactions.value && recentTransactions.value.length > 0) {
-    return recentTransactions.value.filter((t) => String(t.type).toLowerCase() === "withdrawal").length;
+    const count = recentTransactions.value.filter((t) => String(t.type).toLowerCase() === "withdrawal").length;
+    if (count > 0) return count;
   }
   return overviewData.value?.withdrawal_count || 0;
 });
 
+const netCashflow = computed(() => {
+  if (accountSummary.value?.net_cashflow !== undefined && accountSummary.value?.net_cashflow !== null) {
+    return Number(accountSummary.value.net_cashflow);
+  }
+  return totalDeposits.value - totalWithdrawals.value;
+});
+
 const totalEquity = computed(() => {
+  if (accountSummary.value?.total_equity !== undefined && accountSummary.value?.total_equity !== null) {
+    return Number(accountSummary.value.total_equity);
+  }
   if (chartsSummary.value?.current_equity !== undefined && chartsSummary.value?.current_equity !== null) {
     return Number(chartsSummary.value.current_equity);
   }
@@ -669,7 +747,20 @@ const totalEquity = computed(() => {
   return 0;
 });
 
+const totalAccountsCount = computed(() => {
+  if (accountSummary.value?.total_accounts !== undefined && accountSummary.value?.total_accounts !== null) {
+    return accountSummary.value.total_accounts;
+  }
+  if (accountsPagination.value?.total_items !== undefined) {
+    return accountsPagination.value.total_items;
+  }
+  return tradingAccounts.value.length || overviewData.value?.total_accounts || 0;
+});
+
 const totalPnl = computed(() => {
+  if (accountSummary.value?.total_pnl !== undefined && accountSummary.value?.total_pnl !== null) {
+    return Number(accountSummary.value.total_pnl);
+  }
   if (chartsSummary.value?.total_growth !== undefined && chartsSummary.value?.total_growth !== null) {
     return Number(chartsSummary.value.total_growth);
   }
@@ -677,14 +768,6 @@ const totalPnl = computed(() => {
     return Number(overviewData.value.total_pnl);
   }
   return 0;
-});
-
-const referralEarnings = computed(() => {
-  return (
-    overviewData.value?.referral_earnings ??
-    overviewData.value?.health_score?.client_stats?.referral_earnings ??
-    0
-  );
 });
 
 // ─── Format Month Label Helper ────────────────────────────────────────────────
@@ -892,9 +975,16 @@ const getAccountTypeBadgeClass = (type) => {
   const t = String(type || "").toLowerCase();
   if (t === "live" || t === "real") return "bg-primary-green/10 text-primary-green border border-primary-green/20";
   if (t === "demo") return "bg-primary-blue/10 text-primary-blue border border-primary-blue/20";
-  if (t.includes("copy")) return "bg-primary-red/10 text-primary-red border border-primary-red/20";
+  if (t.includes("copy")) return "bg-purple-500/10 text-purple-400 border border-purple-500/20";
   if (t === "pamm") return "bg-primary-yellow/10 text-primary-yellow border border-primary-yellow/20";
   return "bg-secondary-text/10 text-secondary-text border border-secondary-text/20";
+};
+
+const handleAccountsPageChange = (page) => {
+  const userId = route.params.id;
+  if (userId) {
+    clientDepthStore.fetchAccountDetails(userId, { accounts_page: page }, true);
+  }
 };
 
 // ─── Recent Transactions Table Data ───────────────────────────────────────────
@@ -927,6 +1017,13 @@ const getTransactionStatusBadgeClass = (status) => {
     return "bg-primary-red/10 text-primary-red border border-primary-red/20";
   }
   return "bg-secondary-text/10 text-secondary-text border border-secondary-text/20";
+};
+
+const handleTransactionsPageChange = (page) => {
+  const userId = route.params.id;
+  if (userId) {
+    clientDepthStore.fetchAccountDetails(userId, { tx_page: page }, true);
+  }
 };
 
 // ─── Format Utilities ─────────────────────────────────────────────────────────
