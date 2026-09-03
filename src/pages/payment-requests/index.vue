@@ -184,7 +184,7 @@
               Timing
             </th>
             <th
-              class="min-w-52 text-right text-[11px] font-semibold text-secondary-text uppercase tracking-wider px-3 py-3"
+              class="min-w-32 text-right text-[11px] font-semibold text-secondary-text uppercase tracking-wider px-3 py-3"
             >
               Actions
             </th>
@@ -614,9 +614,9 @@
             </td>
 
             <!-- Actions -->
-            <td class="px-3 py-3 min-w-52">
+            <td class="pr-3 py-3 min-w-32">
               <div class="flex items-center justify-end gap-1.5">
-                <button
+                <!-- <button
                   v-if="hasBankDetails(req)"
                   type="button"
                   class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-colors cursor-pointer"
@@ -625,10 +625,10 @@
                 >
                   <Landmark class="w-3 h-3" />
                   Details
-                </button>
+                </button> -->
 
                 <template v-if="req.approval_status === 'pending'">
-                  <button
+                  <!-- <button
                     v-if="canEditPaymentRequest(req)"
                     type="button"
                     class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
@@ -637,7 +637,7 @@
                   >
                     <Pencil class="w-3 h-3" />
                     Edit
-                  </button>
+                  </button> -->
                   <button
                     v-if="hasPermission('payment_requests.approve')"
                     class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border bg-primary-green/10 text-primary-green border-primary-green/20 hover:bg-primary-green/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
