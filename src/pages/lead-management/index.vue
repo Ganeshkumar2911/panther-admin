@@ -12,6 +12,7 @@ import LeadTable from "@/components/lead-management/LeadTable.vue";
 import LeadDetailDrawer from "@/components/lead-management/LeadDetailDrawer.vue";
 import LeadFormModal from "@/components/lead-management/LeadFormModal.vue";
 import LeadStageManagementModal from "@/components/lead-management/LeadStageManagementModal.vue";
+import LeadImportExportDrawer from "@/components/lead-management/LeadImportExportDrawer.vue";
 import TagAssignmentModal from "@/components/common/TagAssignmentModal.vue";
 
 import { Plus, ArrowUpDown, Layers } from "lucide-vue-next";

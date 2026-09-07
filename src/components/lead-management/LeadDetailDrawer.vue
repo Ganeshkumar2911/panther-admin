@@ -10,6 +10,7 @@ import {
   Mail,
   Bell,
   Clock,
+  ArrowRight,
   ArrowRightLeft,
   Edit,
   Loader2,

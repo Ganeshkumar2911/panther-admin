@@ -184,7 +184,7 @@
               Timing
             </th>
             <th
-              class="min-w-35 text-right text-[11px] font-semibold text-secondary-text uppercase tracking-wider px-3 py-3"
+              class="min-w-32 text-right text-[11px] font-semibold text-secondary-text uppercase tracking-wider px-3 py-3"
             >
               Actions
             </th>
@@ -240,6 +240,7 @@
               <div class="h-3 w-20 bg-background rounded" />
             </td>
             <td class="px-3 py-3.5 flex justify-end gap-1">
+              <div class="h-6 w-12 bg-background rounded-lg" />
               <div class="h-6 w-16 bg-background rounded-lg" />
               <div class="h-6 w-14 bg-background rounded-lg" />
             </td>
@@ -363,7 +364,7 @@
               <div class="space-y-0.5">
                 <div class="flex items-baseline gap-1">
                   <span class="text-xs font-bold text-primary-text tabular-nums">
-                    ${{ fmt(req.amount) }}
+                    ${{ fmt(req.amount, 3) }}
                   </span>
                   <span v-if="req.currency && req.currency !== 'USD'" class="text-[10px] text-secondary-text font-medium uppercase">
                     {{ req.currency }}
@@ -376,7 +377,7 @@
                   class="flex items-center gap-1 text-[11px] text-secondary-text tabular-nums"
                 >
                   <span class="font-medium text-emerald-400">
-                    {{ fmt(req.paid_amount) }} {{ req.paid_currency }}
+                    {{ fmt(req.paid_amount, 2) }} {{ req.paid_currency }}
                   </span>
                   <Tooltip
                     v-if="req.conversion_rate?.units_per_usd"
@@ -386,6 +387,16 @@
                     <span class="text-[9px] text-secondary-text/70 cursor-help underline decoration-dotted font-mono">
                       (@{{ fmtRate(req.conversion_rate.units_per_usd) }})
                     </span>
+                  </Tooltip>
+                  <Tooltip v-if="canEditPaymentRequest(req)" text="Edit Bank Transfer Amount" position="center">
+                    <button
+                      type="button"
+                      class="p-0.5 rounded text-secondary-text hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer"
+                      title="Edit Amount"
+                      @click.stop="openEditAmountDialog(req)"
+                    >
+                      <Pencil class="w-3 h-3" />
+                    </button>
                   </Tooltip>
                 </div>
               </div>
@@ -399,8 +410,18 @@
                   <span class="text-[11px] font-semibold text-primary-text capitalize">
                     {{ req.gateway || "—" }}
                   </span>
+                  <button
+                    v-if="hasBankDetails(req)"
+                    type="button"
+                    class="text-[9px] font-medium px-1.5 py-0.2 rounded bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 transition-colors inline-flex items-center gap-1 cursor-pointer shrink-0"
+                    title="View Bank Transaction Details"
+                    @click.stop="openBankDetailsDialog(req)"
+                  >
+                    <Landmark class="w-2.5 h-2.5" />
+                    <span>{{ req.method || 'Bank Transaction' }}</span>
+                  </button>
                   <span
-                    v-if="req.method"
+                    v-else-if="req.method"
                     class="text-[9px] font-medium px-1.5 py-0.2 rounded bg-background border border-primary-border text-secondary-text capitalize shrink-0"
                   >
                     {{ req.method }}
@@ -414,8 +435,36 @@
                   </span>
                 </div>
 
-                <!-- Identifiers: Address / TX / Ref -->
+                <!-- Identifiers: Address / TX / Ref / Bank -->
                 <div class="flex flex-col gap-0.5 text-[10px]">
+                  <!-- Bank Account / Beneficiary for Bank Transaction -->
+                  <div
+                    v-if="getBankSummary(req)"
+                    class="flex items-center gap-1 font-mono text-[10px] text-secondary-text"
+                  >
+                    <span class="text-[9px] text-secondary-text/60 shrink-0">Bank:</span>
+                    <Tooltip :text="getBankSummary(req).full" position="center" textSize="9px">
+                      <span
+                        class="text-primary-text font-medium cursor-pointer hover:underline truncate max-w-36"
+                        @click.stop="openBankDetailsDialog(req)"
+                      >
+                        {{ getBankSummary(req).short }}
+                      </span>
+                    </Tooltip>
+                    <button
+                      v-if="getBankSummary(req).copyValue"
+                      type="button"
+                      class="inline-flex items-center justify-center w-4 h-4 rounded hover:bg-background border border-transparent hover:border-primary-border text-secondary-text hover:text-primary transition-colors cursor-pointer shrink-0"
+                      title="Copy Account Number"
+                      @click.stop="copyToClipboard(getBankSummary(req).copyValue, `acc_${req.id}`)"
+                    >
+                      <Check
+                        v-if="copiedMap[`acc_${req.id}`]"
+                        class="w-2.5 h-2.5 text-emerald-400 shrink-0"
+                      />
+                      <Copy v-else class="w-2.5 h-2.5 shrink-0" />
+                    </button>
+                  </div>
                   <!-- Address (Crypto) -->
                   <div
                     v-if="getAddress(req)"
@@ -565,9 +614,30 @@
             </td>
 
             <!-- Actions -->
-            <td class="px-3 py-3 min-w-35">
+            <td class="pr-3 py-3 min-w-32">
               <div class="flex items-center justify-end gap-1.5">
+                <!-- <button
+                  v-if="hasBankDetails(req)"
+                  type="button"
+                  class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-colors cursor-pointer"
+                  title="View Bank Transaction Details"
+                  @click="openBankDetailsDialog(req)"
+                >
+                  <Landmark class="w-3 h-3" />
+                  Details
+                </button> -->
+
                 <template v-if="req.approval_status === 'pending'">
+                  <!-- <button
+                    v-if="canEditPaymentRequest(req)"
+                    type="button"
+                    class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    title="Edit Amount"
+                    @click="openEditAmountDialog(req)"
+                  >
+                    <Pencil class="w-3 h-3" />
+                    Edit
+                  </button> -->
                   <button
                     v-if="hasPermission('payment_requests.approve')"
                     class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border bg-primary-green/10 text-primary-green border-primary-green/20 hover:bg-primary-green/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
@@ -585,7 +655,7 @@
                     Reject
                   </button>
                 </template>
-                <span v-else class="text-[11px] text-secondary-text font-medium"
+                <span v-else-if="!hasBankDetails(req)" class="text-[11px] text-secondary-text font-medium"
                   >Processed</span
                 >
               </div>
@@ -610,6 +680,7 @@
       :loading="isConfirmLoading"
       @close="closeConfirmDialog"
       @confirm="handleConfirm"
+      @edit="openEditAmountDialog"
     />
 
     <ChangePaymentStatusDialog
@@ -618,13 +689,29 @@
       @close="closeChangeStatusDialog"
       @success="handleStatusChangeSuccess"
     />
+
+    <EditPaymentRequestAmountDialog
+      :open="editAmountDialog.open"
+      :request="editAmountDialog.request"
+      @close="closeEditAmountDialog"
+      @success="handleEditAmountSuccess"
+    />
+
+    <BankTransactionDetailsDialog
+      :open="bankDetailsDialog.open"
+      :request="bankDetailsDialog.request"
+      @close="closeBankDetailsDialog"
+      @approve="handleBankDetailsApprove"
+      @reject="handleBankDetailsReject"
+      @edit="handleBankDetailsEdit"
+    />
   </div>
 </template>
 
 <script setup>
 import { onMounted, computed, ref, watch } from "vue";
 import { useRouter } from "vue-router";
-import { Receipt, Check, X, RefreshCw, Copy, FileText, AlertCircle } from "lucide-vue-next";
+import { Receipt, Check, X, RefreshCw, Copy, FileText, AlertCircle, Pencil, Landmark } from "lucide-vue-next";
 import { usePaymentRequestsStore } from "@/stores/paymentRequests/paymentRequests";
 import { useProfileStore } from "@/stores/profile/profile";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
@@ -634,6 +721,8 @@ import Tooltip from "@/components/common/Tooltip.vue";
 import TagChip from "@/components/common/TagChip.vue";
 import PaymentRequestConfirmDialog from "@/components/paymentRequests/PaymentRequestConfirmDialog.vue";
 import ChangePaymentStatusDialog from "@/components/paymentRequests/ChangePaymentStatusDialog.vue";
+import EditPaymentRequestAmountDialog from "@/components/paymentRequests/EditPaymentRequestAmountDialog.vue";
+import BankTransactionDetailsDialog from "@/components/paymentRequests/BankTransactionDetailsDialog.vue";
 import { formatDate } from "@/utils/timeFormatter";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 
@@ -644,6 +733,78 @@ const snackbar = useSnackbarStore();
 const { hasPermission } = usePermissionCheck();
 
 const copiedMap = ref({});
+
+const parseRawPayload = (req) => {
+  if (!req?.raw_payload) return null;
+  if (typeof req.raw_payload === "object") return req.raw_payload;
+  try {
+    return JSON.parse(req.raw_payload);
+  } catch {
+    return null;
+  }
+};
+
+const hasBankDetails = (req) => {
+  if (!req) return false;
+  const method = (req.method || "").trim().toLowerCase();
+  const gateway = (req.gateway || "").trim().toLowerCase();
+  if (method === "bank transaction" || gateway === "bank_transfer") return true;
+
+  const payload = parseRawPayload(req);
+  if (
+    payload &&
+    (payload.account_number ||
+      payload.company_bank ||
+      payload.bank ||
+      payload.payoutAmount != null)
+  ) {
+    return true;
+  }
+  return Boolean(
+    req.bank_details || req.bank_account || req.user_bank_account
+  );
+};
+
+const getBankSummary = (req) => {
+  if (!req) return null;
+  const payload = parseRawPayload(req);
+  const direct = req.bank_details || req.bank_account || req.user_bank_account;
+
+  if (payload?.company_bank) {
+    const b = payload.company_bank;
+    const name = b.bank_name || "Company Bank";
+    const acc = b.account_number ? `..${String(b.account_number).slice(-4)}` : "";
+    return {
+      short: `${name} ${acc}`.trim(),
+      full: `${b.bank_name || ''} · ${b.account_name || ''} · Acc: ${b.account_number || ''} (IFSC: ${b.ifsc_code || ''})`.trim(),
+      copyValue: b.account_number || "",
+    };
+  }
+
+  const bankName = payload?.bank || direct?.bank || "";
+  const accNo = payload?.account_number || direct?.account_number || "";
+  const ifsc = payload?.bank_branch_code || payload?.ifsc_code || direct?.bank_branch_code || direct?.ifsc_code || "";
+  const accName = payload?.account_name || direct?.account_name || "";
+
+  if (!bankName && !accNo) return null;
+
+  const shortAcc = accNo ? `..${String(accNo).slice(-4)}` : "";
+  const shortText = [bankName, shortAcc].filter(Boolean).join(" ");
+  const fullText = [
+    accName ? `Name: ${accName}` : "",
+    bankName ? `Bank: ${bankName}` : "",
+    accNo ? `Acc: ${accNo}` : "",
+    ifsc ? `IFSC: ${ifsc}` : "",
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
+  return {
+    short: shortText || "Bank Details",
+    full: fullText,
+    copyValue: accNo || "",
+  };
+};
 
 const visibleTags = (tags) => {
   if (!tags || !Array.isArray(tags)) return [];
@@ -752,6 +913,86 @@ const closeChangeStatusDialog = () => {
 
 const handleStatusChangeSuccess = () => {
   store.fetchRequests(true);
+};
+
+const editAmountDialog = ref({
+  open: false,
+  request: null,
+});
+
+const openEditAmountDialog = (request) => {
+  if (confirmDialog.value.open) {
+    confirmDialog.value.open = false;
+  }
+  if (bankDetailsDialog.value.open) {
+    bankDetailsDialog.value.open = false;
+  }
+  editAmountDialog.value = {
+    open: true,
+    request,
+  };
+};
+
+const closeEditAmountDialog = () => {
+  editAmountDialog.value = {
+    open: false,
+    request: null,
+  };
+};
+
+const handleEditAmountSuccess = () => {
+  store.fetchRequests(true);
+};
+
+const bankDetailsDialog = ref({
+  open: false,
+  request: null,
+});
+
+const openBankDetailsDialog = (request) => {
+  bankDetailsDialog.value = {
+    open: true,
+    request,
+  };
+};
+
+const closeBankDetailsDialog = () => {
+  bankDetailsDialog.value = {
+    open: false,
+    request: null,
+  };
+};
+
+const handleBankDetailsEdit = (request) => {
+  closeBankDetailsDialog();
+  openEditAmountDialog(request);
+};
+
+const handleBankDetailsApprove = (request) => {
+  closeBankDetailsDialog();
+  openConfirmDialog("approve", request);
+};
+
+const handleBankDetailsReject = (request) => {
+  closeBankDetailsDialog();
+  openConfirmDialog("reject", request);
+};
+
+const canEditPaymentRequest = (req) => {
+  if (!req) return false;
+  if (!hasPermission("payment_requests.approve")) return false;
+
+  const gateway = (req.gateway || "").trim().toLowerCase().replace(/[\s_-]+/g, "_");
+  const method = (req.method || "").trim().toLowerCase().replace(/[\s_-]+/g, " ");
+  const status = (req.approval_status || "").trim().toLowerCase();
+  const type = (req.type || "").trim().toLowerCase();
+
+  const isBankTransfer = gateway === "bank_transfer" || gateway === "banktransfer";
+  const isBankTransaction = method === "bank transaction" || method === "bank transfer";
+  const isPending = status === "pending";
+  const isValidType = type === "deposit" || type === "withdrawal";
+
+  return isBankTransfer && isBankTransaction && isPending && isValidType;
 };
 
 let clientTimer = null;
@@ -890,11 +1131,14 @@ const approvalStatusClass = (s) =>
     rejected: "bg-primary-red/10 text-primary-red border-primary-red/20",
   })[s?.toLowerCase()] ?? "bg-background text-secondary-text border-primary-border";
 
-const fmt = (v) =>
-  (v ?? 0).toLocaleString("en-US", {
+const fmt = (v, maxDecimals = 2) => {
+  const num = Number(v ?? 0);
+  if (Number.isNaN(num)) return "0.00";
+  return num.toLocaleString("en-US", {
     minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    maximumFractionDigits: maxDecimals,
   });
+};
 
 const fmtRate = (v) => {
   if (v == null) return "—";
@@ -930,16 +1174,16 @@ const closeConfirmDialog = () => {
   };
 };
 
-const handleConfirm = async () => {
+const handleConfirm = async (payload) => {
   if (!confirmDialog.value.request) return;
 
   const requestId = confirmDialog.value.request.id;
 
   try {
     if (confirmDialog.value.action === "approve") {
-      await store.approveRequest(requestId);
+      await store.approveRequest(requestId, payload);
     } else {
-      await store.rejectRequest(requestId);
+      await store.rejectRequest(requestId, payload);
     }
   } finally {
     closeConfirmDialog();
