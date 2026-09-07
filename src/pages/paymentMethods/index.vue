@@ -232,23 +232,23 @@
             <!-- Deposit Capability -->
             <span
               class="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-md border"
-              :class="record.enable_deposit
+              :class="isDepositEnabled(record)
                 ? 'bg-primary-green/10 text-primary-green border-primary-green/20'
                 : 'bg-background text-secondary-text/60 border-primary-border'"
             >
               <ArrowDownLeft class="w-3 h-3" />
-              <span>Deposit: {{ record.enable_deposit ? 'ON' : 'OFF' }}</span>
+              <span>Deposit: {{ isDepositEnabled(record) ? 'ON' : 'OFF' }}</span>
             </span>
 
             <!-- Withdrawal Capability -->
             <span
               class="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-md border"
-              :class="record.enable_withdrawal
+              :class="isWithdrawalEnabled(record)
                 ? 'bg-primary-blue/10 text-primary-blue border-primary-blue/20'
                 : 'bg-background text-secondary-text/60 border-primary-border'"
             >
               <ArrowUpRight class="w-3 h-3" />
-              <span>Withdraw: {{ record.enable_withdrawal ? 'ON' : 'OFF' }}</span>
+              <span>Withdraw: {{ isWithdrawalEnabled(record) ? 'ON' : 'OFF' }}</span>
             </span>
 
             <!-- Default Deposit Star Badge -->
@@ -522,6 +522,20 @@ const handlePageChange = (page) => {
 }
 
 // ── Helpers ──
+const isDepositEnabled = (record) => {
+  if (record.disable_client_deposit !== undefined && record.disable_client_deposit !== null) {
+    return Boolean(record.disable_client_deposit)
+  }
+  return Boolean(record.enable_deposit)
+}
+
+const isWithdrawalEnabled = (record) => {
+  if (record.disable_client_withdrawal !== undefined && record.disable_client_withdrawal !== null) {
+    return Boolean(record.disable_client_withdrawal)
+  }
+  return Boolean(record.enable_withdrawal)
+}
+
 const getGatewayBadgeClass = (gateway) => {
   const g = (gateway || '').toLowerCase()
   if (g.includes('paymaxis')) return 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'
