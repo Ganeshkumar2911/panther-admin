@@ -67,10 +67,10 @@
           />
         </button>
 
-        <!-- Add Reference Button -->
+        <!-- Add Reference Button (Opens Side Drawer) -->
         <button
           type="button"
-          @click="openAddModal"
+          @click="openAddDrawer('doc')"
           class="bg-primary hover:bg-primary-hover text-white rounded-xl px-3.5 py-1.5 text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-2xs transition-all"
         >
           <Plus class="w-3.5 h-3.5" />
@@ -98,14 +98,24 @@
         <p class="text-xs text-secondary-text mt-1 max-w-sm">
           No verification notes or reference documents have been uploaded for this client.
         </p>
-        <button
-          type="button"
-          @click="openAddModal"
-          class="mt-4 border border-primary text-primary hover:bg-primary/10 rounded-xl px-4 py-1.5 text-xs font-semibold transition-all cursor-pointer shadow-2xs flex items-center gap-1.5"
-        >
-          <Plus class="w-3.5 h-3.5" />
-          Add First Note or Document
-        </button>
+        <div class="flex items-center gap-2 mt-4">
+          <button
+            type="button"
+            @click="openAddDrawer('doc')"
+            class="border border-primary text-primary hover:bg-primary/10 rounded-xl px-4 py-1.5 text-xs font-semibold transition-all cursor-pointer shadow-2xs flex items-center gap-1.5"
+          >
+            <Upload class="w-3.5 h-3.5" />
+            Upload Document
+          </button>
+          <button
+            type="button"
+            @click="openAddDrawer('note')"
+            class="border border-primary-border text-primary-text hover:bg-background rounded-xl px-4 py-1.5 text-xs font-semibold transition-all cursor-pointer shadow-2xs flex items-center gap-1.5"
+          >
+            <FileText class="w-3.5 h-3.5 text-secondary-text" />
+            Add Note
+          </button>
+        </div>
       </div>
 
       <!-- Table of Notes & Documents -->
@@ -124,25 +134,47 @@
             <tr
               v-for="item in filteredItems"
               :key="item.uniqueKey"
-              class="hover:bg-background/40 transition-colors group"
+              class="hover:bg-background/40 transition-colors group cursor-pointer"
+              @click="openViewDrawer(item)"
             >
               <!-- Details / Title / Remarks -->
               <td class="py-3 px-3.5 max-w-xs">
                 <div class="flex items-start gap-2.5">
-                  <!-- Item Icon -->
+                  <!-- Thumbnail Image / Icon -->
                   <div
-                    class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 border"
-                    :class="item.isDoc ? 'bg-blue-500/10 border-blue-500/20 text-blue-500' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'"
+                    class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 mt-0.5 border overflow-hidden bg-background"
+                    :class="item.isDoc ? 'border-blue-500/30' : 'border-emerald-500/30'"
                   >
-                    <component :is="item.isDoc ? FileImage : FileText" class="w-4 h-4" />
+                    <!-- If image preview available -->
+                    <img
+                      v-if="item.isDoc && item.file_url && isImageFile(item.file_name || item.file_url)"
+                      :src="item.file_url"
+                      :alt="item.file_name"
+                      class="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                    <component
+                      v-else
+                      :is="item.isDoc ? FileImage : FileText"
+                      class="w-4 h-4"
+                      :class="item.isDoc ? 'text-blue-500' : 'text-emerald-500'"
+                    />
                   </div>
 
                   <!-- Text Preview -->
                   <div class="min-w-0 flex-1">
-                    <p class="font-bold text-primary-text text-xs line-clamp-1 group-hover:text-primary transition-colors">
-                      {{ item.title }}
-                    </p>
-                    <p class="text-[11px] text-secondary-text line-clamp-2 mt-0.5">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                      <p class="font-bold text-primary-text text-xs group-hover:text-primary transition-colors truncate">
+                        {{ item.title }}
+                      </p>
+                      <span
+                        v-if="item.file_name"
+                        class="px-1.5 py-0.2 rounded text-[9px] font-mono font-semibold uppercase bg-primary/10 text-primary border border-primary/20"
+                      >
+                        {{ formatFileNameDisplay(item.file_name) }}
+                      </span>
+                    </div>
+                    <p class="text-[11px] text-secondary-text line-clamp-1 mt-0.5">
                       {{ item.previewText }}
                     </p>
                   </div>
@@ -182,12 +214,12 @@
               </td>
 
               <!-- Actions (View, Edit, Delete) -->
-              <td class="py-3 px-3.5 text-right whitespace-nowrap">
+              <td class="py-3 px-3.5 text-right whitespace-nowrap" @click.stop>
                 <div class="flex items-center justify-end gap-1">
                   <!-- View Button -->
                   <button
                     type="button"
-                    @click="openViewModal(item)"
+                    @click="openViewDrawer(item)"
                     class="p-1.5 rounded-lg border border-primary-border/80 text-secondary-text hover:text-primary hover:bg-primary/10 hover:border-primary/30 transition-all cursor-pointer shadow-2xs"
                     title="View Details"
                   >
@@ -197,7 +229,7 @@
                   <!-- Edit Button -->
                   <button
                     type="button"
-                    @click="openEditModal(item)"
+                    @click="openEditDrawer(item)"
                     class="p-1.5 rounded-lg border border-primary-border/80 text-secondary-text hover:text-primary hover:bg-primary/10 hover:border-primary/30 transition-all cursor-pointer shadow-2xs"
                     title="Edit"
                   >
@@ -221,20 +253,21 @@
       </div>
     </div>
 
-    <!-- ─── 1. VIEW REFERENCE MODAL ──────────────────────────────── -->
+    <!-- ─── 1. VIEW SIDE DRAWER (Slide from Right) ────────────────── -->
     <Teleport to="body">
-      <Transition name="modal-fade">
+      <Transition name="drawer-fade">
         <div
-          v-if="viewModalOpen"
-          class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 cursor-pointer overflow-y-auto"
-          @click="closeViewModal"
+          v-if="viewDrawerOpen"
+          class="fixed inset-0 z-50 flex justify-end bg-black/50 backdrop-blur-xs transition-all duration-300 cursor-pointer"
+          @click="closeViewDrawer"
         >
+          <!-- Side Drawer Panel -->
           <div
-            class="bg-card-background border border-primary-border w-full max-w-lg rounded-2xl shadow-2xl flex flex-col overflow-hidden my-6 cursor-default"
+            class="bg-card-background border-l border-primary-border w-full max-w-md sm:max-w-xl h-full shadow-2xl flex flex-col transform transition-all duration-300 cursor-default"
             @click.stop
           >
-            <!-- Modal Header -->
-            <div class="px-5 py-4 border-b border-primary-border flex items-center justify-between bg-card-background">
+            <!-- Drawer Header -->
+            <div class="px-6 py-4 border-b border-primary-border flex items-center justify-between bg-card-background shrink-0">
               <div class="flex items-center gap-2.5">
                 <div
                   class="w-8 h-8 rounded-xl flex items-center justify-center border shrink-0"
@@ -254,42 +287,128 @@
 
               <button
                 type="button"
-                @click="closeViewModal"
-                class="w-7 h-7 rounded-lg flex items-center justify-center text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer"
+                @click="closeViewDrawer"
+                class="w-8 h-8 rounded-lg flex items-center justify-center text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer"
               >
                 <X class="w-4 h-4" />
               </button>
             </div>
 
-            <!-- Modal Body -->
-            <div class="p-5 space-y-4 text-xs overflow-y-auto max-h-[75vh]">
+            <!-- Drawer Body (Scrollable) -->
+            <div class="flex-1 overflow-y-auto p-6 space-y-4 text-xs bg-card-background">
               <!-- Author & Date Info Banner -->
-              <div class="flex items-center justify-between p-3 rounded-xl bg-background border border-primary-border/70">
-                <div class="flex items-center gap-2">
-                  <div class="w-7 h-7 rounded-full bg-primary/20 text-primary font-bold flex items-center justify-center text-xs">
+              <div class="flex items-center justify-between p-3.5 rounded-xl bg-background border border-primary-border">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-8 h-8 rounded-full bg-primary/15 text-primary font-bold flex items-center justify-center text-xs">
                     {{ (selectedItem?.author || 'A').charAt(0).toUpperCase() }}
                   </div>
                   <div>
                     <p class="text-[10px] text-secondary-text uppercase font-semibold">Author / Uploader</p>
-                    <p class="font-bold text-primary-text">{{ selectedItem?.author || 'Admin User' }}</p>
+                    <p class="font-bold text-primary-text text-xs">{{ selectedItem?.author || 'Admin User' }}</p>
                   </div>
                 </div>
                 <div class="text-right">
                   <p class="text-[10px] text-secondary-text uppercase font-semibold">Type</p>
                   <span
-                    class="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                    :class="selectedItem?.isDoc ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'"
+                    class="text-[10px] font-bold px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 border"
+                    :class="selectedItem?.isDoc ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20' : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'"
                   >
                     {{ selectedItem?.isDoc ? 'Document Attachment' : 'Internal Note' }}
                   </span>
                 </div>
               </div>
 
-              <!-- Remarks / Note Text -->
+              <!-- Document Name Box (If File) -->
+              <div v-if="selectedItem?.isDoc" class="p-3.5 rounded-xl bg-primary/5 border border-primary/20 space-y-1">
+                <p class="text-[10px] font-bold uppercase tracking-wider text-secondary-text">
+                  Document Name / Identifier
+                </p>
+                <div class="flex items-center justify-between gap-2">
+                  <p class="font-bold text-sm text-primary font-mono">
+                    {{ selectedItem.file_name || 'Document File' }}
+                  </p>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-background border border-primary-border font-semibold text-secondary-text uppercase">
+                    ID #{{ selectedItem.id }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Document Image / Attachment Preview -->
+              <div v-if="selectedItem?.isDoc || selectedItem?.file_url" class="space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-secondary-text text-[11px] uppercase tracking-wider">
+                    Attached Document Preview
+                  </span>
+                  <a
+                    v-if="selectedItem.file_url"
+                    :href="selectedItem.file_url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-[11px] text-primary hover:underline flex items-center gap-1 font-semibold"
+                  >
+                    <ExternalLink class="w-3 h-3" />
+                    Open Original
+                  </a>
+                </div>
+
+                <!-- Preview Box -->
+                <div class="border border-primary-border rounded-xl p-3.5 bg-background space-y-3">
+                  <!-- File Header -->
+                  <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2 min-w-0">
+                      <File class="w-4 h-4 text-primary shrink-0" />
+                      <span class="font-bold text-primary-text truncate text-xs">
+                        {{ selectedItem.file_name || selectedItem.title }}
+                      </span>
+                    </div>
+                    <span v-if="selectedItem.file_url" class="text-[10px] text-secondary-text font-mono truncate max-w-[160px]">
+                      {{ selectedItem.path || '' }}
+                    </span>
+                  </div>
+
+                  <!-- Image Preview (Full View) -->
+                  <div
+                    v-if="isImageFile(selectedItem.file_name || selectedItem.file_url)"
+                    class="relative rounded-xl overflow-hidden border border-primary-border bg-black/30 flex items-center justify-center p-2 group/preview"
+                  >
+                    <img
+                      :src="selectedItem.file_url"
+                      :alt="selectedItem.file_name"
+                      class="object-contain max-h-80 w-full rounded-lg transition-transform group-hover/preview:scale-[1.01]"
+                    />
+                  </div>
+
+                  <!-- PDF Document Preview Card -->
+                  <div
+                    v-else
+                    class="p-6 rounded-xl border border-dashed border-primary-border flex flex-col items-center justify-center text-center gap-2 bg-card-background"
+                  >
+                    <div class="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 flex items-center justify-center">
+                      <FileText class="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p class="font-bold text-primary-text text-xs">{{ selectedItem.file_name || 'PDF Document' }}</p>
+                      <p class="text-[10px] text-secondary-text mt-0.5">Click below to view or download document</p>
+                    </div>
+                    <a
+                      v-if="selectedItem.file_url"
+                      :href="selectedItem.file_url"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="mt-1 px-4 py-1.5 rounded-lg bg-primary text-white font-semibold text-xs flex items-center gap-1.5 shadow-2xs hover:bg-primary-hover transition"
+                    >
+                      <ExternalLink class="w-3.5 h-3.5" />
+                      View Document
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Remarks / Details Section -->
               <div class="space-y-1.5">
                 <div class="flex items-center justify-between">
                   <span class="font-bold text-secondary-text text-[11px] uppercase tracking-wider">
-                    Remarks / Details
+                    Remarks / Internal Notes
                   </span>
                   <button
                     v-if="selectedItem?.remarks"
@@ -298,78 +417,38 @@
                     class="text-[11px] text-primary hover:underline flex items-center gap-1 cursor-pointer font-medium"
                   >
                     <Copy class="w-3 h-3" />
-                    Copy
+                    Copy Notes
                   </button>
                 </div>
-                <div class="p-3.5 rounded-xl bg-background/60 border border-primary-border text-primary-text font-medium leading-relaxed whitespace-pre-wrap">
-                  {{ selectedItem?.remarks || selectedItem?.previewText || 'No remarks provided.' }}
-                </div>
-              </div>
-
-              <!-- Document Attachment Preview (If File) -->
-              <div v-if="selectedItem?.isDoc || selectedItem?.file_url" class="space-y-2 pt-1">
-                <span class="font-bold text-secondary-text text-[11px] uppercase tracking-wider">
-                  Attached File
-                </span>
-                
-                <div class="border border-primary-border rounded-xl p-3 bg-background flex flex-col gap-3">
-                  <div class="flex items-center justify-between gap-2">
-                    <div class="flex items-center gap-2 min-w-0">
-                      <File class="w-4 h-4 text-primary shrink-0" />
-                      <span class="font-bold text-primary-text truncate text-xs">
-                        {{ selectedItem.file_name || selectedItem.title }}
-                      </span>
-                    </div>
-                    <a
-                      v-if="selectedItem.file_url"
-                      :href="selectedItem.file_url"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      class="px-2.5 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary font-semibold text-[11px] flex items-center gap-1 shrink-0 transition-colors"
-                    >
-                      <ExternalLink class="w-3 h-3" />
-                      Open File
-                    </a>
-                  </div>
-
-                  <!-- Image Preview if Image -->
-                  <div
-                    v-if="isImageFile(selectedItem.file_name || selectedItem.file_url)"
-                    class="relative rounded-lg overflow-hidden border border-primary-border bg-black/20 max-h-64 flex items-center justify-center"
-                  >
-                    <img
-                      :src="selectedItem.file_url"
-                      :alt="selectedItem.file_name"
-                      class="object-contain max-h-60 w-full rounded"
-                    />
-                  </div>
+                <div class="p-3.5 rounded-xl bg-background border border-primary-border text-primary-text font-medium leading-relaxed whitespace-pre-wrap">
+                  {{ selectedItem?.remarks || 'No remarks provided for this reference.' }}
                 </div>
               </div>
             </div>
 
-            <!-- Modal Footer -->
-            <div class="px-5 py-3 border-t border-primary-border flex items-center justify-between bg-card-background">
+            <!-- Drawer Footer -->
+            <div class="px-6 py-4 border-t border-primary-border flex items-center justify-between bg-card-background shrink-0">
               <button
                 type="button"
                 @click="openDeleteModal(selectedItem)"
-                class="px-3 py-1.5 text-xs font-semibold text-rose-500 hover:bg-rose-500/10 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer"
+                class="px-3.5 py-2 text-xs font-semibold text-rose-500 hover:bg-rose-500/10 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer"
               >
                 <Trash2 class="w-3.5 h-3.5" />
                 Delete
               </button>
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2.5">
                 <button
                   type="button"
-                  @click="openEditModal(selectedItem)"
-                  class="px-3.5 py-1.5 text-xs font-semibold text-primary hover:bg-background rounded-xl border border-primary-border transition-colors flex items-center gap-1.5 cursor-pointer"
+                  @click="openEditDrawer(selectedItem)"
+                  class="px-4 py-2 text-xs font-semibold text-primary hover:bg-background rounded-xl border border-primary-border transition-colors flex items-center gap-1.5 cursor-pointer"
                 >
                   <Pencil class="w-3.5 h-3.5" />
                   Edit
                 </button>
                 <button
                   type="button"
-                  @click="closeViewModal"
-                  class="px-4 py-1.5 text-xs font-semibold text-white bg-primary hover:bg-primary-hover rounded-xl shadow-xs transition-colors cursor-pointer"
+                  @click="closeViewDrawer"
+                  class="px-5 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-hover rounded-xl shadow-xs transition-colors cursor-pointer"
                 >
                   Close
                 </button>
@@ -380,98 +459,198 @@
       </Transition>
     </Teleport>
 
-    <!-- ─── 2. ADD / EDIT REFERENCE MODAL ────────────────────────── -->
+    <!-- ─── 2. ADD / EDIT SIDE DRAWER (Slide from Right) ─────────── -->
     <Teleport to="body">
-      <Transition name="modal-fade">
+      <Transition name="drawer-fade">
         <div
-          v-if="formModalOpen"
-          class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 cursor-pointer overflow-y-auto"
-          @click="closeFormModal"
+          v-if="formDrawerOpen"
+          class="fixed inset-0 z-50 flex justify-end bg-black/50 backdrop-blur-xs transition-all duration-300 cursor-pointer"
+          @click="closeFormDrawer"
         >
+          <!-- Side Drawer Panel -->
           <div
-            class="bg-card-background border border-primary-border w-full max-w-lg rounded-2xl shadow-2xl flex flex-col overflow-hidden my-6 cursor-default"
+            class="bg-card-background border-l border-primary-border w-full max-w-md sm:max-w-xl h-full shadow-2xl flex flex-col transform transition-all duration-300 cursor-default"
             @click.stop
           >
-            <!-- Modal Header -->
-            <div class="px-5 py-4 border-b border-primary-border flex items-center justify-between bg-card-background">
+            <!-- Drawer Header -->
+            <div class="px-6 py-4 border-b border-primary-border flex items-center justify-between bg-card-background shrink-0">
               <div class="flex items-center gap-2.5">
                 <div class="w-8 h-8 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
                   <component :is="isEditing ? Pencil : Plus" class="w-4 h-4" />
                 </div>
                 <div>
                   <h3 class="font-bold text-primary-text text-sm sm:text-base">
-                    {{ isEditing ? 'Edit KYC Reference' : 'Add KYC Note / Document' }}
+                    {{ isEditing ? 'Edit KYC Reference' : 'Add KYC Reference / Document' }}
                   </h3>
                   <p class="text-[11px] text-secondary-text">
-                    {{ isEditing ? 'Update internal remarks or reference details.' : 'Attach remarks or upload client reference files.' }}
+                    {{ isEditing ? 'Update document name, file attachment or remarks.' : 'Upload reference documents or log verification remarks.' }}
                   </p>
                 </div>
               </div>
 
               <button
                 type="button"
-                @click="closeFormModal"
-                class="w-7 h-7 rounded-lg flex items-center justify-center text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer"
+                @click="closeFormDrawer"
+                class="w-8 h-8 rounded-lg flex items-center justify-center text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer"
               >
                 <X class="w-4 h-4" />
               </button>
             </div>
 
-            <!-- Modal Form Body -->
-            <form @submit.prevent="submitForm" class="p-5 space-y-4 text-xs">
-              <!-- Remarks / Note Content -->
-              <div class="space-y-1.5">
-                <label class="font-bold text-primary-text block">
-                  Remarks / Internal Note <span class="text-rose-500">*</span>
-                </label>
-                <textarea
-                  v-model="formRemarks"
-                  rows="4"
-                  placeholder="e.g. Identity verified via phone consultation, documents matched with government registry..."
-                  class="w-full p-3 resize-none border border-primary-border rounded-xl bg-background text-primary-text placeholder:text-secondary-text/60 focus:outline-hidden focus:border-primary text-xs"
-                  required
-                ></textarea>
+            <!-- Drawer Form Body (Scrollable) -->
+            <form @submit.prevent="submitForm" class="flex-1 overflow-y-auto p-6 space-y-4.5 text-xs bg-card-background">
+              <!-- Mode Tabs (Doc vs Note) - only when adding -->
+              <div v-if="!isEditing" class="flex items-center p-1 bg-background rounded-xl border border-primary-border">
+                <button
+                  type="button"
+                  @click="drawerMode = 'doc'"
+                  class="flex-1 py-1.5 rounded-lg font-semibold transition cursor-pointer flex items-center justify-center gap-1.5"
+                  :class="drawerMode === 'doc' ? 'bg-primary text-white shadow-2xs' : 'text-secondary-text hover:text-primary-text'"
+                >
+                  <Upload class="w-3.5 h-3.5" />
+                  <span>Document Upload</span>
+                </button>
+                <button
+                  type="button"
+                  @click="drawerMode = 'note'"
+                  class="flex-1 py-1.5 rounded-lg font-semibold transition cursor-pointer flex items-center justify-center gap-1.5"
+                  :class="drawerMode === 'note' ? 'bg-primary text-white shadow-2xs' : 'text-secondary-text hover:text-primary-text'"
+                >
+                  <FileText class="w-3.5 h-3.5" />
+                  <span>Note Only</span>
+                </button>
               </div>
 
-              <!-- Document Attachment (Optional / File upload) -->
-              <div class="space-y-1.5">
-                <label class="font-bold text-primary-text block">
-                  Attach Reference File (Optional)
-                </label>
-
-                <!-- If File Already Selected -->
-                <div
-                  v-if="selectedFile"
-                  class="flex items-center justify-between p-3 rounded-xl border border-primary/30 bg-primary/5"
-                >
-                  <div class="flex items-center gap-2.5 min-w-0">
-                    <File class="w-4 h-4 text-primary shrink-0" />
-                    <div class="min-w-0">
-                      <p class="font-bold text-primary-text truncate text-xs">{{ selectedFile.name }}</p>
-                      <p class="text-[10px] text-secondary-text">{{ (selectedFile.size / 1024).toFixed(1) }} KB</p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    @click="removeSelectedFile"
-                    class="p-1 rounded-lg text-secondary-text hover:text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
-                  >
-                    <X class="w-4 h-4" />
-                  </button>
+              <!-- 1. Document Name / Type (Only when uploading doc or editing doc) -->
+              <div v-if="drawerMode === 'doc' || isEditingDoc" class="space-y-2">
+                <div class="flex items-center justify-between">
+                  <label class="font-bold text-primary-text block">
+                    Document Name / Type <span class="text-primary-red">*</span>
+                  </label>
+                  <span class="text-[10px] text-secondary-text">e.g. adhar_front, pan_card</span>
                 </div>
 
-                <!-- Dropzone / Picker -->
+                <input
+                  v-model="formFileName"
+                  type="text"
+                  placeholder="e.g. adhar_front, pan_card, passport, bank_statement"
+                  class="w-full px-3.5 py-2.5 rounded-xl bg-background border border-primary-border text-xs font-mono text-primary-text outline-none focus:border-primary transition"
+                  :required="drawerMode === 'doc' || isEditingDoc"
+                />
+
+                <!-- Quick Suggestion Preset Chips -->
+                <div class="space-y-1">
+                  <p class="text-[10px] font-semibold text-secondary-text">Quick Presets:</p>
+                  <div class="flex flex-wrap gap-1.5">
+                    <button
+                      v-for="preset in documentPresets"
+                      :key="preset.value"
+                      type="button"
+                      @click="selectPreset(preset.value)"
+                      class="px-2 py-0.8 rounded-lg text-[10px] font-mono font-medium border transition cursor-pointer"
+                      :class="formFileName === preset.value
+                        ? 'bg-primary text-white border-primary shadow-2xs'
+                        : 'bg-background border-primary-border text-secondary-text hover:border-primary hover:text-primary'"
+                    >
+                      {{ preset.label }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 2. File Attachment & Preview (For Document Mode) -->
+              <div v-if="drawerMode === 'doc' || isEditingDoc" class="space-y-2">
+                <label class="font-bold text-primary-text block">
+                  Document File <span v-if="!isEditing" class="text-primary-red">*</span>
+                </label>
+
+                <!-- A. If NEW Local File Selected -->
+                <div
+                  v-if="selectedFile"
+                  class="border border-primary/40 rounded-xl p-3.5 bg-primary/5 space-y-3"
+                >
+                  <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                      <File class="w-4 h-4 text-primary shrink-0" />
+                      <div class="min-w-0">
+                        <p class="font-bold text-primary-text truncate text-xs">{{ selectedFile.name }}</p>
+                        <p class="text-[10px] text-secondary-text font-mono">
+                          {{ (selectedFile.size / 1024).toFixed(1) }} KB · Ready to upload
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      @click="removeSelectedFile"
+                      class="p-1 rounded-lg text-secondary-text hover:text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                      title="Remove selected file"
+                    >
+                      <X class="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <!-- Live Image Preview -->
+                  <div
+                    v-if="localPreviewUrl"
+                    class="relative rounded-lg overflow-hidden border border-primary-border bg-black/20 max-h-56 flex items-center justify-center p-2"
+                  >
+                    <img
+                      :src="localPreviewUrl"
+                      alt="Selected preview"
+                      class="object-contain max-h-52 w-full rounded"
+                    />
+                  </div>
+                </div>
+
+                <!-- B. If Existing File in Edit Mode (No new file chosen yet) -->
+                <div
+                  v-else-if="isEditing && existingFileUrl"
+                  class="border border-primary-border rounded-xl p-3.5 bg-background space-y-3"
+                >
+                  <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2 min-w-0">
+                      <File class="w-4 h-4 text-primary shrink-0" />
+                      <div class="min-w-0">
+                        <p class="font-bold text-primary-text truncate text-xs">{{ formFileName || 'Existing Document' }}</p>
+                        <p class="text-[10px] text-secondary-text">Current uploaded document</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      @click="triggerFileInput"
+                      class="px-2.5 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary font-semibold text-[10px] cursor-pointer transition"
+                    >
+                      Replace File
+                    </button>
+                  </div>
+
+                  <!-- Existing Image Preview -->
+                  <div
+                    v-if="isImageFile(existingFileUrl)"
+                    class="relative rounded-lg overflow-hidden border border-primary-border bg-black/20 max-h-56 flex items-center justify-center p-2"
+                  >
+                    <img
+                      :src="existingFileUrl"
+                      :alt="formFileName"
+                      class="object-contain max-h-52 w-full rounded"
+                    />
+                  </div>
+                </div>
+
+                <!-- C. Dropzone / File Picker (When no file selected) -->
                 <div
                   v-else
                   @click="triggerFileInput"
-                  class="border-2 border-dashed border-primary-border hover:border-primary/50 rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer bg-background/50 hover:bg-background transition-all"
+                  class="border-2 border-dashed border-primary-border hover:border-primary/50 rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer bg-background/50 hover:bg-background transition-all group"
                 >
-                  <Upload class="w-5 h-5 text-secondary-text mb-1.5" />
+                  <div class="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-2 group-hover:scale-105 transition-transform">
+                    <Upload class="w-5 h-5" />
+                  </div>
                   <p class="font-bold text-primary-text text-xs">
                     Click to browse or drag file here
                   </p>
                   <p class="text-[10px] text-secondary-text mt-0.5">
-                    PNG, JPG, PDF (Max. 10MB)
+                    PNG, JPG, JPEG, WEBP, PDF (Max. 10MB)
                   </p>
                   <input
                     ref="fileInputRef"
@@ -483,25 +662,43 @@
                 </div>
               </div>
 
-              <!-- Modal Footer -->
-              <div class="pt-3 border-t border-primary-border flex items-center justify-end gap-2">
+              <!-- 3. Remarks / Internal Note -->
+              <div class="space-y-1.5">
+                <label class="font-bold text-primary-text block">
+                  Remarks / Internal Notes
+                  <span v-if="drawerMode === 'note'" class="text-primary-red">*</span>
+                </label>
+                <textarea
+                  v-model="formRemarks"
+                  rows="4"
+                  placeholder="e.g. Identity verified via phone consultation, documents matched with government registry..."
+                  class="w-full p-3.5 resize-none border border-primary-border rounded-xl bg-background text-primary-text placeholder:text-secondary-text/60 focus:outline-hidden focus:border-primary text-xs"
+                  :required="drawerMode === 'note'"
+                ></textarea>
+                <p class="text-[10px] text-secondary-text">
+                  Add optional internal details, audit notes, or remarks for this record.
+                </p>
+              </div>
+
+              <!-- Drawer Submit Button Area (inside scrollable or sticky footer) -->
+              <div class="pt-4 border-t border-primary-border flex items-center justify-end gap-2.5">
                 <button
                   type="button"
-                  @click="closeFormModal"
+                  @click="closeFormDrawer"
                   class="px-4 py-2 text-xs font-semibold text-secondary-text hover:bg-background rounded-xl border border-primary-border transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  :disabled="clientDepthStore.isSubmittingReference || !formRemarks.trim()"
+                  :disabled="clientDepthStore.isSubmittingReference || (drawerMode === 'note' && !formRemarks.trim()) || (drawerMode === 'doc' && !isEditing && !selectedFile && !formFileName.trim())"
                   class="px-5 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-hover rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                 >
                   <Loader2
                     v-if="clientDepthStore.isSubmittingReference"
                     class="w-3.5 h-3.5 animate-spin"
                   />
-                  <span>{{ isEditing ? 'Save Changes' : 'Add Reference' }}</span>
+                  <span>{{ isEditing ? 'Save Changes' : 'Submit Reference' }}</span>
                 </button>
               </div>
             </form>
@@ -535,7 +732,8 @@
             </div>
 
             <div class="p-3 rounded-xl bg-background border border-primary-border text-xs text-primary-text font-medium">
-              {{ itemToDelete?.remarks || itemToDelete?.title || 'Selected Reference' }}
+              <p class="font-bold">{{ itemToDelete?.file_name || itemToDelete?.title || 'Selected Reference' }}</p>
+              <p class="text-[11px] text-secondary-text mt-0.5 line-clamp-2">{{ itemToDelete?.remarks || '—' }}</p>
             </div>
 
             <div class="flex items-center justify-end gap-2 pt-2 border-t border-primary-border">
@@ -606,6 +804,26 @@ const currentUserId = computed(() => {
   return props.userId || route.params.id || clientDepthStore.activeClient?.id;
 });
 
+// Document Presets
+const documentPresets = [
+  { label: "Aadhaar Front", value: "addhar_front" },
+  { label: "Aadhaar Back", value: "addhar_back" },
+  { label: "PAN Card", value: "pan_card" },
+  { label: "Passport", value: "passport" },
+  { label: "Driving License", value: "driving_license" },
+  { label: "Bank Statement", value: "bank_statement" },
+  { label: "Utility Bill", value: "utility_bill" },
+];
+
+const selectPreset = (val) => {
+  formFileName.value = val;
+};
+
+const formatFileNameDisplay = (fileName) => {
+  if (!fileName) return "";
+  return fileName.replace(/_/g, " ");
+};
+
 // ─── Fetch References ─────────────────────────────────────────────────────────
 const loadReferences = (force = false) => {
   if (currentUserId.value) {
@@ -639,6 +857,7 @@ const notesList = computed(() => {
     uniqueKey: `note-${n.id || idx}`,
     id: n.id,
     isDoc: false,
+    file_name: null,
     title: n.creator_name ? `${n.creator_name}'s Note` : "Internal Verification Note",
     remarks: n.remarks || n.note || n.text || "",
     previewText: n.remarks || n.note || n.text || "—",
@@ -655,10 +874,11 @@ const filesList = computed(() => {
     id: f.id,
     isDoc: true,
     file_name: f.file_name || `Reference Document #${f.id || idx + 1}`,
-    title: f.file_name || `Document #${f.id || idx + 1}`,
-    remarks: f.remarks || f.file_name || "",
-    previewText: f.path || f.file_name || "Attached document",
+    title: f.file_name ? formatFileNameDisplay(f.file_name) : `Document #${f.id || idx + 1}`,
+    remarks: f.remarks || "",
+    previewText: f.remarks || f.path || f.file_name || "Attached document",
     file_url: f.formatted_path || f.path || null,
+    path: f.path || null,
     author: f.uploaded_by_name || "Admin User",
     created_at: f.created_at || rawData.value?.created_at || new Date().toISOString(),
     raw: f,
@@ -667,12 +887,11 @@ const filesList = computed(() => {
 
 const combinedItems = computed(() => {
   const all = [...notesList.value, ...filesList.value];
-  // Sort latest first
   return all.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
 });
 
 const totalItemsCount = computed(() => {
-  return notesList.value.length + filesList.length;
+  return notesList.value.length + filesList.value.length;
 });
 
 const filteredItems = computed(() => {
@@ -710,46 +929,66 @@ const copyToClipboard = (text) => {
   snackbar.show("Remarks copied to clipboard!", "success");
 };
 
-// ─── Modal States ─────────────────────────────────────────────────────────────
+// ─── View Drawer State ────────────────────────────────────────────────────────
 const selectedItem = ref(null);
-const viewModalOpen = ref(false);
+const viewDrawerOpen = ref(false);
 
-const openViewModal = (item) => {
+const openViewDrawer = (item) => {
   selectedItem.value = item;
-  viewModalOpen.value = true;
+  viewDrawerOpen.value = true;
 };
 
-const closeViewModal = () => {
-  viewModalOpen.value = false;
+const closeViewDrawer = () => {
+  viewDrawerOpen.value = false;
 };
 
-// ─── Add / Edit Modal ─────────────────────────────────────────────────────────
-const formModalOpen = ref(false);
+// ─── Add / Edit Drawer State ──────────────────────────────────────────────────
+const formDrawerOpen = ref(false);
 const isEditing = ref(false);
+const isEditingDoc = ref(false);
 const editingItemId = ref(null);
+const drawerMode = ref("doc"); // 'doc' | 'note'
+const formFileName = ref("");
 const formRemarks = ref("");
 const selectedFile = ref(null);
+const localPreviewUrl = ref(null);
+const existingFileUrl = ref(null);
 const fileInputRef = ref(null);
 
-const openAddModal = () => {
+const openAddDrawer = (mode = "doc") => {
+  if (viewDrawerOpen.value) closeViewDrawer();
   isEditing.value = false;
+  isEditingDoc.value = mode === "doc";
+  drawerMode.value = mode;
   editingItemId.value = null;
+  formFileName.value = "";
   formRemarks.value = "";
   selectedFile.value = null;
-  formModalOpen.value = true;
+  localPreviewUrl.value = null;
+  existingFileUrl.value = null;
+  formDrawerOpen.value = true;
 };
 
-const openEditModal = (item) => {
-  if (viewModalOpen.value) closeViewModal();
+const openEditDrawer = (item) => {
+  if (viewDrawerOpen.value) closeViewDrawer();
   isEditing.value = true;
+  isEditingDoc.value = item.isDoc;
+  drawerMode.value = item.isDoc ? "doc" : "note";
   editingItemId.value = item.id;
-  formRemarks.value = item.remarks || item.previewText || "";
+  formFileName.value = item.file_name || "";
+  formRemarks.value = item.remarks || "";
   selectedFile.value = null;
-  formModalOpen.value = true;
+  localPreviewUrl.value = null;
+  existingFileUrl.value = item.file_url || null;
+  formDrawerOpen.value = true;
 };
 
-const closeFormModal = () => {
-  formModalOpen.value = false;
+const closeFormDrawer = () => {
+  formDrawerOpen.value = false;
+  if (localPreviewUrl.value) {
+    URL.revokeObjectURL(localPreviewUrl.value);
+    localPreviewUrl.value = null;
+  }
 };
 
 const triggerFileInput = () => {
@@ -760,43 +999,71 @@ const handleFileSelected = (e) => {
   const file = e.target.files?.[0];
   if (file) {
     selectedFile.value = file;
+    if (localPreviewUrl.value) {
+      URL.revokeObjectURL(localPreviewUrl.value);
+    }
+    localPreviewUrl.value = URL.createObjectURL(file);
+
+    // Auto-fill file_name if empty
+    if (!formFileName.value.trim()) {
+      const rawName = file.name.replace(/\.[^/.]+$/, "").replace(/\s+/g, "_").toLowerCase();
+      formFileName.value = rawName;
+    }
   }
 };
 
 const removeSelectedFile = () => {
   selectedFile.value = null;
+  if (localPreviewUrl.value) {
+    URL.revokeObjectURL(localPreviewUrl.value);
+    localPreviewUrl.value = null;
+  }
   if (fileInputRef.value) fileInputRef.value.value = "";
 };
 
 const submitForm = () => {
-  if (!formRemarks.value.trim() || !currentUserId.value) return;
+  if (!currentUserId.value) return;
 
-  // If a file is attached, send as FormData
+  const isDocType = drawerMode.value === "doc" || isEditingDoc.value;
+
+  // Build Payload
   let payload;
-  if (selectedFile.value) {
+  if (selectedFile.value || isDocType) {
     payload = new FormData();
-    payload.append("remarks", formRemarks.value.trim());
-    payload.append("file", selectedFile.value);
     payload.append("user_id", currentUserId.value);
+    if (formRemarks.value.trim()) {
+      payload.append("remarks", formRemarks.value.trim());
+    }
+    if (formFileName.value.trim()) {
+      payload.append("file_name", formFileName.value.trim());
+      payload.append("doc_name", formFileName.value.trim());
+    }
+    if (selectedFile.value) {
+      payload.append("file", selectedFile.value);
+    }
     if (isEditing.value && editingItemId.value) {
-      payload.append("note_id", editingItemId.value);
       payload.append("id", editingItemId.value);
+      if (isDocType) {
+        payload.append("file_id", editingItemId.value);
+      } else {
+        payload.append("note_id", editingItemId.value);
+      }
     }
   } else {
     payload = {
-      remarks: formRemarks.value.trim(),
       user_id: currentUserId.value,
-      ...(isEditing.value && editingItemId.value ? { note_id: editingItemId.value, id: editingItemId.value } : {}),
+      remarks: formRemarks.value.trim(),
+      ...(isEditing.value && editingItemId.value ? { id: editingItemId.value, note_id: editingItemId.value } : {}),
     };
   }
 
   if (isEditing.value) {
     clientDepthStore.updateUserReference(currentUserId.value, payload, (err) => {
-      if (!err) closeFormModal();
+      if (!err) closeFormDrawer();
     });
   } else {
     clientDepthStore.addUserReference(currentUserId.value, payload, (err) => {
-      if (!err) closeFormModal();
+      if (!err) closeFormDrawer();
     });
   }
 };
@@ -806,7 +1073,7 @@ const deleteModalOpen = ref(false);
 const itemToDelete = ref(null);
 
 const openDeleteModal = (item) => {
-  if (viewModalOpen.value) closeViewModal();
+  if (viewDrawerOpen.value) closeViewDrawer();
   itemToDelete.value = item;
   deleteModalOpen.value = true;
 };
@@ -833,14 +1100,38 @@ const confirmDelete = () => {
 </script>
 
 <style scoped>
+.drawer-fade-enter-active,
+.drawer-fade-leave-active {
+  transition: opacity 0.25s ease;
+}
+.drawer-fade-enter-from,
+.drawer-fade-leave-to {
+  opacity: 0;
+}
+.drawer-fade-enter-active .transform,
+.drawer-fade-leave-active .transform {
+  transition: transform 0.25s ease;
+}
+.drawer-fade-enter-from .transform,
+.drawer-fade-leave-to .transform {
+  transform: translateX(100%);
+}
+
 .modal-fade-enter-active,
 .modal-fade-leave-active {
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
-
 .modal-fade-enter-from,
 .modal-fade-leave-to {
   opacity: 0;
   transform: scale(0.97);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 </style>

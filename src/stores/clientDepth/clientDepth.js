@@ -17,7 +17,7 @@ export const useClientDepthStore = defineStore("clientDepth", () => {
     activeClient.value = { ...(activeClient.value || {}), ...client };
     try {
       localStorage.setItem("active_client", JSON.stringify(activeClient.value));
-    } catch {}
+    } catch { }
   };
 
   const kycData = ref(null);
@@ -332,7 +332,7 @@ export const useClientDepthStore = defineStore("clientDepth", () => {
     };
 
     apiRequest(urls.KEYS.GET, urls.clientDepth.userReferences, {
-      look_up_key: userId,
+      params: { user_id: userId },
       isTokenRequired: true,
       onSuccess: successHandler,
       onFailure: failureHandler,
@@ -364,7 +364,7 @@ export const useClientDepthStore = defineStore("clientDepth", () => {
     };
 
     apiRequest(urls.KEYS.POST, urls.clientDepth.userReferences, {
-      look_up_key: userId,
+      params: { user_id: userId },
       isTokenRequired: true,
       data: payload,
       onSuccess: successHandler,
@@ -397,7 +397,7 @@ export const useClientDepthStore = defineStore("clientDepth", () => {
     };
 
     apiRequest(urls.KEYS.PATCH, urls.clientDepth.userReferences, {
-      look_up_key: userId,
+      params: { user_id: userId },
       isTokenRequired: true,
       data: payload,
       onSuccess: successHandler,
@@ -430,10 +430,9 @@ export const useClientDepthStore = defineStore("clientDepth", () => {
     };
 
     apiRequest(urls.KEYS.DELETE, urls.clientDepth.userReferences, {
-      look_up_key: userId,
+      params: { user_id: userId, ...(payload || {}) },
       isTokenRequired: true,
       data: payload,
-      params: payload,
       onSuccess: successHandler,
       onFailure: failureHandler,
     });
