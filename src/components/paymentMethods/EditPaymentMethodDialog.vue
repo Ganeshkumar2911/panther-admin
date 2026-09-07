@@ -259,21 +259,71 @@
               </div>
             </div>
 
-            <!-- 3. Client Dashboard Card -->
+            <!-- 3. Global Operations (Global Deposit & Withdrawal) Card -->
+            <div class="p-3.5 rounded-xl bg-card-background border border-primary-border space-y-2.5">
+              <div class="flex items-center justify-between text-xs font-bold text-primary-text pb-1.5 border-b border-primary-border/60">
+                <div class="flex items-center gap-1.5">
+                  <Globe class="w-3.5 h-3.5 text-primary" />
+                  <span>Global Operations</span>
+                </div>
+                <span class="text-[10px] font-normal text-secondary-text">Master platform controls</span>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <!-- Global Deposit -->
+                <div class="flex items-center justify-between p-2.5 rounded-lg bg-background/50 border border-primary-border/60">
+                  <div>
+                    <p class="text-xs font-semibold text-primary-text">Restrict  Global Deposit</p>
+                    <p class="text-[10px] text-secondary-text">Restrict deposit functionality globally</p>
+                  </div>
+                  <button
+                    type="button"
+                    class="relative w-10 h-5.5 rounded-full transition-colors cursor-pointer shrink-0"
+                    :class="form.enable_deposit ? 'bg-primary-green' : 'bg-primary-border'"
+                    @click="form.enable_deposit = !form.enable_deposit"
+                  >
+                    <span
+                      class="absolute top-0.5 left-0.5 w-4.5 h-4.5 rounded-full bg-white transition-transform duration-200 shadow-xs"
+                      :class="form.enable_deposit ? 'translate-x-4.5' : 'translate-x-0'"
+                    />
+                  </button>
+                </div>
+
+                <!-- Global Withdrawal -->
+                <div class="flex items-center justify-between p-2.5 rounded-lg bg-background/50 border border-primary-border/60">
+                  <div>
+                    <p class="text-xs font-semibold text-primary-text">Restrict Global Withdrawal</p>
+                    <p class="text-[10px] text-secondary-text">Restrict withdrawal functionality globally</p>
+                  </div>
+                  <button
+                    type="button"
+                    class="relative w-10 h-5.5 rounded-full transition-colors cursor-pointer shrink-0"
+                    :class="form.enable_withdrawal ? 'bg-primary-blue' : 'bg-primary-border'"
+                    @click="form.enable_withdrawal = !form.enable_withdrawal"
+                  >
+                    <span
+                      class="absolute top-0.5 left-0.5 w-4.5 h-4.5 rounded-full bg-white transition-transform duration-200 shadow-xs"
+                      :class="form.enable_withdrawal ? 'translate-x-4.5' : 'translate-x-0'"
+                    />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4. Client Dashboard Card -->
             <div class="p-3.5 rounded-xl bg-card-background border border-primary-border space-y-2.5">
               <div class="flex items-center justify-between text-xs font-bold text-primary-text pb-1.5 border-b border-primary-border/60">
                 <div class="flex items-center gap-1.5">
                   <User class="w-3.5 h-3.5 text-primary" />
-                  <span>Client Dashboard</span>
+                  <span>Client Dashboard Restrictions</span>
                 </div>
-                <span class="text-[10px] font-normal text-secondary-text">Client portal operations</span>
+                <span class="text-[10px] font-normal text-secondary-text">Client portal restrictions</span>
               </div>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <!-- Client Deposit -->
+                <!-- Restrict Client Deposit -->
                 <div class="flex items-center justify-between p-2.5 rounded-lg bg-background/50 border border-primary-border/60">
                   <div>
-                    <p class="text-xs font-semibold text-primary-text">Client Deposit</p>
-                    <p class="text-[10px] text-secondary-text">Allow clients to deposit via this method</p>
+                    <p class="text-xs font-semibold text-primary-text">Restrict Client Deposit</p>
+                    <p class="text-[10px] text-secondary-text">Restrict clients from depositing via this method</p>
                   </div>
                   <button
                     type="button"
@@ -287,11 +337,11 @@
                     />
                   </button>
                 </div>
-                <!-- Client Withdrawal -->
+                <!-- Restrict Client Withdrawal -->
                 <div class="flex items-center justify-between p-2.5 rounded-lg bg-background/50 border border-primary-border/60">
                   <div>
-                    <p class="text-xs font-semibold text-primary-text">Client Withdrawal</p>
-                    <p class="text-[10px] text-secondary-text">Allow clients to withdraw via this method</p>
+                    <p class="text-xs font-semibold text-primary-text">Restrict Client Withdrawal</p>
+                    <p class="text-[10px] text-secondary-text">Restrict clients from withdrawing via this method</p>
                   </div>
                   <button
                     type="button"
@@ -308,21 +358,21 @@
               </div>
             </div>
 
-            <!-- 4. IB Dashboard Card -->
+            <!-- 5. IB Dashboard Card -->
             <div class="p-3.5 rounded-xl bg-card-background border border-primary-border space-y-2.5">
               <div class="flex items-center justify-between text-xs font-bold text-primary-text pb-1.5 border-b border-primary-border/60">
                 <div class="flex items-center gap-1.5">
                   <Network class="w-3.5 h-3.5 text-accent" />
-                  <span>IB (Introducing Broker) Dashboard</span>
+                  <span>IB (Introducing Broker) Dashboard Restrictions</span>
                 </div>
-                <span class="text-[10px] font-normal text-secondary-text">Affiliate partner portal</span>
+                <span class="text-[10px] font-normal text-secondary-text">Affiliate partner restrictions</span>
               </div>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <!-- IB Deposit -->
+                <!-- Restrict IB Deposit -->
                 <div class="flex items-center justify-between p-2.5 rounded-lg bg-background/50 border border-primary-border/60">
                   <div>
-                    <p class="text-xs font-semibold text-primary-text">IB Deposit</p>
-                    <p class="text-[10px] text-secondary-text">Allow IBs to deposit via this method</p>
+                    <p class="text-xs font-semibold text-primary-text">Restrict IB Deposit</p>
+                    <p class="text-[10px] text-secondary-text">Restrict IBs from depositing via this method</p>
                   </div>
                   <button
                     type="button"
@@ -336,11 +386,11 @@
                     />
                   </button>
                 </div>
-                <!-- IB Withdrawal -->
+                <!-- Restrict IB Withdrawal -->
                 <div class="flex items-center justify-between p-2.5 rounded-lg bg-background/50 border border-primary-border/60">
                   <div>
-                    <p class="text-xs font-semibold text-primary-text">IB Withdrawal</p>
-                    <p class="text-[10px] text-secondary-text">Allow IBs to withdraw via this method</p>
+                    <p class="text-xs font-semibold text-primary-text">Restrict IB Withdrawal</p>
+                    <p class="text-[10px] text-secondary-text">Restrict IBs from withdrawing via this method</p>
                   </div>
                   <button
                     type="button"
@@ -357,21 +407,21 @@
               </div>
             </div>
 
-            <!-- 5. FM Dashboard Card -->
+            <!-- 6. FM Dashboard Card -->
             <div class="p-3.5 rounded-xl bg-card-background border border-primary-border space-y-2.5">
               <div class="flex items-center justify-between text-xs font-bold text-primary-text pb-1.5 border-b border-primary-border/60">
                 <div class="flex items-center gap-1.5">
                   <Briefcase class="w-3.5 h-3.5 text-amber-500" />
-                  <span>FM (Fund Manager) Dashboard</span>
+                  <span>FM (Fund Manager) Dashboard Restrictions</span>
                 </div>
-                <span class="text-[10px] font-normal text-secondary-text">Strategy manager portal</span>
+                <span class="text-[10px] font-normal text-secondary-text">Strategy manager restrictions</span>
               </div>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <!-- FM Deposit -->
+                <!-- Restrict FM Deposit -->
                 <div class="flex items-center justify-between p-2.5 rounded-lg bg-background/50 border border-primary-border/60">
                   <div>
-                    <p class="text-xs font-semibold text-primary-text">FM Deposit</p>
-                    <p class="text-[10px] text-secondary-text">Allow FMs to deposit via this method</p>
+                    <p class="text-xs font-semibold text-primary-text">Restrict FM Deposit</p>
+                    <p class="text-[10px] text-secondary-text">Restrict FMs from depositing via this method</p>
                   </div>
                   <button
                     type="button"
@@ -385,11 +435,11 @@
                     />
                   </button>
                 </div>
-                <!-- FM Withdrawal -->
+                <!-- Restrict FM Withdrawal -->
                 <div class="flex items-center justify-between p-2.5 rounded-lg bg-background/50 border border-primary-border/60">
                   <div>
-                    <p class="text-xs font-semibold text-primary-text">FM Withdrawal</p>
-                    <p class="text-[10px] text-secondary-text">Allow FMs to withdraw via this method</p>
+                    <p class="text-xs font-semibold text-primary-text">Restrict FM Withdrawal</p>
+                    <p class="text-[10px] text-secondary-text">Restrict FMs from withdrawing via this method</p>
                   </div>
                   <button
                     type="button"
@@ -881,6 +931,7 @@ import {
   Briefcase,
   Star,
   Power,
+  Globe,
 } from 'lucide-vue-next'
 import { usePaymentMethodsStore } from '@/stores/paymentMethods/paymentMethods'
 
@@ -908,18 +959,19 @@ const defaultFormData = () => ({
   method_type: '',
   payment_method_code: '',
   remarks: '',
-  is_active: true,
-  enable_deposit: true,
-  enable_withdrawal: true,
+  is_active: false,
   is_default_deposit: false,
   is_default_withdrawal: false,
+  enable_deposit: false,
+  enable_withdrawal: false,
 
-  disable_client_deposit: true,
-  disable_client_withdrawal: true,
-  disable_ib_deposit: true,
-  disable_ib_withdrawal: true,
-  disable_fm_deposit: true,
-  disable_fm_withdrawal: true,
+  // Direct operations binding
+  disable_client_deposit: false,
+  disable_client_withdrawal: false,
+  disable_ib_deposit: false,
+  disable_ib_withdrawal: false,
+  disable_fm_deposit: false,
+  disable_fm_withdrawal: false,
 
   minimum_deposit_amount: 0,
   maximum_deposit_amount: 0,
@@ -975,18 +1027,19 @@ watch(
           method_type: p.method_type || '',
           payment_method_code: p.payment_method_code || '',
           remarks: p.remarks || '',
-          is_active: p.is_active ?? true,
-          enable_deposit: p.enable_deposit ?? true,
-          enable_withdrawal: p.enable_withdrawal ?? true,
-          is_default_deposit: p.is_default_deposit ?? false,
-          is_default_withdrawal: p.is_default_withdrawal ?? false,
+          is_active: Boolean(p.is_active ?? false),
+          is_default_deposit: Boolean(p.is_default_deposit ?? false),
+          is_default_withdrawal: Boolean(p.is_default_withdrawal ?? false),
+          enable_deposit: Boolean(p.enable_deposit ?? false),
+          enable_withdrawal: Boolean(p.enable_withdrawal ?? false),
 
-          disable_client_deposit: p.disable_client_deposit !== undefined ? Boolean(p.disable_client_deposit) : Boolean(p.enable_deposit ?? true),
-          disable_client_withdrawal: p.disable_client_withdrawal !== undefined ? Boolean(p.disable_client_withdrawal) : Boolean(p.enable_withdrawal ?? true),
-          disable_ib_deposit: p.disable_ib_deposit !== undefined ? Boolean(p.disable_ib_deposit) : Boolean(p.enable_deposit ?? true),
-          disable_ib_withdrawal: p.disable_ib_withdrawal !== undefined ? Boolean(p.disable_ib_withdrawal) : Boolean(p.enable_withdrawal ?? true),
-          disable_fm_deposit: p.disable_fm_deposit !== undefined ? Boolean(p.disable_fm_deposit) : Boolean(p.enable_deposit ?? true),
-          disable_fm_withdrawal: p.disable_fm_withdrawal !== undefined ? Boolean(p.disable_fm_withdrawal) : Boolean(p.enable_withdrawal ?? true),
+          // Direct binding from API
+          disable_client_deposit: Boolean(p.disable_client_deposit ?? false),
+          disable_client_withdrawal: Boolean(p.disable_client_withdrawal ?? false),
+          disable_ib_deposit: Boolean(p.disable_ib_deposit ?? false),
+          disable_ib_withdrawal: Boolean(p.disable_ib_withdrawal ?? false),
+          disable_fm_deposit: Boolean(p.disable_fm_deposit ?? false),
+          disable_fm_withdrawal: Boolean(p.disable_fm_withdrawal ?? false),
 
           minimum_deposit_amount: p.minimum_deposit_amount ?? 0,
           maximum_deposit_amount: p.maximum_deposit_amount ?? 0,
