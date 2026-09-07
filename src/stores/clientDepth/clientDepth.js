@@ -303,6 +303,142 @@ export const useClientDepthStore = defineStore("clientDepth", () => {
     });
   };
 
+  // ─── User References (KYC Notes & Documents) ─────────────
+  const userReferencesData = ref(null);
+  const userReferencesLoading = ref(false);
+  const userReferencesFetched = ref(false);
+  const userReferencesError = ref(null);
+  const isSubmittingReference = ref(false);
+  const isDeletingReference = ref(false);
+
+  const fetchUserReferences = (userId, force = false) => {
+    if (!userId) return;
+    if (userReferencesFetched.value && !force) return;
+
+    userReferencesLoading.value = true;
+    userReferencesError.value = null;
+
+    const successHandler = (res) => {
+      userReferencesData.value = res?.data || res || { user_id: userId, notes: [], files: [] };
+      userReferencesLoading.value = false;
+      userReferencesFetched.value = true;
+    };
+
+    const failureHandler = (err) => {
+      userReferencesLoading.value = false;
+      userReferencesError.value = err;
+      // Do not popup blocking error on initial empty states
+      console.warn("Failed to fetch user references:", err);
+    };
+
+    apiRequest(urls.KEYS.GET, urls.clientDepth.userReferences, {
+      look_up_key: userId,
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+    });
+  };
+
+  const addUserReference = (userId, payload, callback) => {
+    if (!userId) return;
+
+    isSubmittingReference.value = true;
+
+    const successHandler = (res) => {
+      isSubmittingReference.value = false;
+      snackbar.show(
+        res?.message || "KYC note / document added successfully.",
+        "success",
+      );
+      fetchUserReferences(userId, true);
+      if (typeof callback === "function") callback(null, res);
+    };
+
+    const failureHandler = (err) => {
+      isSubmittingReference.value = false;
+      snackbar.show(
+        err?.message || "Failed to add KYC note / document.",
+        "error",
+      );
+      if (typeof callback === "function") callback(err);
+    };
+
+    apiRequest(urls.KEYS.POST, urls.clientDepth.userReferences, {
+      look_up_key: userId,
+      isTokenRequired: true,
+      data: payload,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+    });
+  };
+
+  const updateUserReference = (userId, payload, callback) => {
+    if (!userId) return;
+
+    isSubmittingReference.value = true;
+
+    const successHandler = (res) => {
+      isSubmittingReference.value = false;
+      snackbar.show(
+        res?.message || "KYC note / document updated successfully.",
+        "success",
+      );
+      fetchUserReferences(userId, true);
+      if (typeof callback === "function") callback(null, res);
+    };
+
+    const failureHandler = (err) => {
+      isSubmittingReference.value = false;
+      snackbar.show(
+        err?.message || "Failed to update KYC note / document.",
+        "error",
+      );
+      if (typeof callback === "function") callback(err);
+    };
+
+    apiRequest(urls.KEYS.PATCH, urls.clientDepth.userReferences, {
+      look_up_key: userId,
+      isTokenRequired: true,
+      data: payload,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+    });
+  };
+
+  const deleteUserReference = (userId, payload, callback) => {
+    if (!userId) return;
+
+    isDeletingReference.value = true;
+
+    const successHandler = (res) => {
+      isDeletingReference.value = false;
+      snackbar.show(
+        res?.message || "KYC note / document deleted successfully.",
+        "success",
+      );
+      fetchUserReferences(userId, true);
+      if (typeof callback === "function") callback(null, res);
+    };
+
+    const failureHandler = (err) => {
+      isDeletingReference.value = false;
+      snackbar.show(
+        err?.message || "Failed to delete KYC note / document.",
+        "error",
+      );
+      if (typeof callback === "function") callback(err);
+    };
+
+    apiRequest(urls.KEYS.DELETE, urls.clientDepth.userReferences, {
+      look_up_key: userId,
+      isTokenRequired: true,
+      data: payload,
+      params: payload,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+    });
+  };
+
   // ─── Reset Store ──────────────────────────────────────────
   const reset = () => {
     overviewData.value = null;
@@ -325,9 +461,16 @@ export const useClientDepthStore = defineStore("clientDepth", () => {
     accountDetailsFetched.value = false;
     accountDetailsError.value = null;
 
+    userReferencesData.value = null;
+    userReferencesLoading.value = false;
+    userReferencesFetched.value = false;
+    userReferencesError.value = null;
+
     isSubmittingProfile.value = false;
     isSubmittingKyc.value = false;
     isUploadingDoc.value = false;
+    isSubmittingReference.value = false;
+    isDeletingReference.value = false;
   };
 
   return {
@@ -353,15 +496,26 @@ export const useClientDepthStore = defineStore("clientDepth", () => {
     accountDetailsFetched,
     accountDetailsError,
 
+    userReferencesData,
+    userReferencesLoading,
+    userReferencesFetched,
+    userReferencesError,
+
     isSubmittingProfile,
     isSubmittingKyc,
     isUploadingDoc,
+    isSubmittingReference,
+    isDeletingReference,
 
     setActiveClient,
     fetchClientOverview,
     fetchClientKyc,
     fetchUserCharts,
     fetchAccountDetails,
+    fetchUserReferences,
+    addUserReference,
+    updateUserReference,
+    deleteUserReference,
     updateClientProfile,
     updateClientKyc,
     uploadClientDocument,

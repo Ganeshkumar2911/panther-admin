@@ -52,6 +52,7 @@ const urls = {
     uploadDocument: "/user-document-upload",
     userCharts: "/user-charts",
     accountDetails: "/account-details",
+    userReferences: "/user-references",
   },
   clientLedger: {
     list: "/ledger/clients",

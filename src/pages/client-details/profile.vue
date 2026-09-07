@@ -525,52 +525,8 @@
           </div>
         </div>
 
-        <!-- 4. KYC Notes Card -->
-        <div
-          class="flex-1 min-h-[220px] max-h-[340px] bg-card-background border border-primary-border rounded-md p-5 sm:p-6 shadow-xs transition-all hover:border-primary/30 flex flex-col justify-between overflow-hidden"
-        >
-          <div class="flex items-start justify-between gap-3 pb-4 border-b border-primary-border/60">
-            <div>
-              <h3 class="text-base min-[1650px]:text-lg font-bold text-primary-text">
-                KYC Notes
-              </h3>
-              <p class="text-xs text-secondary-text mt-0.5">
-                Add internal notes related to client KYC verification.
-              </p>
-            </div>
-            <button
-              type="button"
-              @click="openAddNoteModal"
-              class="border border-primary-border rounded-xl px-3.5 py-1.5 text-xs font-semibold text-primary hover:bg-background transition-colors flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs"
-            >
-              <Plus class="w-3.5 h-3.5" />
-              Add Note
-            </button>
-          </div>
-
-          <div class="pt-4 flex-1 flex flex-col justify-start overflow-hidden">
-            <div v-if="allNotes.length === 0" class="py-8 flex flex-col items-center justify-center text-center my-auto">
-              <FileText class="w-10 h-10 text-secondary-text/40 mb-2" />
-              <p class="text-xs text-secondary-text font-medium">
-                No notes added yet.
-              </p>
-            </div>
-
-            <div v-else class="space-y-3 overflow-y-auto no-scrollbar max-h-52 pr-1">
-              <div
-                v-for="(note, i) in allNotes"
-                :key="i"
-                class="border border-primary-border/70 rounded-xl p-3 bg-background/50"
-              >
-                <div class="flex items-center justify-between text-[11px] text-secondary-text mb-1">
-                  <span class="font-bold text-primary-text">{{ note.author || 'Admin' }}</span>
-                  <span>{{ note.date || note.created_at || 'Just now' }}</span>
-                </div>
-                <p class="text-xs text-primary-text font-medium">{{ note.text || note.note }}</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <!-- 4. KYC Notes & Documents References Table -->
+        <KycReferencesTable :userId="clientForEdit.id" />
       </div>
     </div>
 
@@ -712,48 +668,6 @@
         </div>
       </div>
     </div>
-
-    <!-- 5. Add Note Modal -->
-    <div
-      v-if="addNoteModalOpen"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4"
-    >
-      <div class="bg-card-background border border-primary-border rounded-2xl p-6 w-full max-w-md shadow-xl space-y-4">
-        <div class="flex items-center justify-between border-b border-primary-border pb-3">
-          <h3 class="font-bold text-primary-text text-base">Add KYC Note</h3>
-          <button @click="addNoteModalOpen = false" class="text-secondary-text hover:text-primary-text">
-            <X class="w-5 h-5" />
-          </button>
-        </div>
-
-        <div class="space-y-2 text-xs">
-          <label class="font-semibold text-secondary-text block">Internal Note</label>
-          <textarea
-            v-model="newNoteText"
-            rows="4"
-            placeholder="Type your verification notes or observations here..."
-            class="input-field p-3 resize-none w-full border border-primary-border rounded-xl bg-background text-primary-text text-xs"
-          ></textarea>
-        </div>
-
-        <div class="flex items-center justify-end gap-2 pt-3 border-t border-primary-border">
-          <button
-            type="button"
-            @click="addNoteModalOpen = false"
-            class="px-4 py-2 text-xs font-semibold text-secondary-text hover:bg-background rounded-xl border border-primary-border"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            @click="saveNewNote"
-            class="px-4 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-hover rounded-xl shadow-xs"
-          >
-            Add Note
-          </button>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -766,6 +680,7 @@ import { useSnackbarStore } from "@/stores/snackbar/snackbar";
 import EditClientProfileDrawer from "@/components/clientDetails/EditClientProfileDrawer.vue";
 import UploadKycDocumentModal from "@/components/clientDetails/UploadKycDocumentModal.vue";
 import ViewKycDocumentModal from "@/components/clientDetails/ViewKycDocumentModal.vue";
+import KycReferencesTable from "@/components/clientDetails/KycReferencesTable.vue";
 import {
   User,
   Pencil,
@@ -822,6 +737,7 @@ const loadKyc = (force = false) => {
   const userId = route.params.id || user.value?.id;
   if (userId) {
     clientDepthStore.fetchClientKyc(userId, force);
+    clientDepthStore.fetchUserReferences(userId, force);
   }
 };
 
@@ -1113,38 +1029,13 @@ const handleUploadDocSuccess = () => {
 };
 
 const refreshKycStatus = () => {
-  const userId = route.params.id;
+  const userId = route.params.id || user.value?.id;
   if (!userId) return;
   clientDepthStore.fetchClientKyc(userId, true);
+  clientDepthStore.fetchUserReferences(userId, true);
 };
 
 const sendKycInstructions = () => {
   snackbar.show("Verification instructions sent to client email!", "success");
-};
-
-// ─── KYC Notes ────────────────────────────────────────────────────────────────
-const localNotes = ref([]);
-const allNotes = computed(() => {
-  const apiNotes = kycData.value?.notes || [];
-  return [...localNotes.value, ...apiNotes];
-});
-
-const addNoteModalOpen = ref(false);
-const newNoteText = ref("");
-
-const openAddNoteModal = () => {
-  newNoteText.value = "";
-  addNoteModalOpen.value = true;
-};
-
-const saveNewNote = () => {
-  if (!newNoteText.value.trim()) return;
-  localNotes.value.unshift({
-    text: newNoteText.value.trim(),
-    author: "Super Admin",
-    date: "Just now",
-  });
-  addNoteModalOpen.value = false;
-  snackbar.show("Internal KYC note added!", "success");
 };
 </script>

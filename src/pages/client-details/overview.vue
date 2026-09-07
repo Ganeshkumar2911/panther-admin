@@ -2,46 +2,12 @@
   <div class="space-y-5 pt-4 pb-12">
     <!-- ─── SKELETON LOADING STATE ─────────────────────────────────── -->
     <div v-if="isOverviewLoading" class="space-y-5 animate-pulse">
-      <!-- Top 4 Summary Cards Skeleton -->
+      <!-- Summary Cards Skeleton -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div
-          v-for="i in 4"
+          v-for="i in 7"
           :key="i"
-          class="bg-card-background border border-primary-border rounded-2xl p-5 h-32 flex flex-col justify-between"
-        >
-          <div class="flex items-center justify-between">
-            <div class="h-3 w-28 bg-primary-border/60 rounded" />
-            <div class="w-9 h-9 bg-primary-border/50 rounded-xl" />
-          </div>
-          <div class="space-y-2">
-            <div class="h-8 w-36 bg-primary-border/80 rounded-lg" />
-            <div class="h-3 w-20 bg-primary-border/40 rounded" />
-          </div>
-        </div>
-      </div>
-
-      <!-- Health Score Section Skeleton -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        <div class="lg:col-span-5 bg-card-background border border-primary-border rounded-2xl p-6 h-96 flex flex-col justify-between">
-          <div class="h-4 w-40 bg-primary-border/70 rounded" />
-          <div class="w-36 h-36 rounded-full border-8 border-primary-border/40 self-center" />
-          <div class="h-4 w-32 bg-primary-border/50 rounded self-center" />
-        </div>
-        <div class="lg:col-span-7 bg-card-background border border-primary-border rounded-2xl p-6 h-96 space-y-4">
-          <div class="h-4 w-48 bg-primary-border/70 rounded mb-4" />
-          <div v-for="b in 4" :key="b" class="space-y-2 p-3 bg-background/50 rounded-xl">
-            <div class="h-3.5 w-32 bg-primary-border/60 rounded" />
-            <div class="h-2 w-full bg-primary-border/40 rounded-full" />
-          </div>
-        </div>
-      </div>
-
-      <!-- 4 Metric Chips Skeleton -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div
-          v-for="i in 4"
-          :key="i"
-          class="bg-card-background border border-primary-border rounded-2xl p-5 flex items-center gap-4 h-24"
+          class="bg-card-background border border-primary-border rounded-2xl p-4 sm:p-5 flex items-center gap-4 h-24"
         >
           <div class="w-11 h-11 rounded-xl bg-primary-border/50 shrink-0" />
           <div class="space-y-2 flex-1">
@@ -53,147 +19,120 @@
 
       <!-- Stat Strip Skeleton -->
       <div class="bg-card-background border border-primary-border rounded-2xl p-6 h-28" />
+
+      <!-- Health Score Section Skeleton -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <div class="lg:col-span-5 bg-card-background border border-primary-border rounded-2xl p-6 h-96 flex flex-col justify-between">
+          <div class="h-4 w-40 bg-primary-border/70 rounded" />
+          <div class="w-36 h-36 rounded-full border-8 border-primary-border/40 self-center" />
+          <div class="h-4 w-32 bg-primary-border/50 rounded self-center" />
+        </div>
+        <div class="lg:col-span-7 bg-card-background border border-primary-border rounded-2xl p-6 h-96 space-y-4">
+          <div class="h-4 w-48 bg-primary-border/70 rounded mb-4" />
+          <div v-for="b in 5" :key="b" class="space-y-2 p-3 bg-background/50 rounded-xl">
+            <div class="h-3.5 w-32 bg-primary-border/60 rounded" />
+            <div class="h-2 w-full bg-primary-border/40 rounded-full" />
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- ─── MAIN CONTENT ─────────────────────────────────────────── -->
     <template v-else>
-      <!-- 1. Top 4 Summary Cards -->
+      <!-- 1. Summary Cards Grid (Rendered dynamically from computed array) -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- 1. Total Deposits -->
         <div
-          class="group bg-card-background border border-primary-border rounded-2xl p-5 shadow-xs transition-all duration-200 hover:border-primary/40 relative overflow-hidden flex flex-col justify-between"
+          v-for="card in summaryCards"
+          :key="card.title"
+          class="bg-card-background border border-primary-border rounded-2xl p-4 sm:p-5 flex items-center gap-4"
         >
-          <span
-            class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-500/20 via-emerald-500/60 to-emerald-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-          />
-          <div class="flex items-center justify-between gap-2">
-            <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text">
-              Total Deposits
-            </p>
-            <div
-              class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 shrink-0 shadow-2xs"
-            >
-              <ArrowDownLeft class="w-4 h-4" />
-            </div>
+          <div
+            class="w-11 h-11 rounded-xl border flex items-center justify-center shrink-0"
+            :class="card.iconBoxClass"
+          >
+            <component :is="card.icon" class="w-5 h-5" />
           </div>
-          <div class="mt-3">
-            <p class="text-2xl sm:text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 tracking-tight truncate">
-              ${{ formatCurrency(totalDeposits) }}
+          <div class="min-w-0 flex-1">
+            <p class="text-[13px] text-primary-text font-bold">
+              {{ card.title }}
             </p>
-            <div class="mt-1.5 flex items-center gap-2">
-              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-                {{ depositsCount }} {{ depositsCount === 1 ? 'deposit' : 'deposits' }}
-              </span>
-              <span class="text-[11px] text-secondary-text font-medium truncate">Total Inflow</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- 2. Total Equity -->
-        <div
-          class="group bg-card-background border border-primary-border rounded-2xl p-5 shadow-xs transition-all duration-200 hover:border-primary/40 relative overflow-hidden flex flex-col justify-between"
-        >
-          <span
-            class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-500/20 via-blue-500/60 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-          />
-          <div class="flex items-center justify-between gap-2">
-            <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text">
-              Total Equity
-            </p>
-            <div
-              class="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 shrink-0 shadow-2xs"
-            >
-              <Layers class="w-4 h-4" />
-            </div>
-          </div>
-          <div class="mt-3">
-            <p class="text-2xl sm:text-3xl font-extrabold text-primary-text tracking-tight truncate">
-              ${{ formatCurrency(totalEquity) }}
-            </p>
-            <div class="mt-1.5 flex items-center gap-2">
-              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400">
-                {{ accountsCount }} {{ accountsCount === 1 ? 'Account' : 'Accounts' }}
-              </span>
-              <span class="text-[11px] text-secondary-text font-medium truncate">Live balance</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- 3. Net P&L -->
-        <div
-          class="group bg-card-background border border-primary-border rounded-2xl p-5 shadow-xs transition-all duration-200 hover:border-primary/40 relative overflow-hidden flex flex-col justify-between"
-        >
-          <span
-            class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-            :class="netPnl >= 0 ? 'from-emerald-500/20 via-emerald-500/60 to-emerald-500/20' : 'from-rose-500/20 via-rose-500/60 to-rose-500/20'"
-          />
-          <div class="flex items-center justify-between gap-2">
-            <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text">
-              Net P&amp;L
-            </p>
-            <div
-              class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-2xs"
-              :class="netPnl >= 0 ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-500' : 'bg-rose-500/10 border border-rose-500/20 text-rose-500'"
-            >
-              <component :is="netPnl >= 0 ? TrendingUp : TrendingDown" class="w-4 h-4" />
-            </div>
-          </div>
-          <div class="mt-3">
             <p
-              class="text-2xl sm:text-3xl font-extrabold tracking-tight truncate"
-              :class="netPnl >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'"
+              class="text-lg font-bold truncate mt-0.5"
+              :class="card.valueClass || 'text-primary-text'"
             >
-              {{ netPnl >= 0 ? '+' : '' }}${{ formatCurrency(netPnl) }}
+              {{ card.value }}
             </p>
-            <div class="mt-1.5 flex items-center gap-2">
-              <span
-                class="text-[10px] font-semibold px-2 py-0.5 rounded-md inline-flex items-center gap-1"
-                :class="netPnl >= 0 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400'"
-              >
-                {{ netPnl >= 0 ? '↑ Net Profit' : '↓ Net Loss' }}
-              </span>
-              <span class="text-[11px] text-secondary-text font-medium truncate">All-time trading</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- 4. Referral Earnings -->
-        <div
-          class="group bg-card-background border border-primary-border rounded-2xl p-5 shadow-xs transition-all duration-200 hover:border-primary/40 relative overflow-hidden flex flex-col justify-between"
-        >
-          <span
-            class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-amber-500/20 via-amber-500/60 to-amber-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-          />
-          <div class="flex items-center justify-between gap-2">
-            <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text">
-              Referral Earnings
+            <p class="text-[10px] text-secondary-text truncate font-medium">
+              {{ card.subtext }}
             </p>
-            <div
-              class="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 shrink-0 shadow-2xs"
-            >
-              <Sparkles class="w-4 h-4" />
-            </div>
-          </div>
-          <div class="mt-3">
-            <p class="text-2xl sm:text-3xl font-extrabold text-amber-600 dark:text-amber-400 tracking-tight truncate">
-              ${{ formatCurrency(referralEarnings) }}
-            </p>
-            <div class="mt-1.5 flex items-center gap-2">
-              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 inline-flex items-center gap-1">
-                <Users class="w-3 h-3" />
-                {{ qualifiedReferrals }} Qualified
-              </span>
-              <span class="text-[11px] text-secondary-text font-medium truncate">Affiliate reward</span>
-            </div>
           </div>
         </div>
       </div>
 
-      <!-- 2. Client Health Score Section (Split Matrix Layout) -->
+      <!-- 2. Client Lifecycle & Activity Strip -->
+      <div
+        class="bg-card-background border border-primary-border rounded-2xl p-5 sm:p-6"
+      >
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 text-center divide-y sm:divide-y-0 sm:divide-x divide-primary-border/60">
+          <!-- Days Active -->
+          <div class="flex flex-col items-center gap-2 pt-2 sm:pt-0">
+            <div class="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500">
+              <Calendar class="w-4 h-4" />
+            </div>
+            <span class="text-2xl sm:text-3xl font-black text-primary-text tabular-nums">
+              {{ daysActive }}
+            </span>
+            <span class="text-[11px] sm:text-xs text-secondary-text font-semibold uppercase tracking-wider">
+              Days Active
+            </span>
+          </div>
+
+          <!-- Deposits Count -->
+          <div class="flex flex-col items-center gap-2 pt-2 sm:pt-0">
+            <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
+              <TrendingUp class="w-4 h-4" />
+            </div>
+            <span class="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400 tabular-nums">
+              {{ depositsCount }}
+            </span>
+            <span class="text-[11px] sm:text-xs text-secondary-text font-semibold uppercase tracking-wider">
+              Deposits Made
+            </span>
+          </div>
+
+          <!-- Withdrawals Count -->
+          <div class="flex flex-col items-center gap-2 pt-2 sm:pt-0">
+            <div class="w-9 h-9 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500">
+              <TrendingDown class="w-4 h-4" />
+            </div>
+            <span class="text-2xl sm:text-3xl font-black text-primary-text tabular-nums">
+              {{ withdrawalsCount }}
+            </span>
+            <span class="text-[11px] sm:text-xs text-secondary-text font-semibold uppercase tracking-wider">
+              Withdrawals
+            </span>
+          </div>
+
+          <!-- Configured Accounts -->
+          <div class="flex flex-col items-center gap-2 pt-2 sm:pt-0">
+            <div class="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-500">
+              <Wallet class="w-4 h-4" />
+            </div>
+            <span class="text-2xl sm:text-3xl font-black text-primary-text tabular-nums">
+              {{ accountsCount }}
+            </span>
+            <span class="text-[11px] sm:text-xs text-secondary-text font-semibold uppercase tracking-wider">
+              Trading Accounts
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Client Health Score Section (Split Matrix Layout) -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
         <!-- Left Health Score Ring Gauge & Status (4 cols) -->
         <div
-          class="lg:col-span-4 bg-card-background border border-primary-border rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col justify-between transition-all hover:border-primary/30 relative overflow-hidden"
+          class="lg:col-span-4 bg-card-background border border-primary-border rounded-2xl p-5 sm:p-6 flex flex-col justify-between relative overflow-hidden"
         >
           <!-- Card Header -->
           <div class="flex items-center justify-between pb-4 border-b border-primary-border/60">
@@ -253,7 +192,7 @@
             <!-- Health Status Badge -->
             <div class="mt-4 flex flex-col items-center gap-1.5">
               <span
-                class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border shadow-2xs"
+                class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border"
                 :class="healthBadgeClass"
               >
                 {{ healthStatus || 'Healthy' }}
@@ -280,7 +219,7 @@
 
         <!-- Right Health Breakdown Dimension Cards (8 cols) -->
         <div
-          class="lg:col-span-8 bg-card-background border border-primary-border rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col justify-between transition-all hover:border-primary/30"
+          class="lg:col-span-8 bg-card-background border border-primary-border rounded-2xl p-5 sm:p-6 flex flex-col justify-between"
         >
           <!-- Breakdown Header -->
           <div class="flex items-center justify-between pb-4 border-b border-primary-border/60">
@@ -297,12 +236,12 @@
             </span>
           </div>
 
-          <!-- Dimension Cards Grid -->
+          <!-- Dimension Cards Grid with Progress Bar at Bottom -->
           <div class="space-y-3 pt-4 flex-1">
             <div
               v-for="(item, idx) in breakdownItems"
               :key="item.key || idx"
-              class="group border border-primary-border/70 rounded-xl p-3.5 bg-background/40 hover:bg-background transition-all"
+              class="group border border-primary-border/70 rounded-xl p-3.5 bg-background/40 hover:bg-background transition-all flex flex-col justify-between"
             >
               <!-- Card Top Row -->
               <div
@@ -347,20 +286,6 @@
                 </div>
               </div>
 
-              <!-- Animated Progress Bar -->
-              <div class="h-2 w-full rounded-full bg-primary-border/60 overflow-hidden mt-3">
-                <div
-                  class="h-full rounded-full transition-all duration-1000 ease-out"
-                  :class="item.barColor"
-                  :style="{
-                    width: isAnimated
-                      ? `${Math.min(100, Math.max(0, (item.score / (item.max_score || 1)) * 100))}%`
-                      : '0%',
-                    transitionDelay: `${idx * 100}ms`
-                  }"
-                />
-              </div>
-
               <!-- Collapsible Subcategories Details -->
               <div
                 v-if="expandedBreakdowns[item.key] && item.subcategories"
@@ -369,7 +294,7 @@
                 <div
                   v-for="(sub, subKey) in item.subcategories"
                   :key="subKey"
-                  class="bg-card-background border border-primary-border/70 rounded-lg p-2.5 flex flex-col justify-between shadow-2xs"
+                  class="bg-card-background border border-primary-border/70 rounded-lg p-2.5 flex flex-col justify-between"
                 >
                   <div class="flex items-center justify-between gap-1">
                     <span class="font-bold text-primary-text capitalize text-[11px]">
@@ -384,133 +309,21 @@
                   </p>
                 </div>
               </div>
+
+              <!-- Animated Progress Bar at the Bottom -->
+              <div class="h-1.5 w-full rounded-full bg-primary-border/60 overflow-hidden mt-3.5">
+                <div
+                  class="h-full rounded-full transition-all duration-1000 ease-out"
+                  :class="item.barColor"
+                  :style="{
+                    width: isAnimated
+                      ? `${Math.min(100, Math.max(0, (item.score / (item.max_score || 1)) * 100))}%`
+                      : '0%',
+                    transitionDelay: `${idx * 100}ms`
+                  }"
+                />
+              </div>
             </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 3. Performance & Operational Intelligence (4 Metric Tiles) -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Lifetime Value -->
-        <div
-          class="bg-card-background border border-primary-border rounded-2xl p-4 sm:p-5 flex items-center gap-4 shadow-xs transition-all hover:border-primary/30"
-        >
-          <div class="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 shrink-0">
-            <DollarSign class="w-5 h-5" />
-          </div>
-          <div class="min-w-0 flex-1">
-            <p class="text-[11px] text-secondary-text font-semibold uppercase tracking-wider">Lifetime Value</p>
-            <p class="text-lg font-bold text-emerald-600 dark:text-emerald-400 truncate mt-0.5">
-              ${{ formatCurrency(totalDeposits) }}
-            </p>
-            <p class="text-[10px] text-secondary-text truncate font-medium">Total cumulative funding</p>
-          </div>
-        </div>
-
-        <!-- Engagement Rate -->
-        <div
-          class="bg-card-background border border-primary-border rounded-2xl p-4 sm:p-5 flex items-center gap-4 shadow-xs transition-all hover:border-primary/30"
-        >
-          <div class="w-11 h-11 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 shrink-0">
-            <Zap class="w-5 h-5" />
-          </div>
-          <div class="min-w-0 flex-1">
-            <p class="text-[11px] text-secondary-text font-semibold uppercase tracking-wider">Engagement Rate</p>
-            <p class="text-lg font-bold text-primary-text truncate mt-0.5">
-              {{ engagementRate }}
-            </p>
-            <p class="text-[10px] text-secondary-text truncate font-medium">Weekly activity index</p>
-          </div>
-        </div>
-
-        <!-- Risk Level -->
-        <div
-          class="bg-card-background border border-primary-border rounded-2xl p-4 sm:p-5 flex items-center gap-4 shadow-xs transition-all hover:border-primary/30"
-        >
-          <div class="w-11 h-11 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 shrink-0">
-            <Shield class="w-5 h-5" />
-          </div>
-          <div class="min-w-0 flex-1">
-            <p class="text-[11px] text-secondary-text font-semibold uppercase tracking-wider">Risk Level</p>
-            <p class="text-lg font-bold text-primary-text truncate mt-0.5">
-              {{ riskLevelLabel }}
-            </p>
-            <p class="text-[10px] text-secondary-text truncate font-medium">Based on behavioral rating</p>
-          </div>
-        </div>
-
-        <!-- Total Equity -->
-        <div
-          class="bg-card-background border border-primary-border rounded-2xl p-4 sm:p-5 flex items-center gap-4 shadow-xs transition-all hover:border-primary/30"
-        >
-          <div class="w-11 h-11 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-500 shrink-0">
-            <Target class="w-5 h-5" />
-          </div>
-          <div class="min-w-0 flex-1">
-            <p class="text-[11px] text-secondary-text font-semibold uppercase tracking-wider">Total Equity</p>
-            <p class="text-lg font-bold text-primary-text truncate mt-0.5">
-              ${{ formatCurrency(totalEquity) }}
-            </p>
-            <p class="text-[10px] text-secondary-text truncate font-medium">Across all trading accounts</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- 4. Client Lifecycle & Activity Strip -->
-      <div
-        class="bg-card-background border border-primary-border rounded-2xl p-5 sm:p-6 shadow-xs transition-all hover:border-primary/30"
-      >
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 text-center divide-y sm:divide-y-0 sm:divide-x divide-primary-border/60">
-          <!-- Days Active -->
-          <div class="flex flex-col items-center gap-2 pt-2 sm:pt-0">
-            <div class="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500">
-              <Calendar class="w-4 h-4" />
-            </div>
-            <span class="text-2xl sm:text-3xl font-black text-primary-text tabular-nums">
-              {{ daysActive }}
-            </span>
-            <span class="text-[11px] sm:text-xs text-secondary-text font-semibold uppercase tracking-wider">
-              Days Active
-            </span>
-          </div>
-
-          <!-- Deposits Count -->
-          <div class="flex flex-col items-center gap-2 pt-2 sm:pt-0">
-            <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
-              <TrendingUp class="w-4 h-4" />
-            </div>
-            <span class="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400 tabular-nums">
-              {{ depositsCount }}
-            </span>
-            <span class="text-[11px] sm:text-xs text-secondary-text font-semibold uppercase tracking-wider">
-              Deposits Made
-            </span>
-          </div>
-
-          <!-- Withdrawals Count -->
-          <div class="flex flex-col items-center gap-2 pt-2 sm:pt-0">
-            <div class="w-9 h-9 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500">
-              <TrendingDown class="w-4 h-4" />
-            </div>
-            <span class="text-2xl sm:text-3xl font-black text-primary-text tabular-nums">
-              {{ withdrawalsCount }}
-            </span>
-            <span class="text-[11px] sm:text-xs text-secondary-text font-semibold uppercase tracking-wider">
-              Withdrawals
-            </span>
-          </div>
-
-          <!-- Configured Accounts -->
-          <div class="flex flex-col items-center gap-2 pt-2 sm:pt-0">
-            <div class="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-500">
-              <Wallet class="w-4 h-4" />
-            </div>
-            <span class="text-2xl sm:text-3xl font-black text-primary-text tabular-nums">
-              {{ accountsCount }}
-            </span>
-            <span class="text-[11px] sm:text-xs text-secondary-text font-semibold uppercase tracking-wider">
-              Trading Accounts
-            </span>
           </div>
         </div>
       </div>
@@ -526,19 +339,16 @@ import {
   Heart,
   Star,
   DollarSign,
-  Zap,
-  Shield,
-  Target,
   Calendar,
   TrendingUp,
   TrendingDown,
   Wallet,
-  Users,
   ChevronDown,
-  ArrowDownLeft,
   Layers,
   Sparkles,
   Activity,
+  Zap,
+  Shield,
 } from "lucide-vue-next";
 
 const route = useRoute();
@@ -714,6 +524,14 @@ const totalDeposits = computed(() => {
   );
 });
 
+const totalWithdrawals = computed(() => {
+  return (
+    overviewData.value?.total_withdrawal ??
+    clientStats.value?.total_withdrawal ??
+    0.0
+  );
+});
+
 const totalEquity = computed(() => {
   return (
     overviewData.value?.total_equity ??
@@ -730,7 +548,116 @@ const netPnl = computed(() => {
   );
 });
 
-// Health score & Ring
+const referralEarnings = computed(() => {
+  return (
+    overviewData.value?.referral_earnings ??
+    clientStats.value?.referral_earnings ??
+    0.0
+  );
+});
+
+const depositsCount = computed(() => {
+  return (
+    overviewData.value?.deposit_count ??
+    clientStats.value?.deposit_count ??
+    1
+  );
+});
+
+const withdrawalsCount = computed(() => {
+  return (
+    overviewData.value?.withdrawal_count ??
+    clientStats.value?.withdrawal_count ??
+    1
+  );
+});
+
+const accountsCount = computed(() => {
+  const activeAccs = healthScoreObj.value?.breakdown?.account_utilization?.subcategories?.active_accounts?.score;
+  return activeAccs ?? 5;
+});
+
+const qualifiedReferrals = computed(() => {
+  return 0;
+});
+
+const engagementRate = computed(() => {
+  const pe = healthScoreObj.value?.breakdown?.platform_engagement?.subcategories;
+  if (pe?.recent_platform_activity?.score) {
+    return `${pe.recent_platform_activity.score} days/wk`;
+  }
+  return "0.1";
+});
+
+const riskLevelLabel = computed(() => {
+  const status = healthScoreObj.value?.health_status;
+  if (status) {
+    return status.charAt(0).toUpperCase() + status.slice(1);
+  }
+  return "Moderate";
+});
+
+// ─── Computed Summary Cards Array (DRY Architecture) ────────────────────────
+const summaryCards = computed(() => [
+  {
+    title: "Total Deposits",
+    value: `$${formatCurrency(totalDeposits.value)}`,
+    valueClass: "text-emerald-600 dark:text-emerald-400",
+    subtext: `${depositsCount.value} ${depositsCount.value === 1 ? 'deposit' : 'deposits'} · Total Inflow`,
+    icon: DollarSign,
+    iconBoxClass: "bg-emerald-500/10 border-emerald-500/20 text-emerald-500",
+  },
+  {
+    title: "Total Equity",
+    value: `$${formatCurrency(totalEquity.value)}`,
+    valueClass: "text-primary-text",
+    subtext: `${accountsCount.value} ${accountsCount.value === 1 ? 'Account' : 'Accounts'} · Live balance`,
+    icon: Layers,
+    iconBoxClass: "bg-blue-500/10 border-blue-500/20 text-blue-500",
+  },
+  {
+    title: "Net P&L",
+    value: `${netPnl.value >= 0 ? '+' : ''}$${formatCurrency(netPnl.value)}`,
+    valueClass: netPnl.value >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400",
+    subtext: `${netPnl.value >= 0 ? '↑ Net Profit' : '↓ Net Loss'} · All-time trading`,
+    icon: netPnl.value >= 0 ? TrendingUp : TrendingDown,
+    iconBoxClass: netPnl.value >= 0 ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500" : "bg-rose-500/10 border-rose-500/20 text-rose-500",
+  },
+  {
+    title: "Referral Earnings",
+    value: `$${formatCurrency(referralEarnings.value)}`,
+    valueClass: "text-amber-600 dark:text-amber-400",
+    subtext: `${qualifiedReferrals.value} Qualified · Affiliate reward`,
+    icon: Sparkles,
+    iconBoxClass: "bg-amber-500/10 border-amber-500/20 text-amber-500",
+  },
+  {
+    title: "Total Withdrawals",
+    value: `$${formatCurrency(totalWithdrawals.value)}`,
+    valueClass: "text-primary-text",
+    subtext: `${withdrawalsCount.value} ${withdrawalsCount.value === 1 ? 'withdrawal' : 'withdrawals'} · Total Outflow`,
+    icon: Wallet,
+    iconBoxClass: "bg-rose-500/10 border-rose-500/20 text-rose-500",
+  },
+  {
+    title: "Engagement Rate",
+    value: engagementRate.value,
+    valueClass: "text-primary-text",
+    subtext: "Weekly activity index",
+    icon: Zap,
+    iconBoxClass: "bg-blue-500/10 border-blue-500/20 text-blue-500",
+  },
+  {
+    title: "Risk Level",
+    value: riskLevelLabel.value,
+    valueClass: "text-primary-text",
+    subtext: "Based on behavioral rating",
+    icon: Shield,
+    iconBoxClass: "bg-amber-500/10 border-amber-500/20 text-amber-500",
+  },
+]);
+
+// ─── Health score & Ring ───────────────────────────────────────────────────
 const healthScore = computed(() => healthScoreObj.value?.total_score ?? 43);
 const maxHealthScore = computed(() => healthScoreObj.value?.max_score ?? 100);
 const healthStatus = computed(() => healthScoreObj.value?.health_status ?? "moderate");
@@ -856,61 +783,10 @@ const breakdownItems = computed(() => {
   });
 });
 
-// ─── 4 Metric Chips ─────────────────────────────────────────────────────────
-const engagementRate = computed(() => {
-  const pe = healthScoreObj.value?.breakdown?.platform_engagement?.subcategories;
-  if (pe?.recent_platform_activity?.score) {
-    return `${pe.recent_platform_activity.score} days/wk`;
-  }
-  return "0.1";
-});
-
-const riskLevelLabel = computed(() => {
-  const status = healthScoreObj.value?.health_status;
-  if (status) {
-    return status.charAt(0).toUpperCase() + status.slice(1);
-  }
-  return "Moderate";
-});
-
 // ─── Stat Strip ─────────────────────────────────────────────────────────────
 const daysActive = computed(() => {
   const activeDays = healthScoreObj.value?.breakdown?.platform_engagement?.subcategories?.active_days?.score;
   return activeDays ? 16 : 16;
-});
-
-const depositsCount = computed(() => {
-  return (
-    overviewData.value?.deposit_count ??
-    clientStats.value?.deposit_count ??
-    1
-  );
-});
-
-const withdrawalsCount = computed(() => {
-  return (
-    overviewData.value?.withdrawal_count ??
-    clientStats.value?.withdrawal_count ??
-    1
-  );
-});
-
-const accountsCount = computed(() => {
-  const activeAccs = healthScoreObj.value?.breakdown?.account_utilization?.subcategories?.active_accounts?.score;
-  return activeAccs ?? 5;
-});
-
-// ─── Referral Earnings ──────────────────────────────────────────────────────
-const referralEarnings = computed(() => {
-  return (
-    overviewData.value?.referral_earnings ??
-    clientStats.value?.referral_earnings ??
-    0.0
-  );
-});
-
-const qualifiedReferrals = computed(() => {
-  return 0;
 });
 
 // ─── Format Utilities ───────────────────────────────────────────────────────
