@@ -50,6 +50,7 @@ const urls = {
     userUpdate: "/user-update",
     updateKyc: "/user/kyc-details",
     uploadDocument: "/user-document-upload",
+    docApproval: "/user-doc-approval",
     userCharts: "/user-charts",
     accountDetails: "/account-details",
     userReferences: "/user/reference",

@@ -1,7 +1,7 @@
 <template>
   <div class="bg-background space-y-6 pt-4 pb-8 overflow-y-auto no-scrollbar">
-    <!-- ─── 1. FINANCIAL SUMMARY HEADER ──────────────────────────── -->
-    <div class="flex items-center justify-between">
+    <!-- ─── 1. FINANCIAL SUMMARY HEADER & CONTROLS ───────────────── -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <div>
         <h3 class="text-base sm:text-lg font-bold text-primary-text">
           Financial Summary
@@ -9,6 +9,29 @@
         <p class="text-xs text-secondary-text mt-0.5">
           Overview of client's financial activity across all trading accounts.
         </p>
+      </div>
+
+      <!-- Period Filter & Refresh Action (Moved to Top Summary Row) -->
+      <div class="flex items-center gap-2 self-start sm:self-auto">
+        <!-- Period Dropdown -->
+        <div class="w-32 sm:w-36">
+          <BaseSelect
+            v-model="selectedPeriod"
+            :options="periodOptions"
+            @update:model-value="handlePeriodChange"
+          />
+        </div>
+
+        <!-- Refresh Button -->
+        <button
+          type="button"
+          @click="refreshChartsData"
+          :disabled="isChartsRefreshing || clientDepthStore.userChartsLoading"
+          class="border border-primary-border bg-card-background hover:bg-background rounded-xl p-2.5 text-secondary-text hover:text-primary-text transition-colors cursor-pointer shadow-2xs disabled:opacity-50"
+          title="Refresh Financial Summary & Charts"
+        >
+          <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': isChartsRefreshing || clientDepthStore.userChartsLoading }" />
+        </button>
       </div>
     </div>
 
@@ -147,41 +170,16 @@
       </div>
     </div>
 
-    <!-- ─── 3. MIDDLE SECTION: CHARTS HEADER & 2 TREND CHARTS ───── -->
+    <!-- ─── 3. MIDDLE SECTION: PERFORMANCE TRENDS CHARTS ─────────── -->
     <div class="space-y-4">
-      <!-- Section Header Row: Title & Actions -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h4 class="text-sm sm:text-base font-bold text-primary-text">
-            Performance Trends
-          </h4>
-          <p class="text-xs text-secondary-text mt-0.5">
-            Cashflow deposits, withdrawals, and equity growth over time.
-          </p>
-        </div>
-
-        <!-- Period Filter & Refresh Action -->
-        <div class="flex items-center gap-2 self-start sm:self-auto">
-          <!-- Period Dropdown -->
-          <div class="w-32 sm:w-36">
-            <BaseSelect
-              v-model="selectedPeriod"
-              :options="periodOptions"
-              @update:model-value="handlePeriodChange"
-            />
-          </div>
-
-          <!-- Refresh Button -->
-          <button
-            type="button"
-            @click="refreshChartsData"
-            :disabled="isChartsRefreshing || clientDepthStore.userChartsLoading"
-            class="border border-primary-border bg-card-background hover:bg-background rounded-xl p-2.5 text-secondary-text hover:text-primary-text transition-colors cursor-pointer shadow-2xs disabled:opacity-50"
-            title="Refresh Charts Data"
-          >
-            <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': isChartsRefreshing || clientDepthStore.userChartsLoading }" />
-          </button>
-        </div>
+      <!-- Section Header Row -->
+      <div>
+        <h4 class="text-sm sm:text-base font-bold text-primary-text">
+          Performance Trends
+        </h4>
+        <p class="text-xs text-secondary-text mt-0.5">
+          Cashflow deposits, withdrawals, and equity growth over time.
+        </p>
       </div>
 
       <!-- Skeletons for Charts -->
@@ -541,7 +539,6 @@
 import { ref, computed, onMounted, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useClientDepthStore } from "@/stores/clientDepth/clientDepth";
-import { useSnackbarStore } from "@/stores/snackbar/snackbar";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import Pagination from "@/components/common/Pagination.vue";
 import {
@@ -581,7 +578,6 @@ ChartJS.register(
 
 const route = useRoute();
 const clientDepthStore = useClientDepthStore();
-const snackbar = useSnackbarStore();
 
 // ─── Filter & Refresh State ───────────────────────────────────────────────────
 const selectedPeriod = ref("6M");
@@ -619,17 +615,17 @@ const loadFinancialData = (force = false) => {
   }
 };
 
-// ─── Refresh ONLY Charts Data ─────────────────────────────────────────────────
+// ─── Refresh Financial Summary & Charts Data ───────────────────────────────
 const refreshChartsData = () => {
   const userId = route.params.id;
   if (!userId) return;
   isChartsRefreshing.value = true;
-  snackbar.show("Refreshing performance charts...", "info");
   clientDepthStore.fetchUserCharts(
     userId,
     { months: periodMonthsMap[selectedPeriod.value] || 6 },
     true
   );
+  clientDepthStore.fetchAccountDetails(userId, {}, true);
 };
 
 // Auto-reset isChartsRefreshing once userChartsLoading finishes
@@ -656,8 +652,9 @@ watch(
 // ─── Loading Skeletons State Resolvers ─────────────────────────────────────────
 const isTopMetricsLoading = computed(() => {
   return (
-    (clientDepthStore.accountDetailsLoading && !clientDepthStore.accountDetailsFetched) ||
-    (clientDepthStore.loading && !clientDepthStore.isFetched)
+    isChartsRefreshing.value ||
+    clientDepthStore.userChartsLoading ||
+    !clientDepthStore.userChartsFetched
   );
 });
 
@@ -684,13 +681,16 @@ const accountSummary = computed(() => accountDetailsData.value?.summary || {});
 const accountsPagination = computed(() => accountDetailsData.value?.accounts_pagination || {});
 const transactionsPagination = computed(() => accountDetailsData.value?.transactions_pagination || {});
 
-// ─── Top Metric Cards Values ──────────────────────────────────────────────────
+// ─── Top Metric Cards Values (Prioritizing Charts API Summary) ────────────────
 const totalDeposits = computed(() => {
-  if (accountSummary.value?.total_deposit !== undefined && accountSummary.value?.total_deposit !== null) {
-    return Number(accountSummary.value.total_deposit);
-  }
   if (chartsSummary.value?.total_deposit !== undefined && chartsSummary.value?.total_deposit !== null) {
     return Number(chartsSummary.value.total_deposit);
+  }
+  if (chartsSummary.value?.total_deposits !== undefined && chartsSummary.value?.total_deposits !== null) {
+    return Number(chartsSummary.value.total_deposits);
+  }
+  if (accountSummary.value?.total_deposit !== undefined && accountSummary.value?.total_deposit !== null) {
+    return Number(accountSummary.value.total_deposit);
   }
   if (overviewData.value?.total_deposit !== undefined && overviewData.value?.total_deposit !== null) {
     return Number(overviewData.value.total_deposit);
@@ -699,6 +699,12 @@ const totalDeposits = computed(() => {
 });
 
 const depositCount = computed(() => {
+  if (chartsSummary.value?.deposit_count !== undefined && chartsSummary.value?.deposit_count !== null) {
+    return chartsSummary.value.deposit_count;
+  }
+  if (chartsSummary.value?.deposits_count !== undefined && chartsSummary.value?.deposits_count !== null) {
+    return chartsSummary.value.deposits_count;
+  }
   if (recentTransactions.value && recentTransactions.value.length > 0) {
     const count = recentTransactions.value.filter((t) => String(t.type).toLowerCase() === "deposit").length;
     if (count > 0) return count;
@@ -707,11 +713,14 @@ const depositCount = computed(() => {
 });
 
 const totalWithdrawals = computed(() => {
-  if (accountSummary.value?.total_withdrawal !== undefined && accountSummary.value?.total_withdrawal !== null) {
-    return Number(accountSummary.value.total_withdrawal);
-  }
   if (chartsSummary.value?.total_withdrawal !== undefined && chartsSummary.value?.total_withdrawal !== null) {
     return Number(chartsSummary.value.total_withdrawal);
+  }
+  if (chartsSummary.value?.total_withdrawals !== undefined && chartsSummary.value?.total_withdrawals !== null) {
+    return Number(chartsSummary.value.total_withdrawals);
+  }
+  if (accountSummary.value?.total_withdrawal !== undefined && accountSummary.value?.total_withdrawal !== null) {
+    return Number(accountSummary.value.total_withdrawal);
   }
   if (overviewData.value?.total_withdrawal !== undefined && overviewData.value?.total_withdrawal !== null) {
     return Number(overviewData.value.total_withdrawal);
@@ -720,6 +729,12 @@ const totalWithdrawals = computed(() => {
 });
 
 const withdrawalCount = computed(() => {
+  if (chartsSummary.value?.withdrawal_count !== undefined && chartsSummary.value?.withdrawal_count !== null) {
+    return chartsSummary.value.withdrawal_count;
+  }
+  if (chartsSummary.value?.withdrawals_count !== undefined && chartsSummary.value?.withdrawals_count !== null) {
+    return chartsSummary.value.withdrawals_count;
+  }
   if (recentTransactions.value && recentTransactions.value.length > 0) {
     const count = recentTransactions.value.filter((t) => String(t.type).toLowerCase() === "withdrawal").length;
     if (count > 0) return count;
@@ -728,6 +743,12 @@ const withdrawalCount = computed(() => {
 });
 
 const netCashflow = computed(() => {
+  if (chartsSummary.value?.net_cashflow !== undefined && chartsSummary.value?.net_cashflow !== null) {
+    return Number(chartsSummary.value.net_cashflow);
+  }
+  if (chartsSummary.value?.cashflow !== undefined && chartsSummary.value?.cashflow !== null) {
+    return Number(chartsSummary.value.cashflow);
+  }
   if (accountSummary.value?.net_cashflow !== undefined && accountSummary.value?.net_cashflow !== null) {
     return Number(accountSummary.value.net_cashflow);
   }
@@ -735,11 +756,17 @@ const netCashflow = computed(() => {
 });
 
 const totalEquity = computed(() => {
-  if (accountSummary.value?.total_equity !== undefined && accountSummary.value?.total_equity !== null) {
-    return Number(accountSummary.value.total_equity);
-  }
   if (chartsSummary.value?.current_equity !== undefined && chartsSummary.value?.current_equity !== null) {
     return Number(chartsSummary.value.current_equity);
+  }
+  if (chartsSummary.value?.total_equity !== undefined && chartsSummary.value?.total_equity !== null) {
+    return Number(chartsSummary.value.total_equity);
+  }
+  if (chartsSummary.value?.equity !== undefined && chartsSummary.value?.equity !== null) {
+    return Number(chartsSummary.value.equity);
+  }
+  if (accountSummary.value?.total_equity !== undefined && accountSummary.value?.total_equity !== null) {
+    return Number(accountSummary.value.total_equity);
   }
   if (overviewData.value?.total_equity !== undefined && overviewData.value?.total_equity !== null) {
     return Number(overviewData.value.total_equity);
@@ -748,6 +775,12 @@ const totalEquity = computed(() => {
 });
 
 const totalAccountsCount = computed(() => {
+  if (chartsSummary.value?.total_accounts !== undefined && chartsSummary.value?.total_accounts !== null) {
+    return chartsSummary.value.total_accounts;
+  }
+  if (chartsSummary.value?.accounts_count !== undefined && chartsSummary.value?.accounts_count !== null) {
+    return chartsSummary.value.accounts_count;
+  }
   if (accountSummary.value?.total_accounts !== undefined && accountSummary.value?.total_accounts !== null) {
     return accountSummary.value.total_accounts;
   }
@@ -758,11 +791,20 @@ const totalAccountsCount = computed(() => {
 });
 
 const totalPnl = computed(() => {
-  if (accountSummary.value?.total_pnl !== undefined && accountSummary.value?.total_pnl !== null) {
-    return Number(accountSummary.value.total_pnl);
-  }
   if (chartsSummary.value?.total_growth !== undefined && chartsSummary.value?.total_growth !== null) {
     return Number(chartsSummary.value.total_growth);
+  }
+  if (chartsSummary.value?.total_pnl !== undefined && chartsSummary.value?.total_pnl !== null) {
+    return Number(chartsSummary.value.total_pnl);
+  }
+  if (chartsSummary.value?.pnl !== undefined && chartsSummary.value?.pnl !== null) {
+    return Number(chartsSummary.value.pnl);
+  }
+  if (chartsSummary.value?.net_pnl !== undefined && chartsSummary.value?.net_pnl !== null) {
+    return Number(chartsSummary.value.net_pnl);
+  }
+  if (accountSummary.value?.total_pnl !== undefined && accountSummary.value?.total_pnl !== null) {
+    return Number(accountSummary.value.total_pnl);
   }
   if (overviewData.value?.total_pnl !== undefined && overviewData.value?.total_pnl !== null) {
     return Number(overviewData.value.total_pnl);

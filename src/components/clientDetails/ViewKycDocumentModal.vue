@@ -154,8 +154,30 @@
 
           <!-- Footer -->
           <div
-            class="px-6 py-3.5 border-t border-primary-border flex items-center justify-end gap-2.5 bg-card-background shrink-0"
+            class="px-6 py-3.5 border-t border-primary-border flex items-center justify-between gap-2.5 bg-card-background shrink-0"
           >
+            <!-- Left: Super Admin Quick Action Buttons -->
+            <div v-if="isSuperAdmin" class="flex items-center gap-2">
+              <button
+                type="button"
+                @click="onRejectClick"
+                class="px-3.5 py-2 rounded-xl text-xs font-bold text-primary-red bg-primary-red/10 border border-primary-red/30 hover:bg-primary-red/20 transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs"
+              >
+                <XCircle class="w-3.5 h-3.5" />
+                Reject
+              </button>
+              <button
+                type="button"
+                @click="onApproveClick"
+                class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-primary-green hover:bg-primary-green/90 transition-all cursor-pointer flex items-center gap-1.5 shadow-xs shadow-primary-green/20"
+              >
+                <CheckCircle2 class="w-3.5 h-3.5" />
+                Approve
+              </button>
+            </div>
+            <div v-else></div>
+
+            <!-- Right: Close Button -->
             <button
               type="button"
               class="px-5 py-2 rounded-xl text-xs font-semibold text-secondary-text border border-primary-border hover:bg-background hover:text-primary-text transition-all cursor-pointer"
@@ -172,15 +194,16 @@
 
 <script setup>
 import { ref, computed } from "vue";
-import { X, Pencil, ExternalLink, FileCheck2, FileImage } from "lucide-vue-next";
+import { X, Pencil, ExternalLink, FileCheck2, FileImage, CheckCircle2, XCircle } from "lucide-vue-next";
 
 const props = defineProps({
   open: { type: Boolean, default: false },
   doc: { type: Object, default: () => null },
   status: { type: String, default: "Pending" },
+  isSuperAdmin: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(["close", "edit"]);
+const emit = defineEmits(["close", "edit", "approve", "reject"]);
 
 const activeSide = ref("front");
 
@@ -252,6 +275,16 @@ const getStatusTextColor = (s) => {
 
 const onEditClick = () => {
   emit("edit");
+  closeModal();
+};
+
+const onApproveClick = () => {
+  emit("approve");
+  closeModal();
+};
+
+const onRejectClick = () => {
+  emit("reject");
   closeModal();
 };
 

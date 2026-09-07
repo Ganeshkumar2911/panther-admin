@@ -229,6 +229,51 @@ export const useClientDepthStore = defineStore("clientDepth", () => {
     );
   };
 
+  // ─── Approve / Reject Client Documents (Super Admin) ────────
+  const isApprovingDoc = ref(false);
+
+  const approveOrRejectClientDoc = (payload, callback) => {
+    if (!payload?.user_id) return;
+
+    isApprovingDoc.value = true;
+
+    const successHandler = (res) => {
+      isApprovingDoc.value = false;
+      snackbar.show(
+        res?.message ||
+          (payload.kyc_status === "approved"
+            ? "Document approved successfully."
+            : "Document rejected successfully."),
+        "success",
+      );
+      if (payload.user_id) {
+        fetchClientKyc(payload.user_id, true);
+        fetchClientOverview(payload.user_id, true);
+      }
+      if (typeof callback === "function") callback(null, res);
+    };
+
+    const failureHandler = (err) => {
+      isApprovingDoc.value = false;
+      snackbar.show(
+        err?.message || err?.error || "Failed to update document approval status.",
+        "error",
+      );
+      if (typeof callback === "function") callback(err);
+    };
+
+    apiRequest(
+      urls.KEYS.POST,
+      urls.clientDepth.docApproval || "/user-doc-approval",
+      {
+        isTokenRequired: true,
+        data: payload,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+      },
+    );
+  };
+
   // ─── User Charts State & Action ───────────────────────────
   const userChartsData = ref(null);
   const userChartsLoading = ref(false);
@@ -503,6 +548,7 @@ export const useClientDepthStore = defineStore("clientDepth", () => {
     isSubmittingProfile,
     isSubmittingKyc,
     isUploadingDoc,
+    isApprovingDoc,
     isSubmittingReference,
     isDeletingReference,
 
@@ -518,6 +564,7 @@ export const useClientDepthStore = defineStore("clientDepth", () => {
     updateClientProfile,
     updateClientKyc,
     uploadClientDocument,
+    approveOrRejectClientDoc,
     reset,
   };
 });

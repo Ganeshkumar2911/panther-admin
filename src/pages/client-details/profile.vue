@@ -6,7 +6,7 @@
       <div class="flex flex-col gap-3 h-full">
         <!-- 1. Profile Information Card -->
         <div
-          class="flex-[1.3] bg-card-background border border-primary-border rounded-md p-5 sm:p-6 shadow-xs transition-all hover:border-primary/30"
+          class="bg-card-background border border-primary-border rounded-lg p-5 sm:p-6"
         >
           <!-- Card Header -->
           <div class="flex items-start justify-between gap-3 pb-5 border-b border-primary-border/60">
@@ -195,140 +195,15 @@
           </div>
         </div>
 
-        <!-- 2. Contact Preferences Card -->
-        <div
-          class="flex-1 bg-card-background border border-primary-border rounded-md p-5 sm:p-6 shadow-xs transition-all hover:border-primary/30 flex flex-col justify-between"
-        >
-          <!-- Card Header -->
-          <div class="flex items-start justify-between gap-3 pb-5 border-b border-primary-border/60">
-            <div>
-              <h3 class="text-base min-[1650px]:text-lg font-bold text-primary-text">
-                Contact Preferences
-              </h3>
-              <p class="text-xs text-secondary-text mt-0.5">
-                Manage how the client prefers to be contacted.
-              </p>
-            </div>
-            <button
-              type="button"
-              @click="openPreferencesModal"
-              class="border border-primary-border rounded-xl px-3.5 py-1.5 text-xs font-semibold text-primary hover:bg-background transition-colors flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs"
-            >
-              <Pencil class="w-3.5 h-3.5" />
-              Edit Preferences
-            </button>
-          </div>
-
-          <!-- Preferences 2x2 Grid -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-5 flex-1 content-start">
-            <!-- Email Notifications -->
-            <div
-              class="border border-primary-border/70 rounded-xl p-3.5 flex items-center justify-between gap-3 bg-background/50 hover:bg-background transition-colors"
-            >
-              <div class="flex items-center gap-3 min-w-0">
-                <div class="w-9 h-9 rounded-lg bg-primary-blue/10 flex items-center justify-center shrink-0">
-                  <Mail class="w-4 h-4 text-primary-blue" />
-                </div>
-                <div class="min-w-0">
-                  <p class="font-bold text-xs text-primary-text truncate">
-                    Email Notifications
-                  </p>
-                  <p class="text-[11px] text-secondary-text truncate">
-                    Receive updates via email
-                  </p>
-                </div>
-              </div>
-              <span
-                class="text-[10px] font-bold px-2.5 py-0.5 rounded-full shrink-0"
-                :class="preferences.email ? 'bg-primary-green/10 text-primary-green' : 'bg-primary-red/10 text-primary-red'"
-              >
-                {{ preferences.email ? 'Enabled' : 'Disabled' }}
-              </span>
-            </div>
-
-            <!-- SMS Notifications -->
-            <div
-              class="border border-primary-border/70 rounded-xl p-3.5 flex items-center justify-between gap-3 bg-background/50 hover:bg-background transition-colors"
-            >
-              <div class="flex items-center gap-3 min-w-0">
-                <div class="w-9 h-9 rounded-lg bg-primary-green/10 flex items-center justify-center shrink-0">
-                  <MessageSquare class="w-4 h-4 text-primary-green" />
-                </div>
-                <div class="min-w-0">
-                  <p class="font-bold text-xs text-primary-text truncate">
-                    SMS Notifications
-                  </p>
-                  <p class="text-[11px] text-secondary-text truncate">
-                    Receive updates via SMS
-                  </p>
-                </div>
-              </div>
-              <span
-                class="text-[10px] font-bold px-2.5 py-0.5 rounded-full shrink-0"
-                :class="preferences.sms ? 'bg-primary-green/10 text-primary-green' : 'bg-primary-red/10 text-primary-red'"
-              >
-                {{ preferences.sms ? 'Enabled' : 'Disabled' }}
-              </span>
-            </div>
-
-            <!-- Phone Calls -->
-            <div
-              class="border border-primary-border/70 rounded-xl p-3.5 flex items-center justify-between gap-3 bg-background/50 hover:bg-background transition-colors"
-            >
-              <div class="flex items-center gap-3 min-w-0">
-                <div class="w-9 h-9 rounded-lg bg-primary-green/10 flex items-center justify-center shrink-0">
-                  <Phone class="w-4 h-4 text-primary-green" />
-                </div>
-                <div class="min-w-0">
-                  <p class="font-bold text-xs text-primary-text truncate">
-                    Phone Calls
-                  </p>
-                  <p class="text-[11px] text-secondary-text truncate">
-                    Receive updates via phone
-                  </p>
-                </div>
-              </div>
-              <span
-                class="text-[10px] font-bold px-2.5 py-0.5 rounded-full shrink-0"
-                :class="preferences.phone ? 'bg-primary-green/10 text-primary-green' : 'bg-primary-red/10 text-primary-red'"
-              >
-                {{ preferences.phone ? 'Enabled' : 'Disabled' }}
-              </span>
-            </div>
-
-            <!-- Marketing Updates -->
-            <div
-              class="border border-primary-border/70 rounded-xl p-3.5 flex items-center justify-between gap-3 bg-background/50 hover:bg-background transition-colors"
-            >
-              <div class="flex items-center gap-3 min-w-0">
-                <div class="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
-                  <Megaphone class="w-4 h-4 text-accent" />
-                </div>
-                <div class="min-w-0">
-                  <p class="font-bold text-xs text-primary-text truncate">
-                    Marketing Updates
-                  </p>
-                  <p class="text-[11px] text-secondary-text truncate">
-                    Receive marketing communications
-                  </p>
-                </div>
-              </div>
-              <span
-                class="text-[10px] font-bold px-2.5 py-0.5 rounded-full shrink-0"
-                :class="preferences.marketing ? 'bg-primary-green/10 text-primary-green' : 'bg-primary-red/10 text-primary-red'"
-              >
-                {{ preferences.marketing ? 'Enabled' : 'Disabled' }}
-              </span>
-            </div>
-          </div>
-        </div>
+        <!-- 2. KYC Documents & Uploaded Files Card -->
+        <KycDocumentsTable :userId="clientForEdit.id" />
       </div>
 
       <!-- ─── RIGHT COLUMN ────────────────────────────────────────── -->
       <div class="flex flex-col gap-3 h-full">
         <!-- 3. KYC Verification Card -->
         <div
-          class="bg-card-background border border-primary-border rounded-md p-5 sm:p-6 shadow-xs space-y-6 transition-all hover:border-primary/30"
+          class="bg-card-background border border-primary-border rounded-lg p-5 sm:p-6 space-y-6"
         >
           <!-- Card Header -->
           <div class="flex items-start justify-between gap-3 pb-5 border-b border-primary-border/60">
@@ -340,15 +215,29 @@
                 Track and manage client verification status and documents.
               </p>
             </div>
-            <button
-              type="button"
-              @click="refreshKycStatus"
-              :disabled="clientDepthStore.kycLoading"
-              class="border border-primary-border rounded-xl px-3.5 py-1.5 text-xs font-semibold text-secondary-text hover:text-primary-text hover:bg-background transition-colors flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs disabled:opacity-50"
-            >
-              <RefreshCw class="w-3.5 h-3.5" :class="clientDepthStore.kycLoading ? 'animate-spin' : ''" />
-              Refresh
-            </button>
+            <div class="flex items-center gap-2">
+              <!-- Super Admin: Approve / Reject Document Button -->
+              <button
+                v-if="isSuperAdmin"
+                type="button"
+                @click="openApprovalModal('approve')"
+                class="bg-primary hover:bg-primary-hover text-white rounded-xl px-3.5 py-1.5 text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-2xs transition-all"
+                title="Review and Approve / Reject KYC Documents"
+              >
+                <ShieldCheck class="w-3.5 h-3.5" />
+                Approve / Reject
+              </button>
+
+              <button
+                type="button"
+                @click="refreshKycStatus"
+                :disabled="clientDepthStore.kycLoading"
+                class="border border-primary-border rounded-xl px-3.5 py-1.5 text-xs font-semibold text-secondary-text hover:text-primary-text hover:bg-background transition-colors flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs disabled:opacity-50"
+              >
+                <RefreshCw class="w-3.5 h-3.5" :class="clientDepthStore.kycLoading ? 'animate-spin' : ''" />
+                Refresh
+              </button>
+            </div>
           </div>
 
           <!-- Status & Progress Hero Box -->
@@ -426,15 +315,15 @@
               </p>
             </div>
 
-            <!-- Documents Table -->
-            <div class="border border-primary-border/80 rounded-xl overflow-hidden overflow-x-auto no-scrollbar">
+            <!-- Documents Table (Scrollable with sticky header) -->
+            <div class="border border-primary-border/80 rounded-xl overflow-x-auto overflow-y-auto max-h-[170px] no-scrollbar">
               <table class="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr class="bg-background/80 border-b border-primary-border/80 text-[11px] font-bold text-secondary-text uppercase tracking-wider">
-                    <th class="py-2.5 px-4">Document Type</th>
-                    <th class="py-2.5 px-3">Status</th>
-                    <th class="py-2.5 px-3">Remarks</th>
-                    <th class="py-2.5 px-4 text-right">Action</th>
+                <thead class="sticky top-0 z-10 bg-card-background border-b border-primary-border/80 shadow-2xs">
+                  <tr class="bg-card-background text-[11px] font-bold text-secondary-text uppercase tracking-wider">
+                    <th class="py-2.5 px-4 bg-card-background">Document Type</th>
+                    <th class="py-2.5 px-3 bg-card-background">Status</th>
+                    <th class="py-2.5 px-3 bg-card-background">Remarks</th>
+                    <th class="py-2.5 px-4 text-right bg-card-background">Action</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-primary-border/60">
@@ -485,7 +374,7 @@
                     <!-- Action Buttons -->
                     <td class="py-3 px-4 text-right">
                       <div class="flex items-center justify-end gap-1.5">
-                        <!-- If Document Uploaded: View & Edit buttons -->
+                        <!-- If Document Uploaded: View & Review (Super Admin) & Edit buttons -->
                         <template v-if="doc.uploaded">
                           <button
                             type="button"
@@ -494,6 +383,16 @@
                           >
                             <Eye class="w-3 h-3" />
                             View
+                          </button>
+                          <button
+                            v-if="isSuperAdmin"
+                            type="button"
+                            @click="openApprovalModal('approve')"
+                            class="border border-primary-green/40 bg-primary-green/10 text-primary-green hover:bg-primary-green/20 rounded-lg px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer shadow-2xs flex items-center gap-1"
+                            title="Approve / Reject Document (Super Admin)"
+                          >
+                            <ShieldCheck class="w-3 h-3" />
+                            Review
                           </button>
                           <button
                             type="button"
@@ -525,69 +424,9 @@
           </div>
         </div>
 
-        <!-- 4. KYC Notes & Documents References Table -->
-        <KycReferencesTable :userId="clientForEdit.id" />
+        <!-- 4. KYC Notes References Table -->
+        <KycNotesTable :userId="clientForEdit.id" />
       </div>
-    </div>
-
-    <!-- ─── BOTTOM FULL-WIDTH BANNER: KYC PENDING? ──────────────── -->
-    <div
-      class="bg-primary-blue/5 border border-primary-blue/20 rounded-2xl p-5 sm:p-6 flex flex-col lg:flex-row items-center justify-between gap-6 shadow-xs"
-    >
-      <!-- Left Info -->
-      <div class="shrink-0 w-full lg:w-auto">
-        <h4 class="text-base font-bold text-primary-blue">KYC Pending?</h4>
-        <p class="text-xs text-secondary-text mt-0.5">
-          Help the client complete verification quickly.
-        </p>
-      </div>
-
-      <!-- Center 3-Step Guide -->
-      <div class="flex-1 flex flex-col sm:flex-row items-start sm:items-center justify-center gap-4 sm:gap-6 w-full text-xs">
-        <!-- Step 1 -->
-        <div class="flex items-start gap-2.5">
-          <div>
-            <p class="font-bold text-primary-text">1. Upload Documents</p>
-            <p class="text-[11px] text-secondary-text">
-              Ensure all required documents are clear and valid.
-            </p>
-          </div>
-        </div>
-
-        <ChevronRight class="w-4 h-4 text-primary-blue/60 shrink-0 hidden sm:block" />
-
-        <!-- Step 2 -->
-        <div class="flex items-start gap-2.5">
-          <div>
-            <p class="font-bold text-primary-text">2. Wait for Verification</p>
-            <p class="text-[11px] text-secondary-text">
-              Our team will review and verify your documents.
-            </p>
-          </div>
-        </div>
-
-        <ChevronRight class="w-4 h-4 text-primary-blue/60 shrink-0 hidden sm:block" />
-
-        <!-- Step 3 -->
-        <div class="flex items-start gap-2.5">
-          <div>
-            <p class="font-bold text-primary-text">3. Get Verified</p>
-            <p class="text-[11px] text-secondary-text">
-              Once verified, you will gain full access to all features.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Right Action Button -->
-      <button
-        type="button"
-        @click="sendKycInstructions"
-        class="w-full lg:w-auto bg-primary hover:bg-primary-hover text-white font-semibold text-xs sm:text-sm px-5 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shrink-0 shadow-xs"
-      >
-        <Mail class="w-4 h-4" />
-        Send Instructions
-      </button>
     </div>
 
     <!-- ─── MODALS & DRAWERS ────────────────────────────────────── -->
@@ -614,60 +453,22 @@
       :open="viewDocModalOpen"
       :doc="selectedDoc"
       :status="kycStatus"
+      :isSuperAdmin="isSuperAdmin"
       @close="closeViewDocModal"
       @edit="openEditDoc(selectedDoc)"
+      @approve="openApprovalModal('approve')"
+      @reject="openApprovalModal('reject')"
     />
 
-    <!-- 4. Edit Preferences Modal -->
-    <div
-      v-if="editPreferencesModalOpen"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4"
-    >
-      <div class="bg-card-background border border-primary-border rounded-2xl p-6 w-full max-w-md shadow-xl space-y-4">
-        <div class="flex items-center justify-between border-b border-primary-border pb-3">
-          <h3 class="font-bold text-primary-text text-base">Edit Contact Preferences</h3>
-          <button @click="editPreferencesModalOpen = false" class="text-secondary-text hover:text-primary-text">
-            <X class="w-5 h-5" />
-          </button>
-        </div>
-
-        <div class="space-y-3 text-xs">
-          <label class="flex items-center justify-between p-3 rounded-xl border border-primary-border cursor-pointer hover:bg-background">
-            <span>Email Notifications</span>
-            <input type="checkbox" v-model="preferences.email" class="w-4 h-4 accent-primary" />
-          </label>
-          <label class="flex items-center justify-between p-3 rounded-xl border border-primary-border cursor-pointer hover:bg-background">
-            <span>SMS Notifications</span>
-            <input type="checkbox" v-model="preferences.sms" class="w-4 h-4 accent-primary" />
-          </label>
-          <label class="flex items-center justify-between p-3 rounded-xl border border-primary-border cursor-pointer hover:bg-background">
-            <span>Phone Calls</span>
-            <input type="checkbox" v-model="preferences.phone" class="w-4 h-4 accent-primary" />
-          </label>
-          <label class="flex items-center justify-between p-3 rounded-xl border border-primary-border cursor-pointer hover:bg-background">
-            <span>Marketing Updates</span>
-            <input type="checkbox" v-model="preferences.marketing" class="w-4 h-4 accent-primary" />
-          </label>
-        </div>
-
-        <div class="flex items-center justify-end gap-2 pt-3 border-t border-primary-border">
-          <button
-            type="button"
-            @click="editPreferencesModalOpen = false"
-            class="px-4 py-2 text-xs font-semibold text-secondary-text hover:bg-background rounded-xl border border-primary-border"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            @click="savePreferences"
-            class="px-4 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-hover rounded-xl shadow-xs"
-          >
-            Save Preferences
-          </button>
-        </div>
-      </div>
-    </div>
+    <!-- 4. Approve / Reject KYC Modal (Super Admin Only) -->
+    <ApproveRejectKycModal
+      :open="approveRejectModalOpen"
+      :client="clientForEdit"
+      :kycData="kycData"
+      :initialAction="approvalInitialAction"
+      @close="approveRejectModalOpen = false"
+      @success="handleApprovalSuccess"
+    />
   </div>
 </template>
 
@@ -675,12 +476,15 @@
 import { ref, computed, onMounted, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useClientDepthStore } from "@/stores/clientDepth/clientDepth";
+import { useProfileStore } from "@/stores/profile/profile";
 import { getFlagCode, cleanCountryLabel } from "@/utils/countries";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
 import EditClientProfileDrawer from "@/components/clientDetails/EditClientProfileDrawer.vue";
 import UploadKycDocumentModal from "@/components/clientDetails/UploadKycDocumentModal.vue";
 import ViewKycDocumentModal from "@/components/clientDetails/ViewKycDocumentModal.vue";
-import KycReferencesTable from "@/components/clientDetails/KycReferencesTable.vue";
+import ApproveRejectKycModal from "@/components/clientDetails/ApproveRejectKycModal.vue";
+import KycNotesTable from "@/components/clientDetails/KycNotesTable.vue";
+import KycDocumentsTable from "@/components/clientDetails/KycDocumentsTable.vue";
 import {
   User,
   Pencil,
@@ -696,13 +500,20 @@ import {
   AlertCircle,
   X,
   Phone,
-  MessageSquare,
-  Megaphone,
+  ShieldCheck,
+  ShieldAlert,
 } from "lucide-vue-next";
 
 const route = useRoute();
 const snackbar = useSnackbarStore();
 const clientDepthStore = useClientDepthStore();
+const profileStore = useProfileStore();
+
+// ─── Super Admin Access Check ────────────────────────────────────────────────
+const isSuperAdmin = computed(() => {
+  const role = profileStore.user?.role || "";
+  return String(role).toLowerCase() === "superadmin";
+});
 
 // ─── User Profile State ───────────────────────────────────────────────────────
 const localStoredUser = ref({});
@@ -744,6 +555,9 @@ const loadKyc = (force = false) => {
 onMounted(() => {
   loadClientFromStorage();
   loadKyc(true);
+  if (!profileStore.user) {
+    profileStore.fetchUserProfile().catch(() => {});
+  }
 });
 
 watch(
@@ -782,24 +596,6 @@ const handlePhotoUpload = (e) => {
   if (file) {
     snackbar.show("Profile photo uploaded successfully!", "success");
   }
-};
-
-// ─── Contact Preferences ──────────────────────────────────────────────────────
-const preferences = ref({
-  email: true,
-  sms: false,
-  phone: true,
-  marketing: false,
-});
-const editPreferencesModalOpen = ref(false);
-
-const openPreferencesModal = () => {
-  editPreferencesModalOpen.value = true;
-};
-
-const savePreferences = () => {
-  editPreferencesModalOpen.value = false;
-  snackbar.show("Contact preferences updated successfully!", "success");
 };
 
 // ─── Edit Profile Drawer State ────────────────────────────────────────────────
@@ -1025,6 +821,23 @@ const handleUploadDocSuccess = () => {
   const userId = route.params.id || user.value?.id;
   if (userId) {
     clientDepthStore.fetchClientKyc(userId, true);
+  }
+};
+
+// ─── Super Admin Document Approval Modal Handlers ───────────────────────────
+const approveRejectModalOpen = ref(false);
+const approvalInitialAction = ref("approve");
+
+const openApprovalModal = (action = "approve") => {
+  approvalInitialAction.value = action;
+  approveRejectModalOpen.value = true;
+};
+
+const handleApprovalSuccess = () => {
+  const userId = route.params.id || user.value?.id;
+  if (userId) {
+    clientDepthStore.fetchClientKyc(userId, true);
+    clientDepthStore.fetchClientOverview(userId, true);
   }
 };
 
