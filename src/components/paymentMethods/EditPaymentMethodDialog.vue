@@ -278,12 +278,12 @@
                   <button
                     type="button"
                     class="relative w-10 h-5.5 rounded-full transition-colors cursor-pointer shrink-0"
-                    :class="!form.disable_client_deposit ? 'bg-primary-green' : 'bg-primary-border'"
+                    :class="form.disable_client_deposit ? 'bg-primary-green' : 'bg-primary-border'"
                     @click="form.disable_client_deposit = !form.disable_client_deposit"
                   >
                     <span
                       class="absolute top-0.5 left-0.5 w-4.5 h-4.5 rounded-full bg-white transition-transform duration-200 shadow-xs"
-                      :class="!form.disable_client_deposit ? 'translate-x-4.5' : 'translate-x-0'"
+                      :class="form.disable_client_deposit ? 'translate-x-4.5' : 'translate-x-0'"
                     />
                   </button>
                 </div>
@@ -296,12 +296,12 @@
                   <button
                     type="button"
                     class="relative w-10 h-5.5 rounded-full transition-colors cursor-pointer shrink-0"
-                    :class="!form.disable_client_withdrawal ? 'bg-primary-blue' : 'bg-primary-border'"
+                    :class="form.disable_client_withdrawal ? 'bg-primary-blue' : 'bg-primary-border'"
                     @click="form.disable_client_withdrawal = !form.disable_client_withdrawal"
                   >
                     <span
                       class="absolute top-0.5 left-0.5 w-4.5 h-4.5 rounded-full bg-white transition-transform duration-200 shadow-xs"
-                      :class="!form.disable_client_withdrawal ? 'translate-x-4.5' : 'translate-x-0'"
+                      :class="form.disable_client_withdrawal ? 'translate-x-4.5' : 'translate-x-0'"
                     />
                   </button>
                 </div>
@@ -327,12 +327,12 @@
                   <button
                     type="button"
                     class="relative w-10 h-5.5 rounded-full transition-colors cursor-pointer shrink-0"
-                    :class="!form.disable_ib_deposit ? 'bg-primary-green' : 'bg-primary-border'"
+                    :class="form.disable_ib_deposit ? 'bg-primary-green' : 'bg-primary-border'"
                     @click="form.disable_ib_deposit = !form.disable_ib_deposit"
                   >
                     <span
                       class="absolute top-0.5 left-0.5 w-4.5 h-4.5 rounded-full bg-white transition-transform duration-200 shadow-xs"
-                      :class="!form.disable_ib_deposit ? 'translate-x-4.5' : 'translate-x-0'"
+                      :class="form.disable_ib_deposit ? 'translate-x-4.5' : 'translate-x-0'"
                     />
                   </button>
                 </div>
@@ -345,12 +345,12 @@
                   <button
                     type="button"
                     class="relative w-10 h-5.5 rounded-full transition-colors cursor-pointer shrink-0"
-                    :class="!form.disable_ib_withdrawal ? 'bg-primary-blue' : 'bg-primary-border'"
+                    :class="form.disable_ib_withdrawal ? 'bg-primary-blue' : 'bg-primary-border'"
                     @click="form.disable_ib_withdrawal = !form.disable_ib_withdrawal"
                   >
                     <span
                       class="absolute top-0.5 left-0.5 w-4.5 h-4.5 rounded-full bg-white transition-transform duration-200 shadow-xs"
-                      :class="!form.disable_ib_withdrawal ? 'translate-x-4.5' : 'translate-x-0'"
+                      :class="form.disable_ib_withdrawal ? 'translate-x-4.5' : 'translate-x-0'"
                     />
                   </button>
                 </div>
@@ -376,12 +376,12 @@
                   <button
                     type="button"
                     class="relative w-10 h-5.5 rounded-full transition-colors cursor-pointer shrink-0"
-                    :class="!form.disable_fm_deposit ? 'bg-primary-green' : 'bg-primary-border'"
+                    :class="form.disable_fm_deposit ? 'bg-primary-green' : 'bg-primary-border'"
                     @click="form.disable_fm_deposit = !form.disable_fm_deposit"
                   >
                     <span
                       class="absolute top-0.5 left-0.5 w-4.5 h-4.5 rounded-full bg-white transition-transform duration-200 shadow-xs"
-                      :class="!form.disable_fm_deposit ? 'translate-x-4.5' : 'translate-x-0'"
+                      :class="form.disable_fm_deposit ? 'translate-x-4.5' : 'translate-x-0'"
                     />
                   </button>
                 </div>
@@ -394,12 +394,12 @@
                   <button
                     type="button"
                     class="relative w-10 h-5.5 rounded-full transition-colors cursor-pointer shrink-0"
-                    :class="!form.disable_fm_withdrawal ? 'bg-primary-blue' : 'bg-primary-border'"
+                    :class="form.disable_fm_withdrawal ? 'bg-primary-blue' : 'bg-primary-border'"
                     @click="form.disable_fm_withdrawal = !form.disable_fm_withdrawal"
                   >
                     <span
                       class="absolute top-0.5 left-0.5 w-4.5 h-4.5 rounded-full bg-white transition-transform duration-200 shadow-xs"
-                      :class="!form.disable_fm_withdrawal ? 'translate-x-4.5' : 'translate-x-0'"
+                      :class="form.disable_fm_withdrawal ? 'translate-x-4.5' : 'translate-x-0'"
                     />
                   </button>
                 </div>
@@ -914,12 +914,12 @@ const defaultFormData = () => ({
   is_default_deposit: false,
   is_default_withdrawal: false,
 
-  disable_client_deposit: false,
-  disable_client_withdrawal: false,
-  disable_ib_deposit: false,
-  disable_ib_withdrawal: false,
-  disable_fm_deposit: false,
-  disable_fm_withdrawal: false,
+  disable_client_deposit: true,
+  disable_client_withdrawal: true,
+  disable_ib_deposit: true,
+  disable_ib_withdrawal: true,
+  disable_fm_deposit: true,
+  disable_fm_withdrawal: true,
 
   minimum_deposit_amount: 0,
   maximum_deposit_amount: 0,
@@ -981,12 +981,12 @@ watch(
           is_default_deposit: p.is_default_deposit ?? false,
           is_default_withdrawal: p.is_default_withdrawal ?? false,
 
-          disable_client_deposit: p.disable_client_deposit !== undefined ? Boolean(p.disable_client_deposit) : (p.enable_deposit !== undefined ? !p.enable_deposit : false),
-          disable_client_withdrawal: p.disable_client_withdrawal !== undefined ? Boolean(p.disable_client_withdrawal) : (p.enable_withdrawal !== undefined ? !p.enable_withdrawal : false),
-          disable_ib_deposit: p.disable_ib_deposit !== undefined ? Boolean(p.disable_ib_deposit) : (p.enable_deposit !== undefined ? !p.enable_deposit : false),
-          disable_ib_withdrawal: p.disable_ib_withdrawal !== undefined ? Boolean(p.disable_ib_withdrawal) : (p.enable_withdrawal !== undefined ? !p.enable_withdrawal : false),
-          disable_fm_deposit: p.disable_fm_deposit !== undefined ? Boolean(p.disable_fm_deposit) : (p.enable_deposit !== undefined ? !p.enable_deposit : false),
-          disable_fm_withdrawal: p.disable_fm_withdrawal !== undefined ? Boolean(p.disable_fm_withdrawal) : (p.enable_withdrawal !== undefined ? !p.enable_withdrawal : false),
+          disable_client_deposit: p.disable_client_deposit !== undefined ? Boolean(p.disable_client_deposit) : Boolean(p.enable_deposit ?? true),
+          disable_client_withdrawal: p.disable_client_withdrawal !== undefined ? Boolean(p.disable_client_withdrawal) : Boolean(p.enable_withdrawal ?? true),
+          disable_ib_deposit: p.disable_ib_deposit !== undefined ? Boolean(p.disable_ib_deposit) : Boolean(p.enable_deposit ?? true),
+          disable_ib_withdrawal: p.disable_ib_withdrawal !== undefined ? Boolean(p.disable_ib_withdrawal) : Boolean(p.enable_withdrawal ?? true),
+          disable_fm_deposit: p.disable_fm_deposit !== undefined ? Boolean(p.disable_fm_deposit) : Boolean(p.enable_deposit ?? true),
+          disable_fm_withdrawal: p.disable_fm_withdrawal !== undefined ? Boolean(p.disable_fm_withdrawal) : Boolean(p.enable_withdrawal ?? true),
 
           minimum_deposit_amount: p.minimum_deposit_amount ?? 0,
           maximum_deposit_amount: p.maximum_deposit_amount ?? 0,
@@ -1261,8 +1261,8 @@ const submit = async () => {
       payment_method_code: form.value.payment_method_code ? form.value.payment_method_code.trim() : null,
       remarks: form.value.remarks ? form.value.remarks.trim() : null,
       is_active: Boolean(form.value.is_active),
-      enable_deposit: !Boolean(form.value.disable_client_deposit),
-      enable_withdrawal: !Boolean(form.value.disable_client_withdrawal),
+      enable_deposit: Boolean(form.value.disable_client_deposit),
+      enable_withdrawal: Boolean(form.value.disable_client_withdrawal),
       is_default_deposit: Boolean(form.value.is_default_deposit),
       is_default_withdrawal: Boolean(form.value.is_default_withdrawal),
 
