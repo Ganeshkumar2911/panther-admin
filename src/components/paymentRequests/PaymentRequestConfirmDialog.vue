@@ -176,39 +176,6 @@
           </p>
         </div>
 
-        <!-- Document Proof Upload -->
-        <div class="space-y-1.5">
-          <label class="block text-xs font-semibold text-primary-text">
-            Admin Document Proof <span class="text-secondary-text font-normal">(Optional)</span>
-          </label>
-          <div class="flex items-center gap-2">
-            <input
-              ref="fileInputRef"
-              type="file"
-              accept=".png,.jpg,.jpeg,.gif,.webp,.pdf,.doc,.docx"
-              class="hidden"
-              @change="handleFileSelected"
-            />
-            <button
-              type="button"
-              class="px-3 py-2 rounded-xl border border-primary-border bg-background hover:bg-card-background text-xs font-medium text-primary-text flex items-center gap-2 transition-colors cursor-pointer"
-              @click="fileInputRef?.click()"
-            >
-              <Upload class="w-3.5 h-3.5 text-secondary-text" />
-              <span>{{ selectedFile ? selectedFile.name : 'Attach File (Proof / Receipt)' }}</span>
-            </button>
-            <button
-              v-if="selectedFile"
-              type="button"
-              class="p-1 rounded-lg text-secondary-text hover:text-primary-red transition-colors cursor-pointer"
-              title="Remove file"
-              @click="selectedFile = null"
-            >
-              <X class="w-4 h-4" />
-            </button>
-          </div>
-          <p class="text-[10px] text-secondary-text">Supported: PNG, JPG, PDF, DOC (max 10MB)</p>
-        </div>
 
         <div class="rounded-xl border px-4 py-3" :class="dialogTone.notice">
           <div class="flex items-start gap-2">
@@ -244,7 +211,7 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { AlertTriangle, CheckCircle2, Loader2, X, Upload, Paperclip, Pencil } from 'lucide-vue-next'
+import { AlertTriangle, CheckCircle2, Loader2, X, Paperclip, Pencil } from 'lucide-vue-next'
 import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
 const props = defineProps({
@@ -260,8 +227,6 @@ const { hasPermission } = usePermissionCheck()
 
 const rejectionReason = ref('')
 const reasonError = ref(false)
-const selectedFile = ref(null)
-const fileInputRef = ref(null)
 
 const canEdit = computed(() => {
   if (!props.request) return false
@@ -368,13 +333,6 @@ const bankInfo = computed(() => {
   }
 })
 
-const handleFileSelected = (e) => {
-  const file = e.target?.files?.[0]
-  if (file) {
-    selectedFile.value = file
-  }
-}
-
 const handleSubmit = () => {
   if (props.action === 'reject' && !rejectionReason.value.trim()) {
     reasonError.value = true
@@ -382,14 +340,9 @@ const handleSubmit = () => {
   }
   reasonError.value = false
 
-  if (selectedFile.value || (props.action === 'reject' && rejectionReason.value.trim())) {
+  if (props.action === 'reject' && rejectionReason.value.trim()) {
     const formData = new FormData()
-    if (props.action === 'reject' && rejectionReason.value.trim()) {
-      formData.append('reason', rejectionReason.value.trim())
-    }
-    if (selectedFile.value) {
-      formData.append('admin_document_proof', selectedFile.value)
-    }
+    formData.append('reason', rejectionReason.value.trim())
     emit('confirm', formData)
   } else {
     emit('confirm', null)
@@ -407,7 +360,6 @@ watch(
     if (val) {
       rejectionReason.value = ''
       reasonError.value = false
-      selectedFile.value = null
     }
   }
 )
