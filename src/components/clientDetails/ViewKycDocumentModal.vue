@@ -257,19 +257,19 @@ const formatDate = (val) => {
 const getStatusBadgeClass = (s) => {
   const status = String(s || "").toLowerCase();
   if (status === "approved" || status === "verified")
-    return "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20";
-  if (status === "pending" || status === "in_progress")
-    return "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20";
+    return "bg-primary-green/10 text-primary-green border border-primary-green/20";
+  if (status === "pending" || status === "in_progress" || status === "under review" || status === "waiting for verification")
+    return "bg-primary-yellow/10 text-primary-yellow border border-primary-yellow/20";
   if (status === "rejected")
-    return "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20";
-  return "bg-zinc-500/10 text-zinc-500";
+    return "bg-primary-red/10 text-primary-red border border-primary-red/20";
+  return "bg-secondary-text/10 text-secondary-text";
 };
 
 const getStatusTextColor = (s) => {
   const status = String(s || "").toLowerCase();
-  if (status === "approved" || status === "verified") return "text-emerald-500";
-  if (status === "pending" || status === "in_progress") return "text-amber-500";
-  if (status === "rejected") return "text-rose-500";
+  if (status === "approved" || status === "verified") return "text-primary-green";
+  if (status === "pending" || status === "in_progress" || status === "under review") return "text-primary-yellow";
+  if (status === "rejected") return "text-primary-red";
   return "text-secondary-text";
 };
 

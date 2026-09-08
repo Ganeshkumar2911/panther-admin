@@ -1,26 +1,26 @@
 <template>
   <div
-    class="bg-card-background border border-primary-border rounded-lg p-5 sm:p-6 flex flex-col justify-between min-h-[360px]"
+    class="bg-card-background/40 border border-primary-border rounded-xl p-5 sm:p-6 flex flex-col justify-between min-h-[360px]"
   >
     <!-- ─── HEADER ────────────────────────────────────────────────── -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-primary-border/60">
       <div>
         <div class="flex items-center gap-3">
-          <div class="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 shrink-0">
+          <div class="w-7 h-7 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
             <FileText class="w-4 h-4" />
           </div>
           <div>
             <h3 class="text-base min-[1650px]:text-lg font-bold text-primary-text">
               Remarks
               <span
-                class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20"
               >
                 {{ notesList.length }}
               </span>
             </h3>
             <p class="text-xs text-secondary-text mt-0.5">
-            Internal staff notes.
-          </p>
+              Internal staff notes.
+            </p>
           </div>
         </div>
       </div>
@@ -31,23 +31,10 @@
         <button
           type="button"
           @click="openAddDrawer"
-          class="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl px-3.5 py-1.5 text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-2xs transition-all"
+          class="bg-primary hover:bg-primary-hover text-white rounded-xl px-3.5 py-1.5 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all"
         >
           <Plus class="w-3.5 h-3.5" />
           Add Note
-        </button>
-                <!-- Refresh Button -->
-        <button
-          type="button"
-          @click="refreshData"
-          :disabled="clientDepthStore.userReferencesLoading"
-          class="w-8 h-8 rounded-xl border border-primary-border flex items-center justify-center text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer shadow-2xs disabled:opacity-50"
-          title="Refresh notes"
-        >
-          <RefreshCw
-            class="w-3.5 h-3.5"
-            :class="clientDepthStore.userReferencesLoading ? 'animate-spin text-primary' : ''"
-          />
         </button>
       </div>
     </div>
@@ -56,7 +43,20 @@
     <div class="pt-4 flex-1 flex flex-col justify-start">
       <!-- Loading Skeleton -->
       <div v-if="clientDepthStore.userReferencesLoading && notesList.length === 0" class="space-y-3 py-2">
-        <div v-for="i in 3" :key="i" class="h-14 rounded-xl bg-primary-border/40 animate-pulse" />
+        <div
+          v-for="i in 3"
+          :key="i"
+          class="h-14 rounded-xl bg-card-background/60 border border-primary-border/60 animate-pulse flex items-center justify-between px-4"
+        >
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-primary-border/40 shrink-0" />
+            <div class="space-y-1.5">
+              <div class="h-3.5 w-32 sm:w-44 bg-primary-border/60 rounded" />
+              <div class="h-2.5 w-44 sm:w-60 bg-primary-border/30 rounded" />
+            </div>
+          </div>
+          <div class="h-4 w-24 bg-primary-border/30 rounded hidden sm:block" />
+        </div>
       </div>
 
       <!-- Empty State -->
@@ -64,7 +64,7 @@
         v-else-if="notesList.length === 0"
         class="py-12 flex flex-col items-center justify-center text-center my-auto"
       >
-        <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 mb-3">
+        <div class="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-3">
           <FileText class="w-6 h-6" />
         </div>
         <p class="text-sm font-bold text-primary-text">No KYC notes yet</p>
@@ -74,7 +74,7 @@
         <button
           type="button"
           @click="openAddDrawer"
-          class="mt-4 border border-emerald-500 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 rounded-xl px-4 py-1.5 text-xs font-semibold transition-all cursor-pointer shadow-2xs flex items-center gap-1.5"
+          class="mt-4 bg-primary hover:bg-primary-hover text-white rounded-xl px-4 py-1.5 text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5"
         >
           <Plus class="w-3.5 h-3.5" />
           Add First Note
@@ -82,21 +82,21 @@
       </div>
 
       <!-- Table of Notes (Scrollable with sticky header) -->
-      <div v-else class="border border-primary-border/80 rounded-lg overflow-x-auto overflow-y-auto max-h-[380px] flex-1 no-scrollbar">
+      <div v-else class="border border-primary-border rounded-xl overflow-x-auto overflow-y-auto max-h-[300px] flex-1 no-scrollbar">
         <table class="w-full text-left text-xs border-collapse">
-          <thead class="sticky top-0 z-10 bg-card-background border-b border-primary-border/80">
-            <tr class="bg-card-background text-[11px] font-bold text-secondary-text uppercase tracking-wider">
-              <th class="py-2.5 px-3.5 bg-card-background">Note / Remark</th>
-              <th class="py-2.5 px-3 bg-card-background">Author</th>
-              <th class="py-2.5 px-3 bg-card-background">Date & Time</th>
-              <th class="py-2.5 px-3.5 text-right bg-card-background">Actions</th>
+          <thead class="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b border-primary-border">
+            <tr class="text-[11px] font-bold text-secondary-text uppercase tracking-wider">
+              <th class="py-2.5 px-3.5">Note / Remark</th>
+              <th class="py-2.5 px-3">Author</th>
+              <th class="py-2.5 px-3">Date &amp; Time</th>
+              <th class="py-2.5 px-3.5 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-primary-border/60">
+          <tbody>
             <tr
               v-for="note in notesList"
               :key="note.uniqueKey"
-              class="hover:bg-background/40 transition-colors group cursor-pointer"
+              class="border-b border-primary-border hover:bg-card-background/70 transition-colors group cursor-pointer"
               @click="openViewDrawer(note)"
             >
               <!-- Details / Title / Remarks -->
@@ -116,7 +116,7 @@
               <!-- Created By / Author -->
               <td class="py-3 px-3">
                 <div class="flex items-center gap-1.5">
-                  <div class="w-5 h-5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-extrabold flex items-center justify-center shrink-0">
+                  <div class="w-5 h-5 rounded-full bg-primary/15 text-primary text-[10px] font-extrabold flex items-center justify-center shrink-0 border border-primary/20">
                     {{ (note.author || 'A').charAt(0).toUpperCase() }}
                   </div>
                   <span class="font-semibold text-primary-text text-xs truncate max-w-[120px]">
@@ -160,7 +160,7 @@
             <!-- Header -->
             <div class="px-6 py-4 border-b border-primary-border flex items-center justify-between bg-card-background shrink-0">
               <div class="flex items-center gap-2.5">
-                <div class="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 flex items-center justify-center shrink-0">
+                <div class="w-8 h-8 rounded-xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center shrink-0">
                   <FileText class="w-4 h-4" />
                 </div>
                 <div>
@@ -187,7 +187,7 @@
               <!-- Author Banner -->
               <div class="flex items-center justify-between p-3.5 rounded-xl bg-background border border-primary-border">
                 <div class="flex items-center gap-2.5">
-                  <div class="w-8 h-8 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold flex items-center justify-center text-xs">
+                  <div class="w-8 h-8 rounded-full bg-primary/15 text-primary font-bold flex items-center justify-center text-xs border border-primary/20">
                     {{ (selectedNote?.author || 'A').charAt(0).toUpperCase() }}
                   </div>
                   <div>
@@ -197,7 +197,7 @@
                 </div>
                 <div class="text-right">
                   <p class="text-[10px] text-secondary-text uppercase font-semibold">Type</p>
-                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
                     Internal Note
                   </span>
                 </div>
@@ -230,7 +230,7 @@
               <button
                 type="button"
                 @click="openDeleteModal(selectedNote)"
-                class="px-3.5 py-2 text-xs font-semibold text-rose-500 hover:bg-rose-500/10 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer"
+                class="px-3.5 py-2 text-xs font-semibold text-primary-red hover:bg-primary-red/10 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer"
               >
                 <Trash2 class="w-3.5 h-3.5" />
                 Delete
@@ -273,7 +273,7 @@
             <!-- Drawer Header -->
             <div class="px-6 py-4 border-b border-primary-border flex items-center justify-between bg-card-background shrink-0">
               <div class="flex items-center gap-2.5">
-                <div class="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 shrink-0">
+                <div class="w-8 h-8 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
                   <component :is="isEditing ? Pencil : Plus" class="w-4 h-4" />
                 </div>
                 <div>
@@ -296,42 +296,28 @@
             </div>
 
             <!-- Drawer Form Body -->
-            <form @submit.prevent="submitForm" class="flex-1 overflow-y-auto p-6 space-y-4.5 text-xs bg-card-background">
-              <!-- Quick Suggestion Tags -->
-              <div class="space-y-1.5">
-                <p class="text-[10px] font-semibold text-secondary-text">Quick Note Templates:</p>
-                <div class="flex flex-wrap gap-1.5">
-                  <button
-                    v-for="template in noteTemplates"
-                    :key="template"
-                    type="button"
-                    @click="insertTemplate(template)"
-                    class="px-2.5 py-1 rounded-lg text-[10px] font-medium border bg-background border-primary-border text-secondary-text hover:border-emerald-500 hover:text-emerald-500 transition cursor-pointer"
-                  >
-                    + {{ template }}
-                  </button>
+            <form @submit.prevent="submitForm" class="flex-1 flex flex-col min-h-0 overflow-hidden bg-card-background">
+              <div class="flex-1 overflow-y-auto p-6 space-y-4.5 text-xs bg-card-background no-scrollbar">
+                <!-- Note / Remarks Textarea -->
+                <div class="space-y-1.5">
+                  <label class="font-bold text-primary-text block">
+                    Remarks / Internal Notes <span class="text-primary-red">*</span>
+                  </label>
+                  <textarea
+                    v-model="formRemarks"
+                    rows="6"
+                    placeholder="e.g. Identity verified via telephonic consultation, government registry match confirmed..."
+                    class="w-full p-3.5 resize-none border border-primary-border rounded-xl bg-background text-primary-text placeholder:text-secondary-text/60 focus:outline-hidden focus:border-primary text-xs leading-relaxed font-medium"
+                    required
+                  ></textarea>
+                  <p class="text-[10px] text-secondary-text">
+                    This note will be saved in the client audit history with your account as author.
+                  </p>
                 </div>
               </div>
 
-              <!-- Note / Remarks Textarea -->
-              <div class="space-y-1.5">
-                <label class="font-bold text-primary-text block">
-                  Remarks / Internal Notes <span class="text-primary-red">*</span>
-                </label>
-                <textarea
-                  v-model="formRemarks"
-                  rows="6"
-                  placeholder="e.g. Identity verified via telephonic consultation, government registry match confirmed..."
-                  class="w-full p-3.5 resize-none border border-primary-border rounded-xl bg-background text-primary-text placeholder:text-secondary-text/60 focus:outline-hidden focus:border-emerald-500 text-xs leading-relaxed font-medium"
-                  required
-                ></textarea>
-                <p class="text-[10px] text-secondary-text">
-                  This note will be saved in the client audit history with your account as author.
-                </p>
-              </div>
-
-              <!-- Footer Buttons -->
-              <div class="pt-4 border-t border-primary-border flex items-center justify-end gap-2.5">
+              <!-- Sticky Footer Buttons -->
+              <div class="px-6 py-4 border-t border-primary-border flex items-center justify-end gap-2.5 bg-card-background shrink-0">
                 <button
                   type="button"
                   @click="closeFormDrawer"
@@ -342,7 +328,7 @@
                 <button
                   type="submit"
                   :disabled="clientDepthStore.isSubmittingReference || !formRemarks.trim()"
-                  class="px-5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  class="px-5 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-hover rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                 >
                   <Loader2
                     v-if="clientDepthStore.isSubmittingReference"
@@ -370,7 +356,7 @@
             @click.stop
           >
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 flex items-center justify-center shrink-0">
+              <div class="w-10 h-10 rounded-xl bg-primary-red/10 border border-primary-red/20 text-primary-red flex items-center justify-center shrink-0">
                 <AlertTriangle class="w-5 h-5" />
               </div>
               <div>
@@ -397,7 +383,7 @@
                 type="button"
                 @click="confirmDelete"
                 :disabled="clientDepthStore.isDeletingReference"
-                class="px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                class="px-4 py-2 text-xs font-semibold text-white bg-primary-red hover:bg-primary-red/90 rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
               >
                 <Loader2
                   v-if="clientDepthStore.isDeletingReference"
@@ -445,23 +431,6 @@ const clientDepthStore = useClientDepthStore();
 const currentUserId = computed(() => {
   return props.userId || route.params.id || clientDepthStore.activeClient?.id;
 });
-
-// Quick note templates
-const noteTemplates = [
-  "Identity verified via official document",
-  "Address proof matched with utility bill",
-  "Requested updated identity documents",
-  "Risk cleared by compliance officer",
-  "Pending client phone verification",
-];
-
-const insertTemplate = (tpl) => {
-  if (!formRemarks.value.trim()) {
-    formRemarks.value = tpl;
-  } else {
-    formRemarks.value += `\n${tpl}`;
-  }
-};
 
 // ─── Fetch References ─────────────────────────────────────────────────────────
 const loadReferences = (force = false) => {

@@ -27,10 +27,10 @@
           type="button"
           @click="refreshChartsData"
           :disabled="isChartsRefreshing || clientDepthStore.userChartsLoading"
-          class="border border-primary-border bg-card-background hover:bg-background rounded-xl p-2.5 text-secondary-text hover:text-primary-text transition-colors cursor-pointer shadow-2xs disabled:opacity-50"
+          class="border border-primary-border bg-card-background/40 hover:bg-card-background/70 rounded-xl p-2.5 text-secondary-text hover:text-primary-text transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-2"
           title="Refresh Financial Summary & Charts"
         >
-          <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': isChartsRefreshing || clientDepthStore.userChartsLoading }" />
+          <RefreshCw class="w-4 h-4" :class="{ 'animate-spin text-primary': isChartsRefreshing || clientDepthStore.userChartsLoading }" />
         </button>
       </div>
     </div>
@@ -39,12 +39,12 @@
     <!-- Skeleton State -->
     <div
       v-if="isTopMetricsLoading"
-      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 animate-pulse"
+      class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3.5 animate-pulse"
     >
       <div
         v-for="i in 5"
         :key="i"
-        class="bg-card-background border border-primary-border rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-2.5 shadow-xs"
+        class="bg-card-background/40 border border-primary-border rounded-xl p-4 sm:p-5 flex items-center justify-between gap-2.5"
       >
         <div class="space-y-2 flex-1 min-w-0">
           <div class="h-3 w-20 bg-primary-border/60 rounded-md" />
@@ -56,10 +56,10 @@
     </div>
 
     <!-- Live Content -->
-    <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+    <div v-else class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3.5">
       <!-- 1. Total Deposit -->
       <div
-        class="bg-card-background border border-primary-border rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-2.5 transition-all hover:border-primary/30 shadow-xs"
+        class="bg-card-background/40 border border-primary-border rounded-xl p-4 sm:p-5 flex items-center justify-between gap-2.5"
       >
         <div class="min-w-0 flex-1">
           <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text truncate">
@@ -79,7 +79,7 @@
 
       <!-- 2. Total Withdrawal -->
       <div
-        class="bg-card-background border border-primary-border rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-2.5 transition-all hover:border-primary/30 shadow-xs"
+        class="bg-card-background/40 border border-primary-border rounded-xl p-4 sm:p-5 flex items-center justify-between gap-2.5"
       >
         <div class="min-w-0 flex-1">
           <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text truncate">
@@ -99,7 +99,7 @@
 
       <!-- 3. Net Cashflow -->
       <div
-        class="bg-card-background border border-primary-border rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-2.5 transition-all hover:border-primary/30 shadow-xs"
+        class="bg-card-background/40 border border-primary-border rounded-xl p-4 sm:p-5 flex items-center justify-between gap-2.5"
       >
         <div class="min-w-0 flex-1">
           <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text truncate">
@@ -125,7 +125,7 @@
 
       <!-- 4. Total Equity -->
       <div
-        class="bg-card-background border border-primary-border rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-2.5 transition-all hover:border-primary/30 shadow-xs"
+        class="bg-card-background/40 border border-primary-border rounded-xl p-4 sm:p-5 flex items-center justify-between gap-2.5"
       >
         <div class="min-w-0 flex-1">
           <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text truncate">
@@ -145,7 +145,7 @@
 
       <!-- 5. Total PnL -->
       <div
-        class="bg-card-background border border-primary-border rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-2.5 transition-all hover:border-primary/30 shadow-xs"
+        class="bg-card-background/40 border border-primary-border rounded-xl p-4 sm:p-5 flex items-center justify-between gap-2.5"
       >
         <div class="min-w-0 flex-1">
           <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text truncate">
@@ -185,10 +185,10 @@
       <!-- Skeletons for Charts -->
       <div
         v-if="isChartsLoading"
-        class="grid grid-cols-1 lg:grid-cols-2 gap-5 animate-pulse"
+        class="grid grid-cols-1 min-[1280px]:grid-cols-2 gap-5 animate-pulse"
       >
         <!-- Chart 1 Skeleton -->
-        <div class="bg-card-background border border-primary-border rounded-2xl p-5 sm:p-6 space-y-3 shadow-xs flex flex-col justify-between">
+        <div class="bg-card-background/40 border border-primary-border rounded-xl p-5 sm:p-6 space-y-3 flex flex-col justify-between">
           <div class="space-y-1.5">
             <div class="h-4 w-48 bg-primary-border/70 rounded-md" />
             <div class="h-3 w-32 bg-primary-border/40 rounded-md" />
@@ -210,7 +210,7 @@
         </div>
 
         <!-- Chart 2 Skeleton -->
-        <div class="bg-card-background border border-primary-border rounded-2xl p-5 sm:p-6 space-y-3 shadow-xs flex flex-col justify-between">
+        <div class="bg-card-background/40 border border-primary-border rounded-xl p-5 sm:p-6 space-y-3 flex flex-col justify-between">
           <div class="space-y-1.5">
             <div class="h-4 w-44 bg-primary-border/70 rounded-md" />
             <div class="h-3 w-36 bg-primary-border/40 rounded-md" />
@@ -227,10 +227,10 @@
       </div>
 
       <!-- Live Charts Content -->
-      <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div v-else class="grid grid-cols-1 min-[1280px]:grid-cols-2 gap-5">
         <!-- Chart 1: Deposit vs Withdrawal Trend -->
         <div
-          class="bg-card-background border border-primary-border rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col justify-between transition-all hover:border-primary/30"
+          class="bg-card-background/40 border border-primary-border rounded-xl p-5 sm:p-6 flex flex-col justify-between"
         >
           <!-- Chart Header -->
           <div class="pb-2">
@@ -268,7 +268,7 @@
 
         <!-- Chart 2: Account Equity Trend -->
         <div
-          class="bg-card-background border border-primary-border rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col justify-between transition-all hover:border-primary/30"
+          class="bg-card-background/40 border border-primary-border rounded-xl p-5 sm:p-6 flex flex-col justify-between"
         >
           <!-- Chart Header -->
           <div class="pb-2">
@@ -306,10 +306,10 @@
     <!-- Skeletons for Tables -->
     <div
       v-if="isTablesInitialLoading"
-      class="grid grid-cols-1 lg:grid-cols-2 gap-5 animate-pulse"
+      class="grid grid-cols-1 min-[1280px]:grid-cols-2 gap-5 animate-pulse"
     >
       <!-- Table 1 Skeleton -->
-      <div class="bg-card-background border border-primary-border rounded-2xl p-5 sm:p-6 space-y-4 shadow-xs min-h-[380px]">
+      <div class="bg-card-background/40 border border-primary-border rounded-xl p-5 sm:p-6 space-y-4 min-h-[380px]">
         <div class="space-y-1.5 pb-4 border-b border-primary-border/60">
           <div class="h-4 w-36 bg-primary-border/70 rounded-md" />
           <div class="h-3 w-48 bg-primary-border/40 rounded-md" />
@@ -330,7 +330,7 @@
       </div>
 
       <!-- Table 2 Skeleton -->
-      <div class="bg-card-background border border-primary-border rounded-2xl p-5 sm:p-6 space-y-4 shadow-xs min-h-[380px]">
+      <div class="bg-card-background/40 border border-primary-border rounded-xl p-5 sm:p-6 space-y-4 min-h-[380px]">
         <div class="space-y-1.5 pb-4 border-b border-primary-border/60">
           <div class="h-4 w-40 bg-primary-border/70 rounded-md" />
           <div class="h-3 w-44 bg-primary-border/40 rounded-md" />
@@ -352,10 +352,10 @@
     </div>
 
     <!-- Live Tables Content with Fixed Heights & Hidden Scrollbars -->
-    <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+    <div v-else class="grid grid-cols-1 min-[1280px]:grid-cols-2 gap-5">
       <!-- Table 1: Account Overview -->
       <div
-        class="bg-card-background border border-primary-border rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col justify-between transition-all hover:border-primary/30 min-h-[380px]"
+        class="bg-card-background/40 border border-primary-border rounded-xl p-5 sm:p-6 flex flex-col justify-between min-h-[380px]"
       >
         <div class="flex flex-col h-full">
           <!-- Header with count badge -->
@@ -377,29 +377,29 @@
           </div>
 
           <!-- Accounts Table Scrollable Container with Fixed Max-Height -->
-          <div class="overflow-y-auto overflow-x-auto no-scrollbar max-h-72 flex-1">
+          <div class="overflow-y-auto overflow-x-auto no-scrollbar max-h-72 flex-1 border border-primary-border rounded-xl mt-3">
             <table v-if="tradingAccounts.length > 0" class="w-full text-left text-xs border-collapse">
-              <thead class="sticky top-0 bg-card-background z-10 shadow-2xs">
-                <tr class="border-b border-primary-border/80 text-[11px] font-bold text-secondary-text">
-                  <th class="py-2.5 px-2 bg-card-background">Account Number</th>
-                  <th class="py-2.5 px-2 bg-card-background">Account Type</th>
-                  <th class="py-2.5 px-2 bg-card-background">Currency</th>
-                  <th class="py-2.5 px-2 bg-card-background">Balance</th>
-                  <th class="py-2.5 px-2 bg-card-background">Equity</th>
-                  <th class="py-2.5 px-2 text-right bg-card-background">Status</th>
+              <thead class="sticky top-0 bg-background/80 backdrop-blur-sm z-10 border-b border-primary-border">
+                <tr class="text-[11px] font-bold text-secondary-text uppercase tracking-wider">
+                  <th class="py-2.5 px-3">Account Number</th>
+                  <th class="py-2.5 px-3">Account Type</th>
+                  <th class="py-2.5 px-3">Currency</th>
+                  <th class="py-2.5 px-3">Balance</th>
+                  <th class="py-2.5 px-3">Equity</th>
+                  <th class="py-2.5 px-3 text-right">Status</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-primary-border/50">
+              <tbody>
                 <tr
                   v-for="acc in tradingAccounts"
                   :key="acc.id || acc.account_number"
-                  class="hover:bg-background/40 transition-colors"
+                  class="border-b border-primary-border hover:bg-card-background/70 transition-colors"
                 >
-                  <td class="py-3 px-2 font-bold text-primary-text tabular-nums whitespace-nowrap">
+                  <td class="py-3 px-3 font-bold text-primary-text tabular-nums whitespace-nowrap">
                     <span>{{ acc.account_number }}</span>
                     <span v-if="acc.platform" class="ml-1.5 text-[10px] text-secondary-text font-normal">({{ acc.platform }})</span>
                   </td>
-                  <td class="py-3 px-2 whitespace-nowrap">
+                  <td class="py-3 px-3 whitespace-nowrap">
                     <span
                       class="text-[10px] font-bold px-2 py-0.5 rounded-md capitalize"
                       :class="getAccountTypeBadgeClass(acc.trading_type || acc.account_type)"
@@ -407,16 +407,16 @@
                       {{ formatAccountType(acc.trading_type || acc.account_type) }}
                     </span>
                   </td>
-                  <td class="py-3 px-2 font-medium text-secondary-text">
+                  <td class="py-3 px-3 font-medium text-secondary-text">
                     {{ acc.broker_currency || 'USD' }}
                   </td>
-                  <td class="py-3 px-2 font-bold text-primary-text tabular-nums whitespace-nowrap">
+                  <td class="py-3 px-3 font-bold text-primary-text tabular-nums whitespace-nowrap">
                     ${{ formatCurrency(acc.balance) }}
                   </td>
-                  <td class="py-3 px-2 font-bold text-primary-text tabular-nums whitespace-nowrap">
+                  <td class="py-3 px-3 font-bold text-primary-text tabular-nums whitespace-nowrap">
                     ${{ formatCurrency(acc.equity) }}
                   </td>
-                  <td class="py-3 px-2 text-right whitespace-nowrap">
+                  <td class="py-3 px-3 text-right whitespace-nowrap">
                     <span
                       class="text-xs font-semibold capitalize"
                       :class="acc.status ? 'text-primary-green' : 'text-primary-red'"
@@ -445,7 +445,7 @@
 
       <!-- Table 2: Recent Transactions -->
       <div
-        class="bg-card-background border border-primary-border rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col justify-between transition-all hover:border-primary/30 min-h-[380px]"
+        class="bg-card-background/40 border border-primary-border rounded-xl p-5 sm:p-6 flex flex-col justify-between min-h-[380px]"
       >
         <div class="flex flex-col h-full">
           <!-- Header with count badge -->
@@ -467,31 +467,31 @@
           </div>
 
           <!-- Transactions Table Scrollable Container with Fixed Max-Height -->
-          <div class="overflow-y-auto overflow-x-auto no-scrollbar max-h-72 flex-1">
+          <div class="overflow-y-auto overflow-x-auto no-scrollbar max-h-72 flex-1 border border-primary-border rounded-xl mt-3">
             <table v-if="recentTransactions.length > 0" class="w-full text-left text-xs border-collapse">
-              <thead class="sticky top-0 bg-card-background z-10 shadow-2xs">
-                <tr class="border-b border-primary-border/80 text-[11px] font-bold text-secondary-text">
-                  <th class="py-2.5 px-2 bg-card-background">Date &amp; Time</th>
-                  <th class="py-2.5 px-2 bg-card-background">Account</th>
-                  <th class="py-2.5 px-2 bg-card-background">Type</th>
-                  <th class="py-2.5 px-2 bg-card-background">Amount</th>
-                  <th class="py-2.5 px-2 bg-card-background">Payment Method</th>
-                  <th class="py-2.5 px-2 text-right bg-card-background">Status</th>
+              <thead class="sticky top-0 bg-background/80 backdrop-blur-sm z-10 border-b border-primary-border">
+                <tr class="text-[11px] font-bold text-secondary-text uppercase tracking-wider">
+                  <th class="py-2.5 px-3">Date &amp; Time</th>
+                  <th class="py-2.5 px-3">Account</th>
+                  <th class="py-2.5 px-3">Type</th>
+                  <th class="py-2.5 px-3">Amount</th>
+                  <th class="py-2.5 px-3">Payment Method</th>
+                  <th class="py-2.5 px-3 text-right">Status</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-primary-border/50">
+              <tbody>
                 <tr
                   v-for="(tx, idx) in recentTransactions"
                   :key="tx.payment_id || idx"
-                  class="hover:bg-background/40 transition-colors"
+                  class="border-b border-primary-border hover:bg-card-background/70 transition-colors"
                 >
-                  <td class="py-3 px-2 text-secondary-text font-medium whitespace-nowrap">
+                  <td class="py-3 px-3 text-secondary-text font-medium whitespace-nowrap">
                     {{ formatDateTime(tx.created_at || tx.datetime) }}
                   </td>
-                  <td class="py-3 px-2 font-semibold text-primary-text tabular-nums whitespace-nowrap">
+                  <td class="py-3 px-3 font-semibold text-primary-text tabular-nums whitespace-nowrap">
                     {{ tx.account_number || '—' }}
                   </td>
-                  <td class="py-3 px-2 whitespace-nowrap">
+                  <td class="py-3 px-3 whitespace-nowrap">
                     <span
                       class="text-[10px] font-bold px-2 py-0.5 rounded-full capitalize"
                       :class="String(tx.type).toLowerCase() === 'deposit' ? 'bg-primary-green/10 text-primary-green' : 'bg-primary-red/10 text-primary-red'"
@@ -499,13 +499,13 @@
                       {{ tx.type }}
                     </span>
                   </td>
-                  <td class="py-3 px-2 font-bold text-primary-text tabular-nums whitespace-nowrap">
+                  <td class="py-3 px-3 font-bold text-primary-text tabular-nums whitespace-nowrap">
                     ${{ formatCurrency(tx.amount) }}
                   </td>
-                  <td class="py-3 px-2 font-medium text-secondary-text capitalize whitespace-nowrap">
+                  <td class="py-3 px-3 font-medium text-secondary-text capitalize whitespace-nowrap">
                     {{ tx.gateway || tx.method || 'Admin' }}
                   </td>
-                  <td class="py-3 px-2 text-right whitespace-nowrap">
+                  <td class="py-3 px-3 text-right whitespace-nowrap">
                     <span
                       class="text-[10px] font-bold px-2 py-0.5 rounded-full capitalize"
                       :class="getTransactionStatusBadgeClass(tx.approval_status || tx.payment_status || tx.status)"

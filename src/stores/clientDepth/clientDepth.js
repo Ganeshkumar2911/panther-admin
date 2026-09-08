@@ -6,6 +6,7 @@ import urls from "@/api/urls";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
 
 export const useClientDepthStore = defineStore("clientDepth", () => {
+  const currentUserId = ref(null);
   const overviewData = ref(null);
   const activeClient = ref(null);
   const loading = ref(false);
@@ -14,7 +15,19 @@ export const useClientDepthStore = defineStore("clientDepth", () => {
 
   const setActiveClient = (client) => {
     if (!client) return;
-    activeClient.value = { ...(activeClient.value || {}), ...client };
+    const incomingId = client.id ? String(client.id) : null;
+    const currentId = activeClient.value?.id ? String(activeClient.value.id) : null;
+
+    if (incomingId && currentId && incomingId !== currentId) {
+      reset();
+      activeClient.value = { ...client };
+      currentUserId.value = incomingId;
+    } else {
+      activeClient.value = { ...(activeClient.value || {}), ...client };
+      if (incomingId) {
+        currentUserId.value = incomingId;
+      }
+    }
     try {
       localStorage.setItem("active_client", JSON.stringify(activeClient.value));
     } catch { }
@@ -33,7 +46,18 @@ export const useClientDepthStore = defineStore("clientDepth", () => {
   // ─── Fetch Client Overview ────────────────────────────────
   const fetchClientOverview = (userId, force = false) => {
     if (!userId) return;
-    if (isFetched.value && !force) return;
+    const strId = String(userId);
+
+    if (currentUserId.value && String(currentUserId.value) !== strId) {
+      overviewData.value = null;
+      isFetched.value = false;
+      currentUserId.value = strId;
+    } else {
+      currentUserId.value = strId;
+    }
+
+    if (loading.value) return;
+    if (isFetched.value && !force && overviewData.value) return;
 
     loading.value = true;
     error.value = null;
@@ -64,7 +88,18 @@ export const useClientDepthStore = defineStore("clientDepth", () => {
   // ─── Fetch Client KYC ─────────────────────────────────────
   const fetchClientKyc = (userId, force = false) => {
     if (!userId) return;
-    if (kycFetched.value && !force) return;
+    const strId = String(userId);
+
+    if (currentUserId.value && String(currentUserId.value) !== strId) {
+      kycData.value = null;
+      kycFetched.value = false;
+      currentUserId.value = strId;
+    } else {
+      currentUserId.value = strId;
+    }
+
+    if (kycLoading.value) return;
+    if (kycFetched.value && !force && kycData.value) return;
 
     kycLoading.value = true;
     kycError.value = null;
@@ -217,11 +252,10 @@ export const useClientDepthStore = defineStore("clientDepth", () => {
     };
 
     apiRequest(
-      urls.KEYS.POST,
+      urls.KEYS.PATCH,
       urls.clientDepth.uploadDocument || "/user-document-upload",
       {
         isTokenRequired: true,
-        // params: { user_id: userId },
         data: formData,
         onSuccess: successHandler,
         onFailure: failureHandler,
@@ -282,7 +316,18 @@ export const useClientDepthStore = defineStore("clientDepth", () => {
 
   const fetchUserCharts = (userId, params = {}, force = false) => {
     if (!userId) return;
-    if (userChartsFetched.value && !force && Object.keys(params).length === 0) return;
+    const strId = String(userId);
+
+    if (currentUserId.value && String(currentUserId.value) !== strId) {
+      userChartsData.value = null;
+      userChartsFetched.value = false;
+      currentUserId.value = strId;
+    } else {
+      currentUserId.value = strId;
+    }
+
+    if (userChartsLoading.value) return;
+    if (userChartsFetched.value && !force && userChartsData.value && Object.keys(params).length === 0) return;
 
     userChartsLoading.value = true;
     userChartsError.value = null;
@@ -319,7 +364,18 @@ export const useClientDepthStore = defineStore("clientDepth", () => {
 
   const fetchAccountDetails = (userId, params = {}, force = false) => {
     if (!userId) return;
-    if (accountDetailsFetched.value && !force && Object.keys(params).length === 0) return;
+    const strId = String(userId);
+
+    if (currentUserId.value && String(currentUserId.value) !== strId) {
+      accountDetailsData.value = null;
+      accountDetailsFetched.value = false;
+      currentUserId.value = strId;
+    } else {
+      currentUserId.value = strId;
+    }
+
+    if (accountDetailsLoading.value) return;
+    if (accountDetailsFetched.value && !force && accountDetailsData.value && Object.keys(params).length === 0) return;
 
     accountDetailsLoading.value = true;
     accountDetailsError.value = null;
@@ -358,7 +414,18 @@ export const useClientDepthStore = defineStore("clientDepth", () => {
 
   const fetchUserReferences = (userId, force = false) => {
     if (!userId) return;
-    if (userReferencesFetched.value && !force) return;
+    const strId = String(userId);
+
+    if (currentUserId.value && String(currentUserId.value) !== strId) {
+      userReferencesData.value = null;
+      userReferencesFetched.value = false;
+      currentUserId.value = strId;
+    } else {
+      currentUserId.value = strId;
+    }
+
+    if (userReferencesLoading.value) return;
+    if (userReferencesFetched.value && !force && userReferencesData.value) return;
 
     userReferencesLoading.value = true;
     userReferencesError.value = null;
@@ -485,6 +552,8 @@ export const useClientDepthStore = defineStore("clientDepth", () => {
 
   // ─── Reset Store ──────────────────────────────────────────
   const reset = () => {
+    currentUserId.value = null;
+    activeClient.value = null;
     overviewData.value = null;
     loading.value = false;
     isFetched.value = false;
@@ -518,6 +587,7 @@ export const useClientDepthStore = defineStore("clientDepth", () => {
   };
 
   return {
+    currentUserId,
     overviewData,
     activeClient,
     loading,

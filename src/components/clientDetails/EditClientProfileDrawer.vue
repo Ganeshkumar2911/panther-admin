@@ -66,8 +66,8 @@
                 class="px-2 py-0.5 rounded-full text-[10px] font-bold"
                 :class="
                   client?.is_active
-                    ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
-                    : 'bg-zinc-500/10 text-zinc-500 border border-zinc-500/20'
+                    ? 'bg-primary-green/10 text-primary-green border border-primary-green/20'
+                    : 'bg-primary-red/10 text-primary-red border border-primary-red/20'
                 "
               >
                 {{ client?.is_active ? "Active" : "Inactive" }}

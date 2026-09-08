@@ -1,12 +1,40 @@
 <template>
   <div class="space-y-5 pt-4 pb-12">
+    <!-- ─── TOP HEADER & ACTIONS ─────────────────────────────────── -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div>
+        <h3 class="text-base sm:text-lg font-bold text-primary-text">
+          Profile & KYC Verification
+        </h3>
+        <p class="text-xs text-secondary-text mt-0.5">
+          Manage client personal details, identity verification status, documents, and compliance remarks.
+        </p>
+      </div>
+
+      <!-- Top Right Refresh Button -->
+      <div class="flex items-center gap-2 self-start sm:self-auto">
+        <button
+          type="button"
+          @click="refreshKycStatus"
+          :disabled="clientDepthStore.kycLoading || clientDepthStore.userReferencesLoading"
+          class="border border-primary-border bg-card-background/40 hover:bg-card-background/70 rounded-xl p-2.5 text-secondary-text hover:text-primary-text transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-2"
+          title="Refresh Profile & KYC Data"
+        >
+          <RefreshCw
+            class="w-4 h-4"
+            :class="{ 'animate-spin text-primary': clientDepthStore.kycLoading || clientDepthStore.userReferencesLoading }"
+          />
+        </button>
+      </div>
+    </div>
+
     <!-- ─── MAIN 2-COLUMN GRID ───────────────────────────────────── -->
     <div class="grid grid-cols-1 xl:grid-cols-2 gap-3 items-stretch">
       <!-- ─── LEFT COLUMN ─────────────────────────────────────────── -->
       <div class="flex flex-col gap-3 h-full">
         <!-- 1. Profile Information Card -->
         <div
-          class="bg-card-background border border-primary-border rounded-lg p-5 sm:p-6"
+          class="bg-card-background/40 border border-primary-border rounded-xl p-5 sm:p-6"
         >
           <!-- Card Header -->
           <div class="flex items-start justify-between gap-3 pb-5 border-b border-primary-border/60">
@@ -21,7 +49,7 @@
             <button
               type="button"
               @click="openEditProfileModal"
-              class="border border-primary-border rounded-xl px-3.5 py-1.5 text-xs font-semibold text-primary hover:bg-background transition-colors flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs"
+              class="border border-primary-border rounded-xl px-3.5 py-1.5 text-xs font-semibold text-primary hover:bg-background transition-colors flex items-center gap-1.5 cursor-pointer shrink-0"
             >
               <Pencil class="w-3.5 h-3.5" />
               Edit Profile
@@ -31,7 +59,7 @@
           <!-- Card Body -->
           <div class="flex flex-col sm:flex-row items-start gap-4 pt-5">
             <!-- Avatar / Photo Area -->
-            <div class="flex flex-col items-center shrink-0 w-full sm:w-36">
+            <div class="flex flex-col items-center shrink-0 w-full sm:w-36 xl:w-28 2xl:w-36">
               <div class="relative">
                 <div
                   class="w-24 h-24 rounded-full bg-primary-green/10 border border-primary-green/20 flex items-center justify-center text-primary-green"
@@ -50,7 +78,7 @@
               <button
                 type="button"
                 @click="triggerPhotoUpload"
-                class="mt-3.5 border border-primary-border rounded-xl px-3 py-1.5 text-xs font-semibold text-primary-text hover:bg-background transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                class="mt-3.5 border border-primary-border rounded-xl px-3 py-1.5 text-xs font-semibold text-primary-text hover:bg-background transition-colors flex items-center gap-1.5 cursor-pointer"
               >
                 <Upload class="w-3.5 h-3.5 text-secondary-text" />
                 Upload Photo
@@ -108,7 +136,7 @@
                       {{ user.email || "—" }}
                     </span>
                     <span
-                      class="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[11px] font-semibold px-2 py-0.5 rounded-md inline-flex items-center gap-1"
+                      class="bg-primary-green/10 text-primary-green text-[11px] font-semibold px-2 py-0.5 rounded-md inline-flex items-center gap-1 border border-primary-green/20"
                     >
                       <Check class="w-3 h-3 stroke-[3]" />
                       Verified
@@ -125,14 +153,14 @@
                     </span>
                     <span
                       v-if="user.phone_number"
-                      class="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[11px] font-semibold px-2 py-0.5 rounded-md inline-flex items-center gap-1"
+                      class="bg-primary-green/10 text-primary-green text-[11px] font-semibold px-2 py-0.5 rounded-md inline-flex items-center gap-1 border border-primary-green/20"
                     >
                       <Check class="w-3 h-3 stroke-[3]" />
                       Verified
                     </span>
                     <span
                       v-else
-                      class="bg-rose-500/10 text-rose-600 dark:text-rose-400 text-[11px] font-semibold px-2 py-0.5 rounded-md"
+                      class="bg-primary-red/10 text-primary-red text-[11px] font-semibold px-2 py-0.5 rounded-md border border-primary-red/20"
                     >
                       Not Verified
                     </span>
@@ -149,7 +177,12 @@
                   <p class="font-semibold text-primary-text text-xs sm:text-[12px] flex items-center gap-1.5">
                     <span
                       v-if="user.country && getFlagCode(user.country)"
-                      :class="['fi', `fi-${getFlagCode(user.country)}`, 'fis', 'w-4 h-3 flex-shrink-0']"
+                      :class="[
+                        'fi',
+                        `fi-${getFlagCode(user.country)}`,
+                        'fis',
+                        'w-4 h-3 flex-shrink-0',
+                      ]"
                     ></span>
                     <span>{{ cleanCountryLabel(user.country) || "—" }}</span>
                   </p>
@@ -158,8 +191,17 @@
                   <p class="text-[11px] sm:text-xs text-secondary-text font-medium mb-1">
                     Nationality
                   </p>
-                  <p class="font-semibold text-primary-text text-xs sm:text-[12px]">
-                    {{ user.nationality || "—" }}
+                  <p class="font-semibold text-primary-text text-xs sm:text-[12px] flex items-center gap-1.5">
+                    <span
+                      v-if="user.country && getFlagCode(user.country)"
+                      :class="[
+                        'fi',
+                        `fi-${getFlagCode(user.country)}`,
+                        'fis',
+                        'w-4 h-3 flex-shrink-0',
+                      ]"
+                    ></span>
+                    <span>{{ cleanCountryLabel(user.country) || "—" }}</span>
                   </p>
                 </div>
                 <div>
@@ -167,27 +209,35 @@
                     Preferred Language
                   </p>
                   <p class="font-semibold text-primary-text text-xs sm:text-[12px]">
-                    {{ user.preferred_language || "English" }}
+                    {{ user.preferred_language || "English (EN)" }}
                   </p>
                 </div>
               </div>
 
-              <!-- Row 4: Address, ZIP / Postal Code -->
+              <!-- Row 4: Residential Address, City, Postal Code -->
               <div class="flex flex-col sm:flex-row justify-between gap-4 pt-4">
-                <div>
+                <div class="flex-1">
                   <p class="text-[11px] sm:text-xs text-secondary-text font-medium mb-1">
-                    Address
+                    Residential Address
                   </p>
-                  <p class="font-bold text-primary-text text-xs sm:text-[12px]">
+                  <p class="font-semibold text-primary-text text-xs sm:text-[12px]">
                     {{ user.address || "—" }}
                   </p>
                 </div>
                 <div>
                   <p class="text-[11px] sm:text-xs text-secondary-text font-medium mb-1">
-                    ZIP / Postal Code
+                    City / State
                   </p>
-                  <p class="font-bold text-primary-text text-xs sm:text-[12px]">
-                    {{ user.zip_code || user.postal_code || "—" }}
+                  <p class="font-semibold text-primary-text text-xs sm:text-[12px]">
+                    {{ user.city || user.state || "—" }}
+                  </p>
+                </div>
+                <div>
+                  <p class="text-[11px] sm:text-xs text-secondary-text font-medium mb-1">
+                    Postal Code
+                  </p>
+                  <p class="font-semibold text-primary-text text-xs sm:text-[12px]">
+                    {{ user.postal_code || user.zip || "—" }}
                   </p>
                 </div>
               </div>
@@ -195,7 +245,7 @@
           </div>
         </div>
 
-        <!-- 2. KYC Documents & Uploaded Files Card -->
+        <!-- 2. KYC Documents & Image References Table -->
         <KycDocumentsTable :userId="clientForEdit.id" />
       </div>
 
@@ -203,7 +253,7 @@
       <div class="flex flex-col gap-3 h-full">
         <!-- 3. KYC Verification Card -->
         <div
-          class="bg-card-background border border-primary-border rounded-lg p-5 sm:p-6 space-y-6"
+          class="bg-card-background/40 border border-primary-border rounded-xl p-5 sm:p-6 space-y-6"
         >
           <!-- Card Header -->
           <div class="flex items-start justify-between gap-3 pb-5 border-b border-primary-border/60">
@@ -216,46 +266,56 @@
               </p>
             </div>
             <div class="flex items-center gap-2">
-              <!-- Super Admin: Approve / Reject Document Button -->
+              <!-- When KYC is Approved: Show Approved Badge -->
+              <Tooltip v-if="isKycApproved" text="KYC verification is completed & approved" position="left">
+                <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-primary-green/10 text-primary-green border border-primary-green/20">
+                  <CheckCircle2 class="w-3.5 h-3.5" />
+                  <span>Approved</span>
+                </div>
+              </Tooltip>
+
+              <!-- When KYC is Rejected: Show Rejected Badge -->
+              <Tooltip v-else-if="isKycRejected" :text="kycData?.kyc_reject_reason || 'KYC is rejected'" position="top">
+                <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-primary-red/10 text-primary-red border border-primary-red/20">
+                  <AlertCircle class="w-3.5 h-3.5" />
+                  <span>Rejected</span>
+                </div>
+              </Tooltip>
+
+              <!-- When KYC is Pending: Show Super Admin Approve/Reject Button -->
               <button
-                v-if="isSuperAdmin"
+                v-else-if="isSuperAdmin"
                 type="button"
                 @click="openApprovalModal('approve')"
-                class="bg-primary hover:bg-primary-hover text-white rounded-xl px-3.5 py-1.5 text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-2xs transition-all"
+                class="bg-primary hover:bg-primary-hover text-white rounded-xl px-3.5 py-1.5 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all"
                 title="Review and Approve / Reject KYC Documents"
               >
                 <ShieldCheck class="w-3.5 h-3.5" />
                 Approve / Reject
-              </button>
-
-              <button
-                type="button"
-                @click="refreshKycStatus"
-                :disabled="clientDepthStore.kycLoading"
-                class="border border-primary-border rounded-xl px-3.5 py-1.5 text-xs font-semibold text-secondary-text hover:text-primary-text hover:bg-background transition-colors flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs disabled:opacity-50"
-              >
-                <RefreshCw class="w-3.5 h-3.5" :class="clientDepthStore.kycLoading ? 'animate-spin' : ''" />
-                Refresh
               </button>
             </div>
           </div>
 
           <!-- Status & Progress Hero Box -->
           <div
-            class="bg-primary-yellow/5 border border-primary-yellow/20 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+            class="rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border transition-colors"
+            :class="kycHeroBoxClasses.container"
           >
             <div class="flex items-center gap-4 min-w-0">
-              <!-- Orange Shield / Badge Icon -->
+              <!-- Shield / Status Badge Icon -->
               <div
-                class="w-12 h-12 rounded-2xl bg-primary-yellow/15 border border-primary-yellow/30 flex items-center justify-center text-primary-yellow font-extrabold text-2xl shrink-0"
+                class="w-12 h-12 rounded-2xl border flex items-center justify-center font-extrabold text-2xl shrink-0 transition-colors"
+                :class="kycHeroBoxClasses.iconBox"
               >
-                A
+                <Check v-if="isKycApproved" class="w-6 h-6 stroke-[3]" />
+                <X v-else-if="isKycRejected" class="w-6 h-6 stroke-[3]" />
+                <span v-else>A</span>
               </div>
               <div class="min-w-0">
                 <p class="text-xs font-semibold tracking-wider text-secondary-text">
                   Current Status
                 </p>
-                <p class="text-xl min-[1650px]:text-2xl font-bold text-primary-yellow capitalize mt-0.5">
+                <p class="text-xl min-[1650px]:text-2xl font-bold capitalize mt-0.5" :class="kycHeroBoxClasses.statusText">
                   {{ kycStatus }}
                 </p>
                 <p class="text-xs text-secondary-text mt-0.5">
@@ -272,7 +332,8 @@
               </span>
               <div class="w-full sm:w-36 h-2 rounded-full bg-primary-border/80 overflow-hidden mt-1.5">
                 <div
-                  class="h-full bg-primary-yellow rounded-full transition-all duration-500"
+                  class="h-full rounded-full transition-all duration-500"
+                  :class="kycHeroBoxClasses.progressBar"
                   :style="{ width: `${progressPercentage}%` }"
                 />
               </div>
@@ -316,21 +377,21 @@
             </div>
 
             <!-- Documents Table (Scrollable with sticky header) -->
-            <div class="border border-primary-border/80 rounded-xl overflow-x-auto overflow-y-auto max-h-[170px] no-scrollbar">
+            <div class="border border-primary-border rounded-xl overflow-x-auto overflow-y-auto max-h-[170px] no-scrollbar">
               <table class="w-full text-left text-xs border-collapse">
-                <thead class="sticky top-0 z-10 bg-card-background border-b border-primary-border/80 shadow-2xs">
-                  <tr class="bg-card-background text-[11px] font-bold text-secondary-text uppercase tracking-wider">
-                    <th class="py-2.5 px-4 bg-card-background">Document Type</th>
-                    <th class="py-2.5 px-3 bg-card-background">Status</th>
-                    <th class="py-2.5 px-3 bg-card-background">Remarks</th>
-                    <th class="py-2.5 px-4 text-right bg-card-background">Action</th>
+                <thead class="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b border-primary-border">
+                  <tr class="text-[11px] font-bold text-secondary-text uppercase tracking-wider">
+                    <th class="py-2.5 px-4">Document Type</th>
+                    <th class="py-2.5 px-3">Status</th>
+                    <th class="py-2.5 px-3">Remarks</th>
+                    <th class="py-2.5 px-4 text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody class="divide-y divide-primary-border/60">
+                <tbody>
                   <tr
                     v-for="doc in documentChecklist"
                     :key="doc.id || doc.type"
-                    class="hover:bg-background/40 transition-colors"
+                    class="border-b border-primary-border hover:bg-card-background/70 transition-colors"
                   >
                     <!-- Type & Subtitle -->
                     <td class="py-3 px-4">
@@ -352,7 +413,7 @@
                       <div class="flex flex-col gap-1 items-start">
                         <span
                           class="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                          :class="doc.uploaded ? 'bg-primary-green/10 text-primary-green' : 'bg-primary-red/10 text-primary-red'"
+                          :class="doc.uploaded ? 'bg-primary-green/10 text-primary-green border border-primary-green/20' : 'bg-primary-red/10 text-primary-red border border-primary-red/20'"
                         >
                           {{ doc.uploaded ? 'Uploaded' : 'Not Uploaded' }}
                         </span>
@@ -374,46 +435,91 @@
                     <!-- Action Buttons -->
                     <td class="py-3 px-4 text-right">
                       <div class="flex items-center justify-end gap-1.5">
-                        <!-- If Document Uploaded: View & Review (Super Admin) & Edit buttons -->
+                        <!-- If Document Uploaded -->
                         <template v-if="doc.uploaded">
-                          <button
-                            type="button"
-                            @click="openViewDoc(doc)"
-                            class="border border-primary-border rounded-lg px-2.5 py-1 text-xs font-semibold text-primary hover:bg-background transition-colors cursor-pointer shadow-2xs flex items-center gap-1"
+                          <!-- 1. View Document Button (Icon with Tooltip) -->
+                          <Tooltip text="View Document" position="top">
+                            <button
+                              type="button"
+                              @click="openViewDoc(doc)"
+                              class="border border-primary-border rounded-lg p-1.5 text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer flex items-center justify-center"
+                            >
+                              <Eye class="w-3.5 h-3.5" />
+                            </button>
+                          </Tooltip>
+
+                          <!-- 2. Status Badge or Approve/Reject Icon Buttons -->
+                          <!-- Case A: Document is Approved (Icon Badge) -->
+                          <Tooltip
+                            v-if="String(doc.verification_status).toLowerCase() === 'approved' || String(doc.verification_status).toLowerCase() === 'verified'"
+                            text="Approved"
+                            position="top"
                           >
-                            <Eye class="w-3 h-3" />
-                            View
-                          </button>
-                          <button
-                            v-if="isSuperAdmin"
-                            type="button"
-                            @click="openApprovalModal('approve')"
-                            class="border border-primary-green/40 bg-primary-green/10 text-primary-green hover:bg-primary-green/20 rounded-lg px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer shadow-2xs flex items-center gap-1"
-                            title="Approve / Reject Document (Super Admin)"
+                            <div class="w-7 h-7 rounded-lg border border-primary-green/30 bg-primary-green/10 text-primary-green flex items-center justify-center">
+                              <CheckCircle2 class="w-3.5 h-3.5" />
+                            </div>
+                          </Tooltip>
+
+                          <!-- Case B: Document is Rejected (Icon Badge) -->
+                          <Tooltip
+                            v-else-if="String(doc.verification_status).toLowerCase() === 'rejected'"
+                            :text="doc.remarks || 'Rejected'"
+                            position="top"
                           >
-                            <ShieldCheck class="w-3 h-3" />
-                            Review
-                          </button>
-                          <button
-                            type="button"
-                            @click="openEditDoc(doc)"
-                            class="border border-primary-border rounded-lg px-2.5 py-1 text-xs font-semibold text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer shadow-2xs flex items-center gap-1"
-                          >
-                            <Pencil class="w-3 h-3" />
-                            Edit
-                          </button>
+                            <div class="w-7 h-7 rounded-lg border border-primary-red/30 bg-primary-red/10 text-primary-red flex items-center justify-center">
+                              <AlertCircle class="w-3.5 h-3.5" />
+                            </div>
+                          </Tooltip>
+
+                          <!-- Case C: Document is Pending Review & Super Admin -->
+                          <template v-else-if="isSuperAdmin">
+                            <!-- Approve Icon Button -->
+                            <Tooltip text="Approve Document" position="top">
+                              <button
+                                type="button"
+                                @click="openApprovalModal('approve')"
+                                class="border border-primary-green/40 bg-primary-green/10 text-primary-green hover:bg-primary-green/20 rounded-lg p-1.5 transition-all cursor-pointer flex items-center justify-center"
+                              >
+                                <Check class="w-3.5 h-3.5 stroke-[2.5]" />
+                              </button>
+                            </Tooltip>
+
+                            <!-- Reject Icon Button -->
+                            <Tooltip text="Reject Document" position="top">
+                              <button
+                                type="button"
+                                @click="openApprovalModal('reject')"
+                                class="border border-primary-red/40 bg-primary-red/10 text-primary-red hover:bg-primary-red/20 rounded-lg p-1.5 transition-all cursor-pointer flex items-center justify-center"
+                              >
+                                <X class="w-3.5 h-3.5 stroke-[2.5]" />
+                              </button>
+                            </Tooltip>
+                          </template>
+
+                          <!-- 3. Edit Document Button -->
+                          <Tooltip text="Edit / Replace Document" position="left">
+                            <button
+                              type="button"
+                              @click="openEditDoc(doc)"
+                              class="border border-primary-border rounded-lg p-1.5 text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer flex items-center justify-center"
+                            >
+                              <Pencil class="w-3.5 h-3.5" />
+                            </button>
+                          </Tooltip>
                         </template>
 
                         <!-- If Document Not Uploaded: Upload button -->
                         <template v-else>
-                          <button
-                            type="button"
-                            @click="openUploadDoc(doc)"
-                            class="border border-primary text-primary hover:bg-primary/10 rounded-lg px-3 py-1 text-xs font-semibold transition-all cursor-pointer shadow-2xs flex items-center gap-1"
-                          >
-                            <Upload class="w-3 h-3" />
-                            Upload
-                          </button>
+                          <Tooltip text="Upload Document" position="top">
+                            <button
+                              type="button"
+                              @click="openUploadDoc(doc)"
+                              class="border border-primary-border bg-primary/10 hover:bg-primary/20 text-primary rounded-lg px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer flex items-center gap-1"
+                            >
+                              <Upload class="w-3.5 h-3.5" />
+                              <span>Upload</span>
+                            </button>
+                          </Tooltip>
                         </template>
                       </div>
                     </td>
@@ -479,6 +585,7 @@ import { useClientDepthStore } from "@/stores/clientDepth/clientDepth";
 import { useProfileStore } from "@/stores/profile/profile";
 import { getFlagCode, cleanCountryLabel } from "@/utils/countries";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
+import Tooltip from "@/components/common/Tooltip.vue";
 import EditClientProfileDrawer from "@/components/clientDetails/EditClientProfileDrawer.vue";
 import UploadKycDocumentModal from "@/components/clientDetails/UploadKycDocumentModal.vue";
 import ViewKycDocumentModal from "@/components/clientDetails/ViewKycDocumentModal.vue";
@@ -522,31 +629,50 @@ const loadClientFromStorage = () => {
   try {
     const raw = localStorage.getItem("active_client");
     if (raw) {
-      localStoredUser.value = JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      if (!route.params.id || String(parsed?.id) === String(route.params.id)) {
+        localStoredUser.value = parsed;
+        return;
+      }
     }
-  } catch {
-    localStoredUser.value = {};
-  }
+  } catch { }
+  localStoredUser.value = {};
 };
 
 const user = computed(() => {
+  const routeId = route.params.id;
+  const overviewUser =
+    (String(clientDepthStore.overviewData?.user?.id) === String(routeId) ||
+     String(clientDepthStore.overviewData?.id) === String(routeId))
+      ? (clientDepthStore.overviewData?.user || clientDepthStore.overviewData)
+      : {};
+  const active =
+    (String(clientDepthStore.activeClient?.id) === String(routeId))
+      ? clientDepthStore.activeClient
+      : {};
+  const stored =
+    (String(localStoredUser.value?.id) === String(routeId))
+      ? localStoredUser.value
+      : {};
+
   return {
-    ...localStoredUser.value,
-    ...(clientDepthStore.activeClient || {}),
-    ...(clientDepthStore.overviewData?.user || {}),
+    ...stored,
+    ...active,
+    ...overviewUser,
   };
 });
 
 const clientForEdit = computed(() => {
   return {
     ...user.value,
-    id: user.value?.id || route.params.id,
+    id: route.params.id || user.value?.id,
   };
 });
 
 const loadKyc = (force = false) => {
   const userId = route.params.id || user.value?.id;
   if (userId) {
+    clientDepthStore.fetchClientOverview(userId, force);
     clientDepthStore.fetchClientKyc(userId, force);
     clientDepthStore.fetchUserReferences(userId, force);
   }
@@ -554,7 +680,7 @@ const loadKyc = (force = false) => {
 
 onMounted(() => {
   loadClientFromStorage();
-  loadKyc(true);
+  loadKyc();
   if (!profileStore.user) {
     profileStore.fetchUserProfile().catch(() => {});
   }
@@ -565,7 +691,7 @@ watch(
   (newId) => {
     if (newId) {
       loadClientFromStorage();
-      loadKyc(true);
+      loadKyc();
     }
   },
 );
@@ -638,11 +764,11 @@ const formatDocType = (type) => {
 const getVerificationStatusBadgeClass = (status) => {
   const s = String(status || "").toLowerCase();
   if (s === "verified" || s === "approved")
-    return "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20";
-  if (s === "unverified" || s === "pending" || s === "in_progress" || s === "under review")
-    return "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20";
+    return "bg-primary-green/10 text-primary-green border border-primary-green/20";
+  if (s === "unverified" || s === "pending" || s === "in_progress" || s === "under review" || s === "waiting for verification")
+    return "bg-primary-yellow/10 text-primary-yellow border border-primary-yellow/20";
   if (s === "rejected")
-    return "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20";
+    return "bg-primary-red/10 text-primary-red border border-primary-red/20";
   return "bg-secondary-text/10 text-secondary-text";
 };
 
@@ -660,17 +786,51 @@ const kycStatus = computed(() => {
   );
 });
 
+const isKycApproved = computed(() => {
+  const s = String(kycStatus.value || "").toLowerCase();
+  return s === "approved" || s === "verified";
+});
+
+const isKycRejected = computed(() => {
+  const s = String(kycStatus.value || "").toLowerCase();
+  return s === "rejected";
+});
+
+const kycHeroBoxClasses = computed(() => {
+  if (isKycApproved.value) {
+    return {
+      container: "bg-primary-green/10 border-primary-green/30",
+      iconBox: "bg-primary-green/15 border-primary-green/30 text-primary-green",
+      statusText: "text-primary-green",
+      progressBar: "bg-primary-green",
+    };
+  }
+  if (isKycRejected.value) {
+    return {
+      container: "bg-primary-red/10 border-primary-red/30",
+      iconBox: "bg-primary-red/15 border-primary-red/30 text-primary-red",
+      statusText: "text-primary-red",
+      progressBar: "bg-primary-red",
+    };
+  }
+  return {
+    container: "bg-primary-yellow/10 border-primary-yellow/30",
+    iconBox: "bg-primary-yellow/15 border-primary-yellow/30 text-primary-yellow",
+    statusText: "text-primary-yellow",
+    progressBar: "bg-primary-yellow",
+  };
+});
+
 const kycStatusMessage = computed(() => {
   const isUploaded = !!kycData.value?.docs_uploaded;
-  const s = (kycStatus.value || "").toLowerCase();
-  if (s === "approved" || s === "verified") {
+  if (isKycApproved.value) {
     return "Client identity verification completed.";
   }
-  if (s === "rejected") {
+  if (isKycRejected.value) {
     return kycData.value?.kyc_reject_reason || "Document rejected. Please upload valid proof.";
   }
   if (isUploaded) {
-    return "Complete the remaining steps to get verified.";
+    return "Documents uploaded. Waiting for admin review.";
   }
   return "Complete the remaining steps to get verified.";
 });
@@ -700,32 +860,6 @@ const documentChecklist = computed(() => {
       back: backUrl,
       doc_path: docPath,
     },
-    // {
-    //   id: "address",
-    //   type: "address",
-    //   doc_type: "address_proof",
-    //   title: "Proof of Address",
-    //   subtitle: "Utility Bill, Bank Statement, etc.",
-    //   uploaded: isUploaded,
-    //   verification_status: isUploaded ? "unverified" : null,
-    //   remarks: isUploaded ? "Waiting for verification" : "Waiting for verification",
-    //   front: frontUrl,
-    //   back: backUrl,
-    //   doc_path: docPath,
-    // },
-    // {
-    //   id: "selfie",
-    //   type: "selfie",
-    //   doc_type: "selfie",
-    //   title: "Selfie Photo",
-    //   subtitle: "Clear selfie for verification",
-    //   uploaded: false,
-    //   verification_status: null,
-    //   remarks: "Required",
-    //   front: null,
-    //   back: null,
-    //   doc_path: null,
-    // },
   ];
 });
 
@@ -733,8 +867,7 @@ const documentChecklist = computed(() => {
 const completedStepsCount = computed(() => {
   let count = 1; // Personal Info
   if (kycData.value?.docs_uploaded) count += 1;
-  const s = (kycStatus.value || "").toLowerCase();
-  if (s === "approved" || s === "verified") count += 1;
+  if (isKycApproved.value) count += 1;
   return count;
 });
 
@@ -749,9 +882,6 @@ const progressPercentage = computed(() => {
 
 const stepperSteps = computed(() => {
   const isDocUploaded = !!kycData.value?.docs_uploaded;
-  const s = (kycStatus.value || "").toLowerCase();
-  const isVerified = s === "approved" || s === "verified";
-  const isRejected = s === "rejected";
 
   return [
     {
@@ -764,13 +894,13 @@ const stepperSteps = computed(() => {
       number: 2,
       label: "Documents",
       status: isDocUploaded ? "completed" : "pending",
-      statusText: isDocUploaded ? "Pending" : "Pending",
+      statusText: isDocUploaded ? "Completed" : "Pending",
     },
     {
       number: 3,
       label: "Verification",
-      status: isVerified ? "completed" : (isRejected ? "rejected" : (isDocUploaded ? "in_progress" : "pending")),
-      statusText: isVerified ? "Approved" : (isRejected ? "Rejected" : (isDocUploaded ? "Pending" : "Pending")),
+      status: isKycApproved.value ? "completed" : (isKycRejected.value ? "rejected" : (isDocUploaded ? "in_progress" : "pending")),
+      statusText: isKycApproved.value ? "Approved" : (isKycRejected.value ? "Rejected" : (isDocUploaded ? "Under Review" : "Pending")),
     },
   ];
 });

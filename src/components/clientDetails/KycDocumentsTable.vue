@@ -1,11 +1,11 @@
 <template>
   <div
-    class="bg-card-background border border-primary-border rounded-lg p-5 sm:p-6 flex flex-col justify-between min-h-[360px] flex-1"
+    class="bg-card-background/40 border border-primary-border rounded-xl p-5 sm:p-6 flex flex-col justify-between min-h-[360px] flex-1"
   >
     <!-- ─── HEADER ────────────────────────────────────────────────── -->
-    <div class="flex flex-col justify-between gap-3 pb-4 border-b border-primary-border/60">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-primary-border/60">
       <div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-3">
           <div class="w-7 h-7 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
             <Files class="w-4 h-4" />
           </div>
@@ -24,61 +24,16 @@
       </div>
 
       <!-- Actions on Top Right -->
-      <div class="flex justify-between items-center gap-2 flex-wrap">
-        <!-- Filter Tabs -->
-        <div class="flex items-center bg-background p-0.5 rounded-xl border border-primary-border text-xs">
-          <button
-            type="button"
-            @click="activeFilter = 'all'"
-            class="px-2.5 py-1 rounded-lg font-semibold transition-all cursor-pointer"
-            :class="activeFilter === 'all' ? 'bg-primary text-white shadow-2xs' : 'text-secondary-text hover:text-primary-text'"
-          >
-            All ({{ filesList.length }})
-          </button>
-          <button
-            type="button"
-            @click="activeFilter = 'docs'"
-            class="px-2.5 py-1 rounded-lg font-semibold transition-all cursor-pointer"
-            :class="activeFilter === 'docs' ? 'bg-primary text-white shadow-2xs' : 'text-secondary-text hover:text-primary-text'"
-          >
-            PDF / Docs ({{ docCount }})
-          </button>
-          <button
-            type="button"
-            @click="activeFilter = 'images'"
-            class="px-2.5 py-1 rounded-lg font-semibold transition-all cursor-pointer"
-            :class="activeFilter === 'images' ? 'bg-primary text-white shadow-2xs' : 'text-secondary-text hover:text-primary-text'"
-          >
-            Images ({{ imageCount }})
-          </button>
-        </div>
-        <div class="flex items-center gap-2">
-
-          <button
-            type="button"
-            @click="refreshData"
-            :disabled="clientDepthStore.userReferencesLoading"
-            class="w-8 h-8 rounded-xl border border-primary-border flex items-center justify-center text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer shadow-2xs disabled:opacity-50"
-            title="Refresh documents"
-          >
-            <RefreshCw
-              class="w-3.5 h-3.5"
-              :class="clientDepthStore.userReferencesLoading ? 'animate-spin text-primary' : ''"
-            />
-          </button>
-  
-          <!-- Upload Document / Image Button -->
-          <button
-            type="button"
-            @click="openAddDrawer('document')"
-            class="bg-primary hover:bg-primary-hover text-white rounded-xl px-3.5 py-1.5 text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-2xs transition-all"
-          >
-            <Upload class="w-3.5 h-3.5" />
-            Upload Doc / Img
-          </button>
-
-        </div>
-        <!-- Refresh Button -->
+      <div class="flex items-center gap-2 flex-wrap">
+        <!-- Upload Document Button -->
+        <button
+          type="button"
+          @click="openAddDrawer('document')"
+          class="bg-primary hover:bg-primary-hover text-white rounded-xl px-3.5 py-1.5 text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-2xs transition-all"
+        >
+          <Upload class="w-3.5 h-3.5" />
+          Upload Document
+        </button>
       </div>
     </div>
 
@@ -86,7 +41,21 @@
     <div class="pt-4 flex-1 flex flex-col justify-start">
       <!-- Loading Skeleton -->
       <div v-if="clientDepthStore.userReferencesLoading && filesList.length === 0" class="space-y-3 py-2">
-        <div v-for="i in 3" :key="i" class="h-14 rounded-xl bg-primary-border/40 animate-pulse" />
+        <div
+          v-for="i in 3"
+          :key="i"
+          class="h-14 rounded-xl bg-card-background/60 border border-primary-border/60 animate-pulse flex items-center justify-between px-4"
+        >
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-primary-border/40 shrink-0" />
+            <div class="space-y-1.5">
+              <div class="h-3.5 w-28 sm:w-36 bg-primary-border/60 rounded" />
+              <div class="h-2.5 w-36 sm:w-48 bg-primary-border/30 rounded" />
+            </div>
+          </div>
+          <div class="h-5 w-16 bg-primary-border/40 rounded-full hidden sm:block" />
+          <div class="h-4 w-20 bg-primary-border/30 rounded hidden md:block" />
+        </div>
       </div>
 
       <!-- Empty State -->
@@ -105,7 +74,7 @@
           <button
             type="button"
             @click="openAddDrawer('document')"
-            class="border border-primary text-primary hover:bg-primary/10 rounded-xl px-4 py-1.5 text-xs font-semibold transition-all cursor-pointer shadow-2xs flex items-center gap-1.5"
+            class="border border-primary text-primary hover:bg-primary/10 rounded-xl px-4 py-1.5 text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5"
           >
             <Upload class="w-3.5 h-3.5" />
             Upload Document
@@ -113,7 +82,7 @@
           <button
             type="button"
             @click="openAddDrawer('image')"
-            class="border border-primary-border text-primary-text hover:bg-background rounded-xl px-4 py-1.5 text-xs font-semibold transition-all cursor-pointer shadow-2xs flex items-center gap-1.5"
+            class="border border-primary-border text-primary-text hover:bg-background rounded-xl px-4 py-1.5 text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5"
           >
             <ImageIcon class="w-3.5 h-3.5 text-secondary-text" />
             Upload Image
@@ -122,22 +91,22 @@
       </div>
 
       <!-- Table of Documents & Images (Scrollable with sticky header) -->
-      <div v-else class="flex-1 flex flex-col min-h-0 border border-primary-border/80 rounded-lg overflow-x-auto overflow-y-auto max-h-[380px] no-scrollbar">
+      <div v-else class="flex-1 flex flex-col min-h-0 border border-primary-border rounded-xl overflow-x-auto overflow-y-auto max-h-[360px] flex-1 no-scrollbar">
         <table class="w-full text-left text-xs border-collapse">
-          <thead class="sticky top-0 z-10 bg-card-background border-b border-primary-border/80">
-            <tr class="bg-card-background text-[11px] font-bold text-secondary-text uppercase tracking-wider">
-              <th class="py-2.5 px-3.5 bg-card-background">Document Details</th>
-              <th class="py-2.5 px-3 bg-card-background">Type</th>
-              <th class="py-2.5 px-3 bg-card-background">Uploaded By</th>
-              <th class="py-2.5 px-3 bg-card-background">Date & Time</th>
-              <th class="py-2.5 px-3.5 text-right bg-card-background">Actions</th>
+          <thead class="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b border-primary-border">
+            <tr class="text-[11px] font-bold text-secondary-text uppercase tracking-wider">
+              <th class="py-2.5 px-3.5">Document Details</th>
+              <th class="py-2.5 px-3">Type</th>
+              <th class="py-2.5 px-3">Uploaded By</th>
+              <th class="py-2.5 px-3">Date &amp; Time</th>
+              <th class="py-2.5 px-3.5 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-primary-border/60">
+          <tbody>
             <tr
               v-for="item in filteredFiles"
               :key="item.uniqueKey"
-              class="hover:bg-background/40 transition-colors group cursor-pointer"
+              class="border-b border-primary-border hover:bg-card-background/70 transition-colors group cursor-pointer"
               @click="openViewDrawer(item)"
             >
               <!-- Details / Title / Remarks -->
@@ -168,8 +137,8 @@
                 <span
                   class="text-[10px] font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1 border bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
                 >
-                  <component :is="isImageFile(item.file_name || item.file_url) ? ImageIcon : FileText" class="w-3 h-3" />
-                  {{ isImageFile(item.file_name || item.file_url) ? 'Image' : 'Document' }}
+                  <component :is="isImageFile(item) ? ImageIcon : FileText" class="w-3 h-3" />
+                  {{ isImageFile(item) ? 'Image' : 'Document' }}
                 </span>
               </td>
 
@@ -221,7 +190,7 @@
             <div class="px-6 py-4 border-b border-primary-border flex items-center justify-between bg-card-background shrink-0">
               <div class="flex items-center gap-2.5">
                 <div class="w-8 h-8 rounded-xl flex items-center justify-center border shrink-0 bg-blue-500/10 border-blue-500/20 text-blue-500">
-                  <component :is="isImageFile(selectedItem?.file_name || selectedItem?.file_url) ? ImageIcon : FileText" class="w-4 h-4" />
+                  <component :is="isImageFile(selectedItem) ? ImageIcon : FileText" class="w-4 h-4" />
                 </div>
                 <div>
                   <h3 class="font-bold text-primary-text text-sm sm:text-base">
@@ -258,7 +227,7 @@
                 <div class="text-right">
                   <p class="text-[10px] text-secondary-text uppercase font-semibold">Type</p>
                   <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-                    {{ isImageFile(selectedItem?.file_name || selectedItem?.file_url) ? 'Image' : 'Document' }}
+                    {{ isImageFile(selectedItem) ? 'Image' : 'Document' }}
                   </span>
                 </div>
               </div>
@@ -299,7 +268,7 @@
                   <!-- File Header -->
                   <div class="flex items-center justify-between gap-2">
                     <div class="flex items-center gap-2 min-w-0">
-                      <File class="w-4 h-4 text-primary shrink-0" />
+                      <component :is="isImageFile(selectedItem) ? ImageIcon : File" class="w-4 h-4 text-primary shrink-0" />
                       <span class="font-bold text-primary-text truncate text-xs">
                         {{ selectedItem.file_name || selectedItem.title }}
                       </span>
@@ -311,7 +280,7 @@
 
                   <!-- Image Preview -->
                   <div
-                    v-if="isImageFile(selectedItem.file_name || selectedItem.file_url)"
+                    v-if="isImageFile(selectedItem)"
                     class="relative rounded-xl overflow-hidden border border-primary-border bg-black/30 flex items-center justify-center p-2 group/preview"
                   >
                     <img
@@ -438,445 +407,422 @@
               </button>
             </div>
 
-            <!-- Form Body -->
-            <form @submit.prevent="submitForm" class="flex-1 overflow-y-auto p-6 space-y-4.5 text-xs bg-card-background">
-              <!-- STEP 1: Type Selection (Document vs Image) - only when adding -->
-              <div v-if="!isEditing" class="space-y-1.5">
-                <label class="font-bold text-primary-text block">
-                  Select Upload Type <span class="text-primary-red">*</span>
-                </label>
-                <div class="grid grid-cols-2 gap-2 bg-background p-1 rounded-xl border border-primary-border">
-                  <button
-                    type="button"
-                    @click="setUploadCategory('document')"
-                    class="py-2 px-3 rounded-lg font-semibold transition cursor-pointer flex items-center justify-center gap-2 text-center"
-                    :class="uploadCategory === 'document' ? 'bg-primary text-white shadow-2xs' : 'text-secondary-text hover:text-primary-text hover:bg-card-background/60'"
-                  >
-                    <FileText class="w-4 h-4" />
-                    <span>Document (PDF / DOC)</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    @click="setUploadCategory('image')"
-                    class="py-2 px-3 rounded-lg font-semibold transition cursor-pointer flex items-center justify-center gap-2 text-center"
-                    :class="uploadCategory === 'image' ? 'bg-primary text-white shadow-2xs' : 'text-secondary-text hover:text-primary-text hover:bg-card-background/60'"
-                  >
-                    <ImageIcon class="w-4 h-4" />
-                    <span>Image (Single / Dual)</span>
-                  </button>
-                </div>
-              </div>
-
-              <!-- STEP 2 (IF IMAGE): Single Image vs Multiple (Front & Back) -->
-              <div v-if="!isEditing && uploadCategory === 'image'" class="space-y-2 p-3.5 rounded-xl bg-background border border-primary-border">
-                <div class="flex items-center justify-between">
-                  <label class="font-bold text-primary-text block text-[11px]">
-                    Image Upload Condition <span class="text-primary-red">*</span>
-                  </label>
-                  <span class="text-[10px] text-secondary-text">Single or Dual (Front & Back)</span>
-                </div>
-
-                <div class="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    @click="setImageUploadMode('single')"
-                    class="p-2.5 rounded-xl border transition cursor-pointer flex items-center gap-2 text-left"
-                    :class="imageUploadMode === 'single'
-                      ? 'bg-primary/10 border-primary text-primary shadow-2xs'
-                      : 'bg-card-background border-primary-border text-secondary-text hover:border-primary/40 hover:text-primary-text'"
-                  >
-                    <div
-                      class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border"
-                      :class="imageUploadMode === 'single' ? 'bg-primary text-white border-primary' : 'bg-background border-primary-border text-secondary-text'"
-                    >
-                      <ImageIcon class="w-3.5 h-3.5" />
-                    </div>
-                    <div>
-                      <p class="font-bold text-xs">Single Image</p>
-                      <p class="text-[10px] opacity-75">1 file (file_name)</p>
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    @click="setImageUploadMode('dual')"
-                    class="p-2.5 rounded-xl border transition cursor-pointer flex items-center gap-2 text-left"
-                    :class="imageUploadMode === 'dual'
-                      ? 'bg-primary/10 border-primary text-primary shadow-2xs'
-                      : 'bg-card-background border-primary-border text-secondary-text hover:border-primary/40 hover:text-primary-text'"
-                  >
-                    <div
-                      class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border"
-                      :class="imageUploadMode === 'dual' ? 'bg-primary text-white border-primary' : 'bg-background border-primary-border text-secondary-text'"
-                    >
-                      <Images class="w-3.5 h-3.5" />
-                    </div>
-                    <div>
-                      <p class="font-bold text-xs">Front & Back</p>
-                      <p class="text-[10px] opacity-75">Dual files (front & back)</p>
-                    </div>
-                  </button>
-                </div>
-              </div>
-
-              <!-- ── CASE A: DOCUMENT UPLOAD (Single File) ── -->
-              <template v-if="(uploadCategory === 'document' && !isEditing) || (isEditing && !isImageFile(existingFileUrl))">
-                <div class="space-y-2">
-                  <div class="flex items-center justify-between">
-                    <label class="font-bold text-primary-text block">
-                      Document Name / Type <span class="text-primary-red">*</span>
-                    </label>
-                    <span class="text-[10px] text-secondary-text">e.g. bank_statement</span>
-                  </div>
-
-                  <input
-                    v-model="formFileName"
-                    type="text"
-                    placeholder="e.g. bank_statement, utility_bill, agreement, salary_slip"
-                    class="w-full px-3.5 py-2.5 rounded-xl bg-background border border-primary-border text-xs font-mono text-primary-text outline-none focus:border-primary transition"
-                    required
-                  />
-
-                  <!-- Quick Presets -->
-                  <div class="space-y-1">
-                    <p class="text-[10px] font-semibold text-secondary-text">Document Presets:</p>
-                    <div class="flex flex-wrap gap-1.5">
-                      <button
-                        v-for="preset in documentPresets"
-                        :key="preset.value"
-                        type="button"
-                        @click="selectPreset(preset.value)"
-                        class="px-2 py-0.8 rounded-lg text-[10px] font-mono font-medium border transition cursor-pointer"
-                        :class="formFileName === preset.value
-                          ? 'bg-primary text-white border-primary shadow-2xs'
-                          : 'bg-background border-primary-border text-secondary-text hover:border-primary hover:text-primary'"
-                      >
-                        {{ preset.label }}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Single File Picker -->
-                <div class="space-y-2">
+            <!-- Form -->
+            <form @submit.prevent="submitForm" class="flex-1 flex flex-col min-h-0 overflow-hidden bg-card-background">
+              <!-- Scrollable Form Body -->
+              <div class="flex-1 overflow-y-auto p-6 space-y-4.5 text-xs bg-card-background no-scrollbar">
+                <!-- STEP 1: Type Selection (Document vs Image) - only when adding -->
+                <div v-if="!isEditing" class="space-y-1.5">
                   <label class="font-bold text-primary-text block">
-                    Upload Document File (PDF / DOC) <span v-if="!isEditing" class="text-primary-red">*</span>
+                    Select Upload Type <span class="text-primary-red">*</span>
                   </label>
+                  <div class="grid grid-cols-2 gap-2 bg-background p-1 rounded-xl border border-primary-border">
+                    <button
+                      type="button"
+                      @click="setUploadCategory('document')"
+                      class="py-2 px-3 rounded-lg font-semibold transition cursor-pointer flex items-center justify-center gap-2 text-center"
+                      :class="uploadCategory === 'document' ? 'bg-primary text-white shadow-2xs' : 'text-secondary-text hover:text-primary-text hover:bg-card-background/60'"
+                    >
+                      <FileText class="w-4 h-4" />
+                      <span>Document (PDF / DOC)</span>
+                    </button>
 
-                  <div
-                    v-if="selectedFile"
-                    class="border border-primary/40 rounded-xl p-3.5 bg-primary/5 space-y-3"
-                  >
-                    <div class="flex items-center justify-between gap-2">
-                      <div class="flex items-center gap-2.5 min-w-0">
-                        <File class="w-4 h-4 text-primary shrink-0" />
-                        <div class="min-w-0">
-                          <p class="font-bold text-primary-text truncate text-xs">{{ selectedFile.name }}</p>
-                          <p class="text-[10px] text-secondary-text font-mono">
-                            {{ (selectedFile.size / 1024).toFixed(1) }} KB · Ready to upload
-                          </p>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        @click="removeSingleFile"
-                        class="p-1 rounded-lg text-secondary-text hover:text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
-                        title="Remove file"
-                      >
-                        <X class="w-4 h-4" />
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      @click="setUploadCategory('image')"
+                      class="py-2 px-3 rounded-lg font-semibold transition cursor-pointer flex items-center justify-center gap-2 text-center"
+                      :class="uploadCategory === 'image' ? 'bg-primary text-white shadow-2xs' : 'text-secondary-text hover:text-primary-text hover:bg-card-background/60'"
+                    >
+                      <ImageIcon class="w-4 h-4" />
+                      <span>Image (Single / Dual)</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- STEP 2 (IF IMAGE): Single Image vs Multiple (Front & Back) -->
+                <div v-if="!isEditing && uploadCategory === 'image'" class="space-y-2 p-3.5 rounded-xl bg-background border border-primary-border">
+                  <div class="flex items-center justify-between">
+                    <label class="font-bold text-primary-text block text-[11px]">
+                      Image Upload Condition <span class="text-primary-red">*</span>
+                    </label>
+                    <span class="text-[10px] text-secondary-text">Single or Dual (Front & Back)</span>
                   </div>
 
-                  <div
-                    v-else-if="isEditing && existingFileUrl"
-                    class="border border-primary-border rounded-xl p-3.5 bg-background space-y-3"
-                  >
-                    <div class="flex items-center justify-between gap-2">
-                      <div class="flex items-center gap-2 min-w-0">
-                        <File class="w-4 h-4 text-primary shrink-0" />
-                        <div class="min-w-0">
-                          <p class="font-bold text-primary-text truncate text-xs">{{ formFileName || 'Existing Document' }}</p>
-                          <p class="text-[10px] text-secondary-text">Current document</p>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        @click="triggerSingleFileInput"
-                        class="px-2.5 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary font-semibold text-[10px] cursor-pointer transition"
+                  <div class="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      @click="setImageUploadMode('single')"
+                      class="p-2.5 rounded-xl border transition cursor-pointer flex items-center gap-2 text-left"
+                      :class="imageUploadMode === 'single'
+                        ? 'bg-primary/10 border-primary text-primary shadow-2xs'
+                        : 'bg-card-background border-primary-border text-secondary-text hover:border-primary/40 hover:text-primary-text'"
+                    >
+                      <div
+                        class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border"
+                        :class="imageUploadMode === 'single' ? 'bg-primary text-white border-primary' : 'bg-background border-primary-border text-secondary-text'"
                       >
-                        Replace File
-                      </button>
-                    </div>
-                  </div>
+                        <ImageIcon class="w-3.5 h-3.5" />
+                      </div>
+                      <div>
+                        <p class="font-bold text-xs">Single Image</p>
+                        <p class="text-[10px] opacity-75">1 file (file_name)</p>
+                      </div>
+                    </button>
 
-                  <div
-                    v-else
-                    @click="triggerSingleFileInput"
-                    class="border-2 border-dashed border-primary-border hover:border-primary/50 rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer bg-background/50 hover:bg-background transition-all group"
-                  >
-                    <div class="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-2 group-hover:scale-105 transition-transform">
-                      <Upload class="w-5 h-5" />
+                    <button
+                      type="button"
+                      @click="setImageUploadMode('dual')"
+                      class="p-2.5 rounded-xl border transition cursor-pointer flex items-center gap-2 text-left"
+                      :class="imageUploadMode === 'dual'
+                        ? 'bg-primary/10 border-primary text-primary shadow-2xs'
+                        : 'bg-card-background border-primary-border text-secondary-text hover:border-primary/40 hover:text-primary-text'"
+                    >
+                      <div
+                        class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border"
+                        :class="imageUploadMode === 'dual' ? 'bg-primary text-white border-primary' : 'bg-background border-primary-border text-secondary-text'"
+                      >
+                        <Images class="w-3.5 h-3.5" />
+                      </div>
+                      <div>
+                        <p class="font-bold text-xs">Front & Back</p>
+                        <p class="text-[10px] opacity-75">Dual files (front & back)</p>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- ── CASE A: DOCUMENT UPLOAD (Single File) ── -->
+                <template v-if="(uploadCategory === 'document' && !isEditing) || (isEditing && !isImageFile(existingFileUrl))">
+                  <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                      <label class="font-bold text-primary-text block">
+                        Document Name / Type <span class="text-primary-red">*</span>
+                      </label>
+                      <span class="text-[10px] text-secondary-text">e.g. bank_statement</span>
                     </div>
-                    <p class="font-bold text-primary-text text-xs">
-                      Click to browse or drop document
-                    </p>
-                    <p class="text-[10px] text-secondary-text mt-0.5">
-                      PDF, DOC, DOCX, XLS, TXT (Single file, Max 10MB)
-                    </p>
+
                     <input
-                      ref="fileInputRef"
+                      v-model="formFileName"
+                      type="text"
+                      placeholder="e.g. bank_statement, utility_bill, agreement, salary_slip"
+                      class="w-full px-3.5 py-2.5 rounded-xl bg-background border border-primary-border text-xs font-mono text-primary-text outline-none focus:border-primary transition"
+                      required
+                    />
+                  </div>
+
+                  <!-- Single File Picker -->
+                  <div class="space-y-2">
+                    <label class="font-bold text-primary-text block">
+                      Upload Document File (PDF / DOC) <span v-if="!isEditing" class="text-primary-red">*</span>
+                    </label>
+
+                    <!-- Newly selected file -->
+                    <div
+                      v-if="selectedFile"
+                      class="border border-primary/40 rounded-xl p-3.5 bg-primary/5 space-y-3"
+                    >
+                      <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                          <File class="w-4 h-4 text-primary shrink-0" />
+                          <div class="min-w-0">
+                            <p class="font-bold text-primary-text truncate text-xs">{{ selectedFile.name }}</p>
+                            <p class="text-[10px] text-secondary-text font-mono">
+                              {{ (selectedFile.size / 1024).toFixed(1) }} KB · Ready to upload
+                            </p>
+                          </div>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            @click="triggerDocFileInput"
+                            class="px-2.5 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary font-semibold text-[10px] cursor-pointer transition"
+                          >
+                            Change
+                          </button>
+                          <button
+                            type="button"
+                            @click="removeSingleFile"
+                            class="p-1 rounded-lg text-secondary-text hover:text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                            title="Remove file"
+                          >
+                            <X class="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Existing file in edit mode -->
+                    <div
+                      v-else-if="isEditing && existingFileUrl"
+                      class="border border-primary-border rounded-xl p-3.5 bg-background space-y-3"
+                    >
+                      <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2 min-w-0">
+                          <File class="w-4 h-4 text-primary shrink-0" />
+                          <div class="min-w-0">
+                            <p class="font-bold text-primary-text truncate text-xs">{{ formFileName || 'Existing Document' }}</p>
+                            <p class="text-[10px] text-secondary-text">Current document</p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          @click="triggerDocFileInput"
+                          class="px-2.5 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary font-semibold text-[10px] cursor-pointer transition"
+                        >
+                          Replace File
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Empty dropzone -->
+                    <div
+                      v-else
+                      @click="triggerDocFileInput"
+                      class="border-2 border-dashed border-primary-border hover:border-primary/50 rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer bg-background/50 hover:bg-background transition-all group"
+                    >
+                      <div class="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-2 group-hover:scale-105 transition-transform">
+                        <Upload class="w-5 h-5" />
+                      </div>
+                      <p class="font-bold text-primary-text text-xs">
+                        Click to browse or drop document
+                      </p>
+                      <p class="text-[10px] text-secondary-text mt-0.5">
+                        PDF, DOC, DOCX, XLS, TXT (Single file, Max 10MB)
+                      </p>
+                    </div>
+
+                    <!-- Always mounted input -->
+                    <input
+                      ref="docFileInputRef"
                       type="file"
                       accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,application/pdf"
                       class="hidden"
                       @change="handleSingleFileSelected"
                     />
                   </div>
-                </div>
-              </template>
+                </template>
 
-              <!-- ── CASE B: SINGLE IMAGE UPLOAD ── -->
-              <template v-if="(uploadCategory === 'image' && imageUploadMode === 'single' && !isEditing) || (isEditing && isImageFile(existingFileUrl))">
-                <div class="space-y-2">
-                  <div class="flex items-center justify-between">
-                    <label class="font-bold text-primary-text block">
-                      Image / Document Name <span class="text-primary-red">*</span>
-                    </label>
-                    <span class="text-[10px] text-secondary-text">e.g. pan_card, passport</span>
-                  </div>
-
-                  <input
-                    v-model="formFileName"
-                    type="text"
-                    placeholder="e.g. pan_card, passport, photo, signature"
-                    class="w-full px-3.5 py-2.5 rounded-xl bg-background border border-primary-border text-xs font-mono text-primary-text outline-none focus:border-primary transition"
-                    required
-                  />
-
-                  <div class="space-y-1">
-                    <p class="text-[10px] font-semibold text-secondary-text">Single Image Presets:</p>
-                    <div class="flex flex-wrap gap-1.5">
-                      <button
-                        v-for="preset in singleImagePresets"
-                        :key="preset.value"
-                        type="button"
-                        @click="selectPreset(preset.value)"
-                        class="px-2 py-0.8 rounded-lg text-[10px] font-mono font-medium border transition cursor-pointer"
-                        :class="formFileName === preset.value
-                          ? 'bg-primary text-white border-primary shadow-2xs'
-                          : 'bg-background border-primary-border text-secondary-text hover:border-primary hover:text-primary'"
-                      >
-                        {{ preset.label }}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- File Picker -->
-                <div class="space-y-2">
-                  <label class="font-bold text-primary-text block">
-                    Image File <span v-if="!isEditing" class="text-primary-red">*</span>
-                  </label>
-
-                  <div
-                    v-if="selectedFile"
-                    class="border border-primary/40 rounded-xl p-3.5 bg-primary/5 space-y-3"
-                  >
-                    <div class="flex items-center justify-between gap-2">
-                      <div class="flex items-center gap-2.5 min-w-0">
-                        <ImageIcon class="w-4 h-4 text-primary shrink-0" />
-                        <div class="min-w-0">
-                          <p class="font-bold text-primary-text truncate text-xs">{{ selectedFile.name }}</p>
-                          <p class="text-[10px] text-secondary-text font-mono">
-                            {{ (selectedFile.size / 1024).toFixed(1) }} KB · Ready
-                          </p>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        @click="removeSingleFile"
-                        class="p-1 rounded-lg text-secondary-text hover:text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
-                        title="Remove image"
-                      >
-                        <X class="w-4 h-4" />
-                      </button>
+                <!-- ── CASE B: SINGLE IMAGE UPLOAD ── -->
+                <template v-if="(uploadCategory === 'image' && imageUploadMode === 'single' && !isEditing) || (isEditing && isImageFile(existingFileUrl))">
+                  <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                      <label class="font-bold text-primary-text block">
+                        Image / Document Name <span class="text-primary-red">*</span>
+                      </label>
+                      <span class="text-[10px] text-secondary-text">e.g. pan_card, passport</span>
                     </div>
 
-                    <div
-                      v-if="localPreviewUrl"
-                      class="relative rounded-lg overflow-hidden border border-primary-border bg-black/20 max-h-56 flex items-center justify-center p-2"
-                    >
-                      <img
-                        :src="localPreviewUrl"
-                        alt="Selected preview"
-                        class="object-contain max-h-52 w-full rounded"
-                      />
-                    </div>
-                  </div>
-
-                  <div
-                    v-else-if="isEditing && existingFileUrl"
-                    class="border border-primary-border rounded-xl p-3.5 bg-background space-y-3"
-                  >
-                    <div class="flex items-center justify-between gap-2">
-                      <div class="flex items-center gap-2 min-w-0">
-                        <ImageIcon class="w-4 h-4 text-primary shrink-0" />
-                        <div class="min-w-0">
-                          <p class="font-bold text-primary-text truncate text-xs">{{ formFileName || 'Existing Image' }}</p>
-                          <p class="text-[10px] text-secondary-text">Current image</p>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        @click="triggerSingleFileInput"
-                        class="px-2.5 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary font-semibold text-[10px] cursor-pointer transition"
-                      >
-                        Replace Image
-                      </button>
-                    </div>
-
-                    <div
-                      v-if="isImageFile(existingFileUrl)"
-                      class="relative rounded-lg overflow-hidden border border-primary-border bg-black/20 max-h-56 flex items-center justify-center p-2"
-                    >
-                      <img
-                        :src="existingFileUrl"
-                        :alt="formFileName"
-                        class="object-contain max-h-52 w-full rounded"
-                      />
-                    </div>
-                  </div>
-
-                  <div
-                    v-else
-                    @click="triggerSingleFileInput"
-                    class="border-2 border-dashed border-primary-border hover:border-primary/50 rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer bg-background/50 hover:bg-background transition-all group"
-                  >
-                    <div class="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-2 group-hover:scale-105 transition-transform">
-                      <Upload class="w-5 h-5" />
-                    </div>
-                    <p class="font-bold text-primary-text text-xs">
-                      Click to browse or drop single image
-                    </p>
-                    <p class="text-[10px] text-secondary-text mt-0.5">
-                      PNG, JPG, JPEG, WEBP (Single file, Max 10MB)
-                    </p>
                     <input
-                      ref="fileInputRef"
+                      v-model="formFileName"
+                      type="text"
+                      placeholder="e.g. pan_card, passport, photo, signature"
+                      class="w-full px-3.5 py-2.5 rounded-xl bg-background border border-primary-border text-xs font-mono text-primary-text outline-none focus:border-primary transition"
+                      required
+                    />
+                  </div>
+
+                  <!-- File Picker -->
+                  <div class="space-y-2">
+                    <label class="font-bold text-primary-text block">
+                      Image File <span v-if="!isEditing" class="text-primary-red">*</span>
+                    </label>
+
+                    <!-- Newly selected image -->
+                    <div
+                      v-if="selectedFile"
+                      class="border border-primary/40 rounded-xl p-3.5 bg-primary/5 space-y-3"
+                    >
+                      <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                          <ImageIcon class="w-4 h-4 text-primary shrink-0" />
+                          <div class="min-w-0">
+                            <p class="font-bold text-primary-text truncate text-xs">{{ selectedFile.name }}</p>
+                            <p class="text-[10px] text-secondary-text font-mono">
+                              {{ (selectedFile.size / 1024).toFixed(1) }} KB · Ready
+                            </p>
+                          </div>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            @click="triggerImgFileInput"
+                            class="px-2.5 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary font-semibold text-[10px] cursor-pointer transition"
+                          >
+                            Change
+                          </button>
+                          <button
+                            type="button"
+                            @click="removeSingleFile"
+                            class="p-1 rounded-lg text-secondary-text hover:text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                            title="Remove image"
+                          >
+                            <X class="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div
+                        v-if="localPreviewUrl"
+                        class="relative rounded-lg overflow-hidden border border-primary-border bg-black/20 max-h-56 flex items-center justify-center p-2"
+                      >
+                        <img
+                          :src="localPreviewUrl"
+                          alt="Selected preview"
+                          class="object-contain max-h-52 w-full rounded"
+                        />
+                      </div>
+                    </div>
+
+                    <!-- Existing image in edit mode -->
+                    <div
+                      v-else-if="isEditing && existingFileUrl"
+                      class="border border-primary-border rounded-xl p-3.5 bg-background space-y-3"
+                    >
+                      <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2 min-w-0">
+                          <ImageIcon class="w-4 h-4 text-primary shrink-0" />
+                          <div class="min-w-0">
+                            <p class="font-bold text-primary-text truncate text-xs">{{ formFileName || 'Existing Image' }}</p>
+                            <p class="text-[10px] text-secondary-text">Current image</p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          @click="triggerImgFileInput"
+                          class="px-2.5 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary font-semibold text-[10px] cursor-pointer transition"
+                        >
+                          Replace Image
+                        </button>
+                      </div>
+
+                      <div
+                        v-if="isImageFile(existingFileUrl)"
+                        class="relative rounded-lg overflow-hidden border border-primary-border bg-black/20 max-h-56 flex items-center justify-center p-2"
+                      >
+                        <img
+                          :src="existingFileUrl"
+                          :alt="formFileName"
+                          class="object-contain max-h-52 w-full rounded"
+                        />
+                      </div>
+                    </div>
+
+                    <!-- Empty dropzone -->
+                    <div
+                      v-else
+                      @click="triggerImgFileInput"
+                      class="border-2 border-dashed border-primary-border hover:border-primary/50 rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer bg-background/50 hover:bg-background transition-all group"
+                    >
+                      <div class="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-2 group-hover:scale-105 transition-transform">
+                        <Upload class="w-5 h-5" />
+                      </div>
+                      <p class="font-bold text-primary-text text-xs">
+                        Click to browse or drop single image
+                      </p>
+                      <p class="text-[10px] text-secondary-text mt-0.5">
+                        PNG, JPG, JPEG, WEBP (Single file, Max 10MB)
+                      </p>
+                    </div>
+
+                    <!-- Always mounted input -->
+                    <input
+                      ref="imgFileInputRef"
                       type="file"
                       accept="image/*"
                       class="hidden"
                       @change="handleSingleFileSelected"
                     />
                   </div>
-                </div>
-              </template>
+                </template>
 
-              <!-- ── CASE C: DUAL IMAGES (FRONT & BACK) ── -->
-              <template v-if="uploadCategory === 'image' && imageUploadMode === 'dual' && !isEditing">
-                <div class="space-y-2">
-                  <div class="flex items-center justify-between">
-                    <label class="font-bold text-primary-text block">
-                      Document / ID Type <span class="text-secondary-text font-normal">(Optional Name)</span>
-                    </label>
-                    <span class="text-[10px] text-secondary-text">e.g. aadhaar_card</span>
-                  </div>
-
-                  <input
-                    v-model="formFileName"
-                    type="text"
-                    placeholder="e.g. aadhaar_card, driving_license, voter_id"
-                    class="w-full px-3.5 py-2 rounded-xl bg-background border border-primary-border text-xs font-mono text-primary-text outline-none focus:border-primary transition"
-                  />
-
-                  <div class="space-y-1">
-                    <p class="text-[10px] font-semibold text-secondary-text">Dual Image Presets:</p>
-                    <div class="flex flex-wrap gap-1.5">
-                      <button
-                        v-for="preset in dualImagePresets"
-                        :key="preset.value"
-                        type="button"
-                        @click="selectPreset(preset.value)"
-                        class="px-2 py-0.8 rounded-lg text-[10px] font-mono font-medium border transition cursor-pointer"
-                        :class="formFileName === preset.value
-                          ? 'bg-primary text-white border-primary shadow-2xs'
-                          : 'bg-background border-primary-border text-secondary-text hover:border-primary hover:text-primary'"
-                      >
-                        {{ preset.label }}
-                      </button>
+                <!-- ── CASE C: DUAL IMAGES (FRONT & BACK) ── -->
+                <template v-if="uploadCategory === 'image' && imageUploadMode === 'dual' && !isEditing">
+                  <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                      <label class="font-bold text-primary-text block">
+                        Document / ID Type <span class="text-secondary-text font-normal">(Optional Name)</span>
+                      </label>
+                      <span class="text-[10px] text-secondary-text">e.g. aadhaar_card</span>
                     </div>
-                  </div>
-                </div>
 
-                <!-- Dual Dropzones -->
-                <div class="space-y-3 pt-1">
-                  <div class="flex items-center justify-between">
-                    <p class="font-bold text-primary-text text-xs">
-                      Upload Both Images <span class="text-primary-red">*</span>
-                    </p>
-                    <span class="text-[10px] text-secondary-text font-mono">front & back</span>
+                    <input
+                      v-model="formFileName"
+                      type="text"
+                      placeholder="e.g. aadhaar_card, driving_license, voter_id"
+                      class="w-full px-3.5 py-2 rounded-xl bg-background border border-primary-border text-xs font-mono text-primary-text outline-none focus:border-primary transition"
+                    />
                   </div>
 
-                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <!-- 1. FRONT -->
-                    <div class="space-y-1.5">
-                      <div class="flex items-center justify-between">
-                        <span class="text-[11px] font-bold text-primary-text flex items-center gap-1">
-                          <span class="w-4 h-4 rounded-full bg-primary/20 text-primary text-[10px] flex items-center justify-center font-bold">1</span>
-                          Front Image <span class="text-primary-red">*</span>
-                        </span>
-                        <span v-if="frontFile" class="text-[9px] font-mono text-emerald-500 font-bold flex items-center gap-0.5">
-                          <CheckCircle2 class="w-3 h-3" /> Ready
-                        </span>
-                      </div>
+                  <!-- Dual Dropzones -->
+                  <div class="space-y-3 pt-1">
+                    <div class="flex items-center justify-between">
+                      <p class="font-bold text-primary-text text-xs">
+                        Upload Both Images <span class="text-primary-red">*</span>
+                      </p>
+                      <span class="text-[10px] text-secondary-text font-mono">front & back</span>
+                    </div>
 
-                      <div
-                        v-if="frontFile"
-                        class="border border-primary/40 rounded-xl p-2.5 bg-primary/5 space-y-2"
-                      >
-                        <div class="flex items-center justify-between gap-1.5">
-                          <div class="min-w-0 flex-1">
-                            <p class="font-bold text-primary-text truncate text-[11px]">{{ frontFile.name }}</p>
-                            <p class="text-[9px] text-secondary-text font-mono">
-                              {{ (frontFile.size / 1024).toFixed(1) }} KB
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            @click="removeFrontFile"
-                            class="p-1 rounded-lg text-secondary-text hover:text-rose-500 hover:bg-rose-500/10 transition cursor-pointer"
-                            title="Remove front"
-                          >
-                            <X class="w-3.5 h-3.5" />
-                          </button>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <!-- 1. FRONT -->
+                      <div class="space-y-1.5">
+                        <div class="flex items-center justify-between">
+                          <span class="text-[11px] font-bold text-primary-text flex items-center gap-1">
+                            <span class="w-4 h-4 rounded-full bg-primary/20 text-primary text-[10px] flex items-center justify-center font-bold">1</span>
+                            Front Image <span class="text-primary-red">*</span>
+                          </span>
+                          <span v-if="frontFile" class="text-[9px] font-mono text-emerald-500 font-bold flex items-center gap-0.5">
+                            <CheckCircle2 class="w-3 h-3" /> Ready
+                          </span>
                         </div>
+
                         <div
-                          v-if="frontPreviewUrl"
-                          class="relative rounded-lg overflow-hidden border border-primary-border bg-black/20 h-32 flex items-center justify-center p-1"
+                          v-if="frontFile"
+                          class="border border-primary/40 rounded-xl p-2.5 bg-primary/5 space-y-2"
                         >
-                          <img
-                            :src="frontPreviewUrl"
-                            alt="Front preview"
-                            class="object-contain max-h-30 w-full rounded"
-                          />
+                          <div class="flex items-center justify-between gap-1.5">
+                            <div class="min-w-0 flex-1">
+                              <p class="font-bold text-primary-text truncate text-[11px]">{{ frontFile.name }}</p>
+                              <p class="text-[9px] text-secondary-text font-mono">
+                                {{ (frontFile.size / 1024).toFixed(1) }} KB
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              @click="removeFrontFile"
+                              class="p-1 rounded-lg text-secondary-text hover:text-rose-500 hover:bg-rose-500/10 transition cursor-pointer"
+                              title="Remove front"
+                            >
+                              <X class="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                          <div
+                            v-if="frontPreviewUrl"
+                            class="relative rounded-lg overflow-hidden border border-primary-border bg-black/20 h-32 flex items-center justify-center p-1"
+                          >
+                            <img
+                              :src="frontPreviewUrl"
+                              alt="Front preview"
+                              class="object-contain max-h-30 w-full rounded"
+                            />
+                          </div>
                         </div>
-                      </div>
 
-                      <div
-                        v-else
-                        @click="triggerFrontFileInput"
-                        class="border-2 border-dashed border-primary-border hover:border-primary/50 rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer bg-background/50 hover:bg-background transition-all group min-h-[140px]"
-                      >
-                        <div class="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-1.5 group-hover:scale-105 transition-transform">
-                          <Upload class="w-4 h-4" />
+                        <div
+                          v-else
+                          @click="triggerFrontFileInput"
+                          class="border-2 border-dashed border-primary-border hover:border-primary/50 rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer bg-background/50 hover:bg-background transition-all group min-h-[140px]"
+                        >
+                          <div class="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-1.5 group-hover:scale-105 transition-transform">
+                            <Upload class="w-4 h-4" />
+                          </div>
+                          <p class="font-bold text-primary-text text-[11px]">
+                            Upload Front Side
+                          </p>
+                          <p class="text-[9px] text-secondary-text mt-0.5">
+                            front (JPG, PNG)
+                          </p>
                         </div>
-                        <p class="font-bold text-primary-text text-[11px]">
-                          Upload Front Side
-                        </p>
-                        <p class="text-[9px] text-secondary-text mt-0.5">
-                          front (JPG, PNG)
-                        </p>
+
                         <input
                           ref="frontFileInputRef"
                           type="file"
@@ -885,66 +831,67 @@
                           @change="handleFrontFileSelected"
                         />
                       </div>
-                    </div>
 
-                    <!-- 2. BACK -->
-                    <div class="space-y-1.5">
-                      <div class="flex items-center justify-between">
-                        <span class="text-[11px] font-bold text-primary-text flex items-center gap-1">
-                          <span class="w-4 h-4 rounded-full bg-primary/20 text-primary text-[10px] flex items-center justify-center font-bold">2</span>
-                          Back Image <span class="text-primary-red">*</span>
-                        </span>
-                        <span v-if="backFile" class="text-[9px] font-mono text-emerald-500 font-bold flex items-center gap-0.5">
-                          <CheckCircle2 class="w-3 h-3" /> Ready
-                        </span>
-                      </div>
-
-                      <div
-                        v-if="backFile"
-                        class="border border-primary/40 rounded-xl p-2.5 bg-primary/5 space-y-2"
-                      >
-                        <div class="flex items-center justify-between gap-1.5">
-                          <div class="min-w-0 flex-1">
-                            <p class="font-bold text-primary-text truncate text-[11px]">{{ backFile.name }}</p>
-                            <p class="text-[9px] text-secondary-text font-mono">
-                              {{ (backFile.size / 1024).toFixed(1) }} KB
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            @click="removeBackFile"
-                            class="p-1 rounded-lg text-secondary-text hover:text-rose-500 hover:bg-rose-500/10 transition cursor-pointer"
-                            title="Remove back"
-                          >
-                            <X class="w-3.5 h-3.5" />
-                          </button>
+                      <!-- 2. BACK -->
+                      <div class="space-y-1.5">
+                        <div class="flex items-center justify-between">
+                          <span class="text-[11px] font-bold text-primary-text flex items-center gap-1">
+                            <span class="w-4 h-4 rounded-full bg-primary/20 text-primary text-[10px] flex items-center justify-center font-bold">2</span>
+                            Back Image <span class="text-primary-red">*</span>
+                          </span>
+                          <span v-if="backFile" class="text-[9px] font-mono text-emerald-500 font-bold flex items-center gap-0.5">
+                            <CheckCircle2 class="w-3 h-3" /> Ready
+                          </span>
                         </div>
+
                         <div
-                          v-if="backPreviewUrl"
-                          class="relative rounded-lg overflow-hidden border border-primary-border bg-black/20 h-32 flex items-center justify-center p-1"
+                          v-if="backFile"
+                          class="border border-primary/40 rounded-xl p-2.5 bg-primary/5 space-y-2"
                         >
-                          <img
-                            :src="backPreviewUrl"
-                            alt="Back preview"
-                            class="object-contain max-h-30 w-full rounded"
-                          />
+                          <div class="flex items-center justify-between gap-1.5">
+                            <div class="min-w-0 flex-1">
+                              <p class="font-bold text-primary-text truncate text-[11px]">{{ backFile.name }}</p>
+                              <p class="text-[9px] text-secondary-text font-mono">
+                                {{ (backFile.size / 1024).toFixed(1) }} KB
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              @click="removeBackFile"
+                              class="p-1 rounded-lg text-secondary-text hover:text-rose-500 hover:bg-rose-500/10 transition cursor-pointer"
+                              title="Remove back"
+                            >
+                              <X class="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                          <div
+                            v-if="backPreviewUrl"
+                            class="relative rounded-lg overflow-hidden border border-primary-border bg-black/20 h-32 flex items-center justify-center p-1"
+                          >
+                            <img
+                              :src="backPreviewUrl"
+                              alt="Back preview"
+                              class="object-contain max-h-30 w-full rounded"
+                            />
+                          </div>
                         </div>
-                      </div>
 
-                      <div
-                        v-else
-                        @click="triggerBackFileInput"
-                        class="border-2 border-dashed border-primary-border hover:border-primary/50 rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer bg-background/50 hover:bg-background transition-all group min-h-[140px]"
-                      >
-                        <div class="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-1.5 group-hover:scale-105 transition-transform">
-                          <Upload class="w-4 h-4" />
+                        <div
+                          v-else
+                          @click="triggerBackFileInput"
+                          class="border-2 border-dashed border-primary-border hover:border-primary/50 rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer bg-background/50 hover:bg-background transition-all group min-h-[140px]"
+                        >
+                          <div class="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-1.5 group-hover:scale-105 transition-transform">
+                            <Upload class="w-4 h-4" />
+                          </div>
+                          <p class="font-bold text-primary-text text-[11px]">
+                            Upload Back Side
+                          </p>
+                          <p class="text-[9px] text-secondary-text mt-0.5">
+                            back (JPG, PNG)
+                          </p>
                         </div>
-                        <p class="font-bold text-primary-text text-[11px]">
-                          Upload Back Side
-                        </p>
-                        <p class="text-[9px] text-secondary-text mt-0.5">
-                          back (JPG, PNG)
-                        </p>
+
                         <input
                           ref="backFileInputRef"
                           type="file"
@@ -955,30 +902,30 @@
                       </div>
                     </div>
                   </div>
-                </div>
-              </template>
+                </template>
 
-              <!-- Description / Remarks -->
-              <div class="space-y-1.5">
-                <div class="flex items-center justify-between">
-                  <label class="font-bold text-primary-text block">
-                    Description / Remarks
-                  </label>
-                  <span class="text-[10px] text-secondary-text">Optional</span>
+                <!-- Description / Remarks -->
+                <div class="space-y-1.5">
+                  <div class="flex items-center justify-between">
+                    <label class="font-bold text-primary-text block">
+                      Description / Remarks
+                    </label>
+                    <span class="text-[10px] text-secondary-text">Optional</span>
+                  </div>
+                  <textarea
+                    v-model="formRemarks"
+                    rows="3"
+                    placeholder="e.g. Government issued card, valid till 2030, address verified..."
+                    class="w-full p-3.5 resize-none border border-primary-border rounded-xl bg-background text-primary-text placeholder:text-secondary-text/60 focus:outline-hidden focus:border-primary text-xs"
+                  ></textarea>
+                  <p class="text-[10px] text-secondary-text">
+                    Add optional details or compliance notes for this document.
+                  </p>
                 </div>
-                <textarea
-                  v-model="formRemarks"
-                  rows="3"
-                  placeholder="e.g. Government issued card, valid till 2030, address verified..."
-                  class="w-full p-3.5 resize-none border border-primary-border rounded-xl bg-background text-primary-text placeholder:text-secondary-text/60 focus:outline-hidden focus:border-primary text-xs"
-                ></textarea>
-                <p class="text-[10px] text-secondary-text">
-                  Add optional details or compliance notes for this document.
-                </p>
               </div>
 
-              <!-- Drawer Submit Button Area -->
-              <div class="pt-4 border-t border-primary-border flex items-center justify-end gap-2.5">
+              <!-- Sticky Drawer Submit Button Area -->
+              <div class="px-6 py-4 border-t border-primary-border flex items-center justify-end gap-2.5 bg-card-background shrink-0">
                 <button
                   type="button"
                   @click="closeFormDrawer"
@@ -1096,41 +1043,9 @@ const route = useRoute();
 const snackbar = useSnackbarStore();
 const clientDepthStore = useClientDepthStore();
 
-const activeFilter = ref("all"); // 'all' | 'docs' | 'images'
-
 const currentUserId = computed(() => {
   return props.userId || route.params.id || clientDepthStore.activeClient?.id;
 });
-
-// Presets
-const documentPresets = [
-  { label: "Bank Statement", value: "bank_statement" },
-  { label: "Salary Slip", value: "salary_slip" },
-  { label: "Utility Bill", value: "utility_bill" },
-  { label: "Agreement / Contract", value: "agreement" },
-  { label: "Tax Return", value: "tax_return" },
-  { label: "Business Reg.", value: "business_registration" },
-];
-
-const singleImagePresets = [
-  { label: "PAN Card", value: "pan_card" },
-  { label: "Passport", value: "passport" },
-  { label: "Driving License", value: "driving_license" },
-  { label: "Profile Photo", value: "client_photo" },
-  { label: "Signature", value: "signature" },
-];
-
-const dualImagePresets = [
-  { label: "Aadhaar Card", value: "aadhaar_card" },
-  { label: "Driving License", value: "driving_license" },
-  { label: "Voter ID Card", value: "voter_id" },
-  { label: "National ID", value: "national_id" },
-  { label: "Residence Card", value: "residence_card" },
-];
-
-const selectPreset = (val) => {
-  formFileName.value = val;
-};
 
 const formatFileNameDisplay = (fileName) => {
   if (!fileName) return "";
@@ -1164,9 +1079,37 @@ const rawData = computed(() => {
   return clientDepthStore.userReferencesData || {};
 });
 
-const isImageFile = (filenameOrUrl) => {
-  if (!filenameOrUrl) return false;
-  return /\.(png|jpe?g|webp|gif|svg)$/i.test(filenameOrUrl);
+const isImageFile = (input) => {
+  if (!input) return false;
+
+  if (typeof input === "object") {
+    const mime = input.mime_type || input.mime || input.raw?.mime_type || input.raw?.type || input.raw?.mime;
+    if (typeof mime === "string" && mime.startsWith("image/")) return true;
+
+    const candidates = [
+      input.file_url,
+      input.path,
+      input.formatted_path,
+      input.url,
+      input.file_name,
+      input.name,
+      input.title,
+      input.raw?.path,
+      input.raw?.formatted_path,
+      input.raw?.file_name,
+      input.raw?.file_url,
+      input.raw?.name,
+    ].filter(Boolean);
+
+    for (const c of candidates) {
+      if (typeof c === "string" && isImageFile(c)) return true;
+    }
+    return false;
+  }
+
+  const str = String(input).split("?")[0].split("#")[0].toLowerCase();
+  if (str.startsWith("data:image/") || str.startsWith("blob:")) return true;
+  return /\.(png|jpe?g|webp|gif|svg|avif|bmp|ico|tiff?)$/i.test(str);
 };
 
 const filesList = computed(() => {
@@ -1189,21 +1132,7 @@ const filesList = computed(() => {
     .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
 });
 
-const docCount = computed(() => {
-  return filesList.value.filter((f) => !isImageFile(f.file_name || f.file_url)).length;
-});
-
-const imageCount = computed(() => {
-  return filesList.value.filter((f) => isImageFile(f.file_name || f.file_url)).length;
-});
-
 const filteredFiles = computed(() => {
-  if (activeFilter.value === "docs") {
-    return filesList.value.filter((f) => !isImageFile(f.file_name || f.file_url));
-  }
-  if (activeFilter.value === "images") {
-    return filesList.value.filter((f) => isImageFile(f.file_name || f.file_url));
-  }
   return filesList.value;
 });
 
@@ -1295,6 +1224,8 @@ const formRemarks = ref("");
 const selectedFile = ref(null);
 const localPreviewUrl = ref(null);
 const fileInputRef = ref(null);
+const docFileInputRef = ref(null);
+const imgFileInputRef = ref(null);
 
 // Dual Image State
 const frontFile = ref(null);
@@ -1310,31 +1241,10 @@ const existingFileUrl = ref(null);
 
 const setUploadCategory = (cat) => {
   uploadCategory.value = cat;
-  if (cat === "document") {
-    if (dualImagePresets.some((p) => p.value === formFileName.value) || singleImagePresets.some((p) => p.value === formFileName.value)) {
-      formFileName.value = "";
-    }
-  } else if (cat === "image") {
-    if (documentPresets.some((p) => p.value === formFileName.value)) {
-      formFileName.value = "";
-    }
-    if (imageUploadMode.value === "dual" && !formFileName.value) {
-      formFileName.value = "aadhaar_card";
-    }
-  }
 };
 
 const setImageUploadMode = (mode) => {
   imageUploadMode.value = mode;
-  if (mode === "dual") {
-    if (!formFileName.value.trim() || singleImagePresets.some((p) => p.value === formFileName.value)) {
-      formFileName.value = "aadhaar_card";
-    }
-  } else if (mode === "single") {
-    if (dualImagePresets.some((p) => p.value === formFileName.value)) {
-      formFileName.value = "";
-    }
-  }
 };
 
 const openAddDrawer = (type = "document") => {
@@ -1376,7 +1286,7 @@ const openAddDrawer = (type = "document") => {
 const openEditDrawer = (item) => {
   if (viewDrawerOpen.value) closeViewDrawer();
   isEditing.value = true;
-  uploadCategory.value = isImageFile(item.file_name || item.file_url) ? "image" : "document";
+  uploadCategory.value = isImageFile(item) ? "image" : "document";
   imageUploadMode.value = "single";
   editingItemId.value = item.id;
   formFileName.value = item.file_name || "";
@@ -1410,8 +1320,20 @@ const closeFormDrawer = () => {
   }
 };
 
+const triggerDocFileInput = () => {
+  docFileInputRef.value?.click();
+};
+
+const triggerImgFileInput = () => {
+  imgFileInputRef.value?.click();
+};
+
 const triggerSingleFileInput = () => {
-  fileInputRef.value?.click();
+  if (uploadCategory.value === "image" || (isEditing.value && isImageFile(existingFileUrl.value))) {
+    imgFileInputRef.value?.click();
+  } else {
+    docFileInputRef.value?.click();
+  }
 };
 
 const triggerFrontFileInput = () => {
@@ -1448,6 +1370,8 @@ const removeSingleFile = () => {
     URL.revokeObjectURL(localPreviewUrl.value);
     localPreviewUrl.value = null;
   }
+  if (docFileInputRef.value) docFileInputRef.value.value = "";
+  if (imgFileInputRef.value) imgFileInputRef.value.value = "";
   if (fileInputRef.value) fileInputRef.value.value = "";
 };
 

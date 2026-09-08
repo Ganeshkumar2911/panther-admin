@@ -22,6 +22,7 @@ import {
 import ConfirmationDialog from "@/components/common/ConfirmationDialog.vue";
 import ClientBankAccountsDialog from "@/components/common/ClientBankAccountsDialog.vue";
 import { useClientListStore } from "@/stores/clientList/clientList";
+import { useClientDepthStore } from "@/stores/clientDepth/clientDepth";
 import { useTagsStore } from "@/stores/tags/tags";
 import Pagination from "@/components/common/Pagination.vue";
 import BaseSelect from "@/components/common/BaseSelect.vue";
@@ -46,6 +47,7 @@ const router = useRouter();
 const { hasPermission, hasAnyPermission } = usePermissionCheck();
 
 const store = useClientListStore();
+const clientDepthStore = useClientDepthStore();
 const tagsStore = useTagsStore();
 
 const canAssignTags = computed(() => {
@@ -352,7 +354,9 @@ const openChangeIBDialog = (client) => {
 };
 
 const openClientDepth = (client) => {
-  localStorage.setItem("active_client", JSON.stringify(client));
+  if (!client) return;
+  clientDepthStore.reset();
+  clientDepthStore.setActiveClient(client);
   router.push(`/client/details/${client.id}`);
 };
 

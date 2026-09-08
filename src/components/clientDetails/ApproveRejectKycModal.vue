@@ -151,28 +151,6 @@
                 </div>
               </div>
 
-              <!-- Quick Presets -->
-              <div class="space-y-1.5 pt-1">
-                <p class="text-[10px] font-semibold text-secondary-text uppercase tracking-wider">
-                  Quick Select Reasons:
-                </p>
-                <div class="flex flex-wrap gap-1.5">
-                  <button
-                    v-for="(reason, rIdx) in presetReasons"
-                    :key="rIdx"
-                    type="button"
-                    @click="rejectReason = reason"
-                    class="text-[10px] font-medium px-2 py-1 rounded-lg border transition-all cursor-pointer text-left"
-                    :class="
-                      rejectReason === reason
-                        ? 'bg-primary-red/15 border-primary-red/40 text-primary-red font-semibold'
-                        : 'bg-card-background border-primary-border/80 text-secondary-text hover:text-primary-text hover:bg-background'
-                    "
-                  >
-                    {{ reason }}
-                  </button>
-                </div>
-              </div>
 
               <!-- Custom Reason Textarea -->
               <div class="space-y-1">
@@ -266,14 +244,6 @@ const clientDepthStore = useClientDepthStore();
 const selectedAction = ref(props.initialAction || 'approve');
 const rejectReason = ref('');
 
-const presetReasons = [
-  'Document photo is blurry and text is not legible.',
-  'Document has expired or is invalid.',
-  'Name on identity document does not match account name.',
-  'Backside of the identity document is missing.',
-  'Document edges are cut off / incomplete image.',
-];
-
 const clientUserId = computed(() => {
   return (
     props.client?.id ||
@@ -300,7 +270,7 @@ watch(
       rejectReason.value =
         props.kycData?.kyc_reject_reason ||
         props.client?.kyc_reject_reason ||
-        'Document photo is blurry and text is not legible.';
+        '';
     }
   }
 );

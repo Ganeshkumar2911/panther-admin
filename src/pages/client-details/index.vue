@@ -136,6 +136,7 @@
               <button
                 type="button"
                 :aria-label="action.label"
+                @click="handleQuickAction(action)"
                 class="cursor-pointer border border-primary-border p-2 rounded-lg text-secondary-text hover:bg-background hover:text-primary-text transition-colors"
               >
                 <component :is="action.icon" class="w-4 h-4" />
@@ -269,14 +270,33 @@
         <RouterView />
       </main>
     </div>
+
+    <!-- Upload KYC Document Modal (Quick Action) -->
+    <UploadKycDocumentModal
+      :open="uploadDocModalOpen"
+      :client="user"
+      @close="uploadDocModalOpen = false"
+      @success="handleUploadDocSuccess"
+    />
+
+    <!-- Email Manual Trigger Panel (Quick Action) -->
+    <ClientEmailTriggerPanel
+      :open="emailTriggerPanelOpen"
+      :client="user"
+      @close="emailTriggerPanelOpen = false"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
+import { useRoute } from "vue-router";
 import { getFlagCode, cleanCountryLabel } from "@/utils/countries";
 import Tooltip from "@/components/common/Tooltip.vue";
+import UploadKycDocumentModal from "@/components/clientDetails/UploadKycDocumentModal.vue";
+import ClientEmailTriggerPanel from "@/components/clientDetails/ClientEmailTriggerPanel.vue";
 import { useClientDepthStore } from "@/stores/clientDepth/clientDepth";
+import { useSnackbarStore } from "@/stores/snackbar/snackbar";
 import {
   User,
   Info,
@@ -294,8 +314,8 @@ import {
   FileCheck,
   MessageSquare,
 } from "lucide-vue-next";
-import { useRoute } from "vue-router";
-
+const route = useRoute();
+const snackbar = useSnackbarStore();
 const clientDepthStore = useClientDepthStore();
 
 // ─── Reactive Client User State ───────────────────────────────────────────────
@@ -305,11 +325,14 @@ const loadUserFromStorage = () => {
   try {
     const raw = localStorage.getItem("active_client");
     if (raw) {
-      localStoredUser.value = JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      if (!route.params.id || String(parsed?.id) === String(route.params.id)) {
+        localStoredUser.value = parsed;
+        return;
+      }
     }
-  } catch {
-    localStoredUser.value = {};
-  }
+  } catch { }
+  localStoredUser.value = {};
 };
 
 const handleProfileUpdated = (e) => {
@@ -329,12 +352,25 @@ const handleStorageChange = (e) => {
 
 onMounted(() => {
   loadUserFromStorage();
-  if (!clientDepthStore.activeClient && Object.keys(localStoredUser.value).length > 0) {
-    clientDepthStore.setActiveClient(localStoredUser.value);
-  }
   window.addEventListener("client-profile-updated", handleProfileUpdated);
   window.addEventListener("storage", handleStorageChange);
 });
+
+watch(
+  () => route.params.id,
+  (newId, oldId) => {
+    if (newId) {
+      if (oldId && String(newId) !== String(oldId)) {
+        if (clientDepthStore.currentUserId !== String(newId)) {
+          clientDepthStore.reset();
+        }
+      }
+      loadUserFromStorage();
+      clientDepthStore.fetchClientOverview(newId);
+    }
+  },
+  { immediate: true },
+);
 
 onUnmounted(() => {
   window.removeEventListener("client-profile-updated", handleProfileUpdated);
@@ -342,10 +378,25 @@ onUnmounted(() => {
 });
 
 const user = computed(() => {
+  const routeId = route.params.id;
+  const overviewUser =
+    (String(clientDepthStore.overviewData?.user?.id) === String(routeId) ||
+     String(clientDepthStore.overviewData?.id) === String(routeId))
+      ? (clientDepthStore.overviewData?.user || clientDepthStore.overviewData)
+      : {};
+  const active =
+    (String(clientDepthStore.activeClient?.id) === String(routeId))
+      ? clientDepthStore.activeClient
+      : {};
+  const stored =
+    (String(localStoredUser.value?.id) === String(routeId))
+      ? localStoredUser.value
+      : {};
+
   return {
-    ...localStoredUser.value,
-    ...(clientDepthStore.overviewData?.user || {}),
-    ...(clientDepthStore.activeClient || {}),
+    ...stored,
+    ...active,
+    ...overviewUser,
   };
 });
 
@@ -373,17 +424,67 @@ const kycClass = computed(() => {
 });
 
 // ─── Quick Actions ────────────────────────────────────────────────────────────
+const uploadDocModalOpen = ref(false);
+const emailTriggerPanelOpen = ref(false);
+
 const quickActions = [
-  { label: "Call", icon: Phone },
-  { label: "Email", icon: Mail },
-  { label: "Message", icon: MessageSquare },
-  { label: "Documents", icon: FileText },
-  { label: "More", icon: MoreHorizontal },
+  { action: "call", label: "Call", icon: Phone },
+  { action: "email", label: "Email", icon: Mail },
+  { action: "message", label: "Message", icon: MessageSquare },
+  { action: "documents", label: "Documents", icon: FileText },
 ];
 
-// ─── Top Tabs ─────────────────────────────────────────────────────────────────
-const route = useRoute();
+const handleQuickAction = (action) => {
+  const actionType = action.action || action.label?.toLowerCase();
 
+  if (actionType === "documents") {
+    uploadDocModalOpen.value = true;
+    return;
+  }
+  if (actionType === "call") {
+    if (user.value?.phone_number) {
+      window.open(`tel:${user.value.phone_number}`);
+    } else {
+      snackbar.show("Phone number not available for this client.", "info");
+    }
+    return;
+  }
+  if (actionType === "email") {
+    if (user.value?.email) {
+      emailTriggerPanelOpen.value = true;
+    } else {
+      snackbar.show("Email address not available for this client.", "info");
+    }
+    return;
+  }
+  if (actionType === "message") {
+    if (user.value?.phone_number) {
+      const cleanPhone = String(user.value.phone_number).replace(/\D/g, "");
+      window.open(`https://wa.me/${cleanPhone}`, "_blank");
+    } else if (user.value?.email) {
+      window.open(`mailto:${user.value.email}`);
+    } else {
+      snackbar.show("Contact details not available for messaging.", "info");
+    }
+    return;
+  }
+  if (actionType === "more") {
+    snackbar.show("Additional quick actions coming soon.", "info");
+    return;
+  }
+};
+
+const handleUploadDocSuccess = () => {
+  uploadDocModalOpen.value = false;
+  const userId = route.params.id || user.value?.id;
+  if (userId) {
+    clientDepthStore.fetchClientKyc(userId, true);
+    clientDepthStore.fetchClientOverview(userId, true);
+    clientDepthStore.fetchUserReferences(userId, true);
+  }
+};
+
+// ─── Top Tabs ─────────────────────────────────────────────────────────────────
 const tabs = computed(() => [
   {
     key: "overview",

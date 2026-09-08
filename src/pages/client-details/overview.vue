@@ -1,33 +1,70 @@
 <template>
   <div class="space-y-5 pt-4 pb-12">
+    <!-- ─── TOP HEADER & ACTIONS ─────────────────────────────────── -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div>
+        <h3 class="text-base sm:text-lg font-bold text-primary-text">
+          Client Overview
+        </h3>
+        <p class="text-xs text-secondary-text mt-0.5">
+          Comprehensive summary of client account performance, activity, and trading metrics.
+        </p>
+      </div>
+
+      <!-- Refresh Action -->
+      <div class="flex items-center gap-2 self-start sm:self-auto">
+        <button
+          type="button"
+          @click="refreshOverviewData"
+          :disabled="clientDepthStore.isLoading"
+          class="border border-primary-border bg-card-background/40 hover:bg-card-background/70 rounded-xl p-2.5 text-secondary-text hover:text-primary-text transition-colors cursor-pointer shadow-2xs disabled:opacity-50 flex items-center gap-2"
+          title="Refresh Overview Data"
+        >
+          <RefreshCw
+            class="w-4 h-4"
+            :class="{ 'animate-spin text-primary': clientDepthStore.isLoading }"
+          />
+        </button>
+      </div>
+    </div>
+
     <!-- ─── SKELETON LOADING STATE ─────────────────────────────────── -->
     <div v-if="isOverviewLoading" class="space-y-5 animate-pulse">
       <!-- Summary Cards Skeleton -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <div
           v-for="i in 7"
           :key="i"
-          class="bg-card-background border border-primary-border rounded-2xl p-4 sm:p-5 flex items-center gap-4 h-24"
+          class="bg-card-background/40 border border-primary-border rounded-xl p-4 sm:p-5 flex items-center gap-4"
         >
           <div class="w-11 h-11 rounded-xl bg-primary-border/50 shrink-0" />
-          <div class="space-y-2 flex-1">
+          <div class="space-y-2 flex-1 min-w-0">
             <div class="h-3 w-20 bg-primary-border/50 rounded" />
             <div class="h-5 w-28 bg-primary-border/70 rounded" />
+            <div class="h-2.5 w-16 bg-primary-border/40 rounded" />
           </div>
         </div>
       </div>
 
       <!-- Stat Strip Skeleton -->
-      <div class="bg-card-background border border-primary-border rounded-2xl p-6 h-28" />
+      <div class="bg-card-background/40 border border-primary-border rounded-xl p-5 sm:p-6">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 text-center divide-y sm:divide-y-0 sm:divide-x divide-primary-border/60">
+          <div v-for="i in 4" :key="i" class="flex flex-col items-center gap-2 pt-2 sm:pt-0">
+            <div class="w-9 h-9 rounded-xl bg-primary-border/40" />
+            <div class="h-7 w-16 bg-primary-border/70 rounded" />
+            <div class="h-3 w-24 bg-primary-border/40 rounded" />
+          </div>
+        </div>
+      </div>
 
       <!-- Health Score Section Skeleton -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        <div class="lg:col-span-5 bg-card-background border border-primary-border rounded-2xl p-6 h-96 flex flex-col justify-between">
+      <div class="grid grid-cols-1 xl:grid-cols-12 gap-5 items-stretch">
+        <div class="xl:col-span-5 bg-card-background/40 border border-primary-border rounded-xl p-6 min-h-[360px] flex flex-col justify-between">
           <div class="h-4 w-40 bg-primary-border/70 rounded" />
-          <div class="w-36 h-36 rounded-full border-8 border-primary-border/40 self-center" />
+          <div class="w-36 h-36 rounded-full border-8 border-primary-border/40 self-center my-6" />
           <div class="h-4 w-32 bg-primary-border/50 rounded self-center" />
         </div>
-        <div class="lg:col-span-7 bg-card-background border border-primary-border rounded-2xl p-6 h-96 space-y-4">
+        <div class="xl:col-span-7 bg-card-background/40 border border-primary-border rounded-xl p-6 min-h-[360px] space-y-4">
           <div class="h-4 w-48 bg-primary-border/70 rounded mb-4" />
           <div v-for="b in 5" :key="b" class="space-y-2 p-3 bg-background/50 rounded-xl">
             <div class="h-3.5 w-32 bg-primary-border/60 rounded" />
@@ -40,11 +77,11 @@
     <!-- ─── MAIN CONTENT ─────────────────────────────────────────── -->
     <template v-else>
       <!-- 1. Summary Cards Grid (Rendered dynamically from computed array) -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <div
           v-for="card in summaryCards"
           :key="card.title"
-          class="bg-card-background border border-primary-border rounded-2xl p-4 sm:p-5 flex items-center gap-4"
+          class="bg-card-background/40 border border-primary-border rounded-xl p-4 sm:p-5 flex items-center gap-4"
         >
           <div
             class="w-11 h-11 rounded-xl border flex items-center justify-center shrink-0"
@@ -71,7 +108,7 @@
 
       <!-- 2. Client Lifecycle & Activity Strip -->
       <div
-        class="bg-card-background border border-primary-border rounded-2xl p-5 sm:p-6"
+        class="bg-card-background/40 border border-primary-border rounded-xl p-5 sm:p-6"
       >
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 text-center divide-y sm:divide-y-0 sm:divide-x divide-primary-border/60">
           <!-- Days Active -->
@@ -129,10 +166,10 @@
       </div>
 
       <!-- 3. Client Health Score Section (Split Matrix Layout) -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+      <div class="grid grid-cols-1 xl:grid-cols-12 gap-5 items-stretch">
         <!-- Left Health Score Ring Gauge & Status (4 cols) -->
         <div
-          class="lg:col-span-4 bg-card-background border border-primary-border rounded-2xl p-5 sm:p-6 flex flex-col justify-between relative overflow-hidden"
+          class="lg:col-span-4 bg-card-background/40 border border-primary-border rounded-xl p-5 sm:p-6 flex flex-col justify-between relative overflow-hidden"
         >
           <!-- Card Header -->
           <div class="flex items-center justify-between pb-4 border-b border-primary-border/60">
@@ -219,7 +256,7 @@
 
         <!-- Right Health Breakdown Dimension Cards (8 cols) -->
         <div
-          class="lg:col-span-8 bg-card-background border border-primary-border rounded-2xl p-5 sm:p-6 flex flex-col justify-between"
+          class="lg:col-span-8 bg-card-background/40 border border-primary-border rounded-xl p-5 sm:p-6 flex flex-col justify-between"
         >
           <!-- Breakdown Header -->
           <div class="flex items-center justify-between pb-4 border-b border-primary-border/60">
@@ -294,7 +331,7 @@
                 <div
                   v-for="(sub, subKey) in item.subcategories"
                   :key="subKey"
-                  class="bg-card-background border border-primary-border/70 rounded-lg p-2.5 flex flex-col justify-between"
+                  class="bg-card-background/60 border border-primary-border/70 rounded-lg p-2.5 flex flex-col justify-between"
                 >
                   <div class="flex items-center justify-between gap-1">
                     <span class="font-bold text-primary-text capitalize text-[11px]">
@@ -349,6 +386,7 @@ import {
   Activity,
   Zap,
   Shield,
+  RefreshCw,
 } from "lucide-vue-next";
 
 const route = useRoute();
@@ -438,11 +476,18 @@ const defaultOverview = {
 };
 
 // ─── Fetch Overview on Load / Route Change ──────────────────────────────────
-const loadOverview = () => {
+const loadOverview = (force = false) => {
   const userId = route.params.id;
   if (userId) {
-    clientDepthStore.fetchClientOverview(userId);
+    clientDepthStore.fetchClientOverview(userId, force);
   }
+};
+
+const refreshOverviewData = () => {
+  loadOverview(true);
+  setTimeout(() => {
+    animateValues();
+  }, 200);
 };
 
 // ─── Real-time Progress Animation ───────────────────────────────────────────
@@ -498,7 +543,9 @@ onUnmounted(() => {
 watch(
   () => route.params.id,
   (newId) => {
-    if (newId) loadOverview();
+    if (newId) {
+      loadOverview();
+    }
   },
 );
 

@@ -244,7 +244,7 @@ export const useEmailTemplatesStore = defineStore(
     // Create Template
     // ─────────────────────────────────────
 
-    const createTemplate = (payload) => {
+    const createTemplate = (payload, onSuccess, onFailure) => {
       createLoading.value = true
 
       error.value = null
@@ -266,6 +266,8 @@ export const useEmailTemplatesStore = defineStore(
         createLoading.value = false
 
         fetchTemplates(true)
+
+        if (onSuccess) onSuccess(res)
       }
 
       const failureHandler = (err) => {
@@ -277,6 +279,8 @@ export const useEmailTemplatesStore = defineStore(
           err?.message || 'Failed to create template.',
           'error'
         )
+
+        if (onFailure) onFailure(err)
       }
 
       apiRequest(
@@ -298,7 +302,7 @@ export const useEmailTemplatesStore = defineStore(
     // Update Template
     // ─────────────────────────────────────
 
-    const updateTemplate = (id, payload) => {
+    const updateTemplate = (id, payload, onSuccess, onFailure) => {
       updateLoading.value = true
 
       error.value = null
@@ -322,6 +326,8 @@ export const useEmailTemplatesStore = defineStore(
         fetchTemplates(true)
 
         fetchTemplateDetails(id)
+
+        if (onSuccess) onSuccess(res)
       }
 
       const failureHandler = (err) => {
@@ -333,6 +339,8 @@ export const useEmailTemplatesStore = defineStore(
           err?.message || 'Failed to update template.',
           'error'
         )
+
+        if (onFailure) onFailure(err)
       }
 
       apiRequest(
