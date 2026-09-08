@@ -57,7 +57,7 @@
           <Tooltip text="Refresh List">
             <button
               class="p-2 rounded-lg border border-primary-border text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer"
-              @click="fetchFollowers(true)"
+              @click="fetchFollowers(true, pagination.page)"
               :disabled="loading"
               title="Refresh List"
             >
@@ -73,13 +73,50 @@
         <Tooltip text="Refresh List">
           <button
             class="p-2 rounded-lg border border-primary-border text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer"
-            @click="fetchFollowers(true)"
+            @click="fetchFollowers(true, pagination.page)"
             :disabled="loading"
             title="Refresh List"
           >
             <RotateCw class="w-3.5 h-3.5" :class="{ 'animate-spin': loading }" />
           </button>
         </Tooltip>
+      </div>
+    </div>
+
+    <!-- Status Navigation Tabs -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div class="flex items-center gap-1 bg-card-background border border-primary-border rounded-xl p-1 shadow-2xs overflow-x-auto max-w-full">
+        <button
+          v-for="tab in statusTabs"
+          :key="tab.value"
+          type="button"
+          class="cursor-pointer px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 shrink-0 select-none"
+          :class="
+            selectedStatus === tab.value
+              ? 'bg-primary text-white shadow-xs'
+              : 'text-secondary-text hover:text-primary-text hover:bg-background/80'
+          "
+          @click="selectStatus(tab.value)"
+        >
+          <span
+            class="w-1.5 h-1.5 rounded-full"
+            :class="selectedStatus === tab.value ? 'bg-white' : tab.dotClass"
+          />
+          {{ tab.label }}
+          <span
+            v-if="selectedStatus === tab.value && pagination.total_items !== undefined"
+            class="px-1.5 py-0.2 rounded-full text-[10px] font-mono leading-none"
+            :class="selectedStatus === tab.value ? 'bg-white/20 text-white' : 'bg-background text-secondary-text border border-primary-border'"
+          >
+            {{ pagination.total_items }}
+          </span>
+        </button>
+      </div>
+
+      <!-- Quick status indicator -->
+      <div class="text-xs text-secondary-text font-medium hidden sm:flex items-center gap-2">
+        <span class="inline-block w-2 h-2 rounded-full" :class="currentStatusDotClass" />
+        <span>View: <strong class="text-primary-text">{{ currentStatusTitle }}</strong></span>
       </div>
     </div>
 
@@ -183,10 +220,10 @@
         <Users class="w-7 h-7 text-secondary-text" />
       </div>
       <p class="text-base font-semibold text-primary-text mb-1">
-        {{ hasActiveFilters ? 'No matching followers found' : 'No Followers Assigned Yet' }}
+        {{ hasActiveFilters ? 'No matching followers found' : emptyStateTitle }}
       </p>
       <p class="text-xs text-secondary-text max-w-sm">
-        {{ hasActiveFilters ? 'Try adjusting your search criteria or resetting filters.' : 'No client accounts have subscribed to this Fund Manager yet.' }}
+        {{ hasActiveFilters ? 'Try adjusting your search criteria or resetting filters.' : emptyStateDescription }}
       </p>
     </div>
 
@@ -283,13 +320,14 @@
               <td class="py-4 px-4 text-left whitespace-nowrap">
                 <span
                   class="text-[10px] font-bold tracking-wide uppercase px-2.5 py-0.5 rounded-full border inline-flex items-center gap-1.5 shadow-2xs"
-                  :class="row.status === 'active' || row.is_active
-                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                    : 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'"
+                  :class="getStatusBadgeClass(row)"
                 >
-                  <span class="w-1.5 h-1.5 rounded-full" :class="row.status === 'active' || row.is_active ? 'bg-emerald-500 animate-pulse' : 'bg-zinc-400'" />
-                  {{ row.status || (row.is_active ? 'Active' : 'Inactive') }}
+                  <span class="w-1.5 h-1.5 rounded-full" :class="getStatusDotClass(row)" />
+                  {{ getStatusLabel(row) }}
                 </span>
+                <p v-if="row.unfollowed_at || row.ended_at || row.left_at" class="text-[10px] text-secondary-text mt-1 font-mono">
+                  Ended: {{ formatDate(row.unfollowed_at || row.ended_at || row.left_at) }}
+                </p>
               </td>
 
               <!-- Action -->
@@ -304,7 +342,7 @@
                     </button>
                   </Tooltip>
 
-                  <Tooltip text="Edit Follower Settings" position="right">
+                  <Tooltip v-if="!isPastFollower(row)" text="Edit Follower Settings" position="right">
                     <button
                       class="p-1.5 rounded-lg border border-primary-border hover:bg-background text-secondary-text hover:text-primary-text transition-colors cursor-pointer inline-flex items-center gap-1 text-xs font-semibold"
                       @click="openEditFollowerDialog(row)"
@@ -316,7 +354,7 @@
                   <Tooltip text="View Follower Details" position="right">
                     <button
                       class="p-1.5 rounded-lg border border-primary-border hover:bg-background text-secondary-text hover:text-primary transition-colors cursor-pointer inline-flex items-center gap-1 text-xs font-semibold"
-                      @click="router.push(`/follower-info/${row.id || row.account_id}`)"
+                      @click="goToFollowerDetails(row)"
                     >
                       <ChevronsRight class="w-4 h-4" />
                     </button>
@@ -343,17 +381,31 @@
             <div class="flex items-center gap-1.5 shrink-0">
               <span
                 class="text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase"
-                :class="row.status === 'active' || row.is_active
-                  ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
-                  : 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'"
+                :class="getStatusBadgeClass(row)"
               >
-                {{ row.status || (row.is_active ? 'Active' : 'Inactive') }}
+                {{ getStatusLabel(row) }}
               </span>
               <button
+                class="p-1 rounded-lg border border-primary-border bg-primary/10 text-primary hover:bg-primary/20"
+                title="Trade Book"
+                @click="goToTradeBook(row)"
+              >
+                <BookOpen class="w-3.5 h-3.5" />
+              </button>
+              <button
+                v-if="!isPastFollower(row)"
                 class="p-1 rounded-lg border border-primary-border text-secondary-text hover:text-primary-text"
+                title="Edit Follower Settings"
                 @click="openEditFollowerDialog(row)"
               >
                 <Pencil class="w-3.5 h-3.5" />
+              </button>
+              <button
+                class="p-1 rounded-lg border border-primary-border text-secondary-text hover:text-primary"
+                title="View Follower Details"
+                @click="goToFollowerDetails(row)"
+              >
+                <ChevronsRight class="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
@@ -380,6 +432,10 @@
               <span class="text-[9px] text-secondary-text block uppercase font-semibold">Trades</span>
               <span class="font-bold text-primary-text">{{ row.total_trades ?? 0 }}</span>
             </div>
+            <div v-if="row.unfollowed_at || row.ended_at || row.left_at" class="col-span-2">
+              <span class="text-[9px] text-secondary-text block uppercase font-semibold">Ended Date</span>
+              <span class="font-bold text-secondary-text font-mono">{{ formatDate(row.unfollowed_at || row.ended_at || row.left_at) }}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -404,9 +460,22 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { RotateCw, RotateCcw, Users, Search, X, Mail, ChevronsRight, Pencil, BookOpen } from 'lucide-vue-next'
+import {
+  RotateCw,
+  RotateCcw,
+  Users,
+  Search,
+  X,
+  Mail,
+  ChevronsRight,
+  Pencil,
+  BookOpen,
+  UserCheck,
+  PauseCircle,
+  History,
+} from 'lucide-vue-next'
 import apiRequest from '@/api/request'
 import urls from '@/api/urls'
 import Tooltip from '@/components/common/Tooltip.vue'
@@ -480,6 +549,82 @@ const onOfferChange = () => {
   fetchFollowers(true, 1)
 }
 
+const statusTabs = [
+  { label: 'Active Followers', value: 'active', icon: UserCheck, dotClass: 'bg-emerald-500' },
+  { label: 'Paused', value: 'paused', icon: PauseCircle, dotClass: 'bg-amber-500' },
+  { label: 'Past History', value: 'past', icon: History, dotClass: 'bg-zinc-400' },
+  { label: 'All Followers', value: 'all', icon: Users, dotClass: 'bg-primary' },
+]
+
+const normalizeStatus = (status) => {
+  const s = String(status || '').toLowerCase().trim()
+  if (s === 'history' || s === 'past') return 'past'
+  if (s === 'paused') return 'paused'
+  if (s === 'all') return 'all'
+  return 'active'
+}
+
+const selectedStatus = ref(
+  route.query.status ? normalizeStatus(route.query.status) : 'active'
+)
+
+const currentStatusTitle = computed(() => {
+  const current = statusTabs.find((t) => t.value === selectedStatus.value)
+  return current?.label || selectedStatus.value
+})
+
+const currentStatusDotClass = computed(() => {
+  const current = statusTabs.find((t) => t.value === selectedStatus.value)
+  return current?.dotClass || 'bg-primary'
+})
+
+const emptyStateTitle = computed(() => {
+  if (selectedStatus.value === 'active') return 'No Active Followers'
+  if (selectedStatus.value === 'paused') return 'No Paused Followers'
+  if (selectedStatus.value === 'past') return 'No Past Followers History'
+  return 'No Followers Assigned Yet'
+})
+
+const emptyStateDescription = computed(() => {
+  if (selectedStatus.value === 'active') {
+    return 'No active client accounts are currently subscribed to this Fund Manager.'
+  }
+  if (selectedStatus.value === 'paused') {
+    return 'No follower accounts are currently paused for this Fund Manager.'
+  }
+  if (selectedStatus.value === 'past') {
+    return 'No unfollowed or historical follower accounts found for this Fund Manager.'
+  }
+  return 'No client accounts have subscribed to this Fund Manager yet.'
+})
+
+const selectStatus = (status) => {
+  if (selectedStatus.value === status) return
+  selectedStatus.value = status
+  pagination.value.page = 1
+  router.replace({
+    query: {
+      ...route.query,
+      status,
+    },
+  })
+  fetchFollowers(true, 1)
+}
+
+watch(
+  () => route.query.status,
+  (newStatus) => {
+    if (newStatus) {
+      const normalized = normalizeStatus(newStatus)
+      if (selectedStatus.value !== normalized) {
+        selectedStatus.value = normalized
+        pagination.value.page = 1
+        fetchFollowers(true, 1)
+      }
+    }
+  }
+)
+
 const editDialogOpen = ref(false)
 const editingFollower = ref(null)
 
@@ -496,6 +641,17 @@ const goToTradeBook = (row) => {
       broker_group: row.broker_group,
       copy_ratio: row.copy_ratio,
       is_active: row.is_active,
+    },
+  })
+}
+
+const goToFollowerDetails = (row) => {
+  const followerId = row.id || row.account_id
+  router.push({
+    path: `/follower-info/${followerId}`,
+    query: {
+      fm_id: fmId,
+      status: selectedStatus.value,
     },
   })
 }
@@ -615,6 +771,44 @@ const formatPnl = (val, currency = null) => {
   return `${prefix}${fmt(Math.abs(num))}`
 }
 
+const formatDate = (v) =>
+  v ? new Date(v).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
+
+const isPastFollower = (row) => {
+  const s = String(row?.status || '').toLowerCase()
+  return s === 'past' || s === 'history' || s === 'unfollowed'
+}
+
+const getStatusBadgeClass = (row) => {
+  const s = String(row?.status || (row?.is_active ? 'active' : 'inactive')).toLowerCase()
+  if (s === 'active') {
+    return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+  }
+  if (s === 'paused') {
+    return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
+  }
+  if (s === 'past' || s === 'history' || s === 'unfollowed') {
+    return 'bg-zinc-500/10 text-zinc-500 dark:text-zinc-400 border-zinc-500/20'
+  }
+  return 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'
+}
+
+const getStatusDotClass = (row) => {
+  const s = String(row?.status || (row?.is_active ? 'active' : 'inactive')).toLowerCase()
+  if (s === 'active') return 'bg-emerald-500 animate-pulse'
+  if (s === 'paused') return 'bg-amber-500'
+  if (s === 'past' || s === 'history' || s === 'unfollowed') return 'bg-zinc-400'
+  return 'bg-zinc-400'
+}
+
+const getStatusLabel = (row) => {
+  if (row?.status) {
+    if (row.status === 'past') return 'Past (Unfollowed)'
+    return row.status.charAt(0).toUpperCase() + row.status.slice(1)
+  }
+  return row?.is_active ? 'Active' : 'Inactive'
+}
+
 const filteredFollowers = computed(() => {
   if (!Array.isArray(followers.value)) return []
   return followers.value.filter((row) => {
@@ -637,9 +831,19 @@ const fetchFollowers = (force = false, page = 1) => {
   if (!fmId) return
   loading.value = true
 
+  const isHistory = selectedStatus.value === 'past'
+  const endpoint = isHistory
+    ? urls.fm.followersHistory(fmId)
+    : urls.fm.followers(fmId)
+
   const params = {
     page,
     per_page: pagination.value.per_page,
+  }
+
+  // Regular followers endpoint only accepts: active / paused / all
+  if (!isHistory) {
+    params.status = selectedStatus.value
   }
 
   if (searchQuery.value.trim()) {
@@ -655,21 +859,25 @@ const fetchFollowers = (force = false, page = 1) => {
     params.to_date = dateRange.value.to_date
   }
 
-  apiRequest(urls.KEYS.GET, `${urls.fm.followers}/${fmId}`, {
+  const successHandler = (res) => {
+    followers.value = res?.data || []
+    availableOffers.value = res?.filters?.offers || []
+    if (res?.pagination) {
+      pagination.value = res.pagination
+    }
+    loading.value = false
+  }
+
+  const failureHandler = (err) => {
+    loading.value = false
+    snackbar.show(err?.error || err?.message || 'Failed to load followers.', 'error')
+  }
+
+  apiRequest(urls.KEYS.GET, endpoint, {
     params,
     isTokenRequired: true,
-    onSuccess: (res) => {
-      followers.value = res?.data || []
-      availableOffers.value = res?.filters?.offers || []
-      if (res?.pagination) {
-        pagination.value = res.pagination
-      }
-      loading.value = false
-    },
-    onFailure: (err) => {
-      loading.value = false
-      snackbar.show(err?.error || err?.message || 'Failed to load followers.', 'error')
-    },
+    onSuccess: successHandler,
+    onFailure: failureHandler,
   })
 }
 

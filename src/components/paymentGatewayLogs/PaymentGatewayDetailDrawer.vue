@@ -307,7 +307,7 @@
                   Copy Headers
                 </button>
               </div>
-              <pre class="font-mono text-[11px] bg-background/80 border border-primary-border p-3.5 rounded-xl overflow-x-auto text-primary-text select-all leading-relaxed whitespace-pre-wrap break-all">{{ formatJson(item?.request_headers) }}</pre>
+              <pre class="font-mono text-[11px] bg-background/80 border border-primary-border p-3.5 rounded-xl overflow-x-auto text-primary-text select-text leading-relaxed whitespace-pre-wrap break-all">{{ formatJson(item?.request_headers) }}</pre>
             </div>
 
             <!-- Body -->
@@ -325,7 +325,7 @@
                   Copy Body
                 </button>
               </div>
-              <pre class="font-mono text-[11px] bg-background/80 border border-primary-border p-3.5 rounded-xl overflow-x-auto text-primary-text select-all leading-relaxed whitespace-pre-wrap break-all">{{ formatJson(item?.request_body) }}</pre>
+              <pre class="font-mono text-[11px] bg-background/80 border border-primary-border p-3.5 rounded-xl overflow-x-auto text-primary-text select-text leading-relaxed whitespace-pre-wrap break-all">{{ formatJson(item?.request_body) }}</pre>
             </div>
           </div>
 
@@ -363,7 +363,7 @@
                   Copy Response
                 </button>
               </div>
-              <pre class="font-mono text-[11px] bg-background/80 border border-primary-border p-3.5 rounded-xl overflow-x-auto text-primary-text select-all leading-relaxed whitespace-pre-wrap break-all">{{ formatJson(item?.response_body) }}</pre>
+              <pre class="font-mono text-[11px] bg-background/80 border border-primary-border p-3.5 rounded-xl overflow-x-auto text-primary-text select-text leading-relaxed whitespace-pre-wrap break-all">{{ formatJson(item?.response_body) }}</pre>
             </div>
           </div>
 
@@ -379,7 +379,7 @@
                 Copy Full JSON
               </button>
             </div>
-            <pre class="font-mono text-[11px] bg-background/80 border border-primary-border p-3.5 rounded-xl overflow-x-auto text-primary-text select-all leading-relaxed whitespace-pre-wrap break-all">{{ formatJson(item) }}</pre>
+            <pre class="font-mono text-[11px] bg-background/80 border border-primary-border p-3.5 rounded-xl overflow-x-auto text-primary-text select-text leading-relaxed whitespace-pre-wrap break-all">{{ formatJson(item) }}</pre>
           </div>
         </div>
       </div>

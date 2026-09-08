@@ -523,15 +523,17 @@ const handlePageChange = (page) => {
 
 // ── Helpers ──
 const isDepositEnabled = (record) => {
+  if (!record.enable_deposit) return false
   if (record.disable_client_deposit !== undefined && record.disable_client_deposit !== null) {
-    return Boolean(record.disable_client_deposit)
+    return !Boolean(record.disable_client_deposit)
   }
   return Boolean(record.enable_deposit)
 }
 
 const isWithdrawalEnabled = (record) => {
+  if (!record.enable_withdrawal) return false
   if (record.disable_client_withdrawal !== undefined && record.disable_client_withdrawal !== null) {
-    return Boolean(record.disable_client_withdrawal)
+    return !Boolean(record.disable_client_withdrawal)
   }
   return Boolean(record.enable_withdrawal)
 }
