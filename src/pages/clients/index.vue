@@ -202,6 +202,11 @@ function getRowActions(client) {
   if (hasPermission("client.update")) {
     actions.push(
       { action: "edit", label: "Edit Client", icon: Pencil },
+      {
+        action: "manageTransactions",
+        label: "Manage Transactions",
+        icon: SlidersHorizontal,
+      },
       { action: "changeIB", label: "Change IB", icon: UserPen },
       {
         action: "makeIB",
