@@ -9,7 +9,10 @@ const props = defineProps({
   position: {
     type: String,
     default: "center",
-    validator: (value) => ["start", "center", "end", "right", "left", "bottom"].includes(value),
+    validator: (value) =>
+      ["start", "center", "end", "right", "left", "bottom", "top"].includes(
+        value,
+      ),
   },
   placement: {
     type: String,
@@ -73,6 +76,7 @@ const getTooltipStyle = () => {
   const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
 
   let pos = props.position;
+  if (pos === "top") pos = "center";
   if (props.placement) {
     if (props.placement === "top") pos = "center";
     else pos = props.placement;

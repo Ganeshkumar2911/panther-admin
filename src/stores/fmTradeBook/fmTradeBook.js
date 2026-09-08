@@ -418,21 +418,15 @@ export const useFmTradeBookStore = defineStore("fmTradeBook", () => {
       params.search = filters.search.trim();
     }
 
-    // Backwards compatibility mappings for date ranges
-    if (filters.start_date && !params.from_date) {
-      params.from_date = filters.start_date;
-      params.start_date = filters.start_date;
+    // Date ranges (only send from_date and to_date)
+    if (filters.from_date) {
+      params.from_date = filters.from_date;
     }
-    if (filters.end_date && !params.to_date) {
-      params.to_date = filters.end_date;
-      params.end_date = filters.end_date;
+    if (filters.to_date) {
+      params.to_date = filters.to_date;
     }
-    if (params.from_date && !params.start_date) {
-      params.start_date = params.from_date;
-    }
-    if (params.to_date && !params.end_date) {
-      params.end_date = params.to_date;
-    }
+    delete params.start_date;
+    delete params.end_date;
 
     // Backwards compatibility mappings for status/state/action/type
     if (params.order_type && !params.type) {
@@ -447,10 +441,9 @@ export const useFmTradeBookStore = defineStore("fmTradeBook", () => {
 
   // Main Data Fetch for Active Tab
   const fetchTradesData = (forceRefresh = false) => {
+    isLoading.value = true;
     if (forceRefresh) {
       isRefreshing.value = true;
-    } else {
-      isLoading.value = true;
     }
 
     let endpoint = urls.tradeBook.positions;
@@ -615,6 +608,17 @@ export const useFmTradeBookStore = defineStore("fmTradeBook", () => {
     setDynamicDateRange("from_date", "to_date", startDate && endDate ? [startDate, endDate] : null);
   };
 
+  const setDateRange = (startDate, endDate) => {
+    filters.from_date = startDate || "";
+    filters.to_date = endDate || "";
+    delete filters.start_date;
+    delete filters.end_date;
+    filters.closed_from = "";
+    filters.closed_to = "";
+    pagination.value.page = 1;
+    fetchTradesData(true);
+  };
+
   const setSort = (sortBy, sortOrder) => {
     filters.sort_by = sortBy;
     if (sortOrder) filters.sort_order = sortOrder;
@@ -697,6 +701,7 @@ export const useFmTradeBookStore = defineStore("fmTradeBook", () => {
     setTypeFilter,
     setSymbolFilter,
     setDateFilter,
+    setDateRange,
     setSort,
     setPage,
     setPerPage,

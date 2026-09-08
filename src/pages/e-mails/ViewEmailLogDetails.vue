@@ -45,7 +45,7 @@
         </div>
 
         <!-- Toolbar View Switcher -->
-        <!-- <div
+        <div
           class="px-6 py-2.5 border-b border-primary-border flex items-center justify-between gap-3 bg-background/50 shrink-0"
         >
           <div class="flex items-center gap-1 bg-card-background border border-primary-border rounded-lg p-1">
@@ -87,10 +87,13 @@
               <span>Copy Message ID</span>
             </button>
           </div>
-        </div> -->
+        </div>
 
        
-        <div class="flex-1 overflow-y-auto p-6 bg-card-background">
+        <div
+          class="flex-1 overflow-y-auto bg-card-background"
+          :class="activeTab === 'preview' ? 'p-4 sm:p-6 flex flex-col min-h-0' : 'p-6'"
+        >
           <!-- Loading State -->
           <div
             v-if="store.isLoadingEmailViewLogsDetails"
@@ -108,7 +111,10 @@
           </div>
 
           <!-- Content Ready State -->
-          <div v-else-if="store.viewLogsDetaisl" class="space-y-6">
+          <div
+            v-else-if="store.viewLogsDetaisl"
+            :class="activeTab === 'preview' ? 'flex-1 min-h-0 flex flex-col' : 'space-y-6'"
+          >
             <!-- TAB 1: EVENT TIMELINE & METADATA -->
             <template v-if="activeTab === 'timeline'">
               <!-- Metadata Overview Grid Card -->
@@ -221,12 +227,12 @@
 
             <!-- TAB 2: EMAIL HTML BODY PREVIEW -->
             <template v-else-if="activeTab === 'preview'">
-              <div class="border border-primary-border rounded-2xl overflow-hidden bg-white shadow-lg h-[550px] flex flex-col">
+              <div class="border border-primary-border rounded-2xl overflow-hidden bg-white shadow-lg flex-1 min-h-0 flex flex-col">
                 <div class="bg-slate-900 text-slate-300 text-xs px-4 py-2 border-b border-slate-800 flex items-center justify-between font-mono shrink-0">
                   <span class="truncate">To: {{ store.viewLogsDetaisl.email }}</span>
                   <span class="text-[10px] text-slate-400">Sandboxed Email Viewer</span>
                 </div>
-                <div class="flex-1 w-full h-full overflow-hidden">
+                <div class="flex-1 w-full h-full min-h-0 overflow-hidden">
                   <RenderHTMLBody :htmlContent="store.viewLogsDetaisl?.body || ''" />
                 </div>
               </div>
