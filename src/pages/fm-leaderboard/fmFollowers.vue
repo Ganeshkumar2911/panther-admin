@@ -85,7 +85,7 @@
 
     <!-- Filters Bar -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-card-background/40 border border-primary-border rounded-xl p-2.5">
-      <div class="flex items-center gap-2 flex-1 min-w-0">
+      <div class="flex items-center gap-2 flex-1 min-w-0 flex-wrap">
         <!-- Search Input -->
         <div class="relative w-full sm:w-64">
           <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-secondary-text pointer-events-none" />
@@ -94,10 +94,11 @@
             type="text"
             placeholder="Search follower name, email, account..."
             class="w-full h-9 pl-8 pr-7 text-xs rounded-lg bg-background border border-primary-border text-primary-text outline-none focus:border-primary transition-colors placeholder:text-secondary-text"
+            @input="onSearchInput"
           />
           <button
             v-if="searchQuery"
-            @click="searchQuery = ''"
+            @click="clearSearch"
             class="absolute right-2 top-1/2 -translate-y-1/2 text-secondary-text hover:text-primary-text cursor-pointer"
           >
             <X class="w-3.5 h-3.5" />
@@ -111,7 +112,21 @@
           :options="offerOptions"
           placeholder="Filter Offer"
           class="w-40 sm:w-44"
+          @update:modelValue="onOfferChange"
         />
+
+        <!-- Date Range Filter -->
+        <div class="w-full sm:w-56 lg:w-60 shrink-0">
+          <BaseDatePicker
+            :modelValue="dateRangeValue"
+            range
+            :maxDate="maxDateToday"
+            placeholder="Filter date range..."
+            valueFormat="YYYY-MM-DD"
+            @update:modelValue="handleDateRangeUpdate"
+            @clear="handleDateRangeClear"
+          />
+        </div>
       </div>
 
       <!-- Clear Filters -->
@@ -396,6 +411,7 @@ import apiRequest from '@/api/request'
 import urls from '@/api/urls'
 import Tooltip from '@/components/common/Tooltip.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
+import BaseDatePicker from '@/components/common/BaseDatePicker.vue'
 import Pagination from '@/components/common/Pagination.vue'
 import EditFollowerDialog from '@/components/fmOffers/EditFollowerDialog.vue'
 import { useSnackbarStore } from '@/stores/snackbar/snackbar'
@@ -411,6 +427,58 @@ const availableOffers = ref([])
 const loading = ref(false)
 const searchQuery = ref('')
 const selectedOffer = ref('ALL')
+
+const maxDateToday = new Date()
+const dateRange = ref({
+  from_date: '',
+  to_date: '',
+})
+
+const dateRangeValue = computed(() => {
+  if (dateRange.value.from_date && dateRange.value.to_date) {
+    return [dateRange.value.from_date, dateRange.value.to_date]
+  }
+  return null
+})
+
+const handleDateRangeUpdate = (val) => {
+  if (!val) {
+    dateRange.value = { from_date: '', to_date: '' }
+  } else if (Array.isArray(val)) {
+    dateRange.value = {
+      from_date: val[0] || '',
+      to_date: val[1] || '',
+    }
+  } else if (typeof val === 'object') {
+    dateRange.value = {
+      from_date: val.start || val.from || '',
+      to_date: val.end || val.to || '',
+    }
+  }
+  fetchFollowers(true, 1)
+}
+
+const handleDateRangeClear = () => {
+  dateRange.value = { from_date: '', to_date: '' }
+  fetchFollowers(true, 1)
+}
+
+let searchTimer = null
+const onSearchInput = () => {
+  clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => {
+    fetchFollowers(true, 1)
+  }, 400)
+}
+
+const clearSearch = () => {
+  searchQuery.value = ''
+  fetchFollowers(true, 1)
+}
+
+const onOfferChange = () => {
+  fetchFollowers(true, 1)
+}
 
 const editDialogOpen = ref(false)
 const editingFollower = ref(null)
@@ -476,12 +544,18 @@ const offerOptions = computed(() => {
 })
 
 const hasActiveFilters = computed(() => {
-  return Boolean(searchQuery.value.trim()) || selectedOffer.value !== 'ALL'
+  return (
+    Boolean(searchQuery.value.trim()) ||
+    selectedOffer.value !== 'ALL' ||
+    Boolean(dateRange.value.from_date && dateRange.value.to_date)
+  )
 })
 
 const resetFilters = () => {
   searchQuery.value = ''
   selectedOffer.value = 'ALL'
+  dateRange.value = { from_date: '', to_date: '' }
+  fetchFollowers(true, 1)
 }
 
 const fmt = (val) => {
@@ -563,8 +637,26 @@ const fetchFollowers = (force = false, page = 1) => {
   if (!fmId) return
   loading.value = true
 
+  const params = {
+    page,
+    per_page: pagination.value.per_page,
+  }
+
+  if (searchQuery.value.trim()) {
+    params.search = searchQuery.value.trim()
+  }
+
+  if (selectedOffer.value && selectedOffer.value !== 'ALL') {
+    params.offer_id = selectedOffer.value
+  }
+
+  if (dateRange.value.from_date && dateRange.value.to_date) {
+    params.from_date = dateRange.value.from_date
+    params.to_date = dateRange.value.to_date
+  }
+
   apiRequest(urls.KEYS.GET, `${urls.fm.followers}/${fmId}`, {
-    params: { page, per_page: pagination.value.per_page },
+    params,
     isTokenRequired: true,
     onSuccess: (res) => {
       followers.value = res?.data || []

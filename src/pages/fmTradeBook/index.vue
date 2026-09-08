@@ -745,19 +745,16 @@
           />
         </div>
 
-        <!-- Dynamic Date Range Pickers (Opened / Time / Setup / Closed) -->
-        <div
-          v-for="dateFilter in dynamicDateRangeFilters"
-          :key="dateFilter.fromKey"
-          class="min-w-48 sm:min-w-60 shrink-0"
-        >
+        <!-- Unified Date Range Filter -->
+        <div class="min-w-48 sm:min-w-60 shrink-0">
           <BaseDatePicker
-            :modelValue="getDateRangeValue(dateFilter.fromKey, dateFilter.toKey)"
+            :modelValue="dateRangeValue"
             range
-            :placeholder="dateFilter.placeholder"
+            :maxDate="maxDateToday"
+            placeholder="Select date range"
             valueFormat="YYYY-MM-DD"
-            @update:modelValue="(val) => handleDateRangeUpdate(dateFilter.fromKey, dateFilter.toKey, val)"
-            @clear="handleDateRangeUpdate(dateFilter.fromKey, dateFilter.toKey, null)"
+            @update:modelValue="handleDateRangeUpdate"
+            @clear="handleDateRangeClear"
           />
         </div>
 
@@ -802,7 +799,7 @@
           </thead>
 
           <tbody class="divide-y divide-primary-border/60">
-            <template v-if="store.isLoading">
+            <template v-if="store.isLoading || store.isRefreshing">
               <tr v-for="n in 5" :key="n" class="animate-pulse">
                 <td v-for="c in 11" :key="c" class="py-4 px-3">
                   <div class="h-4 bg-background rounded w-3/4" />
@@ -966,7 +963,7 @@
           </thead>
 
           <tbody class="divide-y divide-primary-border/60">
-            <template v-if="store.isLoading">
+            <template v-if="store.isLoading || store.isRefreshing">
               <tr v-for="n in 5" :key="n" class="animate-pulse">
                 <td v-for="c in 12" :key="c" class="py-4 px-3">
                   <div class="h-4 bg-background rounded w-3/4" />
@@ -1137,7 +1134,7 @@
           </thead>
 
           <tbody class="divide-y divide-primary-border/60">
-            <template v-if="store.isLoading">
+            <template v-if="store.isLoading || store.isRefreshing">
               <tr v-for="n in 5" :key="n" class="animate-pulse">
                 <td v-for="c in 13" :key="c" class="py-4 px-3">
                   <div class="h-4 bg-background rounded w-3/4" />
@@ -1450,49 +1447,83 @@ const dynamicEnumFilters = computed(() => {
   return list;
 });
 
-// Dynamic Date Range Filters generated directly from API schema (pairs from_date/to_date and closed_from/closed_to)
-const dynamicDateRangeFilters = computed(() => {
-  const schema = store.currentSectionFilters || {};
-  const ranges = [];
+// Unified Date Range Picker Logic with maxDate today constraint
+const maxDateToday = new Date();
 
-  // 1. Primary Opened / Setup / Time date range (from_date / to_date)
-  if (schema.from_date || schema.to_date) {
-    const isClosedAlsoPresent = !!schema.closed_from;
-    ranges.push({
-      fromKey: "from_date",
-      toKey: "to_date",
-      placeholder: isClosedAlsoPresent ? "Opened date range" : "Select date range",
-    });
-  }
-
-  // 2. Closed date range (closed_from / closed_to)
-  if (schema.closed_from || schema.closed_to) {
-    ranges.push({
-      fromKey: "closed_from",
-      toKey: "closed_to",
-      placeholder: "Closed date range",
-    });
-  }
-
-  return ranges;
-});
-
-const getDateRangeValue = (fromKey, toKey) => {
-  const from = store.filters[fromKey] || (fromKey === "from_date" ? store.filters.start_date : "");
-  const to = store.filters[toKey] || (toKey === "to_date" ? store.filters.end_date : "");
+const dateRangeValue = computed(() => {
+  const from = store.filters.from_date;
+  const to = store.filters.to_date;
   if (from && to) {
     return [from, to];
   }
   return null;
+});
+
+const handleDateRangeUpdate = (val) => {
+  let start = null;
+  let end = null;
+  if (Array.isArray(val)) {
+    start = val[0] || null;
+    end = val[1] || null;
+  } else if (val && typeof val === "object") {
+    start = val.start || val.from || null;
+    end = val.end || val.to || null;
+  }
+
+  if (typeof store.setDateRange === "function") {
+    store.setDateRange(start, end);
+  } else if (typeof store.setDynamicDateRange === "function") {
+    store.setDynamicDateRange(
+      "from_date",
+      "to_date",
+      start && end ? [start, end] : null
+    );
+  } else {
+    store.filters.from_date = start || "";
+    store.filters.to_date = end || "";
+    // delete store.filters.start_date;
+    // delete store.filters.end_date;
+    store.filters.closed_from = "";
+    store.filters.closed_to = "";
+    if (store.pagination) store.pagination.page = 1;
+    if (typeof store.fetchTradesData === "function") {
+      store.fetchTradesData(true);
+    }
+  }
 };
 
-const handleDateRangeUpdate = (fromKey, toKey, val) => {
-  store.setDynamicDateRange(fromKey, toKey, val);
+const handleDateRangeClear = () => {
+  if (typeof store.setDateRange === "function") {
+    store.setDateRange(null, null);
+  } else if (typeof store.setDynamicDateRange === "function") {
+    store.setDynamicDateRange("from_date", "to_date", null);
+  } else {
+    store.filters.from_date = "";
+    store.filters.to_date = "";
+    // delete store.filters.start_date;
+    // delete store.filters.end_date;
+    store.filters.closed_from = "";
+    store.filters.closed_to = "";
+    if (store.pagination) store.pagination.page = 1;
+    if (typeof store.fetchTradesData === "function") {
+      store.fetchTradesData(true);
+    }
+  }
 };
 
 const hasActiveFilters = computed(() => {
   const schema = store.currentSectionFilters || {};
   const hasDynamicActive = Object.keys(schema).some((key) => {
+    if (
+      key === "from_date" ||
+      key === "to_date" ||
+      key === "start_date" ||
+      key === "end_date" ||
+      key === "closed_from" ||
+      key === "closed_to"
+    ) {
+      return false;
+    }
     const val = store.filters[key];
     return val !== undefined && val !== null && val !== "";
   });
@@ -1504,11 +1535,7 @@ const hasActiveFilters = computed(() => {
     !!store.filters.type ||
     !!store.filters.symbol ||
     !!store.filters.from_date ||
-    !!store.filters.to_date ||
-    !!store.filters.start_date ||
-    !!store.filters.end_date ||
-    !!store.filters.closed_from ||
-    !!store.filters.closed_to
+    !!store.filters.to_date
   );
 });
 
