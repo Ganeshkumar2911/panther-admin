@@ -214,6 +214,6 @@ export const navItems = [
     label: "System Settings",
     to: "/settings",
     icon: Settings,
-    permission: ["system_settings.view"],
+    permission: ["system_setting.view"],
   },
 ];
