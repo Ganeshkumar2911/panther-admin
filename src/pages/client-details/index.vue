@@ -30,15 +30,31 @@
                 {{ user.is_active ? "Active" : "Inactive" }}
               </span>
               <span
+                v-if="user.state"
                 class="px-2 py-0.5 rounded-full text-[11px] font-medium bg-primary-blue/10 text-primary-blue"
               >
                 {{ user.state }}
               </span>
               <span
-                class="text-[11px] text-secondary-text uppercase tracking-widest"
+                v-if="user.role"
+                class="text-[11px] text-secondary-text uppercase tracking-widest font-semibold"
               >
                 {{ user.role }}
               </span>
+              <template v-if="Array.isArray(user.tags) && user.tags.length > 0">
+                <span
+                  v-for="tag in user.tags"
+                  :key="tag.id || tag.name"
+                  class="px-2 py-0.5 rounded-full text-[11px] font-semibold"
+                  :style="{
+                    backgroundColor: `${tag.color || '#3B82F6'}1A`,
+                    color: tag.color || '#3B82F6',
+                    border: `1px solid ${tag.color || '#3B82F6'}33`,
+                  }"
+                >
+                  {{ tag.name }}
+                </span>
+              </template>
             </div>
 
             <div class="flex items-center gap-6 mt-1 flex-wrap">
@@ -92,10 +108,10 @@
               KYC
             </p>
             <span
-              class="px-2 py-0.5 rounded-full text-[11px] font-medium"
+              class="px-2 py-0.5 rounded-full text-[11px] font-semibold capitalize border"
               :class="kycClass"
             >
-              {{ user.kyc_status }}
+              {{ kycStatus }}
             </span>
           </div>
           <div>
@@ -203,7 +219,48 @@
                 >
                   {{ item.label }}
                 </p>
+
+                <!-- Custom renderer for Account Numbers with badge chips -->
+                <div
+                  v-if="item.isAccounts"
+                  class="flex flex-wrap gap-1.5 pt-0.5"
+                >
+                  <template v-if="clientAccounts.length > 0">
+                    <span
+                      v-for="(acc, idx) in clientAccounts"
+                      :key="acc.account_number || acc.login || acc.id || acc || idx"
+                      @click="goToTradingAccount(acc.account_number || acc.login || acc.id || acc)"
+                      :title="`Trading Account: #${acc.account_number || acc.login || acc.id || acc}${acc.account_type ? ' (' + acc.account_type + ')' : ''} — Click to view`"
+                      class="font-mono text-[9px] px-1.5 py-0.5 rounded-md cursor-pointer hover:scale-105 active:scale-95 transition-all duration-150 inline-flex items-center font-semibold border shadow-2xs"
+                      :class="getAccountBadgeClass(acc)"
+                    >
+                      {{ acc.account_number || acc.login || acc.id || acc }}
+                    </span>
+                  </template>
+                  <span v-else class="text-secondary-text text-xs">—</span>
+                </div>
+
+                <!-- Custom renderer for Account Types with badge chips -->
+                <div
+                  v-else-if="item.isAccountTypes"
+                  class="flex flex-wrap gap-1.5 pt-0.5"
+                >
+                  <template v-if="accountTypesList.length > 0">
+                    <span
+                      v-for="t in accountTypesList"
+                      :key="t"
+                      class="text-[9px] px-1.5 py-0.5 rounded-md capitalize font-semibold border"
+                      :class="getAccountBadgeClass({ account_type: t })"
+                    >
+                      {{ String(t).replace(/_/g, " ") }}
+                    </span>
+                  </template>
+                  <span v-else class="text-secondary-text text-xs">—</span>
+                </div>
+
+                <!-- Default field value renderer -->
                 <p
+                  v-else
                   class="text-primary-text break-all flex items-center gap-1.5"
                 >
                   <span
@@ -250,22 +307,40 @@
       <!-- MAIN CONTENT (router-view) -->
       <main class="flex-1 overflow-y-auto no-scrollbar px-5 pb-5">
         <div
-          class="flex items-center gap-1 overflow-x-auto sticky top-0 z-20 bg-background border-b border-primary-border py-3"
+          class="flex items-center justify-between gap-3 overflow-x-auto sticky top-0 z-20 bg-background border-b border-primary-border py-3"
         >
-          <RouterLink
-            v-for="tab in tabs"
-            :key="tab.key"
-            :to="tab.to"
-            class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap"
-            :class="
-              isTabActive(tab)
-                ? 'bg-primary text-white shadow-xs'
-                : 'text-secondary-text hover:bg-card-background hover:text-primary-text'
-            "
-          >
-            <component :is="tab.icon" class="w-4 h-4" />
-            {{ tab.label }}
-          </RouterLink>
+          <div class="flex items-center gap-1 overflow-x-auto no-scrollbar">
+            <RouterLink
+              v-for="tab in tabs"
+              :key="tab.key"
+              :to="tab.to"
+              class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap"
+              :class="
+                isTabActive(tab)
+                  ? 'bg-primary text-white shadow-xs'
+                  : 'text-secondary-text hover:bg-card-background hover:text-primary-text'
+              "
+            >
+              <component :is="tab.icon" class="w-4 h-4" />
+              {{ tab.label }}
+            </RouterLink>
+          </div>
+
+          <!-- Global Refresh Button for all tabs -->
+          <div class="flex items-center shrink-0 pr-1">
+            <button
+              type="button"
+              @click="handleGlobalRefresh"
+              :disabled="isGlobalRefreshing"
+              class="border border-primary-border bg-card-background/40 hover:bg-card-background/70 rounded-xl p-2 text-secondary-text hover:text-primary-text transition-colors cursor-pointer shadow-2xs disabled:opacity-50 flex items-center gap-1.5"
+              title="Refresh Tab Data"
+            >
+              <RefreshCw
+                class="w-4 h-4"
+                :class="{ 'animate-spin text-primary': isGlobalRefreshing }"
+              />
+            </button>
+          </div>
         </div>
         <RouterView />
       </main>
@@ -290,7 +365,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { getFlagCode, cleanCountryLabel } from "@/utils/countries";
 import Tooltip from "@/components/common/Tooltip.vue";
 import UploadKycDocumentModal from "@/components/clientDetails/UploadKycDocumentModal.vue";
@@ -313,10 +388,54 @@ import {
   FileText,
   FileCheck,
   MessageSquare,
+  RefreshCw,
 } from "lucide-vue-next";
 const route = useRoute();
+const router = useRouter();
 const snackbar = useSnackbarStore();
 const clientDepthStore = useClientDepthStore();
+
+// ─── Account Badges Styling & Navigation ───────────────────────────────────────
+const chooseBgColor = {
+  live: "bg-primary-green/10 text-primary-green border border-primary-green/20 hover:bg-primary-green/20",
+  demo: "bg-primary-yellow/10 text-primary-yellow border border-primary-yellow/20 hover:bg-primary-yellow/20",
+  copy_trading: "bg-primary-red/10 text-primary-red border border-primary-red/20 hover:bg-primary-red/20",
+  copy: "bg-primary-red/10 text-primary-red border border-primary-red/20 hover:bg-primary-red/20",
+  pamm: "bg-primary-blue/10 text-primary-blue border border-primary-blue/20 hover:bg-primary-blue/20",
+};
+
+const getAccountBadgeClass = (acc) => {
+  if (!acc) return "bg-background text-secondary-text border-primary-border";
+  const type = typeof acc === "object" ? acc.account_type || acc.trading_type || acc.type : null;
+  if (type) {
+    const norm = String(type).toLowerCase().trim();
+    if (chooseBgColor[norm]) return chooseBgColor[norm];
+    if (norm.includes("copy")) return chooseBgColor.copy_trading;
+    if (norm.includes("demo")) return chooseBgColor.demo;
+    if (norm.includes("live") || norm.includes("real")) return chooseBgColor.live;
+  }
+
+  // Fallback to account number prefix if account_type is omitted
+  const accNum = String(
+    typeof acc === "object"
+      ? acc.account_number || acc.login || acc.id || ""
+      : acc
+  ).toUpperCase();
+
+  if (accNum.startsWith("CT")) return chooseBgColor.copy_trading;
+  if (accNum.startsWith("DM") || accNum.startsWith("DEMO")) return chooseBgColor.demo;
+  if (accNum.startsWith("LV") || accNum.startsWith("LIVE")) return chooseBgColor.live;
+
+  return "bg-card-background text-secondary-text border-primary-border hover:text-primary-text";
+};
+
+const goToTradingAccount = (accountNumber) => {
+  if (!accountNumber) return;
+  router.push({
+    path: "/trading-accounts",
+    query: { search: accountNumber },
+  });
+};
 
 // ─── Reactive Client User State ───────────────────────────────────────────────
 const localStoredUser = ref({});
@@ -350,9 +469,18 @@ const handleStorageChange = (e) => {
   }
 };
 
+const handleKycUpdated = (e) => {
+  const userId = route.params.id || user.value?.id;
+  if (userId) {
+    clientDepthStore.fetchClientKyc(userId, true);
+    clientDepthStore.fetchClientOverview(userId, true);
+  }
+};
+
 onMounted(() => {
   loadUserFromStorage();
   window.addEventListener("client-profile-updated", handleProfileUpdated);
+  window.addEventListener("client-kyc-updated", handleKycUpdated);
   window.addEventListener("storage", handleStorageChange);
 });
 
@@ -367,6 +495,7 @@ watch(
       }
       loadUserFromStorage();
       clientDepthStore.fetchClientOverview(newId);
+      clientDepthStore.fetchClientKyc(newId);
     }
   },
   { immediate: true },
@@ -374,6 +503,7 @@ watch(
 
 onUnmounted(() => {
   window.removeEventListener("client-profile-updated", handleProfileUpdated);
+  window.removeEventListener("client-kyc-updated", handleKycUpdated);
   window.removeEventListener("storage", handleStorageChange);
 });
 
@@ -393,11 +523,27 @@ const user = computed(() => {
       ? localStoredUser.value
       : {};
 
+  const kycStatusFromStore =
+    (String(clientDepthStore.kycData?.user_id) === String(routeId) ||
+     String(clientDepthStore.currentUserId) === String(routeId))
+      ? (clientDepthStore.kycData?.kyc_status || clientDepthStore.kycData?.status)
+      : null;
+
   return {
     ...stored,
     ...active,
     ...overviewUser,
+    ...(kycStatusFromStore ? { kyc_status: kycStatusFromStore } : {}),
   };
+});
+
+const kycStatus = computed(() => {
+  return (
+    clientDepthStore.kycData?.kyc_status ||
+    clientDepthStore.kycData?.status ||
+    user.value?.kyc_status ||
+    "Pending"
+  );
 });
 
 const initials = computed(() => {
@@ -417,10 +563,20 @@ const whitelabel = computed(() => {
 });
 
 const kycClass = computed(() => {
-  const s = user.value.kyc_status;
-  if (s === "approved") return "bg-primary-green/10 text-primary-green";
-  if (s === "pending") return "bg-primary-yellow/10 text-primary-yellow";
-  return "bg-primary-red/10 text-primary-red";
+  const s = String(kycStatus.value || "").toLowerCase();
+  if (s === "approved" || s === "verified")
+    return "bg-primary-green/10 text-primary-green border border-primary-green/20";
+  if (
+    s === "pending" ||
+    s === "in_progress" ||
+    s === "under review" ||
+    s === "waiting for verification" ||
+    s === "unverified"
+  )
+    return "bg-primary-yellow/10 text-primary-yellow border border-primary-yellow/20";
+  if (s === "rejected")
+    return "bg-primary-red/10 text-primary-red border border-primary-red/20";
+  return "bg-secondary-text/10 text-secondary-text border border-primary-border";
 });
 
 // ─── Quick Actions ────────────────────────────────────────────────────────────
@@ -481,6 +637,72 @@ const handleUploadDocSuccess = () => {
     clientDepthStore.fetchClientKyc(userId, true);
     clientDepthStore.fetchClientOverview(userId, true);
     clientDepthStore.fetchUserReferences(userId, true);
+  }
+};
+
+// ─── Current Active Tab Resolver ──────────────────────────────────────────────
+const currentActiveTab = computed(() => {
+  const currentPath = route.path.replace(/\/$/, "");
+  if (currentPath.endsWith("/profile") || route.name === "client-details-profile") return "profile";
+  if (currentPath.endsWith("/financials") || route.name === "client-details-financials") return "financials";
+  if (currentPath.endsWith("/marketing") || route.name === "client-details-marketing") return "marketing";
+  if (currentPath.endsWith("/trading") || route.name === "client-details-trading") return "trading";
+  if (currentPath.endsWith("/crm") || route.name === "client-details-crm") return "crm";
+  return "overview";
+});
+
+// ─── Global Tab Refresh Action (Tab-Specific) ──────────────────────────────────
+const isManualRefreshing = ref(false);
+
+const isGlobalRefreshing = computed(() => {
+  if (isManualRefreshing.value) return true;
+  if (currentActiveTab.value === "overview") {
+    return clientDepthStore.isLoading;
+  }
+  if (currentActiveTab.value === "profile") {
+    return clientDepthStore.kycLoading || clientDepthStore.userReferencesLoading;
+  }
+  if (currentActiveTab.value === "financials") {
+    return clientDepthStore.userChartsLoading || clientDepthStore.accountDetailsLoading;
+  }
+  return false;
+});
+
+const handleGlobalRefresh = async () => {
+  const userId = route.params.id || user.value?.id;
+  if (!userId) return;
+  const activeTab = currentActiveTab.value;
+  isManualRefreshing.value = true;
+  try {
+    // Notify active child component via scoped event
+    window.dispatchEvent(
+      new CustomEvent("refresh-client-tab-data", {
+        detail: { tab: activeTab, userId },
+      })
+    );
+
+    // Call only the API relevant to the active tab
+    if (activeTab === "overview") {
+      await clientDepthStore.fetchClientOverview(userId, true);
+    } else if (activeTab === "profile") {
+      await Promise.allSettled([
+        clientDepthStore.fetchClientKyc(userId, true),
+        clientDepthStore.fetchUserReferences(userId, true),
+        clientDepthStore.fetchClientOverview(userId, true),
+      ]);
+    } else if (activeTab === "financials") {
+      await Promise.allSettled([
+        clientDepthStore.fetchUserCharts(userId, {}, true),
+        clientDepthStore.fetchAccountDetails(userId, {}, true),
+      ]);
+    }
+
+    const tabLabel = tabs.value.find((t) => t.key === activeTab)?.label || "Tab";
+    snackbar.show(`${tabLabel} refreshed successfully!`, "success");
+  } catch (err) {
+    console.error("Refresh tab data error:", err);
+  } finally {
+    isManualRefreshing.value = false;
   }
 };
 
@@ -549,6 +771,69 @@ function toggleSection(key) {
   expanded.value[key] = !expanded.value[key];
 }
 
+const clientAccounts = computed(() => {
+  // 1. Array of objects in user.value.accounts
+  if (Array.isArray(user.value.accounts) && user.value.accounts.length > 0) {
+    return user.value.accounts;
+  }
+  // 2. Overview data from store
+  if (
+    Array.isArray(clientDepthStore.overviewData?.user?.accounts) &&
+    clientDepthStore.overviewData.user.accounts.length > 0
+  ) {
+    return clientDepthStore.overviewData.user.accounts;
+  }
+  if (
+    Array.isArray(clientDepthStore.overviewData?.accounts) &&
+    clientDepthStore.overviewData.accounts.length > 0
+  ) {
+    return clientDepthStore.overviewData.accounts;
+  }
+  // 3. Array of account numbers in user.value.account_numbers
+  if (
+    Array.isArray(user.value.account_numbers) &&
+    user.value.account_numbers.length > 0
+  ) {
+    const accTypes = user.value.account_types || [];
+    return user.value.account_numbers.map((num, idx) => {
+      if (typeof num === "object" && num !== null) return num;
+      return {
+        account_number: num,
+        account_type: accTypes[idx] || null,
+      };
+    });
+  }
+  // 4. Single account number
+  if (user.value.account_number) {
+    return [
+      {
+        account_number: user.value.account_number,
+        account_type: user.value.account_type || null,
+      },
+    ];
+  }
+  return [];
+});
+
+const accountTypesList = computed(() => {
+  if (Array.isArray(user.value.accounts) && user.value.accounts.length > 0) {
+    return [
+      ...new Set(
+        user.value.accounts
+          .map((a) => a.account_type || a.type)
+          .filter(Boolean)
+      ),
+    ];
+  }
+  if (Array.isArray(user.value.account_types) && user.value.account_types.length > 0) {
+    return [...new Set(user.value.account_types.filter(Boolean))];
+  }
+  if (user.value.account_type) {
+    return [user.value.account_type];
+  }
+  return [];
+});
+
 const sidebarSections = computed(() => [
   {
     key: "personal",
@@ -558,11 +843,23 @@ const sidebarSections = computed(() => [
     fields: [
       { label: "Name", value: () => user.value.name },
       { label: "Email", value: () => user.value.email },
-      { label: "Phone", value: () => user.value.phone_number },
-      { label: "DOB", value: () => user.value.date_of_birth },
+      { label: "Phone", value: () => user.value.phone_number || user.value.phone },
+      { label: "DOB", value: () => user.value.date_of_birth || user.value.dob },
       { label: "Country", value: () => user.value.country },
       { label: "Role", value: () => user.value.role },
       { label: "State", value: () => user.value.state },
+      {
+        label: "Staff Assigned",
+        value: () =>
+          user.value.staff_assigned?.name ||
+          (typeof user.value.staff_assigned === "string" ? user.value.staff_assigned : null) ||
+          user.value.assigned_staff?.name ||
+          null,
+      },
+      {
+        label: "Lead ID",
+        value: () => (user.value.lead_id ? `#${user.value.lead_id}` : null),
+      },
       {
         label: "Client ID",
         value: () => (user.value.id ? `#${user.value.id}` : null),
@@ -575,15 +872,31 @@ const sidebarSections = computed(() => [
     icon: Info,
     isInfo: true,
     fields: [
-      { label: "KYC Status", value: () => user.value.kyc_status },
+      { label: "KYC Status", value: () => kycStatus.value || user.value.kyc_status },
       { label: "KYC Verified At", value: () => user.value.kyc_verified_at },
-      { label: "KYC Reject Reason", value: () => user.value.kyc_reject_reason },
+      {
+        label: "KYC Reject Reason",
+        value: () =>
+          clientDepthStore.kycData?.kyc_reject_reason ||
+          user.value.kyc_reject_reason,
+      },
       {
         label: "Verification Channel",
         value: () => user.value.verification_channel,
       },
-      { label: "Docs Uploaded", value: () => user.value.docs_uploaded },
-      { label: "Doc Approved", value: () => user.value.doc_approved },
+      {
+        label: "Docs Uploaded",
+        value: () =>
+          clientDepthStore.kycData?.docs_uploaded != null
+            ? String(clientDepthStore.kycData.docs_uploaded)
+            : (user.value.docs_uploaded != null ? String(user.value.docs_uploaded) : null),
+      },
+      {
+        label: "Doc Approved",
+        value: () =>
+          clientDepthStore.kycData?.doc_approved ||
+          user.value.doc_approved,
+      },
       {
         label: "Sumsub Applicant ID",
         value: () => user.value.sumsub_applicant_id,
@@ -596,10 +909,11 @@ const sidebarSections = computed(() => [
     icon: MapPin,
     isInfo: true,
     fields: [
-      { label: "Address", value: () => user.value.address },
+      { label: "Address", value: () => user.value.address || user.value.residential_address },
       { label: "City", value: () => user.value.city },
+      { label: "State", value: () => user.value.state },
       { label: "Country", value: () => user.value.country },
-      { label: "Zip Code", value: () => user.value.zip_code },
+      { label: "Zip Code", value: () => user.value.zip_code || user.value.postal_code || user.value.zip },
     ],
   },
   {
@@ -608,21 +922,40 @@ const sidebarSections = computed(() => [
     icon: MoreHorizontal,
     isInfo: true,
     fields: [
-      { label: "IB Name", value: () => user.value.ib_name },
-      { label: "IB Email", value: () => user.value.ib_email },
-      { label: "IB Referral Code", value: () => user.value.ib_referral_code },
+      { label: "IB Name", value: () => user.value.ib_name || user.value.ib?.name },
+      { label: "IB Email", value: () => user.value.ib_email || user.value.ib?.email },
+      { label: "IB Referral Code", value: () => user.value.ib_referral_code || user.value.ib_id },
       { label: "Tracking ID", value: () => user.value.tracking_id },
       {
+        label: "Referral Link",
+        value: () => user.value.referral_link_name || user.value.referral_link_code,
+      },
+      {
         label: "Account Numbers",
-        value: () => user.value.account_numbers?.join(", "),
+        isAccounts: true,
+        value: () => {
+          if (clientAccounts.value.length > 0) {
+            return clientAccounts.value
+              .map((a) => a.account_number || a.login || a.id || a)
+              .filter(Boolean)
+              .join(", ");
+          }
+          return null;
+        },
       },
       {
         label: "Account Types",
-        value: () => user.value.account_types?.join(", "),
+        isAccountTypes: true,
+        value: () => accountTypesList.value.join(", "),
       },
       {
         label: "Total Accounts",
-        value: () => user.value.total_accounts?.toString(),
+        value: () => {
+          if (user.value.total_accounts != null) return String(user.value.total_accounts);
+          if (clientAccounts.value.length > 0) return String(clientAccounts.value.length);
+          if (Array.isArray(user.value.accounts)) return String(user.value.accounts.length);
+          return null;
+        },
       },
       {
         label: "Is IB",

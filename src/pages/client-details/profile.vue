@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-5 pt-4 pb-12">
-    <!-- ─── TOP HEADER & ACTIONS ─────────────────────────────────── -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <!-- ─── TOP HEADER ───────────────────────────────────────────── -->
+    <!-- <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <div>
         <h3 class="text-base sm:text-lg font-bold text-primary-text">
           Profile & KYC Verification
@@ -10,26 +10,101 @@
           Manage client personal details, identity verification status, documents, and compliance remarks.
         </p>
       </div>
+    </div> -->
 
-      <!-- Top Right Refresh Button -->
-      <div class="flex items-center gap-2 self-start sm:self-auto">
-        <button
-          type="button"
-          @click="refreshKycStatus"
-          :disabled="clientDepthStore.kycLoading || clientDepthStore.userReferencesLoading"
-          class="border border-primary-border bg-card-background/40 hover:bg-card-background/70 rounded-xl p-2.5 text-secondary-text hover:text-primary-text transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-2"
-          title="Refresh Profile & KYC Data"
+    <!-- ─── SKELETON LOADING STATE ─────────────────────────────────── -->
+    <div
+      v-if="isProfileLoading"
+      class="grid grid-cols-1 xl:grid-cols-2 gap-3 items-stretch animate-pulse"
+    >
+      <!-- Left Column Skeleton -->
+      <div class="flex flex-col gap-3 h-full">
+        <!-- 1. Profile Information Skeleton Card -->
+        <div
+          class="bg-card-background/40 border border-primary-border rounded-xl p-5 sm:p-6 space-y-5"
         >
-          <RefreshCw
-            class="w-4 h-4"
-            :class="{ 'animate-spin text-primary': clientDepthStore.kycLoading || clientDepthStore.userReferencesLoading }"
-          />
-        </button>
+          <div
+            class="flex items-start justify-between gap-3 pb-5 border-b border-primary-border/60"
+          >
+            <div class="space-y-2">
+              <div class="h-4 w-36 bg-primary-border/70 rounded" />
+              <div class="h-3 w-56 bg-primary-border/40 rounded" />
+            </div>
+            <div class="h-8 w-24 bg-primary-border/50 rounded-xl" />
+          </div>
+          <div class="flex flex-col sm:flex-row items-start gap-4 pt-2">
+            <div
+              class="w-24 h-24 rounded-full bg-primary-border/50 shrink-0 self-center sm:self-start"
+            />
+            <div class="flex-1 w-full space-y-3">
+              <div class="h-3 w-32 bg-primary-border/60 rounded" />
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div
+                  v-for="i in 6"
+                  :key="i"
+                  class="p-2.5 bg-background/50 rounded-lg space-y-1.5"
+                >
+                  <div class="h-2.5 w-16 bg-primary-border/40 rounded" />
+                  <div class="h-3.5 w-24 bg-primary-border/70 rounded" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Address Skeleton Card -->
+        <div
+          class="bg-card-background/40 border border-primary-border rounded-xl p-5 sm:p-6 space-y-4"
+        >
+          <div class="space-y-2 pb-4 border-b border-primary-border/60">
+            <div class="h-4 w-28 bg-primary-border/70 rounded" />
+            <div class="h-3 w-48 bg-primary-border/40 rounded" />
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div
+              v-for="i in 4"
+              :key="i"
+              class="p-2.5 bg-background/50 rounded-lg space-y-1.5"
+            >
+              <div class="h-2.5 w-14 bg-primary-border/40 rounded" />
+              <div class="h-3.5 w-20 bg-primary-border/70 rounded" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column Skeleton (KYC & Documents) -->
+      <div class="flex flex-col gap-3 h-full">
+        <div
+          class="bg-card-background/40 border border-primary-border rounded-xl p-5 sm:p-6 space-y-4 flex-1"
+        >
+          <div
+            class="flex items-start justify-between gap-3 pb-4 border-b border-primary-border/60"
+          >
+            <div class="space-y-2">
+              <div class="h-4 w-40 bg-primary-border/70 rounded" />
+              <div class="h-3 w-52 bg-primary-border/40 rounded" />
+            </div>
+            <div class="h-8 w-28 bg-primary-border/50 rounded-xl" />
+          </div>
+          <div class="p-4 bg-background/60 rounded-xl space-y-3">
+            <div class="h-3.5 w-28 bg-primary-border/60 rounded" />
+            <div class="h-6 w-36 bg-primary-border/70 rounded-full" />
+          </div>
+          <div class="space-y-3 pt-2">
+            <div class="h-3.5 w-32 bg-primary-border/60 rounded" />
+            <div
+              v-for="i in 3"
+              :key="i"
+              class="h-14 bg-background/50 border border-primary-border/50 rounded-xl"
+            />
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- ─── MAIN 2-COLUMN GRID ───────────────────────────────────── -->
-    <div class="grid grid-cols-1 xl:grid-cols-2 gap-3 items-stretch">
+    <div v-else class="grid grid-cols-1 xl:grid-cols-2 gap-3 items-stretch">
       <!-- ─── LEFT COLUMN ─────────────────────────────────────────── -->
       <div class="flex flex-col gap-3 h-full">
         <!-- 1. Profile Information Card -->
@@ -120,7 +195,7 @@
                     Gender
                   </p>
                   <p class="font-semibold text-primary-text text-xs sm:text-[12px]">
-                    {{ user.gender || "Male" }}
+                    {{ user.gender || "—" }}
                   </p>
                 </div>
               </div>
@@ -149,10 +224,10 @@
                   </p>
                   <div class="flex items-center gap-2 flex-wrap">
                     <span class="font-semibold text-primary-text text-xs sm:text-[12px]">
-                      {{ user.phone_number || "—" }}
+                      {{ user.phone_number || user.phone || "—" }}
                     </span>
                     <span
-                      v-if="user.phone_number"
+                      v-if="user.phone_number || user.phone"
                       class="bg-primary-green/10 text-primary-green text-[11px] font-semibold px-2 py-0.5 rounded-md inline-flex items-center gap-1 border border-primary-green/20"
                     >
                       <Check class="w-3 h-3 stroke-[3]" />
@@ -193,15 +268,15 @@
                   </p>
                   <p class="font-semibold text-primary-text text-xs sm:text-[12px] flex items-center gap-1.5">
                     <span
-                      v-if="user.country && getFlagCode(user.country)"
+                      v-if="(user.nationality || user.country) && getFlagCode(user.nationality || user.country)"
                       :class="[
                         'fi',
-                        `fi-${getFlagCode(user.country)}`,
+                        `fi-${getFlagCode(user.nationality || user.country)}`,
                         'fis',
                         'w-4 h-3 flex-shrink-0',
                       ]"
                     ></span>
-                    <span>{{ cleanCountryLabel(user.country) || "—" }}</span>
+                    <span>{{ cleanCountryLabel(user.nationality || user.country) || "—" }}</span>
                   </p>
                 </div>
                 <div>
@@ -214,14 +289,14 @@
                 </div>
               </div>
 
-              <!-- Row 4: Residential Address, City, Postal Code -->
+              <!-- Row 4: Residential Address, City / State, Postal Code -->
               <div class="flex flex-col sm:flex-row justify-between gap-4 pt-4">
                 <div class="flex-1">
                   <p class="text-[11px] sm:text-xs text-secondary-text font-medium mb-1">
                     Residential Address
                   </p>
                   <p class="font-semibold text-primary-text text-xs sm:text-[12px]">
-                    {{ user.address || "—" }}
+                    {{ user.address || user.residential_address || "—" }}
                   </p>
                 </div>
                 <div>
@@ -229,7 +304,7 @@
                     City / State
                   </p>
                   <p class="font-semibold text-primary-text text-xs sm:text-[12px]">
-                    {{ user.city || user.state || "—" }}
+                    {{ [user.city, user.state].filter(Boolean).join(", ") || "—" }}
                   </p>
                 </div>
                 <div>
@@ -237,7 +312,7 @@
                     Postal Code
                   </p>
                   <p class="font-semibold text-primary-text text-xs sm:text-[12px]">
-                    {{ user.postal_code || user.zip || "—" }}
+                    {{ user.zip_code || user.postal_code || user.zip || "—" }}
                   </p>
                 </div>
               </div>
@@ -275,16 +350,16 @@
               </Tooltip>
 
               <!-- When KYC is Rejected: Show Rejected Badge -->
-              <Tooltip v-else-if="isKycRejected" :text="kycData?.kyc_reject_reason || 'KYC is rejected'" position="top">
+              <Tooltip v-else-if="isKycRejected" text="Rejected" position="top">
                 <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-primary-red/10 text-primary-red border border-primary-red/20">
                   <AlertCircle class="w-3.5 h-3.5" />
                   <span>Rejected</span>
                 </div>
               </Tooltip>
 
-              <!-- When KYC is Pending: Show Super Admin Approve/Reject Button -->
+              <!-- When KYC is Pending & Docs are Uploaded: Show Super Admin Approve/Reject Button -->
               <button
-                v-else-if="isSuperAdmin"
+                v-else-if="isSuperAdmin && isDocUploaded"
                 type="button"
                 @click="openApprovalModal('approve')"
                 class="bg-primary hover:bg-primary-hover text-white rounded-xl px-3.5 py-1.5 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all"
@@ -463,7 +538,7 @@
                           <!-- Case B: Document is Rejected (Icon Badge) -->
                           <Tooltip
                             v-else-if="String(doc.verification_status).toLowerCase() === 'rejected'"
-                            :text="doc.remarks || 'Rejected'"
+                            text="Rejected"
                             position="top"
                           >
                             <div class="w-7 h-7 rounded-lg border border-primary-red/30 bg-primary-red/10 text-primary-red flex items-center justify-center">
@@ -545,8 +620,8 @@
       @success="handleProfileEditSuccess"
     />
 
-    <!-- 2. Upload / Edit KYC Document Modal -->
-    <UploadKycDocumentModal
+    <!-- 2. Upload / Edit KYC Verification Modal (Center Popup) -->
+    <UploadKycVerificationModal
       :open="uploadDocModalOpen"
       :client="clientForEdit"
       :existingDoc="selectedDoc"
@@ -579,7 +654,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useClientDepthStore } from "@/stores/clientDepth/clientDepth";
 import { useProfileStore } from "@/stores/profile/profile";
@@ -587,7 +662,7 @@ import { getFlagCode, cleanCountryLabel } from "@/utils/countries";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
 import Tooltip from "@/components/common/Tooltip.vue";
 import EditClientProfileDrawer from "@/components/clientDetails/EditClientProfileDrawer.vue";
-import UploadKycDocumentModal from "@/components/clientDetails/UploadKycDocumentModal.vue";
+import UploadKycVerificationModal from "@/components/clientDetails/UploadKycVerificationModal.vue";
 import ViewKycDocumentModal from "@/components/clientDetails/ViewKycDocumentModal.vue";
 import ApproveRejectKycModal from "@/components/clientDetails/ApproveRejectKycModal.vue";
 import KycNotesTable from "@/components/clientDetails/KycNotesTable.vue";
@@ -654,11 +729,17 @@ const user = computed(() => {
     (String(localStoredUser.value?.id) === String(routeId))
       ? localStoredUser.value
       : {};
+  const kycStatusFromStore =
+    (String(clientDepthStore.kycData?.user_id) === String(routeId) ||
+     String(clientDepthStore.currentUserId) === String(routeId))
+      ? (clientDepthStore.kycData?.kyc_status || clientDepthStore.kycData?.status)
+      : null;
 
   return {
     ...stored,
     ...active,
     ...overviewUser,
+    ...(kycStatusFromStore ? { kyc_status: kycStatusFromStore } : {}),
   };
 });
 
@@ -667,6 +748,15 @@ const clientForEdit = computed(() => {
     ...user.value,
     id: route.params.id || user.value?.id,
   };
+});
+
+const isRefreshing = ref(false);
+
+const isProfileLoading = computed(() => {
+  return (
+    isRefreshing.value ||
+    (!clientDepthStore.kycFetched && clientDepthStore.kycLoading)
+  );
 });
 
 const loadKyc = (force = false) => {
@@ -678,12 +768,32 @@ const loadKyc = (force = false) => {
   }
 };
 
+const handleTabRefresh = (e) => {
+  if (e?.detail?.tab && e.detail.tab !== "profile") return;
+  isRefreshing.value = true;
+  loadKyc(true);
+};
+
+watch(
+  () => [clientDepthStore.kycLoading, clientDepthStore.userReferencesLoading],
+  ([kLoading, rLoading]) => {
+    if (!kLoading && !rLoading && isRefreshing.value) {
+      isRefreshing.value = false;
+    }
+  }
+);
+
 onMounted(() => {
   loadClientFromStorage();
   loadKyc();
   if (!profileStore.user) {
     profileStore.fetchUserProfile().catch(() => {});
   }
+  window.addEventListener("refresh-client-tab-data", handleTabRefresh);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("refresh-client-tab-data", handleTabRefresh);
 });
 
 watch(
@@ -783,6 +893,16 @@ const kycStatus = computed(() => {
     kycData.value?.status ||
     user.value?.kyc_status ||
     "Pending"
+  );
+});
+
+const isDocUploaded = computed(() => {
+  return !!(
+    kycData.value?.docs_uploaded ||
+    kycData.value?.front ||
+    kycData.value?.doc_path?.front ||
+    kycData.value?.front_url ||
+    kycData.value?.file_url
   );
 });
 
@@ -951,7 +1071,9 @@ const handleUploadDocSuccess = () => {
   const userId = route.params.id || user.value?.id;
   if (userId) {
     clientDepthStore.fetchClientKyc(userId, true);
+    clientDepthStore.fetchClientOverview(userId, true);
   }
+  window.dispatchEvent(new CustomEvent("client-kyc-updated", { detail: { userId } }));
 };
 
 // ─── Super Admin Document Approval Modal Handlers ───────────────────────────
@@ -963,12 +1085,13 @@ const openApprovalModal = (action = "approve") => {
   approveRejectModalOpen.value = true;
 };
 
-const handleApprovalSuccess = () => {
+const handleApprovalSuccess = (res) => {
   const userId = route.params.id || user.value?.id;
   if (userId) {
     clientDepthStore.fetchClientKyc(userId, true);
     clientDepthStore.fetchClientOverview(userId, true);
   }
+  window.dispatchEvent(new CustomEvent("client-kyc-updated", { detail: { userId, res } }));
 };
 
 const refreshKycStatus = () => {

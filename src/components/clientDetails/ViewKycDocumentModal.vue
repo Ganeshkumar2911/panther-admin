@@ -150,6 +150,38 @@
                 </p>
               </div>
             </div>
+
+            <!-- Remarks / Verification Feedback Card -->
+            <div
+              class="p-4 rounded-xl border space-y-1.5 transition-colors"
+              :class="remarksCardClasses.container"
+            >
+              <div class="flex items-center justify-between">
+                <span
+                  class="text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5"
+                  :class="remarksCardClasses.title"
+                >
+                  <component :is="remarksCardClasses.icon" class="w-3.5 h-3.5" />
+                  {{ remarksCardClasses.label }}
+                </span>
+                <button
+                  v-if="rawRemarksText"
+                  type="button"
+                  @click="copyRemarks"
+                  class="text-[11px] hover:underline flex items-center gap-1 cursor-pointer font-medium opacity-80 hover:opacity-100"
+                  :class="remarksCardClasses.title"
+                >
+                  <Copy class="w-3 h-3" />
+                  Copy
+                </button>
+              </div>
+              <p
+                class="text-xs font-medium leading-relaxed whitespace-pre-wrap"
+                :class="remarksCardClasses.text"
+              >
+                {{ displayRemarks }}
+              </p>
+            </div>
           </div>
 
           <!-- Footer -->
@@ -194,7 +226,19 @@
 
 <script setup>
 import { ref, computed } from "vue";
-import { X, Pencil, ExternalLink, FileCheck2, FileImage, CheckCircle2, XCircle } from "lucide-vue-next";
+import {
+  X,
+  Pencil,
+  ExternalLink,
+  FileCheck2,
+  FileImage,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+  Info,
+  Copy,
+} from "lucide-vue-next";
+import { useSnackbarStore } from "@/stores/snackbar/snackbar";
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -205,6 +249,7 @@ const props = defineProps({
 
 const emit = defineEmits(["close", "edit", "approve", "reject"]);
 
+const snackbar = useSnackbarStore();
 const activeSide = ref("front");
 
 const currentImageSrc = computed(() => {
@@ -226,6 +271,69 @@ const currentImageSrc = computed(() => {
     ""
   );
 });
+
+const rawRemarksText = computed(() => {
+  return (
+    props.doc?.reject_reason ||
+    props.doc?.kyc_reject_reason ||
+    props.doc?.remarks ||
+    props.doc?.description ||
+    ""
+  );
+});
+
+const isApproved = computed(() => {
+  const s = String(props.doc?.verification_status || props.status || "").toLowerCase();
+  return s === "approved" || s === "verified";
+});
+
+const isRejected = computed(() => {
+  const s = String(props.doc?.verification_status || props.status || "").toLowerCase();
+  return s === "rejected";
+});
+
+const displayRemarks = computed(() => {
+  if (rawRemarksText.value) return rawRemarksText.value;
+  if (isRejected.value)
+    return "Document has been marked as rejected. Please re-upload a clear and valid document.";
+  if (isApproved.value)
+    return "Document identity verification has been completed and approved.";
+  return "Document is currently under review or waiting for verification.";
+});
+
+const remarksCardClasses = computed(() => {
+  if (isRejected.value) {
+    return {
+      container: "bg-primary-red/10 border-primary-red/25",
+      title: "text-primary-red",
+      text: "text-primary-red/90",
+      icon: AlertCircle,
+      label: "Rejection Remarks / Reason",
+    };
+  }
+  if (isApproved.value) {
+    return {
+      container: "bg-primary-green/10 border-primary-green/25",
+      title: "text-primary-green",
+      text: "text-primary-green/90",
+      icon: CheckCircle2,
+      label: "Verification Status & Remarks",
+    };
+  }
+  return {
+    container: "bg-background/80 border-primary-border",
+    title: "text-secondary-text",
+    text: "text-primary-text",
+    icon: Info,
+    label: "Verification Notes",
+  };
+});
+
+const copyRemarks = () => {
+  if (!rawRemarksText.value) return;
+  navigator.clipboard.writeText(rawRemarksText.value);
+  snackbar.show("Copied remarks to clipboard!", "success");
+};
 
 const formatDocType = (type) => {
   if (!type) return "National ID Card";
@@ -258,7 +366,12 @@ const getStatusBadgeClass = (s) => {
   const status = String(s || "").toLowerCase();
   if (status === "approved" || status === "verified")
     return "bg-primary-green/10 text-primary-green border border-primary-green/20";
-  if (status === "pending" || status === "in_progress" || status === "under review" || status === "waiting for verification")
+  if (
+    status === "pending" ||
+    status === "in_progress" ||
+    status === "under review" ||
+    status === "waiting for verification"
+  )
     return "bg-primary-yellow/10 text-primary-yellow border border-primary-yellow/20";
   if (status === "rejected")
     return "bg-primary-red/10 text-primary-red border border-primary-red/20";
@@ -268,7 +381,8 @@ const getStatusBadgeClass = (s) => {
 const getStatusTextColor = (s) => {
   const status = String(s || "").toLowerCase();
   if (status === "approved" || status === "verified") return "text-primary-green";
-  if (status === "pending" || status === "in_progress" || status === "under review") return "text-primary-yellow";
+  if (status === "pending" || status === "in_progress" || status === "under review")
+    return "text-primary-yellow";
   if (status === "rejected") return "text-primary-red";
   return "text-secondary-text";
 };

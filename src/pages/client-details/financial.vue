@@ -1,37 +1,23 @@
 <template>
   <div class="bg-background space-y-6 pt-4 pb-8 overflow-y-auto no-scrollbar">
     <!-- ─── 1. FINANCIAL SUMMARY HEADER & CONTROLS ───────────────── -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-      <div>
+    <div class="flex flex-col sm:flex-row sm:items-center justify-end gap-3">
+      <!-- <div>
         <h3 class="text-base sm:text-lg font-bold text-primary-text">
           Financial Summary
         </h3>
         <p class="text-xs text-secondary-text mt-0.5">
           Overview of client's financial activity across all trading accounts.
         </p>
-      </div>
+      </div> -->
 
-      <!-- Period Filter & Refresh Action (Moved to Top Summary Row) -->
-      <div class="flex items-center gap-2 self-start sm:self-auto">
-        <!-- Period Dropdown -->
-        <div class="w-32 sm:w-36">
-          <BaseSelect
-            v-model="selectedPeriod"
-            :options="periodOptions"
-            @update:model-value="handlePeriodChange"
-          />
-        </div>
-
-        <!-- Refresh Button -->
-        <button
-          type="button"
-          @click="refreshChartsData"
-          :disabled="isChartsRefreshing || clientDepthStore.userChartsLoading"
-          class="border border-primary-border bg-card-background/40 hover:bg-card-background/70 rounded-xl p-2.5 text-secondary-text hover:text-primary-text transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-2"
-          title="Refresh Financial Summary & Charts"
-        >
-          <RefreshCw class="w-4 h-4" :class="{ 'animate-spin text-primary': isChartsRefreshing || clientDepthStore.userChartsLoading }" />
-        </button>
+      <!-- Period Filter (Moved to Top Summary Row) -->
+      <div class="w-32 sm:w-36 self-start sm:self-auto">
+        <BaseSelect
+          v-model="selectedPeriod"
+          :options="periodOptions"
+          @update:model-value="handlePeriodChange"
+        />
       </div>
     </div>
 
@@ -378,7 +364,12 @@
 
           <!-- Accounts Table Scrollable Container with Fixed Max-Height -->
           <div class="overflow-y-auto overflow-x-auto no-scrollbar max-h-72 flex-1 border border-primary-border rounded-xl mt-3">
-            <table v-if="tradingAccounts.length > 0" class="w-full text-left text-xs border-collapse">
+            <!-- Skeletons for Accounts Table -->
+            <div v-if="isTablesLoading" class="p-4 space-y-2.5 animate-pulse">
+              <div v-for="i in 4" :key="i" class="h-9 bg-primary-border/40 rounded-lg w-full" />
+            </div>
+
+            <table v-else-if="tradingAccounts.length > 0" class="w-full text-left text-xs border-collapse">
               <thead class="sticky top-0 bg-background/80 backdrop-blur-sm z-10 border-b border-primary-border">
                 <tr class="text-[11px] font-bold text-secondary-text uppercase tracking-wider">
                   <th class="py-2.5 px-3">Account Number</th>
@@ -468,7 +459,12 @@
 
           <!-- Transactions Table Scrollable Container with Fixed Max-Height -->
           <div class="overflow-y-auto overflow-x-auto no-scrollbar max-h-72 flex-1 border border-primary-border rounded-xl mt-3">
-            <table v-if="recentTransactions.length > 0" class="w-full text-left text-xs border-collapse">
+            <!-- Skeletons for Transactions Table -->
+            <div v-if="isTablesLoading" class="p-4 space-y-2.5 animate-pulse">
+              <div v-for="i in 4" :key="i" class="h-9 bg-primary-border/40 rounded-lg w-full" />
+            </div>
+
+            <table v-else-if="recentTransactions.length > 0" class="w-full text-left text-xs border-collapse">
               <thead class="sticky top-0 bg-background/80 backdrop-blur-sm z-10 border-b border-primary-border">
                 <tr class="text-[11px] font-bold text-secondary-text uppercase tracking-wider">
                   <th class="py-2.5 px-3">Date &amp; Time</th>
@@ -536,7 +532,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useClientDepthStore } from "@/stores/clientDepth/clientDepth";
 import BaseSelect from "@/components/common/BaseSelect.vue";
@@ -616,7 +612,8 @@ const loadFinancialData = (force = false) => {
 };
 
 // ─── Refresh Financial Summary & Charts Data ───────────────────────────────
-const refreshChartsData = () => {
+const refreshChartsData = (e) => {
+  if (e?.detail?.tab && e.detail.tab !== "financials") return;
   const userId = route.params.id;
   if (!userId) return;
   isChartsRefreshing.value = true;
@@ -628,11 +625,11 @@ const refreshChartsData = () => {
   clientDepthStore.fetchAccountDetails(userId, {}, true);
 };
 
-// Auto-reset isChartsRefreshing once userChartsLoading finishes
+// Auto-reset isChartsRefreshing once both userChartsLoading and accountDetailsLoading finish
 watch(
-  () => clientDepthStore.userChartsLoading,
-  (loading) => {
-    if (!loading) {
+  () => [clientDepthStore.userChartsLoading, clientDepthStore.accountDetailsLoading],
+  ([chartsLoading, accLoading]) => {
+    if (!chartsLoading && !accLoading) {
       isChartsRefreshing.value = false;
     }
   }
@@ -640,6 +637,11 @@ watch(
 
 onMounted(() => {
   loadFinancialData();
+  window.addEventListener("refresh-client-tab-data", refreshChartsData);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("refresh-client-tab-data", refreshChartsData);
 });
 
 watch(
@@ -666,9 +668,11 @@ const isChartsLoading = computed(() => {
   );
 });
 
-const isTablesInitialLoading = computed(() => {
+const isTablesLoading = computed(() => {
   return (
-    clientDepthStore.accountDetailsLoading && !clientDepthStore.accountDetailsFetched
+    isChartsRefreshing.value ||
+    clientDepthStore.accountDetailsLoading ||
+    !clientDepthStore.accountDetailsFetched
   );
 });
 
@@ -1016,9 +1020,9 @@ const formatAccountType = (type) => {
 const getAccountTypeBadgeClass = (type) => {
   const t = String(type || "").toLowerCase();
   if (t === "live" || t === "real") return "bg-primary-green/10 text-primary-green border border-primary-green/20";
-  if (t === "demo") return "bg-primary-blue/10 text-primary-blue border border-primary-blue/20";
-  if (t.includes("copy")) return "bg-purple-500/10 text-purple-400 border border-purple-500/20";
-  if (t === "pamm") return "bg-primary-yellow/10 text-primary-yellow border border-primary-yellow/20";
+  if (t === "demo") return "bg-primary-yellow/10 text-primary-yellow border border-primary-yellow/20";
+  if (t.includes("copy")) return "bg-primary-red/10 text-primary-red border border-primary-red/20";
+  if (t === "pamm") return "bg-primary-blue/10 text-primary-blue border border-primary-blue/20";
   return "bg-secondary-text/10 text-secondary-text border border-secondary-text/20";
 };
 

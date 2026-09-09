@@ -66,6 +66,13 @@ export const useClientDepthStore = defineStore("clientDepth", () => {
       overviewData.value = res?.data || res || null;
       loading.value = false;
       isFetched.value = true;
+      const fetchedUser = overviewData.value?.user || (overviewData.value?.id ? overviewData.value : null);
+      if (fetchedUser) {
+        activeClient.value = { ...(activeClient.value || {}), ...fetchedUser };
+        try {
+          localStorage.setItem("active_client", JSON.stringify(activeClient.value));
+        } catch { }
+      }
     };
 
     const failureHandler = (err) => {
@@ -108,6 +115,13 @@ export const useClientDepthStore = defineStore("clientDepth", () => {
       kycData.value = res?.data || res || null;
       kycLoading.value = false;
       kycFetched.value = true;
+      const status = kycData.value?.kyc_status || kycData.value?.status;
+      if (status && activeClient.value) {
+        activeClient.value = { ...activeClient.value, kyc_status: status };
+        try {
+          localStorage.setItem("active_client", JSON.stringify(activeClient.value));
+        } catch { }
+      }
     };
 
     const failureHandler = (err) => {
@@ -280,6 +294,19 @@ export const useClientDepthStore = defineStore("clientDepth", () => {
             : "Document rejected successfully."),
         "success",
       );
+      if (payload.kyc_status) {
+        if (activeClient.value) {
+          activeClient.value = { ...activeClient.value, kyc_status: payload.kyc_status };
+        }
+        if (overviewData.value?.user) {
+          overviewData.value.user.kyc_status = payload.kyc_status;
+        } else if (overviewData.value) {
+          overviewData.value.kyc_status = payload.kyc_status;
+        }
+        try {
+          localStorage.setItem("active_client", JSON.stringify(activeClient.value || { id: payload.user_id, kyc_status: payload.kyc_status }));
+        } catch { }
+      }
       if (payload.user_id) {
         fetchClientKyc(payload.user_id, true);
         fetchClientOverview(payload.user_id, true);

@@ -1,6 +1,6 @@
 <template>
   <div class="bg-background space-y-5 pt-4 pb-8 overflow-y-auto no-scrollbar">
-    <!-- ─── TOP HEADER & ACTIONS ─────────────────────────────────── -->
+    <!-- ─── TOP HEADER ───────────────────────────────────────────── -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <div>
         <h3 class="text-base sm:text-lg font-bold text-primary-text">
@@ -10,31 +10,15 @@
           Active banners and marketing campaign assets configured for this client.
         </p>
       </div>
-
-      <!-- Refresh Button -->
-      <div class="flex items-center gap-2 self-start sm:self-auto">
-        <button
-          type="button"
-          @click="fetchBanners"
-          :disabled="loading"
-          class="border border-primary-border bg-card-background/40 hover:bg-card-background/70 rounded-xl p-2.5 text-secondary-text hover:text-primary-text transition-colors cursor-pointer shadow-2xs disabled:opacity-50 flex items-center gap-2"
-          title="Refresh Banners"
-        >
-          <RefreshCw
-            class="w-4 h-4"
-            :class="{ 'animate-spin text-primary': loading }"
-          />
-        </button>
-      </div>
     </div>
 
     <!-- Skeleton Shimmer Loader -->
     <div
       v-if="loading"
-      class="w-full aspect-[3.75/1] min-h-[140px] sm:min-h-[180px] md:min-h-[220px] rounded-xl bg-card-background/40 border border-primary-border relative overflow-hidden skeleton-shimmer"
+      class="w-full aspect-[3.75/1] min-h-[140px] sm:min-h-[180px] md:min-h-[220px] rounded-xl bg-card-background/40 border border-primary-border relative overflow-hidden animate-pulse"
     >
       <div
-        class="absolute inset-0 bg-gradient-to-r from-primary-border/40 via-primary-border/20 to-primary-border/40"
+        class="absolute inset-0 bg-gradient-to-r from-primary-border/40 via-primary-border/20 to-primary-border/40 animate-pulse"
       />
     </div>
 
@@ -203,13 +187,20 @@ const handleImageError = (e) => {
   }
 };
 
+const handleTabRefresh = (e) => {
+  if (e?.detail?.tab && e.detail.tab !== "marketing") return;
+  fetchBanners();
+};
+
 onMounted(() => {
   fetchBanners();
   startAutoplay();
+  window.addEventListener("refresh-client-tab-data", handleTabRefresh);
 });
 
 onUnmounted(() => {
   stopAutoplay();
+  window.removeEventListener("refresh-client-tab-data", handleTabRefresh);
 });
 </script>
 

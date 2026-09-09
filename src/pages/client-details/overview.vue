@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-5 pt-4 pb-12">
-    <!-- ─── TOP HEADER & ACTIONS ─────────────────────────────────── -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <!-- ─── TOP HEADER ───────────────────────────────────────────── -->
+    <!-- <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <div>
         <h3 class="text-base sm:text-lg font-bold text-primary-text">
           Client Overview
@@ -10,23 +10,7 @@
           Comprehensive summary of client account performance, activity, and trading metrics.
         </p>
       </div>
-
-      <!-- Refresh Action -->
-      <div class="flex items-center gap-2 self-start sm:self-auto">
-        <button
-          type="button"
-          @click="refreshOverviewData"
-          :disabled="clientDepthStore.isLoading"
-          class="border border-primary-border bg-card-background/40 hover:bg-card-background/70 rounded-xl p-2.5 text-secondary-text hover:text-primary-text transition-colors cursor-pointer shadow-2xs disabled:opacity-50 flex items-center gap-2"
-          title="Refresh Overview Data"
-        >
-          <RefreshCw
-            class="w-4 h-4"
-            :class="{ 'animate-spin text-primary': clientDepthStore.isLoading }"
-          />
-        </button>
-      </div>
-    </div>
+    </div> -->
 
     <!-- ─── SKELETON LOADING STATE ─────────────────────────────────── -->
     <div v-if="isOverviewLoading" class="space-y-5 animate-pulse">
@@ -483,11 +467,16 @@ const loadOverview = (force = false) => {
   }
 };
 
-const refreshOverviewData = () => {
+const isRefreshing = ref(false);
+
+const isOverviewLoading = computed(() => {
+  return isRefreshing.value || (clientDepthStore.isLoading && !clientDepthStore.isFetched);
+});
+
+const refreshOverviewData = (e) => {
+  if (e?.detail?.tab && e.detail.tab !== "overview") return;
+  isRefreshing.value = true;
   loadOverview(true);
-  setTimeout(() => {
-    animateValues();
-  }, 200);
 };
 
 // ─── Real-time Progress Animation ───────────────────────────────────────────
@@ -525,19 +514,27 @@ const animateValues = () => {
   });
 };
 
-const isOverviewLoading = computed(() => {
-  return clientDepthStore.isLoading && !clientDepthStore.isFetched;
-});
+watch(
+  () => clientDepthStore.isLoading,
+  (loading) => {
+    if (!loading) {
+      isRefreshing.value = false;
+      animateValues();
+    }
+  }
+);
 
 onMounted(() => {
   loadOverview();
   if (!isOverviewLoading.value) {
     animateValues();
   }
+  window.addEventListener("refresh-client-tab-data", refreshOverviewData);
 });
 
 onUnmounted(() => {
   if (animationFrameId) cancelAnimationFrame(animationFrameId);
+  window.removeEventListener("refresh-client-tab-data", refreshOverviewData);
 });
 
 watch(
