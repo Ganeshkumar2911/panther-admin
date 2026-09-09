@@ -333,6 +333,22 @@ const urls = {
     import: "/watchlist/symbols/import",
     template: "/watchlist/symbols/template",
   },
+  loyalty: {
+    program: "/loyalty/program",
+    updateProgram: (programId) => `/loyalty/program/${programId}`,
+    tiers: (programId) => `/loyalty/program/${programId}/tiers`,
+    createTier: (programId) => `/loyalty/program/${programId}/tiers`,
+    updateTier: (tierId) => `/loyalty/tiers/${tierId}`,
+    rewards: (programId) => `/loyalty/program/${programId}/rewards`,
+    createReward: (programId) => `/loyalty/program/${programId}/rewards`,
+    updateReward: (rewardId) => `/loyalty/rewards/${rewardId}`,
+    enrollments: "/loyalty/enrollments",
+    createEnrollment: "/loyalty/enrollments",
+    enrollmentDetail: (enrollmentId) => `/loyalty/enrollments/${enrollmentId}`,
+    deals: "/loyalty/deals",
+    backfill: "/loyalty/backfill",
+    backfillDetail: (jobId) => `/loyalty/backfill/${jobId}`,
+  },
 };
 
 export default urls;
