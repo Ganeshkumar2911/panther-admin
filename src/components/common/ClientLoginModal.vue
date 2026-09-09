@@ -39,7 +39,7 @@ const handleProceedLogin = () => {
         "success",
       );
       window.open(
-        `http://192.168.1.38:3000/login/user?token=${secretCode}`,
+        `https://portal.panthercapitals.com/login/user?token=${secretCode}`,
         "_blank",
       );
       emit("success");
