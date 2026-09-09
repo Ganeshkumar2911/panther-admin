@@ -3,18 +3,18 @@
     <!-- Header & Action -->
     <div class="flex flex-wrap items-center justify-between gap-3">
       <div>
-        <h2 class="text-lg font-bold text-primary-text">Member Enrollments</h2>
+        <h2 class="text-base font-semibold text-primary-text">Member Enrollments</h2>
         <p class="text-xs text-secondary-text">
-          Active accounts enrolled in the loyalty program, current tier progress, and points balance.
+          Accounts participating in the loyalty program, tier progress, and points ledger.
         </p>
       </div>
 
-      <div class="flex items-center gap-2.5">
+      <div class="flex items-center gap-2">
         <button
           v-if="hasPermission('loyalty.enroll')"
           type="button"
-          class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all active:scale-95 cursor-pointer shadow-xs"
-          @click="isEnrollModalOpen = true"
+          class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all active:scale-95 cursor-pointer shadow-2xs"
+          @click="isEnrollDrawerOpen = true"
         >
           <UserPlus class="w-3.5 h-3.5" />
           <span>Enroll Account</span>
@@ -22,7 +22,7 @@
 
         <button
           type="button"
-          class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-primary-border bg-card-background hover:bg-background text-primary-text text-xs font-semibold transition cursor-pointer shadow-2xs"
+          class="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-primary-border bg-card-background hover:bg-background text-secondary-text hover:text-primary-text text-xs font-medium transition cursor-pointer"
           @click="fetchData"
         >
           <RefreshCw class="w-3.5 h-3.5 text-primary" :class="store.loading ? 'animate-spin' : ''" />
@@ -34,51 +34,50 @@
     <!-- Filter Bar -->
     <div class="flex flex-wrap items-center gap-2.5 p-3 bg-card-background border border-primary-border rounded-xl text-xs">
       <div class="relative w-full sm:w-44">
+        <Search class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-secondary-text" />
         <input
           v-model="filters.user_id"
           type="number"
-          placeholder="Filter by User ID..."
-          class="w-full px-3 py-1.5 bg-background border border-primary-border rounded-lg text-primary-text placeholder:text-secondary-text/60 outline-none focus:border-primary transition font-mono"
+          placeholder="User ID..."
+          class="w-full pl-8 pr-3 py-1.5 bg-background border border-primary-border rounded-lg text-primary-text placeholder:text-secondary-text/60 outline-none focus:border-primary transition font-mono text-xs"
           @keyup.enter="fetchData"
         />
       </div>
 
       <div class="relative w-full sm:w-48">
+        <Search class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-secondary-text" />
         <input
           v-model="filters.trading_account_id"
           type="number"
-          placeholder="Filter by Account ID..."
-          class="w-full px-3 py-1.5 bg-background border border-primary-border rounded-lg text-primary-text placeholder:text-secondary-text/60 outline-none focus:border-primary transition font-mono"
+          placeholder="Trading A/C..."
+          class="w-full pl-8 pr-3 py-1.5 bg-background border border-primary-border rounded-lg text-primary-text placeholder:text-secondary-text/60 outline-none focus:border-primary transition font-mono text-xs"
           @keyup.enter="fetchData"
         />
       </div>
 
-      <div class="relative w-full sm:w-36">
-        <select
+      <div class="w-full sm:w-40">
+        <BaseSelect
           v-model="filters.status"
-          class="w-full px-3 py-1.5 bg-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition cursor-pointer"
-          @change="fetchData"
-        >
-          <option value="">All Statuses</option>
-          <option value="active">Active</option>
-          <option value="suspended">Suspended</option>
-          <option value="dormant">Dormant</option>
-        </select>
+          :options="statusOptions"
+          placeholder="All Statuses"
+          variant="surface"
+          @update:modelValue="fetchData"
+        />
       </div>
 
       <button
         type="button"
-        class="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-white font-semibold transition cursor-pointer"
+        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-white font-semibold transition cursor-pointer text-xs"
         @click="fetchData"
       >
-        <Search class="w-3.5 h-3.5" />
+        <Search class="w-3 h-3" />
         <span>Filter</span>
       </button>
 
       <button
         v-if="filters.user_id || filters.trading_account_id || filters.status"
         type="button"
-        class="px-2.5 py-1.5 rounded-lg text-secondary-text hover:text-primary-text hover:bg-background transition cursor-pointer"
+        class="px-2.5 py-1.5 rounded-lg text-secondary-text hover:text-primary-text hover:bg-background transition cursor-pointer text-xs"
         @click="resetFilters"
       >
         Clear
@@ -86,40 +85,57 @@
     </div>
 
     <!-- Loading Skeleton -->
-    <div v-if="store.loading && enrollments.length === 0" class="space-y-2">
-      <div v-for="n in 5" :key="n" class="h-14 bg-card-background border border-primary-border rounded-xl animate-pulse" />
+    <div v-if="store.loading && enrollments.length === 0" class="space-y-3">
+      <div v-for="n in 6" :key="n" class="h-12 bg-card-background border border-primary-border rounded-xl animate-pulse" />
     </div>
 
     <!-- Empty State -->
     <div
       v-else-if="enrollments.length === 0"
-      class="flex flex-col items-center justify-center p-12 bg-card-background border border-dashed border-primary-border rounded-2xl text-center gap-3"
+      class="flex flex-col items-center justify-center p-12 bg-card-background border border-dashed border-primary-border rounded-xl text-center gap-3"
     >
-      <div class="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
-        <Users class="w-6 h-6" />
+      <div class="w-12 h-12 rounded-xl bg-card-background border border-primary-border flex items-center justify-center text-secondary-text">
+        <Users class="w-6 h-6 text-primary" />
       </div>
-      <p class="text-sm font-bold text-primary-text">No enrollments found</p>
-      <p class="text-xs text-secondary-text max-w-sm">
-        {{ (filters.user_id || filters.trading_account_id || filters.status) ? 'No enrollments match your filter criteria.' : 'Enroll trading accounts to begin tracking volume and awarding loyalty points.' }}
-      </p>
+      <div class="space-y-1">
+        <h3 class="text-sm font-semibold text-primary-text">No Enrollments Found</h3>
+        <p class="text-xs text-secondary-text max-w-sm mx-auto">
+          {{ (filters.user_id || filters.trading_account_id || filters.status) ? 'No enrollments match your filter criteria.' : 'Enroll client trading accounts to begin tracking points and tier upgrades.' }}
+        </p>
+      </div>
+      <button
+        v-if="hasPermission('loyalty.enroll')"
+        type="button"
+        class="mt-2 flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition cursor-pointer shadow-2xs"
+        @click="isEnrollDrawerOpen = true"
+      >
+        <UserPlus class="w-3.5 h-3.5" />
+        <span>Enroll First Account</span>
+      </button>
     </div>
 
     <!-- Enrollments Table -->
-    <div v-else class="bg-card-background border border-primary-border rounded-2xl overflow-hidden shadow-2xs">
+    <div v-else class="bg-card-background border border-primary-border rounded-xl overflow-hidden shadow-2xs">
+      <div class="px-4 py-3 border-b border-primary-border flex items-center justify-between bg-background/50">
+        <h3 class="text-xs font-semibold text-primary-text uppercase tracking-wider">
+          Enrolled Members ({{ enrollments.length }})
+        </h3>
+      </div>
+
       <div class="overflow-x-auto">
         <table class="w-full text-left text-xs">
-          <thead class="bg-background/80 text-secondary-text font-semibold border-b border-primary-border">
+          <thead class="bg-background/60 text-secondary-text border-b border-primary-border">
             <tr>
-              <th class="py-3 px-4">ID</th>
-              <th class="py-3 px-4">User ID</th>
-              <th class="py-3 px-4">Trading Account</th>
-              <th class="py-3 px-4">Current Tier</th>
-              <th class="py-3 px-4">Available Points</th>
-              <th class="py-3 px-4">Lifetime Earned</th>
-              <th class="py-3 px-4">Status</th>
-              <th class="py-3 px-4">Abuse Status</th>
-              <th class="py-3 px-4">Opted-in</th>
-              <th class="py-3 px-4 text-right">Actions</th>
+              <th class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider">Enroll ID</th>
+              <th class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider">User ID</th>
+              <th class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider">Trading Account</th>
+              <th class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider">Current Tier</th>
+              <th class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider">Available Points</th>
+              <th class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider">Lifetime Points</th>
+              <th class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider">Status</th>
+              <th class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider">Abuse Status</th>
+              <th class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider">Opted-In</th>
+              <th class="py-2.5 px-4 text-right text-[11px] font-medium uppercase tracking-wider">Action</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-primary-border">
@@ -128,37 +144,37 @@
               :key="item.id"
               class="hover:bg-background/40 transition-colors"
             >
-              <td class="py-3 px-4 font-mono font-bold text-secondary-text">#{{ item.id }}</td>
-              <td class="py-3 px-4 font-mono font-medium text-primary-text">#{{ item.user_id }}</td>
-              <td class="py-3 px-4 font-mono font-bold text-primary">#{{ item.trading_account_id }}</td>
-              <td class="py-3 px-4">
-                <span class="font-bold text-primary-text font-mono">
+              <td class="py-2.5 px-4 text-secondary-text font-mono">#{{ item.id }}</td>
+              <td class="py-2.5 px-4 text-primary-text font-mono">#{{ item.user_id }}</td>
+              <td class="py-2.5 px-4 font-mono font-medium text-primary">#{{ item.trading_account_id }}</td>
+              <td class="py-2.5 px-4">
+                <span class="inline-block px-2 py-0.5 rounded font-mono text-[10px] uppercase bg-primary/10 text-primary border border-primary/20">
                   {{ item.current_tier?.name || item.current_tier?.code || '—' }}
                 </span>
               </td>
-              <td class="py-3 px-4 font-mono font-bold text-primary">{{ item.available_points ?? '0.00' }}</td>
-              <td class="py-3 px-4 font-mono text-primary-text">{{ item.lifetime_earned_points ?? '0.00' }}</td>
-              <td class="py-3 px-4">
+              <td class="py-2.5 px-4 font-mono font-medium text-primary-green">{{ item.available_points ?? '0.00' }}</td>
+              <td class="py-2.5 px-4 font-mono text-primary-text">{{ item.lifetime_earned_points ?? '0.00' }}</td>
+              <td class="py-2.5 px-4">
                 <StatusBadge :status="item.status" />
               </td>
-              <td class="py-3 px-4">
+              <td class="py-2.5 px-4">
                 <span
-                  class="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase"
-                  :class="item.abuse_status === 'flagged' ? 'bg-rose-500/10 text-rose-400' : 'bg-primary-green/10 text-primary-green'"
+                  class="px-2 py-0.5 rounded text-[10px] font-medium uppercase"
+                  :class="item.abuse_status === 'flagged' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-primary-green/10 text-primary-green border border-primary-green/20'"
                 >
                   {{ item.abuse_status || 'clear' }}
                 </span>
               </td>
-              <td class="py-3 px-4 text-secondary-text">{{ formatDate(item.opted_in_at) }}</td>
-              <td class="py-3 px-4 text-right">
+              <td class="py-2.5 px-4 text-secondary-text">{{ formatDate(item.opted_in_at) }}</td>
+              <td class="py-2.5 px-4 text-right">
                 <button
                   type="button"
-                  class="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-background border border-primary-border hover:border-primary/40 text-primary-text hover:text-primary transition cursor-pointer text-xs ml-auto shadow-2xs"
-                  title="View Details"
+                  class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-primary-border hover:bg-background text-secondary-text hover:text-primary transition cursor-pointer text-xs"
+                  title="Inspect Enrollment Details"
                   @click="handleViewDetail(item.id)"
                 >
                   <Eye class="w-3 h-3" />
-                  <span>Details</span>
+                  <span>Inspect</span>
                 </button>
               </td>
             </tr>
@@ -167,18 +183,18 @@
       </div>
     </div>
 
-    <!-- Enroll Modal -->
-    <EnrollModal
-      :open="isEnrollModalOpen"
+    <!-- Enroll Slide-Over Drawer -->
+    <EnrollDrawer
+      :open="isEnrollDrawerOpen"
       :programId="store.program?.id"
-      @close="isEnrollModalOpen = false"
+      @close="isEnrollDrawerOpen = false"
       @enrolled="fetchData"
     />
 
-    <!-- Detail Modal -->
-    <EnrollmentDetailModal
-      :open="isDetailModalOpen"
-      @close="isDetailModalOpen = false"
+    <!-- Detail Slide-Over Drawer -->
+    <EnrollmentDetailDrawer
+      :open="isDetailDrawerOpen"
+      @close="isDetailDrawerOpen = false"
     />
   </div>
 </template>
@@ -190,20 +206,27 @@ import { useLoyaltyStore } from "@/stores/loyalty/loyalty";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import { formatDate } from "@/utils/timeFormatter";
 import StatusBadge from "@/components/common/StatusBadge.vue";
-import EnrollModal from "../components/EnrollModal.vue";
-import EnrollmentDetailModal from "../components/EnrollmentDetailModal.vue";
+import EnrollDrawer from "../components/EnrollDrawer.vue";
+import EnrollmentDetailDrawer from "../components/EnrollmentDetailDrawer.vue";
 
 const store = useLoyaltyStore();
 const { hasPermission } = usePermissionCheck();
 
-const isEnrollModalOpen = ref(false);
-const isDetailModalOpen = ref(false);
+const isEnrollDrawerOpen = ref(false);
+const isDetailDrawerOpen = ref(false);
 
 const filters = reactive({
   user_id: "",
   trading_account_id: "",
   status: "",
 });
+
+const statusOptions = [
+  { label: "All Statuses", value: "" },
+  { label: "Active", value: "active" },
+  { label: "Suspended", value: "suspended" },
+  { label: "Dormant", value: "dormant" },
+];
 
 const enrollments = computed(() => store.enrollments || []);
 
@@ -223,7 +246,7 @@ const resetFilters = () => {
 };
 
 const handleViewDetail = async (enrollmentId) => {
-  isDetailModalOpen.value = true;
+  isDetailDrawerOpen.value = true;
   await store.fetchEnrollmentDetail(enrollmentId);
 };
 

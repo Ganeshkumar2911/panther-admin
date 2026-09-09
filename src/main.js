@@ -19,4 +19,16 @@ app.component('DropdownMenu', DropdownMenu)
 app.component('Tooltip', Tooltip)
 app.component('BaseDatePicker', BaseDatePicker)
 app.component('BaseCalendar', BaseDatePicker)
+
+// Prevent mouse wheel from changing input[type=number] values globally
+document.addEventListener(
+  'wheel',
+  () => {
+    if (document.activeElement && document.activeElement.type === 'number') {
+      document.activeElement.blur()
+    }
+  },
+  { passive: true }
+)
+
 app.mount('#app')

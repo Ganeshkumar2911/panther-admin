@@ -29,17 +29,12 @@
           <!-- Type -->
           <div class="space-y-1">
             <label class="font-semibold text-primary-text">Reward Type</label>
-            <select
+            <BaseSelect
               v-model="form.type"
-              required
-              class="w-full px-3 py-2 bg-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition cursor-pointer"
-            >
-              <option value="cash">Cash Credit</option>
-              <option value="bonus_funds">Bonus Trading Funds</option>
-              <option value="vps">Free VPS Hosting</option>
-              <option value="merchandise">Merchandise & Lifestyle</option>
-              <option value="tier_boost">Tier Upgrade Boost</option>
-            </select>
+              :options="rewardTypeOptions"
+              placeholder="Select reward type..."
+              variant="surface"
+            />
           </div>
 
           <!-- Title -->
@@ -80,15 +75,12 @@
           <!-- Min Tier ID -->
           <div class="space-y-1">
             <label class="font-semibold text-primary-text">Minimum Tier</label>
-            <select
+            <BaseSelect
               v-model="form.min_tier_id"
-              class="w-full px-3 py-2 bg-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition cursor-pointer"
-            >
-              <option :value="null">All Tiers (No Restriction)</option>
-              <option v-for="t in tiers" :key="t.id" :value="t.id">
-                {{ t.name }} ({{ t.code }})
-              </option>
-            </select>
+              :options="tierOptions"
+              placeholder="All Tiers (No Restriction)"
+              variant="surface"
+            />
           </div>
 
           <!-- Max Per User -->
@@ -126,13 +118,12 @@
           <!-- Active Status -->
           <div class="space-y-1">
             <label class="font-semibold text-primary-text">Active Status</label>
-            <select
+            <BaseSelect
               v-model="form.is_active"
-              class="w-full px-3 py-2 bg-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition cursor-pointer"
-            >
-              <option :value="true">Active</option>
-              <option :value="false">Inactive</option>
-            </select>
+              :options="statusOptions"
+              placeholder="Select status..."
+              variant="surface"
+            />
           </div>
         </div>
 
@@ -175,6 +166,27 @@ const emit = defineEmits(["close", "saved"]);
 const store = useLoyaltyStore();
 
 const isEditing = computed(() => Boolean(props.reward && props.reward.id));
+
+const rewardTypeOptions = [
+  { label: "Cash Credit", value: "cash" },
+  { label: "Bonus Trading Funds", value: "bonus_funds" },
+  { label: "Free VPS Hosting", value: "vps" },
+  { label: "Merchandise & Lifestyle", value: "merchandise" },
+  { label: "Tier Upgrade Boost", value: "tier_boost" },
+];
+
+const tierOptions = computed(() => [
+  { label: "All Tiers (No Restriction)", value: null },
+  ...(props.tiers || []).map((t) => ({
+    label: `${t.name} (${t.code})`,
+    value: t.id,
+  })),
+]);
+
+const statusOptions = [
+  { label: "Active", value: true },
+  { label: "Inactive", value: false },
+];
 
 const form = reactive({
   type: "cash",

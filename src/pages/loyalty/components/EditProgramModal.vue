@@ -38,15 +38,12 @@
           <!-- Status -->
           <div class="space-y-1">
             <label class="font-semibold text-primary-text">Status</label>
-            <select
+            <BaseSelect
               v-model="form.status"
-              class="w-full px-3 py-2 bg-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition cursor-pointer"
-            >
-              <option value="active">Active</option>
-              <option value="draft">Draft</option>
-              <option value="paused">Paused</option>
-              <option value="ended">Ended</option>
-            </select>
+              :options="statusOptions"
+              placeholder="Select status..."
+              variant="surface"
+            />
           </div>
 
           <!-- Terms Version -->
@@ -202,6 +199,13 @@ const props = defineProps({
 
 const emit = defineEmits(["close", "saved"]);
 const store = useLoyaltyStore();
+
+const statusOptions = [
+  { label: "Active", value: "active" },
+  { label: "Draft", value: "draft" },
+  { label: "Paused", value: "paused" },
+  { label: "Ended", value: "ended" },
+];
 
 const form = reactive({
   name: "",

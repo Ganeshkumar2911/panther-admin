@@ -1,25 +1,52 @@
 <template>
   <div class="px-4 pb-8 space-y-6">
-    <!-- Submodule Tab Navigation -->
-    <div
-      v-if="hasPermission('loyalty.view')"
-      class="flex items-center gap-1 bg-card-background border border-primary-border rounded-xl p-1 w-full sm:w-fit overflow-x-auto shadow-2xs"
-    >
-      <button
-        v-for="tab in tabs"
-        :key="tab.value"
-        type="button"
-        class="cursor-pointer px-4 py-2 rounded-lg text-xs font-semibold transition-all whitespace-nowrap"
-        :class="
-          activeTab === tab.value
-            ? 'bg-primary text-white shadow-xs font-bold'
-            : 'text-secondary-text hover:text-primary-text hover:bg-background/60'
-        "
-        @click="activeTab = tab.value"
-      >
-        <component :is="tab.icon" class="w-3.5 h-3.5 inline-block mr-1.5 -mt-0.5" />
-        <span>{{ tab.label }}</span>
-      </button>
+    <!-- Header with Integrated Navigation -->
+    <div v-if="hasPermission('loyalty.view')" class="w-full">
+      <!-- Full-Width Equal-Space Underline Tab Navigation -->
+      <div class="border-b border-primary-border w-full">
+        <!-- Desktop Tabs (Full width, each tab takes equal space) -->
+        <nav class="hidden sm:flex items-center w-full -mb-px" aria-label="Tabs">
+          <button
+            v-for="tab in tabList"
+            :key="tab.value"
+            type="button"
+            class="flex-1 flex items-center justify-center gap-2 py-3 px-2 text-xs font-medium whitespace-nowrap transition-colors border-b-2 cursor-pointer select-none text-center"
+            :class="[
+              activeTab === tab.value
+                ? 'border-primary text-primary font-semibold'
+                : 'border-transparent text-secondary-text hover:text-primary-text hover:border-primary-border'
+            ]"
+            @click="activeTab = tab.value"
+          >
+            <component
+              :is="tab.icon"
+              class="w-4 h-4 shrink-0"
+              :class="activeTab === tab.value ? 'text-primary' : 'text-secondary-text'"
+            />
+            <span>{{ tab.label }}</span>
+            <span
+              v-if="tab.badge !== undefined && tab.badge !== null"
+              class="ml-1 text-[10px] px-1.5 py-0.2 rounded-full border"
+              :class="
+                activeTab === tab.value
+                  ? 'bg-primary/10 text-primary border-primary/20'
+                  : 'bg-background text-secondary-text border-primary-border'
+              "
+            >
+              {{ tab.badge }}
+            </span>
+          </button>
+        </nav>
+
+        <!-- Mobile Select Dropdown -->
+        <div class="sm:hidden pb-2">
+          <BaseSelect
+            v-model="activeTab"
+            :options="mobileTabOptions"
+            placeholder="Select tab..."
+          />
+        </div>
+      </div>
     </div>
 
     <!-- Active Tab Component -->
@@ -32,15 +59,17 @@
     <!-- Access Restricted Fallback -->
     <div
       v-else
-      class="flex flex-col items-center justify-center p-12 bg-card-background/40 border border-primary-border rounded-2xl text-center min-h-[400px] gap-3"
+      class="flex flex-col items-center justify-center p-12 bg-card-background border border-primary-border rounded-xl text-center min-h-[360px] gap-3"
     >
-      <div class="w-14 h-14 rounded-xl bg-card-background border border-primary-border flex items-center justify-center text-secondary-text">
+      <div class="w-12 h-12 rounded-xl bg-card-background border border-primary-border flex items-center justify-center text-secondary-text">
         <ShieldAlert class="w-6 h-6 text-primary-red" />
       </div>
-      <h3 class="text-sm font-bold text-primary-text">Access Restricted</h3>
-      <p class="text-xs text-secondary-text max-w-sm">
-        You do not have permission to view the Loyalty Program module. Please contact your system administrator.
-      </p>
+      <div class="space-y-1">
+        <h3 class="text-sm font-semibold text-primary-text">Access Restricted</h3>
+        <p class="text-xs text-secondary-text max-w-sm mx-auto">
+          You do not have permission to view the Loyalty Program module. Please contact your system administrator.
+        </p>
+      </div>
     </div>
   </div>
 </template>
@@ -56,6 +85,7 @@ import {
   Activity,
   History,
   ShieldAlert,
+  ChevronDown,
 } from "lucide-vue-next";
 import { useLoyaltyStore } from "@/stores/loyalty/loyalty";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
@@ -72,14 +102,24 @@ const router = useRouter();
 const store = useLoyaltyStore();
 const { hasPermission } = usePermissionCheck();
 
-const tabs = [
+const program = computed(() => store.program);
+const programSummary = computed(() => store.program?.summary || {});
+
+const tabList = computed(() => [
   { label: "Program & Rules", value: "program", icon: Award },
-  { label: "Tiers", value: "tiers", icon: Layers },
-  { label: "Rewards", value: "rewards", icon: Gift },
-  { label: "Enrollments", value: "enrollments", icon: Users },
+  { label: "Tiers", value: "tiers", icon: Layers, badge: programSummary.value?.tiers },
+  { label: "Rewards", value: "rewards", icon: Gift, badge: programSummary.value?.rewards },
+  { label: "Enrollments", value: "enrollments", icon: Users, badge: programSummary.value?.enrollments },
   { label: "Deals History", value: "deals", icon: Activity },
   { label: "MT5 Backfill", value: "backfill", icon: History },
-];
+]);
+
+const mobileTabOptions = computed(() =>
+  tabList.value.map((tab) => ({
+    label: `${tab.label} ${tab.badge !== undefined && tab.badge !== null ? `(${tab.badge})` : ""}`.trim(),
+    value: tab.value,
+  }))
+);
 
 const activeTab = ref(
   typeof route.query.tab === "string" && ["program", "tiers", "rewards", "enrollments", "deals", "backfill"].includes(route.query.tab)
@@ -121,6 +161,10 @@ const activeComponent = computed(() => {
   }
 });
 
+const handleGlobalRefresh = () => {
+  store.fetchProgram(program.value?.id);
+};
+
 onMounted(() => {
   store.fetchProgram();
 });
@@ -134,11 +178,11 @@ onMounted(() => {
 
 .tab-fade-enter-from {
   opacity: 0;
-  transform: translateY(3px);
+  transform: translateY(2px);
 }
 
 .tab-fade-leave-to {
   opacity: 0;
-  transform: translateY(-3px);
+  transform: translateY(-2px);
 }
 </style>

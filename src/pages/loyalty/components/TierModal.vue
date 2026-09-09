@@ -65,13 +65,12 @@
           <!-- Active Switch -->
           <div class="space-y-1">
             <label class="font-semibold text-primary-text">Active Status</label>
-            <select
+            <BaseSelect
               v-model="form.is_active"
-              class="w-full px-3 py-2 bg-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition cursor-pointer"
-            >
-              <option :value="true">Active</option>
-              <option :value="false">Inactive</option>
-            </select>
+              :options="statusOptions"
+              placeholder="Select status..."
+              variant="surface"
+            />
           </div>
 
           <!-- Min Points -->
@@ -164,6 +163,11 @@ const emit = defineEmits(["close", "saved"]);
 const store = useLoyaltyStore();
 
 const isEditing = computed(() => Boolean(props.tier && props.tier.id));
+
+const statusOptions = [
+  { label: "Active", value: true },
+  { label: "Inactive", value: false },
+];
 
 const form = reactive({
   code: "",
