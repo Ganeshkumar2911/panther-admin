@@ -44,6 +44,17 @@ const urls = {
     updateReferralLink: "/clients/referral-link",
     userDashboard: "/user-dashboard",
   },
+  clientDepth: {
+    overview: "/overview",
+    kyc: "/user/kyc-details",
+    userUpdate: "/user-update",
+    updateKyc: "/user/kyc-details",
+    uploadDocument: "/user-document-upload",
+    docApproval: "/user-doc-approval",
+    userCharts: "/user-charts",
+    accountDetails: "/account-details",
+    userReferences: "/user/reference",
+  },
   clientLedger: {
     list: "/ledger/clients",
     allClients: "/search/clients",
@@ -274,6 +285,8 @@ const urls = {
     },
     images: {
       list: "/media-images",
+      links: "/media/images/links",
+      clientLinks: "/media/images/links",
       create: "/create-media-image",
       update: "/media-images",
       delete: "/media-images",
