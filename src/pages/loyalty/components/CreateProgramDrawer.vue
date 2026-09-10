@@ -105,6 +105,56 @@
                   {{ form.account_scope === 'one_per_user' ? 'Clients may link exactly 1 primary trading account.' : 'All eligible client trading accounts are automatically tracked.' }}
                 </p>
               </div>
+
+              <!-- Program Promotional Images (Max 4) -->
+              <div class="space-y-2 pt-1 border-t border-primary-border/60">
+                <div class="flex items-center justify-between">
+                  <label class="font-semibold text-primary-text">Program Banners & Images (Max 4)</label>
+                  <span class="text-[10px] text-secondary-text font-mono">{{ imageUrlsList.length }}/4</span>
+                </div>
+
+                <div class="space-y-2">
+                  <div
+                    v-for="(url, idx) in imageUrlsList"
+                    :key="idx"
+                    class="flex items-center gap-2"
+                  >
+                    <div class="w-8 h-8 rounded-lg bg-background border border-primary-border overflow-hidden shrink-0 flex items-center justify-center">
+                      <img
+                        v-if="url"
+                        :src="url"
+                        class="w-full h-full object-cover"
+                        @error="(e) => e.target.style.display = 'none'"
+                      />
+                      <ImageIcon v-else class="w-3.5 h-3.5 text-secondary-text" />
+                    </div>
+                    <input
+                      v-model="imageUrlsList[idx]"
+                      type="url"
+                      placeholder="https://..."
+                      class="flex-1 px-3 py-1.5 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono text-[11px]"
+                    />
+                    <button
+                      type="button"
+                      class="w-7 h-7 flex items-center justify-center text-secondary-text hover:text-rose-400 rounded-lg hover:bg-background transition cursor-pointer"
+                      title="Remove Image"
+                      @click="removeImageUrl(idx)"
+                    >
+                      <Trash2 class="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  v-if="imageUrlsList.length < 4"
+                  type="button"
+                  class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-primary-border hover:border-primary/50 text-secondary-text hover:text-primary transition text-xs cursor-pointer w-full justify-center"
+                  @click="addImageUrl"
+                >
+                  <Plus class="w-3.5 h-3.5" />
+                  <span>Add Program Banner URL</span>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -434,6 +484,7 @@ import {
   FileCode,
   Plus,
   Trash2,
+  Image as ImageIcon,
 } from "lucide-vue-next";
 import { useLoyaltyStore } from "@/stores/loyalty/loyalty";
 import BaseDatePicker from "@/components/common/BaseDatePicker.vue";
@@ -465,6 +516,17 @@ const matchTypeOptions = [
 ];
 
 const excludedCategoriesText = ref("cent, pamm");
+const imageUrlsList = ref([]);
+
+const addImageUrl = () => {
+  if (imageUrlsList.value.length < 4) {
+    imageUrlsList.value.push("");
+  }
+};
+
+const removeImageUrl = (index) => {
+  imageUrlsList.value.splice(index, 1);
+};
 
 const form = reactive({
   code: "",
@@ -547,6 +609,8 @@ const handleSubmit = async () => {
     eligible: Boolean(r.eligible),
   }));
 
+  const validUrls = imageUrlsList.value.map((u) => u.trim()).filter(Boolean).slice(0, 4);
+
   const payload = {
     code: form.code.trim().toUpperCase(),
     name: form.name.trim(),
@@ -564,6 +628,8 @@ const handleSubmit = async () => {
     grace_period_days: Number(form.grace_period_days),
     terms_version: form.terms_version,
     carry_over_enrollments: Boolean(form.carry_over_enrollments),
+    image_urls: validUrls,
+    image_url: validUrls[0] || null,
     eligibility_rules: {
       ...form.eligibility_rules,
       exclude_account_categories: categories,

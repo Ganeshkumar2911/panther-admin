@@ -141,14 +141,23 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
       program.value = res?.data || null;
       isFetched.value.program = true;
 
-      // If switched to a different program, reset sub-tab fetch flags
+      // If switched to a different program, clear stale child collections immediately
       if (prevId && program.value?.id && prevId !== program.value.id) {
+        tiers.value = [];
+        storeProducts.value = [];
+        rewards.value = [];
+        storeRedemptions.value = [];
+        enrollments.value = [];
+        deals.value = [];
+        backfillJobs.value = [];
+
         isFetched.value.tiers = false;
         isFetched.value.storeProducts = false;
         isFetched.value.rewards = false;
         isFetched.value.storeRedemptions = false;
         isFetched.value.enrollments = false;
         isFetched.value.deals = false;
+        isFetched.value.backfill = false;
       }
     };
 
@@ -183,9 +192,12 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
             programsList.value[idx] = { ...programsList.value[idx], ...res.data };
           }
         }
+        // If config changed, also refresh tiers list since copy-on-write generates new tier config rows
+        fetchTiers(programId, true);
       } else {
-        // Fallback: only fetch this specific program by ID
+        // Fallback: fetch program & tiers
         fetchProgram(programId, true);
+        fetchTiers(programId, true);
       }
       snackbar.show(res?.message || "Program updated successfully", "success");
     };
@@ -272,7 +284,11 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
     const successHandler = (res) => {
       snackbar.show(res?.message || "Tier updated successfully", "success");
       if (programId) {
+        // Re-fetch tier list to get active config tier IDs and refresh program config_version
         fetchTiers(programId, true);
+        if (program.value?.id === programId) {
+          fetchProgram(programId, true);
+        }
       }
     };
 

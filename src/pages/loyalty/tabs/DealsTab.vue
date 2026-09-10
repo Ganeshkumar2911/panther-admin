@@ -74,7 +74,7 @@
     </div>
 
     <!-- Loading Skeleton -->
-    <div v-if="store.loading && deals.length === 0" class="space-y-3">
+    <div v-if="store.loading" class="space-y-3">
       <div v-for="n in 6" :key="n" class="h-12 bg-card-background border border-primary-border rounded-xl animate-pulse" />
     </div>
 
@@ -107,6 +107,7 @@
           <thead class="bg-background/60 text-secondary-text border-b border-primary-border">
             <tr>
               <th class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider">Deal ID</th>
+              <th class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider">Config</th>
               <th class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider">MT5 Deal ID</th>
               <th class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider">Trading Account</th>
               <th class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider">Symbol</th>
@@ -126,6 +127,11 @@
               class="hover:bg-background/40 transition-colors"
             >
               <td class="py-2.5 px-4 text-secondary-text font-mono">#{{ deal.id }}</td>
+              <td class="py-2.5 px-4">
+                <span class="px-1.5 py-0.5 rounded bg-background border border-primary-border text-[10px] font-mono text-secondary-text whitespace-nowrap">
+                  v{{ deal.config_version || 1 }}
+                </span>
+              </td>
               <td class="py-2.5 px-4 text-primary-text font-mono">#{{ deal.mt5_deal_id }}</td>
               <td class="py-2.5 px-4 font-mono font-medium text-primary">#{{ deal.trading_account_id }}</td>
               <td class="py-2.5 px-4">
@@ -139,7 +145,12 @@
                 </span>
               </td>
               <td class="py-2.5 px-4 text-primary-text font-mono">{{ deal.lots }}</td>
-              <td class="py-2.5 px-4 text-secondary-text font-mono">{{ deal.duration_seconds }}s</td>
+              <td class="py-2.5 px-4 font-mono">
+                <span class="text-secondary-text">{{ deal.duration_seconds }}s</span>
+                <span v-if="deal.min_duration_seconds_applied" class="block text-[9px] text-secondary-text/70">
+                  (min {{ deal.min_duration_seconds_applied }}s)
+                </span>
+              </td>
               <td class="py-2.5 px-4 font-mono font-medium text-primary-green">{{ deal.points_awarded }}</td>
               <td class="py-2.5 px-4">
                 <span
@@ -152,8 +163,8 @@
                   ({{ deal.skip_reason }})
                 </span>
               </td>
-              <td class="py-2.5 px-4 text-secondary-text">{{ formatDate(deal.close_time) }}</td>
-              <td class="py-2.5 px-4 text-secondary-text">{{ formatDate(deal.processed_at) }}</td>
+              <td class="py-2.5 px-4 text-secondary-text whitespace-nowrap">{{ formatDate(deal.close_time) }}</td>
+              <td class="py-2.5 px-4 text-secondary-text whitespace-nowrap">{{ formatDate(deal.processed_at) }}</td>
             </tr>
           </tbody>
         </table>
@@ -163,7 +174,7 @@
 </template>
 
 <script setup>
-import { reactive, computed, onMounted } from "vue";
+import { reactive, computed, onMounted, watch } from "vue";
 import { RefreshCw, Activity, Search } from "lucide-vue-next";
 import { useLoyaltyStore } from "@/stores/loyalty/loyalty";
 import { formatDate } from "@/utils/timeFormatter";
@@ -226,6 +237,15 @@ const resetFilters = () => {
   filters.to_at = "";
   fetchData(true);
 };
+
+watch(
+  () => store.program?.id,
+  (newId) => {
+    if (newId) {
+      fetchData(true);
+    }
+  }
+);
 
 onMounted(() => {
   fetchData();

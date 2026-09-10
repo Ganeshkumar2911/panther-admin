@@ -93,7 +93,7 @@
     </div>
 
     <!-- Loading Skeleton -->
-    <div v-if="store.loading && redemptions.length === 0" class="space-y-3">
+    <div v-if="store.loading" class="space-y-3">
       <div v-for="n in 5" :key="n" class="h-14 bg-card-background border border-primary-border rounded-xl animate-pulse" />
     </div>
 
@@ -281,7 +281,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from "vue";
+import { ref, reactive, computed, watch, onMounted } from "vue";
 import { RefreshCw, PackageCheck, Search, Eye, CheckCircle2 } from "lucide-vue-next";
 import { useLoyaltyStore } from "@/stores/loyalty/loyalty";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
@@ -440,7 +440,15 @@ const getStatusDotClass = (status) => {
   }
 };
 
-onMounted(() => {
-  fetchData();
-});
+const programId = computed(() => store.program?.id || null);
+
+watch(
+  programId,
+  (newId) => {
+    if (newId) {
+      fetchData(true);
+    }
+  },
+  { immediate: true }
+);
 </script>

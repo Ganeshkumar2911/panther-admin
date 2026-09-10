@@ -92,14 +92,54 @@
                 />
               </div>
 
-              <div class="space-y-1">
-                <label class="font-semibold text-primary-text">Image URL (Optional)</label>
-                <input
-                  v-model="form.image_url"
-                  type="url"
-                  placeholder="https://..."
-                  class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono text-[11px]"
-                />
+              <!-- Multi-Image URLs (Max 4) -->
+              <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                  <label class="font-semibold text-primary-text">Product Images (Max 4)</label>
+                  <span class="text-[10px] text-secondary-text font-mono">{{ imageUrlsList.length }}/4</span>
+                </div>
+
+                <div class="space-y-2">
+                  <div
+                    v-for="(url, idx) in imageUrlsList"
+                    :key="idx"
+                    class="flex items-center gap-2"
+                  >
+                    <div class="w-8 h-8 rounded-lg bg-background border border-primary-border overflow-hidden shrink-0 flex items-center justify-center">
+                      <img
+                        v-if="url"
+                        :src="url"
+                        class="w-full h-full object-cover"
+                        @error="(e) => e.target.style.display = 'none'"
+                      />
+                      <ImageIcon v-else class="w-3.5 h-3.5 text-secondary-text" />
+                    </div>
+                    <input
+                      v-model="imageUrlsList[idx]"
+                      type="url"
+                      placeholder="https://..."
+                      class="flex-1 px-3 py-1.5 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono text-[11px]"
+                    />
+                    <button
+                      type="button"
+                      class="w-7 h-7 flex items-center justify-center text-secondary-text hover:text-rose-400 rounded-lg hover:bg-background transition cursor-pointer"
+                      title="Remove Image"
+                      @click="removeImageUrl(idx)"
+                    >
+                      <Trash2 class="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  v-if="imageUrlsList.length < 4"
+                  type="button"
+                  class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-primary-border hover:border-primary/50 text-secondary-text hover:text-primary transition text-xs cursor-pointer w-full justify-center"
+                  @click="addImageUrl"
+                >
+                  <Plus class="w-3.5 h-3.5" />
+                  <span>Add Image URL</span>
+                </button>
               </div>
             </div>
           </div>
@@ -225,8 +265,18 @@
 </template>
 
 <script setup>
-import { computed, reactive, watch } from "vue";
-import { X, Loader2, ShoppingBag, Package, DollarSign, ShieldCheck } from "lucide-vue-next";
+import { ref, computed, reactive, watch } from "vue";
+import {
+  X,
+  Loader2,
+  ShoppingBag,
+  Package,
+  DollarSign,
+  ShieldCheck,
+  Plus,
+  Trash2,
+  Image as ImageIcon,
+} from "lucide-vue-next";
 import { useLoyaltyStore } from "@/stores/loyalty/loyalty";
 
 const props = defineProps({
@@ -240,6 +290,7 @@ const emit = defineEmits(["close", "saved"]);
 const store = useLoyaltyStore();
 
 const isEditing = computed(() => Boolean(props.reward && props.reward.id));
+const imageUrlsList = ref([]);
 
 const productTypeOptions = [
   { label: "Merchandise & Lifestyle", value: "merchandise" },
@@ -281,10 +332,19 @@ const form = reactive({
   stock: "",
   max_redemptions_per_user: "",
   min_tier_id: null,
-  image_url: "",
   sort_order: 1,
   status: "ACTIVE",
 });
+
+const addImageUrl = () => {
+  if (imageUrlsList.value.length < 4) {
+    imageUrlsList.value.push("");
+  }
+};
+
+const removeImageUrl = (index) => {
+  imageUrlsList.value.splice(index, 1);
+};
 
 watch(
   () => props.reward,
@@ -303,9 +363,13 @@ watch(
         ? r.max_redemptions_per_user
         : (r.max_per_user !== null && r.max_per_user !== undefined ? r.max_per_user : "");
       form.min_tier_id = r.min_tier_id ?? null;
-      form.image_url = r.image_url || "";
       form.sort_order = r.sort_order ?? 1;
       form.status = r.status || (r.is_active === false ? "INACTIVE" : "ACTIVE");
+
+      const urls = Array.isArray(r.image_urls) && r.image_urls.length > 0
+        ? r.image_urls
+        : (r.image_url ? [r.image_url] : []);
+      imageUrlsList.value = [...urls].slice(0, 4);
     } else {
       form.name = "";
       form.description = "";
@@ -316,15 +380,18 @@ watch(
       form.stock = "";
       form.max_redemptions_per_user = "";
       form.min_tier_id = null;
-      form.image_url = "";
       form.sort_order = 1;
       form.status = "ACTIVE";
+      imageUrlsList.value = [];
     }
   },
   { immediate: true },
 );
 
 const handleSubmit = async () => {
+  const validUrls = imageUrlsList.value.map((u) => u.trim()).filter(Boolean).slice(0, 4);
+  const primaryUrl = validUrls[0] || null;
+
   if (isEditing.value) {
     const r = props.reward;
     const patchPayload = {};
@@ -384,9 +451,12 @@ const handleSubmit = async () => {
     const oldMinTier = r.min_tier_id ? Number(r.min_tier_id) : null;
     if (newMinTier !== oldMinTier) patchPayload.min_tier_id = newMinTier;
 
-    const newImg = form.image_url?.trim() || null;
-    const oldImg = r.image_url?.trim() || null;
-    if (newImg !== oldImg) patchPayload.image_url = newImg;
+    // Check images diff
+    const oldUrls = Array.isArray(r.image_urls) ? r.image_urls : (r.image_url ? [r.image_url] : []);
+    if (JSON.stringify(validUrls) !== JSON.stringify(oldUrls)) {
+      patchPayload.image_urls = validUrls;
+      patchPayload.image_url = primaryUrl;
+    }
 
     if (Number(form.sort_order) !== Number(r.sort_order ?? 1)) {
       patchPayload.sort_order = Number(form.sort_order);
@@ -421,7 +491,8 @@ const handleSubmit = async () => {
       max_redemptions_per_user: form.max_redemptions_per_user === "" || form.max_redemptions_per_user === null ? null : Number(form.max_redemptions_per_user),
       max_per_user: form.max_redemptions_per_user === "" || form.max_redemptions_per_user === null ? null : Number(form.max_redemptions_per_user),
       min_tier_id: form.min_tier_id ? Number(form.min_tier_id) : null,
-      image_url: form.image_url?.trim() || null,
+      image_urls: validUrls,
+      image_url: primaryUrl,
       sort_order: Number(form.sort_order),
       status: form.status,
       is_active: form.status === "ACTIVE",

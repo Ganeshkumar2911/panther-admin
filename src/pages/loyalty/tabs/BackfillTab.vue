@@ -64,7 +64,7 @@
     </div>
 
     <!-- Loading Skeleton -->
-    <div v-if="store.loading && jobs.length === 0" class="space-y-3">
+    <div v-if="store.loading" class="space-y-3">
       <div v-for="n in 5" :key="n" class="h-12 bg-card-background border border-primary-border rounded-xl animate-pulse" />
     </div>
 
@@ -179,7 +179,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from "vue";
+import { ref, reactive, computed, onMounted, watch } from "vue";
 import { Play, RefreshCw, History, Search, Eye } from "lucide-vue-next";
 import { useLoyaltyStore } from "@/stores/loyalty/loyalty";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
@@ -238,6 +238,15 @@ const getStatusBadgeClass = (status) => {
       return "bg-background text-secondary-text border border-primary-border";
   }
 };
+
+watch(
+  () => store.program?.id,
+  (newId) => {
+    if (newId) {
+      fetchData(true);
+    }
+  }
+);
 
 onMounted(() => {
   fetchData();

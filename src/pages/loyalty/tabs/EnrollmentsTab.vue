@@ -85,7 +85,7 @@
     </div>
 
     <!-- Loading Skeleton -->
-    <div v-if="store.loading && enrollments.length === 0" class="space-y-3">
+    <div v-if="store.loading" class="space-y-3">
       <div v-for="n in 6" :key="n" class="h-12 bg-card-background border border-primary-border rounded-xl animate-pulse" />
     </div>
 
@@ -200,7 +200,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from "vue";
+import { ref, reactive, computed, watch, onMounted } from "vue";
 import { UserPlus, RefreshCw, Users, Search, Eye } from "lucide-vue-next";
 import { useLoyaltyStore } from "@/stores/loyalty/loyalty";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
@@ -229,13 +229,14 @@ const statusOptions = [
 ];
 
 const enrollments = computed(() => store.enrollments || []);
+const programId = computed(() => store.program?.id || null);
 
 const fetchData = (force = false) => {
   const params = {};
   if (filters.user_id) params.user_id = Number(filters.user_id);
   if (filters.trading_account_id) params.trading_account_id = Number(filters.trading_account_id);
   if (filters.status) params.status = filters.status;
-  if (store.program?.id) params.program_id = store.program.id;
+  if (programId.value) params.program_id = programId.value;
   store.fetchEnrollments(params, force);
 };
 
@@ -255,7 +256,13 @@ const handleViewDetail = async (enrollmentId) => {
   await store.fetchEnrollmentDetail(enrollmentId);
 };
 
-onMounted(() => {
-  fetchData();
-});
+watch(
+  programId,
+  (newId) => {
+    if (newId) {
+      fetchData(true);
+    }
+  },
+  { immediate: true }
+);
 </script>

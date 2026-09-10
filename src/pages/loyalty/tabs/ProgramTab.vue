@@ -83,7 +83,7 @@
     </div>
 
     <!-- Skeleton Loading -->
-    <div v-if="store.loading && !program" class="space-y-4">
+    <div v-if="store.loading" class="space-y-4">
       <div class="h-28 bg-card-background border border-primary-border rounded-lg animate-pulse" />
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <div v-for="n in 6" :key="n" class="h-20 bg-card-background border border-primary-border rounded-lg animate-pulse" />
@@ -280,25 +280,25 @@
           <div class="space-y-2">
             <div class="flex items-center justify-between p-2.5 bg-background/50 border border-primary-border rounded-lg">
               <span class="text-secondary-text">Require KYC Verification:</span>
-              <span class="font-mono font-bold" :class="program.eligibility_rules?.require_kyc ? 'text-primary-green' : 'text-secondary-text'">
-                {{ program.eligibility_rules?.require_kyc ? 'YES' : 'NO' }}
+              <span class="font-mono font-bold" :class="eligibilityRules?.require_kyc ? 'text-primary-green' : 'text-secondary-text'">
+                {{ eligibilityRules?.require_kyc ? 'YES' : 'NO' }}
               </span>
             </div>
 
             <div class="flex items-center justify-between p-2.5 bg-background/50 border border-primary-border rounded-lg">
               <span class="text-secondary-text">Allowed Trading Types:</span>
-              <span class="font-mono text-primary-text">{{ (program.eligibility_rules?.trading_types || ['real']).join(', ') }}</span>
+              <span class="font-mono text-primary-text">{{ (eligibilityRules?.trading_types || ['real']).join(', ') }}</span>
             </div>
 
             <div class="flex items-center justify-between p-2.5 bg-background/50 border border-primary-border rounded-lg">
               <span class="text-secondary-text">Excluded Account Categories:</span>
-              <span class="font-mono text-rose-400">{{ (program.eligibility_rules?.exclude_account_categories || ['cent', 'pamm']).join(', ') }}</span>
+              <span class="font-mono text-rose-400">{{ (eligibilityRules?.exclude_account_categories || ['cent', 'pamm']).join(', ') }}</span>
             </div>
 
             <div class="flex items-center justify-between p-2.5 bg-background/50 border border-primary-border rounded-lg">
               <span class="text-secondary-text">Exclude Copy Trading Accounts:</span>
-              <span class="font-mono font-bold" :class="program.eligibility_rules?.exclude_copy_accounts ? 'text-primary-green' : 'text-secondary-text'">
-                {{ program.eligibility_rules?.exclude_copy_accounts ? 'YES' : 'NO' }}
+              <span class="font-mono font-bold" :class="eligibilityRules?.exclude_copy_accounts ? 'text-primary-green' : 'text-secondary-text'">
+                {{ eligibilityRules?.exclude_copy_accounts ? 'YES' : 'NO' }}
               </span>
             </div>
           </div>
@@ -385,6 +385,7 @@ const isEditDrawerOpen = ref(false);
 const isCreateDrawerOpen = ref(false);
 
 const program = computed(() => store.program);
+const eligibilityRules = computed(() => program.value?.eligibility_rules || program.value?.eligibility || {});
 const programsList = computed(() => store.programsList || []);
 
 const programSelectOptions = computed(() =>

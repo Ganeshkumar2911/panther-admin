@@ -111,6 +111,55 @@
                   />
                 </div>
               </div>
+
+              <div class="space-y-2 pt-1 border-t border-primary-border/60">
+                <div class="flex items-center justify-between">
+                  <label class="font-semibold text-primary-text">Program Banners & Images (Max 4)</label>
+                  <span class="text-[10px] text-secondary-text font-mono">{{ imageUrlsList.length }}/4</span>
+                </div>
+
+                <div class="space-y-2">
+                  <div
+                    v-for="(url, idx) in imageUrlsList"
+                    :key="idx"
+                    class="flex items-center gap-2"
+                  >
+                    <div class="w-8 h-8 rounded-lg bg-background border border-primary-border overflow-hidden shrink-0 flex items-center justify-center">
+                      <img
+                        v-if="url"
+                        :src="url"
+                        class="w-full h-full object-cover"
+                        @error="(e) => e.target.style.display = 'none'"
+                      />
+                      <ImageIcon v-else class="w-3.5 h-3.5 text-secondary-text" />
+                    </div>
+                    <input
+                      v-model="imageUrlsList[idx]"
+                      type="url"
+                      placeholder="https://..."
+                      class="flex-1 px-3 py-1.5 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono text-[11px]"
+                    />
+                    <button
+                      type="button"
+                      class="w-7 h-7 flex items-center justify-center text-secondary-text hover:text-rose-400 rounded-lg hover:bg-background transition cursor-pointer"
+                      title="Remove Image"
+                      @click="removeImageUrl(idx)"
+                    >
+                      <Trash2 class="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  v-if="imageUrlsList.length < 4"
+                  type="button"
+                  class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-primary-border hover:border-primary/50 text-secondary-text hover:text-primary transition text-xs cursor-pointer w-full justify-center"
+                  @click="addImageUrl"
+                >
+                  <Plus class="w-3.5 h-3.5" />
+                  <span>Add Program Banner URL</span>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -351,7 +400,8 @@
                   </button>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <!-- <div class="grid grid-cols-1 sm:grid-cols-3 gap-2"> -->
+                <div>
                   <div class="space-y-0.5 sm:col-span-2">
                     <label class="text-[10px] text-secondary-text font-medium">Symbols (Comma-separated)</label>
                     <input
@@ -362,14 +412,14 @@
                     />
                   </div>
 
-                  <div class="space-y-0.5">
+                  <!-- <div class="space-y-0.5">
                     <label class="text-[10px] text-secondary-text font-medium">Match Type</label>
                     <BaseSelect
                       v-model="rule.match"
                       :options="matchTypeOptions"
                       placeholder="Match"
                     />
-                  </div>
+                  </div> -->
                 </div>
 
                 <div class="grid grid-cols-2 gap-2 pt-1 border-t border-primary-border/60">
@@ -442,6 +492,7 @@ import {
   FileCode,
   Plus,
   Trash2,
+  Image as ImageIcon,
 } from "lucide-vue-next";
 import { useLoyaltyStore } from "@/stores/loyalty/loyalty";
 import BaseDatePicker from "@/components/common/BaseDatePicker.vue";
@@ -474,6 +525,17 @@ const matchTypeOptions = [
 ];
 
 const excludedCategoriesText = ref("cent, pamm");
+const imageUrlsList = ref([]);
+
+const addImageUrl = () => {
+  if (imageUrlsList.value.length < 4) {
+    imageUrlsList.value.push("");
+  }
+};
+
+const removeImageUrl = (index) => {
+  imageUrlsList.value.splice(index, 1);
+};
 
 const form = reactive({
   code: "",
@@ -564,8 +626,17 @@ watch(
       form.terms_version = p.terms_version ?? "1.0";
       form.carry_over_enrollments = Boolean(p.carry_over_enrollments);
 
-      // Eligibility rules
-      const el = p.eligibility_rules || {};
+      // Images
+      if (Array.isArray(p.image_urls) && p.image_urls.length > 0) {
+        imageUrlsList.value = [...p.image_urls];
+      } else if (p.image_url) {
+        imageUrlsList.value = [p.image_url];
+      } else {
+        imageUrlsList.value = [];
+      }
+
+      // Eligibility rules (supports eligibility_rules or eligibility alias)
+      const el = p.eligibility_rules || p.eligibility || {};
       form.eligibility_rules = {
         require_kyc: Boolean(el.require_kyc),
         require_live: el.require_live !== undefined ? Boolean(el.require_live) : true,
@@ -701,6 +772,21 @@ const handleSubmit = async () => {
       normalize_suffixes: newNormalize,
       rules: formattedInstrumentRules,
     };
+  }
+
+  // Check Images diff (max 4)
+  const validImages = imageUrlsList.value
+    .map((u) => (typeof u === "string" ? u.trim() : ""))
+    .filter((u) => u.length > 0)
+    .slice(0, 4);
+
+  const oldImages = Array.isArray(p.image_urls)
+    ? p.image_urls
+    : (p.image_url ? [p.image_url] : []);
+
+  if (JSON.stringify(validImages) !== JSON.stringify(oldImages)) {
+    payload.image_urls = validImages;
+    payload.image_url = validImages.length > 0 ? validImages[0] : null;
   }
 
   // If no fields were modified, close without making a redundant request
