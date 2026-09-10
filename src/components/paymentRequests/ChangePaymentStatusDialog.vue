@@ -39,10 +39,27 @@
             <div>
               <p class="text-secondary-text">Amount</p>
               <p class="font-medium text-primary-text">{{ formattedAmount }}</p>
+              <p v-if="request?.paid_amount != null && request?.paid_currency" class="text-[11px] text-emerald-400 font-medium">
+                Paid: {{ request.paid_amount }} {{ request.paid_currency }}
+              </p>
+            </div>
+            <div>
+              <p class="text-secondary-text">Gateway / Method</p>
+              <p class="font-medium text-primary-text capitalize truncate" :title="request?.gateway">
+                {{ request?.gateway ?? '—' }} {{ request?.method ? `· ${request.method}` : '' }}
+              </p>
             </div>
             <div>
               <p class="text-secondary-text">User</p>
-              <p class="font-medium text-primary-text">{{ request?.user_name ?? '—' }}</p>
+              <p class="font-medium text-primary-text truncate" :title="request?.user_name">
+                {{ request?.user_name ?? '—' }}
+              </p>
+            </div>
+            <div>
+              <p class="text-secondary-text">Account</p>
+              <p class="font-medium text-primary-text">
+                {{ request?.trading_account_number ?? 'IB Wallet Withdrawal' }}
+              </p>
             </div>
           </div>
         </div>
@@ -96,6 +113,7 @@ const statusOptions = computed(() => {
   const opts = []
   if (hasPermission('payment_requests.approve')) {
     opts.push({ label: 'Approved', value: 'approved' })
+    opts.push({ label: 'Processing', value: 'processing' })
   }
   if (hasPermission('payment_requests.reject')) {
     opts.push({ label: 'Rejected', value: 'rejected' })

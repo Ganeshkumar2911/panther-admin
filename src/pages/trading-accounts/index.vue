@@ -874,7 +874,15 @@ onBeforeUnmount(() => clearTimeout(searchTimer));
               }}
             </td>
             <td class="px-3 py-4 text-xs text-primary-text tabular-nums">
-              {{ formatMoney(acc.equity, acc.broker_currency ?? acc.currency) }}
+              {{
+                formatMoney(
+                  acc.account_type === 'copy_trading' ||
+                    acc.trading_type === 'copy_trading'
+                    ? acc.balance
+                    : acc.equity,
+                  acc.broker_currency ?? acc.currency
+                )
+              }}
             </td>
             <td class="px-3 py-4 text-xs text-primary-text tabular-nums">
               {{ formatMoney(acc.credit, acc.broker_currency ?? acc.currency) }}

@@ -4,7 +4,7 @@
       <Transition name="backdrop">
         <div
           v-if="open"
-          class="fixed inset-0 z-[100] bg-black/50"
+          class="fixed inset-0 z-100 bg-black/50"
           @click="emit('close')"
         />
       </Transition>
@@ -12,7 +12,7 @@
       <Transition name="drawer">
         <div
           v-if="open"
-          class="fixed right-0 top-0 bottom-0 z-[101] w-full max-w-lg bg-card-background border-l border-primary-border flex flex-col"
+          class="fixed right-0 top-0 bottom-0 z-101 w-full max-w-lg bg-card-background border-l border-primary-border flex flex-col"
           @click.stop
         >
           <!-- Header -->
@@ -32,7 +32,7 @@
                   </h2>
                   <span
                     v-if="store.unreadCount > 0"
-                    class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-primary text-white min-w-[18px] text-center"
+                    class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-primary text-white min-w-4.5 text-center"
                   >
                     {{ store.unreadCount }}
                   </span>
@@ -87,33 +87,24 @@
               />
             </div>
             <div class="grid grid-cols-3 gap-2">
-              <select
+              <BaseSelect
                 v-model="selectedReadStatus"
-                class="px-2 py-1.5 text-xs rounded-lg bg-background border border-primary-border text-primary-text outline-none focus:border-primary transition-colors"
-              >
-                <option :value="null">All Status</option>
-                <option value="unread">Unread</option>
-                <option value="read">Read</option>
-              </select>
-              <select
+                :options="readStatusOptions"
+                placeholder="All Status"
+                variant="surface"
+              />
+              <BaseSelect
                 v-model="selectedPriority"
-                class="px-2 py-1.5 text-xs rounded-lg bg-background border border-primary-border text-primary-text outline-none focus:border-primary transition-colors"
-              >
-                <option :value="null">All Priority</option>
-                <option value="HIGH">High</option>
-                <option value="MEDIUM">Medium</option>
-                <option value="LOW">Low</option>
-              </select>
-              <select
+                :options="priorityOptions"
+                placeholder="All Priority"
+                variant="surface"
+              />
+              <BaseSelect
                 v-model="selectedType"
-                class="px-2 py-1.5 text-xs rounded-lg bg-background border border-primary-border text-primary-text outline-none focus:border-primary transition-colors"
-              >
-                <option :value="null">All Types</option>
-                <option value="ANNOUNCEMENT">Announcement</option>
-                <option value="SYSTEM">System</option>
-                <option value="PROMOTION">Promotion</option>
-                <option value="ALERT">Alert</option>
-              </select>
+                :options="typeOptions"
+                placeholder="All Types"
+                variant="surface"
+              />
             </div>
           </div>
 
@@ -154,7 +145,7 @@
                 v-for="item in filteredMyNotifications"
                 :key="item.id"
                 class="relative px-5 py-4 hover:bg-background transition-colors"
-                :class="{ 'bg-primary/[0.02]': !item.is_read }"
+                :class="{ 'bg-primary/2': !item.is_read }"
               >
                 <!-- Unread bar -->
                 <div
@@ -313,6 +304,7 @@ import {
   Loader2,
 } from "lucide-vue-next";
 import Tooltip from "../common/Tooltip.vue";
+import BaseSelect from "@/components/common/BaseSelect.vue";
 
 const props = defineProps({ open: { type: Boolean, default: false } });
 const emit = defineEmits(["close"]);
@@ -344,6 +336,27 @@ const searchQuery = ref("");
 const selectedReadStatus = ref(null);
 const selectedPriority = ref(null);
 const selectedType = ref(null);
+
+const readStatusOptions = [
+  { label: "All Status", value: null },
+  { label: "Unread", value: "unread" },
+  { label: "Read", value: "read" },
+];
+
+const priorityOptions = [
+  { label: "All Priority", value: null },
+  { label: "High", value: "HIGH" },
+  { label: "Medium", value: "MEDIUM" },
+  { label: "Low", value: "LOW" },
+];
+
+const typeOptions = [
+  { label: "All Types", value: null },
+  { label: "Announcement", value: "ANNOUNCEMENT" },
+  { label: "System", value: "SYSTEM" },
+  { label: "Promotion", value: "PROMOTION" },
+  { label: "Alert", value: "ALERT" },
+];
 
 watch(
   () => props.open,

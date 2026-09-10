@@ -22,6 +22,8 @@ import {
   Target,
   FolderOpen,
   Bell,
+  Tag,
+  BookmarkCheck,
 } from "lucide-vue-next";
 
 export const navItems = [
@@ -147,6 +149,20 @@ export const navItems = [
     permission: ["group.group_view", "group.category_view"],
   },
   {
+    label: "Watchlist",
+    to: "/watchlist",
+    icon: BookmarkCheck,
+    permission: [
+      "watchlist.settings_view",
+      "watchlist.settings_update",
+      "watchlist.symbols_view",
+      "watchlist.symbols_create",
+      "watchlist.symbols_update",
+      "watchlist.symbols_delete",
+      "watchlist.symbols_import",
+    ],
+  },
+  {
     label: "Company Integrations",
     to: "/company-integrations",
     icon: Cpu,
@@ -187,6 +203,12 @@ export const navItems = [
     to: "/rbac-modules",
     icon: Layers,
     permission: ["xtention_dev.view"],
+  },
+  {
+    label: "Tag Management",
+    to: "/tags",
+    icon: Tag,
+    permission: ["tags.view"],
   },
   {
     label: "System Settings",

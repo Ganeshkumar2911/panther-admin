@@ -216,6 +216,12 @@
                   <span class="font-bold text-primary-text capitalize">{{ item?.visibility_type || 'public' }}</span>
                 </div>
                 <div>
+                  <span class="text-secondary-text text-[11px] block">Follower Account Type</span>
+                  <span class="font-bold text-primary-text">
+                    {{ getFollowerAccountTypeLabel(item?.follower_account_type) }}
+                  </span>
+                </div>
+                <div>
                   <span class="text-secondary-text text-[11px] block">Active Status</span>
                   <span class="font-bold" :class="item?.is_active ? 'text-emerald-500' : 'text-zinc-500'">
                     {{ item?.is_active ? 'Active' : 'Inactive' }}
@@ -566,6 +572,12 @@ const getKycBadgeClass = (status) => {
   if (status === 'pending') return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
   if (status === 'rejected') return 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
   return 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'
+}
+
+const getFollowerAccountTypeLabel = (type) => {
+  if (Number(type) === 2) return 'Real account only'
+  if (Number(type) === 3) return 'Both options'
+  return 'Copy trading only (default)'
 }
 </script>
 

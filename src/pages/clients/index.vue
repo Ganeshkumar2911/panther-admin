@@ -15,10 +15,15 @@ import {
   Link2,
   LogIn,
   SlidersHorizontal,
+  Tag,
   X,
+  Landmark,
 } from "lucide-vue-next";
 import ConfirmationDialog from "@/components/common/ConfirmationDialog.vue";
+import ClientBankAccountsDialog from "@/components/common/ClientBankAccountsDialog.vue";
 import { useClientListStore } from "@/stores/clientList/clientList";
+import { useClientDepthStore } from "@/stores/clientDepth/clientDepth";
+import { useTagsStore } from "@/stores/tags/tags";
 import Pagination from "@/components/common/Pagination.vue";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import DropdownMenu from "@/components/common/DropdownMenu.vue";
@@ -31,15 +36,127 @@ import Tooltip from "@/components/common/Tooltip.vue";
 import UpdateReferralLinkDrawer from "@/components/common/UpdateReferralLinkDrawer.vue";
 import ClientLoginModal from "@/components/common/ClientLoginModal.vue";
 import ManageTransactionsDialog from "@/components/common/ManageTransactionsDialog.vue";
+import TagChip from "@/components/common/TagChip.vue";
+import TagAssignmentModal from "@/components/common/TagAssignmentModal.vue";
 import { useRouter } from "vue-router";
 import { useGoToTradingAccount } from "@/composables/useGoToTradingAccount";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import { getFlagCode, cleanCountryLabel } from "@/utils/countries";
+import apiRequest from "@/api/request";
+import urls from "@/api/urls";
+import { useSnackbarStore } from "@/stores/snackbar/snackbar";
+import { useRbacStaffStore } from "@/stores/rbac/staff";
 
 const router = useRouter();
-const { hasPermission } = usePermissionCheck();
+const { hasPermission, hasAnyPermission } = usePermissionCheck();
 
 const store = useClientListStore();
+const clientDepthStore = useClientDepthStore();
+const tagsStore = useTagsStore();
+const snackbar = useSnackbarStore();
+const rbacStaffStore = useRbacStaffStore();
+
+const canAssignTags = computed(() => {
+  return (
+    hasAnyPermission(["tags.assign", "tags.update", "tags.remove"]) ||
+    hasPermission("client.update")
+  );
+});
+
+const visibleTags = (tags) => {
+  if (!tags || !Array.isArray(tags)) return [];
+  return tags.slice(0, 2);
+};
+
+const remainingTags = (tags) => {
+  if (!tags || !Array.isArray(tags)) return [];
+  return tags.slice(2);
+};
+
+const selectedClients = ref([]);
+const selectedClientIds = computed(() =>
+  selectedClients.value.map((c) => (typeof c === "object" ? c.id : c)),
+);
+
+const isAllClientsSelected = computed(() => {
+  if (!store.data || store.data.length === 0) return false;
+  return store.data.every((c) => selectedClientIds.value.includes(c.id));
+});
+
+const isSomeClientsSelected = computed(() => {
+  if (!store.data || store.data.length === 0) return false;
+  return selectedClientIds.value.length > 0 && !isAllClientsSelected.value;
+});
+
+const toggleSelectAllClients = () => {
+  if (isAllClientsSelected.value) {
+    selectedClients.value = [];
+  } else {
+    selectedClients.value = [...(store.data || [])];
+  }
+};
+
+const toggleSelectClient = (clientId) => {
+  const idx = selectedClients.value.findIndex(
+    (c) => (typeof c === "object" ? c.id : c) === clientId,
+  );
+  if (idx > -1) {
+    selectedClients.value.splice(idx, 1);
+  } else {
+    const client = (store.data || []).find((c) => c.id === clientId);
+    if (client) {
+      selectedClients.value.push(client);
+    }
+  }
+};
+
+const clearClientSelection = () => {
+  selectedClients.value = [];
+};
+
+const tagModal = ref({
+  open: false,
+  entityType: "user",
+  entityId: null,
+  entityIds: [],
+  currentTags: [],
+});
+
+const openClientTagModal = (client) => {
+  tagModal.value = {
+    open: true,
+    entityType: "user",
+    entityId: client.id,
+    entityIds: [],
+    currentTags: client.tags || [],
+  };
+};
+
+const openBulkClientTagModal = () => {
+  if (selectedClientIds.value.length === 0) return;
+  tagModal.value = {
+    open: true,
+    entityType: "user",
+    entityId: null,
+    entityIds: [...selectedClientIds.value],
+    currentTags: [],
+  };
+};
+
+const handleTagModalUpdated = () => {
+  store.fetchClients(store.pagination.page);
+};
+
+const tagOptions = computed(() => {
+  const options = [{ label: "All Tags", value: "" }];
+  (tagsStore.tags || []).forEach((t) => {
+    options.push({
+      label: t.name,
+      value: String(t.id),
+    });
+  });
+  return options;
+});
 
 let searchTimer = null;
 let ibSearchTimer = null;
@@ -70,6 +187,17 @@ const selectedClientForTransactions = ref(null);
 const clientLoginModalOpen = ref(false);
 const selectedClientForLogin = ref(null);
 
+const editingStaffClientId = ref(null);
+
+const assignDialog = ref({
+  open: false,
+  loading: false,
+  client: null,
+  staffId: null,
+  staffName: "",
+  isEdit: false,
+});
+
 const onSearch = () => {
   clearTimeout(searchTimer);
   searchTimer = setTimeout(() => store.applyFilters(), 400);
@@ -80,7 +208,9 @@ const onIbSearch = (query) => {
   ibSearchTimer = setTimeout(() => store.searchIbs(query), 350);
 };
 
-const hasFilters = computed(() => store.filters.search || store.filters.ib_id);
+const hasFilters = computed(
+  () => store.filters.search || store.filters.ib_id || store.filters.tag_ids,
+);
 
 const handlePageChange = (page) => store.fetchClients(page);
 
@@ -91,6 +221,7 @@ const handlePerPageChange = ({ page, per_page }) => {
 
 const clientColumns = [
   { key: "client", label: "Client", sortable: true, minWidth: 170 },
+  { key: "tags", label: "Tags", minWidth: 160 },
   { key: "contact", label: "Contact", minWidth: 180 },
   { key: "address", label: "Address", minWidth: 160 },
   { key: "ib", label: "IB", minWidth: 160 },
@@ -104,11 +235,6 @@ const clientColumns = [
   { key: "status", label: "Status", align: "center", minWidth: 100 },
 ];
 
-const formatNum = (val) =>
-  (val ?? 0).toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
 const formatDate = (val) =>
   val
     ? new Date(val).toLocaleDateString("en-GB", {
@@ -122,19 +248,13 @@ function getRowActions(client) {
   const actions = [];
 
   if (hasPermission("client.update")) {
-    actions.push({ action: "edit", label: "Edit Client", icon: Pencil });
-  }
-
-  if (hasPermission("system_setting.manager_transection_setting")) {
-    actions.push({
-      action: "manageTransactions",
-      label: "Manage Transactions",
-      icon: SlidersHorizontal,
-    });
-  }
-
-  if (hasPermission("client.update")) {
     actions.push(
+      { action: "edit", label: "Edit Client", icon: Pencil },
+      {
+        action: "manageTransactions",
+        label: "Manage Transactions",
+        icon: SlidersHorizontal,
+      },
       { action: "changeIB", label: "Change IB", icon: UserPen },
       {
         action: "makeIB",
@@ -147,6 +267,11 @@ function getRowActions(client) {
         label: "Update Referral Link",
         icon: Link2,
       },
+      {
+        action: "depth",
+        label: "Client Depth",
+        icon: Eye,
+      },
       { divider: true },
       {
         action: "toggleStatus",
@@ -156,6 +281,14 @@ function getRowActions(client) {
         success: !client.is_active,
       },
     );
+  }
+
+  if (hasAnyPermission(["user_bank_accounts.enable_edit"])) {
+    actions.push({
+      action: "viewBankAccounts",
+      label: "Bank Accounts",
+      icon: Landmark,
+    });
   }
 
   if (hasPermission("xtention_dev.login_as_client")) {
@@ -195,6 +328,10 @@ const chooseBgColor = {
 
 function onMenuSelect(item, client) {
   switch (item.action) {
+    case "viewBankAccounts":
+      return openClientBankAccountsDialog(client);
+    case "manageTags":
+      return openClientTagModal(client);
     case "clientLogin":
       return handleClientLogin(client);
     case "edit":
@@ -215,6 +352,19 @@ function onMenuSelect(item, client) {
       return openDeleteClientDialog(client);
   }
 }
+
+const clientBankAccountsDialogOpen = ref(false);
+const selectedClientForBankAccounts = ref(null);
+
+const openClientBankAccountsDialog = (client) => {
+  selectedClientForBankAccounts.value = client;
+  clientBankAccountsDialogOpen.value = true;
+};
+
+const closeClientBankAccountsDialog = () => {
+  clientBankAccountsDialogOpen.value = false;
+  selectedClientForBankAccounts.value = null;
+};
 
 const handleClientLogin = (client) => {
   if (!client?.id) return;
@@ -255,7 +405,9 @@ const openChangeIBDialog = (client) => {
 };
 
 const openClientDepth = (client) => {
-  localStorage.setItem("active_client", JSON.stringify(client));
+  if (!client) return;
+  clientDepthStore.reset();
+  clientDepthStore.setActiveClient(client);
   router.push(`/client/details/${client.id}`);
 };
 
@@ -349,25 +501,6 @@ const closeManageTransactionsDialog = () => {
 const handleManageTransactionsSuccess = () => {
   store.fetchClients(store.pagination.page);
 };
-
-import apiRequest from "@/api/request";
-import urls from "@/api/urls";
-import { useSnackbarStore } from "@/stores/snackbar/snackbar";
-import { useRbacStaffStore } from "@/stores/rbac/staff";
-
-const snackbar = useSnackbarStore();
-const rbacStaffStore = useRbacStaffStore();
-
-const editingStaffClientId = ref(null);
-
-const assignDialog = ref({
-  open: false,
-  loading: false,
-  client: null,
-  staffId: null,
-  staffName: "",
-  isEdit: false,
-});
 
 const staffOptions = computed(() => {
   return (rbacStaffStore.records || []).map((s) => ({
@@ -494,6 +627,7 @@ const getKycClass = (status) => {
 
 onMounted(() => {
   store.fetchClients();
+  tagsStore.fetchTags();
   rbacStaffStore.fetchStaff(false);
 });
 </script>
@@ -531,6 +665,25 @@ onMounted(() => {
           @update:modelValue="store.applyFilters()"
         />
 
+        <!-- Tag Filter -->
+        <BaseSelect
+          v-model="store.filters.tag_ids"
+          :options="tagOptions"
+          placeholder="All Tags..."
+          class="w-full sm:w-56 xl:w-56"
+          @update:modelValue="store.applyFilters()"
+        />
+
+        <button
+          v-if="selectedClientIds.length > 0"
+          type="button"
+          @click="openBulkClientTagModal"
+          class="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all cursor-pointer shrink-0"
+        >
+          <Tag class="w-3.5 h-3.5" />
+          <span>Manage Tags ({{ selectedClientIds.length }})</span>
+        </button>
+
         <button
           v-if="hasFilters"
           class="rounded-lg px-3 py-2 text-xs font-medium text-secondary-text hover:bg-background hover:text-primary-text transition-colors sm:flex-none"
@@ -549,7 +702,7 @@ onMounted(() => {
         <Tooltip text="Refresh" position="right">
           <button
             type="button"
-            :disabled="store.loading"
+            :disabled="store.isLoading"
             class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text transition-colors hover:text-primary-text hover:bg-background disabled:opacity-60 disabled:cursor-not-allowed"
             @click="
               () => {
@@ -559,7 +712,7 @@ onMounted(() => {
           >
             <RefreshCw
               class="h-3.5 w-3.5"
-              :class="{ 'animate-spin': store.loading }"
+              :class="{ 'animate-spin': store.isLoading }"
             />
           </button>
         </Tooltip>
@@ -572,7 +725,7 @@ onMounted(() => {
 
         <button
           v-if="hasPermission('client.create')"
-          class="flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all active:scale-95 cursor-pointer sm:flex-none"
+          class="flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all active:scale-95 cursor-pointer sm:flex-none shadow-sm"
           @click="openCreateClientDialog"
         >
           <Plus class="w-3.5 h-3.5" />
@@ -581,6 +734,49 @@ onMounted(() => {
       </div>
     </div>
 
+    <!-- Floating / Top Bulk Actions Bar -->
+    <Transition
+      enter-active-class="transition duration-200 ease-out"
+      enter-from-class="opacity-0 -translate-y-2"
+      enter-to-class="opacity-100 translate-y-0"
+      leave-active-class="transition duration-150 ease-in"
+      leave-from-class="opacity-100 translate-y-0"
+      leave-to-class="opacity-0 -translate-y-2"
+    >
+      <div
+        v-if="canAssignTags && selectedClientIds.length > 0"
+        class="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 rounded-xl bg-primary/10 border border-primary/25 text-xs text-primary-text mb-4 shadow-sm"
+      >
+        <div class="flex items-center gap-2.5">
+          <span
+            class="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-md bg-primary text-white text-[11px] font-bold shadow-xs"
+          >
+            {{ selectedClientIds.length }}
+          </span>
+          <span class="font-medium text-xs">
+            Client{{ selectedClientIds.length > 1 ? "s" : "" }} selected
+          </span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            @click="openBulkClientTagModal"
+            class="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold shadow-sm transition-all cursor-pointer"
+          >
+            <Tag class="w-3.5 h-3.5" />
+            <span>Manage Tags ({{ selectedClientIds.length }})</span>
+          </button>
+          <button
+            type="button"
+            @click="clearClientSelection"
+            class="px-2.5 py-1.5 rounded-lg text-xs font-medium text-secondary-text hover:text-primary-text hover:bg-card-background/70 transition-colors cursor-pointer"
+          >
+            Clear Selection
+          </button>
+        </div>
+      </div>
+    </Transition>
+
     <!-- Desktop DataTable -->
     <div class="hidden md:block">
       <DataTable
@@ -588,8 +784,11 @@ onMounted(() => {
         :columns="clientColumns"
         :pagination="store.pagination"
         :loading="store.isLoading"
+        :selectable="canAssignTags"
+        v-model:selected="selectedClients"
         :actions="getRowActions"
         :per-page-options="[10, 25, 50, 100]"
+        row-key="id"
         table-key="clients-list-table"
         empty-title="No clients found"
         empty-text="Try adjusting your filters or search criteria."
@@ -611,6 +810,56 @@ onMounted(() => {
               </p>
               <p class="text-[10px] text-secondary-text">ID: {{ row.id }}</p>
             </div>
+          </div>
+        </template>
+
+        <!-- Custom Cell: Tags -->
+        <template #cell-tags="{ row }">
+          <div class="flex flex-wrap items-center gap-1" @click.stop>
+            <TagChip
+              v-for="tag in visibleTags(row.tags)"
+              :key="tag.id"
+              :tag="tag"
+              size="sm"
+            />
+            <Tooltip
+              v-if="remainingTags(row.tags).length"
+              position="center"
+              maxWidth="280px"
+            >
+              <span
+                class="inline-flex items-center text-[10px] font-semibold px-1.5 py-0.5 rounded border border-primary-border bg-background/80 text-secondary-text hover:text-primary-text cursor-help transition-colors"
+              >
+                +{{ remainingTags(row.tags).length }}
+              </span>
+
+              <template #content>
+                <div class="p-1">
+                  <p
+                    class="text-[10px] uppercase font-semibold text-secondary-text tracking-wider mb-1.5"
+                  >
+                    Additional Tags
+                  </p>
+                  <div class="flex flex-wrap gap-1 max-w-64">
+                    <TagChip
+                      v-for="tag in remainingTags(row.tags)"
+                      :key="tag.id"
+                      :tag="tag"
+                      size="sm"
+                    />
+                  </div>
+                </div>
+              </template>
+            </Tooltip>
+            <button
+              v-if="canAssignTags"
+              type="button"
+              @click="openClientTagModal(row)"
+              class="p-1 rounded hover:bg-white/10 text-secondary-text hover:text-primary-text transition-colors cursor-pointer"
+              title="Manage Tags"
+            >
+              <Plus class="w-3 h-3" />
+            </button>
           </div>
         </template>
 
@@ -711,7 +960,7 @@ onMounted(() => {
               class="w-44 flex items-center gap-1"
             >
               <div class="flex-1">
-                <BaseSelect
+               <BaseSelect
                   :model-value="
                     row.staff_assigned?.id ||
                     row.assigned_staff?.id ||
@@ -768,7 +1017,7 @@ onMounted(() => {
         <!-- Custom Cell: KYC Status -->
         <template #cell-kyc_status="{ row }">
           <span
-            class="text-[11px] font-medium px-2 py-0.5 rounded-full border capitalize mb-1"
+            class="text-[11px] font-medium px-2 py-0.5 rounded-full border capitalize mb-1 inline-block"
             :class="getKycClass(row.kyc_status)"
           >
             {{ row.kyc_status || "not started" }}
@@ -954,10 +1203,24 @@ onMounted(() => {
         v-else
         v-for="client in store.data"
         :key="client.id"
-        class="bg-card-background border border-primary-border rounded-2xl p-4 space-y-3"
+        class="border rounded-2xl p-4 space-y-3 transition-colors duration-150"
+        :class="[
+          selectedClientIds.includes(client.id)
+            ? 'bg-primary/5 dark:bg-primary/10 border-primary/40 shadow-xs'
+            : 'bg-card-background border-primary-border',
+        ]"
       >
-        <div class="flex items-start justify-between">
+        <div class="flex items-start justify-between gap-2">
           <div class="flex items-center gap-2.5 min-w-0">
+            <!-- Mobile Select Checkbox -->
+            <div v-if="canAssignTags" class="shrink-0" @click.stop>
+              <input
+                type="checkbox"
+                :checked="selectedClientIds.includes(client.id)"
+                @change="toggleSelectClient(client.id)"
+                class="custom-checkbox"
+              />
+            </div>
             <div
               class="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-xs font-medium text-white shrink-0"
             >
@@ -1003,6 +1266,57 @@ onMounted(() => {
               {{ client.kyc_status || "not started" }}
             </span>
           </div>
+        </div>
+
+        <!-- Mobile Tags Display -->
+        <div
+          v-if="client.tags && client.tags.length > 0"
+          class="flex flex-wrap items-center gap-1 pt-1"
+        >
+          <TagChip
+            v-for="tag in visibleTags(client.tags)"
+            :key="tag.id"
+            :tag="tag"
+            size="sm"
+          />
+          <Tooltip
+            v-if="remainingTags(client.tags).length"
+            position="center"
+            maxWidth="280px"
+          >
+            <span
+              class="inline-flex items-center text-[10px] font-semibold px-1.5 py-0.5 rounded border border-primary-border bg-background/80 text-secondary-text hover:text-primary-text cursor-help transition-colors"
+            >
+              +{{ remainingTags(client.tags).length }}
+            </span>
+
+            <template #content>
+              <div class="p-1">
+                <p
+                  class="text-[10px] uppercase font-semibold text-secondary-text tracking-wider mb-1.5"
+                >
+                  Additional Tags
+                </p>
+                <div class="flex flex-wrap gap-1 max-w-64">
+                  <TagChip
+                    v-for="tag in remainingTags(client.tags)"
+                    :key="tag.id"
+                    :tag="tag"
+                    size="sm"
+                  />
+                </div>
+              </div>
+            </template>
+          </Tooltip>
+          <button
+            v-if="canAssignTags"
+            type="button"
+            @click="openClientTagModal(client)"
+            class="p-1 rounded hover:bg-white/10 text-secondary-text hover:text-primary-text transition-colors cursor-pointer"
+            title="Manage Tags"
+          >
+            <Plus class="w-3 h-3" />
+          </button>
         </div>
 
         <div class="grid grid-cols-2 gap-2 text-xs">
@@ -1468,6 +1782,24 @@ onMounted(() => {
       :loading="assignDialog.loading"
       @confirm="handleConfirmAssignStaff"
       @cancel="handleCancelAssignStaff"
+    />
+
+    <!-- Tag Assignment Modal -->
+    <TagAssignmentModal
+      :open="tagModal.open"
+      :entity-type="tagModal.entityType"
+      :entity-id="tagModal.entityId"
+      :entity-ids="tagModal.entityIds"
+      :current-tags="tagModal.currentTags"
+      @close="tagModal.open = false"
+      @updated="handleTagModalUpdated"
+    />
+
+    <!-- Saved Bank Accounts Dialog -->
+    <ClientBankAccountsDialog
+      :open="clientBankAccountsDialogOpen"
+      :client="selectedClientForBankAccounts"
+      @close="closeClientBankAccountsDialog"
     />
   </div>
 </template>

@@ -27,20 +27,22 @@ export function livePNL(trade) {
   if (trade?.type === "BUY") {
     // close happens at BID
     const currentPrice = Number(livePrice?.bid || 0);
-
     pnl = (currentPrice - entryPrice) * lot;
   }
-
   // ✅ SELL Trade
   else if (trade?.type === "SELL") {
     // close happens at ASK
     const currentPrice = Number(livePrice?.ask || 0);
-
     pnl = (entryPrice - currentPrice) * lot;
   }
 
   const contractSize = Number(livePrice?.contract || 1);
   pnl = pnl * contractSize;
 
-  return Number(pnl).toFixed(3);
+  // ✅ If symbol has .c suffix (e.g. XAUUSD.c cent account), multiply PnL by 100
+  if (trade?.symbol && String(trade.symbol).toLowerCase().endsWith(".c")) {
+    pnl = pnl * 100;
+  }
+
+  return Number(pnl).toFixed(2);
 }

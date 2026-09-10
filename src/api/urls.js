@@ -44,6 +44,17 @@ const urls = {
     updateReferralLink: "/clients/referral-link",
     userDashboard: "/user-dashboard",
   },
+  clientDepth: {
+    overview: "/overview",
+    kyc: "/user/kyc-details",
+    userUpdate: "/user-update",
+    updateKyc: "/user/kyc-details",
+    uploadDocument: "/user-document-upload",
+    docApproval: "/user-doc-approval",
+    userCharts: "/user-charts",
+    accountDetails: "/account-details",
+    userReferences: "/user/reference",
+  },
   clientLedger: {
     list: "/ledger/clients",
     allClients: "/search/clients",
@@ -88,7 +99,8 @@ const urls = {
     settlementPreview: "/settlement/preview",
     settlementRun: "/settlement/run",
     offers: "/fund_managers/offers",
-    followers: "/fund_managers/followers",
+    followers: (fmId) => (fmId ? `/fund_managers/followers/${fmId}` : "/fund_managers/followers"),
+    followersHistory: (fmId) => `/fund_managers/followers/${fmId}/history`,
     followersDetails: "fund_managers/followers/info/",
     editFollower: "/fund_managers/followers/edit",
     offerJoinLinks: "/fund_managers/offers/join-links",
@@ -150,10 +162,25 @@ const urls = {
     syncWallets: "/payments/sync-wallets",
     update: "/payments/payment-methods",
   },
+  currencyRates: {
+    list: "/payments/currency-rates",
+    create: "/payments/currency-rates",
+    update: "/payments/currency-rates",
+    delete: "/payments/currency-rates",
+  },
+  bankAccounts: {
+    adminList: (userId) => `/users/bank-accounts/${userId}`,
+    enableEdit: (userId, accountId) =>
+      `/users/bank-accounts/${userId}/${accountId}/enable-edit`,
+  },
   paymentRequests: {
     list: "/payment-requests",
     approve: "/payment-requests/approve/",
     reject: "/payment-requests/reject/",
+    updateAmount: (id) => `/payment-requests/${id}/amount`,
+  },
+  paymentGatewayData: {
+    list: "/payment-gateway-data",
   },
   paymentSettings: {
     bulkRestrictions: "/clients/transaction-restrictions/bulk",
@@ -215,6 +242,7 @@ const urls = {
       updateRole: "/rbac/users/role",
       updateStatus: "/rbac/users/status",
       delete: "/rbac/users",
+      resetPassword: "/rbac/users/reset-password",
     },
     userPermissions: {
       me: "/rbac/me/permissions",
@@ -257,6 +285,8 @@ const urls = {
     },
     images: {
       list: "/media-images",
+      links: "/media/images/links",
+      clientLinks: "/media/images/links",
       create: "/create-media-image",
       update: "/media-images",
       delete: "/media-images",
@@ -272,6 +302,36 @@ const urls = {
     export: "/lead/export",
     importTemplate: "/lead/import/template",
     import: "/lead/import",
+    tags: "/lead/",
+    bulkTags: "/lead/tags/bulk",
+  },
+  tags: {
+    list: "/tags",
+    search: "/tags",
+    limits: "/tags/limits",
+    create: "/tags",
+    byId: (id) => `/tags/${id}`,
+    update: (id) => `/tags/${id}`,
+    activate: (id) => `/tags/${id}/activate`,
+    deactivate: (id) => `/tags/${id}/deactivate`,
+    delete: (id) => `/tags/${id}`,
+    assignments: (type, id) => `/tags/assignments/${type}/${id}`,
+    removeAssignment: (type, id, tagId) =>
+      `/tags/assignments/${type}/${id}/${tagId}`,
+    bulkAssignments: (type) => `/tags/assignments/${type}/bulk`,
+    leadTags: (leadId) => `/lead/${leadId}/tags`,
+    removeLeadTag: (leadId, tagId) => `/lead/${leadId}/tags/${tagId}`,
+    leadBulk: "/lead/tags/bulk",
+    userTags: (userId) => `/users/${userId}/tags`,
+    removeUserTag: (userId, tagId) => `/users/${userId}/tags/${tagId}`,
+    userBulk: "/users/tags/bulk",
+  },
+  watchlist: {
+    settings: "/watchlist/settings",
+    symbols: "/watchlist/symbols",
+    symbolDetail: (id) => `/watchlist/symbols/${id}`,
+    import: "/watchlist/symbols/import",
+    template: "/watchlist/symbols/template",
   },
 };
 

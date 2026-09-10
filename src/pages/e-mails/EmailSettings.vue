@@ -1,5 +1,3 @@
-Here is the updated code cleaned up and aligned precisely with your project's strict theme rules.
-
 <template>
   <div class="min-h-screen bg-background">
     <main class="max-w-screen-2xl mx-auto px-4 sm:px-6 py-8">
@@ -19,7 +17,7 @@ Here is the updated code cleaned up and aligned precisely with your project's st
         </div>
       </div>
 
-      <div v-else-if="!store.settings" class="flex flex-col items-center justify-center text-secondary-text bg-card-background border border-primary-border rounded-xl p-12 min-h-[400px] text-center gap-3">
+      <div v-else-if="!store.settings" class="flex flex-col items-center justify-center text-secondary-text bg-card-background border border-primary-border rounded-xl p-12 min-h-100 text-center gap-3">
         <div class="w-12 h-12 rounded-full bg-background border border-primary-border flex items-center justify-center mb-2">
           <Mail class="w-4 h-4 text-secondary-text" />
         </div>

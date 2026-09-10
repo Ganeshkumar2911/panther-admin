@@ -17,9 +17,11 @@ export const useSettlementTradesStore = defineStore('settlementTrades', () => {
   const settlement = reactive({
     settlement_id: null,
     fm_id: null,
+    fm_name: null,
     total_fee: 0,
     total_pnl: 0,
     created_at: null,
+    status: null,
   })
 
   const summary = reactive({
@@ -41,30 +43,43 @@ export const useSettlementTradesStore = defineStore('settlementTrades', () => {
     if (!id) return
 
     loading.value = true
+    error.value = null
 
     const successHandler = (res) => {
-      records.value = res?.records || []
+      const dataObj = res?.data || res
+      records.value = Array.isArray(dataObj?.records)
+        ? dataObj.records
+        : Array.isArray(res?.records)
+        ? res.records
+        : Array.isArray(dataObj)
+        ? dataObj
+        : []
 
+      const settlementObj = dataObj?.settlement || res?.settlement || {}
       Object.assign(settlement, {
-        settlement_id: res?.settlement?.settlement_id || null,
-        fm_id: res?.settlement?.fm_id || null,
-        total_fee: res?.settlement?.total_fee || 0,
-        total_pnl: res?.settlement?.total_pnl || 0,
-        created_at: res?.settlement?.created_at || null,
+        settlement_id: settlementObj?.settlement_id ?? id,
+        fm_id: settlementObj?.fm_id || null,
+        fm_name: settlementObj?.fm_name || null,
+        total_fee: settlementObj?.total_fee || settlementObj?.gross_fee || 0,
+        total_pnl: settlementObj?.total_pnl || settlementObj?.net_profit || 0,
+        created_at: settlementObj?.created_at || settlementObj?.executed_at || null,
+        status: settlementObj?.status || null,
       })
 
+      const summaryObj = dataObj?.summary || res?.summary || {}
       Object.assign(summary, {
-        total_trades: res?.summary?.total_trades || 0,
-        total_pnl: res?.summary?.total_pnl || 0,
-        net_pnl: res?.summary?.net_pnl || 0,
-        total_fee: res?.summary?.total_fee || 0,
+        total_trades: summaryObj?.total_trades || records.value.length || 0,
+        total_pnl: summaryObj?.total_pnl ?? settlementObj?.total_pnl ?? 0,
+        net_pnl: summaryObj?.net_pnl ?? summaryObj?.total_pnl ?? 0,
+        total_fee: summaryObj?.total_fee ?? settlementObj?.total_fee ?? 0,
       })
 
+      const paginationObj = res?.pagination || dataObj?.pagination || {}
       Object.assign(pagination, {
-        page: res?.pagination?.page || 1,
-        per_page: res?.pagination?.per_page || 10,
-        total_items: res?.pagination?.total_items || 0,
-        total_pages: res?.pagination?.total_pages || 1,
+        page: paginationObj?.page || 1,
+        per_page: paginationObj?.per_page || 10,
+        total_items: paginationObj?.total_items || records.value.length,
+        total_pages: paginationObj?.total_pages || 1,
       })
 
       loading.value = false
@@ -113,9 +128,11 @@ export const useSettlementTradesStore = defineStore('settlementTrades', () => {
     Object.assign(settlement, {
       settlement_id: null,
       fm_id: null,
+      fm_name: null,
       total_fee: 0,
       total_pnl: 0,
       created_at: null,
+      status: null,
     })
 
     Object.assign(summary, {
@@ -149,4 +166,3 @@ export const useSettlementTradesStore = defineStore('settlementTrades', () => {
     reset,
   }
 })
-

@@ -9,14 +9,6 @@
       >
         <!-- Left Title & Meta -->
         <div class="flex items-center gap-3">
-          <button
-            class="p-2 rounded-lg border border-primary-border bg-background text-secondary-text hover:text-primary-text hover:bg-card-background transition-colors cursor-pointer"
-            @click="goBack"
-            title="Go Back"
-          >
-            <ArrowLeft class="w-4 h-4" />
-          </button>
-
           <div>
             <div class="flex items-center gap-2.5 flex-wrap">
               <h1
@@ -646,7 +638,6 @@
             <Layers class="w-3.5 h-3.5" />
             <span>Positions</span>
             <span
-              v-if="positionsBadgeCount > 0"
               class="px-1.5 py-0.2 rounded-md text-[10px] font-mono font-bold"
               :class="
                 store.activeTab === 'positions'
@@ -654,7 +645,7 @@
                   : 'bg-card-background text-secondary-text'
               "
             >
-              {{ positionsBadgeCount }}
+              {{ store.summary.total_positions ?? "" }}
             </span>
           </button>
 
@@ -670,7 +661,6 @@
             <Clock class="w-3.5 h-3.5" />
             <span>Orders</span>
             <span
-              v-if="ordersBadgeCount > 0"
               class="px-1.5 py-0.2 rounded-md text-[10px] font-mono font-bold"
               :class="
                 store.activeTab === 'orders'
@@ -678,7 +668,7 @@
                   : 'bg-card-background text-secondary-text'
               "
             >
-              {{ ordersBadgeCount }}
+              {{ store.summary.total_orders ?? "0" }}
             </span>
           </button>
 
@@ -694,7 +684,6 @@
             <CheckCircle2 class="w-3.5 h-3.5" />
             <span>Deals History</span>
             <span
-              v-if="dealsBadgeCount > 0"
               class="px-1.5 py-0.2 rounded-md text-[10px] font-mono font-bold"
               :class="
                 store.activeTab === 'deals'
@@ -702,7 +691,7 @@
                   : 'bg-card-background text-secondary-text'
               "
             >
-              {{ dealsBadgeCount }}
+              {{ store.summary.total_deals ?? "" }}
             </span>
           </button>
         </div>
@@ -716,10 +705,13 @@
         </div>
       </div>
 
-      <!-- Filters Row -->
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <!-- Search Input -->
-        <div class="relative flex-1 min-w-50 max-w-sm">
+      <!-- Filters Row (Single Unified Row) -->
+      <div class="flex items-center gap-2.5 overflow-x-auto pb-1 flex-nowrap">
+        <!-- Search Input (if enabled in filter schema) -->
+        <div
+          v-if="hasSearchFilter"
+          class="relative w-48 sm:w-56 shrink-0"
+        >
           <Search
             class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-text pointer-events-none"
           />
@@ -739,50 +731,39 @@
           </button>
         </div>
 
-        <!-- Dropdowns & Datepicker Controls -->
-        <div class="flex flex-wrap items-center gap-2.5">
-          <!-- Status / State / Entry Filter (Dynamic per active Tab) -->
-          <div class="w-36">
-            <BaseSelect
-              :modelValue="store.filters.status"
-              :options="statusOptions"
-              :placeholder="statusPlaceholder"
-              @update:modelValue="store.setStatusFilter"
-            />
-          </div>
-
-          <!-- Type / Action Filter -->
-          <div class="w-32">
-            <BaseSelect
-              :modelValue="store.filters.type"
-              :options="typeOptions"
-              placeholder="Side / Action"
-              @update:modelValue="store.setTypeFilter"
-            />
-          </div>
-
-          <!-- Date Range Filter -->
-          <div class="w-56">
-            <BaseDatePicker
-              :modelValue="dateRange"
-              range
-              placeholder="Select date range"
-              valueFormat="YYYY-MM-DD"
-              @update:modelValue="handleDateRangeChange"
-              @clear="handleDateRangeClear"
-            />
-          </div>
-
-          <!-- Reset Filter Button -->
-          <button
-            v-if="hasActiveFilters"
-            class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg text-secondary-text hover:text-primary-text bg-background border border-primary-border hover:border-primary/40 transition-colors cursor-pointer shadow-2xs"
-            @click="handleResetFilters"
-          >
-            <RotateCcw class="w-3.5 h-3.5" />
-            <span>Reset</span>
-          </button>
+        <!-- Dynamic Enum Select Filters -->
+        <div
+          v-for="enumFilter in dynamicEnumFilters"
+          :key="enumFilter.key"
+          class="w-32 sm:w-36 shrink-0"
+        >
+          <BaseSelect
+            :modelValue="store.filters[enumFilter.key]"
+            :options="enumFilter.options"
+            :placeholder="enumFilter.label"
+            @update:modelValue="(val) => store.setDynamicFilter(enumFilter.key, val)"
+          />
         </div>
+
+        <!-- Date Range Picker (from_date / to_date) -->
+        <div class="min-w-48 sm:min-w-60 shrink-0">
+          <BaseDatePicker
+            v-model="dateRangeValue"
+            :range="true"
+            placeholder="Select date range"
+            valueFormat="YYYY-MM-DD"
+          />
+        </div>
+
+        <!-- Reset Filter Button -->
+        <button
+          v-if="hasActiveFilters"
+          class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg text-secondary-text hover:text-primary-text bg-background border border-primary-border hover:border-primary/40 transition-colors cursor-pointer shadow-2xs shrink-0"
+          @click="handleResetFilters"
+        >
+          <RotateCcw class="w-3.5 h-3.5" />
+          <span>Reset</span>
+        </button>
       </div>
     </div>
 
@@ -917,35 +898,31 @@
                 <td class="py-3 px-3 text-right font-mono text-secondary-text">
                   {{ formatPrice(item.price_close ?? item.exit_price) }}
                 </td>
-                <td class="py-3 px-3 text-right font-mono font-bold">
+                <td class="py-3 px-3 text-right font-mono font-bold whitespace-nowrap">
                   <span
+                    class="tabular-nums transition-colors duration-200"
                     :class="
-                      Number(getTradePnl(item)) >= 0
+                      Number(livePNL(item)) >= 0
                         ? 'text-emerald-500'
                         : 'text-rose-500'
                     "
                   >
-                    {{ getTradePnl(item) }}
+                    {{ formatPnl(livePNL(item)) }}
                   </span>
                 </td>
                 <td
                   class="py-3 px-3 text-right font-medium text-secondary-text whitespace-nowrap"
                 >
                   {{
-                    formatDate(
-                      item.time_create || item.created_at || item.time_open,
-                    )
+                  
+                      item.created_at
                   }}
                 </td>
                 <td
                   class="py-3 px-4 text-right font-medium text-secondary-text whitespace-nowrap"
                 >
                   {{
-                    item.time_close || item.closed_at || item.time_closed
-                      ? formatDate(
-                          item.time_close || item.closed_at || item.time_closed,
-                        )
-                      : "-"
+                   item.closed_at
                   }}
                 </td>
               </tr>
@@ -1103,14 +1080,14 @@
                 <td
                   class="py-3 px-3 text-right font-medium text-secondary-text whitespace-nowrap"
                 >
-                  {{ formatDate(order.time_setup || order.created_at) }}
+                  {{ order.time_setup || order.created_at }}
                 </td>
                 <td
                   class="py-3 px-4 text-right font-medium text-secondary-text whitespace-nowrap"
                 >
                   {{
                     order.time_done || order.closed_at
-                      ? formatDate(order.time_done || order.closed_at)
+                      ? order.time_done || order.closed_at
                       : "-"
                   }}
                 </td>
@@ -1335,7 +1312,6 @@ const route = useRoute();
 const router = useRouter();
 
 const searchInput = ref("");
-const dateRange = ref(null);
 
 // Mode detection: checks route name and params
 const isFollowerMode = computed(() => {
@@ -1349,6 +1325,9 @@ const activeStatus = computed(() => {
   if (store.accountInfo) {
     return store.accountInfo.is_active ?? store.accountInfo.status === "active";
   }
+  if (route.query.is_active !== undefined) {
+    return route.query.is_active === "true" || route.query.is_active === true;
+  }
   return true;
 });
 
@@ -1357,10 +1336,12 @@ const headerTitle = computed(() => {
     return (
       store.accountInfo?.name ||
       store.accountInfo?.user_name ||
-      "Follower Account"
+      route.query.user_name ||
+      route.query.name ||
+      (accountNumber.value ? `Account #${accountNumber.value}` : "Follower Trade Book")
     );
   }
-  return store.accountInfo?.label_name || "Fund Manager Master Account";
+  return store.accountInfo?.label_name || route.query.name || "Fund Manager Master Account";
 });
 
 const accountNumber = computed(() => {
@@ -1376,16 +1357,19 @@ const brokerGroup = computed(() => {
   return (
     store.accountInfo?.broker_group ||
     store.accountInfo?.master_account?.broker_group ||
+    route.query.broker_group ||
     ""
   );
 });
 
 const leverageOrRatio = computed(() => {
-  if (isFollowerMode.value && store.accountInfo?.copy_ratio) {
-    return `Ratio: ${store.accountInfo.copy_ratio}x`;
+  const copyRatio = store.accountInfo?.copy_ratio || route.query.copy_ratio;
+  if (isFollowerMode.value && copyRatio) {
+    return `Ratio: ${copyRatio}x`;
   }
-  if (store.accountInfo?.broker_leverage) {
-    return `1:${store.accountInfo.broker_leverage}`;
+  const lev = store.accountInfo?.broker_leverage || route.query.broker_leverage;
+  if (lev) {
+    return `1:${lev}`;
   }
   return "";
 });
@@ -1397,120 +1381,109 @@ const currentTableCount = computed(() => {
   return store.positions.length;
 });
 
-// Tab Badge Counts
-const positionsBadgeCount = computed(() => {
-  if (store.activeTab === "positions") {
-    return (
-      store.summary.total_positions ??
-      store.pagination.total_items ??
-      store.positions.length
-    );
-  }
-  return store.positions.length;
+// Dynamic Field Label Formatter
+const formatFieldLabel = (key) => {
+  const customMap = {
+    status: "Status",
+    state: "Order State",
+    entry: "Entry Type",
+    action: "Action",
+    order_type: "Order Type",
+    type: "Side / Action",
+    result: "Result",
+    trade_source: "Trade Source",
+    symbol: "Symbol",
+    from_date: "From Date",
+    to_date: "To Date",
+    closed_from: "Closed From",
+    closed_to: "Closed To",
+  };
+  if (customMap[key]) return customMap[key];
+  return key
+    .split("_")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+};
+
+// Check if search filter exists in active section schema
+const hasSearchFilter = computed(() => {
+  const schema = store.currentSectionFilters || {};
+  return schema.search !== undefined ? !!schema.search : true;
 });
 
-const ordersBadgeCount = computed(() => {
-  if (store.activeTab === "orders") {
-    return (
-      store.summary.total_orders ??
-      store.pagination.total_items ??
-      store.orders.length
-    );
-  }
-  return store.orders.length;
-});
+// Dynamic Enum Filters generated directly from API response schema
+const dynamicEnumFilters = computed(() => {
+  const schema = store.currentSectionFilters || {};
+  const list = [];
 
-const dealsBadgeCount = computed(() => {
-  if (store.activeTab === "deals") {
-    return (
-      store.summary.total_deals ??
-      store.pagination.total_items ??
-      store.deals.length
-    );
-  }
-  return store.deals.length;
-});
+  Object.entries(schema).forEach(([key, fieldDef]) => {
+    if (fieldDef?.type === "enum" && Array.isArray(fieldDef?.options)) {
+      const label = formatFieldLabel(key);
+      const options = [
+        { label: `All ${label}`, value: "" },
+        ...fieldDef.options.map((opt) => ({
+          label: typeof opt === "string" ? opt : (opt.label || opt.value),
+          value: typeof opt === "string" ? opt : opt.value,
+        })),
+      ];
 
-// Filter dropdown options (Dynamic per active Tab)
-const statusPlaceholder = computed(() => {
-  if (store.activeTab === "orders") return "Order State";
-  if (store.activeTab === "deals") return "Entry Type";
-  return "Status";
-});
-
-const statusOptions = computed(() => {
-  if (store.activeTab === "orders") {
-    if (store.availableFilters?.order_states?.length) {
-      return store.availableFilters.order_states.map((s) => ({
-        label: s.label || String(s).toUpperCase(),
-        value: s.value !== undefined ? s.value : s,
-      }));
+      list.push({
+        key,
+        label,
+        options,
+        multi: !!fieldDef.multi,
+      });
     }
-    return [
-      { label: "All States", value: "" },
-      { label: "Filled", value: "FILLED" },
-      { label: "Rejected", value: "REJECTED" },
-    ];
-  }
+  });
 
-  if (store.activeTab === "deals") {
-    if (store.availableFilters?.deal_entries?.length) {
-      return store.availableFilters.deal_entries.map((e) => ({
-        label: e.label || String(e).toUpperCase(),
-        value: e.value !== undefined ? e.value : e,
-      }));
+  return list;
+});
+
+// Dynamic Date Range Filters generated directly from API schema (pairs from_date/to_date and closed_from/closed_to)
+// Date Range Filter (from_date / to_date)
+const dateRangeValue = computed({
+  get() {
+    if (store.filters.from_date || store.filters.to_date) {
+      return {
+        start: store.filters.from_date || null,
+        end: store.filters.to_date || null,
+      };
     }
-    return [
-      { label: "All Entries", value: "" },
-      { label: "IN (Entry)", value: "IN" },
-      { label: "OUT (Exit)", value: "OUT" },
-    ];
-  }
-
-  // Positions / Master trades
-  if (store.availableFilters?.statuses?.length) {
-    return store.availableFilters.statuses.map((s) => ({
-      label: s.label || String(s).toUpperCase(),
-      value: s.value !== undefined ? s.value : s,
-    }));
-  }
-  return [
-    { label: "All Statuses", value: "" },
-    { label: "Open", value: "OPEN" },
-    { label: "Closed", value: "CLOSED" },
-  ];
+    return null;
+  },
+  set(val) {
+    handleDateRangeUpdate(val);
+  },
 });
 
-const typeOptions = computed(() => {
-  if (store.activeTab === "deals") {
-    return [
-      { label: "All Actions", value: "" },
-      { label: "BUY", value: "BUY" },
-      { label: "SELL", value: "SELL" },
-    ];
+const handleDateRangeUpdate = (val) => {
+  if (!val) {
+    store.setDateFilter("", "");
+    return;
   }
-
-  if (store.availableFilters?.types?.length) {
-    return store.availableFilters.types.map((t) => ({
-      label: t.label || String(t).toUpperCase(),
-      value: t.value !== undefined ? t.value : t,
-    }));
+  if (Array.isArray(val)) {
+    store.setDateFilter(val[0] || "", val[1] || "");
+  } else if (typeof val === "object") {
+    store.setDateFilter(val.start || val.from || "", val.end || val.to || "");
   }
-  return [
-    { label: "All Sides", value: "" },
-    { label: "Buy", value: "BUY" },
-    { label: "Sell", value: "SELL" },
-  ];
-});
+};
 
 const hasActiveFilters = computed(() => {
+  const schema = store.currentSectionFilters || {};
+  const hasDynamicActive = Object.keys(schema).some((key) => {
+    if (key === "from_date" || key === "to_date" || key === "closed_from" || key === "closed_to") return false;
+    const val = store.filters[key];
+    return val !== undefined && val !== null && val !== "";
+  });
+
   return (
+    hasDynamicActive ||
     !!store.filters.search ||
     !!store.filters.status ||
     !!store.filters.type ||
     !!store.filters.symbol ||
-    !!store.filters.start_date ||
-    !!store.filters.end_date
+    !!store.filters.from_date ||
+    !!store.filters.to_date
   );
 });
 
@@ -1527,23 +1500,8 @@ const clearSearch = () => {
   store.setSearch("");
 };
 
-const handleDateRangeChange = (val) => {
-  dateRange.value = val;
-  if (val && Array.isArray(val) && val.length === 2) {
-    store.setDateFilter(val[0], val[1]);
-  } else if (!val) {
-    store.setDateFilter("", "");
-  }
-};
-
-const handleDateRangeClear = () => {
-  dateRange.value = null;
-  store.setDateFilter("", "");
-};
-
 const handleResetFilters = () => {
   searchInput.value = "";
-  dateRange.value = null;
   store.resetFilters();
 };
 
@@ -1682,13 +1640,7 @@ const formatCurrency = (val) => {
   return isUsc.value ? `${prefix}USC ${formatted}` : `${prefix}$${formatted}`;
 };
 
-const isOpenTrade = (trade) => {
-  if (!trade) return false;
-  const status = String(trade.status || "").toUpperCase();
-  if (status === "OPEN") return true;
-  if (status === "CLOSED") return false;
-  return Boolean(trade.is_open);
-};
+
 
 const formatPnl = (val) => {
   if (val === null || val === undefined || val === "") return "-";
@@ -1716,22 +1668,7 @@ const formatDate = (val) => {
   return formatTime(val);
 };
 
-const getTradePnl = (trade) => {
-  if (!trade) return 0;
 
-  if (isOpenTrade(trade)) {
-    let pnl = Number(livePNL(trade));
-    if (isNaN(pnl)) pnl = 0;
-    if (isUsc.value) {
-      pnl = pnl * 100;
-    }
-    return pnl;
-  }
-
-  const apiProfit = trade.profit ?? trade.profit_raw ?? trade.pnl ?? 0;
-  const num = Number(apiProfit);
-  return isNaN(num) ? 0 : num;
-};
 
 const goBack = () => {
   if (isFollowerMode.value) {
@@ -1756,7 +1693,6 @@ const initContext = () => {
       id: targetId,
       info: null,
     });
-    store.fetchFollowerInfo(targetId);
   } else {
     try {
       const raw = localStorage.getItem("active_fm");
