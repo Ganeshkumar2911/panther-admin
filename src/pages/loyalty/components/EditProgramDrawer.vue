@@ -21,14 +21,14 @@
         <div class="px-6 py-4.5 border-b border-primary-border flex items-center justify-between shrink-0 bg-card-background/90 backdrop-blur-md">
           <div class="flex items-center gap-3">
             <div class="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
-              <SlidersHorizontal class="w-4.5 h-4.5" />
+              <component :is="sectionMeta.icon" class="w-4.5 h-4.5" />
             </div>
             <div>
               <h3 class="text-sm font-bold text-primary-text">
-                Edit Program Configuration
+                {{ sectionMeta.title }}
               </h3>
               <p class="text-[11px] text-secondary-text">
-                Modify cycle duration, earn rates, eligibility, and custom instrument rules
+                {{ sectionMeta.subtitle }}
               </p>
             </div>
           </div>
@@ -41,10 +41,28 @@
           </button>
         </div>
 
+        <!-- Section Navigation Pills (When in All mode or for quick switching) -->
+        <div v-if="props.initialSection === 'all'" class="px-6 pt-3 pb-1 border-b border-primary-border bg-card-background/50 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+          <button
+            v-for="sec in sectionTabs"
+            :key="sec.key"
+            type="button"
+            class="px-2.5 py-1 rounded-lg text-[11px] font-medium transition cursor-pointer whitespace-nowrap"
+            :class="activeSection === sec.key ? 'bg-primary text-white shadow-xs' : 'text-secondary-text hover:text-primary-text hover:bg-background'"
+            @click="activeSection = sec.key"
+          >
+            {{ sec.label }}
+          </button>
+        </div>
+
         <!-- Scrollable Form Body -->
         <form id="edit-program-form" class="flex-1 overflow-y-auto px-6 py-5 space-y-5 text-xs" @submit.prevent="handleSubmit">
           <!-- General Info Card -->
-          <div class="p-4 rounded-xl bg-background/50 border border-primary-border space-y-3.5">
+          <div
+            v-if="activeSection === 'all' || activeSection === 'general'"
+            id="section-general"
+            class="p-4 rounded-xl bg-background/50 border border-primary-border space-y-3.5"
+          >
             <span class="text-[10px] uppercase font-bold tracking-wider text-secondary-text flex items-center gap-1.5">
               <FileText class="w-3.5 h-3.5 text-primary" />
               General Parameters
@@ -125,8 +143,17 @@
                     class="flex items-center gap-2"
                   >
                     <div class="w-8 h-8 rounded-lg bg-background border border-primary-border overflow-hidden shrink-0 flex items-center justify-center">
+                      <video
+                        v-if="url && isVideoUrl(url)"
+                        :src="url"
+                        autoplay
+                        loop
+                        muted
+                        playsinline
+                        class="w-full h-full object-cover"
+                      />
                       <img
-                        v-if="url"
+                        v-else-if="url"
                         :src="url"
                         class="w-full h-full object-cover"
                         @error="(e) => e.target.style.display = 'none'"
@@ -164,7 +191,11 @@
           </div>
 
           <!-- Timeline Dates Card -->
-          <div class="p-4 rounded-xl bg-background/50 border border-primary-border space-y-3.5">
+          <div
+            v-if="activeSection === 'all' || activeSection === 'lifecycle'"
+            id="section-lifecycle"
+            class="p-4 rounded-xl bg-background/50 border border-primary-border space-y-3.5"
+          >
             <span class="text-[10px] uppercase font-bold tracking-wider text-secondary-text flex items-center gap-1.5">
               <Calendar class="w-3.5 h-3.5 text-primary" />
               Program Lifecycle Dates
@@ -182,106 +213,116 @@
             </div>
           </div>
 
-          <!-- Earning & Redemption Limits -->
-          <div class="p-4 rounded-xl bg-background/50 border border-primary-border space-y-3.5">
-            <span class="text-[10px] uppercase font-bold tracking-wider text-secondary-text flex items-center gap-1.5">
-              <Award class="w-3.5 h-3.5 text-primary" />
-              Earning & Redemption Metrics
-            </span>
+          <div
+            v-if="activeSection === 'all' || activeSection === 'core_rules'"
+            id="section-core_rules"
+            class="space-y-5"
+          >
+            <!-- Earning & Redemption Limits -->
+            <div class="p-4 rounded-xl bg-background/50 border border-primary-border space-y-3.5">
+              <span class="text-[10px] uppercase font-bold tracking-wider text-secondary-text flex items-center gap-1.5">
+                <Award class="w-3.5 h-3.5 text-primary" />
+                Earning & Redemption Metrics
+              </span>
 
-            <div class="grid grid-cols-2 gap-3">
-              <div class="space-y-1">
-                <label class="font-semibold text-primary-text">Base Pts / Std Lot</label>
-                <input
-                  v-model.number="form.base_points_per_lot"
-                  type="number"
-                  step="any"
-                  class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono"
-                />
-              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div class="space-y-1">
+                  <label class="font-semibold text-primary-text">Base Pts / Std Lot</label>
+                  <input
+                    v-model.number="form.base_points_per_lot"
+                    type="number"
+                    step="any"
+                    class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono"
+                  />
+                </div>
 
-              <div class="space-y-1">
-                <label class="font-semibold text-primary-text">Min Redemption Pts</label>
-                <input
-                  v-model.number="form.min_redemption_points"
-                  type="number"
-                  step="any"
-                  class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono"
-                />
-              </div>
+                <div class="space-y-1">
+                  <label class="font-semibold text-primary-text">Min Redemption Pts</label>
+                  <input
+                    v-model.number="form.min_redemption_points"
+                    type="number"
+                    step="any"
+                    class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono"
+                  />
+                </div>
 
-              <div class="space-y-1">
-                <label class="font-semibold text-primary-text">Min Trade Duration (s)</label>
-                <input
-                  v-model.number="form.min_trade_duration_seconds"
-                  type="number"
-                  class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono"
-                />
-              </div>
+                <div class="space-y-1">
+                  <label class="font-semibold text-primary-text">Min Trade Duration (s)</label>
+                  <input
+                    v-model.number="form.min_trade_duration_seconds"
+                    type="number"
+                    class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono"
+                  />
+                </div>
 
-              <div class="space-y-1">
-                <label class="font-semibold text-primary-text">Point Validity (Days)</label>
-                <input
-                  v-model.number="form.point_validity_days"
-                  type="number"
-                  class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono"
-                />
-              </div>
-            </div>
-          </div>
-
-          <!-- Tier Qualification & Durations -->
-          <div class="p-4 rounded-xl bg-background/50 border border-primary-border space-y-3.5">
-            <span class="text-[10px] uppercase font-bold tracking-wider text-secondary-text flex items-center gap-1.5">
-              <ShieldCheck class="w-3.5 h-3.5 text-primary" />
-              Tier Window & Policy Durations
-            </span>
-
-            <div class="grid grid-cols-2 gap-3">
-              <div class="space-y-1">
-                <label class="font-semibold text-primary-text">Tier Window (Days)</label>
-                <input
-                  v-model.number="form.tier_window_days"
-                  type="number"
-                  class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono"
-                />
-              </div>
-
-              <div class="space-y-1">
-                <label class="font-semibold text-primary-text">Grace Period (Days)</label>
-                <input
-                  v-model.number="form.grace_period_days"
-                  type="number"
-                  class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono"
-                />
-              </div>
-
-              <div class="space-y-1 sm:col-span-2">
-                <label class="font-semibold text-primary-text">Dormancy Threshold (Days)</label>
-                <input
-                  v-model.number="form.dormant_days"
-                  type="number"
-                  class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono"
-                />
+                <div class="space-y-1">
+                  <label class="font-semibold text-primary-text">Point Validity (Days)</label>
+                  <input
+                    v-model.number="form.point_validity_days"
+                    type="number"
+                    class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono"
+                  />
+                </div>
               </div>
             </div>
 
-            <!-- Carry Over Toggle -->
-            <label class="flex items-center gap-2.5 pt-2 border-t border-primary-border/60 cursor-pointer select-none">
-              <input
-                v-model="form.carry_over_enrollments"
-                type="checkbox"
-                class="w-4 h-4 rounded text-primary border-primary-border focus:ring-0 cursor-pointer"
-              />
-              <div>
-                <p class="font-semibold text-primary-text">Carry Over Enrollments</p>
-                <p class="text-[10px] text-secondary-text">Automatically migrate active members to subsequent cycles</p>
+            <!-- Tier Qualification & Durations -->
+            <div class="p-4 rounded-xl bg-background/50 border border-primary-border space-y-3.5">
+              <span class="text-[10px] uppercase font-bold tracking-wider text-secondary-text flex items-center gap-1.5">
+                <ShieldCheck class="w-3.5 h-3.5 text-primary" />
+                Tier Window & Policy Durations
+              </span>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div class="space-y-1">
+                  <label class="font-semibold text-primary-text">Tier Window (Days)</label>
+                  <input
+                    v-model.number="form.tier_window_days"
+                    type="number"
+                    class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono"
+                  />
+                </div>
+
+                <div class="space-y-1">
+                  <label class="font-semibold text-primary-text">Grace Period (Days)</label>
+                  <input
+                    v-model.number="form.grace_period_days"
+                    type="number"
+                    class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono"
+                  />
+                </div>
+
+                <div class="space-y-1 sm:col-span-2">
+                  <label class="font-semibold text-primary-text">Dormancy Threshold (Days)</label>
+                  <input
+                    v-model.number="form.dormant_days"
+                    type="number"
+                    class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono"
+                  />
+                </div>
               </div>
-            </label>
+
+              <!-- Carry Over Toggle -->
+              <label class="flex items-center gap-2.5 pt-2 border-t border-primary-border/60 cursor-pointer select-none">
+                <input
+                  v-model="form.carry_over_enrollments"
+                  type="checkbox"
+                  class="w-4 h-4 rounded text-primary border-primary-border focus:ring-0 cursor-pointer"
+                />
+                <div>
+                  <p class="font-semibold text-primary-text">Carry Over Enrollments</p>
+                  <p class="text-[10px] text-secondary-text">Automatically migrate active members to subsequent cycles</p>
+                </div>
+              </label>
+            </div>
           </div>
 
           <!-- Account Eligibility Rules -->
-          <div class="p-4 rounded-xl bg-background/50 border border-primary-border space-y-3.5">
+          <div
+            v-if="activeSection === 'all' || activeSection === 'eligibility'"
+            id="section-eligibility"
+            class="p-4 rounded-xl bg-background/50 border border-primary-border space-y-3.5"
+          >
             <span class="text-[10px] uppercase font-bold tracking-wider text-secondary-text flex items-center gap-1.5">
               <CheckCircle2 class="w-3.5 h-3.5 text-primary-green" />
               Account Eligibility Rules
@@ -347,11 +388,25 @@
                   class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary font-mono text-xs"
                 />
               </div>
+
+              <div class="space-y-1">
+                <label class="font-semibold text-primary-text">Allowed MT5 Group Codes (Comma-separated, leave blank for all)</label>
+                <input
+                  v-model="allowedGroupCodesText"
+                  type="text"
+                  placeholder="e.g. REAL, PRO (optional)"
+                  class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary font-mono text-xs"
+                />
+              </div>
             </div>
           </div>
 
           <!-- Instrument Rules & Suffix Normalization -->
-          <div class="p-4 rounded-xl bg-background/50 border border-primary-border space-y-3.5">
+          <div
+            v-if="activeSection === 'all' || activeSection === 'instruments'"
+            id="section-instruments"
+            class="p-4 rounded-xl bg-background/50 border border-primary-border space-y-3.5"
+          >
             <div class="flex items-center justify-between">
               <span class="text-[10px] uppercase font-bold tracking-wider text-secondary-text flex items-center gap-1.5">
                 <FileCode class="w-3.5 h-3.5 text-primary" />
@@ -500,10 +555,79 @@ import BaseDatePicker from "@/components/common/BaseDatePicker.vue";
 const props = defineProps({
   open: { type: Boolean, default: false },
   program: { type: Object, default: () => ({}) },
+  initialSection: { type: String, default: "all" },
 });
 
 const emit = defineEmits(["close", "saved"]);
 const store = useLoyaltyStore();
+
+const activeSection = ref(props.initialSection || "all");
+
+const sectionTabs = [
+  { key: "all", label: "All Sections" },
+  { key: "general", label: "General & Media" },
+  { key: "lifecycle", label: "Lifecycle & Dates" },
+  { key: "core_rules", label: "Rules & Thresholds" },
+  { key: "eligibility", label: "Account Eligibility" },
+  { key: "instruments", label: "Instrument Rules" },
+];
+
+const sectionMeta = computed(() => {
+  switch (activeSection.value) {
+    case "general":
+      return {
+        title: "Edit General Parameters",
+        subtitle: "Update program name, status, account scope, and banners",
+        icon: FileText,
+      };
+    case "lifecycle":
+      return {
+        title: "Edit Lifecycle & Schedule",
+        subtitle: "Update program start and end timestamps",
+        icon: Calendar,
+      };
+    case "core_rules":
+      return {
+        title: "Edit Core Rules & Thresholds",
+        subtitle: "Configure base points, trade duration, dormancy, and tier windows",
+        icon: ShieldCheck,
+      };
+    case "eligibility":
+      return {
+        title: "Edit Account Eligibility Rules",
+        subtitle: "Configure KYC requirements, trading types, and category exclusions",
+        icon: CheckCircle2,
+      };
+    case "instruments":
+      return {
+        title: "Edit Instrument Rules & Suffixes",
+        subtitle: "Configure symbol-level point overrides and suffix normalization",
+        icon: FileCode,
+      };
+    default:
+      return {
+        title: "Edit Program Configuration",
+        subtitle: "Modify cycle duration, earn rates, eligibility, and custom instrument rules",
+        icon: SlidersHorizontal,
+      };
+  }
+});
+
+watch(
+  () => props.open,
+  (isOpen) => {
+    if (isOpen) {
+      activeSection.value = props.initialSection || "all";
+    }
+  },
+);
+
+watch(
+  () => props.initialSection,
+  (newSec) => {
+    activeSection.value = newSec || "all";
+  },
+);
 
 const statusOptions = [
   { label: "Active", value: "active" },
@@ -525,7 +649,22 @@ const matchTypeOptions = [
 ];
 
 const excludedCategoriesText = ref("cent, pamm");
+const allowedGroupCodesText = ref("");
 const imageUrlsList = ref([]);
+
+const isVideoUrl = (url) => {
+  if (!url || typeof url !== "string") return false;
+  const cleanUrl = url.split("?")[0].toLowerCase();
+  return (
+    cleanUrl.endsWith(".mp4") ||
+    cleanUrl.endsWith(".webm") ||
+    cleanUrl.endsWith(".ogg") ||
+    cleanUrl.endsWith(".mov") ||
+    cleanUrl.endsWith(".m4v") ||
+    cleanUrl.includes("/video/") ||
+    cleanUrl.includes("format=mp4")
+  );
+};
 
 const addImageUrl = () => {
   if (imageUrlsList.value.length < 4) {
@@ -561,6 +700,7 @@ const form = reactive({
     earn_on_copy_fills: true,
     trading_types: ["real"],
     exclude_account_categories: ["cent", "pamm"],
+    allowed_group_codes: null,
   },
   instrument_rules: {
     normalize_suffixes: true,
@@ -644,8 +784,10 @@ watch(
         earn_on_copy_fills: el.earn_on_copy_fills !== undefined ? Boolean(el.earn_on_copy_fills) : true,
         trading_types: Array.isArray(el.trading_types) ? el.trading_types : ["real"],
         exclude_account_categories: Array.isArray(el.exclude_account_categories) ? el.exclude_account_categories : ["cent", "pamm"],
+        allowed_group_codes: Array.isArray(el.allowed_group_codes) ? el.allowed_group_codes : null,
       };
       excludedCategoriesText.value = form.eligibility_rules.exclude_account_categories.join(", ");
+      allowedGroupCodesText.value = Array.isArray(el.allowed_group_codes) ? el.allowed_group_codes.join(", ") : "";
 
       // Instrument rules
       const inst = p.instrument_rules || {};
@@ -676,6 +818,12 @@ const handleSubmit = async () => {
     .split(",")
     .map((c) => c.trim().toLowerCase())
     .filter(Boolean);
+
+  const groupCodes = allowedGroupCodesText.value
+    .split(",")
+    .map((c) => c.trim().toUpperCase())
+    .filter(Boolean);
+  const formattedGroupCodes = groupCodes.length > 0 ? groupCodes : null;
 
   // Formatted instrument rules
   const formattedInstrumentRules = form.instrument_rules.rules.map((r) => ({
@@ -739,14 +887,16 @@ const handleSubmit = async () => {
   const newEligibility = {
     ...form.eligibility_rules,
     exclude_account_categories: categories,
+    allowed_group_codes: formattedGroupCodes,
   };
-  const oldEligibility = p.eligibility_rules || {};
+  const oldEligibility = p.eligibility_rules || p.eligibility || {};
   const isEligibilityChanged =
     Boolean(newEligibility.require_kyc) !== Boolean(oldEligibility.require_kyc) ||
-    Boolean(newEligibility.require_live) !== Boolean(oldEligibility.require_live) ||
+    Boolean(newEligibility.require_live) !== Boolean(oldEligibility.require_live !== false) ||
     Boolean(newEligibility.exclude_copy_accounts) !== Boolean(oldEligibility.exclude_copy_accounts) ||
-    Boolean(newEligibility.earn_on_copy_fills) !== Boolean(oldEligibility.earn_on_copy_fills) ||
-    JSON.stringify(categories) !== JSON.stringify(oldEligibility.exclude_account_categories || []);
+    Boolean(newEligibility.earn_on_copy_fills) !== Boolean(oldEligibility.earn_on_copy_fills !== false) ||
+    JSON.stringify(categories) !== JSON.stringify(oldEligibility.exclude_account_categories || []) ||
+    JSON.stringify(formattedGroupCodes) !== JSON.stringify(oldEligibility.allowed_group_codes || null);
 
   if (isEligibilityChanged) {
     payload.eligibility_rules = newEligibility;

@@ -1,6 +1,14 @@
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted, nextTick } from "vue";
-import { useRoute } from "vue-router";
+import {
+  ref,
+  computed,
+  watch,
+  onMounted,
+  onUnmounted,
+  nextTick,
+  onBeforeUpdate,
+} from "vue";
+import { useRoute, useRouter } from "vue-router";
 import {
   Search,
   X,
@@ -15,6 +23,8 @@ import { navClusters } from "@/config/navItems";
 
 const store = useProfileStore();
 const myPermissionsStore = useMyPermissionsStore();
+const router = useRouter();
+const route = useRoute();
 
 const props = defineProps({
   isOpen: {
@@ -29,9 +39,14 @@ const props = defineProps({
 
 const emit = defineEmits(["close", "toggle-collapse"]);
 
-const route = useRoute();
 const searchQuery = ref("");
 const searchInputRef = ref(null);
+const selectedIndex = ref(0);
+const resultItemRefs = ref([]);
+
+onBeforeUpdate(() => {
+  resultItemRefs.value = [];
+});
 
 // Filter navigation clusters dynamically based on user permissions
 const filteredClusters = computed(() => {
@@ -70,6 +85,7 @@ const allSearchableItems = computed(() => {
       cluster.children.forEach((child) => {
         list.push({
           ...child,
+          keywords: child.keywords || [],
           clusterName: cluster.label,
           clusterIcon: cluster.icon,
         });
@@ -77,6 +93,7 @@ const allSearchableItems = computed(() => {
     } else {
       list.push({
         ...cluster,
+        keywords: cluster.keywords || [],
         clusterName: "Core",
         clusterIcon: cluster.icon,
       });
@@ -150,6 +167,25 @@ const searchResults = computed(() => {
       score += 10;
     }
 
+    // 4. Keyword Matches
+    if (item.keywords && item.keywords.length > 0) {
+      for (const kw of item.keywords) {
+        const kwLower = kw.toLowerCase();
+        if (kwLower === query) {
+          score += 350;
+        } else if (kwLower.startsWith(query)) {
+          score += 200;
+        } else if (kwLower.includes(query)) {
+          score += 120;
+        } else if (
+          queryWords.length > 0 &&
+          queryWords.every((w) => kwLower.includes(w))
+        ) {
+          score += 90;
+        }
+      }
+    }
+
     if (score > 0) {
       scoredItems.push({ item, score });
     }
@@ -164,6 +200,66 @@ const searchResults = computed(() => {
 // Clear search
 const clearSearch = () => {
   searchQuery.value = "";
+  selectedIndex.value = 0;
+};
+
+// Reset selected index when search query changes
+watch(searchQuery, () => {
+  selectedIndex.value = 0;
+});
+
+// Select an item and navigate
+const selectItem = (item) => {
+  if (!item || !item.to) return;
+  router.push(item.to);
+  clearSearch();
+  emit("close");
+};
+
+// Scroll active item into view
+const scrollToSelectedItem = () => {
+  nextTick(() => {
+    const targetRef = resultItemRefs.value[selectedIndex.value];
+    const el = targetRef?.$el || targetRef;
+    if (el && typeof el.scrollIntoView === "function") {
+      el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+  });
+};
+
+// Keyboard navigation in search input
+const handleSearchKeydown = (e) => {
+  if (!searchResults.value.length) return;
+
+  if (e.key === "ArrowDown") {
+    e.preventDefault();
+    if (selectedIndex.value < searchResults.value.length - 1) {
+      selectedIndex.value++;
+    } else {
+      selectedIndex.value = 0;
+    }
+    scrollToSelectedItem();
+  } else if (e.key === "ArrowUp") {
+    e.preventDefault();
+    if (selectedIndex.value > 0) {
+      selectedIndex.value--;
+    } else {
+      selectedIndex.value = searchResults.value.length - 1;
+    }
+    scrollToSelectedItem();
+  } else if (e.key === "Enter") {
+    e.preventDefault();
+    if (
+      selectedIndex.value >= 0 &&
+      selectedIndex.value < searchResults.value.length
+    ) {
+      selectItem(searchResults.value[selectedIndex.value]);
+    }
+  } else if (e.key === "Escape") {
+    e.preventDefault();
+    clearSearch();
+    searchInputRef.value?.blur();
+  }
 };
 
 // Global Cmd+K / Ctrl+K listener
@@ -312,7 +408,8 @@ const handleFlyoutMouseLeave = () => {
           v-model="searchQuery"
           type="text"
           placeholder="Search modules..."
-          class="w-full h-8 pl-8 pr-7 bg-white/5 hover:bg-white/10 focus:bg-white/10 text-white placeholder-white/40 text-xs rounded-xl border border-white/10 focus:border-primary/50 focus:outline-none transition-all"
+          @keydown="handleSearchKeydown"
+          class="w-full h-8 pl-8 pr-7 bg-white/5 hover:bg-white/10 focus:bg-white/10 text-white placeholder-white/40 text-xs rounded-lg border border-white/10 focus:border-primary/50 focus:outline-none transition-all"
         />
         <button
           v-if="searchQuery"
@@ -360,34 +457,51 @@ const handleFlyoutMouseLeave = () => {
           </div>
 
           <RouterLink
-            v-for="item in searchResults"
+            v-for="(item, index) in searchResults"
             :key="item.to"
             :to="item.to"
-            @click="
-              clearSearch();
-              $emit('close');
+            :ref="
+              (el) => {
+                if (el) resultItemRefs[index] = el;
+              }
             "
-            class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-150 group"
+            @click="selectItem(item)"
+            @mouseenter="selectedIndex = index"
+            class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-150 group cursor-pointer"
             :class="[
-              isActive(item.to)
+              selectedIndex === index
                 ? 'bg-primary text-white shadow-sm font-semibold'
+                : isActive(item.to)
+                ? 'bg-white/10 text-white font-semibold'
                 : 'text-white/70 hover:text-white hover:bg-white/10',
             ]"
           >
             <component
               :is="item.icon"
               class="w-4 h-4 flex-shrink-0 transition-transform group-hover:scale-110"
+              :class="selectedIndex === index ? 'text-white' : 'text-white/70'"
             />
             <div class="min-w-0 flex-1">
               <div class="text-xs font-medium truncate text-white">
                 {{ item.label }}
               </div>
-              <div class="text-[10px] text-white/40 truncate">
+              <div
+                class="text-[10px] truncate"
+                :class="
+                  selectedIndex === index ? 'text-white/80' : 'text-white/40'
+                "
+              >
                 {{ item.clusterName }}
               </div>
             </div>
             <span
-              v-if="isActive(item.to)"
+              v-if="selectedIndex === index"
+              class="ml-auto text-[10px] text-white/90 bg-white/20 px-1.5 py-0.5 rounded font-mono font-medium"
+            >
+              ↵
+            </span>
+            <span
+              v-else-if="isActive(item.to)"
               class="ml-auto w-1.5 h-1.5 rounded-full bg-white"
             />
           </RouterLink>

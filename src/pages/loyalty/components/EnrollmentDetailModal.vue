@@ -41,7 +41,24 @@
           </div>
           <div class="p-3.5 bg-background border border-primary-border rounded-xl space-y-1">
             <span class="text-[10px] uppercase font-semibold text-secondary-text">Current Tier</span>
-            <p class="text-sm font-bold text-primary font-mono">{{ detail.current_tier?.name || detail.current_tier?.code || '—' }}</p>
+            <div>
+              <span
+                class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded font-mono text-xs font-bold border"
+                :style="detail.current_tier?.color ? {
+                  backgroundColor: `${detail.current_tier.color}20`,
+                  color: detail.current_tier.color,
+                  borderColor: `${detail.current_tier.color}40`
+                } : {}"
+                :class="!detail.current_tier?.color ? 'text-primary bg-primary/10 border-primary/20' : ''"
+              >
+                <span
+                  v-if="detail.current_tier?.color"
+                  class="w-1.5 h-1.5 rounded-full shrink-0"
+                  :style="{ backgroundColor: detail.current_tier.color }"
+                />
+                {{ detail.current_tier?.name || detail.current_tier?.code || '—' }}
+              </span>
+            </div>
           </div>
           <div class="p-3.5 bg-background border border-primary-border rounded-xl space-y-1">
             <span class="text-[10px] uppercase font-semibold text-secondary-text">Status</span>

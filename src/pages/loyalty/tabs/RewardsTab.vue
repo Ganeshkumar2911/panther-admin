@@ -121,11 +121,22 @@
           @mouseenter="hoveredProductId = product.id"
           @mouseleave="hoveredProductId = null"
         >
-          <!-- Real Images Carousel with Gradient Overlay -->
+          <!-- Real Media Carousel with Gradient Overlay -->
           <template v-if="getProductImages(product).length > 0">
             <Transition name="carousel-fade" mode="out-in">
+              <video
+                v-if="isVideoUrl(getProductImages(product)[getActiveImageIndex(product.id)])"
+                :key="`video-${product.id}-${getActiveImageIndex(product.id)}`"
+                :src="getProductImages(product)[getActiveImageIndex(product.id)]"
+                autoplay
+                loop
+                muted
+                playsinline
+                class="w-full h-full object-cover object-center select-none"
+              />
               <img
-                :key="getActiveImageIndex(product.id)"
+                v-else
+                :key="`img-${product.id}-${getActiveImageIndex(product.id)}`"
                 :src="getProductImages(product)[getActiveImageIndex(product.id)]"
                 :alt="product.name || product.title"
                 class="w-full h-full object-cover object-center select-none"
@@ -218,13 +229,17 @@
                 <Pencil class="w-3 h-3" />
               </button>
               <button
-                v-if="(hasPermission('loyalty_store.delete') || hasPermission('loyalty.update')) && (product.status === 'ACTIVE' || product.is_active)"
+                v-if="hasPermission('loyalty_store.delete') || hasPermission('loyalty_store.update') || hasPermission('loyalty.update')"
                 type="button"
-                class="w-6.5 h-6.5 flex items-center justify-center rounded-full bg-rose-500/20 hover:bg-rose-500/40 text-rose-200 transition-all cursor-pointer shadow-2xs"
-                title="Deactivate Product"
-                @click="handleDeactivate(product)"
+                class="w-6.5 h-6.5 flex items-center justify-center rounded-full transition-all cursor-pointer shadow-2xs"
+                :class="isProductActive(product)
+                  ? 'bg-rose-500/20 hover:bg-rose-500/40 text-rose-200'
+                  : 'bg-white/10 hover:bg-emerald-500/30 text-zinc-400 hover:text-emerald-200'"
+                :title="isProductActive(product) ? 'Deactivate Product' : 'Activate Product'"
+                @click="handleToggleStatus(product)"
               >
-                <Power class="w-3 h-3" />
+                <Power v-if="isProductActive(product)" class="w-3 h-3" />
+                <PowerOff v-else class="w-3 h-3" />
               </button>
             </div>
           </div>
@@ -395,7 +410,7 @@
         <!-- Footer Meta IDs -->
         <div class="px-4 py-2 bg-background/40 border-t border-primary-border/60 flex items-center justify-between text-[10px] font-mono text-secondary-text">
           <span>Sort #{{ product.sort_order }}</span>
-          <span>ID #{{ product.id }}</span>
+          <!-- <span>ID #{{ product.id }}</span> -->
         </div>
       </div>
     </div>
@@ -421,6 +436,7 @@ import {
   ShoppingBag,
   Pencil,
   Power,
+  PowerOff,
   Search,
   Server,
   Gift,
@@ -448,6 +464,20 @@ const failedImageIds = ref(new Set());
 const activeImageIndices = reactive({});
 const hoveredProductId = ref(null);
 let productCarouselTimer = null;
+
+const isVideoUrl = (url) => {
+  if (!url || typeof url !== "string") return false;
+  const cleanUrl = url.split("?")[0].toLowerCase();
+  return (
+    cleanUrl.endsWith(".mp4") ||
+    cleanUrl.endsWith(".webm") ||
+    cleanUrl.endsWith(".ogg") ||
+    cleanUrl.endsWith(".mov") ||
+    cleanUrl.endsWith(".m4v") ||
+    cleanUrl.includes("/video/") ||
+    cleanUrl.includes("format=mp4")
+  );
+};
 
 const getProductImages = (product) => {
   if (!product || failedImageIds.value.has(product.id)) return [];
@@ -592,9 +622,25 @@ const handleEdit = (product) => {
   isDrawerOpen.value = true;
 };
 
-const handleDeactivate = async (product) => {
+const isProductActive = (product) => {
+  if (!product) return false;
+  if (product.status) {
+    return product.status.toUpperCase() === "ACTIVE";
+  }
+  return Boolean(product.is_active);
+};
+
+const handleToggleStatus = async (product) => {
   if (!product?.id) return;
-  await store.deleteStoreProduct(product.id, programId.value);
+  if (isProductActive(product)) {
+    await store.deleteStoreProduct(product.id, programId.value);
+  } else {
+    await store.updateStoreProduct(
+      product.id,
+      { status: "ACTIVE", is_active: true },
+      programId.value
+    );
+  }
 };
 
 const handleImageError = (productId) => {

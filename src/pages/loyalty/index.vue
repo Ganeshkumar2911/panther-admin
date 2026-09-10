@@ -3,33 +3,38 @@
     <!-- Header with Integrated Navigation -->
     <div v-if="hasLoyaltyAccess" class="w-full">
       <!-- Full-Width Equal-Space Underline Tab Navigation -->
-      <div class="border-b border-primary-border w-full">
-        <!-- Desktop Tabs -->
-        <nav class="hidden sm:flex items-center w-full -mb-px" aria-label="Tabs">
+      <!-- Responsive Full-Width Tab Navigation -->
+      <div class="border-b border-primary-border w-full relative">
+        <nav
+          ref="tabNavRef"
+          class="flex items-center w-full overflow-x-auto no-scrollbar -mb-px scroll-smooth"
+          aria-label="Tabs"
+        >
           <button
             v-for="tab in tabList"
             :key="tab.value"
+            :ref="(el) => setTabRef(el, tab.value)"
             type="button"
-            class="flex-1 flex items-center justify-center gap-2 py-3 px-2 text-xs font-medium whitespace-nowrap transition-colors border-b-2 cursor-pointer select-none text-center"
+            class="flex items-center justify-center gap-2 py-3 px-3.5 sm:px-4 xl:flex-1 text-xs font-medium whitespace-nowrap transition-all border-b-2 cursor-pointer select-none text-center shrink-0"
             :class="[
               activeTab === tab.value
                 ? 'border-primary text-primary font-semibold'
-                : 'border-transparent text-secondary-text hover:text-primary-text hover:border-primary-border'
+                : 'border-transparent text-secondary-text hover:text-primary-text hover:border-primary-border/60'
             ]"
-            @click="activeTab = tab.value"
+            @click="selectTab(tab.value)"
           >
             <component
               :is="tab.icon"
-              class="w-4 h-4 shrink-0"
+              class="w-4 h-4 shrink-0 transition-colors"
               :class="activeTab === tab.value ? 'text-primary' : 'text-secondary-text'"
             />
             <span>{{ tab.label }}</span>
             <span
               v-if="tab.badge !== undefined && tab.badge !== null"
-              class="ml-1 text-[10px] px-1.5 py-0.2 rounded-full border"
+              class="ml-1 text-[10px] px-1.5 py-0.2 rounded-full border shrink-0 transition-colors font-mono"
               :class="
                 activeTab === tab.value
-                  ? 'bg-primary/10 text-primary border-primary/20'
+                  ? 'bg-primary/10 text-primary border-primary/20 font-bold'
                   : 'bg-background text-secondary-text border-primary-border'
               "
             >
@@ -37,15 +42,6 @@
             </span>
           </button>
         </nav>
-
-        <!-- Mobile Select Dropdown -->
-        <div class="sm:hidden pb-2">
-          <BaseSelect
-            v-model="activeTab"
-            :options="mobileTabOptions"
-            placeholder="Select tab..."
-          />
-        </div>
       </div>
     </div>
 
@@ -136,12 +132,38 @@ const activeTab = ref(
     : "program"
 );
 
+const tabNavRef = ref(null);
+const tabRefs = {};
+
+const setTabRef = (el, key) => {
+  if (el) {
+    tabRefs[key] = el;
+  }
+};
+
+const scrollToTab = (key) => {
+  const el = tabRefs[key];
+  if (el && tabNavRef.value) {
+    el.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "center",
+    });
+  }
+};
+
+const selectTab = (key) => {
+  activeTab.value = key;
+  scrollToTab(key);
+};
+
 // Sync query parameter with tab
 watch(
   () => route.query.tab,
   (tab) => {
     if (typeof tab === "string" && validTabKeys.includes(tab) && activeTab.value !== tab) {
       activeTab.value = tab;
+      scrollToTab(tab);
     }
   }
 );
@@ -179,10 +201,21 @@ onMounted(() => {
   if (!store.isFetched.program) {
     store.fetchProgram();
   }
+  setTimeout(() => {
+    scrollToTab(activeTab.value);
+  }, 100);
 });
 </script>
 
 <style scoped>
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 .tab-fade-enter-active,
 .tab-fade-leave-active {
   transition: opacity 0.15s ease, transform 0.15s ease;

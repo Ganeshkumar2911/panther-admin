@@ -65,7 +65,7 @@
           v-if="hasPermission('loyalty.update')"
           type="button"
           class="flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all active:scale-95 cursor-pointer shadow-2xs"
-          @click="isEditDrawerOpen = true"
+          @click="handleOpenEdit('all')"
         >
           <SlidersHorizontal class="w-3.5 h-3.5" />
           <span>Edit Program Rules</span>
@@ -82,7 +82,7 @@
       </div>
     </div>
 
-    <!-- Full-screen Image Preview Modal -->
+    <!-- Full-screen Media Preview Modal -->
     <Transition name="modal-fade">
       <div
         v-if="isPreviewModalOpen"
@@ -97,7 +97,19 @@
           >
             <X class="w-6 h-6" />
           </button>
+          <video
+            v-if="isVideoUrl(bannerImages[currentImageIndex])"
+            :key="`modal-video-${currentImageIndex}`"
+            :src="bannerImages[currentImageIndex]"
+            controls
+            autoplay
+            loop
+            playsinline
+            class="max-w-full max-h-[80vh] rounded-xl object-contain border border-white/10 shadow-2xl"
+          />
           <img
+            v-else
+            :key="`modal-img-${currentImageIndex}`"
             :src="bannerImages[currentImageIndex]"
             alt="Program Banner"
             class="max-w-full max-h-[80vh] rounded-xl object-contain border border-white/10 shadow-2xl"
@@ -159,17 +171,29 @@
 
     <!-- Main Content -->
     <div v-else class="space-y-6">
-      <!-- Clean Program Banner Image Carousel -->
+      <!-- Clean Program Banner Media Carousel -->
       <div
         v-if="bannerImages.length > 0"
         class="relative w-full h-44 sm:h-56 md:h-64 lg:h-72 rounded-2xl overflow-hidden border border-primary-border bg-card-background group/carousel shadow-xs select-none"
         @mouseenter="isHoveringCarousel = true"
         @mouseleave="isHoveringCarousel = false"
       >
-        <!-- Banner Image Transition -->
+        <!-- Banner Media Transition (Video or Image) -->
         <Transition name="carousel-fade" mode="out-in">
+          <video
+            v-if="isVideoUrl(bannerImages[currentImageIndex])"
+            :key="`video-${currentImageIndex}`"
+            :src="bannerImages[currentImageIndex]"
+            autoplay
+            loop
+            muted
+            playsinline
+            class="w-full h-full object-cover cursor-pointer"
+            @click="isPreviewModalOpen = true"
+          />
           <img
-            :key="currentImageIndex"
+            v-else
+            :key="`img-${currentImageIndex}`"
             :src="bannerImages[currentImageIndex]"
             alt="Program Banner"
             class="w-full h-full object-cover cursor-pointer transition-transform duration-700"
@@ -275,7 +299,15 @@
               <ShieldCheck class="w-4 h-4 text-primary" />
               <span>Core Program Rules & Thresholds</span>
             </h3>
-            <span class="text-[10px] text-secondary-text">Terms v{{ program.terms_version || '1.0' }}</span>
+            <button
+              v-if="hasPermission('loyalty.update')"
+              type="button"
+              class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-[11px] font-semibold transition cursor-pointer active:scale-95 shadow-2xs"
+              @click="handleOpenEdit('core_rules')"
+            >
+              <Pencil class="w-3 h-3" />
+              <span>Edit Rules</span>
+            </button>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -346,7 +378,15 @@
               <Calendar class="w-4 h-4 text-primary" />
               <span>Cycle Lifespan & Schedule</span>
             </h3>
-            <span class="text-[10px] text-secondary-text">FIFO Points Expiration</span>
+            <button
+              v-if="hasPermission('loyalty.update')"
+              type="button"
+              class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-[11px] font-semibold transition cursor-pointer active:scale-95 shadow-2xs"
+              @click="handleOpenEdit('lifecycle')"
+            >
+              <Pencil class="w-3 h-3" />
+              <span>Edit Dates</span>
+            </button>
           </div>
 
           <div class="space-y-3 text-xs">
@@ -390,6 +430,15 @@
               <CheckCircle2 class="w-4 h-4 text-primary-green" />
               <span>Account Eligibility Rules</span>
             </h3>
+            <button
+              v-if="hasPermission('loyalty.update')"
+              type="button"
+              class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-[11px] font-semibold transition cursor-pointer active:scale-95 shadow-2xs"
+              @click="handleOpenEdit('eligibility')"
+            >
+              <Pencil class="w-3 h-3" />
+              <span>Edit Eligibility</span>
+            </button>
           </div>
 
           <div class="space-y-2">
@@ -397,6 +446,13 @@
               <span class="text-secondary-text">Require KYC Verification:</span>
               <span class="font-mono font-bold" :class="eligibilityRules?.require_kyc ? 'text-primary-green' : 'text-secondary-text'">
                 {{ eligibilityRules?.require_kyc ? 'YES' : 'NO' }}
+              </span>
+            </div>
+
+            <div class="flex items-center justify-between p-2.5 bg-background/50 border border-primary-border rounded-lg">
+              <span class="text-secondary-text">Require Live Account:</span>
+              <span class="font-mono font-bold" :class="eligibilityRules?.require_live !== false ? 'text-primary-green' : 'text-secondary-text'">
+                {{ eligibilityRules?.require_live !== false ? 'YES' : 'NO' }}
               </span>
             </div>
 
@@ -416,38 +472,129 @@
                 {{ eligibilityRules?.exclude_copy_accounts ? 'YES' : 'NO' }}
               </span>
             </div>
+
+            <div class="flex items-center justify-between p-2.5 bg-background/50 border border-primary-border rounded-lg">
+              <span class="text-secondary-text">Earn on Copy Fills:</span>
+              <span class="font-mono font-bold" :class="eligibilityRules?.earn_on_copy_fills !== false ? 'text-primary-green' : 'text-secondary-text'">
+                {{ eligibilityRules?.earn_on_copy_fills !== false ? 'YES' : 'NO' }}
+              </span>
+            </div>
+
+            <div class="flex items-center justify-between p-2.5 bg-background/50 border border-primary-border rounded-lg">
+              <span class="text-secondary-text">Allowed Group Codes:</span>
+              <span class="font-mono text-primary-text">
+                {{ Array.isArray(eligibilityRules?.allowed_group_codes) && eligibilityRules.allowed_group_codes.length > 0 ? eligibilityRules.allowed_group_codes.join(', ') : 'All Group Codes' }}
+              </span>
+            </div>
           </div>
         </div>
 
         <!-- Instrument Rules -->
-        <div class="bg-card-background border border-primary-border rounded-lg p-4.5 space-y-3 shadow-2xs text-xs">
-          <div class="flex items-center justify-between pb-2.5 border-b border-primary-border">
-            <h3 class="font-semibold text-primary-text flex items-center gap-2">
-              <FileCode class="w-4 h-4 text-primary" />
-              <span>Instrument Rules & Suffixes</span>
-            </h3>
-            <span class="text-[10px] text-secondary-text font-mono">
-              {{ program.instrument_rules?.normalize_suffixes ? 'Suffix Normalization ON' : 'Off' }}
-            </span>
+        <div class="bg-card-background border border-primary-border rounded-lg p-4.5 space-y-3.5 shadow-2xs text-xs">
+          <div class="flex items-center justify-between pb-2.5 border-b border-primary-border gap-2 flex-wrap">
+            <div class="flex items-center gap-2.5 flex-wrap">
+              <h3 class="font-semibold text-primary-text flex items-center gap-2">
+                <FileCode class="w-4 h-4 text-primary" />
+                <span>Instrument Rules & Suffixes</span>
+              </h3>
+              <span
+                class="px-2 py-0.5 rounded-full text-[10px] font-mono font-medium border inline-flex items-center gap-1.5"
+                :class="program.instrument_rules?.normalize_suffixes
+                  ? 'bg-primary-green/10 text-primary-green border-primary-green/20'
+                  : 'bg-background text-secondary-text border-primary-border'"
+              >
+                <span class="w-1.5 h-1.5 rounded-full" :class="program.instrument_rules?.normalize_suffixes ? 'bg-primary-green' : 'bg-secondary-text'" />
+                <span>{{ program.instrument_rules?.normalize_suffixes ? 'Suffix Normalization Active' : 'Suffix Normalization Off' }}</span>
+              </span>
+            </div>
+
+            <button
+              v-if="hasPermission('loyalty.update')"
+              type="button"
+              class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-[11px] font-semibold transition cursor-pointer active:scale-95 shadow-2xs"
+              @click="handleOpenEdit('instruments')"
+            >
+              <Pencil class="w-3 h-3" />
+              <span>Edit Instruments</span>
+            </button>
           </div>
 
-          <div v-if="program.instrument_rules?.rules && program.instrument_rules.rules.length > 0" class="space-y-2">
+          <!-- Rules List If Exists -->
+          <div v-if="program.instrument_rules?.rules && program.instrument_rules.rules.length > 0" class="space-y-2.5">
             <div
               v-for="(rule, idx) in program.instrument_rules.rules"
               :key="idx"
-              class="p-2.5 bg-background/50 border border-primary-border rounded-lg flex items-center justify-between"
+              class="p-3 bg-background/50 border border-primary-border hover:border-primary/40 rounded-xl transition-all space-y-2"
             >
-              <div class="space-y-0.5">
-                <span class="font-mono font-bold text-primary-text">{{ rule.symbols?.join(', ') || 'All Symbols' }}</span>
-                <span class="text-[10px] text-secondary-text block">Match: {{ rule.match || 'exact' }}</span>
+              <div class="flex items-start justify-between gap-2">
+                <!-- Symbols Chips -->
+                <div class="flex flex-wrap items-center gap-1.5 flex-1">
+                  <span
+                    v-for="(sym, sIdx) in (rule.symbols || ['All Symbols'])"
+                    :key="sIdx"
+                    class="px-2 py-0.5 rounded-md bg-card-background border border-primary-border text-primary-text font-mono font-bold text-[11px] shadow-2xs"
+                  >
+                    {{ sym }}
+                  </span>
+                </div>
+
+                <!-- Points Rate Tag -->
+                <div class="text-right shrink-0">
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary-green/10 text-primary-green font-mono font-bold text-xs border border-primary-green/20">
+                    {{ rule.base_points_per_lot }} pts/lot
+                  </span>
+                </div>
               </div>
-              <div class="text-right">
-                <span class="font-mono font-bold text-primary-green">{{ rule.base_points_per_lot }} pts/lot</span>
+
+              <!-- Meta Footer for Rule -->
+              <div class="flex items-center justify-between text-[11px] text-secondary-text pt-1 border-t border-primary-border/40">
+                <span class="inline-flex items-center gap-1">
+                  <span>Match Mode:</span>
+                  <span class="font-mono text-primary-text uppercase font-semibold text-[10px] px-1.5 py-0.2 bg-background rounded border border-primary-border">
+                    {{ rule.match || 'exact' }}
+                  </span>
+                </span>
+                <span
+                  class="font-medium text-[10px] uppercase font-mono"
+                  :class="rule.eligible !== false ? 'text-primary-green' : 'text-rose-400'"
+                >
+                  {{ rule.eligible !== false ? '● Eligible' : '● Excluded' }}
+                </span>
               </div>
             </div>
           </div>
-          <div v-else class="p-6 text-center text-secondary-text bg-background/30 rounded-lg border border-primary-border">
-            Default global base points per lot applies to all symbols.
+
+          <!-- Polished Informational Default Card -->
+          <div
+            v-else
+            class="p-4 rounded-xl bg-background/40 border border-primary-border space-y-3"
+          >
+            <div class="flex items-start gap-3">
+              <div class="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0 mt-0.5">
+                <SlidersHorizontal class="w-4 h-4" />
+              </div>
+              <div class="space-y-0.5">
+                <h4 class="text-xs font-semibold text-primary-text">Standard Base Multiplier Inherited</h4>
+                <p class="text-[11px] text-secondary-text leading-relaxed">
+                  All forex, metals, and index trades earn the standard base rate of
+                  <span class="font-mono font-bold text-primary-green">{{ program.base_points_per_lot ?? '5.00' }} pts/lot</span>
+                  without custom symbol overrides.
+                </p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 pt-1">
+              <div class="p-2 rounded-lg bg-card-background/60 border border-primary-border/60 flex items-center justify-between">
+                <span class="text-[10px] text-secondary-text">Suffix Normalization:</span>
+                <span class="font-mono text-[10px] font-bold" :class="program.instrument_rules?.normalize_suffixes ? 'text-primary-green' : 'text-secondary-text'">
+                  {{ program.instrument_rules?.normalize_suffixes ? 'Active' : 'Disabled' }}
+                </span>
+              </div>
+              <div class="p-2 rounded-lg bg-card-background/60 border border-primary-border/60 flex items-center justify-between">
+                <span class="text-[10px] text-secondary-text">Custom Overrides:</span>
+                <span class="font-mono text-[10px] font-bold text-secondary-text">0 Rules</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -457,6 +604,7 @@
     <EditProgramDrawer
       :open="isEditDrawerOpen"
       :program="program"
+      :initialSection="targetSection"
       @close="isEditDrawerOpen = false"
       @saved="handleRefresh"
     />
@@ -490,6 +638,7 @@ import {
   Maximize2,
   X,
   Image as ImageIcon,
+  Pencil,
 } from "lucide-vue-next";
 import { useLoyaltyStore } from "@/stores/loyalty/loyalty";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
@@ -503,6 +652,12 @@ const { hasPermission } = usePermissionCheck();
 
 const isEditDrawerOpen = ref(false);
 const isCreateDrawerOpen = ref(false);
+const targetSection = ref("all");
+
+const handleOpenEdit = (section = "all") => {
+  targetSection.value = section;
+  isEditDrawerOpen.value = true;
+};
 
 const program = computed(() => store.program);
 const eligibilityRules = computed(() => program.value?.eligibility_rules || program.value?.eligibility || {});
@@ -545,8 +700,21 @@ const goToImage = (index) => {
   currentImageIndex.value = index;
 };
 
+const isVideoUrl = (url) => {
+  if (!url || typeof url !== "string") return false;
+  const cleanUrl = url.split("?")[0].toLowerCase();
+  return (
+    cleanUrl.endsWith(".mp4") ||
+    cleanUrl.endsWith(".webm") ||
+    cleanUrl.endsWith(".ogg") ||
+    cleanUrl.endsWith(".mov") ||
+    cleanUrl.endsWith(".m4v") ||
+    cleanUrl.includes("/video/") ||
+    cleanUrl.includes("format=mp4")
+  );
+};
+
 const handleImageError = (e) => {
-  // If image fails to load, gracefully hide or fallback
   if (e?.target) {
     e.target.style.opacity = "0.5";
   }

@@ -106,8 +106,17 @@
                     class="flex items-center gap-2"
                   >
                     <div class="w-8 h-8 rounded-lg bg-background border border-primary-border overflow-hidden shrink-0 flex items-center justify-center">
+                      <video
+                        v-if="url && isVideoUrl(url)"
+                        :src="url"
+                        autoplay
+                        loop
+                        muted
+                        playsinline
+                        class="w-full h-full object-cover"
+                      />
                       <img
-                        v-if="url"
+                        v-else-if="url"
                         :src="url"
                         class="w-full h-full object-cover"
                         @error="(e) => e.target.style.display = 'none'"
@@ -335,6 +344,20 @@ const form = reactive({
   sort_order: 1,
   status: "ACTIVE",
 });
+
+const isVideoUrl = (url) => {
+  if (!url || typeof url !== "string") return false;
+  const cleanUrl = url.split("?")[0].toLowerCase();
+  return (
+    cleanUrl.endsWith(".mp4") ||
+    cleanUrl.endsWith(".webm") ||
+    cleanUrl.endsWith(".ogg") ||
+    cleanUrl.endsWith(".mov") ||
+    cleanUrl.endsWith(".m4v") ||
+    cleanUrl.includes("/video/") ||
+    cleanUrl.includes("format=mp4")
+  );
+};
 
 const addImageUrl = () => {
   if (imageUrlsList.value.length < 4) {

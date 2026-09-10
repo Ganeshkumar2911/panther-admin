@@ -71,7 +71,7 @@
         @click="fetchData"
       >
         <Search class="w-3 h-3" />
-        <span>Filter</span>
+        <span>Search</span>
       </button>
 
       <button
@@ -148,8 +148,21 @@
               <td class="py-2.5 px-4 text-primary-text font-mono">#{{ item.user_id }}</td>
               <td class="py-2.5 px-4 font-mono font-medium text-primary">#{{ item.trading_account_id }}</td>
               <td class="py-2.5 px-4">
-                <span class="inline-block px-2 py-0.5 rounded font-mono text-[10px] uppercase bg-primary/10 text-primary border border-primary/20">
-                  {{ item.current_tier?.name || item.current_tier?.code || '—' }}
+                <span
+                  class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded font-mono text-[10px] uppercase font-bold border"
+                  :style="item.current_tier?.color ? {
+                    backgroundColor: `${item.current_tier.color}1A`,
+                    color: item.current_tier.color,
+                    borderColor: `${item.current_tier.color}40`
+                  } : {}"
+                  :class="!item.current_tier?.color ? 'bg-primary/10 text-primary border-primary/20' : ''"
+                >
+                  <span
+                    v-if="item.current_tier?.color"
+                    class="w-1.5 h-1.5 rounded-full shrink-0"
+                    :style="{ backgroundColor: item.current_tier.color }"
+                  />
+                  <span>{{ item.current_tier?.name || item.current_tier?.code || '—' }}</span>
                 </span>
               </td>
               <td class="py-2.5 px-4 font-mono font-medium text-primary-green">{{ item.available_points ?? '0.00' }}</td>
@@ -170,11 +183,10 @@
                 <button
                   type="button"
                   class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-primary-border hover:bg-background text-secondary-text hover:text-primary transition cursor-pointer text-xs"
-                  title="Inspect Enrollment Details"
                   @click="handleViewDetail(item.id)"
                 >
                   <Eye class="w-3 h-3" />
-                  <span>Inspect</span>
+                  <span>Details</span>
                 </button>
               </td>
             </tr>

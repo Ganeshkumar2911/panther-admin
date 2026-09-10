@@ -50,7 +50,14 @@
         <!-- Scrollable Content -->
         <div v-else-if="detail" class="flex-1 overflow-y-auto px-6 py-5 space-y-5 text-xs">
           <!-- Member Identification Header -->
-          <div class="p-4 rounded-2xl bg-linear-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20 flex items-center justify-between gap-4">
+          <div
+            class="p-4 rounded-2xl border flex items-center justify-between gap-4"
+            :style="detail.current_tier?.color ? {
+              background: `linear-gradient(to right, ${detail.current_tier.color}15, ${detail.current_tier.color}08, transparent)`,
+              borderColor: `${detail.current_tier.color}35`
+            } : {}"
+            :class="!detail.current_tier?.color ? 'bg-linear-to-r from-primary/10 via-primary/5 to-transparent border-primary/20' : ''"
+          >
             <div class="space-y-1">
               <span class="text-[10px] uppercase font-bold text-secondary-text">Primary Trading Account</span>
               <h4 class="text-base font-bold text-primary-text font-mono">
@@ -61,8 +68,13 @@
 
             <div class="text-right space-y-1">
               <span class="text-[10px] uppercase font-bold text-secondary-text block">Current Tier</span>
-              <span class="inline-block px-3 py-1 rounded-lg bg-primary text-white font-bold font-mono text-xs shadow-xs">
-                {{ detail.current_tier?.name || detail.current_tier?.code || '—' }}
+              <span
+                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg font-bold font-mono text-xs shadow-xs text-white"
+                :style="detail.current_tier?.color ? { backgroundColor: detail.current_tier.color } : {}"
+                :class="!detail.current_tier?.color ? 'bg-primary' : ''"
+              >
+                <span class="w-1.5 h-1.5 rounded-full bg-white/80 shrink-0" />
+                <span>{{ detail.current_tier?.name || detail.current_tier?.code || '—' }}</span>
               </span>
             </div>
           </div>

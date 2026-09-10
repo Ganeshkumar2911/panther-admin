@@ -120,8 +120,17 @@
                     class="flex items-center gap-2"
                   >
                     <div class="w-8 h-8 rounded-lg bg-background border border-primary-border overflow-hidden shrink-0 flex items-center justify-center">
+                      <video
+                        v-if="url && isVideoUrl(url)"
+                        :src="url"
+                        autoplay
+                        loop
+                        muted
+                        playsinline
+                        class="w-full h-full object-cover"
+                      />
                       <img
-                        v-if="url"
+                        v-else-if="url"
                         :src="url"
                         class="w-full h-full object-cover"
                         @error="(e) => e.target.style.display = 'none'"
@@ -341,6 +350,16 @@
                   class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary font-mono text-xs"
                 />
               </div>
+
+              <div class="space-y-1">
+                <label class="font-semibold text-primary-text">Allowed MT5 Group Codes (Comma-separated, leave blank for all)</label>
+                <input
+                  v-model="allowedGroupCodesText"
+                  type="text"
+                  placeholder="e.g. REAL, PRO (optional)"
+                  class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary font-mono text-xs"
+                />
+              </div>
             </div>
           </div>
 
@@ -516,7 +535,22 @@ const matchTypeOptions = [
 ];
 
 const excludedCategoriesText = ref("cent, pamm");
+const allowedGroupCodesText = ref("");
 const imageUrlsList = ref([]);
+
+const isVideoUrl = (url) => {
+  if (!url || typeof url !== "string") return false;
+  const cleanUrl = url.split("?")[0].toLowerCase();
+  return (
+    cleanUrl.endsWith(".mp4") ||
+    cleanUrl.endsWith(".webm") ||
+    cleanUrl.endsWith(".ogg") ||
+    cleanUrl.endsWith(".mov") ||
+    cleanUrl.endsWith(".m4v") ||
+    cleanUrl.includes("/video/") ||
+    cleanUrl.includes("format=mp4")
+  );
+};
 
 const addImageUrl = () => {
   if (imageUrlsList.value.length < 4) {
@@ -552,6 +586,7 @@ const form = reactive({
     earn_on_copy_fills: true,
     trading_types: ["real"],
     exclude_account_categories: ["cent", "pamm"],
+    allowed_group_codes: null,
   },
   instrument_rules: {
     normalize_suffixes: true,
@@ -602,6 +637,11 @@ const handleSubmit = async () => {
     .map((c) => c.trim().toLowerCase())
     .filter(Boolean);
 
+  const groupCodes = allowedGroupCodesText.value
+    .split(",")
+    .map((c) => c.trim().toUpperCase())
+    .filter(Boolean);
+
   const formattedInstrumentRules = form.instrument_rules.rules.map((r) => ({
     symbols: r.symbolsText.split(",").map((s) => s.trim().toUpperCase()).filter(Boolean),
     match: r.match,
@@ -626,13 +666,14 @@ const handleSubmit = async () => {
     tier_window_days: Number(form.tier_window_days),
     dormant_days: Number(form.dormant_days),
     grace_period_days: Number(form.grace_period_days),
-    terms_version: form.terms_version,
+    terms_version: form.terms_version?.trim() || "1.0",
     carry_over_enrollments: Boolean(form.carry_over_enrollments),
     image_urls: validUrls,
-    image_url: validUrls[0] || null,
+    image_url: validUrls.length > 0 ? validUrls[0] : null,
     eligibility_rules: {
       ...form.eligibility_rules,
       exclude_account_categories: categories,
+      allowed_group_codes: groupCodes.length > 0 ? groupCodes : null,
     },
     instrument_rules: {
       normalize_suffixes: Boolean(form.instrument_rules.normalize_suffixes),
