@@ -418,20 +418,12 @@ export const useFmTradeBookStore = defineStore("fmTradeBook", () => {
       params.search = filters.search.trim();
     }
 
-    // Backwards compatibility mappings for date ranges
-    if (filters.start_date && !params.from_date) {
-      params.from_date = filters.start_date;
-      params.start_date = filters.start_date;
+    // Date range filters (from_date / to_date)
+    if (filters.from_date) {
+      params.from_date = filters.from_date;
     }
-    if (filters.end_date && !params.to_date) {
-      params.to_date = filters.end_date;
-      params.end_date = filters.end_date;
-    }
-    if (params.from_date && !params.start_date) {
-      params.start_date = params.from_date;
-    }
-    if (params.to_date && !params.end_date) {
-      params.end_date = params.to_date;
+    if (filters.to_date) {
+      params.to_date = filters.to_date;
     }
 
     // Backwards compatibility mappings for status/state/action/type
@@ -546,7 +538,26 @@ export const useFmTradeBookStore = defineStore("fmTradeBook", () => {
     activeTab.value = tab;
     summary.value = {};
     pagination.value.page = 1;
-    resetFilters(false);
+
+    // Clear tab-specific filters but preserve global date range and search filters
+    const preservedFrom = filters.from_date || filters.start_date;
+    const preservedTo = filters.to_date || filters.end_date;
+    const preservedSearch = filters.search;
+
+    Object.keys(filters).forEach((key) => {
+      if (key === "sort_by" || key === "sort_order") return;
+      filters[key] = "";
+    });
+
+    if (preservedFrom) {
+      filters.from_date = preservedFrom;
+    }
+    if (preservedTo) {
+      filters.to_date = preservedTo;
+    }
+    if (preservedSearch) {
+      filters.search = preservedSearch;
+    }
 
     // Set default sort for active tab
     if (tab === "positions") {
@@ -582,17 +593,9 @@ export const useFmTradeBookStore = defineStore("fmTradeBook", () => {
     if (rangeVal && Array.isArray(rangeVal) && rangeVal.length === 2) {
       filters[fromKey] = rangeVal[0];
       filters[toKey] = rangeVal[1];
-      if (fromKey === "from_date") {
-        filters.start_date = rangeVal[0];
-        filters.end_date = rangeVal[1];
-      }
     } else {
       filters[fromKey] = "";
       filters[toKey] = "";
-      if (fromKey === "from_date") {
-        filters.start_date = "";
-        filters.end_date = "";
-      }
     }
     pagination.value.page = 1;
     fetchTradesData(true);
