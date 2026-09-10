@@ -520,46 +520,56 @@
           </div>
 
           <!-- Rules List If Exists -->
-          <div v-if="program.instrument_rules?.rules && program.instrument_rules.rules.length > 0" class="space-y-2.5">
+          <div v-if="program.instrument_rules?.rules && program.instrument_rules.rules.length > 0" class="space-y-3">
             <div
               v-for="(rule, idx) in program.instrument_rules.rules"
               :key="idx"
-              class="p-3 bg-background/50 border border-primary-border hover:border-primary/40 rounded-xl transition-all space-y-2"
+              class="relative overflow-hidden rounded-xl border border-primary-border bg-background/40 hover:bg-background/70 hover:border-primary/40 transition-all p-3.5 space-y-3 group shadow-2xs"
             >
-              <div class="flex items-start justify-between gap-2">
-                <!-- Symbols Chips -->
-                <div class="flex flex-wrap items-center gap-1.5 flex-1">
+              <!-- Top Header: Rule Index & Status Pill + Points Rate Badge -->
+              <div class="flex items-center justify-between gap-2 flex-wrap">
+                <div class="flex items-center gap-2">
+                  <span class="w-5 h-5 rounded-md bg-primary/10 border border-primary/20 text-primary font-mono font-bold text-[10px] flex items-center justify-center">
+                    #{{ idx + 1 }}
+                  </span>
                   <span
-                    v-for="(sym, sIdx) in (rule.symbols || ['All Symbols'])"
-                    :key="sIdx"
-                    class="px-2 py-0.5 rounded-md bg-card-background border border-primary-border text-primary-text font-mono font-bold text-[11px] shadow-2xs"
+                    class="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider inline-flex items-center gap-1.5 border"
+                    :class="rule.eligible !== false
+                      ? 'bg-primary-green/10 text-primary-green border-primary-green/20'
+                      : 'bg-rose-500/10 text-rose-400 border-rose-500/20'"
                   >
-                    {{ sym }}
+                    <span class="w-1.5 h-1.5 rounded-full" :class="rule.eligible !== false ? 'bg-primary-green' : 'bg-rose-400'" />
+                    <span>{{ rule.eligible !== false ? 'Eligible' : 'Excluded' }}</span>
+                  </span>
+
+                  <span class="text-[10px] text-secondary-text font-mono uppercase px-2 py-0.5 rounded bg-card-background border border-primary-border/60">
+                    {{ rule.match || 'exact' }} match
                   </span>
                 </div>
 
-                <!-- Points Rate Tag -->
-                <div class="text-right shrink-0">
-                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary-green/10 text-primary-green font-mono font-bold text-xs border border-primary-green/20">
-                    {{ rule.base_points_per_lot }} pts/lot
-                  </span>
+                <!-- Rate Tag -->
+                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary-green/10 border border-primary-green/20 text-primary-green">
+                  <Sparkles class="w-3 h-3 text-primary-green" />
+                  <span class="font-mono font-bold text-xs">{{ Number(rule.base_points_per_lot ?? 0).toFixed(2) }}</span>
+                  <span class="text-[10px] font-sans text-primary-green/80">pts/lot</span>
                 </div>
               </div>
 
-              <!-- Meta Footer for Rule -->
-              <div class="flex items-center justify-between text-[11px] text-secondary-text pt-1 border-t border-primary-border/40">
-                <span class="inline-flex items-center gap-1">
-                  <span>Match Mode:</span>
-                  <span class="font-mono text-primary-text uppercase font-semibold text-[10px] px-1.5 py-0.2 bg-background rounded border border-primary-border">
-                    {{ rule.match || 'exact' }}
+              <!-- Symbols Container -->
+              <div class="space-y-1.5">
+                <span class="text-[10px] uppercase font-semibold text-secondary-text tracking-wider block">
+                  Matched Symbols
+                </span>
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <span
+                    v-for="(sym, sIdx) in (rule.symbols || ['All Symbols'])"
+                    :key="sIdx"
+                    class="px-2.5 py-1 rounded-lg bg-card-background border border-primary-border text-primary-text font-mono font-bold text-xs tracking-wide shadow-2xs hover:border-primary/50 transition-colors flex items-center gap-1"
+                  >
+                    <span class="w-1.5 h-1.5 rounded-full bg-primary" />
+                    <span>{{ sym }}</span>
                   </span>
-                </span>
-                <span
-                  class="font-medium text-[10px] uppercase font-mono"
-                  :class="rule.eligible !== false ? 'text-primary-green' : 'text-rose-400'"
-                >
-                  {{ rule.eligible !== false ? '● Eligible' : '● Excluded' }}
-                </span>
+                </div>
               </div>
             </div>
           </div>
