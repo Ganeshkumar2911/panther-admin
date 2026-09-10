@@ -67,49 +67,83 @@
     <!-- Content: Stage Cards Grid + Data Table -->
     <div v-else class="space-y-6">
       <!-- Visual Stage Cards Progression Grid -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         <div
           v-for="tier in tiers"
           :key="tier.id"
-          class="bg-card-background border border-primary-border rounded-xl p-4 flex flex-col justify-between gap-3 shadow-2xs hover:border-primary/40 transition-colors relative overflow-hidden"
+          class="rounded-2xl border border-primary-border p-4.5 bg-gradient-to-b from-card-background to-card-background/70 flex flex-col justify-between relative overflow-hidden transition-all duration-300 hover:border-primary/50 group cursor-pointer shadow-2xs"
+          :style="{
+            borderColor: tier.color ? `${tier.color}45` : undefined,
+          }"
+          @click="handleEdit(tier)"
         >
+          <!-- Moving Light Sheen Effect -->
+          <div class="card-shine pointer-events-none" />
+
           <!-- Top Accent Bar -->
           <div
             class="absolute top-0 left-0 right-0 h-1"
             :style="{ backgroundColor: tier.color || 'var(--color-primary)' }"
           />
 
-          <div class="space-y-2 pt-1">
+          <div class="relative z-10 space-y-3 pt-0.5">
             <div class="flex items-center justify-between">
-              <span
-                class="text-[10px] font-medium font-mono px-2 py-0.5 rounded border uppercase"
-                :style="{
-                  backgroundColor: tier.color ? `${tier.color}15` : 'var(--color-primary-10)',
-                  color: tier.color || 'var(--color-primary)',
-                  borderColor: tier.color ? `${tier.color}35` : 'var(--color-primary-20)',
-                }"
-              >
-                {{ tier.code }}
-              </span>
-              <span class="text-[10px] text-secondary-text">#{{ tier.sort_order }}</span>
+              <div class="flex items-center gap-2">
+                <Award
+                  class="w-4 h-4 shrink-0"
+                  :style="{ color: tier.color || 'var(--color-primary)' }"
+                />
+                <h3 class="text-sm font-bold text-primary-text">{{ tier.name }}</h3>
+              </div>
+
+              <div class="flex items-center gap-1.5">
+                <span class="text-[10px] font-mono font-semibold text-secondary-text bg-background/60 border border-primary-border px-1.5 py-0.5 rounded">
+                  #{{ tier.sort_order }}
+                </span>
+                <button
+                  v-if="hasPermission('loyalty.update')"
+                  type="button"
+                  class="w-6 h-6 rounded-md hover:bg-background/80 text-secondary-text hover:text-primary-text flex items-center justify-center transition cursor-pointer"
+                  title="Edit Tier"
+                  @click.stop="handleEdit(tier)"
+                >
+                  <Pencil class="w-3 h-3" />
+                </button>
+              </div>
             </div>
 
-            <div>
-              <h4 class="text-sm font-semibold text-primary-text">{{ tier.name }}</h4>
-              <p class="text-[11px] font-mono text-secondary-text mt-0.5">
-                {{ tier.min_points }} &ndash; {{ tier.max_points !== null && tier.max_points !== undefined ? `${tier.max_points} pts` : '&infin;' }}
-              </p>
-            </div>
-          </div>
+            <p class="text-[11px] text-secondary-text font-mono">
+              {{ Number(tier.min_points).toLocaleString() }} &ndash; {{ tier.max_points !== null && tier.max_points !== undefined ? `${Number(tier.max_points).toLocaleString()} pts` : '∞' }}
+            </p>
 
-          <div class="pt-2 border-t border-primary-border space-y-1 text-xs">
-            <div class="flex items-center justify-between">
-              <span class="text-[10px] text-secondary-text">Multiplier:</span>
-              <span class="font-semibold text-primary font-mono text-xs">{{ tier.point_multiplier }}&times;</span>
-            </div>
-            <div class="flex items-center justify-between">
-              <span class="text-[10px] text-secondary-text">Cash Rate:</span>
-              <span class="font-medium text-primary-text font-mono text-xs">${{ tier.cash_conversion_rate }}/pt</span>
+            <div class="space-y-2 text-xs pt-2.5 border-t border-primary-border">
+              <div class="flex items-center justify-between">
+                <span class="text-secondary-text">Tier Code</span>
+                <span
+                  class="font-semibold font-mono text-[11px] px-1.5 py-0.5 rounded uppercase"
+                  :style="{
+                    backgroundColor: tier.color ? `${tier.color}15` : 'var(--color-primary-10)',
+                    color: tier.color || 'var(--color-primary)',
+                  }"
+                >
+                  {{ tier.code }}
+                </span>
+              </div>
+
+              <div class="flex items-center justify-between">
+                <span class="text-secondary-text">Multiplier</span>
+                <span
+                  class="font-bold font-mono text-xs"
+                  :style="{ color: tier.color || 'var(--color-primary)' }"
+                >
+                  {{ tier.point_multiplier }}&times;
+                </span>
+              </div>
+
+              <div class="flex items-center justify-between">
+                <span class="text-secondary-text">Cash Rate</span>
+                <span class="font-semibold text-primary-text font-mono text-xs">${{ tier.cash_conversion_rate }}/pt</span>
+              </div>
             </div>
           </div>
         </div>
@@ -138,15 +172,11 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-primary-border">
-              <tr
-                v-for="tier in tiers"
-                :key="tier.id"
-                class="hover:bg-background/40 transition-colors"
-              >
-                <td class="py-2.5 px-4 text-secondary-text font-mono">#{{ tier.sort_order }}</td>
-                <td class="py-2.5 px-4">
+              <tr v-for="tier in tiers" :key="tier.id" class="hover:bg-background/50 transition">
+                <td class="py-3 px-4 font-mono font-medium text-secondary-text">#{{ tier.sort_order }}</td>
+                <td class="py-3 px-4">
                   <span
-                    class="px-2 py-0.5 rounded text-[10px] font-medium font-mono uppercase border"
+                    class="px-2 py-0.5 rounded font-mono text-[11px] font-bold border"
                     :style="{
                       backgroundColor: tier.color ? `${tier.color}15` : 'var(--color-primary-10)',
                       color: tier.color || 'var(--color-primary)',
@@ -156,26 +186,31 @@
                     {{ tier.code }}
                   </span>
                 </td>
-                <td class="py-2.5 px-4 font-medium text-primary-text">{{ tier.name }}</td>
-                <td class="py-2.5 px-4">
-                  <div class="flex items-center gap-1.5 font-mono text-[11px] text-secondary-text">
-                    <span class="w-3 h-3 rounded-full shrink-0 border" :style="{ backgroundColor: tier.color || '#CD7F32' }" />
-                    <span>{{ tier.color || '—' }}</span>
+                <td class="py-3 px-4 font-semibold text-primary-text">{{ tier.name }}</td>
+                <td class="py-3 px-4">
+                  <div class="flex items-center gap-2">
+                    <span
+                      class="w-3.5 h-3.5 rounded-full border border-white/20 shadow-2xs shrink-0"
+                      :style="{ backgroundColor: tier.color || '#CD7F32' }"
+                    />
+                    <span class="font-mono text-[11px] text-secondary-text">{{ tier.color || 'Default' }}</span>
                   </div>
                 </td>
-                <td class="py-2.5 px-4 text-primary-text font-mono">{{ tier.min_points }}</td>
-                <td class="py-2.5 px-4 text-secondary-text font-mono">{{ tier.max_points !== null && tier.max_points !== undefined ? tier.max_points : 'Unlimited' }}</td>
-                <td class="py-2.5 px-4 font-semibold text-primary font-mono">{{ tier.point_multiplier }}&times;</td>
-                <td class="py-2.5 px-4 text-primary-text font-mono">${{ tier.cash_conversion_rate }}</td>
-                <td class="py-2.5 px-4">
+                <td class="py-3 px-4 font-mono text-primary-text">{{ tier.min_points }}</td>
+                <td class="py-3 px-4 font-mono text-secondary-text">
+                  {{ tier.max_points !== null && tier.max_points !== undefined ? tier.max_points : 'Open-Ended (∞)' }}
+                </td>
+                <td class="py-3 px-4 font-mono font-semibold text-primary">{{ tier.point_multiplier }}&times;</td>
+                <td class="py-3 px-4 font-mono text-primary-text">${{ tier.cash_conversion_rate }}</td>
+                <td class="py-3 px-4">
                   <span
-                    class="px-2 py-0.5 rounded text-[10px] font-medium uppercase"
-                    :class="tier.is_active ? 'bg-primary-green/10 text-primary-green border border-primary-green/20' : 'bg-background text-secondary-text border border-primary-border'"
+                    class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider"
+                    :class="tier.is_active ? 'bg-primary-green/10 text-primary-green' : 'bg-rose-500/10 text-rose-400'"
                   >
-                    {{ tier.is_active ? 'Active' : 'Inactive' }}
+                    {{ tier.is_active ? 'ACTIVE' : 'INACTIVE' }}
                   </span>
                 </td>
-                <td v-if="hasPermission('loyalty.update')" class="py-2.5 px-4 text-right">
+                <td v-if="hasPermission('loyalty.update')" class="py-3 px-4 text-right">
                   <button
                     type="button"
                     class="w-7 h-7 inline-flex items-center justify-center rounded-lg border border-primary-border hover:bg-background text-secondary-text hover:text-primary transition cursor-pointer"
@@ -205,7 +240,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import { Plus, RefreshCw, Layers, Pencil } from "lucide-vue-next";
+import { Award, Plus, RefreshCw, Layers, Pencil } from "lucide-vue-next";
 import { useLoyaltyStore } from "@/stores/loyalty/loyalty";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import TierDrawer from "../components/TierDrawer.vue";
@@ -241,3 +276,46 @@ onMounted(() => {
   }
 });
 </script>
+
+<style scoped>
+.card-shine {
+  position: absolute;
+  top: -50%;
+  left: -120%;
+  width: 90%;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.02) 20%,
+    rgba(255, 255, 255, 0.16) 50%,
+    rgba(255, 255, 255, 0.02) 80%,
+    transparent 100%
+  );
+  transform: rotate(25deg);
+  animation: card-shine-sweep 4.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  z-index: 5;
+}
+
+.group:hover .card-shine {
+  animation: card-shine-sweep 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes card-shine-sweep {
+  0% {
+    left: -120%;
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  45% {
+    left: 140%;
+    opacity: 1;
+  }
+  50%, 100% {
+    left: 140%;
+    opacity: 0;
+  }
+}
+</style>
