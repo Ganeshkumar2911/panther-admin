@@ -82,6 +82,48 @@
       </div>
     </div>
 
+    <!-- Full-screen Image Preview Modal -->
+    <Transition name="modal-fade">
+      <div
+        v-if="isPreviewModalOpen"
+        class="fixed inset-0 z-[120] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer"
+        @click="isPreviewModalOpen = false"
+      >
+        <div class="relative max-w-4xl max-h-[90vh] flex flex-col items-center gap-3" @click.stop>
+          <button
+            type="button"
+            class="absolute -top-10 right-0 text-white/70 hover:text-white transition cursor-pointer p-1"
+            @click="isPreviewModalOpen = false"
+          >
+            <X class="w-6 h-6" />
+          </button>
+          <img
+            :src="bannerImages[currentImageIndex]"
+            alt="Program Banner"
+            class="max-w-full max-h-[80vh] rounded-xl object-contain border border-white/10 shadow-2xl"
+          />
+          <!-- Modal Carousel Navigation -->
+          <div v-if="bannerImages.length > 1" class="flex items-center gap-3 text-white text-xs font-mono">
+            <button
+              type="button"
+              class="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 border border-white/10 transition cursor-pointer"
+              @click="prevImage"
+            >
+              Previous
+            </button>
+            <span>{{ currentImageIndex + 1 }} / {{ bannerImages.length }}</span>
+            <button
+              type="button"
+              class="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 border border-white/10 transition cursor-pointer"
+              @click="nextImage"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
     <!-- Skeleton Loading -->
     <div v-if="store.loading" class="space-y-4">
       <div class="h-28 bg-card-background border border-primary-border rounded-lg animate-pulse" />
@@ -117,6 +159,79 @@
 
     <!-- Main Content -->
     <div v-else class="space-y-6">
+      <!-- Clean Program Banner Image Carousel -->
+      <div
+        v-if="bannerImages.length > 0"
+        class="relative w-full h-44 sm:h-56 md:h-64 lg:h-72 rounded-2xl overflow-hidden border border-primary-border bg-card-background group/carousel shadow-xs select-none"
+        @mouseenter="isHoveringCarousel = true"
+        @mouseleave="isHoveringCarousel = false"
+      >
+        <!-- Banner Image Transition -->
+        <Transition name="carousel-fade" mode="out-in">
+          <img
+            :key="currentImageIndex"
+            :src="bannerImages[currentImageIndex]"
+            alt="Program Banner"
+            class="w-full h-full object-cover cursor-pointer transition-transform duration-700"
+            @click="isPreviewModalOpen = true"
+            @error="handleImageError"
+          />
+        </Transition>
+
+        <!-- Subtle Gradient Overlays -->
+        <div class="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />
+
+        <!-- Top Right Actions & Counter -->
+        <div class="absolute top-3 right-3 flex items-center gap-2 z-10">
+          <button
+            type="button"
+            class="w-8 h-8 rounded-lg bg-black/60 backdrop-blur-md text-white/90 hover:text-white border border-white/10 flex items-center justify-center transition cursor-pointer hover:scale-105 shadow-xs"
+            title="Expand Banner"
+            @click="isPreviewModalOpen = true"
+          >
+            <Maximize2 class="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        <!-- Left / Right Navigation Buttons (Multiple Banners) -->
+        <div
+          v-if="bannerImages.length > 1"
+          class="absolute inset-y-0 inset-x-3 flex items-center justify-between pointer-events-none z-10 opacity-0 group-hover/carousel:opacity-100 transition-opacity"
+        >
+          <button
+            type="button"
+            class="w-8 h-8 rounded-full bg-black/60 backdrop-blur-md text-white border border-white/10 flex items-center justify-center transition hover:bg-black/90 cursor-pointer pointer-events-auto hover:scale-105 shadow-md"
+            title="Previous Banner"
+            @click.stop="prevImage"
+          >
+            <ChevronLeft class="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            class="w-8 h-8 rounded-full bg-black/60 backdrop-blur-md text-white border border-white/10 flex items-center justify-center transition hover:bg-black/90 cursor-pointer pointer-events-auto hover:scale-105 shadow-md"
+            title="Next Banner"
+            @click.stop="nextImage"
+          >
+            <ChevronRight class="w-4 h-4" />
+          </button>
+        </div>
+
+        <!-- Bottom Pagination Dots (Multiple Banners) -->
+        <div
+          v-if="bannerImages.length > 1"
+          class="absolute bottom-3 inset-x-0 flex items-center justify-center gap-1.5 z-10"
+        >
+          <button
+            v-for="(_, idx) in bannerImages"
+            :key="idx"
+            type="button"
+            class="h-1.5 rounded-full transition-all cursor-pointer"
+            :class="idx === currentImageIndex ? 'w-6 bg-primary' : 'w-2 bg-white/50 hover:bg-white/80'"
+            @click.stop="goToImage(idx)"
+          />
+        </div>
+      </div>
+
       <!-- 6-Card High Fidelity KPI Grid -->
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <MetricCard
@@ -356,7 +471,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import {
   Award,
   RefreshCw,
@@ -370,6 +485,11 @@ import {
   Plus,
   CheckCircle2,
   FileCode,
+  ChevronLeft,
+  ChevronRight,
+  Maximize2,
+  X,
+  Image as ImageIcon,
 } from "lucide-vue-next";
 import { useLoyaltyStore } from "@/stores/loyalty/loyalty";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
@@ -387,6 +507,79 @@ const isCreateDrawerOpen = ref(false);
 const program = computed(() => store.program);
 const eligibilityRules = computed(() => program.value?.eligibility_rules || program.value?.eligibility || {});
 const programsList = computed(() => store.programsList || []);
+
+// Banner Images Carousel Logic
+const currentImageIndex = ref(0);
+const isPreviewModalOpen = ref(false);
+const isHoveringCarousel = ref(false);
+let autoplayTimer = null;
+
+const bannerImages = computed(() => {
+  if (!program.value) return [];
+  const urls = [];
+  if (Array.isArray(program.value.image_urls) && program.value.image_urls.length > 0) {
+    program.value.image_urls.forEach((u) => {
+      if (typeof u === "string" && u.trim().length > 0 && !urls.includes(u.trim())) {
+        urls.push(u.trim());
+      }
+    });
+  }
+  if (urls.length === 0 && program.value.image_url && typeof program.value.image_url === "string" && program.value.image_url.trim().length > 0) {
+    urls.push(program.value.image_url.trim());
+  }
+  return urls;
+});
+
+const nextImage = () => {
+  if (bannerImages.value.length <= 1) return;
+  currentImageIndex.value = (currentImageIndex.value + 1) % bannerImages.value.length;
+};
+
+const prevImage = () => {
+  if (bannerImages.value.length <= 1) return;
+  currentImageIndex.value =
+    (currentImageIndex.value - 1 + bannerImages.value.length) % bannerImages.value.length;
+};
+
+const goToImage = (index) => {
+  currentImageIndex.value = index;
+};
+
+const handleImageError = (e) => {
+  // If image fails to load, gracefully hide or fallback
+  if (e?.target) {
+    e.target.style.opacity = "0.5";
+  }
+};
+
+const startAutoplay = () => {
+  stopAutoplay();
+  if (bannerImages.value.length > 1) {
+    autoplayTimer = setInterval(() => {
+      if (!isHoveringCarousel.value && !isPreviewModalOpen.value) {
+        nextImage();
+      }
+    }, 4500);
+  }
+};
+
+const stopAutoplay = () => {
+  if (autoplayTimer) {
+    clearInterval(autoplayTimer);
+    autoplayTimer = null;
+  }
+};
+
+watch(
+  bannerImages,
+  (imgs) => {
+    if (currentImageIndex.value >= imgs.length) {
+      currentImageIndex.value = 0;
+    }
+    startAutoplay();
+  },
+  { immediate: true }
+);
 
 const programSelectOptions = computed(() =>
   programsList.value.map((p) => ({
@@ -406,7 +599,6 @@ const handleProgramCreated = () => {
 };
 
 const handleRefresh = () => {
-  // If needed, refresh only the single active program by ID
   if (program.value?.id) {
     store.fetchProgram(program.value.id, true);
   }
@@ -419,5 +611,30 @@ onMounted(() => {
   if (!store.isFetched.program) {
     store.fetchProgram();
   }
+  startAutoplay();
+});
+
+onUnmounted(() => {
+  stopAutoplay();
 });
 </script>
+
+<style scoped>
+.carousel-fade-enter-active,
+.carousel-fade-leave-active {
+  transition: opacity 0.35s ease;
+}
+.carousel-fade-enter-from,
+.carousel-fade-leave-to {
+  opacity: 0;
+}
+
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.modal-fade-enter-from,
+.modal-fade-leave-to {
+  opacity: 0;
+}
+</style>

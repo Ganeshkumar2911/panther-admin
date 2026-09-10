@@ -116,17 +116,62 @@
         class="bg-card-background border border-primary-border rounded-2xl overflow-hidden flex flex-col justify-between group"
       >
         <!-- Product Visual Media Header -->
-        <div class="relative h-44 w-full overflow-hidden bg-[#0F1422] flex items-center justify-center border-b border-primary-border/60">
-          <!-- Real Image with Gradient Overlay -->
-          <template v-if="product.image_url">
-            <img
-              :src="product.image_url"
-              :alt="product.name || product.title"
-              class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 select-none"
-              loading="lazy"
-              @error="handleImageError(product.id)"
-            />
+        <div
+          class="relative h-44 w-full overflow-hidden bg-[#0F1422] flex items-center justify-center border-b border-primary-border/60 group/product-media select-none"
+          @mouseenter="hoveredProductId = product.id"
+          @mouseleave="hoveredProductId = null"
+        >
+          <!-- Real Images Carousel with Gradient Overlay -->
+          <template v-if="getProductImages(product).length > 0">
+            <Transition name="carousel-fade" mode="out-in">
+              <img
+                :key="getActiveImageIndex(product.id)"
+                :src="getProductImages(product)[getActiveImageIndex(product.id)]"
+                :alt="product.name || product.title"
+                class="w-full h-full object-cover object-center select-none"
+                loading="lazy"
+                @error="handleImageError(product.id)"
+              />
+            </Transition>
             <div class="absolute inset-0 bg-gradient-to-t from-[#0F1422] via-black/30 to-black/20 pointer-events-none" />
+
+            <!-- Carousel Next/Prev Controls (if multiple images) -->
+            <div
+              v-if="getProductImages(product).length > 1"
+              class="absolute inset-y-0 inset-x-2 flex items-center justify-between pointer-events-none z-15 opacity-0 group-hover/product-media:opacity-100 transition-opacity"
+            >
+              <button
+                type="button"
+                class="w-6 h-6 rounded-full bg-black/60 backdrop-blur-md text-white border border-white/15 flex items-center justify-center transition hover:bg-black/90 cursor-pointer pointer-events-auto hover:scale-105 shadow-md"
+                title="Previous Image"
+                @click.stop="prevProductImage(product, $event)"
+              >
+                <ChevronLeft class="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                class="w-6 h-6 rounded-full bg-black/60 backdrop-blur-md text-white border border-white/15 flex items-center justify-center transition hover:bg-black/90 cursor-pointer pointer-events-auto hover:scale-105 shadow-md"
+                title="Next Image"
+                @click.stop="nextProductImage(product, $event)"
+              >
+                <ChevronRight class="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            <!-- Dots indicator (if multiple images) -->
+            <div
+              v-if="getProductImages(product).length > 1"
+              class="absolute bottom-1.5 inset-x-0 flex items-center justify-center gap-1 z-15 pointer-events-auto"
+            >
+              <button
+                v-for="(_, idx) in getProductImages(product)"
+                :key="idx"
+                type="button"
+                class="h-1 rounded-full transition-all cursor-pointer"
+                :class="idx === getActiveImageIndex(product.id) ? 'w-4 bg-primary' : 'w-1 bg-white/50 hover:bg-white/80'"
+                @click.stop="setProductImageIndex(product.id, idx, $event)"
+              />
+            </div>
           </template>
 
           <!-- Themed Abstract Category Banner Fallback -->
@@ -368,10 +413,11 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onMounted } from "vue";
+import { ref, reactive, computed, watch, onMounted, onUnmounted } from "vue";
 import {
   Plus,
   RefreshCw,
+  Gift as GiftIcon,
   ShoppingBag,
   Pencil,
   Power,
@@ -383,6 +429,8 @@ import {
   DollarSign,
   Coins,
   Award,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-vue-next";
 import { useLoyaltyStore } from "@/stores/loyalty/loyalty";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
@@ -395,6 +443,76 @@ const isDrawerOpen = ref(false);
 const selectedProduct = ref(null);
 const searchQuery = ref("");
 const failedImageIds = ref(new Set());
+
+// Product Multi-Image Carousel State
+const activeImageIndices = reactive({});
+const hoveredProductId = ref(null);
+let productCarouselTimer = null;
+
+const getProductImages = (product) => {
+  if (!product || failedImageIds.value.has(product.id)) return [];
+  const urls = [];
+  if (Array.isArray(product.image_urls) && product.image_urls.length > 0) {
+    product.image_urls.forEach((u) => {
+      if (typeof u === "string" && u.trim().length > 0 && !urls.includes(u.trim())) {
+        urls.push(u.trim());
+      }
+    });
+  }
+  if (urls.length === 0 && product.image_url && typeof product.image_url === "string" && product.image_url.trim().length > 0) {
+    urls.push(product.image_url.trim());
+  }
+  return urls;
+};
+
+const getActiveImageIndex = (productId) => {
+  return activeImageIndices[productId] || 0;
+};
+
+const nextProductImage = (product, e) => {
+  e?.stopPropagation?.();
+  const images = getProductImages(product);
+  if (images.length <= 1) return;
+  const current = activeImageIndices[product.id] || 0;
+  activeImageIndices[product.id] = (current + 1) % images.length;
+};
+
+const prevProductImage = (product, e) => {
+  e?.stopPropagation?.();
+  const images = getProductImages(product);
+  if (images.length <= 1) return;
+  const current = activeImageIndices[product.id] || 0;
+  activeImageIndices[product.id] = (current - 1 + images.length) % images.length;
+};
+
+const setProductImageIndex = (productId, index, e) => {
+  e?.stopPropagation?.();
+  activeImageIndices[productId] = index;
+};
+
+const startProductAutoplay = () => {
+  stopProductAutoplay();
+  productCarouselTimer = setInterval(() => {
+    if (products.value && products.value.length > 0) {
+      products.value.forEach((prod) => {
+        if (prod.id !== hoveredProductId.value) {
+          const imgs = getProductImages(prod);
+          if (imgs.length > 1) {
+            const current = activeImageIndices[prod.id] || 0;
+            activeImageIndices[prod.id] = (current + 1) % imgs.length;
+          }
+        }
+      });
+    }
+  }, 4000);
+};
+
+const stopProductAutoplay = () => {
+  if (productCarouselTimer) {
+    clearInterval(productCarouselTimer);
+    productCarouselTimer = null;
+  }
+};
 
 const filters = reactive({
   product_type: "",
@@ -582,4 +700,23 @@ watch(
   },
   { immediate: true }
 );
+
+onMounted(() => {
+  startProductAutoplay();
+});
+
+onUnmounted(() => {
+  stopProductAutoplay();
+});
 </script>
+
+<style scoped>
+.carousel-fade-enter-active,
+.carousel-fade-leave-active {
+  transition: opacity 0.35s ease;
+}
+.carousel-fade-enter-from,
+.carousel-fade-leave-to {
+  opacity: 0;
+}
+</style>
