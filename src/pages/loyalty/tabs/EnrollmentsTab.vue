@@ -230,19 +230,24 @@ const statusOptions = [
 
 const enrollments = computed(() => store.enrollments || []);
 
-const fetchData = () => {
+const fetchData = (force = false) => {
   const params = {};
   if (filters.user_id) params.user_id = Number(filters.user_id);
   if (filters.trading_account_id) params.trading_account_id = Number(filters.trading_account_id);
   if (filters.status) params.status = filters.status;
-  store.fetchEnrollments(params);
+  if (store.program?.id) params.program_id = store.program.id;
+  store.fetchEnrollments(params, force);
+};
+
+const handleRefresh = () => {
+  fetchData(true);
 };
 
 const resetFilters = () => {
   filters.user_id = "";
   filters.trading_account_id = "";
   filters.status = "";
-  fetchData();
+  fetchData(true);
 };
 
 const handleViewDetail = async (enrollmentId) => {

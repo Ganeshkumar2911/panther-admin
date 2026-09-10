@@ -13,7 +13,7 @@
     <Transition name="drawer">
       <div
         v-if="open"
-        class="fixed right-0 top-0 bottom-0 z-[101] w-full max-w-md bg-card-background border-l border-primary-border flex flex-col shadow-2xl overflow-hidden"
+        class="fixed right-0 top-0 bottom-0 z-[101] w-full max-w-lg bg-card-background border-l border-primary-border flex flex-col shadow-2xl overflow-hidden"
         role="dialog"
         aria-modal="true"
       >
@@ -21,14 +21,14 @@
         <div class="px-6 py-4.5 border-b border-primary-border flex items-center justify-between shrink-0 bg-card-background/90 backdrop-blur-md">
           <div class="flex items-center gap-3">
             <div class="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
-              <Gift class="w-4.5 h-4.5" />
+              <ShoppingBag class="w-4.5 h-4.5" />
             </div>
             <div>
               <h3 class="text-sm font-bold text-primary-text">
-                {{ isEditing ? 'Edit Reward Item' : 'Add New Reward Item' }}
+                {{ isEditing ? 'Edit Store Product' : 'Add Store Product' }}
               </h3>
               <p class="text-[11px] text-secondary-text">
-                {{ isEditing ? 'Update redemption cost, stock, and tier constraints' : 'Configure catalog reward available for point redemption' }}
+                {{ isEditing ? 'Update catalogue item points cost, stock, cash value, and fulfillment' : 'Publish a new reward item to the client loyalty store' }}
               </p>
             </div>
           </div>
@@ -45,24 +45,38 @@
         <form id="reward-form" class="flex-1 overflow-y-auto px-6 py-5 space-y-5 text-xs" @submit.prevent="handleSubmit">
           <!-- Item Info Card -->
           <div class="p-4 rounded-xl bg-background/50 border border-primary-border space-y-3.5">
-            <span class="text-[10px] uppercase font-bold tracking-wider text-secondary-text">Item Details</span>
+            <span class="text-[10px] uppercase font-bold tracking-wider text-secondary-text flex items-center gap-1.5">
+              <Package class="w-3.5 h-3.5 text-primary" />
+              Item Details & Classification
+            </span>
 
             <div class="space-y-3">
-              <div class="space-y-1">
-                <label class="font-semibold text-primary-text">Reward Type</label>
-                <BaseSelect
-                  v-model="form.type"
-                  :options="rewardTypeOptions"
-                  placeholder="Select reward type..."
-                />
+              <div class="grid grid-cols-2 gap-3">
+                <div class="space-y-1">
+                  <label class="font-semibold text-primary-text">Product Type <span class="text-rose-400">*</span></label>
+                  <BaseSelect
+                    v-model="form.product_type"
+                    :options="productTypeOptions"
+                    placeholder="Select type..."
+                  />
+                </div>
+
+                <div class="space-y-1">
+                  <label class="font-semibold text-primary-text">Fulfillment Type <span class="text-rose-400">*</span></label>
+                  <BaseSelect
+                    v-model="form.fulfillment_type"
+                    :options="fulfillmentTypeOptions"
+                    placeholder="Select fulfillment..."
+                  />
+                </div>
               </div>
 
               <div class="space-y-1">
-                <label class="font-semibold text-primary-text">Reward Title</label>
+                <label class="font-semibold text-primary-text">Product Title / Name <span class="text-rose-400">*</span></label>
                 <input
-                  v-model="form.title"
+                  v-model="form.name"
                   type="text"
-                  placeholder="e.g. Free VPS Hosting"
+                  placeholder="e.g. Amazon Gift Card $25 or Panther Merchandise Hoodie"
                   required
                   class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition"
                 />
@@ -73,63 +87,97 @@
                 <textarea
                   v-model="form.description"
                   rows="3"
-                  placeholder="Describe the reward benefits, fulfillment process, or terms..."
+                  placeholder="Describe the product specifications, voucher terms, or shipping guidelines..."
                   class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition resize-none"
+                />
+              </div>
+
+              <div class="space-y-1">
+                <label class="font-semibold text-primary-text">Image URL (Optional)</label>
+                <input
+                  v-model="form.image_url"
+                  type="url"
+                  placeholder="https://..."
+                  class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono text-[11px]"
                 />
               </div>
             </div>
           </div>
 
-          <!-- Cost & Eligibility Card -->
+          <!-- Cost & Valuation Card -->
           <div class="p-4 rounded-xl bg-background/50 border border-primary-border space-y-3.5">
-            <span class="text-[10px] uppercase font-bold tracking-wider text-secondary-text">Redemption & Limits</span>
+            <span class="text-[10px] uppercase font-bold tracking-wider text-secondary-text flex items-center gap-1.5">
+              <DollarSign class="w-3.5 h-3.5 text-primary" />
+              Points Cost & Value Valuation
+            </span>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div class="space-y-1">
+                <label class="font-semibold text-primary-text">Points Required <span class="text-rose-400">*</span></label>
+                <input
+                  v-model.number="form.points_required"
+                  type="number"
+                  step="any"
+                  placeholder="e.g. 800"
+                  required
+                  class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono font-bold"
+                />
+              </div>
+
+              <div class="space-y-1">
+                <label class="font-semibold text-primary-text">Cash Equivalent Value ($)</label>
+                <input
+                  v-model.number="form.cash_value"
+                  type="number"
+                  step="any"
+                  placeholder="e.g. 50.00"
+                  class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Inventory & Access Limits -->
+          <div class="p-4 rounded-xl bg-background/50 border border-primary-border space-y-3.5">
+            <span class="text-[10px] uppercase font-bold tracking-wider text-secondary-text flex items-center gap-1.5">
+              <ShieldCheck class="w-3.5 h-3.5 text-primary" />
+              Inventory & Tier Eligibility
+            </span>
 
             <div class="space-y-3">
               <div class="grid grid-cols-2 gap-3">
                 <div class="space-y-1">
-                  <label class="font-semibold text-primary-text">Points Cost</label>
+                  <label class="font-semibold text-primary-text">Available Stock</label>
                   <input
-                    v-model="form.points_cost"
+                    v-model="form.stock"
                     type="number"
-                    step="any"
-                    placeholder="Variable (blank)"
+                    placeholder="Unlimited (Blank)"
                     class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono"
                   />
+                  <p class="text-[10px] text-secondary-text">Decremented on redemption</p>
                 </div>
 
                 <div class="space-y-1">
-                  <label class="font-semibold text-primary-text">Min Tier Required</label>
-                  <BaseSelect
-                    v-model="form.min_tier_id"
-                    :options="tierOptions"
-                    placeholder="All Tiers (No Limit)"
-                  />
-                </div>
-              </div>
-
-              <div class="grid grid-cols-2 gap-3">
-                <div class="space-y-1">
-                  <label class="font-semibold text-primary-text">Max Per User</label>
+                  <label class="font-semibold text-primary-text">Max Per Client</label>
                   <input
-                    v-model="form.max_per_user"
+                    v-model="form.max_redemptions_per_user"
                     type="number"
-                    placeholder="Unlimited"
-                    class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono"
-                  />
-                </div>
-
-                <div class="space-y-1">
-                  <label class="font-semibold text-primary-text">Stock Qty</label>
-                  <input
-                    v-model="form.stock_qty"
-                    type="number"
-                    placeholder="Unlimited"
+                    placeholder="Unlimited (Blank)"
                     class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono"
                   />
                 </div>
               </div>
 
-              <div class="grid grid-cols-2 gap-3">
+              <div class="space-y-1">
+                <label class="font-semibold text-primary-text">Minimum Tier Requirement</label>
+                <BaseSelect
+                  v-model="form.min_tier_id"
+                  :options="tierOptions"
+                  placeholder="All Tiers (No Limit)"
+                />
+              </div>
+
+              <div class="grid grid-cols-2 gap-3 pt-1">
                 <div class="space-y-1">
                   <label class="font-semibold text-primary-text">Sort Order</label>
                   <input
@@ -142,7 +190,7 @@
                 <div class="space-y-1">
                   <label class="font-semibold text-primary-text">Status</label>
                   <BaseSelect
-                    v-model="form.is_active"
+                    v-model="form.status"
                     :options="statusOptions"
                     placeholder="Select status..."
                   />
@@ -168,7 +216,7 @@
             class="flex-1 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white font-semibold transition cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2 text-xs shadow-xs"
           >
             <Loader2 v-if="store.actionLoading" class="w-4 h-4 animate-spin" />
-            <span>{{ isEditing ? 'Save Reward' : 'Create Reward' }}</span>
+            <span>{{ isEditing ? 'Save Product' : 'Publish Product' }}</span>
           </button>
         </div>
       </div>
@@ -178,7 +226,7 @@
 
 <script setup>
 import { computed, reactive, watch } from "vue";
-import { X, Loader2, Gift } from "lucide-vue-next";
+import { X, Loader2, ShoppingBag, Package, DollarSign, ShieldCheck } from "lucide-vue-next";
 import { useLoyaltyStore } from "@/stores/loyalty/loyalty";
 
 const props = defineProps({
@@ -193,12 +241,21 @@ const store = useLoyaltyStore();
 
 const isEditing = computed(() => Boolean(props.reward && props.reward.id));
 
-const rewardTypeOptions = [
-  { label: "Cash Credit", value: "cash" },
-  { label: "Bonus Trading Funds", value: "bonus_funds" },
-  { label: "Free VPS Hosting", value: "vps" },
+const productTypeOptions = [
   { label: "Merchandise & Lifestyle", value: "merchandise" },
-  { label: "Tier Upgrade Boost", value: "tier_boost" },
+  { label: "Gift Card / Digital Voucher", value: "gift_card" },
+  { label: "Free VPS Hosting", value: "vps" },
+  { label: "Bonus Trading Funds", value: "bonus_funds" },
+  { label: "Tier Boost", value: "tier_boost" },
+  { label: "Cash Credit", value: "cash" },
+  { label: "Other Perk", value: "other" },
+];
+
+const fulfillmentTypeOptions = [
+  { label: "Manual Fulfillment (Ops queue)", value: "manual" },
+  { label: "Wallet Credit (Instant)", value: "wallet" },
+  { label: "MT5 Credit Deposit", value: "mt5_credit" },
+  { label: "External Partner API", value: "external" },
 ];
 
 const tierOptions = computed(() => [
@@ -210,67 +267,166 @@ const tierOptions = computed(() => [
 ]);
 
 const statusOptions = [
-  { label: "Active", value: true },
-  { label: "Inactive", value: false },
+  { label: "ACTIVE", value: "ACTIVE" },
+  { label: "INACTIVE", value: "INACTIVE" },
 ];
 
 const form = reactive({
-  type: "cash",
-  title: "",
+  name: "",
   description: "",
-  points_cost: "",
+  product_type: "merchandise",
+  fulfillment_type: "manual",
+  points_required: 500,
+  cash_value: "",
+  stock: "",
+  max_redemptions_per_user: "",
   min_tier_id: null,
-  max_per_user: "",
-  stock_qty: "",
+  image_url: "",
   sort_order: 1,
-  is_active: true,
+  status: "ACTIVE",
 });
 
 watch(
   () => props.reward,
   (r) => {
     if (r) {
-      form.type = r.type ?? "cash";
-      form.title = r.title ?? "";
-      form.description = r.description ?? "";
-      form.points_cost = r.points_cost !== null && r.points_cost !== undefined ? r.points_cost : "";
+      form.name = r.name || r.title || "";
+      form.description = r.description || "";
+      form.product_type = r.product_type || r.type || "merchandise";
+      form.fulfillment_type = r.fulfillment_type || "manual";
+      form.points_required = r.points_required !== null && r.points_required !== undefined
+        ? Number(r.points_required)
+        : (r.points_cost !== null && r.points_cost !== undefined ? Number(r.points_cost) : 500);
+      form.cash_value = r.cash_value !== null && r.cash_value !== undefined ? Number(r.cash_value) : "";
+      form.stock = r.stock !== null && r.stock !== undefined ? r.stock : (r.stock_qty !== null && r.stock_qty !== undefined ? r.stock_qty : "");
+      form.max_redemptions_per_user = r.max_redemptions_per_user !== null && r.max_redemptions_per_user !== undefined
+        ? r.max_redemptions_per_user
+        : (r.max_per_user !== null && r.max_per_user !== undefined ? r.max_per_user : "");
       form.min_tier_id = r.min_tier_id ?? null;
-      form.max_per_user = r.max_per_user !== null && r.max_per_user !== undefined ? r.max_per_user : "";
-      form.stock_qty = r.stock_qty !== null && r.stock_qty !== undefined ? r.stock_qty : "";
+      form.image_url = r.image_url || "";
       form.sort_order = r.sort_order ?? 1;
-      form.is_active = r.is_active !== undefined ? Boolean(r.is_active) : true;
+      form.status = r.status || (r.is_active === false ? "INACTIVE" : "ACTIVE");
     } else {
-      form.type = "cash";
-      form.title = "";
+      form.name = "";
       form.description = "";
-      form.points_cost = "";
+      form.product_type = "merchandise";
+      form.fulfillment_type = "manual";
+      form.points_required = 500;
+      form.cash_value = "";
+      form.stock = "";
+      form.max_redemptions_per_user = "";
       form.min_tier_id = null;
-      form.max_per_user = "";
-      form.stock_qty = "";
+      form.image_url = "";
       form.sort_order = 1;
-      form.is_active = true;
+      form.status = "ACTIVE";
     }
   },
   { immediate: true },
 );
 
 const handleSubmit = async () => {
-  const payload = {
-    type: form.type,
-    title: form.title,
-    description: form.description || null,
-    points_cost: form.points_cost === "" || form.points_cost === null ? null : Number(form.points_cost),
-    min_tier_id: form.min_tier_id ? Number(form.min_tier_id) : null,
-    max_per_user: form.max_per_user === "" || form.max_per_user === null ? null : Number(form.max_per_user),
-    stock_qty: form.stock_qty === "" || form.stock_qty === null ? null : Number(form.stock_qty),
-    sort_order: Number(form.sort_order),
-    is_active: Boolean(form.is_active),
-  };
-
   if (isEditing.value) {
-    await store.updateReward(props.reward.id, payload, props.programId);
+    const r = props.reward;
+    const patchPayload = {};
+
+    const newName = form.name.trim();
+    const oldName = r.name || r.title || "";
+    if (newName !== oldName) {
+      patchPayload.name = newName;
+      patchPayload.title = newName;
+    }
+
+    const newDesc = form.description ? form.description.trim() : null;
+    const oldDesc = r.description ? r.description.trim() : null;
+    if (newDesc !== oldDesc) patchPayload.description = newDesc;
+
+    const newType = form.product_type;
+    const oldType = r.product_type || r.type || "merchandise";
+    if (newType !== oldType) {
+      patchPayload.product_type = newType;
+      patchPayload.type = newType;
+    }
+
+    if (form.fulfillment_type !== (r.fulfillment_type || "manual")) {
+      patchPayload.fulfillment_type = form.fulfillment_type;
+    }
+
+    const newPoints = Number(form.points_required);
+    const oldPoints = Number(r.points_required ?? r.points_cost ?? 500);
+    if (newPoints !== oldPoints) {
+      patchPayload.points_required = newPoints;
+      patchPayload.points_cost = newPoints;
+    }
+
+    const newCash = form.cash_value === "" || form.cash_value === null ? null : Number(form.cash_value);
+    const oldCash = r.cash_value === "" || r.cash_value === null || r.cash_value === undefined ? null : Number(r.cash_value);
+    if (newCash !== oldCash) patchPayload.cash_value = newCash;
+
+    const newStock = form.stock === "" || form.stock === null ? null : Number(form.stock);
+    const oldStock = (r.stock === "" || r.stock === null || r.stock === undefined) && (r.stock_qty === "" || r.stock_qty === null || r.stock_qty === undefined)
+      ? null
+      : Number(r.stock ?? r.stock_qty);
+    if (newStock !== oldStock) {
+      patchPayload.stock = newStock;
+      patchPayload.stock_qty = newStock;
+    }
+
+    const newMaxPerUser = form.max_redemptions_per_user === "" || form.max_redemptions_per_user === null ? null : Number(form.max_redemptions_per_user);
+    const oldMaxPerUser = (r.max_redemptions_per_user === "" || r.max_redemptions_per_user === null || r.max_redemptions_per_user === undefined) && (r.max_per_user === "" || r.max_per_user === null || r.max_per_user === undefined)
+      ? null
+      : Number(r.max_redemptions_per_user ?? r.max_per_user);
+    if (newMaxPerUser !== oldMaxPerUser) {
+      patchPayload.max_redemptions_per_user = newMaxPerUser;
+      patchPayload.max_per_user = newMaxPerUser;
+    }
+
+    const newMinTier = form.min_tier_id ? Number(form.min_tier_id) : null;
+    const oldMinTier = r.min_tier_id ? Number(r.min_tier_id) : null;
+    if (newMinTier !== oldMinTier) patchPayload.min_tier_id = newMinTier;
+
+    const newImg = form.image_url?.trim() || null;
+    const oldImg = r.image_url?.trim() || null;
+    if (newImg !== oldImg) patchPayload.image_url = newImg;
+
+    if (Number(form.sort_order) !== Number(r.sort_order ?? 1)) {
+      patchPayload.sort_order = Number(form.sort_order);
+    }
+
+    const oldStatus = r.status || (r.is_active === false ? "INACTIVE" : "ACTIVE");
+    if (form.status !== oldStatus) {
+      patchPayload.status = form.status;
+      patchPayload.is_active = form.status === "ACTIVE";
+    }
+
+    if (Object.keys(patchPayload).length === 0) {
+      emit("close");
+      return;
+    }
+
+    await store.updateStoreProduct(props.reward.id, patchPayload, props.programId);
   } else {
-    await store.createReward(props.programId, payload);
+    const payload = {
+      program_id: Number(props.programId),
+      name: form.name.trim(),
+      title: form.name.trim(),
+      description: form.description?.trim() || null,
+      product_type: form.product_type,
+      type: form.product_type,
+      fulfillment_type: form.fulfillment_type,
+      points_required: Number(form.points_required),
+      points_cost: Number(form.points_required),
+      cash_value: form.cash_value === "" || form.cash_value === null ? null : Number(form.cash_value),
+      stock: form.stock === "" || form.stock === null ? null : Number(form.stock),
+      stock_qty: form.stock === "" || form.stock === null ? null : Number(form.stock),
+      max_redemptions_per_user: form.max_redemptions_per_user === "" || form.max_redemptions_per_user === null ? null : Number(form.max_redemptions_per_user),
+      max_per_user: form.max_redemptions_per_user === "" || form.max_redemptions_per_user === null ? null : Number(form.max_redemptions_per_user),
+      min_tier_id: form.min_tier_id ? Number(form.min_tier_id) : null,
+      image_url: form.image_url?.trim() || null,
+      sort_order: Number(form.sort_order),
+      status: form.status,
+      is_active: form.status === "ACTIVE",
+    };
+    await store.createStoreProduct(payload);
   }
 
   emit("saved");

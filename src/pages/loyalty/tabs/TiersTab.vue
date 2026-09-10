@@ -5,7 +5,7 @@
       <div>
         <h2 class="text-base font-semibold text-primary-text">Loyalty Stages & Multipliers</h2>
         <p class="text-xs text-secondary-text">
-          Configure stage thresholds, point multipliers, and cash conversion rates.
+          Configure stage thresholds, point multipliers, custom badge colors, and cash conversion rates.
         </p>
       </div>
 
@@ -50,7 +50,7 @@
       <div class="space-y-1">
         <h3 class="text-sm font-semibold text-primary-text">No Loyalty Tiers Configured</h3>
         <p class="text-xs text-secondary-text max-w-sm mx-auto">
-          Create tiers (Bronze, Silver, Gold, Platinum, Elite) to activate tier multiplier progression.
+          Create tiers (Bronze, Silver, Gold, Platinum, Elite) to activate tier multiplier progression for this program.
         </p>
       </div>
       <button
@@ -71,11 +71,24 @@
         <div
           v-for="tier in tiers"
           :key="tier.id"
-          class="bg-card-background border border-primary-border rounded-xl p-4 flex flex-col justify-between gap-3 shadow-2xs hover:border-primary/40 transition-colors"
+          class="bg-card-background border border-primary-border rounded-xl p-4 flex flex-col justify-between gap-3 shadow-2xs hover:border-primary/40 transition-colors relative overflow-hidden"
         >
-          <div class="space-y-2">
+          <!-- Top Accent Bar -->
+          <div
+            class="absolute top-0 left-0 right-0 h-1"
+            :style="{ backgroundColor: tier.color || 'var(--color-primary)' }"
+          />
+
+          <div class="space-y-2 pt-1">
             <div class="flex items-center justify-between">
-              <span class="text-[10px] font-medium font-mono px-2 py-0.5 rounded border uppercase bg-primary/10 text-primary border-primary/20">
+              <span
+                class="text-[10px] font-medium font-mono px-2 py-0.5 rounded border uppercase"
+                :style="{
+                  backgroundColor: tier.color ? `${tier.color}15` : 'var(--color-primary-10)',
+                  color: tier.color || 'var(--color-primary)',
+                  borderColor: tier.color ? `${tier.color}35` : 'var(--color-primary-20)',
+                }"
+              >
                 {{ tier.code }}
               </span>
               <span class="text-[10px] text-secondary-text">#{{ tier.sort_order }}</span>
@@ -115,6 +128,7 @@
                 <th class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider">Order</th>
                 <th class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider">Tier Code</th>
                 <th class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider">Name</th>
+                <th class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider">Color</th>
                 <th class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider">Min Points</th>
                 <th class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider">Max Points</th>
                 <th class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider">Multiplier</th>
@@ -131,11 +145,24 @@
               >
                 <td class="py-2.5 px-4 text-secondary-text font-mono">#{{ tier.sort_order }}</td>
                 <td class="py-2.5 px-4">
-                  <span class="px-2 py-0.5 rounded text-[10px] font-medium font-mono uppercase border bg-primary/10 text-primary border-primary/20">
+                  <span
+                    class="px-2 py-0.5 rounded text-[10px] font-medium font-mono uppercase border"
+                    :style="{
+                      backgroundColor: tier.color ? `${tier.color}15` : 'var(--color-primary-10)',
+                      color: tier.color || 'var(--color-primary)',
+                      borderColor: tier.color ? `${tier.color}35` : 'var(--color-primary-20)',
+                    }"
+                  >
                     {{ tier.code }}
                   </span>
                 </td>
                 <td class="py-2.5 px-4 font-medium text-primary-text">{{ tier.name }}</td>
+                <td class="py-2.5 px-4">
+                  <div class="flex items-center gap-1.5 font-mono text-[11px] text-secondary-text">
+                    <span class="w-3 h-3 rounded-full shrink-0 border" :style="{ backgroundColor: tier.color || '#CD7F32' }" />
+                    <span>{{ tier.color || '—' }}</span>
+                  </div>
+                </td>
                 <td class="py-2.5 px-4 text-primary-text font-mono">{{ tier.min_points }}</td>
                 <td class="py-2.5 px-4 text-secondary-text font-mono">{{ tier.max_points !== null && tier.max_points !== undefined ? tier.max_points : 'Unlimited' }}</td>
                 <td class="py-2.5 px-4 font-semibold text-primary font-mono">{{ tier.point_multiplier }}&times;</td>
@@ -177,7 +204,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { Plus, RefreshCw, Layers, Pencil } from "lucide-vue-next";
 import { useLoyaltyStore } from "@/stores/loyalty/loyalty";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
@@ -204,7 +231,13 @@ const handleEdit = (tier) => {
 
 const handleRefresh = () => {
   if (programId.value) {
-    store.fetchTiers(programId.value);
+    store.fetchTiers(programId.value, true);
   }
 };
+
+onMounted(() => {
+  if (!store.isFetched.tiers && programId.value) {
+    store.fetchTiers(programId.value);
+  }
+});
 </script>

@@ -200,17 +200,21 @@ const filters = reactive({
 
 const jobs = computed(() => store.backfillJobs || []);
 
-const fetchData = () => {
+const fetchData = (force = false) => {
   const params = {};
   if (filters.trading_account_id) {
     params.trading_account_id = Number(filters.trading_account_id);
   }
-  store.fetchBackfillJobs(params);
+  store.fetchBackfillJobs(params, force);
+};
+
+const handleRefresh = () => {
+  fetchData(true);
 };
 
 const resetFilters = () => {
   filters.trading_account_id = "";
-  fetchData();
+  fetchData(true);
 };
 
 const handleViewDetail = (job) => {

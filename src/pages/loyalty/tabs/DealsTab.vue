@@ -205,13 +205,18 @@ const dateRange = computed({
 
 const deals = computed(() => store.deals || []);
 
-const fetchData = () => {
+const fetchData = (force = false) => {
   const params = {};
   if (filters.trading_account_id) params.trading_account_id = Number(filters.trading_account_id);
   if (filters.enrollment_id) params.enrollment_id = Number(filters.enrollment_id);
   if (filters.from_at) params.from_at = filters.from_at.trim();
   if (filters.to_at) params.to_at = filters.to_at.trim();
-  store.fetchDeals(params);
+  if (store.program?.id) params.program_id = store.program.id;
+  store.fetchDeals(params, force);
+};
+
+const handleRefresh = () => {
+  fetchData(true);
 };
 
 const resetFilters = () => {
@@ -219,7 +224,7 @@ const resetFilters = () => {
   filters.enrollment_id = "";
   filters.from_at = "";
   filters.to_at = "";
-  fetchData();
+  fetchData(true);
 };
 
 onMounted(() => {

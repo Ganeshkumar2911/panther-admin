@@ -1,10 +1,10 @@
 <template>
   <div class="px-4 pb-8 space-y-6">
     <!-- Header with Integrated Navigation -->
-    <div v-if="hasPermission('loyalty.view')" class="w-full">
+    <div v-if="hasLoyaltyAccess" class="w-full">
       <!-- Full-Width Equal-Space Underline Tab Navigation -->
       <div class="border-b border-primary-border w-full">
-        <!-- Desktop Tabs (Full width, each tab takes equal space) -->
+        <!-- Desktop Tabs -->
         <nav class="hidden sm:flex items-center w-full -mb-px" aria-label="Tabs">
           <button
             v-for="tab in tabList"
@@ -50,7 +50,7 @@
     </div>
 
     <!-- Active Tab Component -->
-    <div v-if="hasPermission('loyalty.view')">
+    <div v-if="hasLoyaltyAccess">
       <Transition name="tab-fade" mode="out-in">
         <component :is="activeComponent" :key="activeTab" />
       </Transition>
@@ -80,12 +80,12 @@ import { useRoute, useRouter } from "vue-router";
 import {
   Award,
   Layers,
-  Gift,
+  ShoppingBag,
+  PackageCheck,
   Users,
   Activity,
   History,
   ShieldAlert,
-  ChevronDown,
 } from "lucide-vue-next";
 import { useLoyaltyStore } from "@/stores/loyalty/loyalty";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
@@ -93,6 +93,7 @@ import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import ProgramTab from "./tabs/ProgramTab.vue";
 import TiersTab from "./tabs/TiersTab.vue";
 import RewardsTab from "./tabs/RewardsTab.vue";
+import RedemptionsTab from "./tabs/RedemptionsTab.vue";
 import EnrollmentsTab from "./tabs/EnrollmentsTab.vue";
 import DealsTab from "./tabs/DealsTab.vue";
 import BackfillTab from "./tabs/BackfillTab.vue";
@@ -102,13 +103,21 @@ const router = useRouter();
 const store = useLoyaltyStore();
 const { hasPermission } = usePermissionCheck();
 
-const program = computed(() => store.program);
+const hasLoyaltyAccess = computed(() =>
+  hasPermission("loyalty.view") ||
+  hasPermission("loyalty_store.read") ||
+  hasPermission("loyalty_redemption.read")
+);
+
 const programSummary = computed(() => store.program?.summary || {});
+
+const validTabKeys = ["program", "tiers", "store", "redemptions", "enrollments", "deals", "backfill"];
 
 const tabList = computed(() => [
   { label: "Program & Rules", value: "program", icon: Award },
   { label: "Tiers", value: "tiers", icon: Layers, badge: programSummary.value?.tiers },
-  { label: "Rewards", value: "rewards", icon: Gift, badge: programSummary.value?.rewards },
+  { label: "Store Products", value: "store", icon: ShoppingBag, badge: programSummary.value?.rewards },
+  { label: "Redemptions Queue", value: "redemptions", icon: PackageCheck },
   { label: "Enrollments", value: "enrollments", icon: Users, badge: programSummary.value?.enrollments },
   { label: "Deals History", value: "deals", icon: Activity },
   { label: "MT5 Backfill", value: "backfill", icon: History },
@@ -122,7 +131,7 @@ const mobileTabOptions = computed(() =>
 );
 
 const activeTab = ref(
-  typeof route.query.tab === "string" && ["program", "tiers", "rewards", "enrollments", "deals", "backfill"].includes(route.query.tab)
+  typeof route.query.tab === "string" && validTabKeys.includes(route.query.tab)
     ? route.query.tab
     : "program"
 );
@@ -131,7 +140,7 @@ const activeTab = ref(
 watch(
   () => route.query.tab,
   (tab) => {
-    if (typeof tab === "string" && ["program", "tiers", "rewards", "enrollments", "deals", "backfill"].includes(tab)) {
+    if (typeof tab === "string" && validTabKeys.includes(tab) && activeTab.value !== tab) {
       activeTab.value = tab;
     }
   }
@@ -147,8 +156,10 @@ const activeComponent = computed(() => {
   switch (activeTab.value) {
     case "tiers":
       return TiersTab;
-    case "rewards":
+    case "store":
       return RewardsTab;
+    case "redemptions":
+      return RedemptionsTab;
     case "enrollments":
       return EnrollmentsTab;
     case "deals":
@@ -161,12 +172,13 @@ const activeComponent = computed(() => {
   }
 });
 
-const handleGlobalRefresh = () => {
-  store.fetchProgram(program.value?.id);
-};
-
 onMounted(() => {
-  store.fetchProgram();
+  if (!store.isFetched.programsList) {
+    store.fetchProgramsList();
+  }
+  if (!store.isFetched.program) {
+    store.fetchProgram();
+  }
 });
 </script>
 

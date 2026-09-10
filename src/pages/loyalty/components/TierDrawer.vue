@@ -20,15 +20,18 @@
         <!-- Sticky Header -->
         <div class="px-6 py-4.5 border-b border-primary-border flex items-center justify-between shrink-0 bg-card-background/90 backdrop-blur-md">
           <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
-              <Layers class="w-4.5 h-4.5" />
+            <div
+              class="w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 transition-colors"
+              :style="{ backgroundColor: form.color ? `${form.color}20` : 'var(--color-primary-10)', borderColor: form.color ? `${form.color}40` : 'var(--color-primary-20)' }"
+            >
+              <Layers class="w-4.5 h-4.5" :style="{ color: form.color || 'var(--color-primary)' }" />
             </div>
             <div>
               <h3 class="text-sm font-bold text-primary-text">
                 {{ isEditing ? 'Edit Loyalty Tier' : 'Create New Tier' }}
               </h3>
               <p class="text-[11px] text-secondary-text">
-                {{ isEditing ? 'Update stage multiplier and point requirements' : 'Define new progression stage for active traders' }}
+                {{ isEditing ? 'Update stage multiplier, color, and point thresholds' : 'Define new progression stage for active traders' }}
               </p>
             </div>
           </div>
@@ -49,7 +52,7 @@
 
             <div class="space-y-3">
               <div class="space-y-1">
-                <label class="font-semibold text-primary-text">Tier Code</label>
+                <label class="font-semibold text-primary-text">Tier Code <span class="text-rose-400">*</span></label>
                 <input
                   v-model="form.code"
                   type="text"
@@ -61,7 +64,7 @@
               </div>
 
               <div class="space-y-1">
-                <label class="font-semibold text-primary-text">Display Name</label>
+                <label class="font-semibold text-primary-text">Display Name <span class="text-rose-400">*</span></label>
                 <input
                   v-model="form.name"
                   type="text"
@@ -71,9 +74,44 @@
                 />
               </div>
 
-              <div class="grid grid-cols-2 gap-3">
+              <!-- Color Picker & Presets -->
+              <div class="space-y-2">
+                <label class="font-semibold text-primary-text flex items-center justify-between">
+                  <span>Tier Badge Color</span>
+                  <span class="font-mono text-[11px] text-secondary-text">{{ form.color || '#CD7F32' }}</span>
+                </label>
+                <div class="flex items-center gap-2">
+                  <input
+                    v-model="form.color"
+                    type="color"
+                    class="w-9 h-8 rounded-lg border border-primary-border bg-card-background cursor-pointer p-0.5"
+                  />
+                  <input
+                    v-model="form.color"
+                    type="text"
+                    placeholder="#CD7F32"
+                    class="flex-1 px-3 py-1.5 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary font-mono uppercase text-xs"
+                  />
+                </div>
+                <!-- Preset chips -->
+                <div class="flex flex-wrap gap-1.5 pt-1">
+                  <button
+                    v-for="preset in colorPresets"
+                    :key="preset.hex"
+                    type="button"
+                    class="flex items-center gap-1.5 px-2 py-0.5 rounded-md border text-[10px] transition cursor-pointer"
+                    :class="form.color?.toLowerCase() === preset.hex.toLowerCase() ? 'border-primary text-primary-text font-bold' : 'border-primary-border text-secondary-text hover:text-primary-text'"
+                    @click="form.color = preset.hex"
+                  >
+                    <span class="w-2.5 h-2.5 rounded-full" :style="{ backgroundColor: preset.hex }" />
+                    <span>{{ preset.name }}</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3 pt-1">
                 <div class="space-y-1">
-                  <label class="font-semibold text-primary-text">Sort Order</label>
+                  <label class="font-semibold text-primary-text">Sort Order <span class="text-rose-400">*</span></label>
                   <input
                     v-model.number="form.sort_order"
                     type="number"
@@ -101,7 +139,7 @@
             <div class="space-y-3">
               <div class="grid grid-cols-2 gap-3">
                 <div class="space-y-1">
-                  <label class="font-semibold text-primary-text">Min Points</label>
+                  <label class="font-semibold text-primary-text">Min Points <span class="text-rose-400">*</span></label>
                   <input
                     v-model.number="form.min_points"
                     type="number"
@@ -118,15 +156,16 @@
                     v-model="form.max_points"
                     type="number"
                     step="any"
-                    placeholder="Unlimited"
+                    placeholder="Open-ended (Blank)"
                     class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono"
                   />
+                  <p class="text-[10px] text-secondary-text">Leave blank for open-ended top tier</p>
                 </div>
               </div>
 
               <div class="grid grid-cols-2 gap-3">
                 <div class="space-y-1">
-                  <label class="font-semibold text-primary-text">Point Multiplier</label>
+                  <label class="font-semibold text-primary-text">Point Multiplier <span class="text-rose-400">*</span></label>
                   <input
                     v-model.number="form.point_multiplier"
                     type="number"
@@ -138,7 +177,7 @@
                 </div>
 
                 <div class="space-y-1">
-                  <label class="font-semibold text-primary-text">Cash Conversion ($/pt)</label>
+                  <label class="font-semibold text-primary-text">Cash Conversion ($/pt) <span class="text-rose-400">*</span></label>
                   <input
                     v-model.number="form.cash_conversion_rate"
                     type="number"
@@ -193,6 +232,15 @@ const store = useLoyaltyStore();
 
 const isEditing = computed(() => Boolean(props.tier && props.tier.id));
 
+const colorPresets = [
+  { name: "Bronze", hex: "#CD7F32" },
+  { name: "Silver", hex: "#C0C0C0" },
+  { name: "Gold", hex: "#FFD700" },
+  { name: "Platinum", hex: "#E5E4E2" },
+  { name: "Diamond", hex: "#40E0D0" },
+  { name: "Elite Purple", hex: "#8A2BE2" },
+];
+
 const statusOptions = [
   { label: "Active", value: true },
   { label: "Inactive", value: false },
@@ -201,11 +249,13 @@ const statusOptions = [
 const form = reactive({
   code: "",
   name: "",
+  color: "#CD7F32",
   sort_order: 1,
   min_points: 0,
   max_points: "",
   point_multiplier: 1.0,
   cash_conversion_rate: 0.01,
+  benefits: {},
   is_active: true,
 });
 
@@ -215,20 +265,24 @@ watch(
     if (t) {
       form.code = t.code ?? "";
       form.name = t.name ?? "";
+      form.color = t.color ?? "#CD7F32";
       form.sort_order = t.sort_order ?? 1;
       form.min_points = t.min_points !== null && t.min_points !== undefined ? Number(t.min_points) : 0;
       form.max_points = t.max_points !== null && t.max_points !== undefined ? Number(t.max_points) : "";
       form.point_multiplier = t.point_multiplier !== null && t.point_multiplier !== undefined ? Number(t.point_multiplier) : 1.0;
       form.cash_conversion_rate = t.cash_conversion_rate !== null && t.cash_conversion_rate !== undefined ? Number(t.cash_conversion_rate) : 0.01;
+      form.benefits = t.benefits || {};
       form.is_active = t.is_active !== undefined ? Boolean(t.is_active) : true;
     } else {
       form.code = "";
       form.name = "";
+      form.color = "#CD7F32";
       form.sort_order = 1;
       form.min_points = 0;
       form.max_points = "";
       form.point_multiplier = 1.0;
       form.cash_conversion_rate = 0.01;
+      form.benefits = {};
       form.is_active = true;
     }
   },
@@ -236,20 +290,59 @@ watch(
 );
 
 const handleSubmit = async () => {
-  const payload = {
-    code: form.code,
-    name: form.name,
-    sort_order: form.sort_order,
-    min_points: Number(form.min_points),
-    max_points: form.max_points === "" || form.max_points === null ? null : Number(form.max_points),
-    point_multiplier: Number(form.point_multiplier),
-    cash_conversion_rate: Number(form.cash_conversion_rate),
-    is_active: Boolean(form.is_active),
-  };
-
   if (isEditing.value) {
-    await store.updateTier(props.tier.id, payload, props.programId);
+    const t = props.tier;
+    const patchPayload = {};
+
+    const newCode = form.code.trim().toUpperCase();
+    if (newCode !== (t.code || "")) patchPayload.code = newCode;
+
+    const newName = form.name.trim();
+    if (newName !== (t.name || "")) patchPayload.name = newName;
+
+    const newColor = form.color || null;
+    if (newColor !== (t.color || null)) patchPayload.color = newColor;
+
+    if (Number(form.sort_order) !== Number(t.sort_order)) {
+      patchPayload.sort_order = Number(form.sort_order);
+    }
+    if (Number(form.min_points) !== Number(t.min_points)) {
+      patchPayload.min_points = Number(form.min_points);
+    }
+
+    const newMax = form.max_points === "" || form.max_points === null ? null : Number(form.max_points);
+    const oldMax = t.max_points === "" || t.max_points === null ? null : Number(t.max_points);
+    if (newMax !== oldMax) patchPayload.max_points = newMax;
+
+    if (Number(form.point_multiplier) !== Number(t.point_multiplier)) {
+      patchPayload.point_multiplier = Number(form.point_multiplier);
+    }
+    if (Number(form.cash_conversion_rate) !== Number(t.cash_conversion_rate)) {
+      patchPayload.cash_conversion_rate = Number(form.cash_conversion_rate);
+    }
+    if (Boolean(form.is_active) !== Boolean(t.is_active)) {
+      patchPayload.is_active = Boolean(form.is_active);
+    }
+
+    if (Object.keys(patchPayload).length === 0) {
+      emit("close");
+      return;
+    }
+
+    await store.updateTier(props.tier.id, patchPayload, props.programId);
   } else {
+    const payload = {
+      code: form.code.trim().toUpperCase(),
+      name: form.name.trim(),
+      color: form.color || null,
+      sort_order: Number(form.sort_order),
+      min_points: Number(form.min_points),
+      max_points: form.max_points === "" || form.max_points === null ? null : Number(form.max_points),
+      point_multiplier: Number(form.point_multiplier),
+      cash_conversion_rate: Number(form.cash_conversion_rate),
+      benefits: form.benefits || {},
+      is_active: Boolean(form.is_active),
+    };
     await store.createTier(props.programId, payload);
   }
 

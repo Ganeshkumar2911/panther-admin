@@ -13,7 +13,7 @@
     <Transition name="drawer">
       <div
         v-if="open"
-        class="fixed right-0 top-0 bottom-0 z-[101] w-full max-w-xl bg-card-background border-l border-primary-border flex flex-col shadow-2xl overflow-hidden"
+        class="fixed right-0 top-0 bottom-0 z-[101] w-full max-w-lg bg-card-background border-l border-primary-border flex flex-col shadow-2xl overflow-hidden"
         role="dialog"
         aria-modal="true"
       >
@@ -21,14 +21,14 @@
         <div class="px-6 py-4.5 border-b border-primary-border flex items-center justify-between shrink-0 bg-card-background/90 backdrop-blur-md">
           <div class="flex items-center gap-3">
             <div class="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
-              <SlidersHorizontal class="w-4.5 h-4.5" />
+              <Award class="w-4.5 h-4.5" />
             </div>
             <div>
               <h3 class="text-sm font-bold text-primary-text">
-                Edit Program Configuration
+                Create Loyalty Program
               </h3>
               <p class="text-[11px] text-secondary-text">
-                Modify cycle duration, earn rates, eligibility, and custom instrument rules
+                Initialize a new loyalty program campaign with custom rules and scopes
               </p>
             </div>
           </div>
@@ -42,8 +42,8 @@
         </div>
 
         <!-- Scrollable Form Body -->
-        <form id="edit-program-form" class="flex-1 overflow-y-auto px-6 py-5 space-y-5 text-xs" @submit.prevent="handleSubmit">
-          <!-- General Info Card -->
+        <form id="create-program-form" class="flex-1 overflow-y-auto px-6 py-5 space-y-5 text-xs" @submit.prevent="handleSubmit">
+          <!-- General Parameters -->
           <div class="p-4 rounded-xl bg-background/50 border border-primary-border space-y-3.5">
             <span class="text-[10px] uppercase font-bold tracking-wider text-secondary-text flex items-center gap-1.5">
               <FileText class="w-3.5 h-3.5 text-primary" />
@@ -53,10 +53,11 @@
             <div class="space-y-3">
               <div class="grid grid-cols-2 gap-3">
                 <div class="space-y-1">
-                  <label class="font-semibold text-primary-text">Program Code</label>
+                  <label class="font-semibold text-primary-text">Program Code <span class="text-rose-400">*</span></label>
                   <input
                     v-model="form.code"
                     type="text"
+                    placeholder="e.g. GOLD_CAMPAIGN"
                     required
                     class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary uppercase font-mono transition"
                   />
@@ -73,10 +74,11 @@
               </div>
 
               <div class="space-y-1">
-                <label class="font-semibold text-primary-text">Program Name</label>
+                <label class="font-semibold text-primary-text">Program Name <span class="text-rose-400">*</span></label>
                 <input
                   v-model="form.name"
                   type="text"
+                  placeholder="e.g. Gold Tier Loyalty Campaign"
                   required
                   class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition"
                 />
@@ -87,34 +89,26 @@
                 <textarea
                   v-model="form.description"
                   rows="2"
-                  placeholder="Program overview and trader rules..."
+                  placeholder="Brief description of this loyalty program cycle..."
                   class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition resize-none"
                 />
               </div>
 
-              <div class="grid grid-cols-2 gap-3">
-                <div class="space-y-1">
-                  <label class="font-semibold text-primary-text">Account Scope</label>
-                  <BaseSelect
-                    v-model="form.account_scope"
-                    :options="scopeOptions"
-                    placeholder="Select scope..."
-                  />
-                </div>
-
-                <div class="space-y-1">
-                  <label class="font-semibold text-primary-text">Terms Version</label>
-                  <input
-                    v-model="form.terms_version"
-                    type="text"
-                    class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono"
-                  />
-                </div>
+              <div class="space-y-1">
+                <label class="font-semibold text-primary-text">Account Scope</label>
+                <BaseSelect
+                  v-model="form.account_scope"
+                  :options="scopeOptions"
+                  placeholder="Select account scope..."
+                />
+                <p class="text-[10px] text-secondary-text">
+                  {{ form.account_scope === 'one_per_user' ? 'Clients may link exactly 1 primary trading account.' : 'All eligible client trading accounts are automatically tracked.' }}
+                </p>
               </div>
             </div>
           </div>
 
-          <!-- Timeline Dates Card -->
+          <!-- Lifecycle Dates -->
           <div class="p-4 rounded-xl bg-background/50 border border-primary-border space-y-3.5">
             <span class="text-[10px] uppercase font-bold tracking-wider text-secondary-text flex items-center gap-1.5">
               <Calendar class="w-3.5 h-3.5 text-primary" />
@@ -128,16 +122,16 @@
                 :range="true"
                 :enableTime="true"
                 valueFormat="YYYY-MM-DD HH:mm:ss"
-                placeholder="Select start and end date & time"
+                placeholder="Select start and end dates"
               />
             </div>
           </div>
 
-          <!-- Earning & Redemption Limits -->
+          <!-- Points & Qualification Metrics -->
           <div class="p-4 rounded-xl bg-background/50 border border-primary-border space-y-3.5">
             <span class="text-[10px] uppercase font-bold tracking-wider text-secondary-text flex items-center gap-1.5">
               <Award class="w-3.5 h-3.5 text-primary" />
-              Earning & Redemption Metrics
+              Earning & Redemption Thresholds
             </span>
 
             <div class="grid grid-cols-2 gap-3">
@@ -180,7 +174,6 @@
               </div>
             </div>
           </div>
-
           <!-- Tier Qualification & Durations -->
           <div class="p-4 rounded-xl bg-background/50 border border-primary-border space-y-3.5">
             <span class="text-[10px] uppercase font-bold tracking-wider text-secondary-text flex items-center gap-1.5">
@@ -415,12 +408,12 @@
           </button>
           <button
             type="submit"
-            form="edit-program-form"
+            form="create-program-form"
             :disabled="store.actionLoading"
             class="flex-1 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white font-semibold transition cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2 text-xs shadow-xs"
           >
             <Loader2 v-if="store.actionLoading" class="w-4 h-4 animate-spin" />
-            <span>{{ store.actionLoading ? 'Saving...' : 'Save Configuration' }}</span>
+            <span>{{ store.actionLoading ? 'Creating...' : 'Create Program' }}</span>
           </button>
         </div>
       </div>
@@ -429,14 +422,13 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch } from "vue";
+import { ref, reactive, computed } from "vue";
 import {
   X,
   Loader2,
-  SlidersHorizontal,
+  Award,
   FileText,
   Calendar,
-  Award,
   ShieldCheck,
   CheckCircle2,
   FileCode,
@@ -446,17 +438,16 @@ import {
 import { useLoyaltyStore } from "@/stores/loyalty/loyalty";
 import BaseDatePicker from "@/components/common/BaseDatePicker.vue";
 
-const props = defineProps({
+defineProps({
   open: { type: Boolean, default: false },
-  program: { type: Object, default: () => ({}) },
 });
 
-const emit = defineEmits(["close", "saved"]);
+const emit = defineEmits(["close", "created"]);
 const store = useLoyaltyStore();
 
 const statusOptions = [
-  { label: "Active", value: "active" },
   { label: "Draft", value: "draft" },
+  { label: "Active", value: "active" },
   { label: "Paused", value: "paused" },
   { label: "Ended", value: "ended" },
 ];
@@ -479,7 +470,7 @@ const form = reactive({
   code: "",
   name: "",
   description: "",
-  status: "active",
+  status: "draft",
   account_scope: "one_per_user",
   start_at: "",
   end_at: "",
@@ -543,70 +534,12 @@ const removeInstrumentRule = (index) => {
   form.instrument_rules.rules.splice(index, 1);
 };
 
-watch(
-  () => props.program,
-  (p) => {
-    if (p) {
-      form.code = p.code ?? "";
-      form.name = p.name ?? "";
-      form.description = p.description ?? "";
-      form.status = p.status ?? "active";
-      form.account_scope = p.account_scope ?? "one_per_user";
-      form.start_at = p.start_at ?? "";
-      form.end_at = p.end_at ?? "";
-      form.base_points_per_lot = p.base_points_per_lot !== undefined ? Number(p.base_points_per_lot) : 5;
-      form.min_redemption_points = p.min_redemption_points !== undefined ? Number(p.min_redemption_points) : 100;
-      form.min_trade_duration_seconds = p.min_trade_duration_seconds ?? 120;
-      form.point_validity_days = p.point_validity_days ?? 180;
-      form.tier_window_days = p.tier_window_days ?? 90;
-      form.dormant_days = p.dormant_days ?? 90;
-      form.grace_period_days = p.grace_period_days ?? 14;
-      form.terms_version = p.terms_version ?? "1.0";
-      form.carry_over_enrollments = Boolean(p.carry_over_enrollments);
-
-      // Eligibility rules
-      const el = p.eligibility_rules || {};
-      form.eligibility_rules = {
-        require_kyc: Boolean(el.require_kyc),
-        require_live: el.require_live !== undefined ? Boolean(el.require_live) : true,
-        exclude_copy_accounts: el.exclude_copy_accounts !== undefined ? Boolean(el.exclude_copy_accounts) : true,
-        earn_on_copy_fills: el.earn_on_copy_fills !== undefined ? Boolean(el.earn_on_copy_fills) : true,
-        trading_types: Array.isArray(el.trading_types) ? el.trading_types : ["real"],
-        exclude_account_categories: Array.isArray(el.exclude_account_categories) ? el.exclude_account_categories : ["cent", "pamm"],
-      };
-      excludedCategoriesText.value = form.eligibility_rules.exclude_account_categories.join(", ");
-
-      // Instrument rules
-      const inst = p.instrument_rules || {};
-      form.instrument_rules = {
-        normalize_suffixes: inst.normalize_suffixes !== undefined ? Boolean(inst.normalize_suffixes) : true,
-        rules: Array.isArray(inst.rules)
-          ? inst.rules.map((r) => ({
-              symbolsText: Array.isArray(r.symbols) ? r.symbols.join(", ") : (r.symbols || ""),
-              match: r.match || "exact",
-              base_points_per_lot: r.base_points_per_lot ?? 5,
-              eligible: r.eligible !== undefined ? Boolean(r.eligible) : true,
-            }))
-          : [],
-      };
-    }
-  },
-  { immediate: true },
-);
-
 const handleSubmit = async () => {
-  if (!props.program?.id) return;
-
-  const p = props.program;
-  const payload = {};
-
-  // Formatted categories array
   const categories = excludedCategoriesText.value
     .split(",")
     .map((c) => c.trim().toLowerCase())
     .filter(Boolean);
 
-  // Formatted instrument rules
   const formattedInstrumentRules = form.instrument_rules.rules.map((r) => ({
     symbols: r.symbolsText.split(",").map((s) => s.trim().toUpperCase()).filter(Boolean),
     match: r.match,
@@ -614,103 +547,35 @@ const handleSubmit = async () => {
     eligible: Boolean(r.eligible),
   }));
 
-  // Compare each field against initial program values
-  const newCode = form.code.trim().toUpperCase();
-  if (newCode !== (p.code || "")) payload.code = newCode;
-
-  const newName = form.name.trim();
-  if (newName !== (p.name || "")) payload.name = newName;
-
-  const newDesc = form.description ? form.description.trim() : null;
-  const oldDesc = p.description ? p.description.trim() : null;
-  if (newDesc !== oldDesc) payload.description = newDesc;
-
-  if (form.status !== p.status) payload.status = form.status;
-  if (form.account_scope !== p.account_scope) payload.account_scope = form.account_scope;
-
-  const newStart = form.start_at || null;
-  const oldStart = p.start_at || null;
-  if (newStart !== oldStart) payload.start_at = newStart;
-
-  const newEnd = form.end_at || null;
-  const oldEnd = p.end_at || null;
-  if (newEnd !== oldEnd) payload.end_at = newEnd;
-
-  if (Number(form.base_points_per_lot) !== Number(p.base_points_per_lot)) {
-    payload.base_points_per_lot = Number(form.base_points_per_lot);
-  }
-  if (Number(form.min_redemption_points) !== Number(p.min_redemption_points)) {
-    payload.min_redemption_points = Number(form.min_redemption_points);
-  }
-  if (Number(form.min_trade_duration_seconds) !== Number(p.min_trade_duration_seconds)) {
-    payload.min_trade_duration_seconds = Number(form.min_trade_duration_seconds);
-  }
-  if (Number(form.point_validity_days) !== Number(p.point_validity_days)) {
-    payload.point_validity_days = Number(form.point_validity_days);
-  }
-  if (Number(form.tier_window_days) !== Number(p.tier_window_days)) {
-    payload.tier_window_days = Number(form.tier_window_days);
-  }
-  if (Number(form.dormant_days) !== Number(p.dormant_days)) {
-    payload.dormant_days = Number(form.dormant_days);
-  }
-  if (Number(form.grace_period_days) !== Number(p.grace_period_days)) {
-    payload.grace_period_days = Number(form.grace_period_days);
-  }
-  if (form.terms_version !== (p.terms_version || "1.0")) {
-    payload.terms_version = form.terms_version;
-  }
-  if (Boolean(form.carry_over_enrollments) !== Boolean(p.carry_over_enrollments)) {
-    payload.carry_over_enrollments = Boolean(form.carry_over_enrollments);
-  }
-
-  // Check Eligibility Rules diff
-  const newEligibility = {
-    ...form.eligibility_rules,
-    exclude_account_categories: categories,
-  };
-  const oldEligibility = p.eligibility_rules || {};
-  const isEligibilityChanged =
-    Boolean(newEligibility.require_kyc) !== Boolean(oldEligibility.require_kyc) ||
-    Boolean(newEligibility.require_live) !== Boolean(oldEligibility.require_live) ||
-    Boolean(newEligibility.exclude_copy_accounts) !== Boolean(oldEligibility.exclude_copy_accounts) ||
-    Boolean(newEligibility.earn_on_copy_fills) !== Boolean(oldEligibility.earn_on_copy_fills) ||
-    JSON.stringify(categories) !== JSON.stringify(oldEligibility.exclude_account_categories || []);
-
-  if (isEligibilityChanged) {
-    payload.eligibility_rules = newEligibility;
-  }
-
-  // Check Instrument Rules diff
-  const newNormalize = Boolean(form.instrument_rules.normalize_suffixes);
-  const oldNormalize = Boolean(p.instrument_rules?.normalize_suffixes);
-  const oldRules = p.instrument_rules?.rules || [];
-  const isInstrumentChanged =
-    newNormalize !== oldNormalize ||
-    JSON.stringify(formattedInstrumentRules) !== JSON.stringify(
-      oldRules.map((r) => ({
-        symbols: (r.symbols || []).map((s) => s.toUpperCase()),
-        match: r.match || "exact",
-        base_points_per_lot: Number(r.base_points_per_lot),
-        eligible: r.eligible !== undefined ? Boolean(r.eligible) : true,
-      }))
-    );
-
-  if (isInstrumentChanged) {
-    payload.instrument_rules = {
-      normalize_suffixes: newNormalize,
+  const payload = {
+    code: form.code.trim().toUpperCase(),
+    name: form.name.trim(),
+    description: form.description?.trim() || null,
+    status: form.status,
+    account_scope: form.account_scope,
+    start_at: form.start_at || null,
+    end_at: form.end_at || null,
+    base_points_per_lot: Number(form.base_points_per_lot),
+    min_redemption_points: Number(form.min_redemption_points),
+    min_trade_duration_seconds: Number(form.min_trade_duration_seconds),
+    point_validity_days: Number(form.point_validity_days),
+    tier_window_days: Number(form.tier_window_days),
+    dormant_days: Number(form.dormant_days),
+    grace_period_days: Number(form.grace_period_days),
+    terms_version: form.terms_version,
+    carry_over_enrollments: Boolean(form.carry_over_enrollments),
+    eligibility_rules: {
+      ...form.eligibility_rules,
+      exclude_account_categories: categories,
+    },
+    instrument_rules: {
+      normalize_suffixes: Boolean(form.instrument_rules.normalize_suffixes),
       rules: formattedInstrumentRules,
-    };
-  }
+    },
+  };
 
-  // If no fields were modified, close without making a redundant request
-  if (Object.keys(payload).length === 0) {
-    emit("close");
-    return;
-  }
-
-  await store.updateProgram(props.program.id, payload);
-  emit("saved");
+  await store.createProgram(payload);
+  emit("created");
   emit("close");
 };
 </script>

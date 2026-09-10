@@ -8,32 +8,147 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
   const snackbar = useSnackbarStore();
 
   // ─── State ─────────────────────────────────────────────
+  const programsList = ref([]);
   const program = ref(null);
   const tiers = ref([]);
   const rewards = ref([]);
+  const storeProducts = ref([]);
+  const storeProductsPagination = ref({ page: 1, per_page: 20, total: 0, pages: 1 });
+  const storeRedemptions = ref([]);
+  const storeRedemptionsPagination = ref({ page: 1, per_page: 20, total: 0, pages: 1 });
+  const activeRedemption = ref(null);
   const enrollments = ref([]);
   const enrollmentDetail = ref(null);
   const deals = ref([]);
   const backfillJobs = ref([]);
   const activeBackfillJob = ref(null);
 
+  // ─── In-Flight & isFetched Tracking ────────────────────
+  const inFlight = {
+    programsList: false,
+    program: false,
+    tiers: false,
+    storeProducts: false,
+    rewards: false,
+    storeRedemptions: false,
+    enrollments: false,
+    deals: false,
+    backfill: false,
+  };
+
+  const isFetched = ref({
+    programsList: false,
+    program: false,
+    tiers: false,
+    storeProducts: false,
+    rewards: false,
+    storeRedemptions: false,
+    enrollments: false,
+    deals: false,
+    backfill: false,
+  });
+
   const loading = ref(false);
   const actionLoading = ref(false);
   const detailLoading = ref(false);
   const error = ref(null);
 
-  // ─── Program Actions ───────────────────────────────────
-  const fetchProgram = (programId = null) => {
+  const resetFetchedFlags = () => {
+    isFetched.value = {
+      programsList: false,
+      program: false,
+      tiers: false,
+      storeProducts: false,
+      rewards: false,
+      storeRedemptions: false,
+      enrollments: false,
+      deals: false,
+      backfill: false,
+    };
+  };
+
+  // ─── Programs List & Management ─────────────────────────
+  const fetchProgramsList = (params = {}, force = false) => {
+    if (inFlight.programsList) return;
+    if (isFetched.value.programsList && !force) return;
+
+    inFlight.programsList = true;
+
+    const successHandler = (res) => {
+      programsList.value = Array.isArray(res?.data) ? res.data : [];
+      isFetched.value.programsList = true;
+    };
+
+    const failureHandler = (err) => {
+      snackbar.show(err?.message || "Failed to fetch programs list", "error");
+    };
+
+    const finallyHandler = () => {
+      inFlight.programsList = false;
+    };
+
+    return apiRequest(urls.KEYS.GET, urls.loyalty.programs, {
+      params,
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+      onFinally: finallyHandler,
+    });
+  };
+
+  const createProgram = (payload) => {
+    actionLoading.value = true;
+
+    const successHandler = (res) => {
+      snackbar.show(res?.message || "Loyalty program created successfully", "success");
+      fetchProgramsList({}, true);
+      if (res?.data) {
+        program.value = res.data;
+        resetFetchedFlags();
+        isFetched.value.program = true;
+      }
+    };
+
+    const failureHandler = (err) => {
+      snackbar.show(err?.message || "Failed to create loyalty program", "error");
+    };
+
+    const finallyHandler = () => {
+      actionLoading.value = false;
+    };
+
+    return apiRequest(urls.KEYS.POST, urls.loyalty.createProgram, {
+      data: payload,
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+      onFinally: finallyHandler,
+    });
+  };
+
+  const fetchProgram = (programId = null, force = false) => {
+    if (inFlight.program) return;
+    if (isFetched.value.program && !force && !programId) return;
+
+    inFlight.program = true;
     loading.value = true;
     error.value = null;
 
     const params = programId ? { program_id: programId } : {};
 
     const successHandler = (res) => {
+      const prevId = program.value?.id;
       program.value = res?.data || null;
-      if (program.value?.id) {
-        fetchTiers(program.value.id);
-        fetchRewards(program.value.id);
+      isFetched.value.program = true;
+
+      // If switched to a different program, reset sub-tab fetch flags
+      if (prevId && program.value?.id && prevId !== program.value.id) {
+        isFetched.value.tiers = false;
+        isFetched.value.storeProducts = false;
+        isFetched.value.rewards = false;
+        isFetched.value.storeRedemptions = false;
+        isFetched.value.enrollments = false;
+        isFetched.value.deals = false;
       }
     };
 
@@ -43,6 +158,7 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
     };
 
     const finallyHandler = () => {
+      inFlight.program = false;
       loading.value = false;
     };
 
@@ -61,6 +177,15 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
     const successHandler = (res) => {
       if (res?.data) {
         program.value = res.data;
+        if (Array.isArray(programsList.value)) {
+          const idx = programsList.value.findIndex((p) => p.id === programId);
+          if (idx !== -1) {
+            programsList.value[idx] = { ...programsList.value[idx], ...res.data };
+          }
+        }
+      } else {
+        // Fallback: only fetch this specific program by ID
+        fetchProgram(programId, true);
       }
       snackbar.show(res?.message || "Program updated successfully", "success");
     };
@@ -83,21 +208,33 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
   };
 
   // ─── Tiers Actions ─────────────────────────────────────
-  const fetchTiers = (programId) => {
+  const fetchTiers = (programId, force = false) => {
     if (!programId) return;
+    if (inFlight.tiers) return;
+    if (isFetched.value.tiers && !force) return;
+
+    inFlight.tiers = true;
+    loading.value = true;
 
     const successHandler = (res) => {
       tiers.value = Array.isArray(res?.data) ? res.data : [];
+      isFetched.value.tiers = true;
     };
 
     const failureHandler = (err) => {
       snackbar.show(err?.message || "Failed to fetch tiers", "error");
     };
 
+    const finallyHandler = () => {
+      inFlight.tiers = false;
+      loading.value = false;
+    };
+
     return apiRequest(urls.KEYS.GET, urls.loyalty.tiers(programId), {
       isTokenRequired: true,
       onSuccess: successHandler,
       onFailure: failureHandler,
+      onFinally: finallyHandler,
     });
   };
 
@@ -106,7 +243,10 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
 
     const successHandler = (res) => {
       snackbar.show(res?.message || "Tier created successfully", "success");
-      fetchTiers(programId);
+      fetchTiers(programId, true);
+      if (program.value?.id === programId) {
+        fetchProgram(programId, true);
+      }
     };
 
     const failureHandler = (err) => {
@@ -132,7 +272,7 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
     const successHandler = (res) => {
       snackbar.show(res?.message || "Tier updated successfully", "success");
       if (programId) {
-        fetchTiers(programId);
+        fetchTiers(programId, true);
       }
     };
 
@@ -153,22 +293,161 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
     });
   };
 
-  // ─── Rewards Actions ───────────────────────────────────
-  const fetchRewards = (programId) => {
-    if (!programId) return;
+  // ─── Store Products Actions (/admin/loyalty/store/products) ─────
+  const fetchStoreProducts = (params = {}, force = false) => {
+    const isDefaultQuery = Object.keys(params).length <= 1;
+    if (inFlight.storeProducts) return;
+    if (isFetched.value.storeProducts && !force && isDefaultQuery) return;
+
+    inFlight.storeProducts = true;
+    loading.value = true;
 
     const successHandler = (res) => {
-      rewards.value = Array.isArray(res?.data) ? res.data : [];
+      if (res?.data?.items) {
+        storeProducts.value = Array.isArray(res.data.items) ? res.data.items : [];
+        storeProductsPagination.value = {
+          page: res.data.page || 1,
+          per_page: res.data.per_page || 20,
+          total: res.data.total || storeProducts.value.length,
+          pages: res.data.pages || 1,
+        };
+      } else if (Array.isArray(res?.data)) {
+        storeProducts.value = res.data;
+        storeProductsPagination.value = {
+          page: 1,
+          per_page: res.data.length,
+          total: res.data.length,
+          pages: 1,
+        };
+      } else {
+        storeProducts.value = [];
+      }
+      if (isDefaultQuery) {
+        isFetched.value.storeProducts = true;
+      }
     };
 
     const failureHandler = (err) => {
-      snackbar.show(err?.message || "Failed to fetch rewards", "error");
+      snackbar.show(err?.message || "Failed to fetch store products", "error");
+    };
+
+    const finallyHandler = () => {
+      inFlight.storeProducts = false;
+      loading.value = false;
+    };
+
+    return apiRequest(urls.KEYS.GET, urls.loyalty.storeProducts, {
+      params,
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+      onFinally: finallyHandler,
+    });
+  };
+
+  const createStoreProduct = (payload) => {
+    actionLoading.value = true;
+
+    const successHandler = (res) => {
+      snackbar.show(res?.message || "Store product created successfully", "success");
+      fetchStoreProducts({ program_id: payload.program_id }, true);
+      if (program.value?.id === payload.program_id) {
+        fetchProgram(payload.program_id, true);
+      }
+    };
+
+    const failureHandler = (err) => {
+      snackbar.show(err?.message || "Failed to create store product", "error");
+    };
+
+    const finallyHandler = () => {
+      actionLoading.value = false;
+    };
+
+    return apiRequest(urls.KEYS.POST, urls.loyalty.createStoreProduct, {
+      data: payload,
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+      onFinally: finallyHandler,
+    });
+  };
+
+  const updateStoreProduct = (productId, payload, programId = null) => {
+    actionLoading.value = true;
+
+    const successHandler = (res) => {
+      snackbar.show(res?.message || "Store product updated successfully", "success");
+      fetchStoreProducts(programId ? { program_id: programId } : {}, true);
+    };
+
+    const failureHandler = (err) => {
+      snackbar.show(err?.message || "Failed to update store product", "error");
+    };
+
+    const finallyHandler = () => {
+      actionLoading.value = false;
+    };
+
+    return apiRequest(urls.KEYS.PATCH, urls.loyalty.updateStoreProduct(productId), {
+      data: payload,
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+      onFinally: finallyHandler,
+    });
+  };
+
+  const deleteStoreProduct = (productId, programId = null) => {
+    actionLoading.value = true;
+
+    const successHandler = (res) => {
+      snackbar.show(res?.message || "Product deactivated successfully", "success");
+      fetchStoreProducts(programId ? { program_id: programId } : {}, true);
+    };
+
+    const failureHandler = (err) => {
+      snackbar.show(err?.message || "Failed to deactivate product", "error");
+    };
+
+    const finallyHandler = () => {
+      actionLoading.value = false;
+    };
+
+    return apiRequest(urls.KEYS.DELETE, urls.loyalty.deleteStoreProduct(productId), {
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+      onFinally: finallyHandler,
+    });
+  };
+
+  // ─── Legacy Rewards Actions ────────────────────────────
+  const fetchRewards = (programId, force = false) => {
+    if (!programId) return;
+    if (inFlight.rewards) return;
+    if (isFetched.value.rewards && !force) return;
+
+    inFlight.rewards = true;
+
+    const successHandler = (res) => {
+      rewards.value = Array.isArray(res?.data) ? res.data : [];
+      isFetched.value.rewards = true;
+    };
+
+    const failureHandler = () => {
+      // Quiet fail if using storeProducts
+    };
+
+    const finallyHandler = () => {
+      inFlight.rewards = false;
     };
 
     return apiRequest(urls.KEYS.GET, urls.loyalty.rewards(programId), {
       isTokenRequired: true,
       onSuccess: successHandler,
       onFailure: failureHandler,
+      onFinally: finallyHandler,
     });
   };
 
@@ -177,7 +456,7 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
 
     const successHandler = (res) => {
       snackbar.show(res?.message || "Reward created successfully", "success");
-      fetchRewards(programId);
+      fetchRewards(programId, true);
     };
 
     const failureHandler = (err) => {
@@ -203,7 +482,7 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
     const successHandler = (res) => {
       snackbar.show(res?.message || "Reward updated successfully", "success");
       if (programId) {
-        fetchRewards(programId);
+        fetchRewards(programId, true);
       }
     };
 
@@ -224,12 +503,179 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
     });
   };
 
+  // ─── Store Redemptions Actions (/admin/loyalty/store/redemptions) ──
+  const fetchStoreRedemptions = (params = {}, force = false) => {
+    const isDefaultQuery = Object.keys(params).length <= 1;
+    if (inFlight.storeRedemptions) return;
+    if (isFetched.value.storeRedemptions && !force && isDefaultQuery) return;
+
+    inFlight.storeRedemptions = true;
+    loading.value = true;
+
+    const successHandler = (res) => {
+      if (res?.data?.items) {
+        storeRedemptions.value = Array.isArray(res.data.items) ? res.data.items : [];
+        storeRedemptionsPagination.value = {
+          page: res.data.page || 1,
+          per_page: res.data.per_page || 20,
+          total: res.data.total || storeRedemptions.value.length,
+          pages: res.data.pages || 1,
+        };
+      } else if (Array.isArray(res?.data)) {
+        storeRedemptions.value = res.data;
+        storeRedemptionsPagination.value = {
+          page: 1,
+          per_page: res.data.length,
+          total: res.data.length,
+          pages: 1,
+        };
+      } else {
+        storeRedemptions.value = [];
+      }
+      if (isDefaultQuery) {
+        isFetched.value.storeRedemptions = true;
+      }
+    };
+
+    const failureHandler = (err) => {
+      snackbar.show(err?.message || "Failed to fetch store redemptions", "error");
+    };
+
+    const finallyHandler = () => {
+      inFlight.storeRedemptions = false;
+      loading.value = false;
+    };
+
+    return apiRequest(urls.KEYS.GET, urls.loyalty.storeRedemptions, {
+      params,
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+      onFinally: finallyHandler,
+    });
+  };
+
+  const fetchStoreRedemptionDetail = (redemptionId) => {
+    detailLoading.value = true;
+
+    const successHandler = (res) => {
+      activeRedemption.value = res?.data || null;
+    };
+
+    const failureHandler = (err) => {
+      snackbar.show(err?.message || "Failed to fetch redemption details", "error");
+    };
+
+    const finallyHandler = () => {
+      detailLoading.value = false;
+    };
+
+    return apiRequest(urls.KEYS.GET, urls.loyalty.storeRedemptionDetail(redemptionId), {
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+      onFinally: finallyHandler,
+    });
+  };
+
+  const approveStoreRedemption = (redemptionId, payload = {}, params = {}) => {
+    actionLoading.value = true;
+
+    const successHandler = (res) => {
+      snackbar.show(res?.message || "Redemption approved successfully", "success");
+      fetchStoreRedemptions(params, true);
+      if (activeRedemption.value?.id === redemptionId && res?.data) {
+        activeRedemption.value = res.data;
+      }
+    };
+
+    const failureHandler = (err) => {
+      snackbar.show(err?.message || "Failed to approve redemption", "error");
+    };
+
+    const finallyHandler = () => {
+      actionLoading.value = false;
+    };
+
+    return apiRequest(urls.KEYS.POST, urls.loyalty.approveStoreRedemption(redemptionId), {
+      data: payload,
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+      onFinally: finallyHandler,
+    });
+  };
+
+  const rejectStoreRedemption = (redemptionId, payload = {}, params = {}) => {
+    actionLoading.value = true;
+
+    const successHandler = (res) => {
+      snackbar.show(res?.message || "Redemption rejected and points restored", "success");
+      fetchStoreRedemptions(params, true);
+      if (activeRedemption.value?.id === redemptionId && res?.data) {
+        activeRedemption.value = res.data;
+      }
+    };
+
+    const failureHandler = (err) => {
+      snackbar.show(err?.message || "Failed to reject redemption", "error");
+    };
+
+    const finallyHandler = () => {
+      actionLoading.value = false;
+    };
+
+    return apiRequest(urls.KEYS.POST, urls.loyalty.rejectStoreRedemption(redemptionId), {
+      data: payload,
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+      onFinally: finallyHandler,
+    });
+  };
+
+  const fulfillStoreRedemption = (redemptionId, payload = {}, params = {}) => {
+    actionLoading.value = true;
+
+    const successHandler = (res) => {
+      snackbar.show(res?.message || "Redemption fulfilled successfully", "success");
+      fetchStoreRedemptions(params, true);
+      if (activeRedemption.value?.id === redemptionId && res?.data) {
+        activeRedemption.value = res.data;
+      }
+    };
+
+    const failureHandler = (err) => {
+      snackbar.show(err?.message || "Failed to fulfill redemption", "error");
+    };
+
+    const finallyHandler = () => {
+      actionLoading.value = false;
+    };
+
+    return apiRequest(urls.KEYS.POST, urls.loyalty.fulfillStoreRedemption(redemptionId), {
+      data: payload,
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+      onFinally: finallyHandler,
+    });
+  };
+
   // ─── Enrollments Actions ───────────────────────────────
-  const fetchEnrollments = (params = {}) => {
+  const fetchEnrollments = (params = {}, force = false) => {
+    const isDefaultQuery = Object.keys(params).length <= 1;
+    if (inFlight.enrollments) return;
+    if (isFetched.value.enrollments && !force && isDefaultQuery) return;
+
+    inFlight.enrollments = true;
     loading.value = true;
 
     const successHandler = (res) => {
       enrollments.value = Array.isArray(res?.data) ? res.data : [];
+      if (isDefaultQuery) {
+        isFetched.value.enrollments = true;
+      }
     };
 
     const failureHandler = (err) => {
@@ -237,6 +683,7 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
     };
 
     const finallyHandler = () => {
+      inFlight.enrollments = false;
       loading.value = false;
     };
 
@@ -254,9 +701,9 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
 
     const successHandler = (res) => {
       snackbar.show(res?.message || "Enrollment created successfully", "success");
-      fetchEnrollments();
+      fetchEnrollments({}, true);
       if (program.value?.id) {
-        fetchProgram(program.value.id);
+        fetchProgram(program.value.id, true);
       }
     };
 
@@ -300,12 +747,75 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
     });
   };
 
+  const attachAccountToEnrollment = (enrollmentId, payload) => {
+    actionLoading.value = true;
+
+    const successHandler = (res) => {
+      snackbar.show(res?.message || "Trading account attached successfully", "success");
+      if (res?.data) {
+        enrollmentDetail.value = { ...enrollmentDetail.value, ...res.data };
+      }
+      fetchEnrollments({}, true);
+    };
+
+    const failureHandler = (err) => {
+      snackbar.show(err?.message || "Failed to attach account", "error");
+    };
+
+    const finallyHandler = () => {
+      actionLoading.value = false;
+    };
+
+    return apiRequest(urls.KEYS.POST, urls.loyalty.attachEnrollmentAccount(enrollmentId), {
+      data: payload,
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+      onFinally: finallyHandler,
+    });
+  };
+
+  const detachAccountFromEnrollment = (enrollmentId, accountId) => {
+    actionLoading.value = true;
+
+    const successHandler = (res) => {
+      snackbar.show(res?.message || "Trading account detached successfully", "success");
+      if (res?.data) {
+        enrollmentDetail.value = { ...enrollmentDetail.value, ...res.data };
+      }
+      fetchEnrollments({}, true);
+    };
+
+    const failureHandler = (err) => {
+      snackbar.show(err?.message || "Failed to detach account", "error");
+    };
+
+    const finallyHandler = () => {
+      actionLoading.value = false;
+    };
+
+    return apiRequest(urls.KEYS.DELETE, urls.loyalty.detachEnrollmentAccount(enrollmentId, accountId), {
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+      onFinally: finallyHandler,
+    });
+  };
+
   // ─── Deals Actions ─────────────────────────────────────
-  const fetchDeals = (params = {}) => {
+  const fetchDeals = (params = {}, force = false) => {
+    const isDefaultQuery = Object.keys(params).length <= 1;
+    if (inFlight.deals) return;
+    if (isFetched.value.deals && !force && isDefaultQuery) return;
+
+    inFlight.deals = true;
     loading.value = true;
 
     const successHandler = (res) => {
       deals.value = Array.isArray(res?.data) ? res.data : [];
+      if (isDefaultQuery) {
+        isFetched.value.deals = true;
+      }
     };
 
     const failureHandler = (err) => {
@@ -313,6 +823,7 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
     };
 
     const finallyHandler = () => {
+      inFlight.deals = false;
       loading.value = false;
     };
 
@@ -331,7 +842,7 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
 
     const successHandler = (res) => {
       snackbar.show(res?.message || "Backfill job queued successfully", "success");
-      fetchBackfillJobs();
+      fetchBackfillJobs({}, true);
       if (res?.data) {
         activeBackfillJob.value = res.data;
       }
@@ -354,11 +865,19 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
     });
   };
 
-  const fetchBackfillJobs = (params = {}) => {
+  const fetchBackfillJobs = (params = {}, force = false) => {
+    const isDefaultQuery = Object.keys(params).length === 0;
+    if (inFlight.backfill) return;
+    if (isFetched.value.backfill && !force && isDefaultQuery) return;
+
+    inFlight.backfill = true;
     loading.value = true;
 
     const successHandler = (res) => {
       backfillJobs.value = Array.isArray(res?.data) ? res.data : [];
+      if (isDefaultQuery) {
+        isFetched.value.backfill = true;
+      }
     };
 
     const failureHandler = (err) => {
@@ -366,6 +885,7 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
     };
 
     const finallyHandler = () => {
+      inFlight.backfill = false;
       loading.value = false;
     };
 
@@ -401,29 +921,57 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
   };
 
   return {
+    // State
+    programsList,
     program,
     tiers,
     rewards,
+    storeProducts,
+    storeProductsPagination,
+    storeRedemptions,
+    storeRedemptionsPagination,
+    activeRedemption,
     enrollments,
     enrollmentDetail,
     deals,
     backfillJobs,
     activeBackfillJob,
+    isFetched,
     loading,
     actionLoading,
     detailLoading,
     error,
+    resetFetchedFlags,
+    // Programs
+    fetchProgramsList,
+    createProgram,
     fetchProgram,
     updateProgram,
+    // Tiers
     fetchTiers,
     createTier,
     updateTier,
+    // Store Products & Rewards
+    fetchStoreProducts,
+    createStoreProduct,
+    updateStoreProduct,
+    deleteStoreProduct,
     fetchRewards,
     createReward,
     updateReward,
+    // Store Redemptions
+    fetchStoreRedemptions,
+    fetchStoreRedemptionDetail,
+    approveStoreRedemption,
+    rejectStoreRedemption,
+    fulfillStoreRedemption,
+    // Enrollments
     fetchEnrollments,
     createEnrollment,
     fetchEnrollmentDetail,
+    attachAccountToEnrollment,
+    detachAccountFromEnrollment,
+    // Deals & Backfill
     fetchDeals,
     startBackfill,
     fetchBackfillJobs,
