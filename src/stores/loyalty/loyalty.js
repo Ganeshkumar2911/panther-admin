@@ -844,6 +844,94 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
     );
   };
 
+  const updateEnrollmentAccount = (enrollmentId, tradingAccountId) => {
+    actionLoading.value = true;
+
+    const successHandler = (res) => {
+      snackbar.show(
+        res?.message || "Trading account updated successfully",
+        "success",
+      );
+      if (res?.data) {
+        enrollmentDetail.value = { ...enrollmentDetail.value, ...res.data };
+      }
+      fetchEnrollments({}, true);
+    };
+
+    const failureHandler = (err) => {
+      snackbar.show(err?.message || "Failed to update trading account", "error");
+    };
+
+    const finallyHandler = () => {
+      actionLoading.value = false;
+    };
+
+    return apiRequest(
+      urls.KEYS.PATCH,
+      urls.loyalty.updateEnrollment(enrollmentId),
+      {
+        data: { trading_account_id: Number(tradingAccountId) },
+        isTokenRequired: true,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+        onFinally: finallyHandler,
+      },
+    );
+  };
+
+  const deenrollMember = ({ enrollmentId, userId, programId, reason = "" } = {}) => {
+    actionLoading.value = true;
+
+    const successHandler = (res) => {
+      snackbar.show(
+        res?.message || "Member de-enrolled successfully",
+        "success",
+      );
+      if (res?.data) {
+        enrollmentDetail.value = { ...enrollmentDetail.value, ...res.data };
+      }
+      fetchEnrollments({}, true);
+    };
+
+    const failureHandler = (err) => {
+      snackbar.show(err?.message || "Failed to de-enroll member", "error");
+    };
+
+    const finallyHandler = () => {
+      actionLoading.value = false;
+    };
+
+    if (enrollmentId) {
+      return apiRequest(
+        urls.KEYS.POST,
+        urls.loyalty.deenrollById(enrollmentId),
+        {
+          data: reason ? { reason } : {},
+          isTokenRequired: true,
+          onSuccess: successHandler,
+          onFailure: failureHandler,
+          onFinally: finallyHandler,
+        },
+      );
+    }
+
+    return apiRequest(
+      urls.KEYS.POST,
+      urls.loyalty.deenroll,
+      {
+        data: {
+          user_id: userId,
+          program_id: programId,
+          ...(reason ? { reason } : {}),
+        },
+        isTokenRequired: true,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+        onFinally: finallyHandler,
+      },
+    );
+  };
+
   const attachAccountToEnrollment = (enrollmentId, payload) => {
     actionLoading.value = true;
 
@@ -1131,6 +1219,8 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
     fetchEnrollments,
     createEnrollment,
     fetchEnrollmentDetail,
+    updateEnrollmentAccount,
+    deenrollMember,
     attachAccountToEnrollment,
     detachAccountFromEnrollment,
     creditWallet,
