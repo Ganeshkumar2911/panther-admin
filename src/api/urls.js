@@ -375,6 +375,19 @@ const urls = {
     backfill: "/loyalty/backfill",
     backfillDetail: (jobId) => `/loyalty/backfill/${jobId}`,
   },
+  ibCommission: {
+    referralLinksSearch: "/ib-commission/referral-links/search",
+    rates: (id) => `/ib-commission/referral-links/${id}/rates`,
+    saveRates: (id) => `/ib-commission/referral-links/${id}/rates`,
+    symbolGroups: "/ib-commission/symbol-groups",
+    symbolGroupDetail: (id) => `/ib-commission/symbol-groups/${id}`,
+    symbolGroupMembers: (id) => `/ib-commission/symbol-groups/${id}/members`,
+    symbolGroupsUnassign: "/ib-commission/symbol-groups/unassign",
+    symbols: "/ib-commission/symbols",
+    syncStatus: "/ib-commission/sync/status",
+    syncDeals: "/ib-commission/sync/deals",
+    syncSymbols: "/ib-commission/sync/symbols",
+  },
 };
 
 export default urls;
