@@ -306,44 +306,10 @@
                 {{ formatDate(item.opted_in_at) }}
               </td>
               <td class="py-2.5 px-4 text-right">
-                <div class="inline-flex items-center gap-1.5">
-                  <button
-                    v-if="
-                      hasPermission('loyalty.update') &&
-                      item.status !== 'deenrolled'
-                    "
-                    type="button"
-                    class="inline-flex items-center gap-1 px-2 py-1 rounded-lg border border-primary-border bg-card-background hover:bg-background text-secondary-text hover:text-primary transition cursor-pointer text-xs"
-                    title="Credit / Deposit Points"
-                    @click="openCreditModal(item)"
-                  >
-                    <HugeIcon
-                      :icon="Coins01Icon"
-                      :size="12"
-                      class="text-primary"
-                    />
-                    <span>Credit</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    class="inline-flex items-center gap-1 px-2 py-1 rounded-lg border border-rose-500/20 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition cursor-pointer text-xs"
-                    title="De-enroll member from program"
-                    @click="openDeenrollModal(item)"
-                  >
-                    <HugeIcon :icon="UserRemove01Icon" :size="12" />
-                    <span>De-enroll</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-primary-border hover:bg-background text-secondary-text hover:text-primary transition cursor-pointer text-xs"
-                    @click="handleViewDetail(item.id)"
-                  >
-                    <HugeIcon :icon="EyeIcon" :size="12" />
-                    <span>Details</span>
-                  </button>
-                </div>
+                <DropdownMenu
+                  :items="getRowActions(item)"
+                  position="bottom-end"
+                />
               </td>
             </tr>
           </tbody>
@@ -456,16 +422,17 @@ import {
   RefreshCwIcon,
   UserGroupIcon,
   Search01Icon,
-  EyeIcon,
   Coins01Icon,
   UserRemove01Icon,
   Loading03Icon,
 } from "@hugeicons/core-free-icons";
+import { Eye, Coins, UserMinus } from "lucide-vue-next";
 import { useLoyaltyStore } from "@/stores/loyalty/loyalty";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import { formatDate } from "@/utils/timeFormatter";
 import StatusBadge from "@/components/common/StatusBadge.vue";
 import BaseSelect from "@/components/common/BaseSelect.vue";
+import DropdownMenu from "@/components/common/DropdownMenu.vue";
 import EnrollDrawer from "../components/EnrollDrawer.vue";
 import EnrollmentDetailDrawer from "../components/EnrollmentDetailDrawer.vue";
 import CreditWalletModal from "../components/CreditWalletModal.vue";
@@ -540,6 +507,38 @@ const handleDeenrollConfirm = async () => {
   isDeenrollModalOpen.value = false;
   selectedEnrollmentForDeenroll.value = null;
   deenrollReason.value = "";
+};
+
+const getRowActions = (item) => {
+  const actions = [
+    {
+      label: "Details",
+      icon: Eye,
+      handler: () => handleViewDetail(item.id),
+    },
+  ];
+
+  if (hasPermission("loyalty.update") && item.status !== "deenrolled") {
+    actions.push({
+      label: "Credit",
+      icon: Coins,
+      handler: () => openCreditModal(item),
+    });
+  }
+
+  if (
+    (hasPermission("loyalty.enroll") || hasPermission("loyalty.update")) &&
+    item.status !== "deenrolled"
+  ) {
+    actions.push({
+      label: "De-enroll",
+      icon: UserMinus,
+      danger: true,
+      handler: () => openDeenrollModal(item),
+    });
+  }
+
+  return actions;
 };
 
 watch(
