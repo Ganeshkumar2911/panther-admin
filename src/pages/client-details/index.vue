@@ -389,6 +389,7 @@ import {
   FileCheck,
   MessageSquare,
   RefreshCw,
+  Bell,
 } from "lucide-vue-next";
 const route = useRoute();
 const router = useRouter();
@@ -646,6 +647,7 @@ const currentActiveTab = computed(() => {
   if (currentPath.endsWith("/profile") || route.name === "client-details-profile") return "profile";
   if (currentPath.endsWith("/financials") || route.name === "client-details-financials") return "financials";
   if (currentPath.endsWith("/marketing") || route.name === "client-details-marketing") return "marketing";
+  if (currentPath.endsWith("/notifications") || route.name === "client-details-notifications") return "notifications";
   if (currentPath.endsWith("/trading") || route.name === "client-details-trading") return "trading";
   if (currentPath.endsWith("/crm") || route.name === "client-details-crm") return "crm";
   return "overview";
@@ -664,6 +666,9 @@ const isGlobalRefreshing = computed(() => {
   }
   if (currentActiveTab.value === "financials") {
     return clientDepthStore.userChartsLoading || clientDepthStore.accountDetailsLoading;
+  }
+  if (currentActiveTab.value === "notifications") {
+    return clientDepthStore.clientNotificationsLoading;
   }
   return false;
 });
@@ -695,6 +700,8 @@ const handleGlobalRefresh = async () => {
         clientDepthStore.fetchUserCharts(userId, {}, true),
         clientDepthStore.fetchAccountDetails(userId, {}, true),
       ]);
+    } else if (activeTab === "notifications") {
+      await clientDepthStore.fetchClientNotifications(userId, {}, true);
     }
 
     const tabLabel = tabs.value.find((t) => t.key === activeTab)?.label || "Tab";
@@ -743,6 +750,12 @@ const tabs = computed(() => [
     label: "Marketing",
     to: `/client/details/${route.params.id}/marketing`,
     icon: Megaphone,
+  },
+  {
+    key: "notifications",
+    label: "Notifications",
+    to: `/client/details/${route.params.id}/notifications`,
+    icon: Bell,
   },
 ]);
 

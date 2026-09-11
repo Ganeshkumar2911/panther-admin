@@ -122,6 +122,7 @@
               </p>
             </div>
             <button
+              v-if="canEditProfile"
               type="button"
               @click="openEditProfileModal"
               class="border border-primary-border rounded-xl px-3.5 py-1.5 text-xs font-semibold text-primary hover:bg-background transition-colors flex items-center gap-1.5 cursor-pointer shrink-0"
@@ -151,6 +152,7 @@
               </div>
 
               <button
+                v-if="canEditProfile"
                 type="button"
                 @click="triggerPhotoUpload"
                 class="mt-3.5 border border-primary-border rounded-xl px-3 py-1.5 text-xs font-semibold text-primary-text hover:bg-background transition-colors flex items-center gap-1.5 cursor-pointer"
@@ -357,16 +359,17 @@
                 </div>
               </Tooltip>
 
-              <!-- When KYC is Pending & Docs are Uploaded: Show Super Admin Approve/Reject Button -->
+              <!-- When KYC is Pending & Docs are Uploaded: Show Approve/Reject Button if permitted -->
               <button
-                v-else-if="isSuperAdmin && isDocUploaded"
+                v-else-if="(canApproveKyc || canRejectKyc) && isDocUploaded"
                 type="button"
-                @click="openApprovalModal('approve')"
+                @click="openApprovalModal(canApproveKyc ? 'approve' : 'reject')"
                 class="bg-primary hover:bg-primary-hover text-white rounded-xl px-3.5 py-1.5 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all"
-                title="Review and Approve / Reject KYC Documents"
+                :title="canApproveKyc && canRejectKyc ? 'Review and Approve / Reject KYC Documents' : canApproveKyc ? 'Review and Approve KYC Documents' : 'Review and Reject KYC Documents'"
               >
-                <ShieldCheck class="w-3.5 h-3.5" />
-                Approve / Reject
+                <ShieldCheck v-if="canApproveKyc" class="w-3.5 h-3.5" />
+                <ShieldAlert v-else class="w-3.5 h-3.5" />
+                <span>{{ canApproveKyc && canRejectKyc ? 'Approve / Reject' : canApproveKyc ? 'Approve KYC' : 'Reject KYC' }}</span>
               </button>
             </div>
           </div>
@@ -513,7 +516,7 @@
                         <!-- If Document Uploaded -->
                         <template v-if="doc.uploaded">
                           <!-- 1. View Document Button (Icon with Tooltip) -->
-                          <Tooltip text="View Document" position="top">
+                          <Tooltip v-if="canViewDoc" text="View Document" position="top">
                             <button
                               type="button"
                               @click="openViewDoc(doc)"
@@ -546,10 +549,10 @@
                             </div>
                           </Tooltip>
 
-                          <!-- Case C: Document is Pending Review & Super Admin -->
-                          <template v-else-if="isSuperAdmin">
+                          <!-- Case C: Document is Pending Review & user has approve/reject permission -->
+                          <template v-else-if="canApproveKyc || canRejectKyc">
                             <!-- Approve Icon Button -->
-                            <Tooltip text="Approve Document" position="top">
+                            <Tooltip v-if="canApproveKyc" text="Approve Document" position="top">
                               <button
                                 type="button"
                                 @click="openApprovalModal('approve')"
@@ -560,7 +563,7 @@
                             </Tooltip>
 
                             <!-- Reject Icon Button -->
-                            <Tooltip text="Reject Document" position="top">
+                            <Tooltip v-if="canRejectKyc" text="Reject Document" position="top">
                               <button
                                 type="button"
                                 @click="openApprovalModal('reject')"
@@ -571,8 +574,8 @@
                             </Tooltip>
                           </template>
 
-                          <!-- 3. Edit Document Button -->
-                          <Tooltip text="Edit / Replace Document" position="left">
+                          <!-- 3. Edit / Replace Document Button -->
+                          <Tooltip v-if="canUpdateDoc" text="Edit / Replace Document" position="left">
                             <button
                               type="button"
                               @click="openEditDoc(doc)"
@@ -585,7 +588,7 @@
 
                         <!-- If Document Not Uploaded: Upload button -->
                         <template v-else>
-                          <Tooltip text="Upload Document" position="top">
+                          <Tooltip v-if="canAddDoc" text="Upload Document" position="top">
                             <button
                               type="button"
                               @click="openUploadDoc(doc)"
@@ -634,7 +637,9 @@
       :open="viewDocModalOpen"
       :doc="selectedDoc"
       :status="kycStatus"
-      :isSuperAdmin="isSuperAdmin"
+      :canApprove="canApproveKyc"
+      :canReject="canRejectKyc"
+      :canEdit="canUpdateDoc"
       @close="closeViewDocModal"
       @edit="openEditDoc(selectedDoc)"
       @approve="openApprovalModal('approve')"
@@ -658,6 +663,8 @@ import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useClientDepthStore } from "@/stores/clientDepth/clientDepth";
 import { useProfileStore } from "@/stores/profile/profile";
+import { useMyPermissionsStore } from "@/stores/rbac/myPermissions";
+import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import { getFlagCode, cleanCountryLabel } from "@/utils/countries";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
 import Tooltip from "@/components/common/Tooltip.vue";
@@ -690,11 +697,40 @@ const route = useRoute();
 const snackbar = useSnackbarStore();
 const clientDepthStore = useClientDepthStore();
 const profileStore = useProfileStore();
+const permissionsStore = useMyPermissionsStore();
+const { hasPermission } = usePermissionCheck();
 
-// ─── Super Admin Access Check ────────────────────────────────────────────────
-const isSuperAdmin = computed(() => {
-  const role = profileStore.user?.role || "";
-  return String(role).toLowerCase() === "superadmin";
+// ─── Permission & Access Checks ──────────────────────────────────────────────
+// Pure RBAC permission checks from backend 'client' module:
+// - Client Profile Edit: "client.update"
+// - Document Approve: "client.document_approve" (or fallback "kyc.approve")
+// - Document Reject: "client.document_reject" (or fallback "kyc.reject")
+// - Document Upload/Add: "client.document_add"
+// - Document Update/Edit: "client.document_update"
+// - Document View: "client.document_view" (or "client.view")
+
+const canEditProfile = computed(() => {
+  return hasPermission("client.update");
+});
+
+const canApproveKyc = computed(() => {
+  return hasPermission(["client.document_approve", "kyc.approve"]);
+});
+
+const canRejectKyc = computed(() => {
+  return hasPermission(["client.document_reject", "kyc.reject"]);
+});
+
+const canAddDoc = computed(() => {
+  return hasPermission(["client.document_add"]);
+});
+
+const canUpdateDoc = computed(() => {
+  return hasPermission(["client.document_update"]);
+});
+
+const canViewDoc = computed(() => {
+  return hasPermission(["client.document_view", "client.view"]);
 });
 
 // ─── User Profile State ───────────────────────────────────────────────────────
@@ -788,6 +824,9 @@ onMounted(() => {
   loadKyc();
   if (!profileStore.user) {
     profileStore.fetchUserProfile().catch(() => {});
+  }
+  if (!permissionsStore.isFetched && !permissionsStore.loading) {
+    permissionsStore.fetchMyPermissions().catch(() => {});
   }
   window.addEventListener("refresh-client-tab-data", handleTabRefresh);
 });
