@@ -19,12 +19,12 @@ class MatrixTicker {
       }
     }
 
-    // const DEV_WS_URL = "https://admin.panthercapitals.com/";
-    const DEV_WS_URL = "https://ls01t281-2504.inc1.devtunnels.ms/";
+    const DEV_WS_URL = "https://admin.panthercapitals.com/";
+    // const DEV_WS_URL = "https://ls01t281-2504.inc1.devtunnels.ms/";
     const PROD_WS_URL = isProdDomain
       ? "https://admin.panthercapitals.com/"
-      // : "https://1pz4zm0b-2504.euw.devtunnels.ms/";
-      : "https://ls01t281-2504.inc1.devtunnels.ms/";
+      : "https://1pz4zm0b-2504.euw.devtunnels.ms/";
+      // : "https://ls01t281-2504.inc1.devtunnels.ms/";
 
     const isDev =
       !isProdDomain &&

@@ -745,19 +745,13 @@
           />
         </div>
 
-        <!-- Dynamic Date Range Pickers (Opened / Time / Setup / Closed) -->
-        <div
-          v-for="dateFilter in dynamicDateRangeFilters"
-          :key="dateFilter.fromKey"
-          class="min-w-48 sm:min-w-60 shrink-0"
-        >
+        <!-- Date Range Picker (from_date / to_date) -->
+        <div class="min-w-48 sm:min-w-60 shrink-0">
           <BaseDatePicker
-            :modelValue="getDateRangeValue(dateFilter.fromKey, dateFilter.toKey)"
-            range
-            :placeholder="dateFilter.placeholder"
+            v-model="dateRangeValue"
+            :range="true"
+            placeholder="Select date range"
             valueFormat="YYYY-MM-DD"
-            @update:modelValue="(val) => handleDateRangeUpdate(dateFilter.fromKey, dateFilter.toKey, val)"
-            @clear="handleDateRangeUpdate(dateFilter.fromKey, dateFilter.toKey, null)"
           />
         </div>
 
@@ -920,20 +914,15 @@
                   class="py-3 px-3 text-right font-medium text-secondary-text whitespace-nowrap"
                 >
                   {{
-                    formatDate(
-                      item.time_create || item.created_at || item.time_open,
-                    )
+                  
+                      item.created_at
                   }}
                 </td>
                 <td
                   class="py-3 px-4 text-right font-medium text-secondary-text whitespace-nowrap"
                 >
                   {{
-                    item.time_close || item.closed_at || item.time_closed
-                      ? formatDate(
-                          item.time_close || item.closed_at || item.time_closed,
-                        )
-                      : "-"
+                   item.closed_at
                   }}
                 </td>
               </tr>
@@ -1091,14 +1080,14 @@
                 <td
                   class="py-3 px-3 text-right font-medium text-secondary-text whitespace-nowrap"
                 >
-                  {{ formatDate(order.time_setup || order.created_at) }}
+                  {{ order.time_setup || order.created_at }}
                 </td>
                 <td
                   class="py-3 px-4 text-right font-medium text-secondary-text whitespace-nowrap"
                 >
                   {{
                     order.time_done || order.closed_at
-                      ? formatDate(order.time_done || order.closed_at)
+                      ? order.time_done || order.closed_at
                       : "-"
                   }}
                 </td>
@@ -1451,48 +1440,38 @@ const dynamicEnumFilters = computed(() => {
 });
 
 // Dynamic Date Range Filters generated directly from API schema (pairs from_date/to_date and closed_from/closed_to)
-const dynamicDateRangeFilters = computed(() => {
-  const schema = store.currentSectionFilters || {};
-  const ranges = [];
-
-  // 1. Primary Opened / Setup / Time date range (from_date / to_date)
-  if (schema.from_date || schema.to_date) {
-    const isClosedAlsoPresent = !!schema.closed_from;
-    ranges.push({
-      fromKey: "from_date",
-      toKey: "to_date",
-      placeholder: isClosedAlsoPresent ? "Opened date range" : "Select date range",
-    });
-  }
-
-  // 2. Closed date range (closed_from / closed_to)
-  if (schema.closed_from || schema.closed_to) {
-    ranges.push({
-      fromKey: "closed_from",
-      toKey: "closed_to",
-      placeholder: "Closed date range",
-    });
-  }
-
-  return ranges;
+// Date Range Filter (from_date / to_date)
+const dateRangeValue = computed({
+  get() {
+    if (store.filters.from_date || store.filters.to_date) {
+      return {
+        start: store.filters.from_date || null,
+        end: store.filters.to_date || null,
+      };
+    }
+    return null;
+  },
+  set(val) {
+    handleDateRangeUpdate(val);
+  },
 });
 
-const getDateRangeValue = (fromKey, toKey) => {
-  const from = store.filters[fromKey] || (fromKey === "from_date" ? store.filters.start_date : "");
-  const to = store.filters[toKey] || (toKey === "to_date" ? store.filters.end_date : "");
-  if (from && to) {
-    return [from, to];
+const handleDateRangeUpdate = (val) => {
+  if (!val) {
+    store.setDateFilter("", "");
+    return;
   }
-  return null;
-};
-
-const handleDateRangeUpdate = (fromKey, toKey, val) => {
-  store.setDynamicDateRange(fromKey, toKey, val);
+  if (Array.isArray(val)) {
+    store.setDateFilter(val[0] || "", val[1] || "");
+  } else if (typeof val === "object") {
+    store.setDateFilter(val.start || val.from || "", val.end || val.to || "");
+  }
 };
 
 const hasActiveFilters = computed(() => {
   const schema = store.currentSectionFilters || {};
   const hasDynamicActive = Object.keys(schema).some((key) => {
+    if (key === "from_date" || key === "to_date" || key === "closed_from" || key === "closed_to") return false;
     const val = store.filters[key];
     return val !== undefined && val !== null && val !== "";
   });
@@ -1504,11 +1483,7 @@ const hasActiveFilters = computed(() => {
     !!store.filters.type ||
     !!store.filters.symbol ||
     !!store.filters.from_date ||
-    !!store.filters.to_date ||
-    !!store.filters.start_date ||
-    !!store.filters.end_date ||
-    !!store.filters.closed_from ||
-    !!store.filters.closed_to
+    !!store.filters.to_date
   );
 });
 

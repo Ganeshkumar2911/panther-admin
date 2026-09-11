@@ -343,6 +343,49 @@ const urls = {
     sendMessage: "/whatsapp/send/chat",
     sendTemplate: "/whatsapp/send/template",
   },
+  loyalty: {
+    // Programs
+    programs: "/loyalty/programs",
+    createProgram: "/loyalty/programs",
+    program: "/loyalty/program",
+    updateProgram: (programId) => `/loyalty/program/${programId}`,
+    // Tiers
+    tiers: (programId) => `/loyalty/program/${programId}/tiers`,
+    createTier: (programId) => `/loyalty/program/${programId}/tiers`,
+    updateTier: (tierId) => `/loyalty/tiers/${tierId}`,
+    // Rewards (Legacy catalogue)
+    rewards: (programId) => `/loyalty/program/${programId}/rewards`,
+    createReward: (programId) => `/loyalty/program/${programId}/rewards`,
+    updateReward: (rewardId) => `/loyalty/rewards/${rewardId}`,
+    // Store Products (Admin Store)
+    storeProducts: "/loyalty/store/products",
+    storeProductDetail: (id) => `/loyalty/store/products/${id}`,
+    createStoreProduct: "/loyalty/store/products",
+    updateStoreProduct: (id) => `/loyalty/store/products/${id}`,
+    deleteStoreProduct: (id) => `/loyalty/store/products/${id}`,
+    // Store Redemptions (Admin Store Queue)
+    storeRedemptions: "/loyalty/store/redemptions",
+    storeRedemptionDetail: (id) => `/loyalty/store/redemptions/${id}`,
+    approveStoreRedemption: (id) => `/loyalty/store/redemptions/${id}/approve`,
+    rejectStoreRedemption: (id) => `/loyalty/store/redemptions/${id}/reject`,
+    fulfillStoreRedemption: (id) => `/loyalty/store/redemptions/${id}/fulfill`,
+    // Legacy Redemptions
+    redemptions: "/loyalty/redemptions",
+    approveRedemption: (id) => `/loyalty/redemptions/${id}/approve`,
+    rejectRedemption: (id) => `/loyalty/redemptions/${id}/reject`,
+    // Enrollments & Wallets
+    enrollments: "/loyalty/enrollments",
+    createEnrollment: "/loyalty/enrollments",
+    enrollmentDetail: (enrollmentId) => `/loyalty/enrollments/${enrollmentId}`,
+    attachEnrollmentAccount: (enrollmentId) => `/loyalty/enrollments/${enrollmentId}/accounts`,
+    detachEnrollmentAccount: (enrollmentId, accountId) => `/loyalty/enrollments/${enrollmentId}/accounts/${accountId}`,
+    creditWallet: "/loyalty/wallets/credit",
+    // Deals & Backfill
+    deals: "/loyalty/deals",
+    backfill: "/loyalty/backfill",
+    backfillDetail: (jobId) => `/loyalty/backfill/${jobId}`,
+  },
 };
 
 export default urls;
+
