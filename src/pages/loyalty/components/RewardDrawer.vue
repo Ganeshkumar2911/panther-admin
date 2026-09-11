@@ -4,7 +4,7 @@
     <Transition name="backdrop">
       <div
         v-if="open"
-        class="fixed inset-0 z-[100] bg-black/50 backdrop-blur-xs cursor-pointer"
+        class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs cursor-pointer"
         @click="$emit('close')"
       />
     </Transition>
@@ -18,10 +18,10 @@
         aria-modal="true"
       >
         <!-- Sticky Header -->
-        <div class="px-6 py-4.5 border-b border-primary-border flex items-center justify-between shrink-0 bg-card-background/90 backdrop-blur-md">
+        <div class="px-6 py-4.5 border-b border-primary-border flex items-center justify-between shrink-0 bg-card-background/95 backdrop-blur-md">
           <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
-              <ShoppingBag class="w-4.5 h-4.5" />
+            <div class="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0 shadow-xs">
+              <HugeIcon :icon="ShoppingBag01Icon" :size="20" />
             </div>
             <div>
               <h3 class="text-sm font-bold text-primary-text">
@@ -37,16 +37,50 @@
             class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-background text-secondary-text hover:text-primary-text transition cursor-pointer"
             @click="$emit('close')"
           >
-            <X class="w-4.5 h-4.5" />
+            <HugeIcon :icon="Cancel01Icon" :size="18" />
           </button>
         </div>
 
         <!-- Scrollable Form Body -->
-        <form id="reward-form" class="flex-1 overflow-y-auto px-6 py-5 space-y-5 text-xs" @submit.prevent="handleSubmit">
+        <form id="reward-form" class="flex-1 overflow-y-auto px-6 py-5 space-y-4.5 text-xs" @submit.prevent="handleSubmit">
+          
+          <!-- Program Visibility & Target -->
+          <div class="p-4 rounded-2xl bg-card-background border border-primary-border shadow-xs space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] uppercase font-bold tracking-wider text-secondary-text flex items-center gap-1.5">
+                <HugeIcon :icon="ShieldCheckIcon" :size="14" class="text-primary" />
+                Visibility & Scope
+              </span>
+              <span
+                class="px-2 py-0.5 rounded text-[10px] font-mono uppercase font-bold"
+                :class="form.program_id ? 'bg-primary/10 text-primary border border-primary/20' : 'bg-primary-green/10 text-primary-green border border-primary-green/20'"
+              >
+                {{ form.program_id ? 'Program-Scoped' : 'Public (All Programs)' }}
+              </span>
+            </div>
+
+            <div class="space-y-1">
+              <label class="font-semibold text-primary-text flex items-center justify-between">
+                <span>Target Loyalty Program</span>
+                <span class="text-[10px] text-secondary-text">Optional</span>
+              </label>
+              <BaseSelect
+                v-model="form.program_id"
+                :options="programOptions"
+                placeholder="All Programs (Public)"
+                searchable
+                class="w-full"
+              />
+              <p class="text-[10px] text-secondary-text">
+                {{ form.program_id ? 'Only clients enrolled in this program will see and redeem this item.' : 'Public products are redeemable by any client with at least 1 active enrollment.' }}
+              </p>
+            </div>
+          </div>
+
           <!-- Item Info Card -->
-          <div class="p-4 rounded-xl bg-background/50 border border-primary-border space-y-3.5">
+          <div class="p-4 rounded-2xl bg-card-background border border-primary-border shadow-xs space-y-3.5">
             <span class="text-[10px] uppercase font-bold tracking-wider text-secondary-text flex items-center gap-1.5">
-              <Package class="w-3.5 h-3.5 text-primary" />
+              <HugeIcon :icon="PackageIcon" :size="14" class="text-primary" />
               Item Details & Classification
             </span>
 
@@ -78,7 +112,7 @@
                   type="text"
                   placeholder="e.g. Amazon Gift Card $25 or Panther Merchandise Hoodie"
                   required
-                  class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition"
+                  class="w-full px-3 py-2 bg-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition"
                 />
               </div>
 
@@ -88,7 +122,7 @@
                   v-model="form.description"
                   rows="3"
                   placeholder="Describe the product specifications, voucher terms, or shipping guidelines..."
-                  class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition resize-none"
+                  class="w-full px-3 py-2 bg-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition resize-none"
                 />
               </div>
 
@@ -121,13 +155,13 @@
                         class="w-full h-full object-cover"
                         @error="(e) => e.target.style.display = 'none'"
                       />
-                      <ImageIcon v-else class="w-3.5 h-3.5 text-secondary-text" />
+                      <HugeIcon v-else :icon="Image01Icon" :size="14" class="text-secondary-text" />
                     </div>
                     <input
                       v-model="imageUrlsList[idx]"
                       type="url"
                       placeholder="https://..."
-                      class="flex-1 px-3 py-1.5 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono text-[11px]"
+                      class="flex-1 px-3 py-1.5 bg-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono text-[11px]"
                     />
                     <button
                       type="button"
@@ -135,7 +169,7 @@
                       title="Remove Image"
                       @click="removeImageUrl(idx)"
                     >
-                      <Trash2 class="w-3.5 h-3.5" />
+                      <HugeIcon :icon="Delete02Icon" :size="14" />
                     </button>
                   </div>
                 </div>
@@ -146,7 +180,7 @@
                   class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-primary-border hover:border-primary/50 text-secondary-text hover:text-primary transition text-xs cursor-pointer w-full justify-center"
                   @click="addImageUrl"
                 >
-                  <Plus class="w-3.5 h-3.5" />
+                  <HugeIcon :icon="PlusSignIcon" :size="12" />
                   <span>Add Image URL</span>
                 </button>
               </div>
@@ -154,9 +188,9 @@
           </div>
 
           <!-- Cost & Valuation Card -->
-          <div class="p-4 rounded-xl bg-background/50 border border-primary-border space-y-3.5">
+          <div class="p-4 rounded-2xl bg-card-background border border-primary-border shadow-xs space-y-3.5">
             <span class="text-[10px] uppercase font-bold tracking-wider text-secondary-text flex items-center gap-1.5">
-              <DollarSign class="w-3.5 h-3.5 text-primary" />
+              <HugeIcon :icon="Coins01Icon" :size="14" class="text-primary" />
               Points Cost & Value Valuation
             </span>
 
@@ -169,7 +203,7 @@
                   step="any"
                   placeholder="e.g. 800"
                   required
-                  class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono font-bold"
+                  class="w-full px-3 py-2 bg-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono font-bold"
                 />
               </div>
 
@@ -180,16 +214,16 @@
                   type="number"
                   step="any"
                   placeholder="e.g. 50.00"
-                  class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono"
+                  class="w-full px-3 py-2 bg-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono"
                 />
               </div>
             </div>
           </div>
 
-          <!-- Inventory & Access Limits -->
-          <div class="p-4 rounded-xl bg-background/50 border border-primary-border space-y-3.5">
+          <!-- Inventory & Tier Eligibility -->
+          <div class="p-4 rounded-2xl bg-card-background border border-primary-border shadow-xs space-y-3.5">
             <span class="text-[10px] uppercase font-bold tracking-wider text-secondary-text flex items-center gap-1.5">
-              <ShieldCheck class="w-3.5 h-3.5 text-primary" />
+              <HugeIcon :icon="ShieldCheckIcon" :size="14" class="text-primary" />
               Inventory & Tier Eligibility
             </span>
 
@@ -201,7 +235,7 @@
                     v-model="form.stock"
                     type="number"
                     placeholder="Unlimited (Blank)"
-                    class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono"
+                    class="w-full px-3 py-2 bg-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono"
                   />
                   <p class="text-[10px] text-secondary-text">Decremented on redemption</p>
                 </div>
@@ -212,18 +246,26 @@
                     v-model="form.max_redemptions_per_user"
                     type="number"
                     placeholder="Unlimited (Blank)"
-                    class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono"
+                    class="w-full px-3 py-2 bg-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono"
                   />
                 </div>
               </div>
 
+              <!-- Minimum Tier (Enabled only for Program-Scoped products) -->
               <div class="space-y-1">
-                <label class="font-semibold text-primary-text">Minimum Tier Requirement</label>
+                <label class="font-semibold text-primary-text flex items-center justify-between">
+                  <span>Minimum Tier Requirement</span>
+                  <span v-if="!form.program_id" class="text-[10px] text-secondary-text">Requires Program Scope</span>
+                </label>
                 <BaseSelect
                   v-model="form.min_tier_id"
                   :options="tierOptions"
-                  placeholder="All Tiers (No Limit)"
+                  :disabled="!form.program_id"
+                  :placeholder="!form.program_id ? 'Select a program above to gate by tier' : 'All Tiers (No Limit)'"
                 />
+                <p v-if="!form.program_id" class="text-[10px] text-secondary-text">
+                  Public products cannot set a tier gate. Select a program above to restrict to specific tiers.
+                </p>
               </div>
 
               <div class="grid grid-cols-2 gap-3 pt-1">
@@ -232,7 +274,7 @@
                   <input
                     v-model.number="form.sort_order"
                     type="number"
-                    class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono"
+                    class="w-full px-3 py-2 bg-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono"
                   />
                 </div>
 
@@ -261,10 +303,10 @@
           <button
             type="submit"
             form="reward-form"
-            :disabled="store.actionLoading"
+            :disabled="store.actionLoading || !form.name.trim() || !form.points_required"
             class="flex-1 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white font-semibold transition cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2 text-xs shadow-xs"
           >
-            <Loader2 v-if="store.actionLoading" class="w-4 h-4 animate-spin" />
+            <HugeIcon v-if="store.actionLoading" :icon="Loading03Icon" :size="16" class="animate-spin" />
             <span>{{ isEditing ? 'Save Product' : 'Publish Product' }}</span>
           </button>
         </div>
@@ -276,23 +318,23 @@
 <script setup>
 import { ref, computed, reactive, watch } from "vue";
 import {
-  X,
-  Loader2,
-  ShoppingBag,
-  Package,
-  DollarSign,
-  ShieldCheck,
-  Plus,
-  Trash2,
-  Image as ImageIcon,
-} from "lucide-vue-next";
+  ShoppingBag01Icon,
+  Cancel01Icon,
+  PackageIcon,
+  Coins01Icon,
+  ShieldCheckIcon,
+  PlusSignIcon,
+  Delete02Icon,
+  Image01Icon,
+  Loading03Icon,
+} from "@hugeicons/core-free-icons";
 import { useLoyaltyStore } from "@/stores/loyalty/loyalty";
 
 const props = defineProps({
   open: { type: Boolean, default: false },
   reward: { type: Object, default: null },
   tiers: { type: Array, default: () => [] },
-  programId: { type: [Number, String], required: true },
+  programId: { type: [Number, String], default: null },
 });
 
 const emit = defineEmits(["close", "saved"]);
@@ -318,13 +360,25 @@ const fulfillmentTypeOptions = [
   { label: "External Partner API", value: "external" },
 ];
 
-const tierOptions = computed(() => [
-  { label: "All Tiers (No Limit)", value: null },
-  ...(props.tiers || []).map((t) => ({
-    label: `${t.name} (${t.code})`,
-    value: t.id,
+const programOptions = computed(() => [
+  { label: "All Programs (Public - Any Active User)", value: null },
+  ...(store.programsList || []).map((p) => ({
+    label: `${p.name || 'Program'} (${p.status?.toUpperCase() || 'ACTIVE'}) · #${p.id}`,
+    value: p.id,
   })),
 ]);
+
+const tierOptions = computed(() => {
+  if (!form.program_id) return [];
+  const list = props.tiers || [];
+  return [
+    { label: "All Tiers (No Limit)", value: null },
+    ...list.map((t) => ({
+      label: `${t.name} (${t.code})`,
+      value: t.id,
+    })),
+  ];
+});
 
 const statusOptions = [
   { label: "ACTIVE", value: "ACTIVE" },
@@ -332,6 +386,7 @@ const statusOptions = [
 ];
 
 const form = reactive({
+  program_id: null,
   name: "",
   description: "",
   product_type: "merchandise",
@@ -370,30 +425,59 @@ const removeImageUrl = (index) => {
 };
 
 watch(
+  () => form.program_id,
+  (newPid) => {
+    if (!newPid) {
+      form.min_tier_id = null;
+    }
+  }
+);
+
+watch(
   () => props.reward,
   (r) => {
     if (r) {
+      form.program_id = r.program_id ? Number(r.program_id) : null;
       form.name = r.name || r.title || "";
       form.description = r.description || "";
       form.product_type = r.product_type || r.type || "merchandise";
       form.fulfillment_type = r.fulfillment_type || "manual";
-      form.points_required = r.points_required !== null && r.points_required !== undefined
-        ? Number(r.points_required)
-        : (r.points_cost !== null && r.points_cost !== undefined ? Number(r.points_cost) : 500);
-      form.cash_value = r.cash_value !== null && r.cash_value !== undefined ? Number(r.cash_value) : "";
-      form.stock = r.stock !== null && r.stock !== undefined ? r.stock : (r.stock_qty !== null && r.stock_qty !== undefined ? r.stock_qty : "");
-      form.max_redemptions_per_user = r.max_redemptions_per_user !== null && r.max_redemptions_per_user !== undefined
-        ? r.max_redemptions_per_user
-        : (r.max_per_user !== null && r.max_per_user !== undefined ? r.max_per_user : "");
+      form.points_required =
+        r.points_required !== null && r.points_required !== undefined
+          ? Number(r.points_required)
+          : (r.points_cost !== null && r.points_cost !== undefined
+              ? Number(r.points_cost)
+              : 500);
+      form.cash_value =
+        r.cash_value !== null && r.cash_value !== undefined
+          ? Number(r.cash_value)
+          : "";
+      form.stock =
+        r.stock !== null && r.stock !== undefined
+          ? r.stock
+          : (r.stock_qty !== null && r.stock_qty !== undefined
+              ? r.stock_qty
+              : "");
+      form.max_redemptions_per_user =
+        r.max_redemptions_per_user !== null &&
+        r.max_redemptions_per_user !== undefined
+          ? r.max_redemptions_per_user
+          : (r.max_per_user !== null && r.max_per_user !== undefined
+              ? r.max_per_user
+              : "");
       form.min_tier_id = r.min_tier_id ?? null;
       form.sort_order = r.sort_order ?? 1;
       form.status = r.status || (r.is_active === false ? "INACTIVE" : "ACTIVE");
 
-      const urls = Array.isArray(r.image_urls) && r.image_urls.length > 0
-        ? r.image_urls
-        : (r.image_url ? [r.image_url] : []);
+      const urls =
+        Array.isArray(r.image_urls) && r.image_urls.length > 0
+          ? r.image_urls
+          : r.image_url
+            ? [r.image_url]
+            : [];
       imageUrlsList.value = [...urls].slice(0, 4);
     } else {
+      form.program_id = props.programId ? Number(props.programId) : null;
       form.name = "";
       form.description = "";
       form.product_type = "merchandise";
@@ -412,12 +496,21 @@ watch(
 );
 
 const handleSubmit = async () => {
-  const validUrls = imageUrlsList.value.map((u) => u.trim()).filter(Boolean).slice(0, 4);
+  const validUrls = imageUrlsList.value
+    .map((u) => u.trim())
+    .filter(Boolean)
+    .slice(0, 4);
   const primaryUrl = validUrls[0] || null;
 
   if (isEditing.value) {
     const r = props.reward;
     const patchPayload = {};
+
+    const newProgramId = form.program_id ? Number(form.program_id) : null;
+    const oldProgramId = r.program_id ? Number(r.program_id) : null;
+    if (newProgramId !== oldProgramId) {
+      patchPayload.program_id = newProgramId;
+    }
 
     const newName = form.name.trim();
     const oldName = r.name || r.title || "";
@@ -448,34 +541,60 @@ const handleSubmit = async () => {
       patchPayload.points_cost = newPoints;
     }
 
-    const newCash = form.cash_value === "" || form.cash_value === null ? null : Number(form.cash_value);
-    const oldCash = r.cash_value === "" || r.cash_value === null || r.cash_value === undefined ? null : Number(r.cash_value);
+    const newCash =
+      form.cash_value === "" || form.cash_value === null
+        ? null
+        : Number(form.cash_value);
+    const oldCash =
+      r.cash_value === "" ||
+      r.cash_value === null ||
+      r.cash_value === undefined
+        ? null
+        : Number(r.cash_value);
     if (newCash !== oldCash) patchPayload.cash_value = newCash;
 
-    const newStock = form.stock === "" || form.stock === null ? null : Number(form.stock);
-    const oldStock = (r.stock === "" || r.stock === null || r.stock === undefined) && (r.stock_qty === "" || r.stock_qty === null || r.stock_qty === undefined)
-      ? null
-      : Number(r.stock ?? r.stock_qty);
+    const newStock =
+      form.stock === "" || form.stock === null ? null : Number(form.stock);
+    const oldStock =
+      (r.stock === "" || r.stock === null || r.stock === undefined) &&
+      (r.stock_qty === "" || r.stock_qty === null || r.stock_qty === undefined)
+        ? null
+        : Number(r.stock ?? r.stock_qty);
     if (newStock !== oldStock) {
       patchPayload.stock = newStock;
       patchPayload.stock_qty = newStock;
     }
 
-    const newMaxPerUser = form.max_redemptions_per_user === "" || form.max_redemptions_per_user === null ? null : Number(form.max_redemptions_per_user);
-    const oldMaxPerUser = (r.max_redemptions_per_user === "" || r.max_redemptions_per_user === null || r.max_redemptions_per_user === undefined) && (r.max_per_user === "" || r.max_per_user === null || r.max_per_user === undefined)
-      ? null
-      : Number(r.max_redemptions_per_user ?? r.max_per_user);
+    const newMaxPerUser =
+      form.max_redemptions_per_user === "" ||
+      form.max_redemptions_per_user === null
+        ? null
+        : Number(form.max_redemptions_per_user);
+    const oldMaxPerUser =
+      (r.max_redemptions_per_user === "" ||
+        r.max_redemptions_per_user === null ||
+        r.max_redemptions_per_user === undefined) &&
+      (r.max_per_user === "" ||
+        r.max_per_user === null ||
+        r.max_per_user === undefined)
+        ? null
+        : Number(r.max_redemptions_per_user ?? r.max_per_user);
     if (newMaxPerUser !== oldMaxPerUser) {
       patchPayload.max_redemptions_per_user = newMaxPerUser;
       patchPayload.max_per_user = newMaxPerUser;
     }
 
-    const newMinTier = form.min_tier_id ? Number(form.min_tier_id) : null;
+    const newMinTier =
+      form.program_id && form.min_tier_id ? Number(form.min_tier_id) : null;
     const oldMinTier = r.min_tier_id ? Number(r.min_tier_id) : null;
     if (newMinTier !== oldMinTier) patchPayload.min_tier_id = newMinTier;
 
     // Check images diff
-    const oldUrls = Array.isArray(r.image_urls) ? r.image_urls : (r.image_url ? [r.image_url] : []);
+    const oldUrls = Array.isArray(r.image_urls)
+      ? r.image_urls
+      : r.image_url
+        ? [r.image_url]
+        : [];
     if (JSON.stringify(validUrls) !== JSON.stringify(oldUrls)) {
       patchPayload.image_urls = validUrls;
       patchPayload.image_url = primaryUrl;
@@ -485,7 +604,8 @@ const handleSubmit = async () => {
       patchPayload.sort_order = Number(form.sort_order);
     }
 
-    const oldStatus = r.status || (r.is_active === false ? "INACTIVE" : "ACTIVE");
+    const oldStatus =
+      r.status || (r.is_active === false ? "INACTIVE" : "ACTIVE");
     if (form.status !== oldStatus) {
       patchPayload.status = form.status;
       patchPayload.is_active = form.status === "ACTIVE";
@@ -496,10 +616,14 @@ const handleSubmit = async () => {
       return;
     }
 
-    await store.updateStoreProduct(props.reward.id, patchPayload, props.programId);
+    await store.updateStoreProduct(
+      props.reward.id,
+      patchPayload,
+      props.programId,
+    );
   } else {
     const payload = {
-      program_id: Number(props.programId),
+      program_id: form.program_id ? Number(form.program_id) : null,
       name: form.name.trim(),
       title: form.name.trim(),
       description: form.description?.trim() || null,
@@ -508,19 +632,33 @@ const handleSubmit = async () => {
       fulfillment_type: form.fulfillment_type,
       points_required: Number(form.points_required),
       points_cost: Number(form.points_required),
-      cash_value: form.cash_value === "" || form.cash_value === null ? null : Number(form.cash_value),
-      stock: form.stock === "" || form.stock === null ? null : Number(form.stock),
-      stock_qty: form.stock === "" || form.stock === null ? null : Number(form.stock),
-      max_redemptions_per_user: form.max_redemptions_per_user === "" || form.max_redemptions_per_user === null ? null : Number(form.max_redemptions_per_user),
-      max_per_user: form.max_redemptions_per_user === "" || form.max_redemptions_per_user === null ? null : Number(form.max_redemptions_per_user),
-      min_tier_id: form.min_tier_id ? Number(form.min_tier_id) : null,
+      cash_value:
+        form.cash_value === "" || form.cash_value === null
+          ? null
+          : Number(form.cash_value),
+      stock:
+        form.stock === "" || form.stock === null ? null : Number(form.stock),
+      stock_qty:
+        form.stock === "" || form.stock === null ? null : Number(form.stock),
+      max_redemptions_per_user:
+        form.max_redemptions_per_user === "" ||
+        form.max_redemptions_per_user === null
+          ? null
+          : Number(form.max_redemptions_per_user),
+      max_per_user:
+        form.max_redemptions_per_user === "" ||
+        form.max_redemptions_per_user === null
+          ? null
+          : Number(form.max_redemptions_per_user),
+      min_tier_id:
+        form.program_id && form.min_tier_id ? Number(form.min_tier_id) : null,
       image_urls: validUrls,
       image_url: primaryUrl,
       sort_order: Number(form.sort_order),
       status: form.status,
-      is_active: form.status === "ACTIVE",
     };
-    await store.createStoreProduct(payload);
+
+    await store.createStoreProduct(payload, props.programId);
   }
 
   emit("saved");

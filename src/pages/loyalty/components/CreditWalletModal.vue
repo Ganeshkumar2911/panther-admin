@@ -18,12 +18,12 @@
           <div class="px-5 py-4 border-b border-primary-border flex items-center justify-between bg-background/50">
             <div class="flex items-center gap-2.5">
               <div class="w-8 h-8 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
-                <Coins class="w-4 h-4" />
+                <HugeIcon :icon="Coins01Icon" :size="18" />
               </div>
               <div>
-                <h3 class="font-bold text-primary-text text-sm">Credit Loyalty Points</h3>
+                <h3 class="font-bold text-primary-text text-sm">Adjust Loyalty Wallet</h3>
                 <p class="text-[11px] text-secondary-text">
-                  Manual wallet credit or promotional deposit
+                  Manual wallet deposit, promo credit, or balance withdrawal
                 </p>
               </div>
             </div>
@@ -32,7 +32,7 @@
               class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-background text-secondary-text hover:text-primary-text transition cursor-pointer"
               @click="$emit('close')"
             >
-              <X class="w-4 h-4" />
+              <HugeIcon :icon="Cancel01Icon" :size="18" />
             </button>
           </div>
 
@@ -67,38 +67,40 @@
                 <button
                   type="button"
                   class="p-2.5 rounded-xl border text-left transition cursor-pointer flex items-center gap-2.5"
-                  :class="form.transaction_type === 'credit'
+                  :class="form.transaction_type === 'deposit' || form.transaction_type === 'credit'
                     ? 'bg-primary/10 border-primary text-primary font-semibold'
                     : 'bg-background border-primary-border text-secondary-text hover:text-primary-text'"
-                  @click="form.transaction_type = 'credit'"
+                  @click="form.transaction_type = 'deposit'"
                 >
-                  <div class="w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0"
-                    :class="form.transaction_type === 'credit' ? 'border-primary' : 'border-secondary-text'"
+                  <div
+                    class="w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0"
+                    :class="form.transaction_type === 'deposit' || form.transaction_type === 'credit' ? 'border-primary' : 'border-secondary-text'"
                   >
-                    <div v-if="form.transaction_type === 'credit'" class="w-1.5 h-1.5 rounded-full bg-primary" />
+                    <div v-if="form.transaction_type === 'deposit' || form.transaction_type === 'credit'" class="w-1.5 h-1.5 rounded-full bg-primary" />
                   </div>
                   <div>
-                    <p class="text-xs">Admin Credit</p>
-                    <p class="text-[10px] opacity-75">Support comp / manual adjustment</p>
+                    <p class="text-xs">Admin Deposit (+)</p>
+                    <p class="text-[10px] opacity-75">Comp / bonus / manual grant</p>
                   </div>
                 </button>
 
                 <button
                   type="button"
                   class="p-2.5 rounded-xl border text-left transition cursor-pointer flex items-center gap-2.5"
-                  :class="form.transaction_type === 'deposit'
-                    ? 'bg-primary/10 border-primary text-primary font-semibold'
+                  :class="form.transaction_type === 'withdrawal'
+                    ? 'bg-rose-500/10 border-rose-500 text-rose-500 font-semibold'
                     : 'bg-background border-primary-border text-secondary-text hover:text-primary-text'"
-                  @click="form.transaction_type = 'deposit'"
+                  @click="form.transaction_type = 'withdrawal'"
                 >
-                  <div class="w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0"
-                    :class="form.transaction_type === 'deposit' ? 'border-primary' : 'border-secondary-text'"
+                  <div
+                    class="w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0"
+                    :class="form.transaction_type === 'withdrawal' ? 'border-rose-500' : 'border-secondary-text'"
                   >
-                    <div v-if="form.transaction_type === 'deposit'" class="w-1.5 h-1.5 rounded-full bg-primary" />
+                    <div v-if="form.transaction_type === 'withdrawal'" class="w-1.5 h-1.5 rounded-full bg-rose-500" />
                   </div>
                   <div>
-                    <p class="text-xs">Admin Deposit</p>
-                    <p class="text-[10px] opacity-75">Campaign reward / promotion grant</p>
+                    <p class="text-xs">Admin Withdrawal (-)</p>
+                    <p class="text-[10px] opacity-75">Clawback / balance deduction</p>
                   </div>
                 </button>
               </div>
@@ -124,7 +126,7 @@
                 </span>
               </div>
               <p class="text-[10px] text-secondary-text">
-                Credited points are spendable in the central wallet and follow standard FIFO consumption.
+                {{ form.transaction_type === 'withdrawal' ? 'Points will be deducted from active lots (FIFO order).' : 'Credited points become available immediately in the central wallet.' }}
               </p>
             </div>
 
@@ -137,13 +139,13 @@
                 v-model="form.reason"
                 rows="2"
                 required
-                placeholder="e.g. Comp for support ticket #123, VIP bonus grant..."
+                placeholder="e.g. Comp for support ticket #123, VIP bonus grant, clawback..."
                 class="w-full px-3 py-2 bg-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary text-xs resize-none"
               />
             </div>
 
-            <!-- Optional Custom Expiration -->
-            <div class="space-y-1">
+            <!-- Optional Custom Expiration (Deposit only) -->
+            <div v-if="form.transaction_type !== 'withdrawal'" class="space-y-1">
               <label class="font-semibold text-primary-text">
                 Custom Expiration Date (Optional)
               </label>
@@ -171,10 +173,14 @@
               type="submit"
               form="credit-wallet-form"
               :disabled="store.actionLoading || !form.points || Number(form.points) <= 0 || !form.reason.trim()"
-              class="px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-white font-semibold transition cursor-pointer disabled:opacity-50 flex items-center gap-1.5 text-xs shadow-xs"
+              class="px-4 py-2 rounded-xl font-semibold transition cursor-pointer disabled:opacity-50 flex items-center gap-1.5 text-xs shadow-xs text-white"
+              :class="form.transaction_type === 'withdrawal' ? 'bg-rose-500 hover:bg-rose-600' : 'bg-primary hover:bg-primary-hover'"
             >
-              <Loader2 v-if="store.actionLoading" class="w-3.5 h-3.5 animate-spin" />
-              <span>Credit {{ form.points ? Number(form.points).toLocaleString() : '' }} Points</span>
+              <HugeIcon v-if="store.actionLoading" :icon="Loading03Icon" :size="14" class="animate-spin" />
+              <span>
+                {{ form.transaction_type === 'withdrawal' ? 'Withdraw' : 'Deposit' }}
+                {{ form.points ? Number(form.points).toLocaleString() : '' }} Points
+              </span>
             </button>
           </div>
         </div>
@@ -185,7 +191,11 @@
 
 <script setup>
 import { reactive, watch } from "vue";
-import { X, Coins, Loader2 } from "lucide-vue-next";
+import {
+  Coins01Icon,
+  Cancel01Icon,
+  Loading03Icon,
+} from "@hugeicons/core-free-icons";
 import { useLoyaltyStore } from "@/stores/loyalty/loyalty";
 
 const props = defineProps({
@@ -200,7 +210,7 @@ const emit = defineEmits(["close", "success"]);
 const store = useLoyaltyStore();
 
 const form = reactive({
-  transaction_type: "credit",
+  transaction_type: "deposit",
   points: "",
   reason: "",
   expires_at: null,
@@ -210,7 +220,7 @@ watch(
   () => props.open,
   (val) => {
     if (val) {
-      form.transaction_type = "credit";
+      form.transaction_type = "deposit";
       form.points = "";
       form.reason = "";
       form.expires_at = null;
@@ -238,7 +248,8 @@ const handleSubmit = async () => {
     }
   }
 
-  if (form.expires_at) {
+  // Only include expires_at for deposits
+  if (form.transaction_type !== "withdrawal" && form.expires_at) {
     payload.expires_at = form.expires_at;
   }
 

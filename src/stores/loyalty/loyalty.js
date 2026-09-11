@@ -918,13 +918,21 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
 
     const successHandler = (res) => {
       const typeLabel =
-        payload.transaction_type === "deposit" ? "deposited" : "credited";
+        payload.transaction_type === "withdrawal"
+          ? "withdrawn"
+          : payload.transaction_type === "deposit"
+            ? "deposited"
+            : "credited";
       snackbar.show(
         res?.message || `Loyalty points ${typeLabel} successfully`,
         "success",
       );
       if (res?.data?.available_points !== undefined) {
-        if (enrollmentDetail.value && (enrollmentDetail.value.id === payload.enrollment_id || enrollmentDetail.value.user_id === payload.user_id)) {
+        if (
+          enrollmentDetail.value &&
+          (enrollmentDetail.value.id === payload.enrollment_id ||
+            enrollmentDetail.value.user_id === payload.user_id)
+        ) {
           enrollmentDetail.value.available_points = res.data.available_points;
         }
       }
@@ -932,7 +940,12 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
     };
 
     const failureHandler = (err) => {
-      snackbar.show(err?.message || "Failed to credit loyalty points", "error");
+      const typeLabel =
+        payload.transaction_type === "withdrawal" ? "withdraw" : "adjust";
+      snackbar.show(
+        err?.message || `Failed to ${typeLabel} loyalty points`,
+        "error",
+      );
     };
 
     const finallyHandler = () => {
