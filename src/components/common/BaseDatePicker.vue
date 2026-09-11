@@ -99,6 +99,10 @@ const props = defineProps({
     type: String,
     default: "bottom", // 'bottom' | 'top'
   },
+  position: {
+    type: String,
+    default: null, // alias for placement ('bottom' | 'top')
+  },
   autoApply: {
     type: Boolean,
     default: false,
@@ -543,7 +547,7 @@ const dropdownBgClass = computed(() => {
 function updatePosition() {
   if (!triggerRef.value) return;
   const rect = triggerRef.value.getBoundingClientRect();
-  const isTop = props.placement === "top";
+  const isTop = props.placement === "top" || props.position === "top";
 
   const dropdownWidth = effectiveShowPresets.value ? 520 : 340;
   let left = rect.left;

@@ -1,8 +1,8 @@
 <template>
   <div class="space-y-6">
-    <!-- Header Banner & Program Switcher -->
+    <!-- Header Banner & Program Switcher (Classic View Mode) -->
     <div
-      v-if="program"
+      v-if="program && viewMode === 'classic'"
       class="relative overflow-hidden bg-card-background border border-primary-border rounded-2xl p-6 flex flex-wrap items-center justify-between gap-4 group shadow-2xs"
     >
       <div class="absolute inset-0 bg-linear-to-r from-primary/10 via-transparent to-transparent pointer-events-none" />
@@ -49,36 +49,289 @@
         </p>
       </div>
 
-      <!-- Header Action Buttons -->
-      <div class="relative z-10 flex items-center gap-2.5 ml-auto">
-        <button
-          v-if="hasPermission('loyalty.update')"
-          type="button"
-          class="flex items-center gap-1.5 px-3.5 py-2.5 rounded-lg border border-primary-border bg-card-background hover:bg-background text-primary-text text-xs font-semibold transition cursor-pointer shadow-2xs"
-          @click="isCreateDrawerOpen = true"
-        >
-          <Plus class="w-3.5 h-3.5 text-primary" />
-          <span>New Program</span>
-        </button>
+      <!-- Header Action Buttons & View Controls (Clean Multi-Row Layout) -->
+      <div class="relative z-10 flex flex-col sm:items-end justify-between gap-3 shrink-0 ml-auto">
+        <!-- Top Row: View Mode Segmented Switcher & Refresh Button -->
+        <div class="flex items-center gap-2">
+          <!-- View Mode Segmented Control -->
+          <div class="inline-flex items-center p-0.5 rounded-lg border border-primary-border bg-background/80">
+            <button
+              type="button"
+              class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition cursor-pointer"
+              :class="viewMode === 'classic' ? 'bg-primary text-white shadow-2xs font-semibold' : 'text-secondary-text hover:text-primary-text'"
+              title="Classic Banner Layout"
+              @click="viewMode = 'classic'"
+            >
+              <LayoutList class="w-3.5 h-3.5" />
+              <span>Classic</span>
+            </button>
+            <button
+              type="button"
+              class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition cursor-pointer"
+              :class="viewMode === 'portal' ? 'bg-primary text-white shadow-2xs font-semibold' : 'text-secondary-text hover:text-primary-text'"
+              title="Portal Split Hero Layout"
+              @click="viewMode = 'portal'"
+            >
+              <LayoutPanelLeft class="w-3.5 h-3.5" />
+              <span>Portal View</span>
+            </button>
+          </div>
 
-        <button
-          v-if="hasPermission('loyalty.update')"
-          type="button"
-          class="flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all active:scale-95 cursor-pointer shadow-2xs"
-          @click="handleOpenEdit('all')"
-        >
-          <SlidersHorizontal class="w-3.5 h-3.5" />
-          <span>Edit Program Rules</span>
-        </button>
+          <button
+            type="button"
+            class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-primary-border bg-card-background hover:bg-background text-secondary-text hover:text-primary-text text-xs font-medium transition cursor-pointer shadow-2xs"
+            title="Refresh Program"
+            @click="handleRefresh"
+          >
+            <RefreshCw class="w-3.5 h-3.5 text-primary" :class="store.loading ? 'animate-spin' : ''" />
+            <span class="hidden sm:inline">Refresh</span>
+          </button>
+        </div>
 
-        <button
-          type="button"
-          class="flex items-center gap-1.5 px-3 py-2.5 rounded-lg border border-primary-border bg-card-background hover:bg-background text-primary-text text-xs font-semibold transition cursor-pointer"
-          @click="handleRefresh"
+        <!-- Bottom Row: Primary Management Action Buttons -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <button
+            v-if="hasPermission('loyalty.update')"
+            type="button"
+            class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-primary-border bg-card-background hover:bg-background text-primary-text text-xs font-semibold transition cursor-pointer shadow-2xs"
+            @click="isCreateDrawerOpen = true"
+          >
+            <Plus class="w-3.5 h-3.5 text-primary" />
+            <span>New Program</span>
+          </button>
+
+          <button
+            v-if="hasPermission('loyalty.update')"
+            type="button"
+            class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all active:scale-95 cursor-pointer shadow-2xs"
+            @click="handleOpenEdit('all')"
+          >
+            <SlidersHorizontal class="w-3.5 h-3.5" />
+            <span>Edit Program Rules</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Portal Hero View Mode (Split Media & Program Info Card) -->
+    <div
+      v-if="program && viewMode === 'portal'"
+      class="bg-card-background border border-primary-border rounded-2xl overflow-hidden shadow-xs"
+    >
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-0">
+        <!-- Hero Media Player / Carousel (Videos & Images) with auto-slide & pause on hover -->
+        <div
+          class="lg:col-span-6 relative w-full h-64 sm:h-80 lg:h-full min-h-[260px] lg:min-h-[300px] bg-background border-b lg:border-b-0 lg:border-r border-primary-border overflow-hidden select-none group/carousel flex items-center justify-center"
+          @mouseenter="isHoveringCarousel = true"
+          @mouseleave="isHoveringCarousel = false"
         >
-          <RefreshCw class="w-3.5 h-3.5 text-primary" :class="store.loading ? 'animate-spin' : ''" />
-          <span>Refresh</span>
-        </button>
+          <template v-if="bannerImages.length > 0">
+            <!-- Banner Media Transition (Video or Image) -->
+            <Transition name="carousel-fade" mode="out-in">
+              <video
+                v-if="isVideoUrl(bannerImages[currentImageIndex])"
+                :key="`portal-video-${currentImageIndex}`"
+                :src="bannerImages[currentImageIndex]"
+                autoplay
+                :loop="bannerImages.length === 1"
+                :muted="isVideoMuted"
+                playsinline
+                class="w-full h-full object-cover cursor-pointer"
+                @click="isPreviewModalOpen = true"
+                @ended="handleVideoEnded"
+              />
+              <img
+                v-else
+                :key="`portal-img-${currentImageIndex}`"
+                :src="bannerImages[currentImageIndex]"
+                alt="Program Banner"
+                class="w-full h-full object-cover cursor-pointer transition-transform duration-700"
+                @click="isPreviewModalOpen = true"
+                @error="handleImageError"
+              />
+            </Transition>
+
+            <!-- Subtle Gradient Overlays -->
+            <div class="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />
+
+            <!-- Top Right Overlay Controls -->
+            <div class="absolute top-3 right-3 flex items-center gap-2 z-10">
+              <!-- Audio Toggle Button for Video -->
+              <button
+                v-if="isVideoUrl(bannerImages[currentImageIndex])"
+                type="button"
+                class="w-8 h-8 rounded-full bg-black/60 backdrop-blur-md text-white/90 hover:text-white border border-white/10 flex items-center justify-center transition cursor-pointer hover:scale-105 shadow-xs"
+                :title="isVideoMuted ? 'Unmute Audio' : 'Mute Audio'"
+                @click.stop="toggleVideoAudio"
+              >
+                <VolumeX v-if="isVideoMuted" class="w-3.5 h-3.5 text-white/80" />
+                <Volume2 v-else class="w-3.5 h-3.5 text-primary-green" />
+              </button>
+
+              <button
+                type="button"
+                class="w-8 h-8 rounded-full bg-black/60 backdrop-blur-md text-white/90 hover:text-white border border-white/10 flex items-center justify-center transition cursor-pointer hover:scale-105 shadow-xs"
+                title="Expand Banner"
+                @click="isPreviewModalOpen = true"
+              >
+                <Maximize2 class="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            <!-- Left / Right Navigation Buttons (Multiple Banners) -->
+            <div
+              v-if="bannerImages.length > 1"
+              class="absolute inset-y-0 inset-x-3 flex items-center justify-between pointer-events-none z-10 opacity-0 group-hover/carousel:opacity-100 transition-opacity"
+            >
+              <button
+                type="button"
+                class="w-8 h-8 rounded-full bg-black/60 backdrop-blur-md text-white border border-white/10 flex items-center justify-center transition hover:bg-black/90 cursor-pointer pointer-events-auto hover:scale-105 shadow-md"
+                title="Previous Banner"
+                @click.stop="prevImage"
+              >
+                <ChevronLeft class="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                class="w-8 h-8 rounded-full bg-black/60 backdrop-blur-md text-white border border-white/10 flex items-center justify-center transition hover:bg-black/90 cursor-pointer pointer-events-auto hover:scale-105 shadow-md"
+                title="Next Banner"
+                @click.stop="nextImage"
+              >
+                <ChevronRight class="w-4 h-4" />
+              </button>
+            </div>
+
+            <!-- Bottom Pagination Dots -->
+            <div
+              v-if="bannerImages.length > 1"
+              class="absolute bottom-3 inset-x-0 flex items-center justify-center gap-1.5 z-10"
+            >
+              <button
+                v-for="(_, idx) in bannerImages"
+                :key="idx"
+                type="button"
+                class="h-1.5 rounded-full transition-all cursor-pointer"
+                :class="idx === currentImageIndex ? 'w-6 bg-primary' : 'w-2 bg-white/50 hover:bg-white/80'"
+                @click.stop="goToImage(idx)"
+              />
+            </div>
+          </template>
+
+          <!-- Fallback when no banners exist -->
+          <div v-else class="w-full h-full flex flex-col items-center justify-center p-8 text-center space-y-2 bg-card-background">
+            <div class="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+              <Sparkles class="w-6 h-6" />
+            </div>
+            <p class="text-xs font-semibold text-primary-text">Panther Loyalty Media</p>
+            <p class="text-[11px] text-secondary-text max-w-xs leading-relaxed">
+              No media banners uploaded yet. Upload images or videos in program settings.
+            </p>
+          </div>
+        </div>
+
+        <!-- Hero Content Details -->
+        <div class="lg:col-span-6 p-6 flex flex-col justify-between space-y-5 bg-card-background">
+          <div class="space-y-3.5">
+            <!-- Badges & Action Bar -->
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <div class="flex items-center gap-2 flex-wrap">
+                <!-- Program Switcher Dropdown if multiple -->
+                <div v-if="programsList.length > 1" class="w-44">
+                  <BaseSelect
+                    :modelValue="program.id"
+                    :options="programSelectOptions"
+                    placeholder="Select Program..."
+                    variant="surface"
+                    @update:modelValue="handleProgramSwitch"
+                  />
+                </div>
+                <span v-else class="px-2.5 py-0.5 text-[10px] font-bold rounded-md uppercase tracking-wider bg-primary/10 text-primary border border-primary/20 font-mono">
+                  {{ program.code || 'PROGRAM' }}
+                </span>
+
+                <span
+                  class="text-[10px] font-bold uppercase font-mono px-2.5 py-0.5 rounded-full border flex items-center gap-1.5"
+                  :class="program.status === 'active' ? 'bg-primary-green/10 text-primary-green border-primary-green/20' : 'bg-amber-500/10 text-amber-500 border-amber-500/20'"
+                >
+                  <span class="w-1.5 h-1.5 rounded-full" :class="program.status === 'active' ? 'bg-primary-green animate-ping' : 'bg-amber-500'" />
+                  <span>{{ program.status }}</span>
+                </span>
+              </div>
+
+              <!-- Top Right Actions & View Switcher -->
+              <div class="flex items-center gap-2 flex-wrap">
+                <!-- View Mode Segmented Control -->
+                <div class="inline-flex items-center p-0.5 rounded-lg border border-primary-border bg-background">
+                  <button
+                    type="button"
+                    class="flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium transition cursor-pointer"
+                    :class="viewMode === 'classic' ? 'bg-primary text-white shadow-2xs font-semibold' : 'text-secondary-text hover:text-primary-text'"
+                    title="Classic Layout"
+                    @click="viewMode = 'classic'"
+                  >
+                    <LayoutList class="w-3 h-3" />
+                    <span>Classic</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium transition cursor-pointer"
+                    :class="viewMode === 'portal' ? 'bg-primary text-white shadow-2xs font-semibold' : 'text-secondary-text hover:text-primary-text'"
+                    title="Portal Split Hero Layout"
+                    @click="viewMode = 'portal'"
+                  >
+                    <LayoutPanelLeft class="w-3 h-3" />
+                    <span>Portal</span>
+                  </button>
+                </div>
+
+                <button
+                  v-if="hasPermission('loyalty.update')"
+                  type="button"
+                  class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all active:scale-95 cursor-pointer shadow-2xs"
+                  @click="handleOpenEdit('all')"
+                >
+                  <SlidersHorizontal class="w-3.5 h-3.5" />
+                  <span>Edit</span>
+                </button>
+
+                <button
+                  type="button"
+                  class="w-7 h-7 flex items-center justify-center rounded-lg border border-primary-border bg-card-background hover:bg-background text-secondary-text hover:text-primary-text transition cursor-pointer"
+                  title="Refresh Program"
+                  @click="handleRefresh"
+                >
+                  <RefreshCw class="w-3 h-3 text-primary" :class="store.loading ? 'animate-spin' : ''" />
+                </button>
+              </div>
+            </div>
+
+            <!-- Program Title & Description -->
+            <div class="space-y-1.5">
+              <h2 class="text-xl font-bold text-primary-text tracking-tight">
+                {{ program.name || 'PantherTrade Loyalty Program' }}
+              </h2>
+              <p class="text-xs text-secondary-text leading-relaxed">
+                {{ program.description || 'Point accumulation engine converting live trading volume into reward stages, tier multipliers, and store product claims.' }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Scope & Date Validity Footer -->
+          <div class="pt-3 border-t border-primary-border/60 flex flex-wrap items-center justify-between gap-3 text-xs text-secondary-text">
+            <div class="flex items-center gap-4 flex-wrap">
+              <div class="flex items-center gap-1.5">
+                <Layers class="w-3.5 h-3.5 text-primary" />
+                <span>Scope: {{ program.account_scope === 'all_eligible_accounts' ? 'All Eligible Accounts' : '1 Primary Account / User' }}</span>
+              </div>
+              <div v-if="program.start_at || program.end_at" class="flex items-center gap-1.5">
+                <Calendar class="w-3.5 h-3.5 text-secondary-text" />
+                <span>Valid: {{ program.start_at ? formatDate(program.start_at) : 'Open' }} – {{ program.end_at ? formatDate(program.end_at) : 'Ongoing' }}</span>
+              </div>
+            </div>
+
+            <span class="text-[10px] font-mono text-secondary-text">Config v{{ program.config_version || 1 }}</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -171,9 +424,9 @@
 
     <!-- Main Content -->
     <div v-else class="space-y-6">
-      <!-- Clean Program Banner Media Carousel -->
+      <!-- Clean Program Banner Media Carousel (Classic View Mode only) -->
       <div
-        v-if="bannerImages.length > 0"
+        v-if="bannerImages.length > 0 && viewMode === 'classic'"
         class="relative w-full h-44 sm:h-56 md:h-64 lg:h-72 rounded-2xl overflow-hidden border border-primary-border bg-card-background group/carousel shadow-xs select-none"
         @mouseenter="isHoveringCarousel = true"
         @mouseleave="isHoveringCarousel = false"
@@ -185,11 +438,12 @@
             :key="`video-${currentImageIndex}`"
             :src="bannerImages[currentImageIndex]"
             autoplay
-            loop
-            muted
+            :loop="bannerImages.length === 1"
+            :muted="isVideoMuted"
             playsinline
             class="w-full h-full object-cover cursor-pointer"
             @click="isPreviewModalOpen = true"
+            @ended="handleVideoEnded"
           />
           <img
             v-else
@@ -207,9 +461,21 @@
 
         <!-- Top Right Actions & Counter -->
         <div class="absolute top-3 right-3 flex items-center gap-2 z-10">
+          <!-- Audio Toggle Button for Video -->
+          <button
+            v-if="isVideoUrl(bannerImages[currentImageIndex])"
+            type="button"
+            class="w-8 h-8 rounded-full bg-black/60 backdrop-blur-md text-white/90 hover:text-white border border-white/10 flex items-center justify-center transition cursor-pointer hover:scale-105 shadow-xs"
+            :title="isVideoMuted ? 'Unmute Audio' : 'Mute Audio'"
+            @click.stop="toggleVideoAudio"
+          >
+            <VolumeX v-if="isVideoMuted" class="w-3.5 h-3.5 text-white/80" />
+            <Volume2 v-else class="w-3.5 h-3.5 text-primary-green" />
+          </button>
+
           <button
             type="button"
-            class="w-8 h-8 rounded-lg bg-black/60 backdrop-blur-md text-white/90 hover:text-white border border-white/10 flex items-center justify-center transition cursor-pointer hover:scale-105 shadow-xs"
+            class="w-8 h-8 rounded-full bg-black/60 backdrop-blur-md text-white/90 hover:text-white border border-white/10 flex items-center justify-center transition cursor-pointer hover:scale-105 shadow-xs"
             title="Expand Banner"
             @click="isPreviewModalOpen = true"
           >
@@ -367,6 +633,20 @@
               :class="program.carry_over_enrollments ? 'bg-primary-green/10 text-primary-green border border-primary-green/20' : 'bg-background text-secondary-text border border-primary-border'"
             >
               {{ program.carry_over_enrollments ? 'Enabled' : 'Disabled' }}
+            </span>
+          </div>
+
+          <!-- General Wallet Transfer Status -->
+          <div class="flex items-center justify-between p-3 bg-background/40 border border-primary-border rounded-lg text-xs">
+            <div>
+              <p class="font-medium text-primary-text">General Wallet Transfer</p>
+              <p class="text-[10px] text-secondary-text">Convert points to any eligible client trading account</p>
+            </div>
+            <span
+              class="px-2 py-0.5 rounded text-[10px] font-medium uppercase"
+              :class="program.allow_general_wallet_transfer ? 'bg-primary-green/10 text-primary-green border border-primary-green/20' : 'bg-background text-secondary-text border border-primary-border'"
+            >
+              {{ program.allow_general_wallet_transfer ? 'Enabled' : 'Disabled' }}
             </span>
           </div>
         </div>
@@ -649,6 +929,11 @@ import {
   X,
   Image as ImageIcon,
   Pencil,
+  Volume2,
+  VolumeX,
+  LayoutList,
+  LayoutPanelLeft,
+  Layers,
 } from "lucide-vue-next";
 import { useLoyaltyStore } from "@/stores/loyalty/loyalty";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
@@ -660,6 +945,7 @@ import CreateProgramDrawer from "../components/CreateProgramDrawer.vue";
 const store = useLoyaltyStore();
 const { hasPermission } = usePermissionCheck();
 
+const viewMode = ref("classic");
 const isEditDrawerOpen = ref(false);
 const isCreateDrawerOpen = ref(false);
 const targetSection = ref("all");
@@ -673,11 +959,16 @@ const program = computed(() => store.program);
 const eligibilityRules = computed(() => program.value?.eligibility_rules || program.value?.eligibility || {});
 const programsList = computed(() => store.programsList || []);
 
-// Banner Images Carousel Logic
+// Banner Images & Video Carousel Logic
 const currentImageIndex = ref(0);
 const isPreviewModalOpen = ref(false);
 const isHoveringCarousel = ref(false);
+const isVideoMuted = ref(true);
 let autoplayTimer = null;
+
+const toggleVideoAudio = () => {
+  isVideoMuted.value = !isVideoMuted.value;
+};
 
 const bannerImages = computed(() => {
   if (!program.value) return [];
@@ -730,9 +1021,29 @@ const handleImageError = (e) => {
   }
 };
 
+const isCurrentMediaVideo = computed(() => {
+  const currentUrl = bannerImages.value[currentImageIndex.value];
+  return isVideoUrl(currentUrl);
+});
+
+const handleVideoEnded = (e) => {
+  if (bannerImages.value.length > 1) {
+    if (!isHoveringCarousel.value && !isPreviewModalOpen.value) {
+      nextImage();
+    }
+  } else {
+    // Loop single video continuously
+    if (e?.target) {
+      e.target.currentTime = 0;
+      e.target.play().catch(() => {});
+    }
+  }
+};
+
 const startAutoplay = () => {
   stopAutoplay();
-  if (bannerImages.value.length > 1) {
+  // Only use 4.5s timer for images; videos advance on @ended
+  if (bannerImages.value.length > 1 && !isCurrentMediaVideo.value) {
     autoplayTimer = setInterval(() => {
       if (!isHoveringCarousel.value && !isPreviewModalOpen.value) {
         nextImage();
@@ -749,8 +1060,8 @@ const stopAutoplay = () => {
 };
 
 watch(
-  bannerImages,
-  (imgs) => {
+  [bannerImages, currentImageIndex],
+  ([imgs]) => {
     if (currentImageIndex.value >= imgs.length) {
       currentImageIndex.value = 0;
     }

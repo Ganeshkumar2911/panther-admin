@@ -363,12 +363,13 @@ const urls = {
     redemptions: "/loyalty/redemptions",
     approveRedemption: (id) => `/loyalty/redemptions/${id}/approve`,
     rejectRedemption: (id) => `/loyalty/redemptions/${id}/reject`,
-    // Enrollments
+    // Enrollments & Wallets
     enrollments: "/loyalty/enrollments",
     createEnrollment: "/loyalty/enrollments",
     enrollmentDetail: (enrollmentId) => `/loyalty/enrollments/${enrollmentId}`,
     attachEnrollmentAccount: (enrollmentId) => `/loyalty/enrollments/${enrollmentId}/accounts`,
     detachEnrollmentAccount: (enrollmentId, accountId) => `/loyalty/enrollments/${enrollmentId}/accounts/${accountId}`,
+    creditWallet: "/loyalty/wallets/credit",
     // Deals & Backfill
     deals: "/loyalty/deals",
     backfill: "/loyalty/backfill",

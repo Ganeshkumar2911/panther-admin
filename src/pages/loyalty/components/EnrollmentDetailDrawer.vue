@@ -63,19 +63,32 @@
               <h4 class="text-base font-bold text-primary-text font-mono">
                 Trading A/C #{{ detail.trading_account_id }}
               </h4>
+              <p v-if="detail.email" class="text-xs font-semibold text-primary-text">{{ detail.email }}</p>
               <p class="text-[11px] text-secondary-text">User ID: <span class="font-mono text-primary-text font-semibold">#{{ detail.user_id }}</span></p>
             </div>
 
-            <div class="text-right space-y-1">
-              <span class="text-[10px] uppercase font-bold text-secondary-text block">Current Tier</span>
-              <span
-                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg font-bold font-mono text-xs shadow-xs text-white"
-                :style="detail.current_tier?.color ? { backgroundColor: detail.current_tier.color } : {}"
-                :class="!detail.current_tier?.color ? 'bg-primary' : ''"
+            <div class="text-right space-y-2">
+              <div>
+                <span class="text-[10px] uppercase font-bold text-secondary-text block">Current Tier</span>
+                <span
+                  class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg font-bold font-mono text-xs shadow-xs text-white"
+                  :style="detail.current_tier?.color ? { backgroundColor: detail.current_tier.color } : {}"
+                  :class="!detail.current_tier?.color ? 'bg-primary' : ''"
+                >
+                  <span class="w-1.5 h-1.5 rounded-full bg-white/80 shrink-0" />
+                  <span>{{ detail.current_tier?.name || detail.current_tier?.code || '—' }}</span>
+                </span>
+              </div>
+
+              <button
+                v-if="hasPermission('loyalty.update')"
+                type="button"
+                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition cursor-pointer shadow-xs"
+                @click="$emit('creditRequested', detail)"
               >
-                <span class="w-1.5 h-1.5 rounded-full bg-white/80 shrink-0" />
-                <span>{{ detail.current_tier?.name || detail.current_tier?.code || '—' }}</span>
-              </span>
+                <Coins class="w-3.5 h-3.5" />
+                <span>Credit Points</span>
+              </button>
             </div>
           </div>
 
@@ -303,7 +316,7 @@
 
 <script setup>
 import { ref, reactive, computed } from "vue";
-import { X, Loader2, UserCheck, Activity, Link as LinkIcon, Plus } from "lucide-vue-next";
+import { X, Loader2, UserCheck, Activity, Link as LinkIcon, Plus, Coins } from "lucide-vue-next";
 import { useLoyaltyStore } from "@/stores/loyalty/loyalty";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import { formatDate } from "@/utils/timeFormatter";
@@ -313,7 +326,7 @@ defineProps({
   open: { type: Boolean, default: false },
 });
 
-defineEmits(["close"]);
+defineEmits(["close", "creditRequested"]);
 const store = useLoyaltyStore();
 const { hasPermission } = usePermissionCheck();
 

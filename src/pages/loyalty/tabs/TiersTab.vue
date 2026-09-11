@@ -197,7 +197,7 @@
             </div>
 
             <!-- Actions / Metrics Row -->
-            <div class="grid grid-cols-2 gap-2 pt-2.5 border-t border-white/10">
+            <div class="grid grid-cols-3 gap-2 pt-2.5 border-t border-white/10">
               <div class="flex flex-col gap-0.5">
                 <span class="text-[9px] font-medium text-white/50 uppercase tracking-widest">Multiplier</span>
                 <div class="flex items-baseline gap-0.5">
@@ -212,6 +212,16 @@
                   <span class="text-xs font-bold text-white font-mono">${{ tier.cash_conversion_rate }}</span>
                   <span class="text-[9px] text-white/50">/pt</span>
                 </div>
+              </div>
+
+              <div class="flex flex-col gap-0.5">
+                <span class="text-[9px] font-medium text-white/50 uppercase tracking-widest">Wallet Transfer</span>
+                <span
+                  class="text-[10px] font-bold uppercase tracking-wider"
+                  :class="tier.allow_wallet_transfer ? 'text-primary-green' : 'text-white/50'"
+                >
+                  {{ tier.allow_wallet_transfer ? 'Enabled' : 'Disabled' }}
+                </span>
               </div>
             </div>
           </div>
@@ -236,6 +246,7 @@
                 <th class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider">Max Points</th>
                 <th class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider">Multiplier</th>
                 <th class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider">Cash Rate</th>
+                <th class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider">Wallet Convert</th>
                 <th class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider">Status</th>
                 <th v-if="hasPermission('loyalty.update')" class="py-2.5 px-4 text-right text-[11px] font-medium uppercase tracking-wider">Action</th>
               </tr>
@@ -271,6 +282,14 @@
                 </td>
                 <td class="py-3 px-4 font-mono font-semibold text-primary">{{ tier.point_multiplier }}&times;</td>
                 <td class="py-3 px-4 font-mono text-primary-text">${{ tier.cash_conversion_rate }}</td>
+                <td class="py-3 px-4">
+                  <span
+                    class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border"
+                    :class="tier.allow_wallet_transfer ? 'bg-primary-green/10 text-primary-green border-primary-green/20' : 'bg-background text-secondary-text border-primary-border'"
+                  >
+                    {{ tier.allow_wallet_transfer ? 'Enabled' : 'Disabled' }}
+                  </span>
+                </td>
                 <td class="py-3 px-4">
                   <span
                     class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider"

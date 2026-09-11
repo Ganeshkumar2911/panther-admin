@@ -302,18 +302,32 @@
                 </div>
               </div>
 
-              <!-- Carry Over Toggle -->
-              <label class="flex items-center gap-2.5 pt-2 border-t border-primary-border/60 cursor-pointer select-none">
-                <input
-                  v-model="form.carry_over_enrollments"
-                  type="checkbox"
-                  class="w-4 h-4 rounded text-primary border-primary-border focus:ring-0 cursor-pointer"
-                />
-                <div>
-                  <p class="font-semibold text-primary-text">Carry Over Enrollments</p>
-                  <p class="text-[10px] text-secondary-text">Automatically migrate active members to subsequent cycles</p>
-                </div>
-              </label>
+              <!-- Carry Over & Wallet Transfer Toggles -->
+              <div class="pt-2 border-t border-primary-border/60 space-y-2.5">
+                <label class="flex items-center gap-2.5 cursor-pointer select-none">
+                  <input
+                    v-model="form.carry_over_enrollments"
+                    type="checkbox"
+                    class="w-4 h-4 rounded text-primary border-primary-border focus:ring-0 cursor-pointer"
+                  />
+                  <div>
+                    <p class="font-semibold text-primary-text">Carry Over Enrollments</p>
+                    <p class="text-[10px] text-secondary-text">Automatically migrate active members to subsequent cycles</p>
+                  </div>
+                </label>
+
+                <label class="flex items-center gap-2.5 cursor-pointer select-none">
+                  <input
+                    v-model="form.allow_general_wallet_transfer"
+                    type="checkbox"
+                    class="w-4 h-4 rounded text-primary border-primary-border focus:ring-0 cursor-pointer"
+                  />
+                  <div>
+                    <p class="font-semibold text-primary-text">Allow General Wallet Transfer</p>
+                    <p class="text-[10px] text-secondary-text">Permit clients to convert central points to any eligible trading account</p>
+                  </div>
+                </label>
+              </div>
             </div>
           </div>
 
@@ -693,6 +707,7 @@ const form = reactive({
   grace_period_days: 14,
   terms_version: "1.0",
   carry_over_enrollments: false,
+  allow_general_wallet_transfer: false,
   eligibility_rules: {
     require_kyc: false,
     require_live: true,
@@ -765,6 +780,7 @@ watch(
       form.grace_period_days = p.grace_period_days ?? 14;
       form.terms_version = p.terms_version ?? "1.0";
       form.carry_over_enrollments = Boolean(p.carry_over_enrollments);
+      form.allow_general_wallet_transfer = Boolean(p.allow_general_wallet_transfer);
 
       // Images
       if (Array.isArray(p.image_urls) && p.image_urls.length > 0) {
@@ -881,6 +897,9 @@ const handleSubmit = async () => {
   }
   if (Boolean(form.carry_over_enrollments) !== Boolean(p.carry_over_enrollments)) {
     payload.carry_over_enrollments = Boolean(form.carry_over_enrollments);
+  }
+  if (Boolean(form.allow_general_wallet_transfer) !== Boolean(p.allow_general_wallet_transfer)) {
+    payload.allow_general_wallet_transfer = Boolean(form.allow_general_wallet_transfer);
   }
 
   // Check Eligibility Rules diff

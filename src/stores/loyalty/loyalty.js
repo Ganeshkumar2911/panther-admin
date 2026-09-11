@@ -13,9 +13,19 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
   const tiers = ref([]);
   const rewards = ref([]);
   const storeProducts = ref([]);
-  const storeProductsPagination = ref({ page: 1, per_page: 20, total: 0, pages: 1 });
+  const storeProductsPagination = ref({
+    page: 1,
+    per_page: 20,
+    total: 0,
+    pages: 1,
+  });
   const storeRedemptions = ref([]);
-  const storeRedemptionsPagination = ref({ page: 1, per_page: 20, total: 0, pages: 1 });
+  const storeRedemptionsPagination = ref({
+    page: 1,
+    per_page: 20,
+    total: 0,
+    pages: 1,
+  });
   const activeRedemption = ref(null);
   const enrollments = ref([]);
   const enrollmentDetail = ref(null);
@@ -100,7 +110,10 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
     actionLoading.value = true;
 
     const successHandler = (res) => {
-      snackbar.show(res?.message || "Loyalty program created successfully", "success");
+      snackbar.show(
+        res?.message || "Loyalty program created successfully",
+        "success",
+      );
       fetchProgramsList({}, true);
       if (res?.data) {
         program.value = res.data;
@@ -110,7 +123,10 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
     };
 
     const failureHandler = (err) => {
-      snackbar.show(err?.message || "Failed to create loyalty program", "error");
+      snackbar.show(
+        err?.message || "Failed to create loyalty program",
+        "error",
+      );
     };
 
     const finallyHandler = () => {
@@ -189,7 +205,10 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
         if (Array.isArray(programsList.value)) {
           const idx = programsList.value.findIndex((p) => p.id === programId);
           if (idx !== -1) {
-            programsList.value[idx] = { ...programsList.value[idx], ...res.data };
+            programsList.value[idx] = {
+              ...programsList.value[idx],
+              ...res.data,
+            };
           }
         }
         // If config changed, also refresh tiers list since copy-on-write generates new tier config rows
@@ -320,7 +339,9 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
 
     const successHandler = (res) => {
       if (res?.data?.items) {
-        storeProducts.value = Array.isArray(res.data.items) ? res.data.items : [];
+        storeProducts.value = Array.isArray(res.data.items)
+          ? res.data.items
+          : [];
         storeProductsPagination.value = {
           page: res.data.page || 1,
           per_page: res.data.per_page || 20,
@@ -353,7 +374,7 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
     };
 
     return apiRequest(urls.KEYS.GET, urls.loyalty.storeProducts, {
-      params,
+      // params,
       isTokenRequired: true,
       onSuccess: successHandler,
       onFailure: failureHandler,
@@ -365,7 +386,10 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
     actionLoading.value = true;
 
     const successHandler = (res) => {
-      snackbar.show(res?.message || "Store product created successfully", "success");
+      snackbar.show(
+        res?.message || "Store product created successfully",
+        "success",
+      );
       fetchStoreProducts({ program_id: payload.program_id }, true);
       if (program.value?.id === payload.program_id) {
         fetchProgram(payload.program_id, true);
@@ -393,7 +417,10 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
     actionLoading.value = true;
 
     const successHandler = (res) => {
-      snackbar.show(res?.message || "Store product updated successfully", "success");
+      snackbar.show(
+        res?.message || "Store product updated successfully",
+        "success",
+      );
       fetchStoreProducts(programId ? { program_id: programId } : {}, true);
     };
 
@@ -405,20 +432,27 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
       actionLoading.value = false;
     };
 
-    return apiRequest(urls.KEYS.PATCH, urls.loyalty.updateStoreProduct(productId), {
-      data: payload,
-      isTokenRequired: true,
-      onSuccess: successHandler,
-      onFailure: failureHandler,
-      onFinally: finallyHandler,
-    });
+    return apiRequest(
+      urls.KEYS.PATCH,
+      urls.loyalty.updateStoreProduct(productId),
+      {
+        data: payload,
+        isTokenRequired: true,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+        onFinally: finallyHandler,
+      },
+    );
   };
 
   const deleteStoreProduct = (productId, programId = null) => {
     actionLoading.value = true;
 
     const successHandler = (res) => {
-      snackbar.show(res?.message || "Product deactivated successfully", "success");
+      snackbar.show(
+        res?.message || "Product deactivated successfully",
+        "success",
+      );
       fetchStoreProducts(programId ? { program_id: programId } : {}, true);
     };
 
@@ -430,12 +464,16 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
       actionLoading.value = false;
     };
 
-    return apiRequest(urls.KEYS.DELETE, urls.loyalty.deleteStoreProduct(productId), {
-      isTokenRequired: true,
-      onSuccess: successHandler,
-      onFailure: failureHandler,
-      onFinally: finallyHandler,
-    });
+    return apiRequest(
+      urls.KEYS.DELETE,
+      urls.loyalty.deleteStoreProduct(productId),
+      {
+        isTokenRequired: true,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+        onFinally: finallyHandler,
+      },
+    );
   };
 
   // ─── Legacy Rewards Actions ────────────────────────────
@@ -530,7 +568,9 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
 
     const successHandler = (res) => {
       if (res?.data?.items) {
-        storeRedemptions.value = Array.isArray(res.data.items) ? res.data.items : [];
+        storeRedemptions.value = Array.isArray(res.data.items)
+          ? res.data.items
+          : [];
         storeRedemptionsPagination.value = {
           page: res.data.page || 1,
           per_page: res.data.per_page || 20,
@@ -554,7 +594,10 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
     };
 
     const failureHandler = (err) => {
-      snackbar.show(err?.message || "Failed to fetch store redemptions", "error");
+      snackbar.show(
+        err?.message || "Failed to fetch store redemptions",
+        "error",
+      );
     };
 
     const finallyHandler = () => {
@@ -579,26 +622,36 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
     };
 
     const failureHandler = (err) => {
-      snackbar.show(err?.message || "Failed to fetch redemption details", "error");
+      snackbar.show(
+        err?.message || "Failed to fetch redemption details",
+        "error",
+      );
     };
 
     const finallyHandler = () => {
       detailLoading.value = false;
     };
 
-    return apiRequest(urls.KEYS.GET, urls.loyalty.storeRedemptionDetail(redemptionId), {
-      isTokenRequired: true,
-      onSuccess: successHandler,
-      onFailure: failureHandler,
-      onFinally: finallyHandler,
-    });
+    return apiRequest(
+      urls.KEYS.GET,
+      urls.loyalty.storeRedemptionDetail(redemptionId),
+      {
+        isTokenRequired: true,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+        onFinally: finallyHandler,
+      },
+    );
   };
 
   const approveStoreRedemption = (redemptionId, payload = {}, params = {}) => {
     actionLoading.value = true;
 
     const successHandler = (res) => {
-      snackbar.show(res?.message || "Redemption approved successfully", "success");
+      snackbar.show(
+        res?.message || "Redemption approved successfully",
+        "success",
+      );
       fetchStoreRedemptions(params, true);
       if (activeRedemption.value?.id === redemptionId && res?.data) {
         activeRedemption.value = res.data;
@@ -613,20 +666,27 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
       actionLoading.value = false;
     };
 
-    return apiRequest(urls.KEYS.POST, urls.loyalty.approveStoreRedemption(redemptionId), {
-      data: payload,
-      isTokenRequired: true,
-      onSuccess: successHandler,
-      onFailure: failureHandler,
-      onFinally: finallyHandler,
-    });
+    return apiRequest(
+      urls.KEYS.POST,
+      urls.loyalty.approveStoreRedemption(redemptionId),
+      {
+        data: payload,
+        isTokenRequired: true,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+        onFinally: finallyHandler,
+      },
+    );
   };
 
   const rejectStoreRedemption = (redemptionId, payload = {}, params = {}) => {
     actionLoading.value = true;
 
     const successHandler = (res) => {
-      snackbar.show(res?.message || "Redemption rejected and points restored", "success");
+      snackbar.show(
+        res?.message || "Redemption rejected and points restored",
+        "success",
+      );
       fetchStoreRedemptions(params, true);
       if (activeRedemption.value?.id === redemptionId && res?.data) {
         activeRedemption.value = res.data;
@@ -641,20 +701,27 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
       actionLoading.value = false;
     };
 
-    return apiRequest(urls.KEYS.POST, urls.loyalty.rejectStoreRedemption(redemptionId), {
-      data: payload,
-      isTokenRequired: true,
-      onSuccess: successHandler,
-      onFailure: failureHandler,
-      onFinally: finallyHandler,
-    });
+    return apiRequest(
+      urls.KEYS.POST,
+      urls.loyalty.rejectStoreRedemption(redemptionId),
+      {
+        data: payload,
+        isTokenRequired: true,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+        onFinally: finallyHandler,
+      },
+    );
   };
 
   const fulfillStoreRedemption = (redemptionId, payload = {}, params = {}) => {
     actionLoading.value = true;
 
     const successHandler = (res) => {
-      snackbar.show(res?.message || "Redemption fulfilled successfully", "success");
+      snackbar.show(
+        res?.message || "Redemption fulfilled successfully",
+        "success",
+      );
       fetchStoreRedemptions(params, true);
       if (activeRedemption.value?.id === redemptionId && res?.data) {
         activeRedemption.value = res.data;
@@ -669,13 +736,17 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
       actionLoading.value = false;
     };
 
-    return apiRequest(urls.KEYS.POST, urls.loyalty.fulfillStoreRedemption(redemptionId), {
-      data: payload,
-      isTokenRequired: true,
-      onSuccess: successHandler,
-      onFailure: failureHandler,
-      onFinally: finallyHandler,
-    });
+    return apiRequest(
+      urls.KEYS.POST,
+      urls.loyalty.fulfillStoreRedemption(redemptionId),
+      {
+        data: payload,
+        isTokenRequired: true,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+        onFinally: finallyHandler,
+      },
+    );
   };
 
   // ─── Enrollments Actions ───────────────────────────────
@@ -716,7 +787,10 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
     actionLoading.value = true;
 
     const successHandler = (res) => {
-      snackbar.show(res?.message || "Enrollment created successfully", "success");
+      snackbar.show(
+        res?.message || "Enrollment created successfully",
+        "success",
+      );
       fetchEnrollments({}, true);
       if (program.value?.id) {
         fetchProgram(program.value.id, true);
@@ -748,26 +822,36 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
     };
 
     const failureHandler = (err) => {
-      snackbar.show(err?.message || "Failed to fetch enrollment details", "error");
+      snackbar.show(
+        err?.message || "Failed to fetch enrollment details",
+        "error",
+      );
     };
 
     const finallyHandler = () => {
       detailLoading.value = false;
     };
 
-    return apiRequest(urls.KEYS.GET, urls.loyalty.enrollmentDetail(enrollmentId), {
-      isTokenRequired: true,
-      onSuccess: successHandler,
-      onFailure: failureHandler,
-      onFinally: finallyHandler,
-    });
+    return apiRequest(
+      urls.KEYS.GET,
+      urls.loyalty.enrollmentDetail(enrollmentId),
+      {
+        isTokenRequired: true,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+        onFinally: finallyHandler,
+      },
+    );
   };
 
   const attachAccountToEnrollment = (enrollmentId, payload) => {
     actionLoading.value = true;
 
     const successHandler = (res) => {
-      snackbar.show(res?.message || "Trading account attached successfully", "success");
+      snackbar.show(
+        res?.message || "Trading account attached successfully",
+        "success",
+      );
       if (res?.data) {
         enrollmentDetail.value = { ...enrollmentDetail.value, ...res.data };
       }
@@ -782,20 +866,27 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
       actionLoading.value = false;
     };
 
-    return apiRequest(urls.KEYS.POST, urls.loyalty.attachEnrollmentAccount(enrollmentId), {
-      data: payload,
-      isTokenRequired: true,
-      onSuccess: successHandler,
-      onFailure: failureHandler,
-      onFinally: finallyHandler,
-    });
+    return apiRequest(
+      urls.KEYS.POST,
+      urls.loyalty.attachEnrollmentAccount(enrollmentId),
+      {
+        data: payload,
+        isTokenRequired: true,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+        onFinally: finallyHandler,
+      },
+    );
   };
 
   const detachAccountFromEnrollment = (enrollmentId, accountId) => {
     actionLoading.value = true;
 
     const successHandler = (res) => {
-      snackbar.show(res?.message || "Trading account detached successfully", "success");
+      snackbar.show(
+        res?.message || "Trading account detached successfully",
+        "success",
+      );
       if (res?.data) {
         enrollmentDetail.value = { ...enrollmentDetail.value, ...res.data };
       }
@@ -810,7 +901,46 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
       actionLoading.value = false;
     };
 
-    return apiRequest(urls.KEYS.DELETE, urls.loyalty.detachEnrollmentAccount(enrollmentId, accountId), {
+    return apiRequest(
+      urls.KEYS.DELETE,
+      urls.loyalty.detachEnrollmentAccount(enrollmentId, accountId),
+      {
+        isTokenRequired: true,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+        onFinally: finallyHandler,
+      },
+    );
+  };
+
+  const creditWallet = (payload) => {
+    actionLoading.value = true;
+
+    const successHandler = (res) => {
+      const typeLabel =
+        payload.transaction_type === "deposit" ? "deposited" : "credited";
+      snackbar.show(
+        res?.message || `Loyalty points ${typeLabel} successfully`,
+        "success",
+      );
+      if (res?.data?.available_points !== undefined) {
+        if (enrollmentDetail.value && (enrollmentDetail.value.id === payload.enrollment_id || enrollmentDetail.value.user_id === payload.user_id)) {
+          enrollmentDetail.value.available_points = res.data.available_points;
+        }
+      }
+      fetchEnrollments({}, true);
+    };
+
+    const failureHandler = (err) => {
+      snackbar.show(err?.message || "Failed to credit loyalty points", "error");
+    };
+
+    const finallyHandler = () => {
+      actionLoading.value = false;
+    };
+
+    return apiRequest(urls.KEYS.POST, urls.loyalty.creditWallet, {
+      data: payload,
       isTokenRequired: true,
       onSuccess: successHandler,
       onFailure: failureHandler,
@@ -857,7 +987,10 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
     actionLoading.value = true;
 
     const successHandler = (res) => {
-      snackbar.show(res?.message || "Backfill job queued successfully", "success");
+      snackbar.show(
+        res?.message || "Backfill job queued successfully",
+        "success",
+      );
       fetchBackfillJobs({}, true);
       if (res?.data) {
         activeBackfillJob.value = res.data;
@@ -981,12 +1114,13 @@ export const useLoyaltyStore = defineStore("loyalty", () => {
     approveStoreRedemption,
     rejectStoreRedemption,
     fulfillStoreRedemption,
-    // Enrollments
+    // Enrollments & Wallets
     fetchEnrollments,
     createEnrollment,
     fetchEnrollmentDetail,
     attachAccountToEnrollment,
     detachAccountFromEnrollment,
+    creditWallet,
     // Deals & Backfill
     fetchDeals,
     startBackfill,

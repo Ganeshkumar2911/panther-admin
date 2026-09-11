@@ -123,6 +123,19 @@
               class="w-full px-3 py-2 bg-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono"
             />
           </div>
+
+          <!-- Allow Primary Wallet Transfer -->
+          <div class="sm:col-span-2 flex items-center gap-2 pt-2">
+            <input
+              id="tier_wallet_transfer"
+              v-model="form.allow_wallet_transfer"
+              type="checkbox"
+              class="w-4 h-4 rounded text-primary border-primary-border focus:ring-0 cursor-pointer"
+            />
+            <label for="tier_wallet_transfer" class="font-semibold text-primary-text cursor-pointer">
+              Allow Primary Wallet Transfer (convert points to primary trading account)
+            </label>
+          </div>
         </div>
 
         <!-- Action Footer -->
@@ -177,6 +190,7 @@ const form = reactive({
   max_points: "",
   point_multiplier: 1.0,
   cash_conversion_rate: 0.01,
+  allow_wallet_transfer: false,
   is_active: true,
 });
 
@@ -191,6 +205,7 @@ watch(
       form.max_points = t.max_points !== null && t.max_points !== undefined ? Number(t.max_points) : "";
       form.point_multiplier = t.point_multiplier !== null && t.point_multiplier !== undefined ? Number(t.point_multiplier) : 1.0;
       form.cash_conversion_rate = t.cash_conversion_rate !== null && t.cash_conversion_rate !== undefined ? Number(t.cash_conversion_rate) : 0.01;
+      form.allow_wallet_transfer = Boolean(t.allow_wallet_transfer);
       form.is_active = t.is_active !== undefined ? Boolean(t.is_active) : true;
     } else {
       form.code = "";
@@ -200,6 +215,7 @@ watch(
       form.max_points = "";
       form.point_multiplier = 1.0;
       form.cash_conversion_rate = 0.01;
+      form.allow_wallet_transfer = false;
       form.is_active = true;
     }
   },
@@ -215,6 +231,7 @@ const handleSubmit = async () => {
     max_points: form.max_points === "" || form.max_points === null ? null : Number(form.max_points),
     point_multiplier: Number(form.point_multiplier),
     cash_conversion_rate: Number(form.cash_conversion_rate),
+    allow_wallet_transfer: Boolean(form.allow_wallet_transfer),
     is_active: Boolean(form.is_active),
   };
 

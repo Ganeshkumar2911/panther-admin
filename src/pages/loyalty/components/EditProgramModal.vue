@@ -162,6 +162,19 @@
               Carry Over Enrollments to Next Cycle
             </label>
           </div>
+
+          <!-- Allow General Wallet Transfer -->
+          <div class="flex items-center gap-2 pt-2">
+            <input
+              id="allow_general_wallet"
+              v-model="form.allow_general_wallet_transfer"
+              type="checkbox"
+              class="w-4 h-4 rounded text-primary border-primary-border focus:ring-0 cursor-pointer"
+            />
+            <label for="allow_general_wallet" class="font-semibold text-primary-text cursor-pointer">
+              Allow General Wallet Transfer (to any eligible trading account)
+            </label>
+          </div>
         </div>
 
         <!-- Action Footer -->
@@ -221,6 +234,7 @@ const form = reactive({
   grace_period_days: 14,
   terms_version: "1.0",
   carry_over_enrollments: false,
+  allow_general_wallet_transfer: false,
 });
 
 watch(
@@ -240,6 +254,7 @@ watch(
       form.grace_period_days = p.grace_period_days ?? 14;
       form.terms_version = p.terms_version ?? "1.0";
       form.carry_over_enrollments = Boolean(p.carry_over_enrollments);
+      form.allow_general_wallet_transfer = Boolean(p.allow_general_wallet_transfer);
     }
   },
   { immediate: true },
