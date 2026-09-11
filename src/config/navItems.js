@@ -24,6 +24,7 @@ import {
   Bell,
   Tag,
   BookmarkCheck,
+  MessageSquare,
 } from "lucide-vue-next";
 
 export const navItems = [
@@ -140,6 +141,11 @@ export const navItems = [
       "telegram.configure_view",
       "telegram.configure_update",
     ],
+  },
+  {
+    label: "WhatsApp",
+    to: "/whatsapp/templates",
+    icon: MessageSquare,
   },
   // 6. System & Support
   {

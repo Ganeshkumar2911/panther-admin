@@ -71,7 +71,11 @@ const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(
   (config) => {
-    config.baseURL = getBaseUrl();
+    let base = getBaseUrl();
+    if (config.skipAdminPrefix) {
+      base = base.replace(/\/admin\/?$/, "/");
+    }
+    config.baseURL = base;
 
     if (config.isTokenRequired !== false) {
       const { accessToken } = authToken.getToken();
@@ -195,6 +199,7 @@ const apiRequest = (
     onUploadProgress = null,
     onDownloadProgress = null,
     isTokenRequired = true,
+    skipAdminPrefix = false,
     signal = null, // ← use AbortController.signal per-request
     timeout = null,
     cancelPrevious = false,
@@ -230,6 +235,7 @@ const apiRequest = (
     onUploadProgress,
     onDownloadProgress,
     isTokenRequired,
+    skipAdminPrefix,
     ...(signal && { signal }),
     signal: abortController?.signal || signal,
     ...(timeout != null && { timeout }),

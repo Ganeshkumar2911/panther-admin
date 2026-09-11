@@ -360,6 +360,13 @@
       :client="user"
       @close="emailTriggerPanelOpen = false"
     />
+
+    <!-- WhatsApp Real-Time Chat Drawer (Quick Action) -->
+    <ClientWhatsAppChatDrawer
+      :open="whatsappDrawerOpen"
+      :client="user"
+      @close="whatsappDrawerOpen = false"
+    />
   </div>
 </template>
 
@@ -370,6 +377,7 @@ import { getFlagCode, cleanCountryLabel } from "@/utils/countries";
 import Tooltip from "@/components/common/Tooltip.vue";
 import UploadKycDocumentModal from "@/components/clientDetails/UploadKycDocumentModal.vue";
 import ClientEmailTriggerPanel from "@/components/clientDetails/ClientEmailTriggerPanel.vue";
+import ClientWhatsAppChatDrawer from "@/components/clientDetails/ClientWhatsAppChatDrawer.vue";
 import { useClientDepthStore } from "@/stores/clientDepth/clientDepth";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
 import {
@@ -582,11 +590,12 @@ const kycClass = computed(() => {
 // ─── Quick Actions ────────────────────────────────────────────────────────────
 const uploadDocModalOpen = ref(false);
 const emailTriggerPanelOpen = ref(false);
+const whatsappDrawerOpen = ref(false);
 
 const quickActions = [
   { action: "call", label: "Call", icon: Phone },
   { action: "email", label: "Email", icon: Mail },
-  { action: "message", label: "Message", icon: MessageSquare },
+  { action: "message", label: "WhatsApp Chat", icon: MessageSquare },
   { action: "documents", label: "Documents", icon: FileText },
 ];
 
@@ -613,14 +622,11 @@ const handleQuickAction = (action) => {
     }
     return;
   }
-  if (actionType === "message") {
+  if (actionType === "message" || actionType?.includes("whatsapp")) {
     if (user.value?.phone_number) {
-      const cleanPhone = String(user.value.phone_number).replace(/\D/g, "");
-      window.open(`https://wa.me/${cleanPhone}`, "_blank");
-    } else if (user.value?.email) {
-      window.open(`mailto:${user.value.email}`);
+      whatsappDrawerOpen.value = true;
     } else {
-      snackbar.show("Contact details not available for messaging.", "info");
+      snackbar.show("Phone number not available for WhatsApp chat.", "info");
     }
     return;
   }
