@@ -54,6 +54,7 @@ const urls = {
     userCharts: "/user-charts",
     accountDetails: "/account-details",
     userReferences: "/user/reference",
+    notifications: "/notifications/user-depth",
   },
   clientLedger: {
     list: "/ledger/clients",
@@ -275,6 +276,7 @@ const urls = {
     markRead: "/notifications/read",
     send: "/notifications/send",
     readStatus: "/notifications/read-status",
+    userDepth: "/admin/notification/user-depth",
   },
   media: {
     groups: {
