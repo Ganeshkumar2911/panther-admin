@@ -628,6 +628,17 @@ const routes = [
         },
       },
       {
+        path: "/loyalty-program",
+        name: "loyalty-program",
+        component: () => import("@/pages/loyalty/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Loyalty Program",
+          description:
+            "Manage PantherTrade loyalty program rules, tiers, rewards, enrollments, and MT5 history backfills.",
+        },
+      },
+      {
         path: "/settings",
         name: "settings",
         component: () => import("@/pages/settings/index.vue"),

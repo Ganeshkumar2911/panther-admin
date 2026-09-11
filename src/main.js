@@ -9,16 +9,31 @@ import DropdownMenu from './components/common/DropdownMenu.vue'
 import Tooltip from '@/components/common/Tooltip.vue'
 import BaseDatePicker from '@/components/common/BaseDatePicker.vue'
 import DataTable from '@/components/common/DataTable/DataTable.vue'
+import { HugeiconsIcon } from '@hugeicons/vue'
 
 initTheme()
 const app = createApp(App)
 
 app.use(createPinia())
 app.use(router)
+app.component('HugeiconsIcon', HugeiconsIcon)
+app.component('HugeIcon', HugeiconsIcon)
 app.component('BaseSelect', BaseSelect)
 app.component('DropdownMenu', DropdownMenu)
 app.component('Tooltip', Tooltip)
 app.component('BaseDatePicker', BaseDatePicker)
 app.component('BaseCalendar', BaseDatePicker)
 app.component('DataTable', DataTable)
+
+// Prevent mouse wheel from changing input[type=number] values globally
+document.addEventListener(
+  'wheel',
+  () => {
+    if (document.activeElement && document.activeElement.type === 'number') {
+      document.activeElement.blur()
+    }
+  },
+  { passive: true }
+)
+
 app.mount('#app')
