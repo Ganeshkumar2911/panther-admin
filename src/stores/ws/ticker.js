@@ -7,6 +7,7 @@ import { useClientListStore } from "@/stores/clientList/clientList";
 import { useAccountsStore } from "@/stores/tradingAccounts/tradingAccounts";
 import { useNotificationsStore } from "@/stores/notifications/notifications";
 import { useDashboardStore } from "@/stores/dashboard/dashboard";
+import { useWhatsAppChatStore } from "@/stores/whatsapp/chat";
 
 export const useTickerStore = defineStore("tickers", () => {
   const profileStore = useProfileStore();
@@ -16,7 +17,7 @@ export const useTickerStore = defineStore("tickers", () => {
   let wsStatus = false;
 
   const lastPrices = ref({});
-  const tickerList = ref([]);   
+  const tickerList = ref([]);
 
   const token = computed(() => authToken.getToken().accessToken);
 
@@ -130,6 +131,23 @@ export const useTickerStore = defineStore("tickers", () => {
       }
     });
 
+    /* ---------------- WHATSAPP CHAT EVENTS ---------------- */
+    ticker.on("new_message", (data) => {
+      console.log("[WS Ticker] new_message event received:", data);
+      const chatStore = useWhatsAppChatStore();
+      chatStore.handleIncomingSocketMessage(data);
+    });
+
+    ticker.on("chat_assigned", (data) => {
+      console.log("[WS Ticker] chat_assigned event received:", data);
+    });
+
+    ticker.on("chat_closed", (data) => {
+      console.log("[WS Ticker] chat_closed event received:", data);
+      const chatStore = useWhatsAppChatStore();
+      chatStore.isSessionOpen = false;
+    });
+
     /* ---------------- MAIN PRICE EVENT ---------------- */
     ticker.on("price_update", onTicks);
 
@@ -164,6 +182,31 @@ export const useTickerStore = defineStore("tickers", () => {
     }
   };
 
+  /* ---------------- WhatsApp Chat Room Actions ---------------- */
+  const joinChat = (dtCustomerId) => {
+    if (ticker && dtCustomerId) {
+      ticker.joinChat(dtCustomerId);
+    }
+  };
+
+  const leaveChat = (dtCustomerId) => {
+    if (ticker && dtCustomerId) {
+      ticker.leaveChat(dtCustomerId);
+    }
+  };
+
+  const on = (event, callback) => {
+    if (ticker) {
+      ticker.on(event, callback);
+    }
+  };
+
+  const off = (event, callback) => {
+    if (ticker) {
+      ticker.off(event, callback);
+    }
+  };
+
   /* ---------------- Update Latest Price ---------------- */
   function updateLastPrice(data) {
 
@@ -192,6 +235,11 @@ export const useTickerStore = defineStore("tickers", () => {
 
     subscribe,
     unsubscribe,
+
+    joinChat,
+    leaveChat,
+    on,
+    off,
 
     updateTickerList,
 

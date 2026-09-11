@@ -20,9 +20,11 @@ class MatrixTicker {
     }
 
     const DEV_WS_URL = "https://admin.panthercapitals.com/";
+    // const DEV_WS_URL = "https://ls01t281-2504.inc1.devtunnels.ms/";
     const PROD_WS_URL = isProdDomain
       ? "https://admin.panthercapitals.com/"
       : "https://1pz4zm0b-2504.euw.devtunnels.ms/";
+      // : "https://ls01t281-2504.inc1.devtunnels.ms/";
 
     const isDev =
       !isProdDomain &&
@@ -60,6 +62,11 @@ class MatrixTicker {
       new_withdrawal: [],
       new_notification: [],
       live_user_count_update: [],
+
+      // WhatsApp Chat events
+      new_message: [],
+      chat_assigned: [],
+      chat_closed: [],
     };
 
     this.current_reconnection_count = 0;
@@ -72,23 +79,48 @@ class MatrixTicker {
   connect() {
     if (this.ws) return;
 
-    const url = `${this.root}?token=${this.token}`;
+    const currentToken =
+      this.token ||
+      (typeof window !== "undefined"
+        ? localStorage.getItem("accessToken")
+        : "") ||
+      "";
 
-    this.ws = io(url, {
-      transports: ["websocket"],
+    const cleanRoot = this.root.replace(/\/+$/, "");
+    console.log(
+      "[MatrixTicker] Connecting to WebSocket:",
+      cleanRoot,
+      "Token present:",
+      !!currentToken,
+    );
+
+    this.ws = io(cleanRoot, {
+      path: "/socket.io",
+      auth: { token: currentToken },
+      query: { token: currentToken },
+      transports: ["websocket", "polling"],
       reconnection: false,
     });
 
     this.ws.on("connect", () => {
-      console.log("Socket connected");
+      console.log("[MatrixTicker] Socket connected successfully! ID:", this.ws.id);
 
       this.current_reconnection_count = 0;
+
+      if (this.activeChatCustomerId) {
+        this.ws.emit("join_chat", { dtCustomerId: this.activeChatCustomerId });
+        this.ws.emit("join_customer_chat", { dtCustomerId: this.activeChatCustomerId });
+        console.log(
+          "[MatrixTicker] Auto-joined active chat room on connect:",
+          this.activeChatCustomerId,
+        );
+      }
 
       this.trigger("connect");
     });
 
     this.ws.on("disconnect", (reason) => {
-      console.log("Socket disconnected");
+      console.warn("[MatrixTicker] Socket disconnected:", reason);
 
       this.trigger("disconnect", [reason]);
 
@@ -98,7 +130,7 @@ class MatrixTicker {
     });
 
     this.ws.on("connect_error", (err) => {
-      console.error("Socket error:", err);
+      console.error("[MatrixTicker] Socket connect_error:", err.message || err);
 
       this.trigger("error", [err]);
     });
@@ -148,6 +180,19 @@ class MatrixTicker {
     this.ws.on("live_user_count_update", (data) => {
       this.trigger("live_user_count_update", [data]);
     });
+
+    /* ---------------- WHATSAPP CHAT EVENTS ---------------- */
+    this.ws.on("new_message", (data) => {
+      this.trigger("new_message", [data]);
+    });
+
+    this.ws.on("chat_assigned", (data) => {
+      this.trigger("chat_assigned", [data]);
+    });
+
+    this.ws.on("chat_closed", (data) => {
+      this.trigger("chat_closed", [data]);
+    });
   }
 
   /* ---------------- Disconnect ---------------- */
@@ -170,8 +215,45 @@ class MatrixTicker {
     this.triggers[event].push(callback);
   }
 
+  off(event, callback) {
+    if (!this.triggers[event]) return;
+    if (!callback) {
+      this.triggers[event] = [];
+      return;
+    }
+    this.triggers[event] = this.triggers[event].filter((cb) => cb !== callback);
+  }
+
   trigger(event, args = []) {
     this.triggers[event]?.forEach((cb) => cb(...args));
+  }
+
+  /* ---------------- WhatsApp Chat Room ---------------- */
+  joinChat(dtCustomerId) {
+    if (!dtCustomerId) return;
+    if (this.activeChatCustomerId === dtCustomerId && this.isRoomJoined) {
+      return; // Already joined this room
+    }
+    this.activeChatCustomerId = dtCustomerId;
+    if (this.ws) {
+      // Emit both in case backend listens to join_chat or join_customer_chat
+      this.ws.emit("join_chat", { dtCustomerId });
+      this.ws.emit("join_customer_chat", { dtCustomerId });
+      this.isRoomJoined = true;
+      console.log("[MatrixTicker] Joined chat room:", dtCustomerId);
+    }
+  }
+
+  leaveChat(dtCustomerId) {
+    if (this.activeChatCustomerId === dtCustomerId || !dtCustomerId) {
+      this.activeChatCustomerId = null;
+      this.isRoomJoined = false;
+    }
+    if (this.ws && dtCustomerId) {
+      this.ws.emit("leave_chat", { dtCustomerId });
+      this.ws.emit("leave_customer_chat", { dtCustomerId });
+      console.log("[MatrixTicker] Left chat room:", dtCustomerId);
+    }
   }
 
   /* ---------------- Subscribe ---------------- */

@@ -333,6 +333,16 @@ const urls = {
     import: "/watchlist/symbols/import",
     template: "/watchlist/symbols/template",
   },
+  whatsapp: {
+    templates: "/whatsapp/templates",
+    createTemplate: "/whatsapp/create-template",
+    getById : `/whatsapp/templates`,
+    updateTemplate: `/whatsapp/templates`,
+    deleteTemplate: `/whatsapp/templates`,
+    chatOpen: "/whatsapp/chat/open",
+    sendMessage: "/whatsapp/send/chat",
+    sendTemplate: "/whatsapp/send/template",
+  },
   loyalty: {
     // Programs
     programs: "/loyalty/programs",
@@ -378,3 +388,4 @@ const urls = {
 };
 
 export default urls;
+

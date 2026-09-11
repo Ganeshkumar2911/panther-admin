@@ -545,6 +545,27 @@ const routes = [
         },
       },
       {
+        path: "/whatsapp/templates",
+        name: "whatsapp-templates",
+        component: () => import("@/pages/whatsapp/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "WhatsApp Templates",
+          description: "Manage WhatsApp message templates and campaigns",
+        },
+      },
+      {
+        path: "/whatsapp/templates/create",
+        name: "whatsapp-template-create",
+        component: () => import("@/pages/whatsapp/CreateTemplate.vue"),
+        meta: {
+          showBackButton: true,
+          requiresAuth: true,
+          title: "Create WhatsApp Template",
+          description: "Create and configure new WhatsApp message template",
+        },
+      },
+      {
         path: "/watchlist",
         name: "watchlist",
         component: () => import("@/pages/watchlist/index.vue"),

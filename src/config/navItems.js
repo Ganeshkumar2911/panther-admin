@@ -24,6 +24,7 @@ import {
   Bell,
   Tag,
   BookmarkCheck,
+  MessageSquare,
   Award,
 } from "lucide-vue-next";
 
@@ -198,6 +199,12 @@ export const navClusters = [
           "telegram.configure_update",
         ],
         keywords: ["telegram bot", "bot configuration", "alerts", "channels", "chat"],
+      },
+      {
+        label: "WhatsApp",
+        to: "/whatsapp/templates",
+        icon: MessageSquare,
+        keywords: ["whatsapp", "templates", "chat", "messages", "meta"],
       },
     ],
   },
