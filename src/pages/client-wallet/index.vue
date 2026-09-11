@@ -96,7 +96,7 @@
         class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3 mb-5"
       >
         <div
-          class="flex w-full min-w-0 flex-col gap-2 rounded-xl border border-primary-border bg-card-background/40 p-2 sm:flex-row sm:items-center xl:flex-1 xl:flex-nowrap"
+          class="flex w-full min-w-0 flex-col gap-2 rounded-xl border border-primary-border bg-card-background p-2 sm:flex-row sm:items-center xl:flex-1 xl:flex-nowrap"
         >
           <!-- Client Filter -->
           <BaseSelect
@@ -136,14 +136,14 @@
             v-model="dateRangeValue"
             :range="true"
             placeholder="Filter by date range..."
-            class="w-full sm:w-60 xl:w-64"
+            class="w-full sm:w-54 xl:w-54"
           />
 
           <BaseSelect
             :modelValue="store.pagination.per_page"
             :options="store.perPageOptions"
             placeholder="Per Page"
-            class="w-full sm:w-28 xl:w-28"
+            class="sm:w-18 xl:w-18"
             @update:modelValue="store.updatePerPage"
           />
 

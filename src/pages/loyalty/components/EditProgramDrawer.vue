@@ -207,6 +207,7 @@
                 v-model="dateRange"
                 :range="true"
                 :enableTime="true"
+                :disableFuture="false"
                 valueFormat="YYYY-MM-DD HH:mm:ss"
                 placeholder="Select start and end date & time"
               />

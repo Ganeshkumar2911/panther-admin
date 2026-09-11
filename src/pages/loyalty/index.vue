@@ -23,9 +23,10 @@
             ]"
             @click="selectTab(tab.value)"
           >
-            <component
-              :is="tab.icon"
-              class="w-4 h-4 shrink-0 transition-colors"
+            <HugeIcon
+              :icon="tab.icon"
+              :size="16"
+              class="shrink-0 transition-colors"
               :class="activeTab === tab.value ? 'text-primary' : 'text-secondary-text'"
             />
             <span>{{ tab.label }}</span>
@@ -58,7 +59,7 @@
       class="flex flex-col items-center justify-center p-12 bg-card-background border border-primary-border rounded-xl text-center min-h-[360px] gap-3"
     >
       <div class="w-12 h-12 rounded-xl bg-card-background border border-primary-border flex items-center justify-center text-secondary-text">
-        <ShieldAlert class="w-6 h-6 text-primary-red" />
+        <HugeIcon :icon="ShieldAlertIcon" :size="24" class="text-primary-red" />
       </div>
       <div class="space-y-1">
         <h3 class="text-sm font-semibold text-primary-text">Access Restricted</h3>
@@ -74,15 +75,15 @@
 import { ref, computed, watch, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
-  Award,
-  Layers,
-  ShoppingBag,
-  PackageCheck,
-  Users,
-  Activity,
-  History,
-  ShieldAlert,
-} from "lucide-vue-next";
+  Award01Icon,
+  Layers01Icon,
+  ShoppingBag01Icon,
+  PackageCheckIcon,
+  UserGroupIcon,
+  Activity01Icon,
+  HistoryIcon,
+  ShieldAlertIcon,
+} from "@hugeicons/core-free-icons";
 import { useLoyaltyStore } from "@/stores/loyalty/loyalty";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 
@@ -110,13 +111,13 @@ const programSummary = computed(() => store.program?.summary || {});
 const validTabKeys = ["program", "tiers", "store", "redemptions", "enrollments", "deals", "backfill"];
 
 const tabList = computed(() => [
-  { label: "Program & Rules", value: "program", icon: Award },
-  { label: "Tiers", value: "tiers", icon: Layers, badge: programSummary.value?.tiers },
-  { label: "Store Products", value: "store", icon: ShoppingBag, badge: programSummary.value?.rewards },
-  { label: "Redemptions Queue", value: "redemptions", icon: PackageCheck },
-  { label: "Enrollments", value: "enrollments", icon: Users, badge: programSummary.value?.enrollments },
-  { label: "Deals History", value: "deals", icon: Activity },
-  { label: "MT5 Backfill", value: "backfill", icon: History },
+  { label: "Program & Rules", value: "program", icon: Award01Icon },
+  { label: "Tiers", value: "tiers", icon: Layers01Icon, badge: programSummary.value?.tiers },
+  { label: "Store Products", value: "store", icon: ShoppingBag01Icon, badge: programSummary.value?.rewards },
+  { label: "Redemptions Queue", value: "redemptions", icon: PackageCheckIcon },
+  { label: "Enrollments", value: "enrollments", icon: UserGroupIcon, badge: programSummary.value?.enrollments },
+  { label: "Deals History", value: "deals", icon: Activity01Icon },
+  { label: "MT5 Backfill", value: "backfill", icon: HistoryIcon },
 ]);
 
 const mobileTabOptions = computed(() =>

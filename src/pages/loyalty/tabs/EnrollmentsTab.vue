@@ -16,7 +16,7 @@
           class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-primary-border bg-card-background hover:bg-background text-primary-text text-xs font-semibold transition cursor-pointer shadow-2xs"
           @click="openCreditModal(null)"
         >
-          <Coins class="w-3.5 h-3.5 text-primary" />
+          <HugeIcon :icon="Coins01Icon" :size="14" class="text-primary" />
           <span>Credit Points</span>
         </button>
 
@@ -26,7 +26,7 @@
           class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all active:scale-95 cursor-pointer shadow-2xs"
           @click="isEnrollDrawerOpen = true"
         >
-          <UserPlus class="w-3.5 h-3.5" />
+          <HugeIcon :icon="UserAdd01Icon" :size="14" />
           <span>Enroll Account</span>
         </button>
 
@@ -35,7 +35,7 @@
           class="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-primary-border bg-card-background hover:bg-background text-secondary-text hover:text-primary-text text-xs font-medium transition cursor-pointer"
           @click="fetchData(true)"
         >
-          <RefreshCw class="w-3.5 h-3.5 text-primary" :class="store.loading ? 'animate-spin' : ''" />
+          <HugeIcon :icon="RefreshCwIcon" :size="14" class="text-primary" :class="store.loading ? 'animate-spin' : ''" />
           <span>Refresh</span>
         </button>
       </div>
@@ -44,7 +44,7 @@
     <!-- Filter Bar -->
     <div class="flex flex-wrap items-center gap-2.5 p-3 bg-card-background border border-primary-border rounded-xl text-xs">
       <div class="relative w-full sm:w-48">
-        <Search class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-secondary-text" />
+        <HugeIcon :icon="Search01Icon" :size="14" class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary-text" />
         <input
           v-model="filters.email"
           type="text"
@@ -54,8 +54,8 @@
         />
       </div>
 
-      <div class="relative w-full sm:w-36">
-        <Search class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-secondary-text" />
+      <!-- <div class="relative w-full sm:w-36">
+        <HugeIcon :icon="Search01Icon" :size="14" class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary-text" />
         <input
           v-model="filters.user_id"
           type="number"
@@ -63,14 +63,14 @@
           class="w-full pl-8 pr-3 py-1.5 bg-background border border-primary-border rounded-lg text-primary-text placeholder:text-secondary-text/60 outline-none focus:border-primary transition font-mono text-xs"
           @keyup.enter="fetchData"
         />
-      </div>
+      </div> -->
 
       <div class="relative w-full sm:w-40">
-        <Search class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-secondary-text" />
+        <HugeIcon :icon="Search01Icon" :size="14" class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary-text" />
         <input
-          v-model="filters.trading_account_id"
-          type="number"
-          placeholder="Trading A/C..."
+          v-model="filters.account_number"
+          type="text"
+          placeholder="Account No..."
           class="w-full pl-8 pr-3 py-1.5 bg-background border border-primary-border rounded-lg text-primary-text placeholder:text-secondary-text/60 outline-none focus:border-primary transition font-mono text-xs"
           @keyup.enter="fetchData"
         />
@@ -91,12 +91,12 @@
         class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-white font-semibold transition cursor-pointer text-xs"
         @click="fetchData"
       >
-        <Search class="w-3 h-3" />
+        <HugeIcon :icon="Search01Icon" :size="12" />
         <span>Search</span>
       </button>
 
       <button
-        v-if="filters.email || filters.user_id || filters.trading_account_id || filters.status"
+        v-if="filters.email || filters.user_id || filters.account_number || filters.status"
         type="button"
         class="px-2.5 py-1.5 rounded-lg text-secondary-text hover:text-primary-text hover:bg-background transition cursor-pointer text-xs"
         @click="resetFilters"
@@ -116,7 +116,7 @@
       class="flex flex-col items-center justify-center p-12 bg-card-background border border-dashed border-primary-border rounded-xl text-center gap-3"
     >
       <div class="w-12 h-12 rounded-xl bg-card-background border border-primary-border flex items-center justify-center text-secondary-text">
-        <Users class="w-6 h-6 text-primary" />
+        <HugeIcon :icon="UserGroupIcon" :size="24" class="text-primary" />
       </div>
       <div class="space-y-1">
         <h3 class="text-sm font-semibold text-primary-text">No Enrollments Found</h3>
@@ -130,7 +130,7 @@
         class="mt-2 flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition cursor-pointer shadow-2xs"
         @click="isEnrollDrawerOpen = true"
       >
-        <UserPlus class="w-3.5 h-3.5" />
+        <HugeIcon :icon="UserAdd01Icon" :size="14" />
         <span>Enroll First Account</span>
       </button>
     </div>
@@ -214,7 +214,7 @@
                     title="Credit / Deposit Points"
                     @click="openCreditModal(item)"
                   >
-                    <Coins class="w-3 h-3 text-primary" />
+                    <HugeIcon :icon="Coins01Icon" :size="12" class="text-primary" />
                     <span>Credit</span>
                   </button>
 
@@ -223,7 +223,7 @@
                     class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-primary-border hover:bg-background text-secondary-text hover:text-primary transition cursor-pointer text-xs"
                     @click="handleViewDetail(item.id)"
                   >
-                    <Eye class="w-3 h-3" />
+                    <HugeIcon :icon="EyeIcon" :size="12" />
                     <span>Details</span>
                   </button>
                 </div>
@@ -262,7 +262,14 @@
 
 <script setup>
 import { ref, reactive, computed, watch } from "vue";
-import { UserPlus, RefreshCw, Users, Search, Eye, Coins } from "lucide-vue-next";
+import {
+  UserAdd01Icon,
+  RefreshCwIcon,
+  UserGroupIcon,
+  Search01Icon,
+  EyeIcon,
+  Coins01Icon,
+} from "@hugeicons/core-free-icons";
 import { useLoyaltyStore } from "@/stores/loyalty/loyalty";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import { formatDate } from "@/utils/timeFormatter";
@@ -282,7 +289,7 @@ const selectedEnrollmentForCredit = ref(null);
 const filters = reactive({
   email: "",
   user_id: "",
-  trading_account_id: "",
+  account_number: "",
   status: "",
 });
 
@@ -300,7 +307,7 @@ const fetchData = (force = false) => {
   const params = {};
   if (filters.email?.trim()) params.email = filters.email.trim();
   if (filters.user_id) params.user_id = Number(filters.user_id);
-  if (filters.trading_account_id) params.trading_account_id = Number(filters.trading_account_id);
+  if (filters.account_number?.trim()) params.account_number = filters.account_number.trim();
   if (filters.status) params.status = filters.status;
   if (programId.value) params.program_id = programId.value;
   store.fetchEnrollments(params, force);
@@ -309,7 +316,7 @@ const fetchData = (force = false) => {
 const resetFilters = () => {
   filters.email = "";
   filters.user_id = "";
-  filters.trading_account_id = "";
+  filters.account_number = "";
   filters.status = "";
   fetchData(true);
 };

@@ -150,6 +150,7 @@
               <BaseDatePicker
                 v-model="form.expires_at"
                 :enableTime="true"
+                :disableFuture="false"
                 :placement="props.datePlacement || 'top'"
                 valueFormat="YYYY-MM-DD HH:mm:ss"
                 placeholder="Leave blank to use default program validity period"
