@@ -44,6 +44,18 @@ const urls = {
     updateReferralLink: "/clients/referral-link",
     userDashboard: "/user-dashboard",
   },
+  clientDepth: {
+    overview: "/overview",
+    kyc: "/user/kyc-details",
+    userUpdate: "/user-update",
+    updateKyc: "/user/kyc-details",
+    uploadDocument: "/user-document-upload",
+    docApproval: "/user-doc-approval",
+    userCharts: "/user-charts",
+    accountDetails: "/account-details",
+    userReferences: "/user/reference",
+    notifications: "/notifications/user-depth",
+  },
   clientLedger: {
     list: "/ledger/clients",
     allClients: "/search/clients",
@@ -88,7 +100,8 @@ const urls = {
     settlementPreview: "/settlement/preview",
     settlementRun: "/settlement/run",
     offers: "/fund_managers/offers",
-    followers: "/fund_managers/followers",
+    followers: (fmId) => (fmId ? `/fund_managers/followers/${fmId}` : "/fund_managers/followers"),
+    followersHistory: (fmId) => `/fund_managers/followers/${fmId}/history`,
     followersDetails: "fund_managers/followers/info/",
     editFollower: "/fund_managers/followers/edit",
     offerJoinLinks: "/fund_managers/offers/join-links",
@@ -263,6 +276,7 @@ const urls = {
     markRead: "/notifications/read",
     send: "/notifications/send",
     readStatus: "/notifications/read-status",
+    userDepth: "/admin/notification/user-depth",
   },
   media: {
     groups: {
@@ -273,6 +287,8 @@ const urls = {
     },
     images: {
       list: "/media-images",
+      links: "/media/images/links",
+      clientLinks: "/media/images/links",
       create: "/create-media-image",
       update: "/media-images",
       delete: "/media-images",
@@ -324,7 +340,51 @@ const urls = {
     create: "/create-blog",
     update: "/blog-update",
     delete: "/delete-blog",
-    
+  },
+  loyalty: {
+    // Programs
+    programs: "/loyalty/programs",
+    createProgram: "/loyalty/programs",
+    program: "/loyalty/program",
+    updateProgram: (programId) => `/loyalty/program/${programId}`,
+    // Tiers
+    tiers: (programId) => `/loyalty/program/${programId}/tiers`,
+    createTier: (programId) => `/loyalty/program/${programId}/tiers`,
+    updateTier: (tierId) => `/loyalty/tiers/${tierId}`,
+    // Rewards (Legacy catalogue)
+    rewards: (programId) => `/loyalty/program/${programId}/rewards`,
+    createReward: (programId) => `/loyalty/program/${programId}/rewards`,
+    updateReward: (rewardId) => `/loyalty/rewards/${rewardId}`,
+    // Store Products (Admin Store)
+    storeProducts: "/loyalty/store/products",
+    storeProductDetail: (id) => `/loyalty/store/products/${id}`,
+    createStoreProduct: "/loyalty/store/products",
+    updateStoreProduct: (id) => `/loyalty/store/products/${id}`,
+    deleteStoreProduct: (id) => `/loyalty/store/products/${id}`,
+    // Store Redemptions (Admin Store Queue)
+    storeRedemptions: "/loyalty/store/redemptions",
+    storeRedemptionDetail: (id) => `/loyalty/store/redemptions/${id}`,
+    approveStoreRedemption: (id) => `/loyalty/store/redemptions/${id}/approve`,
+    rejectStoreRedemption: (id) => `/loyalty/store/redemptions/${id}/reject`,
+    fulfillStoreRedemption: (id) => `/loyalty/store/redemptions/${id}/fulfill`,
+    // Legacy Redemptions
+    redemptions: "/loyalty/redemptions",
+    approveRedemption: (id) => `/loyalty/redemptions/${id}/approve`,
+    rejectRedemption: (id) => `/loyalty/redemptions/${id}/reject`,
+    // Enrollments & Wallets
+    enrollments: "/loyalty/enrollments",
+    createEnrollment: "/loyalty/enrollments",
+    enrollmentDetail: (enrollmentId) => `/loyalty/enrollments/${enrollmentId}`,
+    updateEnrollment: (enrollmentId) => `/loyalty/enrollments/${enrollmentId}`,
+    deenroll: "/loyalty/enrollments/deenroll",
+    deenrollById: (enrollmentId) => `/loyalty/enrollments/${enrollmentId}/deenroll`,
+    attachEnrollmentAccount: (enrollmentId) => `/loyalty/enrollments/${enrollmentId}/accounts`,
+    detachEnrollmentAccount: (enrollmentId, accountId) => `/loyalty/enrollments/${enrollmentId}/accounts/${accountId}`,
+    creditWallet: "/loyalty/wallets/credit",
+    // Deals & Backfill
+    deals: "/loyalty/deals",
+    backfill: "/loyalty/backfill",
+    backfillDetail: (jobId) => `/loyalty/backfill/${jobId}`,
   },
 };
 

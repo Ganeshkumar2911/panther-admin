@@ -25,202 +25,311 @@ import {
   Tag,
   BookmarkCheck,
   Newspaper,
+  Award,
 } from "lucide-vue-next";
 
-export const navItems = [
+export const navClusters = [
   // 1. Core Overview
   {
+    id: "dashboard",
     label: "Dashboard",
     to: "/dashboard",
     icon: LayoutDashboard,
     permission: "analytics.view",
+    keywords: ["overview", "analytics", "stats", "home", "metrics", "charts"],
   },
+
+  // 2. CRM & Network
   {
-    label: "Lead Management",
-    to: "/lead-management",
-    icon: Target,
-    permission: "lead_management.view",
-  },
-  // 2. User & Network Administration
-  {
-    label: "Clients",
-    to: "/clients",
+    id: "crm",
+    label: "CRM & Network",
     icon: Users,
-    permission: "client.view",
+    children: [
+      {
+        label: "Lead Management",
+        to: "/lead-management",
+        icon: Target,
+        permission: "lead_management.view",
+        keywords: ["leads", "prospects", "sales", "pipeline", "crm", "contacts"],
+      },
+      {
+        label: "Clients",
+        to: "/clients",
+        icon: Users,
+        permission: "client.view",
+        keywords: ["customers", "users", "profiles", "members", "crm", "kyc"],
+      },
+      {
+        label: "Trading Accounts",
+        to: "/trading-accounts",
+        icon: LineChart,
+        permission: "trading_account.view",
+        keywords: ["accounts", "mt4", "mt5", "trading", "metatrader", "leverage", "positions"],
+      },
+      {
+        label: "IB Network",
+        to: "/ib-tree",
+        icon: ListTree,
+        permission: ["ib.view", "ib.view_network"],
+        keywords: ["introducing broker", "ib", "affiliates", "tree", "referral", "partners", "rebate"],
+      },
+    ],
   },
-  {
-    label: "Trading Accounts",
-    to: "/trading-accounts",
-    icon: LineChart,
-    permission: "trading_account.view",
-  },
-  {
-    label: "IB Network",
-    to: "/ib-tree",
-    icon: ListTree,
-    permission: ["ib.view", "ib.view_network"],
-  },
+
   // 3. Fund Management
   {
-    label: "Fund Manager",
-    to: "/fm-leaderboard",
+    id: "fund_management",
+    label: "Fund Management",
     icon: Trophy,
-    permission: "fund_manager.view",
+    children: [
+      {
+        label: "Fund Manager",
+        to: "/fm-leaderboard",
+        icon: Trophy,
+        permission: "fund_manager.view",
+        keywords: ["fm", "leaderboard", "pamm", "mam", "copy trading", "funds", "managers"],
+      },
+      {
+        label: "FM Requests",
+        to: "/fm-request",
+        icon: GitPullRequestArrow,
+        permission: "fm_request.view",
+        keywords: ["fund manager requests", "approvals", "fm applications", "offers"],
+      },
+    ],
   },
-  {
-    label: "FM Requests",
-    to: "/fm-request",
-    icon: GitPullRequestArrow,
-    permission: "fm_request.view",
-  },
+
   // 4. Finances & Wallets
   {
-    label: "My Wallet",
-    to: "/my-wallet",
+    id: "wallets",
+    label: "Wallets",
     icon: Wallet,
-    permission: "wallet.view",
+    children: [
+      {
+        label: "My Wallet",
+        to: "/my-wallet",
+        icon: Wallet,
+        permission: "wallet.view",
+        keywords: ["balance", "deposit", "withdraw", "funds", "wallet", "transfer"],
+      },
+      {
+        label: "Client Wallet",
+        to: "/client-wallet",
+        icon: Coins,
+        permission: "client_wallet.view",
+        keywords: ["user wallet", "client balance", "deposits", "withdrawals", "funds"],
+      },
+      {
+        label: "FM Wallet",
+        to: "/fm-wallet",
+        icon: TrendingUp,
+        permission: "fm_wallet.view",
+        keywords: ["fund manager wallet", "commissions", "fm balance", "earnings"],
+      },
+      {
+        label: "IB Wallet",
+        to: "/ib-wallet",
+        icon: DollarSign,
+        permission: "ib_wallet.view",
+        keywords: ["broker wallet", "ib earnings", "rebates", "payouts", "commissions"],
+      },
+    ],
   },
+
+  // 5. Finance & Payments
   {
-    label: "Client Wallet",
-    to: "/client-wallet",
-    icon: Coins,
-    permission: "client_wallet.view",
-  },
-  {
-    label: "FM Wallet",
-    to: "/fm-wallet",
-    icon: TrendingUp,
-    permission: "fm_wallet.view",
-  },
-  {
-    label: "IB Wallet",
-    to: "/ib-wallet",
-    icon: DollarSign,
-    permission: "ib_wallet.view",
-  },
-  // 5. Transactions & Cash Flow
-  {
-    label: "Payment Methods",
-    to: "/payment-methods",
+    id: "finance",
+    label: "Finance & Cash Flow",
     icon: CreditCard,
-    permission: "payment_methods.view",
+    children: [
+      {
+        label: "Payment Methods",
+        to: "/payment-methods",
+        icon: CreditCard,
+        permission: "payment_methods.view",
+        keywords: ["gateways", "crypto", "bank wire", "cards", "payment options", "deposit methods"],
+      },
+      {
+        label: "Payment Requests",
+        to: "/payment-requests",
+        icon: Handshake,
+        permission: "payment_requests.view",
+        keywords: ["deposits", "withdrawals", "transactions", "pending approvals", "cashier"],
+      },
+      {
+        label: "Settlements",
+        to: "/settlements",
+        icon: RefreshCcw,
+        permission: ["settlement.view"],
+        keywords: ["reconciliation", "settle", "payout settlements", "batch"],
+      },
+    ],
   },
+
+  // 6. Communications & Media
   {
-    label: "Payment Requests",
-    to: "/payment-requests",
-    icon: Handshake,
-    permission: "payment_requests.view",
-  },
-  {
-    label: "Settlements",
-    to: "/settlements",
-    icon: RefreshCcw,
-    permission: ["settlement.view"],
-  },
-  {
-    label: "eMails",
-    to: "/e-mails",
+    id: "communications",
+    label: "Communications",
     icon: Mail,
-    permission: ["email.view", "email.manage"],
-  },
-  {
-    label: "Media Library",
-    to: "/media",
-    icon: FolderOpen,
-    permission: ["media.view"],
-  },
-  {
-    label: "Blogs",
-    to: "/blogs",
-    icon: Newspaper,
-    permission: ["blog.view"],
-  },
-  {
-    label: "Telegram",
-    to: "/telegram",
-    icon: ClipboardList,
-    permission: [
-      "telegram.view",
-      "telegram.create",
-      "telegram.update",
-      "telegram.delete",
-      "telegram.configure_view",
-      "telegram.configure_update",
+    children: [
+      {
+        label: "eMails",
+        to: "/e-mails",
+        icon: Mail,
+        permission: ["email.view", "email.manage"],
+        keywords: ["email", "templates", "newsletter", "broadcast", "mail", "smtp", "logs"],
+      },
+      {
+        label: "Media Library",
+        to: "/media",
+        icon: FolderOpen,
+        permission: ["media.view"],
+        keywords: ["images", "files", "uploads", "banners", "assets", "documents"],
+      },
+      {
+        label: "Blogs",
+        to: "/blogs",
+        icon: Newspaper,
+        permission: ["blog.view"],
+        keywords: ["blogs", "articles", "news", "posts", "content", "publishing", "insights"],
+      },
+      {
+        label: "Telegram",
+        to: "/telegram",
+        icon: ClipboardList,
+        permission: [
+          "telegram.view",
+          "telegram.create",
+          "telegram.update",
+          "telegram.delete",
+          "telegram.configure_view",
+          "telegram.configure_update",
+        ],
+        keywords: ["telegram bot", "bot configuration", "alerts", "channels", "chat"],
+      },
     ],
   },
-  // 6. System & Support
+
+  // 7. Platform & Trading Config
   {
-    label: "Group Config",
-    to: "/group-config",
-    icon: Settings,
-    permission: ["group.group_view", "group.category_view"],
-  },
-  {
-    label: "Watchlist",
-    to: "/watchlist",
-    icon: BookmarkCheck,
-    permission: [
-      "watchlist.settings_view",
-      "watchlist.settings_update",
-      "watchlist.symbols_view",
-      "watchlist.symbols_create",
-      "watchlist.symbols_update",
-      "watchlist.symbols_delete",
-      "watchlist.symbols_import",
-    ],
-  },
-  {
-    label: "Company Integrations",
-    to: "/company-integrations",
+    id: "platform",
+    label: "Platform & Trading",
     icon: Cpu,
-    permission: "company_integration.view",
-  },
-  {
-    label: "Audit Logs",
-    to: "/audit-logs",
-    icon: ClipboardList,
-    permission: "audit.view",
-  },
-  {
-    label: "Tickets",
-    to: "/tickets",
-    icon: Tickets,
-    permission: ["ticket.view", "ticket.platform_view"],
-  },
-  {
-    label: "Notifications",
-    to: "/notifications",
-    icon: Bell,
-    permission: ["notifications.view", "notifications.create"],
-  },
-  {
-    label: "Access Control",
-    to: "/rbac",
-    icon: ShieldCheck,
-    permission: [
-      "role.manage",
-      "team_management.view",
-      "team_management.create",
-      "team_management.role_manage",
-      "team_management.role_view",
+    children: [
+      {
+        label: "Group Config",
+        to: "/group-config",
+        icon: Settings,
+        permission: ["group.group_view", "group.category_view"],
+        keywords: ["symbol groups", "spread groups", "leverage", "trading groups", "execution"],
+      },
+      {
+        label: "Watchlist",
+        to: "/watchlist",
+        icon: BookmarkCheck,
+        permission: [
+          "watchlist.settings_view",
+          "watchlist.settings_update",
+          "watchlist.symbols_view",
+          "watchlist.symbols_create",
+          "watchlist.symbols_update",
+          "watchlist.symbols_delete",
+          "watchlist.symbols_import",
+        ],
+        keywords: ["symbols", "pairs", "forex", "crypto", "commodities", "market", "feed"],
+      },
+      {
+        label: "Company Integrations",
+        to: "/company-integrations",
+        icon: Cpu,
+        permission: "company_integration.view",
+        keywords: ["api keys", "webhooks", "third party", "providers", "bridges"],
+      },
+      {
+        label: "Audit Logs",
+        to: "/audit-logs",
+        icon: ClipboardList,
+        permission: "audit.view",
+        keywords: ["activity logs", "history", "security logs", "events", "tracking"],
+      },
     ],
   },
+
+  // 8. Support & Engagement
   {
-    label: "RBAC Modules",
-    to: "/rbac-modules",
-    icon: Layers,
-    permission: ["xtention_dev.view"],
+    id: "support",
+    label: "Support & Loyalty",
+    icon: Tickets,
+    children: [
+      {
+        label: "Tickets",
+        to: "/tickets",
+        icon: Tickets,
+        permission: ["ticket.view", "ticket.platform_view"],
+        keywords: ["support tickets", "helpdesk", "issues", "inquiries", "customer service"],
+      },
+      {
+        label: "Notifications",
+        to: "/notifications",
+        icon: Bell,
+        permission: ["notifications.view", "notifications.create"],
+        keywords: ["alerts", "push notifications", "broadcasts", "announcements"],
+      },
+      {
+        label: "Tag Management",
+        to: "/tags",
+        icon: Tag,
+        permission: ["tags.view"],
+        keywords: ["labels", "tags", "categories", "user tags", "classification"],
+      },
+      {
+        label: "Loyalty Program",
+        to: "/loyalty-program",
+        icon: Award,
+        permission: ["loyalty.view"],
+        keywords: ["loyalty", "rewards", "deals", "points", "loyalty tiers", "promotions", "gamification"],
+      },
+    ],
   },
+
+  // 9. Administration & Security
   {
-    label: "Tag Management",
-    to: "/tags",
-    icon: Tag,
-    permission: ["tags.view"],
-  },
-  {
-    label: "System Settings",
-    to: "/settings",
-    icon: Settings,
-    permission: ["system_settings.view"],
+    id: "administration",
+    label: "Administration",
+    icon: ShieldCheck,
+    children: [
+      {
+        label: "Access Control",
+        to: "/rbac",
+        icon: ShieldCheck,
+        permission: [
+          "role.manage",
+          "team_management.view",
+          "team_management.create",
+          "team_management.role_manage",
+          "team_management.role_view",
+        ],
+        keywords: ["rbac", "roles", "permissions", "team members", "users", "staff", "access control"],
+      },
+      {
+        label: "RBAC Modules",
+        to: "/rbac-modules",
+        icon: Layers,
+        permission: ["xtention_dev.view"],
+        keywords: ["modules", "permissions schema", "features", "developer", "system modules"],
+      },
+      {
+        label: "System Settings",
+        to: "/settings",
+        icon: Settings,
+        permission: ["system_setting.view"],
+        keywords: ["general settings", "configurations", "company profile", "preferences"],
+      },
+    ],
   },
 ];
+
+// Flat list for router checks, permission store & backward compatibility
+export const navItems = navClusters.flatMap((cluster) =>
+  cluster.children ? cluster.children : [cluster]
+);

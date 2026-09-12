@@ -181,12 +181,19 @@
               <span class="text-[10px] text-secondary-text">Toggles & Status</span>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <!-- Active Status -->
-              <div class="flex items-center justify-between p-3 rounded-xl bg-card-background border border-primary-border">
+            <!-- 1. Active Status Card -->
+            <div class="p-3.5 rounded-xl bg-card-background border border-primary-border space-y-2.5">
+              <div class="flex items-center justify-between text-xs font-bold text-primary-text pb-1.5 border-b border-primary-border/60">
+                <div class="flex items-center gap-1.5">
+                  <Power class="w-3.5 h-3.5 text-primary-green" />
+                  <span>Active Status</span>
+                </div>
+                <span class="text-[10px] font-normal text-secondary-text">Platform-wide visibility</span>
+              </div>
+              <div class="flex items-center justify-between p-2.5 rounded-lg bg-background/50 border border-primary-border/60">
                 <div>
                   <p class="text-xs font-semibold text-primary-text">Active Status</p>
-                  <p class="text-[10px] text-secondary-text">Enable this payment method</p>
+                  <p class="text-[10px] text-secondary-text">Enable or disable this payment method platform-wide</p>
                 </div>
                 <button
                   type="button"
@@ -200,81 +207,345 @@
                   />
                 </button>
               </div>
+            </div>
 
-              <!-- Enable Deposit -->
-              <div class="flex items-center justify-between p-3 rounded-xl bg-card-background border border-primary-border">
-                <div>
-                  <p class="text-xs font-semibold text-primary-text">Enable Deposit</p>
-                  <p class="text-[10px] text-secondary-text">Allow clients to deposit via this method</p>
+            <!-- 2. Set Default Card -->
+            <div class="p-3.5 rounded-xl bg-card-background border border-primary-border space-y-2.5">
+              <div class="flex items-center justify-between text-xs font-bold text-primary-text pb-1.5 border-b border-primary-border/60">
+                <div class="flex items-center gap-1.5">
+                  <Star class="w-3.5 h-3.5 text-amber-500" />
+                  <span>Set Default</span>
                 </div>
-                <button
-                  type="button"
-                  class="relative w-10 h-5.5 rounded-full transition-colors cursor-pointer shrink-0"
-                  :class="form.enable_deposit ? 'bg-primary-green' : 'bg-primary-border'"
-                  @click="form.enable_deposit = !form.enable_deposit"
+                <span class="text-[10px] font-normal text-secondary-text">Auto-selected payment option</span>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <!-- Default Deposit -->
+                <div
+                  class="flex items-center justify-between p-2.5 rounded-lg bg-background/50 border border-primary-border/60 transition-opacity"
+                  :class="[!form.enable_deposit || form.disable_client_deposit ? 'opacity-50' : '']"
                 >
-                  <span
-                    class="absolute top-0.5 left-0.5 w-4.5 h-4.5 rounded-full bg-white transition-transform duration-200 shadow-xs"
-                    :class="form.enable_deposit ? 'translate-x-4.5' : 'translate-x-0'"
-                  />
-                </button>
+                  <div>
+                    <div class="flex items-center gap-1.5">
+                      <p class="text-xs font-semibold text-primary-text">Default Deposit</p>
+                      <span v-if="!form.enable_deposit" class="text-[9px] text-amber-500 font-medium">(Disabled: Global Deposit is OFF)</span>
+                      <span v-else-if="form.disable_client_deposit" class="text-[9px] text-amber-500 font-medium">(Disabled: Client Deposit is Disabled)</span>
+                    </div>
+                    <p class="text-[10px] text-secondary-text">Pre-selected deposit method</p>
+                  </div>
+                  <button
+                    type="button"
+                    :disabled="!form.enable_deposit || form.disable_client_deposit || submitting"
+                    class="relative w-10 h-5.5 rounded-full transition-colors shrink-0"
+                    :class="[
+                      form.is_default_deposit ? 'bg-primary' : 'bg-primary-border',
+                      (!form.enable_deposit || form.disable_client_deposit) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                    ]"
+                    @click="form.enable_deposit && !form.disable_client_deposit && (form.is_default_deposit = !form.is_default_deposit)"
+                  >
+                    <span
+                      class="absolute top-0.5 left-0.5 w-4.5 h-4.5 rounded-full bg-white transition-transform duration-200 shadow-xs"
+                      :class="form.is_default_deposit ? 'translate-x-4.5' : 'translate-x-0'"
+                    />
+                  </button>
+                </div>
+
+                <!-- Default Withdrawal -->
+                <div
+                  class="flex items-center justify-between p-2.5 rounded-lg bg-background/50 border border-primary-border/60 transition-opacity"
+                  :class="[!form.enable_withdrawal || form.disable_client_withdrawal ? 'opacity-50' : '']"
+                >
+                  <div>
+                    <div class="flex items-center gap-1.5">
+                      <p class="text-xs font-semibold text-primary-text">Default Withdrawal</p>
+                      <span v-if="!form.enable_withdrawal" class="text-[9px] text-amber-500 font-medium">(Disabled: Global Withdrawal is OFF)</span>
+                      <span v-else-if="form.disable_client_withdrawal" class="text-[9px] text-amber-500 font-medium">(Disabled: Client Withdrawal is Disabled)</span>
+                    </div>
+                    <p class="text-[10px] text-secondary-text">Pre-selected withdrawal method</p>
+                  </div>
+                  <button
+                    type="button"
+                    :disabled="!form.enable_withdrawal || form.disable_client_withdrawal || submitting"
+                    class="relative w-10 h-5.5 rounded-full transition-colors shrink-0"
+                    :class="[
+                      form.is_default_withdrawal ? 'bg-primary' : 'bg-primary-border',
+                      (!form.enable_withdrawal || form.disable_client_withdrawal) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                    ]"
+                    @click="form.enable_withdrawal && !form.disable_client_withdrawal && (form.is_default_withdrawal = !form.is_default_withdrawal)"
+                  >
+                    <span
+                      class="absolute top-0.5 left-0.5 w-4.5 h-4.5 rounded-full bg-white transition-transform duration-200 shadow-xs"
+                      :class="form.is_default_withdrawal ? 'translate-x-4.5' : 'translate-x-0'"
+                    />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. Global Operations (Global Deposit & Withdrawal) Card -->
+            <div class="p-3.5 rounded-xl bg-card-background border border-primary-border space-y-2.5">
+              <div class="flex items-center justify-between text-xs font-bold text-primary-text pb-1.5 border-b border-primary-border/60">
+                <div class="flex items-center gap-1.5">
+                  <Globe class="w-3.5 h-3.5 text-primary" />
+                  <span>Global Operations</span>
+                </div>
+                <span class="text-[10px] font-normal text-secondary-text">Master controls (Client, IB & FM)</span>
               </div>
 
-              <!-- Enable Withdrawal -->
-              <div class="flex items-center justify-between p-3 rounded-xl bg-card-background border border-primary-border">
-                <div>
-                  <p class="text-xs font-semibold text-primary-text">Enable Withdrawal</p>
-                  <p class="text-[10px] text-secondary-text">Allow clients to withdraw via this method</p>
-                </div>
-                <button
-                  type="button"
-                  class="relative w-10 h-5.5 rounded-full transition-colors cursor-pointer shrink-0"
-                  :class="form.enable_withdrawal ? 'bg-primary-blue' : 'bg-primary-border'"
-                  @click="form.enable_withdrawal = !form.enable_withdrawal"
-                >
-                  <span
-                    class="absolute top-0.5 left-0.5 w-4.5 h-4.5 rounded-full bg-white transition-transform duration-200 shadow-xs"
-                    :class="form.enable_withdrawal ? 'translate-x-4.5' : 'translate-x-0'"
-                  />
-                </button>
+              <!-- Contextual explanation banner -->
+              <div class="p-2 rounded-lg bg-primary/5 border border-primary/15 text-[11px] text-secondary-text leading-relaxed flex items-start gap-2">
+                <ShieldCheck class="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
+                <span>
+                  Disabling globally turns off deposits or withdrawals across all portals (<strong class="text-primary-text font-medium">Client</strong>, <strong class="text-primary-text font-medium">IB</strong>, and <strong class="text-primary-text font-medium">FM</strong>) and prevents default selection.
+                </span>
               </div>
 
-              <!-- Is Default Deposit -->
-              <div class="flex items-center justify-between p-3 rounded-xl bg-card-background border border-primary-border">
-                <div>
-                  <p class="text-xs font-semibold text-primary-text">Default Deposit</p>
-                  <p class="text-[10px] text-secondary-text">Pre-selected deposit method</p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <!-- Global Deposit -->
+                <div class="flex items-center justify-between p-2.5 rounded-lg bg-background/50 border border-primary-border/60">
+                  <div>
+                    <p class="text-xs font-semibold text-primary-text">Enable Global Deposit</p>
+                    <p class="text-[10px] text-secondary-text">Allow deposits globally for Client, IB & FM</p>
+                  </div>
+                  <button
+                    type="button"
+                    :disabled="submitting"
+                    class="relative w-10 h-5.5 rounded-full transition-colors cursor-pointer shrink-0 disabled:opacity-50"
+                    :class="form.enable_deposit ? 'bg-primary-green' : 'bg-primary-border'"
+                    @click="form.enable_deposit = !form.enable_deposit"
+                  >
+                    <span
+                      class="absolute top-0.5 left-0.5 w-4.5 h-4.5 rounded-full bg-white transition-transform duration-200 shadow-xs"
+                      :class="form.enable_deposit ? 'translate-x-4.5' : 'translate-x-0'"
+                    />
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  class="relative w-10 h-5.5 rounded-full transition-colors cursor-pointer shrink-0"
-                  :class="form.is_default_deposit ? 'bg-primary' : 'bg-primary-border'"
-                  @click="form.is_default_deposit = !form.is_default_deposit"
-                >
-                  <span
-                    class="absolute top-0.5 left-0.5 w-4.5 h-4.5 rounded-full bg-white transition-transform duration-200 shadow-xs"
-                    :class="form.is_default_deposit ? 'translate-x-4.5' : 'translate-x-0'"
-                  />
-                </button>
-              </div>
 
-              <!-- Is Default Withdrawal -->
-              <div class="flex items-center justify-between p-3 rounded-xl bg-card-background border border-primary-border sm:col-span-2">
-                <div>
-                  <p class="text-xs font-semibold text-primary-text">Default Withdrawal</p>
-                  <p class="text-[10px] text-secondary-text">Pre-selected withdrawal method</p>
+                <!-- Global Withdrawal -->
+                <div class="flex items-center justify-between p-2.5 rounded-lg bg-background/50 border border-primary-border/60">
+                  <div>
+                    <p class="text-xs font-semibold text-primary-text">Enable Global Withdrawal</p>
+                    <p class="text-[10px] text-secondary-text">Allow withdrawals globally for Client, IB & FM</p>
+                  </div>
+                  <button
+                    type="button"
+                    :disabled="submitting"
+                    class="relative w-10 h-5.5 rounded-full transition-colors cursor-pointer shrink-0 disabled:opacity-50"
+                    :class="form.enable_withdrawal ? 'bg-primary-blue' : 'bg-primary-border'"
+                    @click="form.enable_withdrawal = !form.enable_withdrawal"
+                  >
+                    <span
+                      class="absolute top-0.5 left-0.5 w-4.5 h-4.5 rounded-full bg-white transition-transform duration-200 shadow-xs"
+                      :class="form.enable_withdrawal ? 'translate-x-4.5' : 'translate-x-0'"
+                    />
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  class="relative w-10 h-5.5 rounded-full transition-colors cursor-pointer shrink-0"
-                  :class="form.is_default_withdrawal ? 'bg-primary' : 'bg-primary-border'"
-                  @click="form.is_default_withdrawal = !form.is_default_withdrawal"
+              </div>
+            </div>
+
+            <!-- 4. Client Dashboard Card -->
+            <div class="p-3.5 rounded-xl bg-card-background border border-primary-border space-y-2.5">
+              <div class="flex items-center justify-between text-xs font-bold text-primary-text pb-1.5 border-b border-primary-border/60">
+                <div class="flex items-center gap-1.5">
+                  <User class="w-3.5 h-3.5 text-primary" />
+                  <span>Client Dashboard Restrictions</span>
+                </div>
+                <span class="text-[10px] font-normal text-secondary-text">Client portal restrictions</span>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <!-- Disable Client Deposit -->
+                <div
+                  class="flex items-center justify-between p-2.5 rounded-lg bg-background/50 border border-primary-border/60 transition-opacity"
+                  :class="!form.enable_deposit ? 'opacity-50' : ''"
                 >
-                  <span
-                    class="absolute top-0.5 left-0.5 w-4.5 h-4.5 rounded-full bg-white transition-transform duration-200 shadow-xs"
-                    :class="form.is_default_withdrawal ? 'translate-x-4.5' : 'translate-x-0'"
-                  />
-                </button>
+                  <div>
+                    <div class="flex items-center gap-1.5">
+                      <p class="text-xs font-semibold text-primary-text">Disable Client Deposit</p>
+                      <span v-if="!form.enable_deposit" class="text-[9px] text-amber-500 font-medium">(Locked: Global Deposit is OFF)</span>
+                    </div>
+                    <p class="text-[10px] text-secondary-text">Disable deposits for client portal</p>
+                  </div>
+                  <button
+                    type="button"
+                    :disabled="!form.enable_deposit || submitting"
+                    class="relative w-10 h-5.5 rounded-full transition-colors shrink-0"
+                    :class="[
+                      form.disable_client_deposit ? 'bg-primary-green' : 'bg-primary-border',
+                      !form.enable_deposit ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                    ]"
+                    @click="form.enable_deposit && (form.disable_client_deposit = !form.disable_client_deposit)"
+                  >
+                    <span
+                      class="absolute top-0.5 left-0.5 w-4.5 h-4.5 rounded-full bg-white transition-transform duration-200 shadow-xs"
+                      :class="form.disable_client_deposit ? 'translate-x-4.5' : 'translate-x-0'"
+                    />
+                  </button>
+                </div>
+                <!-- Disable Client Withdrawal -->
+                <div
+                  class="flex items-center justify-between p-2.5 rounded-lg bg-background/50 border border-primary-border/60 transition-opacity"
+                  :class="!form.enable_withdrawal ? 'opacity-50' : ''"
+                >
+                  <div>
+                    <div class="flex items-center gap-1.5">
+                      <p class="text-xs font-semibold text-primary-text">Disable Client Withdrawal</p>
+                      <span v-if="!form.enable_withdrawal" class="text-[9px] text-amber-500 font-medium">(Locked: Global Withdrawal is OFF)</span>
+                    </div>
+                    <p class="text-[10px] text-secondary-text">Disable withdrawals for client portal</p>
+                  </div>
+                  <button
+                    type="button"
+                    :disabled="!form.enable_withdrawal || submitting"
+                    class="relative w-10 h-5.5 rounded-full transition-colors shrink-0"
+                    :class="[
+                      form.disable_client_withdrawal ? 'bg-primary-blue' : 'bg-primary-border',
+                      !form.enable_withdrawal ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                    ]"
+                    @click="form.enable_withdrawal && (form.disable_client_withdrawal = !form.disable_client_withdrawal)"
+                  >
+                    <span
+                      class="absolute top-0.5 left-0.5 w-4.5 h-4.5 rounded-full bg-white transition-transform duration-200 shadow-xs"
+                      :class="form.disable_client_withdrawal ? 'translate-x-4.5' : 'translate-x-0'"
+                    />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 5. IB Dashboard Card -->
+            <div class="p-3.5 rounded-xl bg-card-background border border-primary-border space-y-2.5">
+              <div class="flex items-center justify-between text-xs font-bold text-primary-text pb-1.5 border-b border-primary-border/60">
+                <div class="flex items-center gap-1.5">
+                  <Network class="w-3.5 h-3.5 text-accent" />
+                  <span>IB (Introducing Broker) Dashboard Restrictions</span>
+                </div>
+                <span class="text-[10px] font-normal text-secondary-text">Affiliate partner restrictions</span>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <!-- Disable IB Deposit -->
+                <div
+                  class="flex items-center justify-between p-2.5 rounded-lg bg-background/50 border border-primary-border/60 transition-opacity"
+                  :class="!form.enable_deposit ? 'opacity-50' : ''"
+                >
+                  <div>
+                    <div class="flex items-center gap-1.5">
+                      <p class="text-xs font-semibold text-primary-text">Disable IB Deposit</p>
+                      <span v-if="!form.enable_deposit" class="text-[9px] text-amber-500 font-medium">(Locked: Global Deposit is OFF)</span>
+                    </div>
+                    <p class="text-[10px] text-secondary-text">Disable deposits for IB partners</p>
+                  </div>
+                  <button
+                    type="button"
+                    :disabled="!form.enable_deposit || submitting"
+                    class="relative w-10 h-5.5 rounded-full transition-colors shrink-0"
+                    :class="[
+                      form.disable_ib_deposit ? 'bg-primary-green' : 'bg-primary-border',
+                      !form.enable_deposit ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                    ]"
+                    @click="form.enable_deposit && (form.disable_ib_deposit = !form.disable_ib_deposit)"
+                  >
+                    <span
+                      class="absolute top-0.5 left-0.5 w-4.5 h-4.5 rounded-full bg-white transition-transform duration-200 shadow-xs"
+                      :class="form.disable_ib_deposit ? 'translate-x-4.5' : 'translate-x-0'"
+                    />
+                  </button>
+                </div>
+                <!-- Disable IB Withdrawal -->
+                <div
+                  class="flex items-center justify-between p-2.5 rounded-lg bg-background/50 border border-primary-border/60 transition-opacity"
+                  :class="!form.enable_withdrawal ? 'opacity-50' : ''"
+                >
+                  <div>
+                    <div class="flex items-center gap-1.5">
+                      <p class="text-xs font-semibold text-primary-text">Disable IB Withdrawal</p>
+                      <span v-if="!form.enable_withdrawal" class="text-[9px] text-amber-500 font-medium">(Locked: Global Withdrawal is OFF)</span>
+                    </div>
+                    <p class="text-[10px] text-secondary-text">Disable withdrawals for IB partners</p>
+                  </div>
+                  <button
+                    type="button"
+                    :disabled="!form.enable_withdrawal || submitting"
+                    class="relative w-10 h-5.5 rounded-full transition-colors shrink-0"
+                    :class="[
+                      form.disable_ib_withdrawal ? 'bg-primary-blue' : 'bg-primary-border',
+                      !form.enable_withdrawal ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                    ]"
+                    @click="form.enable_withdrawal && (form.disable_ib_withdrawal = !form.disable_ib_withdrawal)"
+                  >
+                    <span
+                      class="absolute top-0.5 left-0.5 w-4.5 h-4.5 rounded-full bg-white transition-transform duration-200 shadow-xs"
+                      :class="form.disable_ib_withdrawal ? 'translate-x-4.5' : 'translate-x-0'"
+                    />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 6. FM Dashboard Card -->
+            <div class="p-3.5 rounded-xl bg-card-background border border-primary-border space-y-2.5">
+              <div class="flex items-center justify-between text-xs font-bold text-primary-text pb-1.5 border-b border-primary-border/60">
+                <div class="flex items-center gap-1.5">
+                  <Briefcase class="w-3.5 h-3.5 text-amber-500" />
+                  <span>FM (Fund Manager) Dashboard Restrictions</span>
+                </div>
+                <span class="text-[10px] font-normal text-secondary-text">Strategy manager restrictions</span>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <!-- Disable FM Deposit -->
+                <div
+                  class="flex items-center justify-between p-2.5 rounded-lg bg-background/50 border border-primary-border/60 transition-opacity"
+                  :class="!form.enable_deposit ? 'opacity-50' : ''"
+                >
+                  <div>
+                    <div class="flex items-center gap-1.5">
+                      <p class="text-xs font-semibold text-primary-text">Disable FM Deposit</p>
+                      <span v-if="!form.enable_deposit" class="text-[9px] text-amber-500 font-medium">(Locked: Global Deposit is OFF)</span>
+                    </div>
+                    <p class="text-[10px] text-secondary-text">Disable deposits for Fund Managers</p>
+                  </div>
+                  <button
+                    type="button"
+                    :disabled="!form.enable_deposit || submitting"
+                    class="relative w-10 h-5.5 rounded-full transition-colors shrink-0"
+                    :class="[
+                      form.disable_fm_deposit ? 'bg-primary-green' : 'bg-primary-border',
+                      !form.enable_deposit ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                    ]"
+                    @click="form.enable_deposit && (form.disable_fm_deposit = !form.disable_fm_deposit)"
+                  >
+                    <span
+                      class="absolute top-0.5 left-0.5 w-4.5 h-4.5 rounded-full bg-white transition-transform duration-200 shadow-xs"
+                      :class="form.disable_fm_deposit ? 'translate-x-4.5' : 'translate-x-0'"
+                    />
+                  </button>
+                </div>
+                <!-- Disable FM Withdrawal -->
+                <div
+                  class="flex items-center justify-between p-2.5 rounded-lg bg-background/50 border border-primary-border/60 transition-opacity"
+                  :class="!form.enable_withdrawal ? 'opacity-50' : ''"
+                >
+                  <div>
+                    <div class="flex items-center gap-1.5">
+                      <p class="text-xs font-semibold text-primary-text">Disable FM Withdrawal</p>
+                      <span v-if="!form.enable_withdrawal" class="text-[9px] text-amber-500 font-medium">(Locked: Global Withdrawal is OFF)</span>
+                    </div>
+                    <p class="text-[10px] text-secondary-text">Disable withdrawals for Fund Managers</p>
+                  </div>
+                  <button
+                    type="button"
+                    :disabled="!form.enable_withdrawal || submitting"
+                    class="relative w-10 h-5.5 rounded-full transition-colors shrink-0"
+                    :class="[
+                      form.disable_fm_withdrawal ? 'bg-primary-blue' : 'bg-primary-border',
+                      !form.enable_withdrawal ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                    ]"
+                    @click="form.enable_withdrawal && (form.disable_fm_withdrawal = !form.disable_fm_withdrawal)"
+                  >
+                    <span
+                      class="absolute top-0.5 left-0.5 w-4.5 h-4.5 rounded-full bg-white transition-transform duration-200 shadow-xs"
+                      :class="form.disable_fm_withdrawal ? 'translate-x-4.5' : 'translate-x-0'"
+                    />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -747,6 +1018,13 @@ import {
   ShieldCheck,
   FormInput,
   Mail,
+  User,
+  Users,
+  Network,
+  Briefcase,
+  Star,
+  Power,
+  Globe,
 } from 'lucide-vue-next'
 import { usePaymentMethodsStore } from '@/stores/paymentMethods/paymentMethods'
 
@@ -774,11 +1052,19 @@ const defaultFormData = () => ({
   method_type: '',
   payment_method_code: '',
   remarks: '',
-  is_active: true,
-  enable_deposit: true,
-  enable_withdrawal: true,
+  is_active: false,
   is_default_deposit: false,
   is_default_withdrawal: false,
+  enable_deposit: false,
+  enable_withdrawal: false,
+
+  // Direct operations binding
+  disable_client_deposit: false,
+  disable_client_withdrawal: false,
+  disable_ib_deposit: false,
+  disable_ib_withdrawal: false,
+  disable_fm_deposit: false,
+  disable_fm_withdrawal: false,
 
   minimum_deposit_amount: 0,
   maximum_deposit_amount: 0,
@@ -828,17 +1114,26 @@ watch(
       if (props.paymentMethod) {
         // Edit Mode: copy data directly from the API response
         const p = props.paymentMethod
+
         form.value = {
           wallet_label: p.wallet_label || '',
           gateway: p.gateway || '',
           method_type: p.method_type || '',
           payment_method_code: p.payment_method_code || '',
           remarks: p.remarks || '',
-          is_active: p.is_active ?? true,
-          enable_deposit: p.enable_deposit ?? true,
-          enable_withdrawal: p.enable_withdrawal ?? true,
-          is_default_deposit: p.is_default_deposit ?? false,
-          is_default_withdrawal: p.is_default_withdrawal ?? false,
+          is_active: Boolean(p.is_active ?? false),
+          enable_deposit: Boolean(p.enable_deposit ?? false),
+          enable_withdrawal: Boolean(p.enable_withdrawal ?? false),
+          is_default_deposit: Boolean(p.is_default_deposit ?? false),
+          is_default_withdrawal: Boolean(p.is_default_withdrawal ?? false),
+
+          // Direct binding from API
+          disable_client_deposit: Boolean(p.disable_client_deposit ?? false),
+          disable_client_withdrawal: Boolean(p.disable_client_withdrawal ?? false),
+          disable_ib_deposit: Boolean(p.disable_ib_deposit ?? false),
+          disable_ib_withdrawal: Boolean(p.disable_ib_withdrawal ?? false),
+          disable_fm_deposit: Boolean(p.disable_fm_deposit ?? false),
+          disable_fm_withdrawal: Boolean(p.disable_fm_withdrawal ?? false),
 
           minimum_deposit_amount: p.minimum_deposit_amount ?? 0,
           maximum_deposit_amount: p.maximum_deposit_amount ?? 0,
@@ -870,6 +1165,43 @@ watch(
     }
   },
   { immediate: true }
+)
+
+// Synchronize defaults when global operations change or client operations are disabled
+watch(
+  () => form.value.enable_deposit,
+  (isEnabled) => {
+    if (!isEnabled) {
+      form.value.is_default_deposit = false
+    }
+  }
+)
+
+watch(
+  () => form.value.enable_withdrawal,
+  (isEnabled) => {
+    if (!isEnabled) {
+      form.value.is_default_withdrawal = false
+    }
+  }
+)
+
+watch(
+  () => form.value.disable_client_deposit,
+  (isDisabled) => {
+    if (isDisabled) {
+      form.value.is_default_deposit = false
+    }
+  }
+)
+
+watch(
+  () => form.value.disable_client_withdrawal,
+  (isDisabled) => {
+    if (isDisabled) {
+      form.value.is_default_withdrawal = false
+    }
+  }
 )
 
 // ── Dynamic Meta Fields Methods ──
@@ -1117,6 +1449,13 @@ const submit = async () => {
       enable_withdrawal: Boolean(form.value.enable_withdrawal),
       is_default_deposit: Boolean(form.value.is_default_deposit),
       is_default_withdrawal: Boolean(form.value.is_default_withdrawal),
+
+      disable_client_deposit: Boolean(form.value.disable_client_deposit),
+      disable_client_withdrawal: Boolean(form.value.disable_client_withdrawal),
+      disable_ib_deposit: Boolean(form.value.disable_ib_deposit),
+      disable_ib_withdrawal: Boolean(form.value.disable_ib_withdrawal),
+      disable_fm_deposit: Boolean(form.value.disable_fm_deposit),
+      disable_fm_withdrawal: Boolean(form.value.disable_fm_withdrawal),
 
       minimum_deposit_amount: Number(form.value.minimum_deposit_amount) || 0,
       maximum_deposit_amount: Number(form.value.maximum_deposit_amount) || 0,

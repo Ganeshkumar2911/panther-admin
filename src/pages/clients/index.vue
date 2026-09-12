@@ -22,6 +22,7 @@ import {
 import ConfirmationDialog from "@/components/common/ConfirmationDialog.vue";
 import ClientBankAccountsDialog from "@/components/common/ClientBankAccountsDialog.vue";
 import { useClientListStore } from "@/stores/clientList/clientList";
+import { useClientDepthStore } from "@/stores/clientDepth/clientDepth";
 import { useTagsStore } from "@/stores/tags/tags";
 import Pagination from "@/components/common/Pagination.vue";
 import BaseSelect from "@/components/common/BaseSelect.vue";
@@ -41,12 +42,19 @@ import { useRouter } from "vue-router";
 import { useGoToTradingAccount } from "@/composables/useGoToTradingAccount";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import { getFlagCode, cleanCountryLabel } from "@/utils/countries";
+import apiRequest from "@/api/request";
+import urls from "@/api/urls";
+import { useSnackbarStore } from "@/stores/snackbar/snackbar";
+import { useRbacStaffStore } from "@/stores/rbac/staff";
 
 const router = useRouter();
 const { hasPermission, hasAnyPermission } = usePermissionCheck();
 
 const store = useClientListStore();
+const clientDepthStore = useClientDepthStore();
 const tagsStore = useTagsStore();
+const snackbar = useSnackbarStore();
+const rbacStaffStore = useRbacStaffStore();
 
 const canAssignTags = computed(() => {
   return (
@@ -65,14 +73,10 @@ const remainingTags = (tags) => {
   return tags.slice(2);
 };
 
-const selectedClientIds = ref([]);
-const tagModal = ref({
-  open: false,
-  entityType: "user",
-  entityId: null,
-  entityIds: [],
-  currentTags: [],
-});
+const selectedClients = ref([]);
+const selectedClientIds = computed(() =>
+  selectedClients.value.map((c) => (typeof c === "object" ? c.id : c)),
+);
 
 const isAllClientsSelected = computed(() => {
   if (!store.data || store.data.length === 0) return false;
@@ -86,20 +90,37 @@ const isSomeClientsSelected = computed(() => {
 
 const toggleSelectAllClients = () => {
   if (isAllClientsSelected.value) {
-    selectedClientIds.value = [];
+    selectedClients.value = [];
   } else {
-    selectedClientIds.value = store.data.map((c) => c.id);
+    selectedClients.value = [...(store.data || [])];
   }
 };
 
 const toggleSelectClient = (clientId) => {
-  const idx = selectedClientIds.value.indexOf(clientId);
+  const idx = selectedClients.value.findIndex(
+    (c) => (typeof c === "object" ? c.id : c) === clientId,
+  );
   if (idx > -1) {
-    selectedClientIds.value.splice(idx, 1);
+    selectedClients.value.splice(idx, 1);
   } else {
-    selectedClientIds.value.push(clientId);
+    const client = (store.data || []).find((c) => c.id === clientId);
+    if (client) {
+      selectedClients.value.push(client);
+    }
   }
 };
+
+const clearClientSelection = () => {
+  selectedClients.value = [];
+};
+
+const tagModal = ref({
+  open: false,
+  entityType: "user",
+  entityId: null,
+  entityIds: [],
+  currentTags: [],
+});
 
 const openClientTagModal = (client) => {
   tagModal.value = {
@@ -166,6 +187,17 @@ const selectedClientForTransactions = ref(null);
 const clientLoginModalOpen = ref(false);
 const selectedClientForLogin = ref(null);
 
+const editingStaffClientId = ref(null);
+
+const assignDialog = ref({
+  open: false,
+  loading: false,
+  client: null,
+  staffId: null,
+  staffName: "",
+  isEdit: false,
+});
+
 const onSearch = () => {
   clearTimeout(searchTimer);
   searchTimer = setTimeout(() => store.applyFilters(), 400);
@@ -182,11 +214,27 @@ const hasFilters = computed(
 
 const handlePageChange = (page) => store.fetchClients(page);
 
-const formatNum = (val) =>
-  (val ?? 0).toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+const handlePerPageChange = ({ page, per_page }) => {
+  store.pagination.per_page = per_page;
+  store.fetchClients(page);
+};
+
+const clientColumns = [
+  { key: "client", label: "Client", sortable: true, minWidth: 170 },
+  { key: "tags", label: "Tags", minWidth: 160 },
+  { key: "contact", label: "Contact", minWidth: 180 },
+  { key: "address", label: "Address", minWidth: 160 },
+  { key: "ib", label: "IB", minWidth: 160 },
+  { key: "staff", label: "Ass. Staff", minWidth: 170 },
+  { key: "referral_link", label: "Referral Campaign", minWidth: 150 },
+  { key: "kyc_status", label: "KYC Status", sortable: true, minWidth: 130 },
+  { key: "doc_status", label: "Doc Status", minWidth: 120 },
+  { key: "sumsub_id", label: "Sumsub ID", minWidth: 120 },
+  { key: "accounts", label: "Accounts", minWidth: 180 },
+  { key: "dates", label: "Dates", minWidth: 150 },
+  { key: "status", label: "Status", align: "center", minWidth: 100 },
+];
+
 const formatDate = (val) =>
   val
     ? new Date(val).toLocaleDateString("en-GB", {
@@ -202,6 +250,11 @@ function getRowActions(client) {
   if (hasPermission("client.update")) {
     actions.push(
       { action: "edit", label: "Edit Client", icon: Pencil },
+      {
+        action: "manageTransactions",
+        label: "Manage Transactions",
+        icon: SlidersHorizontal,
+      },
       { action: "changeIB", label: "Change IB", icon: UserPen },
       {
         action: "makeIB",
@@ -214,11 +267,11 @@ function getRowActions(client) {
         label: "Update Referral Link",
         icon: Link2,
       },
-      // {
-      //   action: "depth",
-      //   label: "Client Depth",
-      //   icon: Eye,
-      // },
+      {
+        action: "depth",
+        label: "Client Depth",
+        icon: Eye,
+      },
       { divider: true },
       {
         action: "toggleStatus",
@@ -352,7 +405,9 @@ const openChangeIBDialog = (client) => {
 };
 
 const openClientDepth = (client) => {
-  localStorage.setItem("active_client", JSON.stringify(client));
+  if (!client) return;
+  clientDepthStore.reset();
+  clientDepthStore.setActiveClient(client);
   router.push(`/client/details/${client.id}`);
 };
 
@@ -446,25 +501,6 @@ const closeManageTransactionsDialog = () => {
 const handleManageTransactionsSuccess = () => {
   store.fetchClients(store.pagination.page);
 };
-
-import apiRequest from "@/api/request";
-import urls from "@/api/urls";
-import { useSnackbarStore } from "@/stores/snackbar/snackbar";
-import { useRbacStaffStore } from "@/stores/rbac/staff";
-
-const snackbar = useSnackbarStore();
-const rbacStaffStore = useRbacStaffStore();
-
-const editingStaffClientId = ref(null);
-
-const assignDialog = ref({
-  open: false,
-  loading: false,
-  client: null,
-  staffId: null,
-  staffName: "",
-  isEdit: false,
-});
 
 const staffOptions = computed(() => {
   return (rbacStaffStore.records || []).map((s) => ({
@@ -666,7 +702,7 @@ onMounted(() => {
         <Tooltip text="Refresh" position="right">
           <button
             type="button"
-            :disabled="store.loading"
+            :disabled="store.isLoading"
             class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text transition-colors hover:text-primary-text hover:bg-background disabled:opacity-60 disabled:cursor-not-allowed"
             @click="
               () => {
@@ -676,7 +712,7 @@ onMounted(() => {
           >
             <RefreshCw
               class="h-3.5 w-3.5"
-              :class="{ 'animate-spin': store.loading }"
+              :class="{ 'animate-spin': store.isLoading }"
             />
           </button>
         </Tooltip>
@@ -732,7 +768,7 @@ onMounted(() => {
           </button>
           <button
             type="button"
-            @click="selectedClientIds = []"
+            @click="clearClientSelection"
             class="px-2.5 py-1.5 rounded-lg text-xs font-medium text-secondary-text hover:text-primary-text hover:bg-card-background/70 transition-colors cursor-pointer"
           >
             Clear Selection
@@ -741,618 +777,394 @@ onMounted(() => {
       </div>
     </Transition>
 
-    <!-- Desktop Table -->
-    <div
-      class="hidden md:block w-full border border-primary-border rounded-xl overflow-x-auto shadow-xs bg-card-background/40"
-    >
-      <table class="w-full border-collapse">
-        <thead
-          class="group/head bg-background/80 backdrop-blur-sm sticky top-0 z-10"
-        >
-          <tr class="border-b border-primary-border">
-            <th v-if="canAssignTags" class="p-3 w-10 text-center">
-              <input
-                type="checkbox"
-                :checked="isAllClientsSelected"
-                :indeterminate.prop="isSomeClientsSelected"
-                @change="toggleSelectAllClients"
-                class="custom-checkbox transition-opacity duration-150"
-                :class="[
-                  selectedClientIds.length > 0 || isAllClientsSelected
-                    ? 'opacity-100'
-                    : 'opacity-0 group-hover/head:opacity-100',
-                ]"
-                title="Select all clients"
-              />
-            </th>
-            <th
-              class="text-left text-[11px] font-semibold text-secondary-text uppercase tracking-wider p-3"
+    <!-- Desktop DataTable -->
+    <div class="hidden md:block">
+      <DataTable
+        :data="store.data"
+        :columns="clientColumns"
+        :pagination="store.pagination"
+        :loading="store.isLoading"
+        :selectable="canAssignTags"
+        v-model:selected="selectedClients"
+        :actions="getRowActions"
+        :per-page-options="[10, 25, 50, 100]"
+        row-key="id"
+        table-key="clients-list-table"
+        empty-title="No clients found"
+        empty-text="Try adjusting your filters or search criteria."
+        @page-change="handlePageChange"
+        @per-page-change="handlePerPageChange"
+        @action="({ action, row }) => onMenuSelect({ action }, row)"
+      >
+        <!-- Custom Cell: Client (Avatar, Name, ID) -->
+        <template #cell-client="{ row }">
+          <div class="flex items-center gap-2.5">
+            <div
+              class="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-[10px] font-medium text-white shrink-0"
             >
-              Client
-            </th>
-            <th
-              class="text-left text-[11px] font-semibold text-secondary-text uppercase tracking-wider p-3"
-            >
-              Tags
-            </th>
-            <th
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
-            >
-              Contact
-            </th>
-            <th
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
-            >
-              Address
-            </th>
-            <th
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
-            >
-              IB
-            </th>
-            <th
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
-            >
-              Ass. Staff
-            </th>
-            <th
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
-            >
-              Referral Campaign
-            </th>
-            <th
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
-            >
-              KYC Status
-            </th>
-            <th
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
-            >
-              Doc Status
-            </th>
-            <th
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
-            >
-              Sumsub ID
-            </th>
-            <th
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
-            >
-              Accounts
-            </th>
-            <th
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
-            >
-              Dates
-            </th>
-            <th
-              class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
-            >
-              Status
-            </th>
-            <th
-              class="text-center text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
-            >
-              Actions
-            </th>
-          </tr>
-        </thead>
-
-        <!-- Skeleton -->
-        <tbody v-if="store.isLoading">
-          <tr
-            v-for="n in 6"
-            :key="n"
-            class="border-b border-primary-border animate-pulse"
-          >
-            <td class="p-3">
-              <div class="flex items-center gap-2.5">
-                <div class="w-7 h-7 rounded-full bg-card-background shrink-0" />
-                <div class="space-y-1.5">
-                  <div class="h-3 w-24 bg-card-background rounded" />
-                  <div class="h-2.5 w-28 bg-card-background rounded" />
-                </div>
-              </div>
-            </td>
-            <td class="p-3">
-              <div class="space-y-1.5">
-                <div class="h-3 w-20 bg-card-background rounded" />
-                <div class="h-2.5 w-24 bg-card-background rounded" />
-              </div>
-            </td>
-            <td class="p-3">
-              <div class="space-y-1.5">
-                <div class="h-3 w-16 bg-card-background rounded" />
-                <div class="h-2.5 w-20 bg-card-background rounded" />
-              </div>
-            </td>
-            <td class="p-3">
-              <div class="space-y-1.5">
-                <div class="h-3 w-20 bg-card-background rounded" />
-                <div class="h-2.5 w-24 bg-card-background rounded" />
-              </div>
-            </td>
-            <td class="p-3">
-              <div class="space-y-1.5">
-                <div class="h-3 w-20 bg-card-background rounded" />
-                <div class="h-2.5 w-24 bg-card-background rounded" />
-              </div>
-            </td>
-            <td class="p-3">
-              <div class="space-y-1.5">
-                <div class="h-3 w-16 bg-card-background rounded" />
-                <div class="h-2.5 w-20 bg-card-background rounded" />
-              </div>
-            </td>
-            <td class="p-3">
-              <div class="h-5 w-16 bg-card-background rounded-full" />
-            </td>
-            <td class="p-3">
-              <div class="h-5 w-16 bg-card-background rounded-full" />
-            </td>
-            <td class="p-3">
-              <div class="h-5 w-20 bg-card-background rounded" />
-            </td>
-            <td class="p-3">
-              <div class="space-y-1.5">
-                <div class="h-3 w-12 bg-card-background rounded" />
-                <div class="h-2.5 w-16 bg-card-background rounded" />
-              </div>
-            </td>
-            <td class="p-3">
-              <div class="space-y-1.5">
-                <div class="h-3 w-16 bg-card-background rounded" />
-                <div class="h-2.5 w-20 bg-card-background rounded" />
-              </div>
-            </td>
-            <td class="p-3 text-right">
-              <div class="h-5 w-14 bg-card-background rounded-full ml-auto" />
-            </td>
-            <td class="p-3 text-right">
-              <div class="h-7 w-20 bg-card-background rounded-lg ml-auto" />
-            </td>
-          </tr>
-        </tbody>
-
-        <!-- Empty -->
-        <tbody v-else-if="store.data.length === 0">
-          <tr>
-            <td colspan="13" class="py-16 text-center">
-              <div class="flex flex-col items-center gap-3">
-                <div
-                  class="w-12 h-12 rounded-full bg-card-background flex items-center justify-center"
-                >
-                  <Users class="w-5 h-5 text-secondary-text" />
-                </div>
-                <p class="text-sm font-medium text-primary-text">
-                  No clients found
-                </p>
-                <p class="text-xs text-secondary-text">
-                  Try adjusting your filters
-                </p>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-
-        <!-- Data -->
-        <tbody v-else>
-          <tr
-            v-for="client in store.data"
-            :key="client.id"
-            class="group border-b border-primary-border last:border-none transition-colors duration-150"
-            :class="[
-              selectedClientIds.includes(client.id)
-                ? 'bg-primary/5 dark:bg-primary/10 hover:bg-primary/10 dark:hover:bg-primary/15'
-                : 'hover:bg-card-background/70',
-            ]"
-          >
-            <!-- Select Checkbox -->
-            <td v-if="canAssignTags" class="p-3 text-center w-10" @click.stop>
-              <input
-                type="checkbox"
-                :checked="selectedClientIds.includes(client.id)"
-                @change="toggleSelectClient(client.id)"
-                class="custom-checkbox transition-opacity duration-150"
-                :class="[
-                  selectedClientIds.length > 0 ||
-                  selectedClientIds.includes(client.id)
-                    ? 'opacity-100'
-                    : 'opacity-0 group-hover:opacity-100',
-                ]"
-              />
-            </td>
-
-            <td class="p-3">
-              <div class="flex items-center gap-2.5">
-                <div
-                  class="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-[10px] font-medium text-white shrink-0"
-                >
-                  {{ client.name?.charAt(0).toUpperCase() }}
-                </div>
-                <div>
-                  <p class="text-xs font-medium text-primary-text">
-                    {{ client.name }}
-                  </p>
-                  <p class="text-[10px] text-secondary-text">
-                    ID: {{ client.id }}
-                  </p>
-                </div>
-              </div>
-            </td>
-
-            <!-- Tags Column -->
-            <td class="p-3 max-w-45" @click.stop>
-              <div class="flex flex-wrap items-center gap-1">
-                <TagChip
-                  v-for="tag in visibleTags(client.tags)"
-                  :key="tag.id"
-                  :tag="tag"
-                  size="sm"
-                />
-                <Tooltip
-                  v-if="remainingTags(client.tags).length"
-                  position="center"
-                  maxWidth="280px"
-                >
-                  <span
-                    class="inline-flex items-center text-[10px] font-semibold px-1.5 py-0.5 rounded border border-primary-border bg-background/80 text-secondary-text hover:text-primary-text cursor-help transition-colors"
-                  >
-                    +{{ remainingTags(client.tags).length }}
-                  </span>
-
-                  <template #content>
-                    <div class="p-1">
-                      <p
-                        class="text-[10px] uppercase font-semibold text-secondary-text tracking-wider mb-1.5"
-                      >
-                        Additional Tags
-                      </p>
-                      <div class="flex flex-wrap gap-1 max-w-64">
-                        <TagChip
-                          v-for="tag in remainingTags(client.tags)"
-                          :key="tag.id"
-                          :tag="tag"
-                          size="sm"
-                        />
-                      </div>
-                    </div>
-                  </template>
-                </Tooltip>
-                <button
-                  v-if="canAssignTags"
-                  type="button"
-                  @click="openClientTagModal(client)"
-                  class="p-1 rounded hover:bg-white/10 text-secondary-text hover:text-primary-text transition-colors cursor-pointer"
-                  title="Manage Tags"
-                >
-                  <Plus class="w-3 h-3" />
-                </button>
-              </div>
-            </td>
-
-            <td class="p-3">
-              <p
-                v-if="client.email"
-                @click="goToTradingAccount(client.email)"
-                class="text-xs font-medium text-primary hover:underline cursor-pointer transition-colors"
-                title="Search trading accounts for this email"
-              >
-                {{ client.email }}
+              {{ row.name?.charAt(0).toUpperCase() }}
+            </div>
+            <div>
+              <p class="text-xs font-medium text-primary-text">
+                {{ row.name }}
               </p>
-              <p v-else class="text-xs text-primary-text">—</p>
-              <p
-                v-if="hasPermission('client.view_number')"
-                class="text-[10px] text-secondary-text"
-              >
-                {{ client.phone_number ?? "—" }}
-              </p>
-              <p
-                class="text-[10px] text-secondary-text"
-                v-if="client.date_of_birth"
-              >
-                DOB: {{ formatDate(client.date_of_birth) }}
-              </p>
-            </td>
+              <p class="text-[10px] text-secondary-text">ID: {{ row.id }}</p>
+            </div>
+          </div>
+        </template>
 
-            <td class="p-3">
-              <p class="text-xs text-primary-text">
-                {{ client.address ?? "—" }}
-              </p>
-              <p class="text-[10px] text-secondary-text">
-                {{ client.city ?? "—" }}, {{ client.state ?? "—" }}
-              </p>
-              <p
-                class="text-[10px] text-secondary-text flex items-center gap-1.5"
-              >
-                <span
-                  v-if="client.country && getFlagCode(client.country)"
-                  :class="[
-                    'fi',
-                    `fi-${getFlagCode(client.country)}`,
-                    'fis',
-                    'w-4 h-3 shrink-0',
-                  ]"
-                ></span>
-                <span>{{ cleanCountryLabel(client.country) || "—" }}</span>
-                <span v-if="client.zip_code">({{ client.zip_code }})</span>
-              </p>
-            </td>
-
-            <td class="p-3">
-              <p class="text-xs text-primary-text">
-                {{ client.ib_name ?? "—" }}
-              </p>
-              <p class="text-[10px] text-secondary-text">
-                {{ client.ib_email ?? "—" }}
-              </p>
-              <p class="text-[10px] text-secondary-text" v-if="client.ib_id">
-                Ref: {{ client.ib_referral_code ?? "" }} (ID:
-                {{ client.ib_id }})
-              </p>
-            </td>
-
-            <!-- Assigned Staff -->
-            <td class="p-3 whitespace-nowrap" @click.stop>
-              <div
-                v-if="
-                  (client.staff_assigned?.name ||
-                    client.assigned_staff?.name) &&
-                  editingStaffClientId !== client.id
-                "
-                class="flex items-center justify-between gap-2 group"
-              >
-                <div class="flex items-center gap-2">
-                  <div
-                    class="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-[9px] font-bold text-btn-text-primary shrink-0"
-                  >
-                    {{
-                      (
-                        client.staff_assigned?.name ||
-                        client.assigned_staff?.name ||
-                        ""
-                      )
-                        .charAt(0)
-                        .toUpperCase()
-                    }}
-                  </div>
-                  <span class="text-primary-text font-medium text-xs">{{
-                    client.staff_assigned?.name || client.assigned_staff?.name
-                  }}</span>
-                </div>
-                <button
-                  v-if="hasPermission('client.update')"
-                  type="button"
-                  @click="editingStaffClientId = client.id"
-                  class="p-1 rounded-md text-secondary-text hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer"
-                  title="Edit Assigned Staff"
-                >
-                  <Pencil class="w-3 h-3" />
-                </button>
-              </div>
-              <div
-                v-else-if="hasPermission('client.update')"
-                class="w-44 flex items-center gap-1"
-              >
-                <div class="flex-1">
-                  <BaseSelect
-                    :model-value="
-                      client.staff_assigned?.id ||
-                      client.assigned_staff?.id ||
-                      client.assigned_staff_id ||
-                      null
-                    "
-                    :options="staffOptions"
-                    :placeholder="
-                      client.staff_assigned?.name || client.assigned_staff?.name
-                        ? 'Change Staff...'
-                        : 'Assign Staff...'
-                    "
-                    searchable
-                    variant="surface"
-                    @update:model-value="
-                      (staffId) => promptAssignStaff(client, staffId)
-                    "
-                  />
-                </div>
-                <button
-                  v-if="editingStaffClientId === client.id"
-                  type="button"
-                  @click="editingStaffClientId = null"
-                  class="p-1 rounded-md text-secondary-text hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer shrink-0"
-                  title="Cancel Edit"
-                >
-                  <X class="w-3.5 h-3.5" />
-                </button>
-              </div>
-              <span v-else class="text-xs text-secondary-text">Unassigned</span>
-            </td>
-
-            <!-- Referral Link Column -->
-            <td class="p-3">
-              <div v-if="client.referral_link_code" class="space-y-1">
-                <span
-                  class="inline-flex items-center gap-0.5 text-[9px] font-bold bg-primary-blue/10 text-primary-blue border border-primary-blue/20 px-1.5 py-0.5 rounded-full select-all"
-                  :title="client.referral_link_name"
-                >
-                  <Link2 class="w-2.5 h-2.5 shrink-0" />
-                  <span>{{ client.referral_link_code }}</span>
-                </span>
-                <p
-                  class="text-[10px] text-primary-text truncate max-w-30"
-                  :title="client.referral_link_name"
-                >
-                  {{ client.referral_link_name }}
-                </p>
-              </div>
-              <span v-else class="text-xs text-secondary-text/50">—</span>
-            </td>
-
-            <td class="p-3">
+        <!-- Custom Cell: Tags -->
+        <template #cell-tags="{ row }">
+          <div class="flex flex-wrap items-center gap-1" @click.stop>
+            <TagChip
+              v-for="tag in visibleTags(row.tags)"
+              :key="tag.id"
+              :tag="tag"
+              size="sm"
+            />
+            <Tooltip
+              v-if="remainingTags(row.tags).length"
+              position="center"
+              maxWidth="280px"
+            >
               <span
-                class="text-[11px] font-medium px-2 py-0.5 rounded-full border capitalize block mb-1"
-                :class="getKycClass(client.kyc_status)"
+                class="inline-flex items-center text-[10px] font-semibold px-1.5 py-0.5 rounded border border-primary-border bg-background/80 text-secondary-text hover:text-primary-text cursor-help transition-colors"
               >
-                {{ client.kyc_status || "not started" }}
+                +{{ remainingTags(row.tags).length }}
               </span>
-              <p class="text-[10px] text-secondary-text">
-                {{ client.verification_channel ?? "—" }}
-              </p>
-              <p
-                v-if="client.kyc_verified_at"
-                class="text-[10px] text-secondary-text"
-              >
-                ✓ {{ formatDate(client.kyc_verified_at) }}
-              </p>
-            </td>
 
-            <td class="p-3">
-              <p class="text-xs text-primary-text mb-1 text-nowrap">
-                <span
-                  :class="
-                    client.docs_uploaded === 'True'
-                      ? 'text-green-600'
-                      : 'text-orange-600'
-                  "
-                >
-                  Docs: {{ client.docs_uploaded ?? "—" }}
-                </span>
-              </p>
-              <p class="text-xs text-primary-text mb-1">
-                {{ client.doc_approved ?? "—" }}
-              </p>
-              <p
-                v-if="client.kyc_reject_reason"
-                class="text-[10px] text-red-600"
-              >
-                Reject: {{ client.kyc_reject_reason }}
-              </p>
-            </td>
-
-            <td class="p-3">
-              <p class="text-xs font-mono text-primary-text">
-                {{ client.sumsub_applicant_id ?? "—" }}
-              </p>
-            </td>
-
-            <td class="p-3 max-w-55">
-              <div>
-                <div class="flex items-center justify-between gap-1 mb-1">
-                  <span class="text-xs font-semibold text-primary-text block">
-                    {{ client.total_accounts || client.accounts?.length || 0 }}
-                    Acct{{
-                      (client.total_accounts ||
-                        client.accounts?.length ||
-                        0) !== 1
-                        ? "s"
-                        : ""
-                    }}
-                  </span>
-                  <button
-                    v-if="client.accounts?.length > 2"
-                    type="button"
-                    @click="toggleExpandAccounts(client.id)"
-                    class="text-[9px] font-medium text-primary hover:underline cursor-pointer focus:outline-none"
+              <template #content>
+                <div class="p-1">
+                  <p
+                    class="text-[10px] uppercase font-semibold text-secondary-text tracking-wider mb-1.5"
                   >
-                    {{
-                      expandedAccountsMap[client.id] ? "Show Less" : "Show All"
-                    }}
-                  </button>
+                    Additional Tags
+                  </p>
+                  <div class="flex flex-wrap gap-1 max-w-64">
+                    <TagChip
+                      v-for="tag in remainingTags(row.tags)"
+                      :key="tag.id"
+                      :tag="tag"
+                      size="sm"
+                    />
+                  </div>
                 </div>
+              </template>
+            </Tooltip>
+            <button
+              v-if="canAssignTags"
+              type="button"
+              @click="openClientTagModal(row)"
+              class="p-1 rounded hover:bg-white/10 text-secondary-text hover:text-primary-text transition-colors cursor-pointer"
+              title="Manage Tags"
+            >
+              <Plus class="w-3 h-3" />
+            </button>
+          </div>
+        </template>
 
+        <!-- Custom Cell: Contact (Email, Phone, DOB) -->
+        <template #cell-contact="{ row }">
+          <p
+            v-if="row.email"
+            @click.stop="goToTradingAccount(row.email)"
+            class="text-xs font-medium text-primary hover:underline cursor-pointer transition-colors"
+            title="Search trading accounts for this email"
+          >
+            {{ row.email }}
+          </p>
+          <p v-else class="text-xs text-primary-text">—</p>
+          <p
+            v-if="hasPermission('client.view_number')"
+            class="text-[10px] text-secondary-text"
+          >
+            {{ row.phone_number ?? "—" }}
+          </p>
+          <p class="text-[10px] text-secondary-text" v-if="row.date_of_birth">
+            DOB: {{ formatDate(row.date_of_birth) }}
+          </p>
+        </template>
+
+        <!-- Custom Cell: Address -->
+        <template #cell-address="{ row }">
+          <p class="text-xs text-primary-text">
+            {{ row.address ?? "—" }}
+          </p>
+          <p class="text-[10px] text-secondary-text">
+            {{ row.city ?? "—" }}, {{ row.state ?? "—" }}
+          </p>
+          <p class="text-[10px] text-secondary-text flex items-center gap-1.5">
+            <span
+              v-if="row.country && getFlagCode(row.country)"
+              :class="[
+                'fi',
+                `fi-${getFlagCode(row.country)}`,
+                'fis',
+                'w-4 h-3 shrink-0',
+              ]"
+            ></span>
+            <span>{{ cleanCountryLabel(row.country) || "—" }}</span>
+            <span v-if="row.zip_code">({{ row.zip_code }})</span>
+          </p>
+        </template>
+
+        <!-- Custom Cell: IB -->
+        <template #cell-ib="{ row }">
+          <p class="text-xs text-primary-text">
+            {{ row.ib_name ?? "—" }}
+          </p>
+          <p class="text-[10px] text-secondary-text">
+            {{ row.ib_email ?? "—" }}
+          </p>
+          <p class="text-[10px] text-secondary-text" v-if="row.ib_id">
+            Ref: {{ row.ib_referral_code ?? "" }} (ID: {{ row.ib_id }})
+          </p>
+        </template>
+
+        <!-- Custom Cell: Ass. Staff -->
+        <template #cell-staff="{ row }">
+          <div class="whitespace-nowrap" @click.stop>
+            <div
+              v-if="
+                (row.staff_assigned?.name || row.assigned_staff?.name) &&
+                editingStaffClientId !== row.id
+              "
+              class="flex items-center justify-between gap-2 group"
+            >
+              <div class="flex items-center gap-2">
                 <div
-                  v-if="client.accounts?.length > 0"
-                  class="flex flex-wrap gap-1 items-center"
+                  class="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-[9px] font-bold text-btn-text-primary shrink-0"
                 >
-                  <!-- Collapsed view: show first 2 accounts + "+N more" badge -->
-                  <template v-if="!expandedAccountsMap[client.id]">
-                    <span
-                      v-for="(acc, idx) in client.accounts.slice(0, 2)"
-                      :key="acc.account_number || acc || idx"
-                      @click="goToTradingAccount(acc.account_number || acc)"
-                      :title="`Trading Account: #${acc.account_number || acc}${acc.account_type ? ' (' + acc.account_type + ')' : ''} — Click to view`"
-                      class="font-mono text-[9px] px-1.5 py-0.5 rounded-md cursor-pointer hover:scale-105 active:scale-95 transition-all duration-150 inline-block border"
-                      :class="[
-                        chooseBgColor[acc.account_type] ||
-                          'bg-background text-secondary-text border-primary-border',
-                      ]"
-                    >
-                      {{ acc.account_number || acc }}
-                    </span>
-
-                    <button
-                      v-if="client.accounts.length > 2"
-                      type="button"
-                      @click="toggleExpandAccounts(client.id)"
-                      class="font-mono text-[9px] font-semibold px-1.5 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors cursor-pointer inline-block"
-                      title="Click to view all accounts"
-                    >
-                      +{{ client.accounts.length - 2 }} more
-                    </button>
-                  </template>
-
-                  <!-- Expanded view: show all accounts inline cleanly -->
-                  <template v-else>
-                    <span
-                      v-for="(acc, idx) in client.accounts"
-                      :key="acc.account_number || acc || idx"
-                      @click="goToTradingAccount(acc.account_number || acc)"
-                      :title="`Trading Account: #${acc.account_number || acc}${acc.account_type ? ' (' + acc.account_type + ')' : ''} — Click to view`"
-                      class="font-mono text-[9px] px-1.5 py-0.5 rounded-md cursor-pointer hover:scale-105 active:scale-95 transition-all duration-150 inline-block border"
-                      :class="[
-                        chooseBgColor[acc.account_type] ||
-                          'bg-background text-secondary-text border-primary-border',
-                      ]"
-                    >
-                      {{ acc.account_number || acc }}
-                    </span>
-                  </template>
+                  {{
+                    (row.staff_assigned?.name || row.assigned_staff?.name || "")
+                      .charAt(0)
+                      .toUpperCase()
+                  }}
                 </div>
-                <span v-else class="text-xs text-secondary-text">—</span>
+                <span class="text-primary-text font-medium text-xs">{{
+                  row.staff_assigned?.name || row.assigned_staff?.name
+                }}</span>
               </div>
-            </td>
-
-            <td class="p-3">
-              <p class="text-[10px] text-nowrap text-secondary-text mb-1">
-                Joined: {{ formatDate(client.created_at) }}
-              </p>
-              <p class="text-[10px] text-nowrap text-secondary-text mb-1">
-                Updated: {{ formatDate(client.updated_at) }}
-              </p>
-              <p class="text-[10px] text-nowrap text-secondary-text">
-                Tracking ID: {{ client.tracking_id ?? "—" }}
-              </p>
-            </td>
-
-            <td class="p-3 text-right">
-              <Tooltip
-                :text="`Click to ${client.is_active ? 'deactivate' : 'activate'}`"
-                position="left"
+              <button
+                v-if="hasPermission('client.update')"
+                type="button"
+                @click="editingStaffClientId = row.id"
+                class="p-1 rounded-md text-secondary-text hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer"
+                title="Edit Assigned Staff"
               >
-                <button
-                  :disabled="!hasPermission('client.update')"
-                  @click="openChangeStatusDialog(client)"
-                  class="text-[11px] font-medium px-2 py-0.5 rounded-full border transition-all duration-200 cursor-pointer focus:outline-none hover:scale-105 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
-                  :class="
-                    client.is_active
-                      ? 'bg-primary-green/10 text-primary-green border-primary-green/20 hover:bg-primary-green/20'
-                      : 'bg-background text-secondary-text border-primary-border hover:bg-secondary-text/10'
+                <Pencil class="w-3 h-3" />
+              </button>
+            </div>
+            <div
+              v-else-if="hasPermission('client.update')"
+              class="w-44 flex items-center gap-1"
+            >
+              <div class="flex-1">
+               <BaseSelect
+                  :model-value="
+                    row.staff_assigned?.id ||
+                    row.assigned_staff?.id ||
+                    row.assigned_staff_id ||
+                    null
                   "
-                >
-                  {{ client.is_active ? "Active" : "Inactive" }}
-                </button>
-              </Tooltip>
-            </td>
+                  :options="staffOptions"
+                  :placeholder="
+                    row.staff_assigned?.name || row.assigned_staff?.name
+                      ? 'Change Staff...'
+                      : 'Assign Staff...'
+                  "
+                  searchable
+                  variant="surface"
+                  @update:model-value="
+                    (staffId) => promptAssignStaff(row, staffId)
+                  "
+                />
+              </div>
+              <button
+                v-if="editingStaffClientId === row.id"
+                type="button"
+                @click="editingStaffClientId = null"
+                class="p-1 rounded-md text-secondary-text hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer shrink-0"
+                title="Cancel Edit"
+              >
+                <X class="w-3.5 h-3.5" />
+              </button>
+            </div>
+            <span v-else class="text-xs text-secondary-text">Unassigned</span>
+          </div>
+        </template>
 
-            <td class="p-3 align-middle text-center">
-              <DropdownMenu
-                :items="getRowActions(client)"
-                @select="(item) => onMenuSelect(item, client)"
-              />
-            </td>
-          </tr>
-        </tbody>
-      </table>
+        <!-- Custom Cell: Referral Campaign -->
+        <template #cell-referral_link="{ row }">
+          <div v-if="row.referral_link_code" class="space-y-1">
+            <span
+              class="inline-flex items-center gap-0.5 text-[9px] font-bold bg-primary-blue/10 text-primary-blue border border-primary-blue/20 px-1.5 py-0.5 rounded-full select-all"
+              :title="row.referral_link_name"
+            >
+              <Link2 class="w-2.5 h-2.5 shrink-0" />
+              <span>{{ row.referral_link_code }}</span>
+            </span>
+            <p
+              class="text-[10px] text-primary-text truncate max-w-35"
+              :title="row.referral_link_name"
+            >
+              {{ row.referral_link_name }}
+            </p>
+          </div>
+          <span v-else class="text-xs text-secondary-text/50">—</span>
+        </template>
+
+        <!-- Custom Cell: KYC Status -->
+        <template #cell-kyc_status="{ row }">
+          <span
+            class="text-[11px] font-medium px-2 py-0.5 rounded-full border capitalize mb-1 inline-block"
+            :class="getKycClass(row.kyc_status)"
+          >
+            {{ row.kyc_status || "not started" }}
+          </span>
+          <p class="text-[10px] text-secondary-text">
+            {{ row.verification_channel ?? "—" }}
+          </p>
+          <p v-if="row.kyc_verified_at" class="text-[10px] text-secondary-text">
+            ✓ {{ formatDate(row.kyc_verified_at) }}
+          </p>
+        </template>
+
+        <!-- Custom Cell: Doc Status -->
+        <template #cell-doc_status="{ row }">
+          <p class="text-xs text-primary-text mb-1 text-nowrap">
+            <span
+              :class="
+                row.docs_uploaded === 'True'
+                  ? 'text-green-600'
+                  : 'text-orange-600'
+              "
+            >
+              Docs: {{ row.docs_uploaded ?? "—" }}
+            </span>
+          </p>
+          <p class="text-xs text-primary-text mb-1">
+            {{ row.doc_approved ?? "—" }}
+          </p>
+          <p v-if="row.kyc_reject_reason" class="text-[10px] text-red-600">
+            Reject: {{ row.kyc_reject_reason }}
+          </p>
+        </template>
+
+        <!-- Custom Cell: Sumsub ID -->
+        <template #cell-sumsub_id="{ row }">
+          <p class="text-xs font-mono text-primary-text">
+            {{ row.sumsub_applicant_id ?? "—" }}
+          </p>
+        </template>
+
+        <!-- Custom Cell: Accounts -->
+        <template #cell-accounts="{ row }">
+          <div class="max-w-55">
+            <div class="flex items-center justify-between gap-1 mb-1">
+              <span class="text-xs font-semibold text-primary-text block">
+                {{ row.total_accounts || row.accounts?.length || 0 }} Acct{{
+                  (row.total_accounts || row.accounts?.length || 0) !== 1
+                    ? "s"
+                    : ""
+                }}
+              </span>
+              <button
+                v-if="row.accounts?.length > 2"
+                type="button"
+                @click.stop="toggleExpandAccounts(row.id)"
+                class="text-[9px] font-medium text-primary hover:underline cursor-pointer focus:outline-none"
+              >
+                {{ expandedAccountsMap[row.id] ? "Show Less" : "Show All" }}
+              </button>
+            </div>
+
+            <div
+              v-if="row.accounts?.length > 0"
+              class="flex flex-wrap gap-1 items-center"
+            >
+              <!-- Collapsed view: show first 2 accounts + "+N more" badge -->
+              <template v-if="!expandedAccountsMap[row.id]">
+                <span
+                  v-for="(acc, idx) in row.accounts.slice(0, 2)"
+                  :key="acc.account_number || acc || idx"
+                  @click.stop="goToTradingAccount(acc.account_number || acc)"
+                  :title="`Trading Account: #${acc.account_number || acc}${acc.account_type ? ' (' + acc.account_type + ')' : ''} — Click to view`"
+                  class="font-mono text-[9px] px-1.5 py-0.5 rounded-md cursor-pointer hover:scale-105 active:scale-95 transition-all duration-150 inline-block border"
+                  :class="[
+                    chooseBgColor[acc.account_type] ||
+                      'bg-background text-secondary-text border-primary-border',
+                  ]"
+                >
+                  {{ acc.account_number || acc }}
+                </span>
+
+                <button
+                  v-if="row.accounts.length > 2"
+                  type="button"
+                  @click.stop="toggleExpandAccounts(row.id)"
+                  class="font-mono text-[9px] font-semibold px-1.5 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors cursor-pointer inline-block"
+                  title="Click to view all accounts"
+                >
+                  +{{ row.accounts.length - 2 }} more
+                </button>
+              </template>
+
+              <!-- Expanded view: show all accounts inline cleanly -->
+              <template v-else>
+                <span
+                  v-for="(acc, idx) in row.accounts"
+                  :key="acc.account_number || acc || idx"
+                  @click.stop="goToTradingAccount(acc.account_number || acc)"
+                  :title="`Trading Account: #${acc.account_number || acc}${acc.account_type ? ' (' + acc.account_type + ')' : ''} — Click to view`"
+                  class="font-mono text-[9px] px-1.5 py-0.5 rounded-md cursor-pointer hover:scale-105 active:scale-95 transition-all duration-150 inline-block border"
+                  :class="[
+                    chooseBgColor[acc.account_type] ||
+                      'bg-background text-secondary-text border-primary-border',
+                  ]"
+                >
+                  {{ acc.account_number || acc }}
+                </span>
+              </template>
+            </div>
+            <span v-else class="text-xs text-secondary-text">—</span>
+          </div>
+        </template>
+
+        <!-- Custom Cell: Dates -->
+        <template #cell-dates="{ row }">
+          <p class="text-[10px] text-nowrap text-secondary-text mb-1">
+            Joined: {{ formatDate(row.created_at) }}
+          </p>
+          <p class="text-[10px] text-nowrap text-secondary-text mb-1">
+            Updated: {{ formatDate(row.updated_at) }}
+          </p>
+          <p class="text-[10px] text-nowrap text-secondary-text">
+            Tracking ID: {{ row.tracking_id ?? "—" }}
+          </p>
+        </template>
+
+        <!-- Custom Cell: Status -->
+        <template #cell-status="{ row }">
+          <Tooltip
+            :text="`Click to ${row.is_active ? 'deactivate' : 'activate'}`"
+            position="left"
+          >
+            <button
+              :disabled="!hasPermission('client.update')"
+              @click.stop="openChangeStatusDialog(row)"
+              class="text-[11px] font-medium px-2.5 py-0.5 rounded-full border transition-all duration-200 cursor-pointer focus:outline-none hover:scale-105 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
+              :class="
+                row.is_active
+                  ? 'bg-primary-green/10 text-primary-green border-primary-green/20 hover:bg-primary-green/20'
+                  : 'bg-background text-secondary-text border-primary-border hover:bg-secondary-text/10'
+              "
+            >
+              {{ row.is_active ? "Active" : "Inactive" }}
+            </button>
+          </Tooltip>
+        </template>
+      </DataTable>
     </div>
 
     <!-- Mobile Cards -->
@@ -1454,6 +1266,57 @@ onMounted(() => {
               {{ client.kyc_status || "not started" }}
             </span>
           </div>
+        </div>
+
+        <!-- Mobile Tags Display -->
+        <div
+          v-if="client.tags && client.tags.length > 0"
+          class="flex flex-wrap items-center gap-1 pt-1"
+        >
+          <TagChip
+            v-for="tag in visibleTags(client.tags)"
+            :key="tag.id"
+            :tag="tag"
+            size="sm"
+          />
+          <Tooltip
+            v-if="remainingTags(client.tags).length"
+            position="center"
+            maxWidth="280px"
+          >
+            <span
+              class="inline-flex items-center text-[10px] font-semibold px-1.5 py-0.5 rounded border border-primary-border bg-background/80 text-secondary-text hover:text-primary-text cursor-help transition-colors"
+            >
+              +{{ remainingTags(client.tags).length }}
+            </span>
+
+            <template #content>
+              <div class="p-1">
+                <p
+                  class="text-[10px] uppercase font-semibold text-secondary-text tracking-wider mb-1.5"
+                >
+                  Additional Tags
+                </p>
+                <div class="flex flex-wrap gap-1 max-w-64">
+                  <TagChip
+                    v-for="tag in remainingTags(client.tags)"
+                    :key="tag.id"
+                    :tag="tag"
+                    size="sm"
+                  />
+                </div>
+              </div>
+            </template>
+          </Tooltip>
+          <button
+            v-if="canAssignTags"
+            type="button"
+            @click="openClientTagModal(client)"
+            class="p-1 rounded hover:bg-white/10 text-secondary-text hover:text-primary-text transition-colors cursor-pointer"
+            title="Manage Tags"
+          >
+            <Plus class="w-3 h-3" />
+          </button>
         </div>
 
         <div class="grid grid-cols-2 gap-2 text-xs">
@@ -1813,7 +1676,7 @@ onMounted(() => {
       </div>
     </div>
 
-    <div class="mt-4">
+    <div class="md:hidden mt-4">
       <Pagination
         v-if="store.pagination.total_items > store.pagination.per_page"
         :pagination="store.pagination"
