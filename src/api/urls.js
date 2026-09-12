@@ -335,6 +335,12 @@ const urls = {
     import: "/watchlist/symbols/import",
     template: "/watchlist/symbols/template",
   },
+  blogs: {
+    list: "/blogs",
+    create: "/create-blog",
+    update: "/blog-update",
+    delete: "/delete-blog",
+  },
   loyalty: {
     // Programs
     programs: "/loyalty/programs",
