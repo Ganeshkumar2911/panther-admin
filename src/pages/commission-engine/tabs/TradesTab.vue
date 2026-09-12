@@ -13,6 +13,7 @@ import {
 import { useCommissionEngineStore } from "@/stores/commissionEngine/commissionEngine";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import BaseSelect from "@/components/common/BaseSelect.vue";
+import BaseDatePicker from "@/components/common/BaseDatePicker.vue";
 import RebuildTradesModal from "../components/RebuildTradesModal.vue";
 
 const store = useCommissionEngineStore();
@@ -28,6 +29,32 @@ const symbolFilter = ref("");
 const dateFrom = ref("");
 const dateTo = ref("");
 const dateField = ref("close_time");
+
+// Date range computed wrapper for BaseDatePicker
+const dateRangeValue = computed({
+  get() {
+    if (dateFrom.value || dateTo.value) {
+      return {
+        start: dateFrom.value || null,
+        end: dateTo.value || null,
+      };
+    }
+    return null;
+  },
+  set(val) {
+    if (!val) {
+      dateFrom.value = "";
+      dateTo.value = "";
+    } else if (Array.isArray(val)) {
+      dateFrom.value = val[0] || "";
+      dateTo.value = val[1] || "";
+    } else if (typeof val === "object") {
+      dateFrom.value = val.start || val.from || "";
+      dateTo.value = val.end || val.to || "";
+    }
+    handleFilterChange();
+  },
+});
 
 const isRebuildModalOpen = ref(false);
 const searchTimer = ref(null);
@@ -264,19 +291,12 @@ const formatDate = (val) => {
               />
             </div>
 
-            <div class="flex items-center gap-1.5">
-              <input
-                v-model="dateFrom"
-                type="date"
-                class="input-field px-2.5 py-1 text-xs"
-                @change="handleFilterChange"
-              />
-              <span class="text-secondary-text">to</span>
-              <input
-                v-model="dateTo"
-                type="date"
-                class="input-field px-2.5 py-1 text-xs"
-                @change="handleFilterChange"
+            <div class="w-60">
+              <BaseDatePicker
+                v-model="dateRangeValue"
+                :range="true"
+                placeholder="Select date range..."
+                variant="surface"
               />
             </div>
 

@@ -563,6 +563,31 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     });
   };
 
+  const triggerSymbolsSync = () => {
+    actionLoading.value = true;
+
+    const successHandler = (res) => {
+      snackbar.show(res?.message || "Symbols sync triggered successfully", "success");
+      fetchSyncStatus(true);
+      fetchSymbols({ page: 1, per_page: symbolsPagination.value.per_page }, true);
+    };
+
+    const failureHandler = (err) => {
+      snackbar.show(err?.message || "Failed to trigger symbols sync", "error");
+    };
+
+    const finallyHandler = () => {
+      actionLoading.value = false;
+    };
+
+    return apiRequest(urls.KEYS.POST, urls.ibCommission.syncSymbols, {
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+      onFinally: finallyHandler,
+    });
+  };
+
   // ─── 13. Workflow Settings Actions ─────────────────────
   const fetchWorkflowSettings = (force = false) => {
     if (inFlight.workflowSettings) return;
