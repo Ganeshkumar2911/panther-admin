@@ -24,6 +24,7 @@ import {
   Bell,
   Tag,
   BookmarkCheck,
+  Newspaper,
   Award,
 } from "lucide-vue-next";
 
@@ -184,6 +185,13 @@ export const navClusters = [
         icon: FolderOpen,
         permission: ["media.view"],
         keywords: ["images", "files", "uploads", "banners", "assets", "documents"],
+      },
+      {
+        label: "Blogs",
+        to: "/blogs",
+        icon: Newspaper,
+        permission: ["blog.view"],
+        keywords: ["blogs", "articles", "news", "posts", "content", "publishing", "insights"],
       },
       {
         label: "Telegram",
