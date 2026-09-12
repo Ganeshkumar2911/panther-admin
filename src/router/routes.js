@@ -119,6 +119,17 @@ const routes = [
               description: "View client marketing details.",
             },
           },
+          {
+            path: "notifications",
+            name: "client-details-notifications",
+            component: () => import("@/pages/client-details/notifications.vue"),
+            meta: {
+              showBackButton: true,
+              requiresAuth: true,
+              title: "Client Notifications",
+              description: "View client notifications and history.",
+            },
+          },
         ],
       },
       {

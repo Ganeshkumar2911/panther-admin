@@ -577,6 +577,54 @@ export const useClientDepthStore = defineStore("clientDepth", () => {
     });
   };
 
+  // ─── Client Notifications State & Action ──────────────────
+  const clientNotificationsData = ref([]);
+  const clientNotificationsLoading = ref(false);
+  const clientNotificationsFetched = ref(false);
+  const clientNotificationsError = ref(null);
+
+  const fetchClientNotifications = (userId, params = {}, force = false) => {
+    if (!userId) return;
+    const strId = String(userId);
+
+    if (currentUserId.value && String(currentUserId.value) !== strId) {
+      clientNotificationsData.value = [];
+      clientNotificationsFetched.value = false;
+      currentUserId.value = strId;
+    } else {
+      currentUserId.value = strId;
+    }
+
+    if (clientNotificationsLoading.value) return;
+    if (clientNotificationsFetched.value && !force && clientNotificationsData.value?.length > 0 && Object.keys(params).length === 0) return;
+
+    clientNotificationsLoading.value = true;
+    clientNotificationsError.value = null;
+
+    const successHandler = (res) => {
+      const list = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+      clientNotificationsData.value = list;
+      clientNotificationsLoading.value = false;
+      clientNotificationsFetched.value = true;
+    };
+
+    const failureHandler = (err) => {
+      clientNotificationsLoading.value = false;
+      clientNotificationsError.value = err;
+      snackbar.show(
+        err?.message || "Failed to fetch client notifications.",
+        "error",
+      );
+    };
+
+    apiRequest(urls.KEYS.GET, urls.clientDepth.notifications || urls.notifications.userDepth || "/admin/notification/user-depth", {
+      params: { user_id: userId, ...params },
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+    });
+  };
+
   // ─── Reset Store ──────────────────────────────────────────
   const reset = () => {
     currentUserId.value = null;
@@ -605,6 +653,11 @@ export const useClientDepthStore = defineStore("clientDepth", () => {
     userReferencesLoading.value = false;
     userReferencesFetched.value = false;
     userReferencesError.value = null;
+
+    clientNotificationsData.value = [];
+    clientNotificationsLoading.value = false;
+    clientNotificationsFetched.value = false;
+    clientNotificationsError.value = null;
 
     isSubmittingProfile.value = false;
     isSubmittingKyc.value = false;
@@ -642,6 +695,11 @@ export const useClientDepthStore = defineStore("clientDepth", () => {
     userReferencesFetched,
     userReferencesError,
 
+    clientNotificationsData,
+    clientNotificationsLoading,
+    clientNotificationsFetched,
+    clientNotificationsError,
+
     isSubmittingProfile,
     isSubmittingKyc,
     isUploadingDoc,
@@ -655,6 +713,7 @@ export const useClientDepthStore = defineStore("clientDepth", () => {
     fetchUserCharts,
     fetchAccountDetails,
     fetchUserReferences,
+    fetchClientNotifications,
     addUserReference,
     updateUserReference,
     deleteUserReference,

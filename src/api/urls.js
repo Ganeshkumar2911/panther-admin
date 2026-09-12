@@ -54,6 +54,7 @@ const urls = {
     userCharts: "/user-charts",
     accountDetails: "/account-details",
     userReferences: "/user/reference",
+    notifications: "/notifications/user-depth",
   },
   clientLedger: {
     list: "/ledger/clients",
@@ -275,6 +276,7 @@ const urls = {
     markRead: "/notifications/read",
     send: "/notifications/send",
     readStatus: "/notifications/read-status",
+    userDepth: "/admin/notification/user-depth",
   },
   media: {
     groups: {
@@ -367,6 +369,9 @@ const urls = {
     enrollments: "/loyalty/enrollments",
     createEnrollment: "/loyalty/enrollments",
     enrollmentDetail: (enrollmentId) => `/loyalty/enrollments/${enrollmentId}`,
+    updateEnrollment: (enrollmentId) => `/loyalty/enrollments/${enrollmentId}`,
+    deenroll: "/loyalty/enrollments/deenroll",
+    deenrollById: (enrollmentId) => `/loyalty/enrollments/${enrollmentId}/deenroll`,
     attachEnrollmentAccount: (enrollmentId) => `/loyalty/enrollments/${enrollmentId}/accounts`,
     detachEnrollmentAccount: (enrollmentId, accountId) => `/loyalty/enrollments/${enrollmentId}/accounts/${accountId}`,
     creditWallet: "/loyalty/wallets/credit",
