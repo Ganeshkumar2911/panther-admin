@@ -661,6 +661,77 @@ const routes = [
         },
       },
       {
+        path: "/commission-engine",
+        name: "commission-engine",
+        component: () => import("@/pages/commission-engine/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Commission Engine",
+          description:
+            "Manage IB commission rate matrix, MT5 symbol groups, symbols catalog, and sync operations.",
+        },
+      },
+      {
+        path: "/commission-engine/commissions",
+        name: "commission-engine-commissions",
+        component: () => import("@/pages/commission-engine/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "IB Commissions",
+          description: "Review pending and approved IB commissions, calculate payouts, and authorize wallet credits.",
+        },
+      },
+      {
+        path: "/commission-engine/trades",
+        name: "commission-engine-trades",
+        component: () => import("@/pages/commission-engine/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "IB Trades",
+          description: "Browse open and closed MT5 trade positions, inspect mapping criteria, and rebuild trades.",
+        },
+      },
+      {
+        path: "/commission-engine/rates",
+        name: "commission-engine-rates",
+        component: () => import("@/pages/commission-engine/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Commission Rate Matrix",
+          description: "Configure IB commission rates per MT5 group and symbol group.",
+        },
+      },
+      {
+        path: "/commission-engine/symbol-groups",
+        name: "commission-engine-symbol-groups",
+        component: () => import("@/pages/commission-engine/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Symbol Groups",
+          description: "Manage MT5 symbol groups and member assignments.",
+        },
+      },
+      {
+        path: "/commission-engine/symbols",
+        name: "commission-engine-symbols",
+        component: () => import("@/pages/commission-engine/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Symbols Catalog",
+          description: "Browse symbol catalog and assign unmapped symbols.",
+        },
+      },
+      {
+        path: "/commission-engine/sync",
+        name: "commission-engine-sync",
+        component: () => import("@/pages/commission-engine/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Commission Sync Status",
+          description: "Monitor ETL sync cursors and trigger manual synchronization.",
+        },
+      },
+      {
         path: "/settings",
         name: "settings",
         component: () => import("@/pages/settings/index.vue"),

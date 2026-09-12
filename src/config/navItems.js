@@ -26,6 +26,11 @@ import {
   BookmarkCheck,
   Newspaper,
   Award,
+  Calculator,
+  FileSpreadsheet,
+  FolderTree,
+  Database,
+  Grid,
 } from "lucide-vue-next";
 
 export const navClusters = [
@@ -72,6 +77,57 @@ export const navClusters = [
         icon: ListTree,
         permission: ["ib.view", "ib.view_network"],
         keywords: ["introducing broker", "ib", "affiliates", "tree", "referral", "partners", "rebate"],
+      },
+    ],
+  },
+
+  // 3. Commission Engine
+  {
+    id: "commission_engine",
+    label: "Commission Engine",
+    icon: Calculator,
+    children: [
+      {
+        label: "Commissions",
+        to: "/commission-engine/commissions",
+        icon: Coins,
+        permission: ["ib_commission.view", "ib_commission.approve"],
+        keywords: ["commissions", "pending", "approved", "rejected", "calculate", "wallet", "payouts"],
+      },
+      {
+        label: "Trades",
+        to: "/commission-engine/trades",
+        icon: LineChart,
+        permission: "ib_commission.view",
+        keywords: ["trades", "open trades", "closed trades", "deals", "positions", "rebuild"],
+      },
+      {
+        label: "Rate Matrix",
+        to: "/commission-engine/rates",
+        icon: FileSpreadsheet,
+        permission: ["ib_commission.view", "ib_commission.manage_rates"],
+        keywords: ["rates", "matrix", "ib commission", "per lot", "spread", "pips", "rebates", "hierarchy"],
+      },
+      {
+        label: "Symbol Groups",
+        to: "/commission-engine/symbol-groups",
+        icon: FolderTree,
+        permission: ["ib_commission.view", "ib_commission.manage_symbol_groups"],
+        keywords: ["symbol groups", "forex major", "gold", "mapping", "categories"],
+      },
+      {
+        label: "Symbols Catalog",
+        to: "/commission-engine/symbols",
+        icon: Grid,
+        permission: "ib_commission.view",
+        keywords: ["symbols", "catalog", "unmapped", "pairs", "mt5 symbols"],
+      },
+      {
+        label: "Sync Status",
+        to: "/commission-engine/sync",
+        icon: Database,
+        permission: ["ib_commission.view", "ib_commission.sync"],
+        keywords: ["sync", "status", "etl", "deals sync", "symbols sync", "health"],
       },
     ],
   },

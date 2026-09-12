@@ -386,6 +386,29 @@ const urls = {
     backfill: "/loyalty/backfill",
     backfillDetail: (jobId) => `/loyalty/backfill/${jobId}`,
   },
+  ibCommission: {
+    referralLinksSearch: "/ib-commission/referral-links/search",
+    rates: (id) => `/ib-commission/referral-links/${id}/rates`,
+    saveRates: (id) => `/ib-commission/referral-links/${id}/rates`,
+    symbolGroups: "/ib-commission/symbol-groups",
+    symbolGroupDetail: (id) => `/ib-commission/symbol-groups/${id}`,
+    symbolGroupMembers: (id) => `/ib-commission/symbol-groups/${id}/members`,
+    symbolGroupsUnassign: "/ib-commission/symbol-groups/unassign",
+    symbols: "/ib-commission/symbols",
+    syncStatus: "/ib-commission/sync/status",
+    syncDeals: "/ib-commission/sync/deals",
+    syncSymbols: "/ib-commission/sync/symbols",
+    // Phase 2: Workflow, Trades & Commissions
+    workflowSettings: "/ib-commission/settings/workflow",
+    trades: "/ib-commission/trades",
+    rebuildTrades: "/ib-commission/trades/rebuild",
+    commissions: "/ib-commission/commissions",
+    commissionsPending: "/ib-commission/commissions/pending",
+    calculateCommissions: "/ib-commission/commissions/calculate",
+    approveCommission: (id) => `/ib-commission/commissions/${id}/approve`,
+    rejectCommission: (id) => `/ib-commission/commissions/${id}/reject`,
+    bulkApproveCommissions: "/ib-commission/commissions/approve-bulk",
+  },
 };
 
 export default urls;
