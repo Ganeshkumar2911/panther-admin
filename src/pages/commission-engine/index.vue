@@ -37,6 +37,8 @@ import RateMatrixTab from "./tabs/RateMatrixTab.vue";
 import SymbolGroupsTab from "./tabs/SymbolGroupsTab.vue";
 import SymbolsCatalogTab from "./tabs/SymbolsCatalogTab.vue";
 import SyncStatusTab from "./tabs/SyncStatusTab.vue";
+import TradesTab from "./tabs/TradesTab.vue";
+import CommissionsTab from "./tabs/CommissionsTab.vue";
 
 const route = useRoute();
 const { hasPermission } = usePermissionCheck();
@@ -46,13 +48,16 @@ const hasAccess = computed(
     hasPermission("ib_commission.view") ||
     hasPermission("ib_commission.manage_rates") ||
     hasPermission("ib_commission.manage_symbol_groups") ||
-    hasPermission("ib_commission.sync")
+    hasPermission("ib_commission.sync") ||
+    hasPermission("ib_commission.approve")
 );
 
-const validTabKeys = ["rates", "groups", "symbols", "sync"];
+const validTabKeys = ["commissions", "trades", "rates", "groups", "symbols", "sync"];
 
 const activeTab = computed(() => {
   const path = route.path;
+  if (path.endsWith("/commissions")) return "commissions";
+  if (path.endsWith("/trades")) return "trades";
   if (path.endsWith("/rates")) return "rates";
   if (path.endsWith("/symbol-groups")) return "groups";
   if (path.endsWith("/symbols")) return "symbols";
@@ -66,6 +71,10 @@ const activeTab = computed(() => {
 
 const activeComponent = computed(() => {
   switch (activeTab.value) {
+    case "commissions":
+      return CommissionsTab;
+    case "trades":
+      return TradesTab;
     case "groups":
       return SymbolGroupsTab;
     case "symbols":

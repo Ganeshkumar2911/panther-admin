@@ -87,6 +87,20 @@ export const navClusters = [
     icon: Calculator,
     children: [
       {
+        label: "Commissions",
+        to: "/commission-engine/commissions",
+        icon: Coins,
+        permission: ["ib_commission.view", "ib_commission.approve"],
+        keywords: ["commissions", "pending", "approved", "rejected", "calculate", "wallet", "payouts"],
+      },
+      {
+        label: "Trades",
+        to: "/commission-engine/trades",
+        icon: LineChart,
+        permission: "ib_commission.view",
+        keywords: ["trades", "open trades", "closed trades", "deals", "positions", "rebuild"],
+      },
+      {
         label: "Rate Matrix",
         to: "/commission-engine/rates",
         icon: FileSpreadsheet,

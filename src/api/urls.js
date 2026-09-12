@@ -392,6 +392,16 @@ const urls = {
     syncStatus: "/ib-commission/sync/status",
     syncDeals: "/ib-commission/sync/deals",
     syncSymbols: "/ib-commission/sync/symbols",
+    // Phase 2: Workflow, Trades & Commissions
+    workflowSettings: "/ib-commission/settings/workflow",
+    trades: "/ib-commission/trades",
+    rebuildTrades: "/ib-commission/trades/rebuild",
+    commissions: "/ib-commission/commissions",
+    commissionsPending: "/ib-commission/commissions/pending",
+    calculateCommissions: "/ib-commission/commissions/calculate",
+    approveCommission: (id) => `/ib-commission/commissions/${id}/approve`,
+    rejectCommission: (id) => `/ib-commission/commissions/${id}/reject`,
+    bulkApproveCommissions: "/ib-commission/commissions/approve-bulk",
   },
 };
 

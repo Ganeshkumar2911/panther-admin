@@ -661,6 +661,26 @@ const routes = [
         },
       },
       {
+        path: "/commission-engine/commissions",
+        name: "commission-engine-commissions",
+        component: () => import("@/pages/commission-engine/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "IB Commissions",
+          description: "Review pending and approved IB commissions, calculate payouts, and authorize wallet credits.",
+        },
+      },
+      {
+        path: "/commission-engine/trades",
+        name: "commission-engine-trades",
+        component: () => import("@/pages/commission-engine/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "IB Trades",
+          description: "Browse open and closed MT5 trade positions, inspect mapping criteria, and rebuild trades.",
+        },
+      },
+      {
         path: "/commission-engine/rates",
         name: "commission-engine-rates",
         component: () => import("@/pages/commission-engine/index.vue"),
