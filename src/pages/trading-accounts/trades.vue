@@ -264,7 +264,7 @@
               Status
             </th>
             <th
-              class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
+              class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3 whitespace-nowrap"
             >
               Created
             </th>
@@ -398,7 +398,7 @@
               </span>
             </td>
 
-            <td class="p-3 text-xs text-secondary-text text-right">
+            <td class="p-3 text-xs text-secondary-text text-right whitespace-nowrap font-mono">
               {{ formatDate(trade.created_at) }}
             </td>
           </tr>
@@ -425,6 +425,7 @@ import Pagination from "@/components/common/Pagination.vue";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import { livePNL } from "@/utils/livePNL";
 import { useTickerStore } from "@/stores/ws/ticker";
+import moment from "moment-timezone";
 
 const activeCurrency = ref(localStorage.getItem("active_currency") || "USD");
 const store = useAccountTradesStore();
@@ -471,12 +472,17 @@ const formatMoney = (amount) => {
   const num = formatNum(amount);
   return activeCurrency.value === "USC" ? `USC ${num}` : `$${num}`;
 };
-const formatDate = (val) =>
-  new Date(val).toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+const formatDate = (val) => {
+  if (!val) return "—";
+  try {
+    const m = moment.utc(val);
+    if (!m.isValid()) return String(val);
+    const tz = moment.tz.guess();
+    return m.tz(tz).format("DD MMM YYYY, hh:mm:ss A");
+  } catch {
+    return String(val);
+  }
+};
 
 onMounted(() => store.fetchTrades(accountId, store.side));
 </script>

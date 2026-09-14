@@ -55,6 +55,7 @@ const urls = {
     accountDetails: "/account-details",
     userReferences: "/user/reference",
     notifications: "/notifications/user-depth",
+    bankAccounts: "/users/bank-accounts",
   },
   clientLedger: {
     list: "/ledger/clients",
