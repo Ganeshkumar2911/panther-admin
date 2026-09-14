@@ -81,7 +81,10 @@ const handlePageChange = (newPage) => {
 };
 
 const handlePerPageChange = (newPerPage) => {
-  const perPageVal = typeof newPerPage === "object" && newPerPage !== null ? (newPerPage.value || 10) : newPerPage;
+  const perPageVal =
+    typeof newPerPage === "object" && newPerPage !== null
+      ? newPerPage.per_page || newPerPage.value || 10
+      : newPerPage;
   perPage.value = Number(perPageVal) || 10;
   page.value = 1;
 };

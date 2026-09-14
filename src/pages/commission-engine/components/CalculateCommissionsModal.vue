@@ -34,9 +34,10 @@ const closeModal = () => {
 
 const handleCalculate = async () => {
   try {
+    const loginVal = login.value != null ? String(login.value).trim() : "";
     const payload = {
       limit: Number(limit.value) || 500,
-      login: login.value.trim() ? Number(login.value.trim()) : null,
+      login: loginVal ? Number(loginVal) : null,
       reclaim_skipped: !!reclaimSkipped.value,
     };
     const res = await store.calculateCommissions(payload);
@@ -45,7 +46,7 @@ const handleCalculate = async () => {
     }
     emit("calculated");
   } catch (err) {
-    // Handled in store
+    console.error("Calculate commissions error:", err);
   }
 };
 </script>

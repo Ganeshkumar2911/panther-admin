@@ -70,11 +70,15 @@ onMounted(() => {
 });
 
 const loadTrades = (page = 1, force = false) => {
+  const loginVal = loginFilter.value != null ? String(loginFilter.value).trim() : "";
+  const ibIdVal = ibIdFilter.value != null ? String(ibIdFilter.value).trim() : "";
+  const symbolVal = symbolFilter.value != null ? String(symbolFilter.value).trim() : "";
+
   const params = {
     status: statusFilter.value || undefined,
-    login: loginFilter.value.trim() ? Number(loginFilter.value.trim()) : undefined,
-    ib_id: ibIdFilter.value.trim() ? Number(ibIdFilter.value.trim()) : undefined,
-    symbol: symbolFilter.value.trim() ? symbolFilter.value.trim().toUpperCase() : undefined,
+    login: loginVal ? Number(loginVal) : undefined,
+    ib_id: ibIdVal ? Number(ibIdVal) : undefined,
+    symbol: symbolVal ? symbolVal.toUpperCase() : undefined,
     date_from: dateFrom.value || undefined,
     date_to: dateTo.value || undefined,
     date_field: dateField.value || "close_time",
@@ -108,7 +112,10 @@ const handlePageChange = (newPage) => {
 };
 
 const handlePerPageChange = (newPerPage) => {
-  const perPageVal = typeof newPerPage === "object" && newPerPage !== null ? (newPerPage.value || 50) : newPerPage;
+  const perPageVal =
+    typeof newPerPage === "object" && newPerPage !== null
+      ? newPerPage.per_page || newPerPage.value || 50
+      : newPerPage;
   store.tradesPagination.per_page = Number(perPageVal) || 50;
   loadTrades(1, true);
 };

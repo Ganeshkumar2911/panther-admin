@@ -100,12 +100,17 @@ watch(
 );
 
 const loadCommissions = (page = 1, force = false) => {
+  const loginVal = loginFilter.value != null ? String(loginFilter.value).trim() : "";
+  const ibIdVal = ibIdFilter.value != null ? String(ibIdFilter.value).trim() : "";
+  const tradeIdVal = tradeIdFilter.value != null ? String(tradeIdFilter.value).trim() : "";
+  const symbolVal = symbolFilter.value != null ? String(symbolFilter.value).trim() : "";
+
   const params = {
     status: statusFilter.value || undefined,
-    login: loginFilter.value.trim() ? Number(loginFilter.value.trim()) : undefined,
-    ib_id: ibIdFilter.value.trim() ? Number(ibIdFilter.value.trim()) : undefined,
-    trade_id: tradeIdFilter.value.trim() ? Number(tradeIdFilter.value.trim()) : undefined,
-    symbol: symbolFilter.value.trim() ? symbolFilter.value.trim().toUpperCase() : undefined,
+    login: loginVal ? Number(loginVal) : undefined,
+    ib_id: ibIdVal ? Number(ibIdVal) : undefined,
+    trade_id: tradeIdVal ? Number(tradeIdVal) : undefined,
+    symbol: symbolVal ? symbolVal.toUpperCase() : undefined,
     date_from: dateFrom.value || undefined,
     date_to: dateTo.value || undefined,
     date_field: dateField.value || "created_at",
@@ -142,7 +147,10 @@ const handlePageChange = (newPage) => {
 };
 
 const handlePerPageChange = (newPerPage) => {
-  const perPageVal = typeof newPerPage === "object" && newPerPage !== null ? (newPerPage.value || 50) : newPerPage;
+  const perPageVal =
+    typeof newPerPage === "object" && newPerPage !== null
+      ? newPerPage.per_page || newPerPage.value || 50
+      : newPerPage;
   store.commissionsPagination.per_page = Number(perPageVal) || 50;
   loadCommissions(1, true);
 };

@@ -74,7 +74,10 @@ const handlePageChange = (newPage) => {
 };
 
 const handlePerPageChange = (newPerPage) => {
-  const perPageVal = typeof newPerPage === "object" && newPerPage !== null ? (newPerPage.value || 50) : newPerPage;
+  const perPageVal =
+    typeof newPerPage === "object" && newPerPage !== null
+      ? newPerPage.per_page || newPerPage.value || 50
+      : newPerPage;
   store.symbolsPagination.per_page = Number(perPageVal) || 50;
   loadSymbols(1, true);
 };
