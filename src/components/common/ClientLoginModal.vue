@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import {
   LogIn,
   X,
@@ -26,31 +26,97 @@ const emit = defineEmits(["close", "success"]);
 const snackbar = useSnackbarStore();
 const loading = ref(false);
 
+const isDev =
+  typeof window !== "undefined" &&
+  (window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1" ||
+    import.meta.env.DEV);
+
+const defaultLocalUrl = "http://localhost:60030";
+const defaultProdUrl = "https://portal.panthercapitals.com";
+
+const getInitialPortalUrl = () => {
+  if (typeof window !== "undefined") {
+    const custom = localStorage.getItem("custom_portal_url");
+    if (custom) return custom;
+  }
+  return isDev ? defaultLocalUrl : defaultProdUrl;
+};
+
+const portalBaseUrl = ref(getInitialPortalUrl());
+
+const showUrlInput = ref(false);
+
+const getAdminBackendBaseUrl = () => {
+  if (typeof window !== "undefined") {
+    const customBaseUrl = localStorage.getItem("custom_base_url");
+    if (customBaseUrl && customBaseUrl.trim()) {
+      return customBaseUrl.trim().replace(/\/+$/, "").replace(/\/admin$/, "");
+    }
+  }
+  return "";
+};
+
+const currentBackendApi = computed(() => getAdminBackendBaseUrl());
+
+const setPortalUrl = (url) => {
+  portalBaseUrl.value = url.trim().replace(/\/$/, "");
+  localStorage.setItem("custom_portal_url", portalBaseUrl.value);
+};
+
 const handleProceedLogin = () => {
   if (!props.client?.id) return;
   loading.value = true;
 
+  // Pre-open a blank window synchronously on user click to prevent browser popup blockers
+  let newTab = null;
+  try {
+    newTab = window.open("about:blank", "_blank");
+  } catch (e) {
+    console.warn("Could not pre-open blank tab:", e);
+  }
+
   const successHandler = (res) => {
     loading.value = false;
-    const secretCode = res?.data?.secret_code;
+    const secretCode =
+      res?.data?.secret_code ||
+      res?.data?.token ||
+      res?.data?.access_token ||
+      res?.data?.code ||
+      res?.secret_code ||
+      res?.token ||
+      (typeof res?.data === "string" ? res.data : null);
+
     if (secretCode) {
       snackbar.show(
         res?.message || "User dashboard secret token retrieved.",
         "success",
       );
-      window.open(
-        `https://portal.panthercapitals.com/login/user?token=${secretCode}`,
-        "_blank",
-      );
+
+      let targetUrl = `${portalBaseUrl.value.replace(/\/$/, "")}/login/user?token=${secretCode}`;
+
+      const adminBackend = getAdminBackendBaseUrl();
+      if (adminBackend && !adminBackend.includes("admin.panthercapitals.com")) {
+        targetUrl += `&api=${encodeURIComponent(adminBackend)}`;
+      }
+
+      if (newTab && !newTab.closed) {
+        newTab.location.href = targetUrl;
+      } else {
+        window.open(targetUrl, "_blank");
+      }
+
       emit("success");
       emit("close");
     } else {
+      if (newTab && !newTab.closed) newTab.close();
       snackbar.show(res?.message || "Failed to retrieve secret code.", "error");
     }
   };
 
   const failureHandler = (err) => {
     loading.value = false;
+    if (newTab && !newTab.closed) newTab.close();
     snackbar.show(
       err?.message ||
         err?.error ||
@@ -102,27 +168,74 @@ const handleProceedLogin = () => {
 
       <!-- Body -->
       <div class="px-6 py-5 space-y-4 bg-card-background">
-        <!-- Target Domain Notice Banner -->
+        <!-- Target Domain Notice Banner & Environment Toggle -->
         <div
-          class="bg-primary/5 border border-primary/20 rounded-xl p-3.5 flex items-start gap-3"
+          class="bg-primary/5 border border-primary/20 rounded-xl p-3.5 space-y-3"
         >
-          <ShieldAlert class="w-5 h-5 text-primary shrink-0 mt-0.5" />
-          <div class="space-y-1">
-            <p
-              class="text-xs font-semibold text-primary-text flex items-center gap-1.5"
-            >
-              <span>Redirecting to Client Portal</span>
-              <span
-                class="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 font-mono"
+          <div class="flex items-start gap-3">
+            <ShieldAlert class="w-5 h-5 text-primary shrink-0 mt-0.5" />
+            <div class="space-y-1 flex-1">
+              <div class="flex items-center justify-between gap-2">
+                <p class="text-xs font-semibold text-primary-text">
+                  Target Client Portal:
+                </p>
+                <button
+                  type="button"
+                  @click="showUrlInput = !showUrlInput"
+                  class="text-[10px] text-primary hover:underline cursor-pointer"
+                >
+                  {{ showUrlInput ? "Hide Edit" : "Custom URL" }}
+                </button>
+              </div>
+              <p class="text-[11px] text-secondary-text leading-relaxed font-mono truncate">
+                {{ portalBaseUrl }}
+              </p>
+              <p
+                v-if="currentBackendApi"
+                class="text-[10px] text-primary/80 font-mono truncate"
               >
-                portal.panthercapitals.com
-              </span>
-            </p>
-            <p class="text-[11px] text-secondary-text leading-relaxed">
-              You will be logged into the client's dashboard on
-              <strong>portal.panthercapitals.com</strong> using a secure
-              single-use access code.
-            </p>
+                API Backend: {{ currentBackendApi }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Environment Preset Toggle Buttons -->
+          <div class="flex gap-2">
+            <button
+              type="button"
+              class="flex-1 py-1 px-2 text-[11px] font-semibold rounded-lg border transition-all cursor-pointer text-center"
+              :class="
+                portalBaseUrl.includes('localhost')
+                  ? 'bg-primary text-btn-text-primary border-primary font-bold shadow-xs'
+                  : 'bg-background text-secondary-text border-primary-border hover:text-primary-text'
+              "
+              @click="setPortalUrl(defaultLocalUrl)"
+            >
+              Local (60030)
+            </button>
+            <button
+              type="button"
+              class="flex-1 py-1 px-2 text-[11px] font-semibold rounded-lg border transition-all cursor-pointer text-center"
+              :class="
+                portalBaseUrl.includes('portal.panthercapitals.com')
+                  ? 'bg-primary text-btn-text-primary border-primary font-bold shadow-xs'
+                  : 'bg-background text-secondary-text border-primary-border hover:text-primary-text'
+              "
+              @click="setPortalUrl(defaultProdUrl)"
+            >
+              Production (Live)
+            </button>
+          </div>
+
+          <!-- Custom URL Input Field (if toggled) -->
+          <div v-if="showUrlInput" class="pt-1">
+            <input
+              v-model="portalBaseUrl"
+              type="text"
+              placeholder="http://localhost:60030"
+              class="w-full px-3 py-1.5 rounded-lg border border-primary-border bg-background text-primary-text text-xs outline-none focus:border-primary transition-colors"
+              @input="setPortalUrl(portalBaseUrl)"
+            />
           </div>
         </div>
 
