@@ -26,6 +26,8 @@ export const usePaymentRequestsStore = defineStore("paymentRequests", () => {
 
   const rejectLoading = ref(false);
 
+  const updateAmountLoading = ref(false);
+
   const error = ref(null);
 
   const isFetched = ref(false);
@@ -157,9 +159,8 @@ export const usePaymentRequestsStore = defineStore("paymentRequests", () => {
   // Approve Request
   // ─────────────────────────────────────
 
-  const approveRequest = (id) => {
+  const approveRequest = (id, payload = null) => {
     approveLoading.value = true;
-
     error.value = null;
 
     const successHandler = (res) => {
@@ -167,39 +168,40 @@ export const usePaymentRequestsStore = defineStore("paymentRequests", () => {
         res?.message || "Payment request approved successfully.",
         "success",
       );
-
       fetchRequests(true);
     };
 
     const failureHandler = (err) => {
       error.value = err;
-
       snackbar.show(
         err?.message || "Failed to approve payment request.",
         "error",
       );
     };
 
-    return apiRequest(urls.KEYS.POST, urls.paymentRequests.approve, {
+    const options = {
       look_up_key: id,
-
       isTokenRequired: true,
-
       onSuccess: successHandler,
       onFailure: failureHandler,
       onFinally: () => {
         approveLoading.value = false;
       },
-    });
+    };
+
+    if (payload) {
+      options.data = payload;
+    }
+
+    return apiRequest(urls.KEYS.POST, urls.paymentRequests.approve, options);
   };
 
   // ─────────────────────────────────────
   // Reject Request
   // ─────────────────────────────────────
 
-  const rejectRequest = (id) => {
+  const rejectRequest = (id, payload = null) => {
     rejectLoading.value = true;
-
     error.value = null;
 
     const successHandler = (res) => {
@@ -207,29 +209,77 @@ export const usePaymentRequestsStore = defineStore("paymentRequests", () => {
         res?.message || "Payment request rejected successfully.",
         "success",
       );
-
       fetchRequests(true);
     };
 
     const failureHandler = (err) => {
       error.value = err;
-
       snackbar.show(
         err?.message || "Failed to reject payment request.",
         "error",
       );
     };
 
-    return apiRequest(urls.KEYS.POST, urls.paymentRequests.reject, {
+    const options = {
       look_up_key: id,
-
       isTokenRequired: true,
-
       onSuccess: successHandler,
       onFailure: failureHandler,
       onFinally: () => {
         rejectLoading.value = false;
       },
+    };
+
+    if (payload) {
+      options.data = payload;
+    }
+
+    return apiRequest(urls.KEYS.POST, urls.paymentRequests.reject, options);
+  };
+
+  // ─────────────────────────────────────
+  // Update Request Amount (Bank Transfer)
+  // ─────────────────────────────────────
+
+  const updateRequestAmount = (id, amount) => {
+    updateAmountLoading.value = true;
+    error.value = null;
+
+    return new Promise((resolve, reject) => {
+      const successHandler = (res) => {
+        snackbar.show(
+          res?.message || "Payment request amount updated successfully.",
+          "success",
+        );
+        const updated = res?.data;
+        if (updated && updated.id) {
+          const index = records.value.findIndex((r) => r.id === updated.id);
+          if (index !== -1) {
+            records.value[index] = { ...records.value[index], ...updated };
+          }
+        }
+        fetchRequests(true);
+        resolve(res);
+      };
+
+      const failureHandler = (err) => {
+        error.value = err;
+        snackbar.show(
+          err?.message || "Failed to update payment request amount.",
+          "error",
+        );
+        reject(err);
+      };
+
+      apiRequest(urls.KEYS.PATCH, urls.paymentRequests.updateAmount(id), {
+        data: { amount: Number(amount) },
+        isTokenRequired: true,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+        onFinally: () => {
+          updateAmountLoading.value = false;
+        },
+      });
     });
   };
 
@@ -401,6 +451,7 @@ export const usePaymentRequestsStore = defineStore("paymentRequests", () => {
     loading,
     approveLoading,
     rejectLoading,
+    updateAmountLoading,
 
     error,
     isFetched,
@@ -415,6 +466,7 @@ export const usePaymentRequestsStore = defineStore("paymentRequests", () => {
 
     approveRequest,
     rejectRequest,
+    updateRequestAmount,
 
     applyFilters,
     resetFilters,

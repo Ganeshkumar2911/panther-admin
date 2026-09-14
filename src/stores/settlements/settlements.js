@@ -11,12 +11,15 @@ export const useSettlementsStore = defineStore('settlement', () => {
 
   // ─── State ────────────────────────────────────────────
   const records = ref([])
+  const currency = ref(null)
+  const note = ref('')
   const loading = ref(false)
   const isFetched = ref(false)
   const error = ref(null)
 
   const summary = reactive({
     broker_net: 0,
+    ib_distributed: 0,
     ib_pool: 0,
     total_fees: 0,
   })
@@ -34,6 +37,7 @@ export const useSettlementsStore = defineStore('settlement', () => {
     status: null,
     from_date: null,
     to_date: null,
+    amount_view: 'account_units',
   })
 
   // ─── Helpers ──────────────────────────────────────────
@@ -57,6 +61,7 @@ export const useSettlementsStore = defineStore('settlement', () => {
       status: filters.status,
       from_date: filters.from_date,
       to_date: filters.to_date,
+      amount_view: filters.amount_view,
     })
   }
 
@@ -72,17 +77,23 @@ export const useSettlementsStore = defineStore('settlement', () => {
       onSuccess: (res) => {
         const dataObj = res?.data
 
-        if (Array.isArray(dataObj)) {
-          records.value = dataObj
-        } else if (dataObj && Array.isArray(dataObj.records)) {
+        if (dataObj && Array.isArray(dataObj.records)) {
           records.value = dataObj.records
+        } else if (Array.isArray(dataObj)) {
+          records.value = dataObj
         } else {
           records.value = []
         }
 
+        currency.value = dataObj?.currency || null
+        note.value = dataObj?.note || ''
+
         const summaryData = dataObj?.summary || res?.summary
         if (summaryData) {
-          Object.assign(summary, summaryData)
+          summary.broker_net = summaryData.broker_net ?? 0
+          summary.ib_distributed = summaryData.ib_distributed ?? 0
+          summary.ib_pool = summaryData.ib_pool ?? summaryData.ib_distributed ?? 0
+          summary.total_fees = summaryData.total_fees ?? 0
         }
 
         const paginationData = res?.pagination || dataObj?.pagination
@@ -111,6 +122,11 @@ export const useSettlementsStore = defineStore('settlement', () => {
     fetchSettlements(1)
   }
 
+  const setAmountView = (viewKey) => {
+    filters.amount_view = viewKey
+    fetchSettlements(1)
+  }
+
   const applyFilters = () => {
     fetchSettlements(1)
   }
@@ -118,12 +134,15 @@ export const useSettlementsStore = defineStore('settlement', () => {
   // ─── Reset ────────────────────────────────────────────
   const reset = () => {
     records.value = []
+    currency.value = null
+    note.value = ''
     loading.value = false
     isFetched.value = false
     error.value = null
 
     Object.assign(summary, {
       broker_net: 0,
+      ib_distributed: 0,
       ib_pool: 0,
       total_fees: 0,
     })
@@ -140,12 +159,15 @@ export const useSettlementsStore = defineStore('settlement', () => {
       status: null,
       from_date: null,
       to_date: null,
+      amount_view: 'account_units',
     })
   }
 
   // ─── Expose ──────────────────────────────────────────
   return {
     records,
+    currency,
+    note,
     loading,
     isFetched,
     error,
@@ -158,6 +180,7 @@ export const useSettlementsStore = defineStore('settlement', () => {
     fetchSettlements,
     setPage,
     updatePerPage,
+    setAmountView,
     applyFilters,
     reset,
   }

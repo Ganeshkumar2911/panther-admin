@@ -82,6 +82,18 @@ const props = defineProps({
     type: [Function, Array],
     default: null,
   },
+  disableFuture: {
+    type: Boolean,
+    default: true,
+  },
+  disableFutureDates: {
+    type: Boolean,
+    default: null,
+  },
+  blockFuture: {
+    type: Boolean,
+    default: null,
+  },
   // UI Variant & Positioning
   variant: {
     type: String,
@@ -99,16 +111,43 @@ const props = defineProps({
     type: String,
     default: "bottom", // 'bottom' | 'top'
   },
+  position: {
+    type: String,
+    default: null, // alias for placement ('bottom' | 'top')
+  },
   autoApply: {
     type: Boolean,
     default: false,
+  },
+  // Custom Trigger Button Styling
+  triggerClass: {
+    type: [String, Object, Array],
+    default: "",
+  },
+  buttonClass: {
+    type: [String, Object, Array],
+    default: "",
+  },
+  inputClass: {
+    type: [String, Object, Array],
+    default: "",
+  },
+  customClass: {
+    type: [String, Object, Array],
+    default: "",
   },
 });
 
 // ─── Emits ──────────────────────────────────────────────────────────────────
 const emit = defineEmits(["update:modelValue", "change", "clear", "open", "close"]);
 
-// ─── Computed Mode & Presets ────────────────────────────────────────────────
+// ─── Computed Mode & Restrictions ───────────────────────────────────────────
+const shouldDisableFuture = computed(() => {
+  if (props.disableFutureDates !== null) return props.disableFutureDates;
+  if (props.blockFuture !== null) return props.blockFuture;
+  return props.disableFuture;
+});
+
 const isRangeMode = computed(() => props.range || props.mode === "range");
 const isTimeEnabled = computed(() => props.enableTime || props.showTime);
 
@@ -325,6 +364,41 @@ const defaultDisplayFmt = computed(() => {
   return isTimeEnabled.value ? "MMM D, YYYY HH:mm" : "MMM D, YYYY";
 });
 
+const matchedPreset = computed(() => {
+  if (!isRangeMode.value) return null;
+  const { start, end } = parseModelValue(props.modelValue);
+  if (!start || !end) return null;
+
+  if (activePresetLabel.value) {
+    const found = activePresets.value.find((p) => p.label === activePresetLabel.value);
+    if (found) {
+      try {
+        const [s, e] = found.getValue();
+        const sM = parseDate(s);
+        const eM = parseDate(e);
+        if (sM && eM && sM.isSame(start, "day") && eM.isSame(end, "day")) {
+          return found;
+        }
+      } catch {
+        // ignore
+      }
+    }
+  }
+
+  return (
+    activePresets.value.find((p) => {
+      try {
+        const [s, e] = p.getValue();
+        const sM = parseDate(s);
+        const eM = parseDate(e);
+        return sM && eM && sM.isSame(start, "day") && eM.isSame(end, "day");
+      } catch {
+        return false;
+      }
+    }) || null
+  );
+});
+
 const displayLabel = computed(() => {
   const { start, end } = parseModelValue(props.modelValue);
   if (!start) {
@@ -338,10 +412,22 @@ const displayLabel = computed(() => {
   }
 
   if (start.isSame(end, "day") && !isTimeEnabled.value) {
+    const isToday = start.isSame(moment(), "day");
+    const isYesterday = start.isSame(moment().subtract(1, "day"), "day");
+    if (isToday) return "Today";
+    if (isYesterday) return "Yesterday";
     return start.format(fmt);
   }
 
-  return `${start.format(fmt)} - ${end.format(fmt)}`;
+  if (matchedPreset.value) {
+    return `${matchedPreset.value.label} (${start.format("MMM D")} - ${end.format("MMM D")})`;
+  }
+
+  if (start.year() === end.year()) {
+    return `${start.format("MMM D")} - ${end.format("MMM D, YYYY")}`;
+  }
+
+  return `${start.format("MMM D, YYYY")} - ${end.format("MMM D, YYYY")}`;
 });
 
 const draftSummaryText = computed(() => {
@@ -397,6 +483,9 @@ const calendarCells = computed(() => {
 });
 
 function isDateDisabled(mDate) {
+  if (shouldDisableFuture.value && mDate.isAfter(moment(), "day")) {
+    return true;
+  }
   if (props.minDate) {
     const minM = parseDate(props.minDate);
     if (minM && mDate.isBefore(minM, "day")) return true;
@@ -484,9 +573,42 @@ function getDayCellClass(cell) {
   return `${base} text-primary-text hover:bg-background hover:rounded-md font-medium`;
 }
 
-// ─── Positioning Logic ──────────────────────────────────────────────────────
+// ─── Positioning & Styling Logic ────────────────────────────────────────────
 const triggerBgClass = computed(() => {
   return props.variant === "surface" ? "bg-background" : "bg-card-background";
+});
+
+const triggerClassList = computed(() => {
+  const custom =
+    props.triggerClass ||
+    props.buttonClass ||
+    props.inputClass ||
+    props.customClass ||
+    "";
+
+  const customStr = Array.isArray(custom)
+    ? custom.filter(Boolean).join(" ")
+    : typeof custom === "object" && custom !== null
+    ? Object.keys(custom)
+        .filter((k) => custom[k])
+        .join(" ")
+    : String(custom || "");
+
+  const hasCustomPy = /\bpy-\S+/.test(customStr);
+  const hasCustomPx = /\bpx-\S+/.test(customStr);
+  const hasCustomRounded = /\brounded\S*/.test(customStr);
+  const hasCustomText = /\btext-(xs|sm|base|lg|\[\S+\])/.test(customStr);
+
+  return [
+    "flex items-center justify-between w-full min-w-0 transition-all duration-200 ease-in-out focus:outline-none select-none border border-primary-border",
+    !hasCustomPx ? "px-3.5" : "",
+    !hasCustomPy ? "py-1" : "",
+    !hasCustomRounded ? "rounded-lg" : "",
+    !hasCustomText ? "text-sm font-medium" : "",
+    props.disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer",
+    triggerBgClass.value,
+    custom,
+  ];
 });
 
 const dropdownBgClass = computed(() => {
@@ -496,7 +618,7 @@ const dropdownBgClass = computed(() => {
 function updatePosition() {
   if (!triggerRef.value) return;
   const rect = triggerRef.value.getBoundingClientRect();
-  const isTop = props.placement === "top";
+  const isTop = props.placement === "top" || props.position === "top";
 
   const dropdownWidth = effectiveShowPresets.value ? 520 : 340;
   let left = rect.left;
@@ -539,7 +661,7 @@ function initFromModel() {
   if (end) {
     endTime.value = { hours: end.hours(), minutes: end.minutes() };
   }
-  activePresetLabel.value = null;
+  activePresetLabel.value = matchedPreset.value?.label || null;
 }
 
 function toggle() {
@@ -602,6 +724,7 @@ function selectDate(mDate) {
 
 function onCellMouseEnter(mDate) {
   if (isRangeMode.value && tempStart.value && !tempEnd.value) {
+    if (isDateDisabled(mDate)) return;
     hoverDate.value = mDate;
   }
 }
@@ -738,11 +861,7 @@ watch(
       :disabled="disabled"
       :aria-expanded="isOpen"
       @click="toggle"
-      :class="[
-        'flex items-center justify-between w-full min-w-0 px-3.5 py-2 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out focus:outline-none select-none border border-primary-border',
-        disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
-        triggerBgClass,
-      ]"
+      :class="triggerClassList"
     >
       <div class="flex items-center gap-2 truncate min-w-0">
         <Calendar :size="16" class="flex-shrink-0 text-secondary-text" />

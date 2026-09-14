@@ -19,7 +19,7 @@
         <div
           v-if="open"
           ref="menuRef"
-          class="fixed z-[999] min-w-[180px] rounded-xl border border-primary-border bg-card-background shadow-lg py-1 overflow-hidden"
+          class="fixed z-999 min-w-45 rounded-xl border border-primary-border bg-card-background shadow-lg py-1 overflow-hidden"
           :style="menuStyle"
         >
           <template v-for="(item, i) in visibleItems" :key="item.id ?? i">

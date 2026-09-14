@@ -280,6 +280,42 @@ export const useRbacStaffStore = defineStore("rbacStaff", () => {
   };
 
   // =========================
+  // Reset Staff Password
+  // =========================
+
+  const resetStaffPassword = (staffId, password, onSuccess) => {
+    actionLoading.value = true;
+
+    const successHandler = (res) => {
+      actionLoading.value = false;
+
+      snackbar.show(res?.message || "Password reset successfully.", "success");
+
+      if (onSuccess) {
+        onSuccess(res);
+      }
+    };
+
+    const failureHandler = (err) => {
+      actionLoading.value = false;
+
+      snackbar.show(err?.message || "Failed to reset password.", "error");
+    };
+
+    apiRequest(urls.KEYS.PUT, urls.rbac.staff.resetPassword, {
+      isTokenRequired: true,
+      look_up_key: staffId,
+
+      data: {
+        password,
+      },
+
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+    });
+  };
+
+  // =========================
   // Reset
   // =========================
 
@@ -327,6 +363,7 @@ export const useRbacStaffStore = defineStore("rbacStaff", () => {
     updateStaffRole,
     updateStaffStatus,
     deleteStaff,
+    resetStaffPassword,
 
     // Methods
     applyFilters,

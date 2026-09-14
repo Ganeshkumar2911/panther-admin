@@ -8,7 +8,7 @@ const DEFAULT_BASE_URL =
   typeof window !== "undefined" &&
   window.location.hostname === "admin.panthercapitals.com"
     ? "https://admin.panthercapitals.com/admin/"
-    : "https://1pz4zm0b-2504.euw.devtunnels.ms/admin/";
+    : "https://admin.panthercapitals.com/admin/";
 
 const BASE_URL = DEFAULT_BASE_URL;
 

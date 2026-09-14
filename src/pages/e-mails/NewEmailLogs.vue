@@ -46,24 +46,13 @@
             @update:modelValue="store.applyFilters()"
           />
 
-          <!-- Date Range Inputs -->
-          <div
-            class="flex items-center gap-1 bg-background border border-primary-border rounded-lg px-2 h-9 text-xs"
-          >
-            <input
-              v-model="store.filters.startDate"
-              type="date"
-              class="bg-transparent text-primary-text outline-none text-xs cursor-pointer"
-              @change="store.applyFilters()"
-            />
-            <span class="text-secondary-text text-xs font-medium px-0.5">to</span>
-            <input
-              v-model="store.filters.endDate"
-              type="date"
-              class="bg-transparent text-primary-text outline-none text-xs cursor-pointer"
-              @change="store.applyFilters()"
-            />
-          </div>
+          <!-- Date Range Picker -->
+          <BaseDatePicker
+            v-model="dateRangeValue"
+            :range="true"
+            placeholder="Filter date range..."
+            class="w-full sm:w-56 lg:w-60"
+          />
 
           <!-- Per Page Select -->
           <BaseSelect
@@ -571,6 +560,7 @@ import {
 } from "lucide-vue-next";
 import { useEmailLogsStore } from "@/stores/emails/emailLogs";
 import BaseSelect from "@/components/common/BaseSelect.vue";
+import BaseDatePicker from "@/components/common/BaseDatePicker.vue";
 import Pagination from "@/components/common/Pagination.vue";
 import Tooltip from "@/components/common/Tooltip.vue";
 import RenderHTMLBody from "@/components/emails/RenderHTMLBody.vue";
@@ -583,6 +573,31 @@ const store = useEmailLogsStore();
 
 const searchQuery = ref("");
 const layoutMode = ref("grid"); // 'grid' | 'list' | 'split'
+
+const dateRangeValue = computed({
+  get() {
+    if (store.filters.startDate || store.filters.endDate) {
+      return {
+        start: store.filters.startDate || null,
+        end: store.filters.endDate || null,
+      };
+    }
+    return null;
+  },
+  set(val) {
+    if (!val) {
+      store.filters.startDate = null;
+      store.filters.endDate = null;
+    } else if (Array.isArray(val)) {
+      store.filters.startDate = val[0] || null;
+      store.filters.endDate = val[1] || null;
+    } else if (typeof val === "object") {
+      store.filters.startDate = val.start || val.from || null;
+      store.filters.endDate = val.end || val.to || null;
+    }
+    store.applyFilters();
+  },
+});
 
 // Preview Modal State
 const openPreviewModal = ref(false);

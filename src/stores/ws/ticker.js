@@ -1,4 +1,4 @@
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import authToken from "@/common/authToken";
 import { defineStore } from "pinia";
 import MatrixTicker from "@/utils/MatrixTicker";
@@ -6,6 +6,7 @@ import { useProfileStore } from "@/stores/profile/profile";
 import { useClientListStore } from "@/stores/clientList/clientList";
 import { useAccountsStore } from "@/stores/tradingAccounts/tradingAccounts";
 import { useNotificationsStore } from "@/stores/notifications/notifications";
+import { useDashboardStore } from "@/stores/dashboard/dashboard";
 
 export const useTickerStore = defineStore("tickers", () => {
   const profileStore = useProfileStore();
@@ -20,6 +21,16 @@ export const useTickerStore = defineStore("tickers", () => {
   const token = computed(() => authToken.getToken().accessToken);
 
   const isConnected = ref(false);
+
+  /* ---------------- Watch Profile User ID ---------------- */
+  watch(
+    () => profileStore.user?.user_id || profileStore.user?.id,
+    (newUserId) => {
+      if (newUserId && ticker && isConnected.value && tickerList.value.length > 0) {
+        subscribe(newUserId, tickerList.value);
+      }
+    }
+  );
 
   /* ---------------- Cross Tab Logout ---------------- */
   const channel = new BroadcastChannel("my-channel");
@@ -38,7 +49,7 @@ export const useTickerStore = defineStore("tickers", () => {
     for (let i = 0; i < data.length; i++) {
       const raw = data[i];
       if (!raw) continue;
-      const symbol = String(raw).replace(/[^A-Z0-9]/gi, "").toUpperCase();
+      const symbol = String(raw).trim();
       if (!symbol) continue;
 
       if (!tickerList.value.includes(symbol)) {
@@ -66,6 +77,7 @@ export const useTickerStore = defineStore("tickers", () => {
 
     const accountsStore = useAccountsStore();
     const notificationsStore = useNotificationsStore();
+    const dashboardStore = useDashboardStore();
 
     ticker = new MatrixTicker({
       token: token.value,
@@ -109,6 +121,12 @@ export const useTickerStore = defineStore("tickers", () => {
     ticker.on("new_notification", (data) => {
       if (data) {
         notificationsStore.addNotification(data);
+      }
+    });
+
+    ticker.on("live_user_count_update", (data) => {
+      if (data) {
+        dashboardStore.updateUserAccountsFromSocket(data);
       }
     });
 
@@ -163,7 +181,9 @@ export const useTickerStore = defineStore("tickers", () => {
 
   /* ---------------- Get Last Price ---------------- */
   function getLastPrice(symbol) {
-    return lastPrices.value[symbol] || null;
+    if (!symbol) return null;
+    const s = String(symbol).trim();
+    return lastPrices.value[s] || lastPrices.value[symbol] || null;
   }
 
   return {

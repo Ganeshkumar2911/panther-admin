@@ -64,7 +64,7 @@ export const useFmRequestStore = defineStore("fmRequest", () => {
     });
   };
 
-  const acceptRequest = (id) => {
+  const acceptRequest = (id, payload = null, message = null) => {
     isSubmitting.value = true;
 
     const successHandler = () => {
@@ -78,15 +78,21 @@ export const useFmRequestStore = defineStore("fmRequest", () => {
       snackbar.show(err?.error || "Failed to accept request.", "error");
     };
 
+    const data = { ...(payload || {}) };
+    if (message) {
+      data.message = message;
+    }
+
     apiRequest(urls.KEYS.POST, urls.fm.acceptRequest, {
       look_up_key: id,
+      data: Object.keys(data).length > 0 ? data : undefined,
       isTokenRequired: true,
       onSuccess: successHandler,
       onFailure: failureHandler,
     });
   };
 
-  const rejectRequest = (id) => {
+  const rejectRequest = (id, reason = null) => {
     isSubmitting.value = true;
 
     const successHandler = () => {
@@ -102,6 +108,7 @@ export const useFmRequestStore = defineStore("fmRequest", () => {
 
     apiRequest(urls.KEYS.POST, urls.fm.rejectRequest, {
       look_up_key: id,
+      data: reason ? { reason } : undefined,
       isTokenRequired: true,
       onSuccess: successHandler,
       onFailure: failureHandler,

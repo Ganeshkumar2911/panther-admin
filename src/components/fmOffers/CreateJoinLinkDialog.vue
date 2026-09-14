@@ -102,6 +102,7 @@
             placeholder="Select expiration date"
             valueFormat="YYYY-MM-DD"
             :minDate="minDate"
+            :disableFuture="false"
             placement="top"
             dropUp
             clearable

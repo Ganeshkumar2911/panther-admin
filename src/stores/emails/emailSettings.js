@@ -72,7 +72,7 @@ export const useEmailSettingsStore = defineStore(
     // Save / Update Settings
     // ─────────────────────────────────────
 
-    const saveSettings = (payload) => {
+    const saveSettings = (payload, onSuccess, onFailure) => {
       updateLoading.value = true
 
       error.value = null
@@ -86,6 +86,8 @@ export const useEmailSettingsStore = defineStore(
         updateLoading.value = false
 
         fetchSettings(true)
+
+        if (onSuccess) onSuccess(res)
       }
 
       const failureHandler = (err) => {
@@ -97,6 +99,8 @@ export const useEmailSettingsStore = defineStore(
           err?.message || 'Failed to save email settings.',
           'error'
         )
+
+        if (onFailure) onFailure(err)
       }
 
       apiRequest(

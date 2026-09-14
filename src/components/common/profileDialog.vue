@@ -5,7 +5,7 @@
       <Transition name="backdrop">
         <div
           v-if="open"
-          class="fixed inset-0 z-[100] bg-black/50 backdrop-blur-xs cursor-pointer"
+          class="fixed inset-0 z-100 bg-black/50 backdrop-blur-xs cursor-pointer"
           @click="closeDialog"
         />
       </Transition>
@@ -14,7 +14,7 @@
       <Transition name="drawer">
         <div
           v-if="open"
-          class="fixed right-0 top-0 bottom-0 z-[101] w-full max-w-lg bg-card-background border-l border-primary-border flex flex-col shadow-2xl"
+          class="fixed right-0 top-0 bottom-0 z-101 w-full max-w-lg bg-card-background border-l border-primary-border flex flex-col shadow-2xl"
           role="dialog"
           aria-modal="true"
           @click.stop
@@ -271,7 +271,7 @@
               <!-- Personal Information Grid -->
               <div class="space-y-3">
                 <div class="flex items-center justify-between">
-                  <h4 class="text-xs font-bold text-primary-text uppercase tracking-wider text-secondary-text">
+                  <h4 class="text-xs font-bold text-secondary-text uppercase tracking-wider">
                     Personal Information
                   </h4>
                   <button
@@ -304,7 +304,7 @@
                     <p class="text-xs font-semibold text-primary-text mt-0.5 truncate flex items-center gap-1.5">
                       <span
                         v-if="profileStore.user?.country && getFlagCode(profileStore.user.country)"
-                        :class="['fi', `fi-${getFlagCode(profileStore.user.country)}`, 'fis', 'w-4 h-3 flex-shrink-0']"
+                        :class="['fi', `fi-${getFlagCode(profileStore.user.country)}`, 'fis', 'w-4 h-3 shrink-0']"
                       ></span>
                       <span>{{ getCountryLabel(profileStore.user?.country) }}</span>
                     </p>
@@ -340,7 +340,7 @@
               <!-- ── FM Section ── -->
               <template v-if="isFm">
                 <div class="pt-4 border-t border-primary-border space-y-3">
-                  <h4 class="text-xs font-bold text-primary-text uppercase tracking-wider text-secondary-text">
+                  <h4 class="text-xs font-bold text-secondary-text uppercase tracking-wider">
                     Fund Manager Info
                   </h4>
 

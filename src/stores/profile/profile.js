@@ -19,24 +19,28 @@ export const useProfileStore = defineStore('user', () => {
   function fetchUserProfile() {
     loading.value = true
 
-    const successHandler = (res) => {
-      const data = res?.data || res
-      user.value = data
-    }
+    return new Promise((resolve, reject) => {
+      const successHandler = (res) => {
+        const data = res?.data || res
+        user.value = data
+        resolve(data)
+      }
 
-    const failureHandler = (err) => {
-      console.error('User fetch error:', err)
-    }
+      const failureHandler = (err) => {
+        console.error('User fetch error:', err)
+        reject(err)
+      }
 
-    const finallyHandler = () => {
-      loading.value = false
-    }
+      const finallyHandler = () => {
+        loading.value = false
+      }
 
-    apiRequest('get', urls.auth.profile, {
-      isTokenRequired: true,
-      onSuccess: successHandler,
-      onFailure: failureHandler,
-      onFinally: finallyHandler,
+      apiRequest('get', urls.auth.profile, {
+        isTokenRequired: true,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+        onFinally: finallyHandler,
+      })
     })
   }
 

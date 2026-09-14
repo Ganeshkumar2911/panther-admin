@@ -44,8 +44,7 @@ const routes = [
         },
       },
       {
-        path: "client/details/:id",
-        name: "client-details",
+        path: "/client/details/:id",
         component: () => import("@/pages/client-details/index.vue"),
         meta: {
           showBackButton: true,
@@ -53,6 +52,96 @@ const routes = [
           title: "Clients Details",
           description: "View and manage client info.",
         },
+        children: [
+          {
+            path: "",
+            name: "client-details",
+            component: () => import("@/pages/client-details/overview.vue"),
+            meta: {
+              showBackButton: true,
+              requiresAuth: true,
+              title: "Clients Details",
+              description: "View and manage client info.",
+            },
+          },
+          {
+            path: "profile",
+            name: "client-details-profile",
+            component: () => import("@/pages/client-details/profile.vue"),
+            meta: {
+              showBackButton: true,
+              requiresAuth: true,
+              title: "Client Profile & KYC",
+              description: "View client profile and KYC.",
+            },
+          },
+          {
+            path: "financials",
+            name: "client-details-financials",
+            component: () => import("@/pages/client-details/financial.vue"),
+            meta: {
+              showBackButton: true,
+              requiresAuth: true,
+              title: "Client Financials",
+              description: "View client financials.",
+            },
+          },
+          {
+            path: "bank-details",
+            name: "client-details-bank-details",
+            component: () => import("@/pages/client-details/bankDetails.vue"),
+            meta: {
+              showBackButton: true,
+              requiresAuth: true,
+              title: "Client Bank Details",
+              description: "View client saved bank accounts and payout destinations.",
+            },
+          },
+          {
+            path: "trading",
+            name: "client-details-trading",
+            component: () => import("@/pages/client-details/trading.vue"),
+            meta: {
+              showBackButton: true,
+              requiresAuth: true,
+              title: "Client Trading",
+              description: "View client trading details.",
+            },
+          },
+          {
+            path: "crm",
+            name: "client-details-crm",
+            component: () => import("@/pages/client-details/crm&support.vue"),
+            meta: {
+              showBackButton: true,
+              requiresAuth: true,
+              title: "Client CRM & Support",
+              description: "View client CRM and support tickets.",
+            },
+          },
+          {
+            path: "marketing",
+            name: "client-details-marketing",
+            component: () => import("@/pages/client-details/marketing.vue"),
+            meta: {
+              showBackButton: true,
+              requiresAuth: true,
+              title: "Client Marketing",
+              description: "View client marketing details.",
+            },
+          },
+          {
+            path: "notifications",
+            name: "client-details-notifications",
+            component: () => import("@/pages/client-details/notifications.vue"),
+            meta: {
+              showBackButton: true,
+              requiresAuth: true,
+              title: "Client Notifications",
+              description: "View client notifications and history.",
+            },
+          },
+        ],
       },
       {
         path: "/lead-management",
@@ -129,6 +218,18 @@ const routes = [
         },
       },
       {
+        path: "/payment-requests/logs",
+        name: "payment-gateway-logs",
+        component: () => import("@/pages/payment-requests/logs.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Payment Gateway Logs",
+          description:
+            "View and inspect payment gateway logs and transactions.",
+          showBackButton: true,
+        },
+      },
+      {
         path: "/payment-methods",
         name: "payment-methods",
         component: () => import("@/pages/paymentMethods/index.vue"),
@@ -182,6 +283,17 @@ const routes = [
         },
       },
       {
+        path: "/fm/settlement-preview/:id/user/:userId",
+        name: "fm-settlement-user-preview",
+        component: () => import("@/pages/fm-leaderboard/fmSettlementUser.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Client Settlement Details",
+          description: "Detailed client follower trades and commission splits.",
+          showBackButton: true,
+        },
+      },
+      {
         path: "/fm/offers/:id",
         name: "fm-offers",
         component: () => import("@/pages/fm-leaderboard/fmOffers.vue"),
@@ -199,7 +311,8 @@ const routes = [
         meta: {
           requiresAuth: true,
           title: "Offer Join Links & Agents",
-          description: "Manage campaign links, additional agents, and offer configuration.",
+          description:
+            "Manage campaign links, additional agents, and offer configuration.",
           showBackButton: true,
         },
       },
@@ -221,7 +334,8 @@ const routes = [
         meta: {
           requiresAuth: true,
           title: "Follower Details",
-          description: "View subscription, account, and fee details for this follower.",
+          description:
+            "View subscription, account, and fee details for this follower.",
           showBackButton: true,
         },
       },
@@ -232,7 +346,8 @@ const routes = [
         meta: {
           requiresAuth: true,
           title: "Fund Manager Trade Book",
-          description: "Live positions, orders, and deal execution history for Fund Manager master account.",
+          description:
+            "Live positions, orders, and deal execution history for Fund Manager master account.",
           showBackButton: true,
         },
       },
@@ -243,7 +358,8 @@ const routes = [
         meta: {
           requiresAuth: true,
           title: "Follower Trade Book",
-          description: "Live positions, orders, and deal execution history for follower trading account.",
+          description:
+            "Live positions, orders, and deal execution history for follower trading account.",
           showBackButton: true,
         },
       },
@@ -265,6 +381,30 @@ const routes = [
           requiresAuth: true,
           title: "Settlements",
           description: "Manage and view settlement requests.",
+        },
+      },
+      {
+        path: "/settlement/details/:id",
+        name: "settlement-details",
+        component: () => import("@/pages/settlements/detail.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Settlement Details",
+          description:
+            "View client summaries and distributions for this settlement.",
+          showBackButton: true,
+        },
+      },
+      {
+        path: "/settlement/details/:id/user/:userId",
+        name: "settlement-user-depth",
+        component: () => import("@/pages/settlements/user.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Client Settlement Breakdown",
+          description:
+            "Detailed follower trades and period breakdown for this client.",
+          showBackButton: true,
         },
       },
       {
@@ -385,6 +525,17 @@ const routes = [
         },
       },
       {
+        path: "/blogs",
+        name: "blogs",
+        component: () => import("@/pages/blog/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Blog Management",
+          description:
+            "Create, edit, and publish market insights, educational guides, and platform updates.",
+        },
+      },
+      {
         path: "/platform-tickets/:id",
         name: "platform-tickets-details",
         component: () => import("@/pages/platformTickets/ticketDetails.vue"),
@@ -424,6 +575,17 @@ const routes = [
           requiresAuth: true,
           title: "Telegram",
           description: "Manage Telegram",
+        },
+      },
+      {
+        path: "/watchlist",
+        name: "watchlist",
+        component: () => import("@/pages/watchlist/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Watchlist Management",
+          description:
+            "Manage watchlist limits, symbol catalog, and excel imports.",
         },
       },
       {
@@ -486,6 +648,109 @@ const routes = [
           title: "RBAC Modules",
           description:
             "Manage dynamic resources, actions, and permissions mappings.",
+        },
+      },
+      {
+        path: "/tags",
+        name: "tags",
+        component: () => import("@/pages/tags/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Tag Management",
+          description: "Manage tags and entity assignments.",
+        },
+      },
+      {
+        path: "/loyalty-program",
+        name: "loyalty-program",
+        component: () => import("@/pages/loyalty/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Loyalty Program",
+          description:
+            "Manage PantherTrade loyalty program rules, tiers, rewards, enrollments, and MT5 history backfills.",
+        },
+      },
+      {
+        path: "/commission-engine",
+        name: "commission-engine",
+        component: () => import("@/pages/commission-engine/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Commission Engine",
+          description:
+            "Manage IB commission rate matrix, MT5 symbol groups, symbols catalog, and sync operations.",
+        },
+      },
+      {
+        path: "/commission-engine/commissions",
+        name: "commission-engine-commissions",
+        component: () => import("@/pages/commission-engine/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "IB Commissions",
+          description: "Review pending and approved IB commissions, calculate payouts, and authorize wallet credits.",
+        },
+      },
+      {
+        path: "/commission-engine/trades",
+        name: "commission-engine-trades",
+        component: () => import("@/pages/commission-engine/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "IB Trades",
+          description: "Browse open and closed MT5 trade positions, inspect mapping criteria, and rebuild trades.",
+        },
+      },
+      {
+        path: "/commission-engine/rates",
+        name: "commission-engine-rates",
+        component: () => import("@/pages/commission-engine/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Commission Rate Matrix",
+          description: "Configure IB commission rates per MT5 group and symbol group.",
+        },
+      },
+      {
+        path: "/commission-engine/symbol-groups",
+        name: "commission-engine-symbol-groups",
+        component: () => import("@/pages/commission-engine/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Symbol Groups",
+          description: "Manage MT5 symbol groups and member assignments.",
+        },
+      },
+      {
+        path: "/commission-engine/symbols",
+        name: "commission-engine-symbols",
+        component: () => import("@/pages/commission-engine/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Symbols Catalog",
+          description: "Browse symbol catalog and assign unmapped symbols.",
+        },
+      },
+      {
+        path: "/commission-engine/sync",
+        name: "commission-engine-sync",
+        component: () => import("@/pages/commission-engine/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Commission Sync Status",
+          description: "Monitor ETL sync cursors and trigger manual synchronization.",
+        },
+      },
+      {
+        path: "/settings",
+        name: "settings",
+        component: () => import("@/pages/settings/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "System Settings",
+          description:
+            "Configure system-wide settings, transaction restrictions, and miscellaneous platform settings.",
         },
       },
     ],

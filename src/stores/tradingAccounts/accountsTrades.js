@@ -3,10 +3,12 @@ import { ref, reactive } from 'vue'
 import apiRequest from '@/api/request'
 import urls from '@/api/urls'
 import { useSnackbarStore } from '@/stores/snackbar/snackbar'
+import { useTickerStore } from '@/stores/ws/ticker'
 import { perPageOptions } from '@/constants/pagination'
 
 export const useAccountTradesStore = defineStore('accountTrades', () => {
   const snackbar = useSnackbarStore()
+  const tickerStore = useTickerStore()
 
   // ─── State ─────────────────────────────────────────────
   const data        = ref([])
@@ -36,7 +38,17 @@ export const useAccountTradesStore = defineStore('accountTrades', () => {
     loading.value   = true
 
     const successHandler = (res) => {
-      data.value = res?.data || []
+      const items = res?.data || []
+      data.value = items
+
+      if (items && items.length > 0) {
+        const uniqueSymbols = [
+          ...new Set(items.map((trade) => trade.symbol)),
+        ].filter(Boolean)
+        if (uniqueSymbols.length > 0) {
+          tickerStore.updateTickerList(uniqueSymbols)
+        }
+      }
 
       if (res?.pagination) {
         Object.assign(pagination, res.pagination)

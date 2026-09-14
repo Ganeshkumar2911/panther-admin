@@ -50,7 +50,7 @@
             <div class="h-6 w-px bg-primary-border/60" />
             <div>
               <span class="text-[9px] uppercase text-secondary-text block font-semibold">Perf Fee / Min Cap</span>
-              <span class="font-bold text-primary text-xs">{{ fmInfo.performance_fee }}% · ${{ fmInfo.min_capital }}</span>
+              <span class="font-bold text-primary text-xs">{{ fmInfo.performance_fee }}% · {{ formatCurrency(fmInfo.min_capital, activeCurrency) }}</span>
             </div>
           </div>
 
@@ -212,10 +212,10 @@
                 <td class="py-4 px-4 whitespace-nowrap">
                   <div class="space-y-0.5">
                     <p class="text-xs font-extrabold text-primary-text">
-                      ${{ fmt(offer.total_fees_collected) }} <span class="text-secondary-text text-[10px] font-normal">collected</span>
+                      {{ formatCurrency(offer.total_fees_collected, getOfferCurrency(offer)) }} <span class="text-secondary-text text-[10px] font-normal">collected</span>
                     </p>
                     <p class="text-[10px] text-secondary-text">
-                      Min Capital: <span class="font-bold text-primary-text font-mono">${{ fmt(offer.minimum_balance) }}</span>
+                      Min Capital: <span class="font-bold text-primary-text font-mono">{{ formatCurrency(offer.minimum_balance, getOfferCurrency(offer)) }}</span>
                     </p>
                   </div>
                 </td>
@@ -230,7 +230,7 @@
                       MF: {{ offer.management_fee }}%
                     </span>
                     <span v-if="offer.registration_fee" class="px-2.5 py-1 rounded-lg bg-background/80 border border-primary-border text-secondary-text font-bold text-[10px]">
-                      RF: ${{ fmt(offer.registration_fee) }}
+                      RF: {{ formatCurrency(offer.registration_fee, getOfferCurrency(offer)) }}
                     </span>
                   </div>
                 </td>
@@ -319,14 +319,14 @@
       :open="createDialogOpen"
       :edit-offer="editingOffer"
       :fm-id="fmId"
-      :currency="fmInfo?.broker_currency || fmInfo?.currency || fmInfo?.coverage_account?.broker_currency"
+      :currency="activeCurrency"
       @close="closeCreateDialog"
     />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { RotateCw, Tag, Mail, ChevronDown, Link2, Users, Loader2, Plus, Pencil } from 'lucide-vue-next'
 import apiRequest from '@/api/request'
@@ -373,7 +373,10 @@ const goToOfferDetails = (offer) => {
   localStorage.setItem('active_offer', JSON.stringify(offer))
   router.push({
     path: `/fm-offers/${offer.id}`,
-    query: { fm_id: fmId || offer.fund_manager_id || offer.fm_id }
+    query: {
+      fm_id: fmId || offer.fund_manager_id || offer.fm_id,
+      currency: getOfferCurrency(offer),
+    },
   })
 }
 
@@ -395,6 +398,46 @@ const fmt = (val) => {
   const num = Number(val ?? 0)
   if (isNaN(num)) return '0.00'
   return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+const activeCurrency = computed(() => {
+  return (
+    route.query.currency ||
+    fmInfo.value?.broker_currency ||
+    fmInfo.value?.currency ||
+    fmInfo.value?.coverage_account?.broker_currency ||
+    fmInfo.value?.master_account?.broker_currency ||
+    'USD'
+  )
+})
+
+const getOfferCurrency = (offer) => {
+  return (
+    offer?.broker_currency ||
+    offer?.currency ||
+    activeCurrency.value ||
+    'USD'
+  )
+}
+
+const getCurrencySymbol = (currency) => {
+  const c = String(currency || '').trim().toUpperCase()
+  if (c === 'USC' || c === 'CENT') return 'C'
+  if (c === 'CAD') return 'C$'
+  if (c === 'EUR') return '€'
+  if (c === 'GBP') return '£'
+  if (c === 'INR') return '₹'
+  if (c === 'JPY') return '¥'
+  if (c === 'USD') return '$'
+  return c ? `${c} ` : '$'
+}
+
+const formatCurrency = (val, currency = null) => {
+  if (val === null || val === undefined || isNaN(val)) return '—'
+  const num = Number(val)
+  if (isNaN(num)) return '—'
+  const sym = getCurrencySymbol(currency || activeCurrency.value)
+  return `${sym}${fmt(num)}`
 }
 
 const formatDate = (v) => v ? new Date(v).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
