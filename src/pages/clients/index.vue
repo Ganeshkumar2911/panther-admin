@@ -247,7 +247,22 @@ const formatDate = (val) =>
 function getRowActions(client) {
   const actions = [];
 
+  const addDivider = () => {
+    if (actions.length > 0 && !actions[actions.length - 1].divider) {
+      actions.push({ divider: true });
+    }
+  };
+
+  if (hasPermission("client.view")) {
+    actions.push({
+      action: "depth",
+      label: "Client Depth",
+      icon: Eye,
+    });
+  }
+
   if (hasPermission("client.update")) {
+    addDivider();
     actions.push(
       { action: "edit", label: "Edit Client", icon: Pencil },
       {
@@ -267,11 +282,6 @@ function getRowActions(client) {
         label: "Update Referral Link",
         icon: Link2,
       },
-      {
-        action: "depth",
-        label: "Client Depth",
-        icon: Eye,
-      },
       { divider: true },
       {
         action: "toggleStatus",
@@ -284,6 +294,7 @@ function getRowActions(client) {
   }
 
   if (hasAnyPermission(["user_bank_accounts.enable_edit"])) {
+    addDivider();
     actions.push({
       action: "viewBankAccounts",
       label: "Bank Accounts",
@@ -292,10 +303,7 @@ function getRowActions(client) {
   }
 
   if (hasPermission("xtention_dev.login_as_client")) {
-    if (actions.length > 0) {
-      actions.push({ divider: true });
-    }
-
+    addDivider();
     actions.push({
       action: "clientLogin",
       label: "Client Login",
@@ -304,10 +312,7 @@ function getRowActions(client) {
   }
 
   if (client.kyc_status === "pending" && hasPermission("client.delete")) {
-    if (actions.length > 0) {
-      actions.push({ divider: true });
-    }
-
+    addDivider();
     actions.push({
       action: "delete",
       label: "Delete Client",
@@ -405,7 +410,7 @@ const openChangeIBDialog = (client) => {
 };
 
 const openClientDepth = (client) => {
-  if (!client) return;
+  if (!client || !hasPermission("client.view")) return;
   clientDepthStore.reset();
   clientDepthStore.setActiveClient(client);
   router.push(`/client/details/${client.id}`);
@@ -1608,12 +1613,20 @@ onMounted(() => {
           </div>
           <div
             v-if="
+              hasPermission('client.view') ||
               hasPermission('client.update') ||
               (client.kyc_status === 'pending' &&
                 hasPermission('client.delete'))
             "
             class="bg-background rounded-lg px-3 py-2 col-span-2 flex flex-wrap items-center justify-center gap-2"
           >
+            <button
+              v-if="hasPermission('client.view')"
+              @click="openClientDepth(client)"
+              class="flex-1 min-w-22.5 text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer"
+            >
+              Client Depth
+            </button>
             <button
               v-if="hasPermission('client.update')"
               @click="openEditClientDialog(client)"
