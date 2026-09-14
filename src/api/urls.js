@@ -54,6 +54,7 @@ const urls = {
     userCharts: "/user-charts",
     accountDetails: "/account-details",
     userReferences: "/user/reference",
+    notifications: "/notifications/user-depth",
   },
   clientLedger: {
     list: "/ledger/clients",
@@ -275,6 +276,7 @@ const urls = {
     markRead: "/notifications/read",
     send: "/notifications/send",
     readStatus: "/notifications/read-status",
+    userDepth: "/admin/notification/user-depth",
   },
   media: {
     groups: {
@@ -336,12 +338,18 @@ const urls = {
   whatsapp: {
     templates: "/whatsapp/templates",
     createTemplate: "/whatsapp/create-template",
-    getById : `/whatsapp/templates`,
+    getById: `/whatsapp/templates`,
     updateTemplate: `/whatsapp/templates`,
     deleteTemplate: `/whatsapp/templates`,
     chatOpen: "/whatsapp/chat/open",
     sendMessage: "/whatsapp/send/chat",
     sendTemplate: "/whatsapp/send/template",
+  },
+  blogs: {
+    list: "/blogs",
+    create: "/create-blog",
+    update: "/blog-update",
+    delete: "/delete-blog",
   },
   loyalty: {
     // Programs
@@ -377,6 +385,9 @@ const urls = {
     enrollments: "/loyalty/enrollments",
     createEnrollment: "/loyalty/enrollments",
     enrollmentDetail: (enrollmentId) => `/loyalty/enrollments/${enrollmentId}`,
+    updateEnrollment: (enrollmentId) => `/loyalty/enrollments/${enrollmentId}`,
+    deenroll: "/loyalty/enrollments/deenroll",
+    deenrollById: (enrollmentId) => `/loyalty/enrollments/${enrollmentId}/deenroll`,
     attachEnrollmentAccount: (enrollmentId) => `/loyalty/enrollments/${enrollmentId}/accounts`,
     detachEnrollmentAccount: (enrollmentId, accountId) => `/loyalty/enrollments/${enrollmentId}/accounts/${accountId}`,
     creditWallet: "/loyalty/wallets/credit",
@@ -384,6 +395,29 @@ const urls = {
     deals: "/loyalty/deals",
     backfill: "/loyalty/backfill",
     backfillDetail: (jobId) => `/loyalty/backfill/${jobId}`,
+  },
+  ibCommission: {
+    referralLinksSearch: "/ib-commission/referral-links/search",
+    rates: (id) => `/ib-commission/referral-links/${id}/rates`,
+    saveRates: (id) => `/ib-commission/referral-links/${id}/rates`,
+    symbolGroups: "/ib-commission/symbol-groups",
+    symbolGroupDetail: (id) => `/ib-commission/symbol-groups/${id}`,
+    symbolGroupMembers: (id) => `/ib-commission/symbol-groups/${id}/members`,
+    symbolGroupsUnassign: "/ib-commission/symbol-groups/unassign",
+    symbols: "/ib-commission/symbols",
+    syncStatus: "/ib-commission/sync/status",
+    syncDeals: "/ib-commission/sync/deals",
+    syncSymbols: "/ib-commission/sync/symbols",
+    // Phase 2: Workflow, Trades & Commissions
+    workflowSettings: "/ib-commission/settings/workflow",
+    trades: "/ib-commission/trades",
+    rebuildTrades: "/ib-commission/trades/rebuild",
+    commissions: "/ib-commission/commissions",
+    commissionsPending: "/ib-commission/commissions/pending",
+    calculateCommissions: "/ib-commission/commissions/calculate",
+    approveCommission: (id) => `/ib-commission/commissions/${id}/approve`,
+    rejectCommission: (id) => `/ib-commission/commissions/${id}/reject`,
+    bulkApproveCommissions: "/ib-commission/commissions/approve-bulk",
   },
 };
 

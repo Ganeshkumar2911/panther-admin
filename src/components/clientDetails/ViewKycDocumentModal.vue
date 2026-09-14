@@ -41,6 +41,7 @@
 
             <div class="flex items-center gap-2">
               <button
+                v-if="effectiveCanEdit"
                 type="button"
                 @click="onEditClick"
                 class="border border-primary-border rounded-xl px-3 py-1.5 text-xs font-semibold text-primary hover:bg-background transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
@@ -188,9 +189,10 @@
           <div
             class="px-6 py-3.5 border-t border-primary-border flex items-center justify-between gap-2.5 bg-card-background shrink-0"
           >
-            <!-- Left: Super Admin Quick Action Buttons -->
-            <div v-if="isSuperAdmin" class="flex items-center gap-2">
+            <!-- Left: Document Approve / Reject Action Buttons -->
+            <div v-if="effectiveCanApprove || effectiveCanReject" class="flex items-center gap-2">
               <button
+                v-if="effectiveCanReject"
                 type="button"
                 @click="onRejectClick"
                 class="px-3.5 py-2 rounded-xl text-xs font-bold text-primary-red bg-primary-red/10 border border-primary-red/30 hover:bg-primary-red/20 transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs"
@@ -199,6 +201,7 @@
                 Reject
               </button>
               <button
+                v-if="effectiveCanApprove"
                 type="button"
                 @click="onApproveClick"
                 class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-primary-green hover:bg-primary-green/90 transition-all cursor-pointer flex items-center gap-1.5 shadow-xs shadow-primary-green/20"
@@ -239,18 +242,43 @@ import {
   Copy,
 } from "lucide-vue-next";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
+import { usePermissionCheck } from "@/composables/usePermissionCheck";
 
 const props = defineProps({
   open: { type: Boolean, default: false },
   doc: { type: Object, default: () => null },
   status: { type: String, default: "Pending" },
-  isSuperAdmin: { type: Boolean, default: false },
+  canApprove: { type: Boolean, default: null },
+  canReject: { type: Boolean, default: null },
+  canEdit: { type: Boolean, default: null },
 });
 
 const emit = defineEmits(["close", "edit", "approve", "reject"]);
 
 const snackbar = useSnackbarStore();
+const { hasPermission } = usePermissionCheck();
 const activeSide = ref("front");
+
+const effectiveCanApprove = computed(() => {
+  if (props.canApprove !== null && props.canApprove !== undefined) {
+    return props.canApprove;
+  }
+  return hasPermission(["client.document_approve", "kyc.approve"]);
+});
+
+const effectiveCanReject = computed(() => {
+  if (props.canReject !== null && props.canReject !== undefined) {
+    return props.canReject;
+  }
+  return hasPermission(["client.document_reject", "kyc.reject"]);
+});
+
+const effectiveCanEdit = computed(() => {
+  if (props.canEdit !== null && props.canEdit !== undefined) {
+    return props.canEdit;
+  }
+  return hasPermission(["client.document_update", "client.document_add"]);
+});
 
 const currentImageSrc = computed(() => {
   if (activeSide.value === "front") {

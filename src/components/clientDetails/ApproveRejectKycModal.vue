@@ -32,7 +32,7 @@
                   {{ selectedAction === 'approve' ? 'Approve KYC Documents' : 'Reject KYC Documents' }}
                 </h3>
                 <p class="text-xs text-secondary-text mt-0.5">
-                  Super Admin Document Verification Review
+                  Document Verification Review
                 </p>
               </div>
             </div>
@@ -79,7 +79,7 @@
             </div>
 
             <!-- Action Switcher Buttons (Approve vs Reject) -->
-            <div class="space-y-1.5">
+            <div v-if="canApprove && canReject" class="space-y-1.5">
               <label class="text-xs font-semibold text-primary-text">
                 Decision Action <span class="text-primary-red">*</span>
               </label>
@@ -220,6 +220,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { useClientDepthStore } from '@/stores/clientDepth/clientDepth';
+import { usePermissionCheck } from '@/composables/usePermissionCheck';
 import {
   X,
   ShieldCheck,
@@ -240,6 +241,10 @@ const props = defineProps({
 const emit = defineEmits(['close', 'success']);
 
 const clientDepthStore = useClientDepthStore();
+const { hasPermission } = usePermissionCheck();
+
+const canApprove = computed(() => hasPermission(["client.document_approve", "kyc.approve"]));
+const canReject = computed(() => hasPermission(["client.document_reject", "kyc.reject"]));
 
 const selectedAction = ref(props.initialAction || 'approve');
 const rejectReason = ref('');
@@ -266,7 +271,13 @@ watch(
   () => props.open,
   (newOpen) => {
     if (newOpen) {
-      selectedAction.value = props.initialAction || 'approve';
+      if (props.initialAction === 'reject' && canReject.value) {
+        selectedAction.value = 'reject';
+      } else if (canApprove.value) {
+        selectedAction.value = 'approve';
+      } else {
+        selectedAction.value = 'reject';
+      }
       rejectReason.value =
         props.kycData?.kyc_reject_reason ||
         props.client?.kyc_reject_reason ||

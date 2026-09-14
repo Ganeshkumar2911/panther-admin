@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, computed, watch } from 'vue'
+import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   Plus,
@@ -17,11 +17,23 @@ import {
 } from 'lucide-vue-next'
 import { useWhatsAppTemplatesStore } from '@/stores/whatsapp/templates'
 import { useSnackbarStore } from '@/stores/snackbar/snackbar'
+import { usePermissionCheck } from '@/composables/usePermissionCheck'
 import WhatsAppMobilePreview from '@/components/whatsapp/WhatsAppMobilePreview.vue'
 
 const router = useRouter()
 const store = useWhatsAppTemplatesStore()
 const snackbar = useSnackbarStore()
+const { hasPermission } = usePermissionCheck()
+
+// Permissions
+const canCreateTemplate = computed(() => hasPermission('whatsapp.create'))
+
+onMounted(() => {
+  if (!canCreateTemplate.value) {
+    snackbar.show('You do not have permission to create WhatsApp templates', 'error')
+    router.push('/whatsapp/templates')
+  }
+})
 
 // Responsive Tab Mode for Tablets & Mobile (under 1280px)
 const activeTab = ref('form') // 'form' | 'preview'
@@ -164,6 +176,11 @@ const validate = () => {
 // Submit Form
 const isSubmitting = ref(false)
 const handleSubmit = async () => {
+  if (!canCreateTemplate.value) {
+    snackbar.show('You do not have permission to create WhatsApp templates', 'error')
+    return
+  }
+
   if (!validate()) {
     snackbar.show('Please fix the errors before submitting', 'error')
     activeTab.value = 'form'
@@ -559,7 +576,7 @@ const handleSubmit = async () => {
           <button
             type="button"
             @click="handleSubmit"
-            :disabled="isSubmitting"
+            :disabled="isSubmitting || !canCreateTemplate"
             class="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-primary hover:bg-primary-hover disabled:opacity-50 text-btn-text-primary text-xs font-semibold shadow-xs transition-all duration-150 cursor-pointer active:scale-95"
           >
             <span v-if="isSubmitting" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />

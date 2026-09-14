@@ -15,6 +15,7 @@ import {
 } from 'lucide-vue-next'
 import { useWhatsAppChatStore, cleanPhoneNumber } from '@/stores/whatsapp/chat'
 import { useTickerStore } from '@/stores/ws/ticker'
+import { usePermissionCheck } from '@/composables/usePermissionCheck'
 import { getFlagCode } from '@/utils/countries'
 import WhatsAppSendTemplateSheet from '@/components/clientDetails/WhatsAppSendTemplateSheet.vue'
 
@@ -30,6 +31,9 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close'])
+
+const { hasPermission } = usePermissionCheck()
+const canSend = computed(() => hasPermission('whatsapp.send'))
 
 const chatStore = useWhatsAppChatStore()
 const tickerStore = useTickerStore()
@@ -160,7 +164,7 @@ const handleRefresh = async () => {
 }
 
 const handleSendMessage = async () => {
-  if (!chatStore.isSessionOpen || !inputMessage.value?.trim() || chatStore.sending || !cleanPhone.value) return
+  if (!canSend.value || !chatStore.isSessionOpen || !inputMessage.value?.trim() || chatStore.sending || !cleanPhone.value) return
   const textToSend = inputMessage.value.trim()
   inputMessage.value = ''
   scrollToBottom(true)
@@ -476,7 +480,11 @@ const renderMarkdown = (text, isIncoming = false) => {
             class="px-4 py-2.5 bg-card-background border-t border-primary-border flex items-center justify-between gap-3 text-xs shrink-0 z-20"
           >
             <!-- Left status info -->
-            <div v-if="!chatStore.isSessionOpen" class="flex items-center gap-2 text-amber-600 dark:text-amber-400 min-w-0">
+            <div v-if="!canSend" class="flex items-center gap-2 text-secondary-text min-w-0">
+              <Lock class="w-3.5 h-3.5 shrink-0" />
+              <span class="truncate text-[11px] font-medium">Read-only mode (Send permission required)</span>
+            </div>
+            <div v-else-if="!chatStore.isSessionOpen" class="flex items-center gap-2 text-amber-600 dark:text-amber-400 min-w-0">
               <Clock class="w-3.5 h-3.5 shrink-0" />
               <span class="truncate text-[11px] font-medium">24h window closed. Send a template to chat.</span>
             </div>
@@ -487,6 +495,7 @@ const renderMarkdown = (text, isIncoming = false) => {
 
             <!-- Send Template Button -->
             <button
+              v-if="canSend"
               type="button"
               @click="isTemplateSheetOpen = true"
               class="px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shrink-0 active:scale-95 shadow-xs"
@@ -508,14 +517,14 @@ const renderMarkdown = (text, isIncoming = false) => {
             <!-- Input Bar -->
             <div
               class="flex-1 bg-background rounded-2xl px-3.5 py-2 flex items-center gap-2 border border-primary-border focus-within:border-primary transition-colors shadow-2xs"
-              :class="{ 'opacity-60 cursor-not-allowed': !chatStore.isSessionOpen }"
+              :class="{ 'opacity-60 cursor-not-allowed': !canSend || !chatStore.isSessionOpen }"
             >
               <textarea
                 ref="inputMessageRef"
                 v-model="inputMessage"
-                :disabled="!chatStore.isSessionOpen || chatStore.loading"
+                :disabled="!canSend || !chatStore.isSessionOpen || chatStore.loading"
                 rows="1"
-                :placeholder="chatStore.isSessionOpen ? 'Type a message (Press Enter to send)...' : 'Chat disabled — Send template above to start conversation'"
+                :placeholder="!canSend ? 'You do not have permission to send WhatsApp messages' : (chatStore.isSessionOpen ? 'Type a message (Press Enter to send)...' : 'Chat disabled — Send template above to start conversation')"
                 @keydown="handleKeydown"
                 class="flex-1 bg-transparent text-xs text-primary-text placeholder:text-secondary-text outline-none resize-none max-h-24 leading-relaxed font-sans disabled:cursor-not-allowed"
               />
@@ -525,7 +534,7 @@ const renderMarkdown = (text, isIncoming = false) => {
             <button
               type="button"
               @click="handleSendMessage"
-              :disabled="!chatStore.isSessionOpen || !inputMessage.trim() || chatStore.sending"
+              :disabled="!canSend || !chatStore.isSessionOpen || !inputMessage.trim() || chatStore.sending"
               class="w-10 h-10 rounded-full bg-primary hover:bg-primary-hover disabled:opacity-30 disabled:hover:bg-primary disabled:cursor-not-allowed text-btn-text-primary flex items-center justify-center shadow-xs transition-all duration-150 cursor-pointer active:scale-95 shrink-0"
             >
               <span

@@ -266,7 +266,7 @@
             </button>
             <button
               type="button"
-              :disabled="!isValid || clientDepthStore.isSubmittingProfile"
+              :disabled="!canEdit || !isValid || clientDepthStore.isSubmittingProfile"
               class="flex-1 px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-primary hover:bg-primary-hover transition-all flex items-center justify-center gap-2 shadow-md disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               @click="handleSubmit"
             >
@@ -285,8 +285,9 @@
 
 <script setup>
 import { ref, watch, computed } from "vue";
-import { X, Loader2, UserPen } from "lucide-vue-next";
+import { X, Loader2, UserPen, Lock } from "lucide-vue-next";
 import { useClientDepthStore } from "@/stores/clientDepth/clientDepth";
+import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import { countries } from "@/utils/countries";
 
@@ -298,6 +299,11 @@ const props = defineProps({
 const emit = defineEmits(["close", "success"]);
 
 const clientDepthStore = useClientDepthStore();
+const { hasPermission } = usePermissionCheck();
+
+const canEdit = computed(() => {
+  return hasPermission("client.update");
+});
 
 const genderOptions = [
   { label: "Male", value: "Male" },
@@ -371,7 +377,7 @@ const isValid = computed(() => {
 });
 
 const handleSubmit = () => {
-  if (!isValid.value) return;
+  if (!canEdit.value || !isValid.value) return;
   const clientId = props.client?.id;
   if (!clientId) return;
 

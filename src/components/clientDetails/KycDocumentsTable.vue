@@ -30,7 +30,7 @@
       </div>
 
       <!-- Actions on Top Right -->
-      <div class="flex items-center gap-2 flex-wrap">
+      <div v-if="canAddDoc" class="flex items-center gap-2 flex-wrap">
         <!-- Upload Document Button -->
         <button
           type="button"
@@ -83,7 +83,7 @@
         <p class="text-xs text-secondary-text mt-1 max-w-sm">
           Upload Aadhaar, PAN card, Passport, driving license or bank statements for verification.
         </p>
-        <div class="flex items-center gap-2 mt-4">
+        <div v-if="canAddDoc" class="flex items-center gap-2 mt-4">
           <button
             type="button"
             @click="openAddDrawer('document')"
@@ -209,6 +209,8 @@
     <ViewClientDocumentDrawer
       :open="viewDrawerOpen"
       :doc="selectedItem"
+      :canEdit="canEditDoc"
+      :canDelete="canDeleteDoc"
       @close="closeViewDrawer"
       @edit="openEditDrawer"
       @delete="openDeleteModal"
@@ -297,6 +299,8 @@
 import { ref, computed, onMounted, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useClientDepthStore } from "@/stores/clientDepth/clientDepth";
+import { useProfileStore } from "@/stores/profile/profile";
+import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
 import UploadKycDocumentModal from "@/components/clientDetails/UploadKycDocumentModal.vue";
 import ViewClientDocumentDrawer from "@/components/clientDetails/ViewClientDocumentDrawer.vue";
@@ -461,22 +465,45 @@ const closeViewDrawer = () => {
   viewDrawerOpen.value = false;
 };
 
+const { hasPermission } = usePermissionCheck();
+
+const canAddDoc = computed(() => {
+  return hasPermission(["client.document_add"]);
+});
+
+const canViewDoc = computed(() => {
+  return hasPermission(["client.document_view", "client.view", "kyc.view"]);
+});
+
+const canEditDoc = computed(() => {
+  return hasPermission(["client.document_update"]);
+});
+
+const canDeleteDoc = computed(() => {
+  return hasPermission(["client.document_delete"]);
+});
+
 // ─── Document Dropdown Actions ───────────────────────────────────────────────
 const getDocumentActions = (item) => {
-  const actions = [
-    {
+  const actions = [];
+
+  if (canViewDoc.value) {
+    actions.push({
       id: "view",
       label: "View Details",
       icon: Eye,
       handler: () => openViewDrawer(item),
-    },
-    {
+    });
+  }
+
+  if (canEditDoc.value) {
+    actions.push({
       id: "edit",
       label: "Edit Document",
       icon: Pencil,
       handler: () => openEditDrawer(item),
-    },
-  ];
+    });
+  }
 
   if (item.file_url) {
     actions.push({
@@ -487,13 +514,15 @@ const getDocumentActions = (item) => {
     });
   }
 
-  actions.push({
-    id: "delete",
-    label: "Delete",
-    icon: Trash2,
-    danger: true,
-    handler: () => openDeleteModal(item),
-  });
+  if (canDeleteDoc.value) {
+    actions.push({
+      id: "delete",
+      label: "Delete",
+      icon: Trash2,
+      danger: true,
+      handler: () => openDeleteModal(item),
+    });
+  }
 
   return actions;
 };

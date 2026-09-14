@@ -144,7 +144,7 @@
           </p>
           <div class="flex items-center gap-1.5 mt-2">
             <Tooltip
-              v-for="action in quickActions"
+              v-for="action in visibleQuickActions"
               :key="action.label"
               :text="action.label"
               position="bottom"
@@ -380,6 +380,7 @@ import ClientEmailTriggerPanel from "@/components/clientDetails/ClientEmailTrigg
 import ClientWhatsAppChatDrawer from "@/components/clientDetails/ClientWhatsAppChatDrawer.vue";
 import { useClientDepthStore } from "@/stores/clientDepth/clientDepth";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
+import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import {
   User,
   Info,
@@ -397,11 +398,13 @@ import {
   FileCheck,
   MessageSquare,
   RefreshCw,
+  Bell,
 } from "lucide-vue-next";
 const route = useRoute();
 const router = useRouter();
 const snackbar = useSnackbarStore();
 const clientDepthStore = useClientDepthStore();
+const { hasPermission } = usePermissionCheck();
 
 // ─── Account Badges Styling & Navigation ───────────────────────────────────────
 const chooseBgColor = {
@@ -594,15 +597,23 @@ const whatsappDrawerOpen = ref(false);
 
 const quickActions = [
   { action: "call", label: "Call", icon: Phone },
-  { action: "email", label: "Email", icon: Mail },
-  { action: "message", label: "WhatsApp Chat", icon: MessageSquare },
-  { action: "documents", label: "Documents", icon: FileText },
+  { action: "email", label: "Email", icon: Mail, permission: ["email.manage", "email.template_manual_trigger", "email.view"] },
+  { action: "message", label: "WhatsApp Chat", icon: MessageSquare, permission: ["whatsapp.send", "whatsapp.view"] },
+  { action: "documents", label: "Documents", icon: FileText, permission: ["client.document_add", "client.document_view"] },
 ];
+
+const visibleQuickActions = computed(() => {
+  return quickActions.filter((action) => !action.permission || hasPermission(action.permission));
+});
 
 const handleQuickAction = (action) => {
   const actionType = action.action || action.label?.toLowerCase();
 
   if (actionType === "documents") {
+    if (action.permission && !hasPermission(action.permission)) {
+      snackbar.show("You do not have permission to manage documents.", "error");
+      return;
+    }
     uploadDocModalOpen.value = true;
     return;
   }
@@ -615,6 +626,10 @@ const handleQuickAction = (action) => {
     return;
   }
   if (actionType === "email") {
+    if (action.permission && !hasPermission(action.permission)) {
+      snackbar.show("You do not have permission to send emails.", "error");
+      return;
+    }
     if (user.value?.email) {
       emailTriggerPanelOpen.value = true;
     } else {
@@ -623,6 +638,10 @@ const handleQuickAction = (action) => {
     return;
   }
   if (actionType === "message" || actionType?.includes("whatsapp")) {
+    if (!hasPermission(["whatsapp.send", "whatsapp.view"])) {
+      snackbar.show("You do not have permission to access WhatsApp chat.", "error");
+      return;
+    }
     if (user.value?.phone_number) {
       whatsappDrawerOpen.value = true;
     } else {
@@ -652,6 +671,7 @@ const currentActiveTab = computed(() => {
   if (currentPath.endsWith("/profile") || route.name === "client-details-profile") return "profile";
   if (currentPath.endsWith("/financials") || route.name === "client-details-financials") return "financials";
   if (currentPath.endsWith("/marketing") || route.name === "client-details-marketing") return "marketing";
+  if (currentPath.endsWith("/notifications") || route.name === "client-details-notifications") return "notifications";
   if (currentPath.endsWith("/trading") || route.name === "client-details-trading") return "trading";
   if (currentPath.endsWith("/crm") || route.name === "client-details-crm") return "crm";
   return "overview";
@@ -670,6 +690,9 @@ const isGlobalRefreshing = computed(() => {
   }
   if (currentActiveTab.value === "financials") {
     return clientDepthStore.userChartsLoading || clientDepthStore.accountDetailsLoading;
+  }
+  if (currentActiveTab.value === "notifications") {
+    return clientDepthStore.clientNotificationsLoading;
   }
   return false;
 });
@@ -701,6 +724,8 @@ const handleGlobalRefresh = async () => {
         clientDepthStore.fetchUserCharts(userId, {}, true),
         clientDepthStore.fetchAccountDetails(userId, {}, true),
       ]);
+    } else if (activeTab === "notifications") {
+      await clientDepthStore.fetchClientNotifications(userId, {}, true);
     }
 
     const tabLabel = tabs.value.find((t) => t.key === activeTab)?.label || "Tab";
@@ -749,6 +774,12 @@ const tabs = computed(() => [
     label: "Marketing",
     to: `/client/details/${route.params.id}/marketing`,
     icon: Megaphone,
+  },
+  {
+    key: "notifications",
+    label: "Notifications",
+    to: `/client/details/${route.params.id}/notifications`,
+    icon: Bell,
   },
 ]);
 

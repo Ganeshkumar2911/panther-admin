@@ -20,6 +20,7 @@ import {
 import { useWhatsAppTemplatesStore } from '@/stores/whatsapp/templates'
 import { useWhatsAppChatStore, cleanPhoneNumber } from '@/stores/whatsapp/chat'
 import { useSnackbarStore } from '@/stores/snackbar/snackbar'
+import { usePermissionCheck } from '@/composables/usePermissionCheck'
 import WhatsAppMobilePreview from '@/components/whatsapp/WhatsAppMobilePreview.vue'
 
 const props = defineProps({
@@ -39,6 +40,11 @@ const router = useRouter()
 const templateStore = useWhatsAppTemplatesStore()
 const chatStore = useWhatsAppChatStore()
 const snackbar = useSnackbarStore()
+const { hasPermission } = usePermissionCheck()
+
+// Permissions
+const canSend = computed(() => hasPermission('whatsapp.send'))
+const canCreate = computed(() => hasPermission('whatsapp.create'))
 
 // State
 const searchQuery = ref('')
@@ -196,6 +202,11 @@ const resolveText = (text, values) => {
 
 // Send Template Handler
 const handleSendTemplate = async () => {
+  if (!canSend.value) {
+    snackbar.show('You do not have permission to send WhatsApp templates', 'error')
+    return
+  }
+
   if (!selectedTemplate.value || !cleanPhone.value || isSending.value) return
 
   isSending.value = true
@@ -390,6 +401,7 @@ const handleSendTemplate = async () => {
                   }}
                 </p>
                 <button
+                  v-if="canCreate"
                   type="button"
                   @click="handleCreateTemplateRedirect"
                   class="px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-btn-text-primary text-xs font-semibold inline-flex items-center gap-2 shadow-xs transition-colors cursor-pointer"
@@ -531,7 +543,7 @@ const handleSendTemplate = async () => {
                   <button
                     type="button"
                     @click="handleSendTemplate"
-                    :disabled="isSending || !cleanPhone"
+                    :disabled="isSending || !cleanPhone || !canSend"
                     class="w-full py-3 px-4 rounded-xl bg-primary hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed text-btn-text-primary font-bold text-xs md:text-sm flex items-center justify-center gap-2 shadow-xs transition-all duration-150 cursor-pointer active:scale-[0.99]"
                   >
                     <span

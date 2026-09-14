@@ -20,6 +20,7 @@ import {
   CornerDownRight,
 } from 'lucide-vue-next'
 import { useWhatsAppTemplatesStore } from '@/stores/whatsapp/templates'
+import { usePermissionCheck } from '@/composables/usePermissionCheck'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import Tooltip from '@/components/common/Tooltip.vue'
 import TemplatePreviewModal from '@/components/whatsapp/TemplatePreviewModal.vue'
@@ -27,6 +28,11 @@ import { formatDate } from '@/utils/timeFormatter'
 
 const router = useRouter()
 const store = useWhatsAppTemplatesStore()
+const { hasPermission } = usePermissionCheck()
+
+// Permissions
+const canCreateTemplate = computed(() => hasPermission('whatsapp.create'))
+const canViewTemplates = computed(() => hasPermission(['whatsapp.view', 'whatsapp.create']))
 
 // State
 const layoutMode = ref('grid') // 'grid' | 'list'
@@ -50,18 +56,23 @@ const statusOptions = [
 ]
 
 onMounted(() => {
-  store.fetchTemplates()
+  if (canViewTemplates.value) {
+    store.fetchTemplates()
+  }
 })
 
 // Refetch templates when status/category filter changes
 watch(
   [() => store.filters.status, () => store.filters.category],
   () => {
-    store.fetchTemplates(true)
+    if (canViewTemplates.value) {
+      store.fetchTemplates(true)
+    }
   }
 )
 
 const navigateToCreate = () => {
+  if (!canCreateTemplate.value) return
   router.push('/whatsapp/templates/create')
 }
 
@@ -143,6 +154,7 @@ const getCategoryBadgeClass = (category) => {
       </div>
 
       <button
+        v-if="canCreateTemplate"
         @click="navigateToCreate"
         class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-btn-text-primary text-xs font-semibold shadow-xs transition-all duration-200 cursor-pointer active:scale-95 shrink-0"
       >
@@ -288,7 +300,7 @@ const getCategoryBadgeClass = (category) => {
           Clear Filters
         </button>
         <button
-          v-else
+          v-else-if="canCreateTemplate"
           @click="navigateToCreate"
           class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-btn-text-primary text-xs font-semibold shadow-xs transition-colors cursor-pointer"
         >
