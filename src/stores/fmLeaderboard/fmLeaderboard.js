@@ -111,6 +111,80 @@ export const useFmLeaderboardStore = defineStore("fmLeaderboard", () => {
     });
   };
 
+  const createDummyFundManager = (formData) => {
+    return new Promise((resolve, reject) => {
+      isSubmitting.value = true;
+      error.value = null;
+
+      const successHandler = (res) => {
+        snackbar.show(
+          res?.message || "Dummy Fund Manager created successfully",
+          "success",
+        );
+        isSubmitting.value = false;
+        isFetched.value = false;
+        fetchFmLeaderboard(true);
+        resolve(res);
+      };
+
+      const failureHandler = (err) => {
+        isSubmitting.value = false;
+        error.value = err;
+        snackbar.show(
+          err?.error || err?.message || "Failed to create dummy fund manager.",
+          "error",
+        );
+        reject(err);
+      };
+
+      const createEndpoint = urls.dummyFm?.create || urls.fm?.dummyCreate || "/dummy_fund_managers/create";
+
+      apiRequest(urls.KEYS.POST, createEndpoint, {
+        data: formData,
+        isTokenRequired: true,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+      });
+    });
+  };
+
+  const editDummyFundManager = (id, formData) => {
+    return new Promise((resolve, reject) => {
+      isSubmitting.value = true;
+      error.value = null;
+
+      const successHandler = (res) => {
+        snackbar.show(
+          res?.message || "Dummy Fund Manager updated successfully",
+          "success",
+        );
+        isSubmitting.value = false;
+        isFetched.value = false;
+        fetchFmLeaderboard(true);
+        resolve(res);
+      };
+
+      const failureHandler = (err) => {
+        isSubmitting.value = false;
+        error.value = err;
+        snackbar.show(
+          err?.error || err?.message || "Failed to update dummy fund manager.",
+          "error",
+        );
+        reject(err);
+      };
+
+      const editBase = urls.dummyFm?.edit || urls.fm?.dummyEdit || "/dummy_fund_managers/edit";
+
+      apiRequest(urls.KEYS.POST, `${editBase}/${id}`, {
+        data: formData,
+        isTokenRequired: true,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+      });
+    });
+  };
+
   const reset = () => {
     data.value = [];
     isLoading.value = false;
@@ -137,6 +211,8 @@ export const useFmLeaderboardStore = defineStore("fmLeaderboard", () => {
     updatePerPage,
     createFundManager,
     editFundManager,
+    createDummyFundManager,
+    editDummyFundManager,
     reset,
   };
 });

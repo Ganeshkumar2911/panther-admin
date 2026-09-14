@@ -1,5 +1,72 @@
 <template>
   <div class="space-y-4 py-2">
+    <!-- TOP TAB SWITCHER (Real vs Dummy Fund Managers) -->
+    <div class="flex items-center gap-2 border-b border-primary-border pb-3 flex-wrap">
+      <!-- Real FM Tab -->
+      <button
+        type="button"
+        @click="activeMainTab = 'real'"
+        class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border"
+        :class="
+          activeMainTab === 'real'
+            ? 'bg-primary/10 text-primary border-primary/30 shadow-xs ring-1 ring-primary/20'
+            : 'bg-card-background/60 text-secondary-text border-primary-border hover:text-primary-text hover:bg-background'
+        "
+      >
+        <Users class="w-4 h-4" />
+        <span>Real Fund Managers</span>
+        <span
+          class="text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold"
+          :class="
+            activeMainTab === 'real'
+              ? 'bg-primary text-white'
+              : 'bg-background text-secondary-text border border-primary-border'
+          "
+        >
+          {{ realCount }}
+        </span>
+      </button>
+
+      <!-- Dummy FM Tab -->
+      <button
+        type="button"
+        @click="activeMainTab = 'dummy'"
+        class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border"
+        :class="
+          activeMainTab === 'dummy'
+            ? 'bg-primary/10 text-primary border-primary/30 shadow-xs ring-1 ring-primary/20'
+            : 'bg-card-background/60 text-secondary-text border-primary-border hover:text-primary-text hover:bg-background'
+        "
+      >
+        <Sparkles class="w-4 h-4 text-primary" />
+        <span>Dummy Fund Managers</span>
+        <span
+          class="text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold"
+          :class="
+            activeMainTab === 'dummy'
+              ? 'bg-primary text-white'
+              : 'bg-background text-secondary-text border border-primary-border'
+          "
+        >
+          {{ dummyCount }}
+        </span>
+      </button>
+
+      <!-- All Tab -->
+      <button
+        type="button"
+        @click="activeMainTab = 'all'"
+        class="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer border sm:ml-auto"
+        :class="
+          activeMainTab === 'all'
+            ? 'bg-card-background text-primary-text border-primary-border shadow-xs'
+            : 'bg-transparent text-secondary-text border-transparent hover:text-primary-text'
+        "
+      >
+        <span>All ({{ totalCount }})</span>
+      </button>
+    </div>
+
     <!-- Toolbar Header: Search, Filters, View Switcher & Actions -->
     <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3">
       <div
@@ -85,7 +152,7 @@
       </div>
 
       <!-- View Switcher & Add Button -->
-      <div class="flex items-center gap-2 justify-between xl:justify-end shrink-0">
+      <div class="flex items-center gap-2 justify-between xl:justify-end shrink-0 flex-wrap sm:flex-nowrap">
         <!-- View Switcher (Grid / List) -->
         <div
           class="flex items-center gap-1 bg-background border border-primary-border rounded-lg p-1 h-9 shrink-0"
@@ -119,14 +186,16 @@
           </Tooltip>
         </div>
 
-        <!-- Add Fund Manager Button -->
+        <!-- Dynamic Add Button (Real vs Dummy based on Active Tab) -->
         <button
           v-if="hasPermission('fund_manager.create')"
-          class="flex items-center gap-1.5 px-3.5 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-sm hover:shadow h-9"
-          @click="handleAdd"
+          class="flex items-center gap-1.5 px-4 py-2 text-white bg-primary hover:bg-primary-hover rounded-lg text-xs font-bold transition-all cursor-pointer shadow-sm hover:shadow h-9 shrink-0"
+          :title="activeMainTab === 'dummy' ? 'Create a new Dummy Fund Manager' : 'Create a new Real Fund Manager'"
+          @click="handlePrimaryAdd"
         >
-          <Plus class="w-4 h-4" />
-          <span>Add Fund Manager</span>
+          <Sparkles v-if="activeMainTab === 'dummy'" class="w-4 h-4" />
+          <Plus v-else class="w-4 h-4" />
+          <span>{{ activeMainTab === 'dummy' ? 'Add Dummy FM' : 'Add Fund Manager' }}</span>
         </button>
       </div>
     </div>
@@ -176,17 +245,26 @@
         <div
           class="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-background border border-primary-border shadow-sm mb-4"
         >
-          <UserRoundPlus class="w-8 h-8 text-secondary-text" />
+          <Bot v-if="activeMainTab === 'dummy'" class="w-8 h-8 text-primary" />
+          <UserRoundPlus v-else class="w-8 h-8 text-secondary-text" />
         </div>
 
         <h3 class="text-base font-semibold text-primary-text mb-1">
-          {{ hasActiveFilters ? 'No matching fund managers found' : 'No fund managers found' }}
+          {{
+            hasActiveFilters
+              ? 'No matching fund managers found'
+              : activeMainTab === 'dummy'
+                ? 'No dummy fund managers found'
+                : 'No fund managers found'
+          }}
         </h3>
         <p class="max-w-xs text-xs text-secondary-text mb-5">
           {{
             hasActiveFilters
               ? 'Try adjusting your search criteria or clearing active filters.'
-              : 'Get started by adding your first fund manager to configure shares and fees.'
+              : activeMainTab === 'dummy'
+                ? 'Get started by creating your first dummy fund manager for leaderboard simulation.'
+                : 'Get started by adding your first fund manager to configure shares and fees.'
           }}
         </p>
 
@@ -200,11 +278,12 @@
         </button>
         <button
           v-else-if="hasPermission('fund_manager.create')"
-          @click="handleAdd"
-          class="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-xs font-medium text-white shadow cursor-pointer hover:bg-primary-hover transition-colors"
+          @click="handlePrimaryAdd"
+          class="inline-flex items-center justify-center rounded-lg px-4 py-2.5 text-xs font-bold text-white shadow cursor-pointer transition-colors bg-primary hover:bg-primary-hover"
         >
-          <Plus class="mr-1.5 h-4 w-4" />
-          Add Fund Manager
+          <Sparkles v-if="activeMainTab === 'dummy'" class="mr-1.5 h-4 w-4" />
+          <Plus v-else class="mr-1.5 h-4 w-4" />
+          <span>{{ activeMainTab === 'dummy' ? 'Add Dummy FM' : 'Add Fund Manager' }}</span>
         </button>
       </div>
 
@@ -223,9 +302,10 @@
             <div class="flex items-start justify-between gap-3 mb-3">
               <div class="flex items-center gap-3 min-w-0">
                 <div
-                  class="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center font-bold text-sm shrink-0 group-hover:scale-105 transition-transform"
+                  class="w-11 h-11 rounded-xl border flex items-center justify-center font-bold text-sm shrink-0 group-hover:scale-105 transition-transform bg-primary/10 border-primary/20 text-primary"
                 >
-                  {{ (item.label_name || 'FM')[0].toUpperCase() }}
+                  <Bot v-if="isDummy(item)" class="w-5 h-5" />
+                  <span v-else>{{ (item.label_name || 'FM')[0].toUpperCase() }}</span>
                 </div>
                 <div class="min-w-0">
                   <h4
@@ -240,19 +320,34 @@
                 </div>
               </div>
 
-              <!-- Status Badges -->
+              <!-- Status & Type Badges -->
               <div class="flex flex-col items-end gap-1.5 shrink-0">
-                <span
-                  class="text-[10px] font-bold tracking-wide uppercase px-2.5 py-0.5 rounded-full border inline-flex items-center gap-1.5 shadow-2xs"
-                  :class="
-                    item.is_active
-                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                      : 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'
-                  "
-                >
-                  <span class="w-1.5 h-1.5 rounded-full animate-pulse" :class="item.is_active ? 'bg-emerald-500' : 'bg-zinc-400'" />
-                  {{ item.is_active ? 'Active' : 'Inactive' }}
-                </span>
+                <div class="flex items-center gap-1">
+                  <span
+                    v-if="isDummy(item)"
+                    class="text-[9px] font-extrabold uppercase tracking-wide px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 inline-flex items-center gap-1 shadow-2xs"
+                  >
+                    <Sparkles class="w-3 h-3 text-primary" />
+                    Dummy
+                  </span>
+                  <span
+                    v-else
+                    class="text-[9px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 shadow-2xs"
+                  >
+                    Real
+                  </span>
+                  <span
+                    class="text-[10px] font-bold tracking-wide uppercase px-2.5 py-0.5 rounded-full border inline-flex items-center gap-1.5 shadow-2xs"
+                    :class="
+                      item.is_active
+                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                        : 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'
+                    "
+                  >
+                    <span class="w-1.5 h-1.5 rounded-full animate-pulse" :class="item.is_active ? 'bg-emerald-500' : 'bg-zinc-400'" />
+                    {{ item.is_active ? 'Active' : 'Inactive' }}
+                  </span>
+                </div>
                 <span
                   class="text-[9px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-md border text-secondary-text bg-background/80 border-primary-border"
                 >
@@ -432,14 +527,30 @@
                 <td class="py-3.5 px-4">
                   <div class="flex items-center gap-3">
                     <div
-                      class="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0"
+                      class="w-8 h-8 rounded-lg border flex items-center justify-center text-xs font-bold shrink-0 bg-primary/10 border-primary/20 text-primary"
                     >
-                      #{{ item.id }}
+                      <Bot v-if="isDummy(item)" class="w-4 h-4" />
+                      <span v-else>#{{ item.id }}</span>
                     </div>
                     <div class="min-w-0">
-                      <p class="font-bold text-primary-text text-xs truncate" :title="item.label_name">
-                        {{ item.label_name || 'Unnamed FM' }}
-                      </p>
+                      <div class="flex items-center gap-1.5 flex-wrap">
+                        <p class="font-bold text-primary-text text-xs truncate" :title="item.label_name">
+                          {{ item.label_name || 'Unnamed FM' }}
+                        </p>
+                        <span
+                          v-if="isDummy(item)"
+                          class="text-[9px] font-extrabold uppercase px-1.5 py-0.2 rounded bg-primary/10 text-primary border border-primary/20 inline-flex items-center gap-0.5"
+                        >
+                          <Sparkles class="w-2.5 h-2.5" />
+                          Dummy
+                        </span>
+                        <span
+                          v-else
+                          class="text-[9px] font-bold uppercase px-1.5 py-0.2 rounded bg-primary/10 text-primary border border-primary/20"
+                        >
+                          Real
+                        </span>
+                      </div>
                       <p class="text-[11px] font-semibold text-primary select-all truncate max-w-[210px]" :title="item.user?.email">
                         {{ item.user?.email || 'No email' }}
                       </p>
@@ -555,11 +666,22 @@
           >
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2.5 min-w-0">
-                <div class="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 text-primary font-bold text-xs flex items-center justify-center shrink-0">
-                  #{{ item.id }}
+                <div
+                  class="w-8 h-8 rounded-lg border font-bold text-xs flex items-center justify-center shrink-0 bg-primary/10 border-primary/20 text-primary"
+                >
+                  <Bot v-if="isDummy(item)" class="w-4 h-4" />
+                  <span v-else>#{{ item.id }}</span>
                 </div>
                 <div class="min-w-0">
-                  <p class="font-bold text-primary-text text-sm truncate">{{ item.label_name || 'Unnamed FM' }}</p>
+                  <div class="flex items-center gap-1.5">
+                    <p class="font-bold text-primary-text text-sm truncate">{{ item.label_name || 'Unnamed FM' }}</p>
+                    <span
+                      v-if="isDummy(item)"
+                      class="text-[9px] font-extrabold uppercase px-1.5 py-0.2 rounded bg-primary/10 text-primary border border-primary/20"
+                    >
+                      Dummy
+                    </span>
+                  </div>
                   <p class="text-[11px] font-semibold text-primary truncate select-all">{{ item.user?.email || 'No email' }}</p>
                 </div>
               </div>
@@ -641,7 +763,7 @@
       :mode="dialogMode"
       :item="selectedItem"
       @close="dialogOpen = false"
-      @success="dialogOpen = false"
+      @success="handleDialogSuccess"
     />
 
     <!-- FULL DETAILS SIDE DRAWER PANEL -->
@@ -649,6 +771,8 @@
       :open="detailsDrawerOpen"
       :item="selectedDetailsItem"
       @close="detailsDrawerOpen = false"
+      @edit="handleEditFromDetails"
+      @create-dummy="handleCreateDummyFromDetails"
     />
   </div>
 </template>
@@ -674,7 +798,9 @@ import {
   Calculator,
   Tag,
   Users,
-  BookOpen
+  BookOpen,
+  Bot,
+  Sparkles,
 } from 'lucide-vue-next'
 import { useFmLeaderboardStore } from '@/stores/fmLeaderboard/fmLeaderboard'
 import Pagination from '@/components/common/Pagination.vue'
@@ -692,16 +818,36 @@ const router = useRouter()
 
 const layoutMode = ref('grid')
 const searchQuery = ref('')
+const activeMainTab = ref('real') // 'real' | 'dummy' | 'all'
 const selectedVisibility = ref('ALL')
 const selectedStatus = ref('ALL')
 const selectedKyc = ref('ALL')
 
 const dialogOpen = ref(false)
-const dialogMode = ref('add')
+const dialogMode = ref('add') // 'add' | 'edit' | 'add_dummy' | 'edit_dummy' | 'clone_to_dummy'
 const selectedItem = ref(null)
 
 const detailsDrawerOpen = ref(false)
 const selectedDetailsItem = ref(null)
+
+const isDummy = (item) => {
+  return Boolean(item?.is_dummy === true || item?.type === 'dummy' || item?.is_dummy === 1)
+}
+
+const realCount = computed(() => {
+  if (!store.data || !Array.isArray(store.data)) return 0
+  return store.data.filter((i) => !isDummy(i)).length
+})
+
+const dummyCount = computed(() => {
+  if (!store.data || !Array.isArray(store.data)) return 0
+  return store.data.filter((i) => isDummy(i)).length
+})
+
+const totalCount = computed(() => {
+  if (!store.data || !Array.isArray(store.data)) return 0
+  return store.data.length
+})
 
 const visibilityOptions = [
   { label: 'All Visibility', value: 'ALL' },
@@ -741,6 +887,10 @@ const resetFilters = () => {
 const filteredData = computed(() => {
   if (!store.data || !Array.isArray(store.data)) return []
   return store.data.filter((item) => {
+    // Top Main Tab Filter (Real vs Dummy vs All)
+    if (activeMainTab.value === 'real' && isDummy(item)) return false
+    if (activeMainTab.value === 'dummy' && !isDummy(item)) return false
+
     // Search filter
     if (searchQuery.value.trim()) {
       const q = searchQuery.value.trim().toLowerCase()
@@ -757,6 +907,7 @@ const filteredData = computed(() => {
         return false
       }
     }
+
     // Visibility filter
     if (selectedVisibility.value !== 'ALL') {
       if (item.visibility_type !== selectedVisibility.value) return false
@@ -813,10 +964,47 @@ const handleAdd = () => {
   dialogOpen.value = true
 }
 
-const handleEdit = (item) => {
-  dialogMode.value = 'edit'
+const handleAddDummy = () => {
+  dialogMode.value = 'add_dummy'
+  selectedItem.value = null
+  dialogOpen.value = true
+}
+
+const handlePrimaryAdd = () => {
+  if (activeMainTab.value === 'dummy') {
+    handleAddDummy()
+  } else {
+    handleAdd()
+  }
+}
+
+const handleCloneToDummy = (item) => {
+  dialogMode.value = 'clone_to_dummy'
   selectedItem.value = item
   dialogOpen.value = true
+}
+
+const handleEdit = (item) => {
+  dialogMode.value = isDummy(item) ? 'edit_dummy' : 'edit'
+  selectedItem.value = item
+  dialogOpen.value = true
+}
+
+const handleEditFromDetails = (item) => {
+  detailsDrawerOpen.value = false
+  handleEdit(item)
+}
+
+const handleCreateDummyFromDetails = (item) => {
+  detailsDrawerOpen.value = false
+  handleCloneToDummy(item)
+}
+
+const handleDialogSuccess = () => {
+  dialogOpen.value = false
+  if (dialogMode.value === 'clone_to_dummy' || dialogMode.value === 'add_dummy') {
+    activeMainTab.value = 'dummy'
+  }
 }
 
 const setActiveFm = (item) => {
@@ -860,6 +1048,7 @@ const handleSettlement = (item) => {
 }
 
 const getRowActions = (item) => {
+  const dummy = isDummy(item)
   const actions = [
     {
       action: 'details',
@@ -894,8 +1083,17 @@ const getRowActions = (item) => {
   if (hasPermission('fund_manager.update')) {
     actions.push({
       action: 'edit',
-      label: 'Edit',
+      label: dummy ? 'Edit Dummy FM' : 'Edit',
       icon: Edit,
+    })
+  }
+
+  // If real FM, provide "Clone as Dummy FM" in row actions
+  if (!dummy && hasPermission('fund_manager.create')) {
+    actions.push({
+      action: 'clone_dummy',
+      label: 'Clone as Dummy FM',
+      icon: Sparkles,
     })
   }
 
@@ -927,6 +1125,8 @@ const onMenuSelect = (menuItem, item) => {
       })
     case 'settlement':
       return handleSettlement(item)
+    case 'clone_dummy':
+      return handleCloneToDummy(item)
     case 'edit':
       return handleEdit(item)
   }

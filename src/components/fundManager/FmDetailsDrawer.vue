@@ -18,14 +18,30 @@
         <!-- Header -->
         <div class="px-6 py-5 border-b border-primary-border flex items-center justify-between gap-4 bg-background/50 shrink-0">
           <div class="flex items-center gap-3 min-w-0">
-            <div class="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-base shrink-0">
-              {{ (item?.label_name || item?.user?.name || 'FM').charAt(0).toUpperCase() }}
+            <div
+              class="w-10 h-10 rounded-xl border flex items-center justify-center font-bold text-base shrink-0 bg-primary/10 border-primary/20 text-primary"
+            >
+              <Bot v-if="item?.is_dummy || item?.type === 'dummy'" class="w-5 h-5" />
+              <span v-else>{{ (item?.label_name || item?.user?.name || 'FM').charAt(0).toUpperCase() }}</span>
             </div>
             <div class="min-w-0">
               <div class="flex items-center gap-2 flex-wrap">
                 <h3 class="text-base font-bold text-primary-text truncate">
                   {{ item?.label_name || item?.user?.name || 'Fund Manager Details' }}
                 </h3>
+                <span
+                  v-if="item?.is_dummy || item?.type === 'dummy'"
+                  class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20 inline-flex items-center gap-1"
+                >
+                  <Sparkles class="w-3 h-3" />
+                  Dummy FM
+                </span>
+                <span
+                  v-else
+                  class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20"
+                >
+                  Real FM
+                </span>
                 <span
                   class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border"
                   :class="item?.is_active
@@ -36,7 +52,7 @@
                 </span>
                 <span
                   v-if="item?.visibility_type"
-                  class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20"
+                  class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-background/80 text-secondary-text border border-primary-border"
                 >
                   {{ item?.visibility_type || 'public' }}
                 </span>
@@ -49,6 +65,28 @@
           </div>
 
           <div class="flex items-center gap-1.5 shrink-0">
+            <!-- Clone / Create as Dummy FM Button -->
+            <button
+              type="button"
+              class="hidden sm:inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-primary/10 text-primary border border-primary/20 hover:bg-primary hover:text-white transition-all cursor-pointer shadow-2xs"
+              title="Create a new Dummy Fund Manager using these parameters"
+              @click="emit('create-dummy', item)"
+            >
+              <Sparkles class="w-3.5 h-3.5" />
+              <span>Clone as Dummy FM</span>
+            </button>
+
+            <!-- Edit Button -->
+            <button
+              type="button"
+              class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-background border border-primary-border hover:bg-background/80 text-primary-text transition cursor-pointer"
+              title="Edit Fund Manager"
+              @click="emit('edit', item)"
+            >
+              <Edit class="w-3.5 h-3.5 text-primary" />
+              <span>Edit</span>
+            </button>
+
             <!-- Header Copy Button -->
             <button
               v-if="item?.user?.email"
@@ -503,7 +541,10 @@ import {
   FileCode,
   Sliders,
   Briefcase,
-  ShieldCheck
+  ShieldCheck,
+  Bot,
+  Sparkles,
+  Edit,
 } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -511,7 +552,7 @@ const props = defineProps({
   item: { type: Object, default: () => null },
 })
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'edit', 'create-dummy'])
 
 const activeTab = ref('overview')
 const copiedKey = ref('')

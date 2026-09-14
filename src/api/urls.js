@@ -95,6 +95,9 @@ const urls = {
     list: "/fund_managers",
     create: "/fund_managers/create",
     edit: "/fund_managers/edit",
+    dummyList: "/dummy_fund_managers",
+    dummyCreate: "/dummy_fund_managers/create",
+    dummyEdit: "/dummy_fund_managers/edit",
     requestList: "/fm/requests",
     acceptRequest: "/fm/requests/approve",
     rejectRequest: "/fm/requests/reject",
@@ -107,6 +110,13 @@ const urls = {
     editFollower: "/fund_managers/followers/edit",
     offerJoinLinks: "/fund_managers/offers/join-links",
     offerAgents: "/fund_managers/offers/agents",
+  },
+  dummyFm: {
+    list: "/dummy_fund_managers",
+    create: "/dummy_fund_managers/create",
+    edit: "/dummy_fund_managers/edit",
+    offers: "/dummy_fund_managers/offers",
+    followers: (fmId) => (fmId ? `/dummy_fund_managers/followers/${fmId}` : "/dummy_fund_managers/followers"),
   },
   tradeBook: {
     filters: "/trade-book/filters",
