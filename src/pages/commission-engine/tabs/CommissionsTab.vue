@@ -18,6 +18,7 @@ import { useCommissionEngineStore } from "@/stores/commissionEngine/commissionEn
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import BaseDatePicker from "@/components/common/BaseDatePicker.vue";
+import Tooltip from "@/components/common/Tooltip.vue";
 import ApproveCommissionModal from "../components/ApproveCommissionModal.vue";
 import RejectCommissionModal from "../components/RejectCommissionModal.vue";
 import CalculateCommissionsModal from "../components/CalculateCommissionsModal.vue";
@@ -234,6 +235,18 @@ const pendingSelectedCommissions = computed(() => {
   return selectedCommissions.value.filter((c) => c.status === "pending");
 });
 
+const hasActiveFilters = computed(() => {
+  return (
+    !!walletTargetFilter.value ||
+    !!loginFilter.value ||
+    !!ibIdFilter.value ||
+    !!tradeIdFilter.value ||
+    !!symbolFilter.value ||
+    !!dateFrom.value ||
+    !!dateTo.value
+  );
+});
+
 const columns = [
   { key: "id", label: "ID", width: "80px", sortable: true },
   { key: "status", label: "Status", align: "center", width: "110px" },
@@ -313,139 +326,109 @@ const formatDate = (val) => {
       <!-- Toolbar Slot -->
       <template #toolbar>
         <div class="space-y-3">
-          <!-- Top Row: Filters & Calculate Action -->
+          <!-- Top Row: Status Tabs (Left) & Actions (Right) -->
           <div
-            class="flex flex-col lg:flex-row lg:items-center justify-between gap-3"
+            class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-primary-border/60"
           >
-            <!-- Left: Status Pills & Filter Inputs -->
-            <div class="flex flex-wrap items-center gap-2.5 flex-1">
-              <!-- Status Filter Pills -->
-              <div
-                class="inline-flex p-1 rounded-lg bg-background border border-primary-border shrink-0"
+            <!-- Status Filter Pills -->
+            <div
+              class="inline-flex p-1 rounded-xl bg-background border border-primary-border shrink-0 self-start sm:self-auto shadow-2xs"
+            >
+              <!-- Pending -->
+              <button
+                type="button"
+                class="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer"
+                :class="[
+                  statusFilter === 'pending'
+                    ? 'bg-primary text-white shadow-2xs font-bold'
+                    : 'text-secondary-text hover:text-primary-text hover:bg-card-background/60',
+                ]"
+                @click="
+                  statusFilter = 'pending';
+                  handleFilterChange();
+                "
               >
-                <button
-                  type="button"
-                  class="px-3 py-1 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
-                  :class="[
-                    statusFilter === 'pending'
-                      ? 'bg-primary text-white font-bold'
-                      : 'text-secondary-text hover:text-primary-text',
-                  ]"
-                  @click="
-                    statusFilter = 'pending';
-                    handleFilterChange();
-                  "
-                >
-                  Pending
-                </button>
-                <button
-                  type="button"
-                  class="px-3 py-1 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
-                  :class="[
+                <span
+                  class="w-2 h-2 rounded-full"
+                  :class="statusFilter === 'pending' ? 'bg-white' : 'bg-primary/80'"
+                />
+                <span>Pending</span>
+              </button>
+
+              <!-- Approved -->
+              <button
+                type="button"
+                class="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer"
+                :class="[
+                  statusFilter === 'approved'
+                    ? 'bg-primary-green text-white shadow-2xs font-bold'
+                    : 'text-secondary-text hover:text-primary-text hover:bg-card-background/60',
+                ]"
+                @click="
+                  statusFilter = 'approved';
+                  handleFilterChange();
+                "
+              >
+                <span
+                  class="w-2 h-2 rounded-full"
+                  :class="
                     statusFilter === 'approved'
-                      ? 'bg-primary-green text-white font-bold'
-                      : 'text-secondary-text hover:text-primary-text',
-                  ]"
-                  @click="
-                    statusFilter = 'approved';
-                    handleFilterChange();
+                      ? 'bg-white'
+                      : 'bg-primary-green/80'
                   "
-                >
-                  Approved
-                </button>
-                <button
-                  type="button"
-                  class="px-3 py-1 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
-                  :class="[
-                    statusFilter === 'rejected'
-                      ? 'bg-primary-red text-white font-bold'
-                      : 'text-secondary-text hover:text-primary-text',
-                  ]"
-                  @click="
-                    statusFilter = 'rejected';
-                    handleFilterChange();
+                />
+                <span>Approved</span>
+              </button>
+
+              <!-- Rejected -->
+              <button
+                type="button"
+                class="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer"
+                :class="[
+                  statusFilter === 'rejected'
+                    ? 'bg-primary-red text-white shadow-2xs font-bold'
+                    : 'text-secondary-text hover:text-primary-text hover:bg-card-background/60',
+                ]"
+                @click="
+                  statusFilter = 'rejected';
+                  handleFilterChange();
+                "
+              >
+                <span
+                  class="w-2 h-2 rounded-full"
+                  :class="
+                    statusFilter === 'rejected' ? 'bg-white' : 'bg-primary-red/80'
                   "
-                >
-                  Rejected
-                </button>
-                <button
-                  type="button"
-                  class="px-3 py-1 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
-                  :class="[
-                    statusFilter === ''
-                      ? 'bg-card-background text-primary-text font-bold shadow-2xs'
-                      : 'text-secondary-text hover:text-primary-text',
-                  ]"
-                  @click="
-                    statusFilter = '';
-                    handleFilterChange();
-                  "
-                >
-                  All
-                </button>
-              </div>
+                />
+                <span>Rejected</span>
+              </button>
 
-              <!-- Wallet Target Filter -->
-              <div class="w-32 sm:w-36">
-                <BaseSelect
-                  v-model="walletTargetFilter"
-                  :options="walletTargetOptions"
-                  placeholder="All Wallets"
-                  variant="surface"
-                  @update:model-value="handleFilterChange"
-                />
-              </div>
-
-              <!-- MT5 Login Filter -->
-              <div class="w-28 sm:w-32">
-                <input
-                  v-model="loginFilter"
-                  type="number"
-                  placeholder="MT5 Login"
-                  class="input-field w-full px-2.5 py-1.5 text-xs font-mono"
-                  @input="handleFilterChange"
-                />
-              </div>
-
-              <!-- IB Filter -->
-              <div class="w-full sm:w-52 xl:w-52">
-                <BaseSelect
-                  v-model="ibIdFilter"
-                  :options="store.ibSearchOptions"
-                  :isLoading="store.searchLoading"
-                  placeholder="Search IB..."
-                  searchable
-                  variant="surface"
-                  @search="onIbSearch"
-                  @update:modelValue="handleFilterChange"
-                />
-              </div>
-
-              <!-- Symbol Search -->
-              <div class="relative w-32 sm:w-36">
-                <HugeIcon
-                  :icon="Search01Icon"
-                  :size="13"
-                  class="absolute left-2.5 top-1/2 -translate-y-1/2 text-secondary-text pointer-events-none"
-                />
-                <input
-                  v-model="symbolFilter"
-                  type="text"
-                  placeholder="Symbol"
-                  class="input-field w-full pl-7 pr-3 py-1.5 text-xs font-mono uppercase"
-                  @input="handleFilterChange"
-                />
-              </div>
+              <!-- All -->
+              <button
+                type="button"
+                class="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer"
+                :class="[
+                  statusFilter === ''
+                    ? 'bg-card-background text-primary-text shadow-2xs border border-primary-border font-bold'
+                    : 'text-secondary-text hover:text-primary-text hover:bg-card-background/60',
+                ]"
+                @click="
+                  statusFilter = '';
+                  handleFilterChange();
+                "
+              >
+                <span>All</span>
+              </button>
             </div>
 
             <!-- Right: Action Buttons -->
-            <div class="flex items-center gap-2 justify-end shrink-0">
+            <div class="flex items-center gap-2 self-end sm:self-auto shrink-0 flex-wrap">
               <!-- Bulk Approve Button -->
               <button
                 v-if="canApprove && pendingSelectedCommissions.length > 0"
                 type="button"
                 :disabled="store.actionLoading"
-                class="flex items-center gap-1.5 px-3.5 py-1.5 bg-primary-green hover:bg-primary-green/90 text-white text-xs font-bold rounded-lg transition-colors cursor-pointer shadow-2xs"
+                class="flex items-center gap-1.5 px-3.5 py-1.5 bg-primary-green hover:bg-primary-green/90 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-xs animate-in fade-in zoom-in-95 duration-150"
                 @click="openBulkApprove"
               >
                 <HugeIcon :icon="CheckmarkCircle02Icon" :size="14" />
@@ -461,7 +444,7 @@ const formatDate = (val) => {
                 v-if="canSync"
                 type="button"
                 :disabled="store.actionLoading"
-                class="flex items-center gap-1.5 px-3.5 py-1.5 bg-primary hover:bg-primary-hover text-white text-xs font-bold rounded-lg transition-colors cursor-pointer shadow-2xs"
+                class="flex items-center gap-1.5 px-3.5 py-1.5 bg-primary hover:bg-primary-hover text-white text-xs font-semibold rounded-xl transition-all cursor-pointer shadow-xs disabled:opacity-50"
                 @click="isCalculateModalOpen = true"
               >
                 <HugeIcon :icon="Coins01Icon" :size="14" />
@@ -469,34 +452,81 @@ const formatDate = (val) => {
               </button>
 
               <!-- Refresh Button -->
-              <button
-                type="button"
-                :disabled="store.loading"
-                class="p-2 border border-primary-border rounded-lg text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer"
-                title="Refresh Commissions"
-                @click="loadCommissions(store.commissionsPagination.page, true)"
-              >
-                <HugeIcon
-                  :icon="RefreshCwIcon"
-                  :size="14"
-                  :class="{ 'animate-spin': store.loading }"
-                />
-              </button>
+              <Tooltip text="Refresh List" position="center">
+                <button
+                  type="button"
+                  :disabled="store.loading"
+                  class="flex items-center justify-center w-8 h-8 border border-primary-border rounded-xl text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer disabled:opacity-50"
+                  @click="loadCommissions(store.commissionsPagination.page, true)"
+                >
+                  <HugeIcon
+                    :icon="RefreshCwIcon"
+                    :size="14"
+                    :class="{ 'animate-spin': store.loading }"
+                  />
+                </button>
+              </Tooltip>
             </div>
           </div>
 
-          <!-- Bottom Row: Date Range & Date Field Filter -->
-          <div
-            class="flex flex-wrap items-center gap-2.5 pt-2 border-t border-primary-border/50 text-xs"
-          >
-            <span
-              class="text-secondary-text font-medium flex items-center gap-1"
-            >
-              <HugeIcon :icon="Calendar01Icon" :size="13" />
-              <span>Date Filter:</span>
-            </span>
+          <!-- Bottom Row: Filter Controls -->
+          <div class="flex flex-wrap items-center gap-2.5">
+            <!-- IB Filter -->
+            <div class="w-full sm:w-52 md:w-56">
+              <BaseSelect
+                v-model="ibIdFilter"
+                :options="store.ibSearchOptions"
+                :isLoading="store.searchLoading"
+                placeholder="Search IB..."
+                searchable
+                variant="surface"
+                @search="onIbSearch"
+                @update:modelValue="handleFilterChange"
+              />
+            </div>
 
-            <div class="w-44">
+            <!-- MT5 Login Filter -->
+            <div class="w-28 sm:w-32">
+              <input
+                v-model="loginFilter"
+                type="number"
+                placeholder="MT5 Login"
+                class="input-field w-full px-2.5 py-1.5 text-xs font-mono"
+                @input="handleFilterChange"
+              />
+            </div>
+
+            <!-- Symbol Search -->
+            <div class="relative w-32 sm:w-36">
+              <HugeIcon
+                :icon="Search01Icon"
+                :size="13"
+                class="absolute left-2.5 top-1/2 -translate-y-1/2 text-secondary-text pointer-events-none"
+              />
+              <input
+                v-model="symbolFilter"
+                type="text"
+                placeholder="Symbol"
+                class="input-field w-full pl-7 pr-3 py-1.5 text-xs font-mono uppercase"
+                @input="handleFilterChange"
+              />
+            </div>
+
+            <!-- Wallet Target Filter -->
+            <div class="w-32 sm:w-36">
+              <BaseSelect
+                v-model="walletTargetFilter"
+                :options="walletTargetOptions"
+                placeholder="All Wallets"
+                variant="surface"
+                @update:model-value="handleFilterChange"
+              />
+            </div>
+
+            <div class="h-5 w-px bg-primary-border/60 hidden xl:block mx-0.5" />
+
+            <!-- Date Field Select -->
+            <div class="w-36 sm:w-40">
               <BaseSelect
                 v-model="dateField"
                 :options="dateFieldOptions"
@@ -505,7 +535,8 @@ const formatDate = (val) => {
               />
             </div>
 
-            <div class="w-60">
+            <!-- Date Range Picker -->
+            <div class="w-56 sm:w-60">
               <BaseDatePicker
                 v-model="dateRangeValue"
                 :range="true"
@@ -514,20 +545,16 @@ const formatDate = (val) => {
               />
             </div>
 
+            <!-- Reset / Clear Filter Button -->
             <button
-              v-if="
-                loginFilter ||
-                ibIdFilter ||
-                tradeIdFilter ||
-                symbolFilter ||
-                dateFrom ||
-                dateTo
-              "
+              v-if="hasActiveFilters"
               type="button"
-              class="px-2.5 py-1 text-[11px] text-secondary-text hover:text-primary-red transition-colors cursor-pointer underline"
+              class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs text-secondary-text hover:text-primary-red hover:bg-primary-red/5 rounded-lg transition-colors cursor-pointer"
+              title="Clear all active filters"
               @click="handleResetFilters"
             >
-              Clear filters
+              <HugeIcon :icon="Cancel01Icon" :size="13" />
+              <span>Clear</span>
             </button>
           </div>
         </div>

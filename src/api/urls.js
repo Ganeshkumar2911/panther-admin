@@ -429,6 +429,11 @@ const urls = {
     demoWalletByIb: (ibId) => `/ib-commission/demo-wallets/by-ib/${ibId}`,
     demoWalletByUser: (userId) => `/ib-commission/demo-wallets/by-user/${userId}`,
     demoWalletTransactions: "/ib-commission/demo-wallets/transactions",
+    // Approvals / Draft Commission Workflow
+    approvalPeriods: "/ib-commission/commissions/approvals/periods",
+    approvalsSummary: "/ib-commission/commissions/approvals",
+    approvalEntries: "/ib-commission/commissions/approvals/entries",
+    approveIbPeriod: "/ib-commission/commissions/approvals/approve-ib",
   },
 };
 

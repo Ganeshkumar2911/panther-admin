@@ -6,13 +6,16 @@ import {
   Loading03Icon,
   Tick02Icon,
   Layers01Icon,
-  Coins01Icon,
-  UserGroupIcon,
-  ArrowRight01Icon,
   InformationCircleIcon,
   RefreshCwIcon,
   FileSpreadsheetIcon,
   CheckmarkCircle02Icon,
+  SlidersHorizontalIcon,
+  GitBranchIcon,
+  LockPasswordIcon,
+  SecurityCheckIcon,
+  DatabaseSync01Icon,
+  DocumentValidationIcon,
 } from "@hugeicons/core-free-icons";
 import { useCommissionEngineStore } from "@/stores/commissionEngine/commissionEngine";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
@@ -21,13 +24,15 @@ import BaseSelect from "@/components/common/BaseSelect.vue";
 const store = useCommissionEngineStore();
 const { hasPermission } = usePermissionCheck();
 
-const canManageRates = computed(() => hasPermission("ib_commission.manage_rates"));
+const canManageRates = computed(() =>
+  hasPermission("ib_commission.manage_rates"),
+);
 
 // Selection state
 const selectedReferralLinkId = ref(null);
 const searchDebounceTimer = ref(null);
 
-// Active method & tab
+// Active calculation method & group tab
 const activeMethod = ref("per_lot");
 const selectedGroupConfigId = ref(null);
 
@@ -37,10 +42,43 @@ const isDirty = ref(false);
 
 // Methods list
 const methodOptions = [
-  { value: "per_lot", label: "Per Lot", description: "Fixed USD per standard lot" },
-  { value: "per_spread", label: "Per Spread", description: "% markup per spread" },
-  { value: "per_pips", label: "Per Pips", description: "Points per pip movement" },
+  {
+    value: "per_lot",
+    label: "Per Lot",
+    prefix: "$",
+    description: "Fixed USD per standard lot",
+  },
+  {
+    value: "per_spread",
+    label: "Per Spread",
+    prefix: "%",
+    description: "% markup per spread",
+  },
+  {
+    value: "per_millions_volume",
+    label: "Per Million",
+    prefix: "$/M",
+    description: "USD per million volume traded",
+  },
 ];
+
+const getMethodUnit = computed(() => {
+  if (activeMethod.value === "per_spread") return "%";
+  if (activeMethod.value === "per_millions_volume") return "$/M";
+  return "$";
+});
+
+const getMethodUnitLabel = computed(() => {
+  if (activeMethod.value === "per_spread") return "% Spread";
+  if (activeMethod.value === "per_millions_volume") return "$ / Million";
+  return "$ / Lot";
+});
+
+const getModeDisplay = computed(() => {
+  if (activeMethod.value === "per_spread") return "Spread %";
+  if (activeMethod.value === "per_millions_volume") return "USD / Million";
+  return "USD / Lot";
+});
 
 const referralLinkOptions = computed(() => {
   return (store.referralLinks || []).map((link) => {
@@ -59,10 +97,13 @@ const referralLinkOptions = computed(() => {
 
 // Active tab data
 const activeTab = computed(() => {
-  if (!store.rateGrid?.tabs?.length || !selectedGroupConfigId.value) return null;
-  return store.rateGrid.tabs.find(
-    (t) => t.broker_group_config_id === selectedGroupConfigId.value
-  ) || store.rateGrid.tabs[0];
+  if (!store.rateGrid?.tabs?.length || !selectedGroupConfigId.value)
+    return null;
+  return (
+    store.rateGrid.tabs.find(
+      (t) => t.broker_group_config_id === selectedGroupConfigId.value,
+    ) || store.rateGrid.tabs[0]
+  );
 });
 
 // Symbol groups headers
@@ -75,7 +116,9 @@ const initLocalCells = () => {
     activeTab.value.rows.forEach((row) => {
       symbolGroups.value.forEach((sg) => {
         const key = `${row.ib_id}_${sg.id}`;
-        const val = row.rates ? (row.rates[sg.id] ?? row.rates[String(sg.id)]) : null;
+        const val = row.rates
+          ? (row.rates[sg.id] ?? row.rates[String(sg.id)])
+          : null;
         map[key] = val !== undefined ? val : null;
       });
     });
@@ -89,7 +132,7 @@ watch(
   () => {
     initLocalCells();
   },
-  { deep: true }
+  { deep: true },
 );
 
 // Watch store.activeGroupConfigId
@@ -100,7 +143,7 @@ watch(
       selectedGroupConfigId.value = val;
     }
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 watch(
@@ -110,12 +153,12 @@ watch(
       selectedReferralLinkId.value = link.id;
     }
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 // On mount, do initial search if empty
 onMounted(() => {
-  if (!store.referralLinks?.length && !store.isFetched.referralLinks) {
+  if (!store.referralLinks?.length && !store.isFetched?.referralLinks) {
     store.searchReferralLinks({ limit: 30 });
   }
 });
@@ -123,7 +166,10 @@ onMounted(() => {
 const handleAffiliateSearch = (q) => {
   if (searchDebounceTimer.value) clearTimeout(searchDebounceTimer.value);
   searchDebounceTimer.value = setTimeout(() => {
-    store.searchReferralLinks({ q: q !== null && q !== undefined ? String(q).trim() : "", limit: 30 }, true);
+    store.searchReferralLinks(
+      { q: q !== null && q !== undefined ? String(q).trim() : "", limit: 30 },
+      true,
+    );
   }, 300);
 };
 
@@ -173,7 +219,8 @@ const getCellValue = (ibId, symbolGroupId) => {
 const handleFillRow = (row, rateVal) => {
   symbolGroups.value.forEach((sg) => {
     const key = `${row.ib_id}_${sg.id}`;
-    localCells.value[key] = rateVal !== "" && rateVal !== null ? Number(rateVal) : null;
+    localCells.value[key] =
+      rateVal !== "" && rateVal !== null ? Number(rateVal) : null;
   });
   isDirty.value = true;
 };
@@ -192,7 +239,11 @@ const handleClearTab = () => {
 
 // Save rates for the active tab
 const handleSave = async () => {
-  if (!store.selectedReferralLink?.id || !activeTab.value?.broker_group_config_id) return;
+  if (
+    !store.selectedReferralLink?.id ||
+    !activeTab.value?.broker_group_config_id
+  )
+    return;
 
   const cells = [];
   if (activeTab.value.rows) {
@@ -203,7 +254,10 @@ const handleSave = async () => {
         cells.push({
           ib_id: row.ib_id,
           symbol_group_id: sg.id,
-          rate: val !== "" && val !== null && val !== undefined ? Number(val) : null,
+          rate:
+            val !== "" && val !== null && val !== undefined
+              ? Number(val)
+              : null,
         });
       });
     });
@@ -226,117 +280,189 @@ const handleSave = async () => {
 
 <template>
   <div class="space-y-5">
-    <!-- Top Configuration Header & Referral Link Selector -->
+    <!-- Top Configuration Header & Method Selector -->
     <div
       class="p-5 rounded-2xl bg-card-background border border-primary-border space-y-4"
     >
-      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <div
+        class="flex flex-col lg:flex-row lg:items-center justify-between gap-4"
+      >
         <!-- Title & Context -->
-        <div class="flex items-center gap-3">
-          <div
-            class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20 shrink-0"
-          >
-            <HugeIcon :icon="FileSpreadsheetIcon" :size="20" />
-          </div>
+        <div class="flex items-center gap-3.5">
           <div>
-            <h2 class="title-text text-base text-primary-text font-bold">
-              Rate Matrix Configuration
-            </h2>
-            <p class="text-xs text-secondary-text">
-              Commission rates per MT5 broker group, affiliate level, and symbol group
+            <div class="flex items-center gap-2 flex-wrap">
+              <h2 class="text-base text-primary-text font-bold tracking-tight">
+                Rate Matrix Configuration
+              </h2>
+              <span
+                class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-bold font-mono uppercase tracking-wider"
+              >
+                <span
+                  class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"
+                ></span>
+                CLUSTER LIVE
+              </span>
+            </div>
+            <p class="text-xs text-secondary-text mt-0.5">
+              Commission rates per MT5 broker group, affiliate level, and symbol
+              group hierarchy
             </p>
           </div>
         </div>
 
-        <!-- Method Selector -->
-        <div class="flex items-center gap-2 self-start lg:self-center">
-          <label class="text-xs font-semibold text-secondary-text whitespace-nowrap">
-            Method:
-          </label>
-          <div class="inline-flex p-1 rounded-xl bg-background border border-primary-border">
+        <!-- Method Selector Segmented Control & Mode Badge -->
+        <div class="flex items-center gap-3 flex-wrap">
+          <!-- Method Selector Buttons -->
+          <div
+            class="inline-flex p-1 rounded-lg bg-background border border-primary-border"
+          >
             <button
               v-for="m in methodOptions"
               :key="m.value"
               type="button"
-              class="px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+              class="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer"
               :class="[
                 activeMethod === m.value
-                  ? 'bg-primary text-white font-bold'
-                  : 'text-secondary-text hover:text-primary-text hover:bg-card-background'
+                  ? 'bg-primary text-white  font-bold'
+                  : 'text-secondary-text hover:text-primary-text hover:bg-card-background/60',
               ]"
               @click="handleMethodChange(m.value)"
+              :title="m.description"
             >
-              {{ m.label }}
+              <span class="font-mono text-[11px] opacity-80">{{
+                m.prefix
+              }}</span>
+              <span>{{ m.label }}</span>
             </button>
+          </div>
+
+          <!-- Mode indicator Pill -->
+          <div
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-background border border-primary-border text-xs font-mono font-medium text-secondary-text"
+          >
+            <HugeIcon
+              :icon="SlidersHorizontalIcon"
+              :size="14"
+              class="text-primary"
+            />
+            <span
+              >Mode:
+              <strong class="text-primary-text">{{
+                getModeDisplay
+              }}</strong></span
+            >
           </div>
         </div>
       </div>
 
       <!-- Referral Link Picker Bar -->
-      <div class="pt-3 border-t border-primary-border flex flex-col md:flex-row md:items-center gap-3">
-        <div class="flex-1">
-          <label class="block text-xs font-semibold text-primary-text mb-1">
-            Affiliate & Referral Campaign <span class="text-primary-red">*</span>
-          </label>
-          <BaseSelect
-            :model-value="selectedReferralLinkId"
-            :options="referralLinkOptions"
-            placeholder="Search & select by affiliate name or campaign code..."
-            variant="surface"
-            :searchable="true"
-            :is-loading="store.searchLoading"
-            @update:model-value="handleReferralLinkSelect"
-            @search="handleAffiliateSearch"
-          />
-        </div>
-
-        <!-- Reload Button -->
-        <div v-if="store.selectedReferralLink" class="flex items-end pb-0.5">
-          <button
-            type="button"
-            :disabled="store.ratesLoading"
-            class="flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium text-secondary-text hover:text-primary-text hover:bg-background border border-primary-border rounded-xl transition-colors cursor-pointer shrink-0"
-            @click="store.fetchRateGrid(store.selectedReferralLink.id, activeMethod, true)"
+      <div
+        class="pt-3.5 border-t border-primary-border flex flex-col md:flex-row md:items-end justify-between gap-3"
+      >
+        <div class="w-full max-w-lg">
+          <label
+            class="block text-xs font-bold uppercase tracking-wider text-secondary-text mb-1.5"
           >
-            <HugeIcon
-              :icon="RefreshCwIcon"
-              :size="14"
-              :class="{ 'animate-spin': store.ratesLoading }"
-            />
-            <span>Reload Rates</span>
-          </button>
+            AFFILIATE &amp; REFERRAL CAMPAIGN
+            <span class="text-primary-red">*</span>
+          </label>
+          <div class="flex justify-between items-center gap-2">
+            <div class="flex-1">
+              <BaseSelect
+                :model-value="selectedReferralLinkId"
+                :options="referralLinkOptions"
+                placeholder="Search & select by affiliate name or campaign code..."
+                variant="surface"
+                :searchable="true"
+                py="2"
+                :is-loading="store.searchLoading"
+                @update:model-value="handleReferralLinkSelect"
+                @search="handleAffiliateSearch"
+              />
+            </div>
+
+            <!-- Reload Rates Button -->
+            <button
+              v-if="store.selectedReferralLink"
+              type="button"
+              :disabled="store.ratesLoading"
+              class="flex items-center justify-center w-9 h-9 text-secondary-text hover:text-primary-text bg-background hover:bg-card-background border border-primary-border rounded-lg transition-all cursor-pointer shrink-0 disabled:opacity-50"
+              title="Reload rates from server"
+              @click="
+                store.fetchRateGrid(
+                  store.selectedReferralLink.id,
+                  activeMethod,
+                  true,
+                )
+              "
+            >
+              <HugeIcon
+                :icon="RefreshCwIcon"
+                :size="14"
+                :class="{ 'animate-spin': store.ratesLoading }"
+              />
+            </button>
+          </div>
         </div>
       </div>
 
-      <!-- Selected Link Info Bar -->
+      <!-- Selected Link Info Ribbon (Full Width & Clean) -->
       <div
         v-if="store.rateGrid && !store.ratesLoading"
-        class="flex flex-wrap items-center justify-between gap-3 px-3.5 py-2 rounded-xl bg-background/60 border border-primary-border/60 text-xs"
+        class="flex flex-wrap items-center gap-3 px-3.5 py-2.5 rounded-lg bg-background border border-primary-border text-xs"
       >
-        <div class="flex items-center gap-4 flex-wrap">
-          <div class="flex items-center gap-1.5">
-            <span class="text-secondary-text">Referral Link:</span>
-            <span class="font-semibold text-primary-text">
-              {{ store.rateGrid.referral_link_name }} ({{ store.rateGrid.referral_link_code }})
-            </span>
-          </div>
-          <div class="flex items-center gap-1.5">
-            <span class="text-secondary-text">IB ID:</span>
-            <span class="font-mono font-semibold text-primary-text">#{{ store.rateGrid.ib_id }}</span>
-          </div>
-          <div class="flex items-center gap-1.5">
-            <span class="text-secondary-text">Total MT5 Groups:</span>
-            <span
-              class="px-2 py-0.5 rounded-md bg-primary/10 text-primary font-bold font-mono text-[11px]"
-            >
-              {{ store.rateGrid.ib_group_count || store.rateGrid.tabs?.length || 0 }}
-            </span>
-          </div>
+        <!-- Campaign Name & Code -->
+        <div class="inline-flex items-center gap-1.5">
+          <span class="text-secondary-text">Campaign:</span>
+          <span class="font-bold text-primary-text font-mono">
+            {{
+              store.rateGrid.referral_link_name ||
+              store.rateGrid.referral_link_code
+            }}
+          </span>
+          <span
+            v-if="store.rateGrid.referral_link_code"
+            class="text-[10px] px-1.5 py-0.2 rounded bg-primary/10 text-primary font-mono font-bold"
+          >
+            {{ store.rateGrid.referral_link_code }}
+          </span>
         </div>
 
-        <div class="text-[11px] text-secondary-text flex items-center gap-1">
-          <HugeIcon :icon="InformationCircleIcon" :size="13" class="text-primary" />
-          <span>Rates saved apply across all referral links of this IB sharing the active MT5 group.</span>
+        <span class="text-secondary-text/40 hidden sm:inline">•</span>
+
+        <!-- IB ID -->
+        <div class="inline-flex items-center gap-1.5">
+          <span class="text-secondary-text">IB Partner:</span>
+          <span class="font-mono font-bold text-primary-text"
+            >#{{ store.rateGrid.ib_id }}</span
+          >
+        </div>
+
+        <span class="text-secondary-text/40 hidden sm:inline">•</span>
+
+        <!-- Total MT5 Groups -->
+        <div class="inline-flex items-center gap-1.5">
+          <span class="text-secondary-text">MT5 Groups:</span>
+          <span
+            class="px-2 py-0.5 rounded-md bg-card-background border border-primary-border text-primary-text font-bold font-mono text-[11px]"
+          >
+            {{
+              store.rateGrid.ib_group_count || store.rateGrid.tabs?.length || 0
+            }}
+            Configured
+          </span>
+        </div>
+
+        <span class="text-secondary-text/40 hidden sm:inline">•</span>
+
+        <!-- Active Calculation Unit -->
+        <div class="inline-flex items-center gap-1.5">
+          <span class="text-secondary-text">Active Unit:</span>
+          <span
+            class="font-mono font-bold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[11px]"
+          >
+            {{ getMethodUnitLabel }}
+          </span>
         </div>
       </div>
     </div>
@@ -345,13 +471,25 @@ const handleSave = async () => {
     <div v-if="store.ratesLoading" class="space-y-4">
       <!-- Tabs Bar Skeleton -->
       <div class="flex items-center gap-2 border-b border-primary-border pb-1">
-        <div v-for="n in 4" :key="n" class="h-10 w-36 bg-card-background border border-primary-border rounded-t-xl animate-pulse" />
+        <div
+          v-for="n in 3"
+          :key="n"
+          class="h-10 w-40 bg-card-background border border-primary-border rounded-t-xl animate-pulse"
+        />
       </div>
 
       <!-- Table Skeleton Card -->
-      <div class="bg-card-background border border-primary-border rounded-2xl overflow-hidden p-4 space-y-3">
-        <div class="h-8 bg-background border border-primary-border rounded-xl animate-pulse w-full" />
-        <div v-for="r in 3" :key="r" class="h-14 bg-background/50 border border-primary-border rounded-xl animate-pulse w-full" />
+      <div
+        class="bg-card-background border border-primary-border rounded-2xl overflow-hidden p-5 space-y-4"
+      >
+        <div
+          class="h-10 bg-background border border-primary-border rounded-lg animate-pulse w-full"
+        />
+        <div
+          v-for="r in 3"
+          :key="r"
+          class="h-16 bg-background/50 border border-primary-border rounded-lg animate-pulse w-full"
+        />
       </div>
     </div>
 
@@ -361,7 +499,7 @@ const handleSave = async () => {
       class="flex flex-col items-center justify-center p-14 rounded-2xl bg-card-background border border-primary-border text-center min-h-[320px] space-y-3"
     >
       <div
-        class="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary"
+        class="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary"
       >
         <HugeIcon :icon="Search01Icon" :size="22" />
       </div>
@@ -370,7 +508,8 @@ const handleSave = async () => {
           Select a Referral Campaign Link
         </h3>
         <p class="text-xs text-secondary-text leading-relaxed">
-          Search for an affiliate or link code above to inspect and edit multi-tier commission rates.
+          Search for an affiliate partner or referral campaign above to
+          configure multi-tier matrix rates.
         </p>
       </div>
     </div>
@@ -379,33 +518,46 @@ const handleSave = async () => {
     <div v-else-if="store.rateGrid" class="space-y-4">
       <!-- MT5 Broker Group Tabs Navigation -->
       <div class="border-b border-primary-border">
-        <div class="flex items-center gap-2 overflow-x-auto no-scrollbar -mb-px pb-1">
+        <div class="flex items-center gap-2 overflow-x-auto no-scrollbar">
           <button
             v-for="t in store.rateGrid.tabs"
             :key="t.broker_group_config_id"
             type="button"
-            class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold rounded-t-xl border-b-2 transition-colors cursor-pointer select-none shrink-0"
+            class="group flex items-center gap-2 px-4 py-2.5 text-xs rounded-t-xl font-semibold border-b-2 transition-all cursor-pointer select-none shrink-0"
             :class="[
               activeTab?.broker_group_config_id === t.broker_group_config_id
-                ? 'border-primary text-primary bg-card-background font-bold'
-                : 'border-transparent text-secondary-text hover:text-primary-text hover:bg-card-background/50'
+                ? 'border-primary text-primary font-bold'
+                : 'border-transparent text-secondary-text hover:text-primary-text hover:bg-card-background/60',
             ]"
             @click="handleTabSelect(t.broker_group_config_id)"
           >
-            <HugeIcon :icon="Layers01Icon" :size="14" />
-            <span>{{ t.label || t.mt5_group }}</span>
+            <HugeIcon
+              :icon="Layers01Icon"
+              :size="14"
+              class="transition-colors"
+              :class="
+                activeTab?.broker_group_config_id === t.broker_group_config_id
+                  ? 'text-primary'
+                  : 'text-secondary-text group-hover:text-primary-text'
+              "
+            />
+            <span class="font-mono font-bold">{{
+              t.label || t.mt5_group
+            }}</span>
 
             <!-- Referral links count tag -->
             <span
-              class="ml-1 text-[10px] px-1.5 py-0.2 rounded-md border shrink-0 font-mono font-semibold"
+              class="ml-1 text-[10px] px-2 py-0.5 rounded-md border shrink-0 font-mono font-bold transition-colors"
               :class="
                 activeTab?.broker_group_config_id === t.broker_group_config_id
-                  ? 'bg-primary/10 text-primary border-primary/20'
-                  : 'bg-background text-secondary-text border-primary-border'
+                  ? 'bg-primary/10 text-primary border-primary/20 '
+                  : 'bg-background text-secondary-text border-primary-border group-hover:border-primary-border/80'
               "
-              :title="`${t.referral_links?.length || 1} referral link(s) share this group`"
+              :title="`${t.referral_links?.length || 1} referral link(s) configured with this MT5 group`"
             >
-              {{ t.referral_links?.length || 1 }} link{{ (t.referral_links?.length || 1) === 1 ? '' : 's' }}
+              {{ t.referral_links?.length || 1 }} link{{
+                (t.referral_links?.length || 1) === 1 ? "" : "s"
+              }}
             </span>
           </button>
         </div>
@@ -414,46 +566,76 @@ const handleSave = async () => {
       <!-- Active Tab Card Container -->
       <div
         v-if="activeTab"
-        class="bg-card-background border border-primary-border rounded-2xl overflow-hidden"
+        class="bg-card-background border border-primary-border rounded-xl overflow-hidden shadow-xs"
       >
         <!-- Group Tab Meta Summary Bar -->
         <div
-          class="px-5 py-3 bg-background/50 border-b border-primary-border flex flex-wrap items-center justify-between gap-3"
+          class="px-5 py-3.5 bg-background/60 border-b border-primary-border flex flex-wrap items-center justify-between gap-3"
         >
-          <div class="flex items-center gap-3 text-xs">
+          <div class="flex items-center gap-3 text-xs flex-wrap">
+            <!-- Group Path -->
             <div class="flex items-center gap-1.5">
-              <span class="text-secondary-text">MT5 Group:</span>
-              <span class="font-mono font-bold text-primary-text bg-card-background px-2 py-0.5 rounded border border-primary-border text-[11px]">
+              <span
+                class="text-xs font-bold uppercase tracking-wider text-secondary-text"
+                >GROUP:</span
+              >
+              <span
+                class="inline-flex items-center gap-1.5 font-mono font-bold text-primary-text bg-card-background px-2.5 py-1 rounded-lg border border-primary-border text-xs"
+              >
+                <HugeIcon
+                  :icon="GitBranchIcon"
+                  :size="13"
+                  class="text-primary"
+                />
                 {{ activeTab.mt5_group }}
               </span>
             </div>
-            <div v-if="activeTab.currency" class="flex items-center gap-1">
-              <span class="text-secondary-text">Currency:</span>
-              <span class="font-semibold text-primary-text">{{ activeTab.currency }}</span>
+
+            <!-- Currency -->
+            <div v-if="activeTab.currency" class="flex items-center gap-1.5">
+              <span class="text-secondary-text font-medium">Currency:</span>
+              <span
+                class="font-mono font-bold text-primary-text bg-card-background px-2 py-0.5 rounded-md border border-primary-border text-[11px]"
+              >
+                {{ activeTab.currency }}
+              </span>
             </div>
-            <div v-if="activeTab.account_category" class="flex items-center gap-1">
-              <span class="text-secondary-text">Category:</span>
-              <span class="capitalize font-medium text-primary-text">{{ activeTab.account_category }}</span>
+
+            <!-- Category -->
+            <div
+              v-if="activeTab.account_category"
+              class="flex items-center gap-1.5"
+            >
+              <span class="text-secondary-text font-medium">Category:</span>
+              <span
+                class="uppercase font-bold text-primary-text bg-card-background px-2 py-0.5 rounded-md border border-primary-border text-[11px]"
+              >
+                {{ activeTab.account_category }}
+              </span>
             </div>
           </div>
 
-          <!-- Action Controls for Active Tab -->
+          <!-- Tab Action Controls -->
           <div class="flex items-center gap-2">
             <button
               v-if="canManageRates"
               type="button"
-              class="px-3 py-1.5 text-xs text-secondary-text hover:text-primary-red hover:bg-primary-red/10 border border-primary-border rounded-lg transition-colors cursor-pointer"
-              @click="handleClearTab"
+              class="flex items-center gap-1.5 px-3 py-1.5 text-xs text-secondary-text hover:text-primary-text hover:bg-card-background border border-primary-border rounded-lg transition-colors cursor-pointer"
+              title="Revert modifications on this tab back to server state"
+              @click="initLocalCells"
             >
-              Clear Tab Rates
+              <HugeIcon :icon="RefreshCwIcon" :size="12" />
+              <span>Revert Edits</span>
             </button>
             <button
               v-if="canManageRates"
               type="button"
-              class="px-3 py-1.5 text-xs text-secondary-text hover:text-primary-text hover:bg-background border border-primary-border rounded-lg transition-colors cursor-pointer"
-              @click="initLocalCells"
+              class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-primary-red hover:bg-primary-red/10 border border-primary-red/20 rounded-lg transition-colors cursor-pointer"
+              title="Clear all rate inputs on this tab"
+              @click="handleClearTab"
             >
-              Revert Edits
+              <HugeIcon :icon="Cancel01Icon" :size="12" />
+              <span>Clear Tab Rates</span>
             </button>
           </div>
         </div>
@@ -462,27 +644,46 @@ const handleSave = async () => {
         <div class="overflow-x-auto no-scrollbar">
           <table class="w-full text-left border-collapse text-xs">
             <thead>
-              <tr class="border-b border-primary-border bg-background/80 text-secondary-text font-semibold">
-                <th class="py-3 px-4 w-36 whitespace-nowrap">Level / Role</th>
-                <th class="py-3 px-4 w-48 whitespace-nowrap">Affiliate</th>
-                <!-- <th class="py-3 px-3 w-20 text-center whitespace-nowrap">Split %</th> -->
+              <tr
+                class="border-b border-primary-border bg-background/80 text-secondary-text font-bold text-[11px] uppercase tracking-wider"
+              >
+                <th class="py-3.5 px-4 w-44 whitespace-nowrap">LEVEL / ROLE</th>
+                <th class="py-3.5 px-4 min-w-[200px] whitespace-nowrap">
+                  AFFILIATE PARTNER
+                </th>
 
                 <!-- Dynamic Symbol Groups Columns -->
                 <th
                   v-for="sg in symbolGroups"
                   :key="sg.id"
-                  class="py-3 px-4 min-w-[120px] text-center whitespace-nowrap bg-card-background/40"
+                  class="py-3 px-4 min-w-[130px] text-center whitespace-nowrap bg-card-background/40"
                 >
-                  <div class="flex flex-col items-center">
-                    <span class="font-bold text-primary-text">{{ sg.name }}</span>
-                    <span v-if="sg.code" class="text-[10px] text-secondary-text font-mono font-normal">
+                  <div class="flex flex-col items-center gap-0.5">
+                    <div class="flex items-center gap-1">
+                      <span
+                        class="font-bold text-primary-text uppercase tracking-tight"
+                        >{{ sg.name }}</span
+                      >
+                      <span
+                        class="text-[10px] px-1.5 py-0.2 rounded bg-primary/10 text-primary font-mono font-bold"
+                      >
+                        {{ getMethodUnit }}
+                      </span>
+                    </div>
+                    <span
+                      v-if="sg.code"
+                      class="text-[10px] text-secondary-text font-mono font-normal lowercase"
+                    >
                       {{ sg.code }}
                     </span>
                   </div>
                 </th>
 
-                <th v-if="canManageRates" class="py-3 px-3 w-28 text-center whitespace-nowrap">
-                  Quick Actions
+                <th
+                  v-if="canManageRates"
+                  class="py-3.5 px-3 w-36 text-center whitespace-nowrap"
+                >
+                  QUICK ACTIONS
                 </th>
               </tr>
             </thead>
@@ -491,43 +692,61 @@ const handleSave = async () => {
               <tr
                 v-for="row in activeTab.rows"
                 :key="row.ib_id"
-                class="hover:bg-background/40 transition-colors"
+                class="hover:bg-background/40 transition-colors group"
               >
-                <!-- Level / Role -->
+                <!-- Level / Role Column with Left Accent Stripe -->
                 <td class="py-3.5 px-4 whitespace-nowrap">
-                  <span
-                    class="px-2 py-0.5 rounded-md text-xs font-semibold inline-block"
-                    :class="
-                      row.level === 1
-                        ? 'bg-primary/10 text-primary border border-primary/20'
-                        : 'bg-background text-secondary-text border border-primary-border'
-                    "
-                  >
-                    {{ row.level_label || (row.level === 1 ? 'Direct Affiliate' : 'Upline') }}
-                  </span>
+                  <div class="flex items-center gap-2.5">
+                    <!-- Left Stripe -->
+                    <span
+                      class="w-1.5 h-7 rounded-full shrink-0"
+                      :class="row.level === 1 ? 'bg-emerald-500' : 'bg-primary'"
+                    />
+                    <div class="space-y-0.5">
+                      <span
+                        class="px-2 py-0.5 rounded text-[11px] font-bold font-mono inline-block uppercase tracking-wider"
+                        :class="
+                          row.level === 1
+                            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                            : 'bg-primary/10 text-primary border border-primary/20'
+                        "
+                      >
+                        LEVEL {{ row.level }}
+                      </span>
+                      <p class="text-[11px] text-secondary-text font-medium">
+                        {{
+                          row.level_label ||
+                          (row.level === 1
+                            ? "Direct Affiliate"
+                            : row.level === 2
+                              ? "Master Partner"
+                              : "Sub-Affiliate")
+                        }}
+                      </p>
+                    </div>
+                  </div>
                 </td>
 
                 <!-- Affiliate Info -->
                 <td class="py-3.5 px-4 whitespace-nowrap">
                   <div>
-                    <p class="font-semibold text-primary-text flex items-center gap-1.5">
-                      {{ row.name }}
-                      <span class="text-[10px] text-secondary-text font-mono font-normal">
-                        (#{{ row.ib_id }})
+                    <p
+                      class="font-bold text-primary-text flex items-center gap-1.5 text-xs"
+                    >
+                      <span>{{ row.name }}</span>
+                      <span
+                        class="text-[11px] text-secondary-text font-mono font-normal px-1.5 py-0.2 bg-background rounded border border-primary-border"
+                      >
+                        #{{ row.ib_id }}
                       </span>
                     </p>
-                    <p class="text-[11px] text-secondary-text truncate max-w-[180px]">
-                      {{ row.email || "No email" }}
+                    <p
+                      class="text-[11px] text-secondary-text truncate max-w-[200px] mt-0.5 font-mono"
+                    >
+                      {{ row.email || "No email provided" }}
                     </p>
                   </div>
                 </td>
-
-                <!-- Split % -->
-                <!-- <td class="py-3.5 px-3 text-center whitespace-nowrap">
-                  <span class="font-mono text-xs font-medium text-secondary-text">
-                    {{ row.split_percentage !== undefined && row.split_percentage !== null ? `${row.split_percentage}%` : '-' }}
-                  </span>
-                </td> -->
 
                 <!-- Rate Input Cells for Each Symbol Group -->
                 <td
@@ -535,7 +754,16 @@ const handleSave = async () => {
                   :key="sg.id"
                   class="py-2.5 px-3 text-center"
                 >
-                  <div class="relative inline-block w-full max-w-[110px]">
+                  <div
+                    class="relative inline-flex items-center justify-center w-full max-w-[125px]"
+                  >
+                    <!-- Prefix (e.g. $) -->
+                    <span
+                      v-if="getMethodUnit !== '%'"
+                      class="absolute left-3 text-xs text-secondary-text font-mono font-semibold pointer-events-none select-none"
+                    >
+                      {{ getMethodUnit }}
+                    </span>
                     <input
                       type="number"
                       step="any"
@@ -543,26 +771,40 @@ const handleSave = async () => {
                       :disabled="!canManageRates"
                       :value="getCellValue(row.ib_id, sg.id)"
                       placeholder="0.00"
-                      class="input-field text-center font-mono text-xs px-2 py-1.5 font-bold transition-colors focus:border-primary disabled:bg-background/80"
+                      class="w-full text-center font-mono text-xs py-2 font-bold rounded-lg border transition-all focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:bg-background/80"
                       :class="[
+                        getMethodUnit !== '%' ? 'pl-6 pr-2.5' : 'pl-2.5 pr-6',
                         getCellValue(row.ib_id, sg.id) !== ''
-                          ? 'border-primary/40 bg-primary/5 text-primary'
-                          : 'border-primary-border text-secondary-text'
+                          ? 'border-primary/50 bg-primary/5 text-primary font-bold'
+                          : 'border-primary-border text-primary-text bg-background focus:bg-card-background',
                       ]"
                       @input="handleCellInput(row.ib_id, sg.id, $event)"
                     />
+                    <!-- Suffix (e.g. %) -->
+                    <span
+                      v-if="getMethodUnit === '%'"
+                      class="absolute right-3 text-xs text-secondary-text font-mono font-semibold pointer-events-none select-none"
+                    >
+                      %
+                    </span>
                   </div>
                 </td>
 
                 <!-- Row Quick Actions -->
-                <td v-if="canManageRates" class="py-3.5 px-3 text-center whitespace-nowrap">
+                <td
+                  v-if="canManageRates"
+                  class="py-3.5 px-3 text-center whitespace-nowrap"
+                >
                   <div class="flex items-center justify-center gap-1.5">
                     <button
                       type="button"
-                      class="px-2 py-1 text-[11px] font-semibold text-primary hover:bg-primary/10 rounded transition-colors cursor-pointer"
-                      title="Set flat rate across row"
+                      class="px-2.5 py-1 text-[11px] font-semibold text-primary hover:bg-primary/10 border border-primary/20 rounded-lg transition-colors cursor-pointer"
+                      title="Set flat rate across row based on first column"
                       @click="
-                        const firstVal = getCellValue(row.ib_id, symbolGroups[0]?.id);
+                        const firstVal = getCellValue(
+                          row.ib_id,
+                          symbolGroups[0]?.id,
+                        );
                         handleFillRow(row, firstVal);
                       "
                     >
@@ -570,11 +812,11 @@ const handleSave = async () => {
                     </button>
                     <button
                       type="button"
-                      class="px-2 py-1 text-[11px] font-medium text-secondary-text hover:text-primary-red hover:bg-primary-red/10 rounded transition-colors cursor-pointer"
+                      class="p-1.5 text-secondary-text hover:text-primary-red hover:bg-primary-red/10 border border-primary-border hover:border-primary-red/30 rounded-lg transition-colors cursor-pointer"
                       title="Clear this affiliate's row"
                       @click="handleFillRow(row, '')"
                     >
-                      Clear
+                      <HugeIcon :icon="Cancel01Icon" :size="13" />
                     </button>
                   </div>
                 </td>
@@ -583,28 +825,47 @@ const handleSave = async () => {
           </table>
         </div>
 
-        <!-- Tab Footer with Save Action -->
+        <!-- Tab Footer with Sync Status & Save Action -->
         <div
-          class="p-4 bg-background/50 border-t border-primary-border flex flex-col sm:flex-row items-center justify-between gap-3"
+          class="p-4 bg-background/50 border-t border-primary-border flex flex-col lg:flex-row items-center justify-between gap-4"
         >
-          <div class="flex items-center gap-2 text-xs text-secondary-text">
-            <span
+          <!-- Sync / Dirty Badge -->
+          <div class="flex items-center gap-3 text-xs w-full lg:w-auto">
+            <div
               v-if="isDirty"
-              class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary-yellow/10 text-primary-yellow border border-primary-yellow/20 font-semibold"
+              class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold"
             >
-              ● Unsaved changes on this tab
-            </span>
-            <span v-else class="text-secondary-text">
-              All rates on active tab are synchronized with server.
-            </span>
+              <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+              <span>Unsaved changes on this MT5 group tab</span>
+            </div>
+            <div
+              v-else
+              class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-bold text-xs"
+            >
+              <HugeIcon
+                :icon="Tick02Icon"
+                :size="14"
+                class="text-emerald-500"
+              />
+              <span>All rates on this tab are synchronized with server</span>
+            </div>
           </div>
 
-          <div class="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+          <!-- Right Action Buttons -->
+          <div class="flex items-center gap-2.5 w-full lg:w-auto justify-end">
+            <button
+              v-if="canManageRates && isDirty"
+              type="button"
+              class="px-4 py-2.5 text-xs font-semibold text-secondary-text hover:text-primary-text bg-card-background hover:bg-background border border-primary-border rounded-lg transition-all cursor-pointer"
+              @click="initLocalCells"
+            >
+              Discard Changes
+            </button>
             <button
               v-if="canManageRates"
               type="button"
               :disabled="store.actionLoading"
-              class="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover text-white text-xs font-bold rounded-xl transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto justify-center"
+              class="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover text-white text-xs font-bold rounded-lg transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto justify-center shadow-xs"
               @click="handleSave"
             >
               <HugeIcon

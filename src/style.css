@@ -92,6 +92,11 @@ body {
   border-color: var(--color-primary); /* optional */
 }
 
+/* Glass-morphism card */
+.glass-card {
+  @apply bg-white/80 dark:bg-card-background/80 backdrop-blur-sm border border-gray-200 dark:border-primary-border shadow-md rounded-2xl p-5;
+}
+
 /* ─── Hide Number Input Spinners Globally ────────────────────────────── */
 /* Chrome, Safari, Edge, Opera */
 input::-webkit-outer-spin-button,
