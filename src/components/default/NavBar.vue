@@ -18,11 +18,13 @@ import {
 } from "lucide-vue-next";
 import { useProfileStore } from "@/stores/profile/profile";
 import { useMyPermissionsStore } from "@/stores/rbac/myPermissions";
+import { useThemeStore } from "@/stores/theme";
 import Tooltip from "@/components/common/Tooltip.vue";
 import { navClusters } from "@/config/navItems";
 
 const store = useProfileStore();
 const myPermissionsStore = useMyPermissionsStore();
+const themeStore = useThemeStore();
 const router = useRouter();
 const route = useRoute();
 
@@ -46,6 +48,13 @@ const resultItemRefs = ref([]);
 
 onBeforeUpdate(() => {
   resultItemRefs.value = [];
+});
+
+const logoSrc = computed(() => {
+  if (props.isCollapsed) {
+    return themeStore.isDark ? "/fav-light.svg" : "/fav-light.svg";
+  }
+  return themeStore.isDark ? "/logo_full-light.svg" : "/logo_full-light.svg";
 });
 
 // Filter navigation clusters dynamically based on user permissions
@@ -327,7 +336,7 @@ watch(
   () => {
     autoExpandActiveCluster();
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 // Collapsed mode flyout state
@@ -383,16 +392,17 @@ const handleFlyoutMouseLeave = () => {
   >
     <!-- Header -->
     <div
-      class="h-[60px] flex items-center justify-between px-4 border-b border-white/10"
+      id="tour-logo"
+      class="h-[60px] flex items-center border-b border-white/10"
     >
-      <div v-if="!isCollapsed" class="flex items-center gap-2.5">
-        <div class="w-48 h-28 flex items-center justify-center">
-          <img src="/panther-logo.svg" alt="Logo" />
+      <div v-if="!isCollapsed" class="flex items-center gap-2.5 pl-6 pt-2">
+        <div class="w-44 h-32 rounded-lg flex items-center justify-center">
+          <img :src="logoSrc" alt="Logo" class="transition-all duration-300" />
         </div>
       </div>
-      <div v-else class="flex items-center justify-center w-full">
-        <div class="w-12 h-12 rounded-lg flex items-center justify-center">
-          <img src="/panther-fav.svg" alt="Logo" />
+      <div v-else class="flex ml-4 w-full">
+        <div class="w-9 h-9 rounded-lg flex">
+          <img :src="logoSrc" alt="Logo" class="transition-all duration-300" />
         </div>
       </div>
     </div>
@@ -472,8 +482,8 @@ const handleFlyoutMouseLeave = () => {
               selectedIndex === index
                 ? 'bg-primary text-white shadow-sm font-semibold'
                 : isActive(item.to)
-                ? 'bg-white/10 text-white font-semibold'
-                : 'text-white/70 hover:text-white hover:bg-white/10',
+                  ? 'bg-white/10 text-white font-semibold'
+                  : 'text-white/70 hover:text-white hover:bg-white/10',
             ]"
           >
             <component
@@ -609,7 +619,9 @@ const handleFlyoutMouseLeave = () => {
                 <!-- Accordion Chevron -->
                 <ChevronDown
                   class="w-3.5 h-3.5 text-white/50 transition-transform duration-200"
-                  :class="{ 'rotate-180 text-white': isClusterOpen(cluster.id) }"
+                  :class="{
+                    'rotate-180 text-white': isClusterOpen(cluster.id),
+                  }"
                 />
               </div>
             </button>
