@@ -14,6 +14,7 @@ import { useCommissionEngineStore } from "@/stores/commissionEngine/commissionEn
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import BaseDatePicker from "@/components/common/BaseDatePicker.vue";
+import Tooltip from "@/components/common/Tooltip.vue";
 import RebuildTradesModal from "../components/RebuildTradesModal.vue";
 
 const store = useCommissionEngineStore();
@@ -178,7 +179,7 @@ const formatDate = (val) => {
             <!-- Left: Status Pills & Main Search -->
             <div class="flex flex-wrap items-center gap-2.5 flex-1">
               <!-- Status Filter Pills -->
-              <div class="inline-flex p-1 rounded-xl bg-background border border-primary-border shrink-0">
+              <div class="inline-flex p-1 rounded-lg bg-background border border-primary-border shrink-0">
                 <button
                   type="button"
                   class="px-3 py-1 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
@@ -275,7 +276,7 @@ const formatDate = (val) => {
                 v-if="canSync"
                 type="button"
                 :disabled="store.actionLoading"
-                class="flex items-center gap-1.5 px-3 py-1.5 bg-card-background border border-primary-border hover:bg-background text-primary-text text-xs font-semibold rounded-xl transition-colors cursor-pointer"
+                class="flex items-center gap-1.5 px-3 py-1.5 bg-card-background border border-primary-border hover:bg-background text-primary-text text-xs font-semibold rounded-lg transition-colors cursor-pointer"
                 title="Reconstruct trade positions"
                 @click="isRebuildModalOpen = true"
               >
@@ -287,7 +288,7 @@ const formatDate = (val) => {
               <button
                 type="button"
                 :disabled="store.loading"
-                class="p-2 border border-primary-border rounded-xl text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer"
+                class="p-2 border border-primary-border rounded-lg text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer"
                 title="Refresh Trades"
                 @click="loadTrades(store.tradesPagination.page, true)"
               >
@@ -386,8 +387,18 @@ const formatDate = (val) => {
 
       <!-- Cell: MT5 Group -->
       <template #cell-mt5_group="{ row }">
-        <span class="text-xs font-mono text-secondary-text truncate block max-w-[190px]" :title="row.mt5_group">
-          {{ row.mt5_group || "-" }}
+        <Tooltip
+          v-if="row.mt5_group"
+          :text="row.mt5_group"
+          position="center"
+          block
+        >
+          <span class="text-xs font-mono text-secondary-text truncate block max-w-[190px]">
+            {{ row.mt5_group }}
+          </span>
+        </Tooltip>
+        <span v-else class="text-xs font-mono text-secondary-text">
+          -
         </span>
       </template>
 

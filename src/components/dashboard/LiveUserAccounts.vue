@@ -101,7 +101,7 @@ const handleCardClick = (role) => {
       <div
         v-for="card in cards"
         :key="card.title"
-        class="group relative overflow-hidden rounded-2xl border border-primary-border bg-card-background p-4 sm:p-5 transition-all duration-200 hover:border-primary/40 hover:shadow-md cursor-pointer select-none"
+        class="group relative overflow-hidden rounded-2xl border border-primary-border bg-card-background p-4 sm:p-5 transition-all duration-200 hover:border-primary/40 cursor-pointer select-none"
         @click="handleCardClick(card.role)"
       >
         <!-- Hover line -->
