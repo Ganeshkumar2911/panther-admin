@@ -96,7 +96,7 @@ const urls = {
     create: "/fund_managers/create",
     edit: "/fund_managers/edit",
     dummyList: "/dummy_fund_managers",
-    dummyCreate: "/dummy_fund_managers/create",
+    dummyCreate: "/create/dummy-fm",
     dummyEdit: "/dummy_fund_managers/edit",
     requestList: "/fm/requests",
     acceptRequest: "/fm/requests/approve",
@@ -113,7 +113,7 @@ const urls = {
   },
   dummyFm: {
     list: "/dummy_fund_managers",
-    create: "/dummy_fund_managers/create",
+    create: "/create/dummy-fm",
     edit: "/dummy_fund_managers/edit",
     offers: "/dummy_fund_managers/offers",
     followers: (fmId) => (fmId ? `/dummy_fund_managers/followers/${fmId}` : "/dummy_fund_managers/followers"),

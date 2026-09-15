@@ -137,7 +137,7 @@ export const useFmLeaderboardStore = defineStore("fmLeaderboard", () => {
         reject(err);
       };
 
-      const createEndpoint = urls.dummyFm?.create || urls.fm?.dummyCreate || "/dummy_fund_managers/create";
+      const createEndpoint = urls.dummyFm?.create || urls.fm?.dummyCreate || "/create/dummy-fm";
 
       apiRequest(urls.KEYS.POST, createEndpoint, {
         data: formData,

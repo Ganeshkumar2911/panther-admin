@@ -73,6 +73,27 @@
 
         <!-- Scrollable Form Body -->
         <div class="px-6 py-5 flex flex-col gap-6 overflow-y-auto flex-1">
+          <!-- Real FM to Dummy FM Conversion Banner -->
+          <div
+            v-if="currentMode === 'clone_to_dummy' || (isDummyMode && (props.item?.id || form.fake_id))"
+            class="bg-primary/10 border border-primary/20 rounded-xl p-3.5 flex items-center justify-between gap-3 shrink-0 shadow-2xs"
+          >
+            <div class="flex items-center gap-2.5 min-w-0">
+              <Sparkles class="w-4 h-4 text-primary shrink-0" />
+              <div class="min-w-0">
+                <p class="text-xs font-bold text-primary truncate">
+                  Converting Real FM to Dummy FM
+                </p>
+                <p class="text-[11px] text-secondary-text truncate">
+                  Source: {{ props.item?.label_name || props.item?.user?.name || form.name || 'Real FM' }} (ID #{{ props.item?.id || form.fake_id }})
+                </p>
+              </div>
+            </div>
+            <span class="text-[10px] font-mono font-bold px-2 py-1 rounded bg-primary/20 text-primary border border-primary/30 shrink-0">
+              fake_id: {{ props.item?.id || form.fake_id }}
+            </span>
+          </div>
+
           <!-- SECTION 1: GENERAL IDENTITY & AUTH -->
           <div
             class="space-y-3.5 bg-background/40 border border-primary-border/60 rounded-xl p-4"
@@ -364,7 +385,7 @@
                 >
               </div>
 
-              <!-- Broker Currency (Disabled / Auto-selected from Group) -->
+              <!-- Broker Currency -->
               <div class="flex flex-col gap-1.5">
                 <label class="text-xs font-semibold text-secondary-text">
                   Broker Currency <span class="text-primary-red">*</span>
@@ -372,9 +393,8 @@
                 <BaseSelect
                   :modelValue="form.broker_currency"
                   :options="currencyOptions"
-                  :disabled="true"
                   placeholder="Select currency"
-                  @update:modelValue="form.broker_currency = $event"
+                  @update:modelValue="(val) => { form.broker_currency = val; errors.broker_currency = ''; }"
                 />
                 <span
                   v-if="errors.broker_currency"
@@ -391,9 +411,8 @@
                 <BaseSelect
                   :modelValue="form.broker_leverage"
                   :options="leverageOptions"
-                  :disabled="true"
                   placeholder="Select leverage"
-                  @update:modelValue="form.broker_leverage = $event"
+                  @update:modelValue="(val) => { form.broker_leverage = Number(val); errors.broker_leverage = ''; }"
                 />
                 <span
                   v-if="errors.broker_leverage"
@@ -1034,8 +1053,10 @@ const groupOptions = computed(() => {
       data: g,
     }));
 });
+const form = ref({
+  // Dummy FM tracking
+  fake_id: "",
 
-const form = ref({
   // Required identity / login
   email: "",
   name: "",
@@ -1153,11 +1174,19 @@ const onGroupSelect = (val) => {
     form.value.broker_group = match.group || match.label || val;
     form.value.group_config_id = match.config_id ?? match.id ?? null;
     if (match.currency) form.value.broker_currency = match.currency;
-    if (match.leverage) form.value.broker_leverage = match.leverage;
+    if (match.leverage) {
+      const lev = Number(match.leverage);
+      if (!isNaN(lev) && lev > 0) form.value.broker_leverage = lev;
+    }
+    if (errors.value.broker_group) errors.value.broker_group = "";
+    if (errors.value.broker_currency) errors.value.broker_currency = "";
+    if (errors.value.broker_leverage) errors.value.broker_leverage = "";
   } else {
     form.value.broker_group = val;
   }
 };
+
+const onGroupPresetSelect = onGroupSelect;
 
 const originalFollowerAccountType = ref(null);
 
@@ -1173,7 +1202,7 @@ const isFollowerAccountTypeChanged = computed(() => {
     Number(originalFollowerAccountType.value)
   );
 });
-const resetForm = () => {
+const resetForm = () => {
   currentMode.value = props.mode;
   if (props.item && currentMode.value !== "add") {
     const u = props.item.user || {};
@@ -1186,7 +1215,11 @@ const isFollowerAccountTypeChanged = computed(() => {
       props.item.group_config_id ||
       "";
 
+    const rawLeverage = Number(props.item.broker_leverage);
+    const resolvedLeverage = !isNaN(rawLeverage) && rawLeverage > 0 ? rawLeverage : 100;
+
     form.value = {
+      fake_id: props.item.id != null ? String(props.item.id) : "",
       email: u.email ?? props.item.email ?? "",
       name: u.name ?? props.item.name ?? "",
       password: "",
@@ -1202,7 +1235,7 @@ const isFollowerAccountTypeChanged = computed(() => {
         props.item.coverage_account?.broker_currency ??
         props.item.master_account?.broker_currency ??
         "USD",
-      broker_leverage: Number(props.item.broker_leverage ?? 100),
+      broker_leverage: resolvedLeverage,
       group_config_id: props.item.group_config_id ?? null,
 
       min_capital: props.item.min_capital ?? "",
@@ -1239,6 +1272,7 @@ const isFollowerAccountTypeChanged = computed(() => {
   } else {
     originalFollowerAccountType.value = null;
     form.value = {
+      fake_id: "",
       email: "",
       name: "",
       password: "",
@@ -1328,7 +1362,8 @@ const validateForm = () => {
   if (!form.value.broker_currency) {
     newErrors.broker_currency = "Currency is required";
   }
-  if (!form.value.broker_leverage) {
+  const leverageNum = Number(form.value.broker_leverage);
+  if (!form.value.broker_leverage || isNaN(leverageNum) || leverageNum <= 0) {
     newErrors.broker_leverage = "Leverage is required";
   }
 
@@ -1408,6 +1443,11 @@ const buildCreatePayload = () => {
     management_fee_interval: form.value.management_fee_interval || "monthly",
     registration_fee: Number(form.value.registration_fee) || 0,
   };
+
+  // If dummy mode or clone to dummy, include fake_id (ID of the real FM being made into dummy)
+  if (isDummyMode.value || currentMode.value === "clone_to_dummy" || currentMode.value === "add_dummy") {
+    payload.fake_id = props.item?.id != null ? String(props.item.id) : (form.value.fake_id || "");
+  }
 
   if (form.value.group_config_id != null && form.value.group_config_id !== "") {
     payload.group_config_id = Number(form.value.group_config_id);
