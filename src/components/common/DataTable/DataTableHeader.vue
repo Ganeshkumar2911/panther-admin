@@ -28,8 +28,8 @@
         :class="[
           getColumnAlignClass(col),
           col.sortable ? 'cursor-pointer hover:text-primary-text hover:bg-background/60' : '',
-          col.sticky === 'left' ? 'sticky left-0 z-25' : '',
-          col.sticky === 'right' ? 'sticky right-0 z-25' : '',
+          col.sticky === 'left' ? 'sticky left-0 z-25 shadow-[4px_0_6px_-2px_rgba(0,0,0,0.06)]' : '',
+          col.sticky === 'right' ? 'sticky right-0 z-25 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)]' : '',
           col.headerClass || '',
         ]"
         @click="handleHeaderClick(col)"

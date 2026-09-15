@@ -19,8 +19,8 @@
           class="px-4 py-3.5"
           :class="[
             getColumnAlignClass(col),
-            col.sticky === 'left' ? 'sticky left-0 bg-card-background z-10' : '',
-            col.sticky === 'right' ? 'sticky right-0 bg-card-background z-10' : '',
+            col.sticky === 'left' ? 'sticky left-0 bg-card-background z-10 shadow-[4px_0_6px_-2px_rgba(0,0,0,0.06)]' : '',
+            col.sticky === 'right' ? 'sticky right-0 bg-card-background z-10 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)]' : '',
           ]"
           :style="getColumnCellStyle(col)"
         >
@@ -109,8 +109,9 @@
           class="px-4 py-3.5 text-xs text-primary-text"
           :class="[
             getColumnAlignClass(col),
-            col.sticky === 'left' ? 'sticky left-0 bg-card-background group-hover:bg-background z-10' : '',
-            col.sticky === 'right' ? 'sticky right-0 bg-card-background group-hover:bg-background z-10' : '',
+            col.sticky === 'left' ? 'sticky left-0 bg-card-background group-hover:bg-background z-10 shadow-[4px_0_6px_-2px_rgba(0,0,0,0.06)]' : '',
+            col.sticky === 'right' ? 'sticky right-0 bg-card-background group-hover:bg-background z-10 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)]' : '',
+            col.sticky && isRowSelected(row) ? '!bg-primary/10' : '',
             col.cellClass || '',
           ]"
         >

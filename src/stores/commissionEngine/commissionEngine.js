@@ -26,7 +26,7 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
   const symbolsList = ref([]);
   const symbolsPagination = ref({
     page: 1,
-    per_page: 50,
+    per_page: 10,
     total: 0,
     pages: 1,
   });
@@ -41,7 +41,7 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
   const tradesList = ref([]);
   const tradesPagination = ref({
     page: 1,
-    per_page: 50,
+    per_page: 10,
     total_items: 0,
     total_pages: 1,
     total: 0,
@@ -52,7 +52,7 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
   const commissionsList = ref([]);
   const commissionsPagination = ref({
     page: 1,
-    per_page: 50,
+    per_page: 10,
     total_items: 0,
     total_pages: 1,
     total: 0,
@@ -69,7 +69,7 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
   const settlementBatches = ref([]);
   const settlementPagination = ref({
     page: 1,
-    per_page: 50,
+    per_page: 10,
     total_items: 0,
     total_pages: 1,
     total: 0,
@@ -83,7 +83,7 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
   const demoWalletsList = ref([]);
   const demoWalletsPagination = ref({
     page: 1,
-    per_page: 50,
+    per_page: 10,
     total_items: 0,
     total_pages: 1,
     total: 0,
@@ -95,7 +95,7 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
   const demoTransactionsList = ref([]);
   const demoTransactionsPagination = ref({
     page: 1,
-    per_page: 50,
+    per_page: 10,
     total_items: 0,
     total_pages: 1,
     total: 0,
@@ -190,7 +190,9 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
 
     const successHandler = (res) => {
       if (res?.data?.items) {
-        referralLinks.value = Array.isArray(res.data.items) ? res.data.items : [];
+        referralLinks.value = Array.isArray(res.data.items)
+          ? res.data.items
+          : [];
         referralLinksTotal.value = res.data.total || referralLinks.value.length;
       } else if (Array.isArray(res?.data)) {
         referralLinks.value = res.data;
@@ -239,10 +241,11 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
       // Select first tab if current active tab is not in returned tabs
       if (rateGrid.value?.tabs?.length) {
         const hasActive = rateGrid.value.tabs.some(
-          (t) => t.broker_group_config_id === activeGroupConfigId.value
+          (t) => t.broker_group_config_id === activeGroupConfigId.value,
         );
         if (!hasActive || !activeGroupConfigId.value) {
-          activeGroupConfigId.value = rateGrid.value.tabs[0].broker_group_config_id;
+          activeGroupConfigId.value =
+            rateGrid.value.tabs[0].broker_group_config_id;
         }
       } else {
         activeGroupConfigId.value = null;
@@ -277,7 +280,8 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
       const msg = res?.message || "Commission rates saved successfully";
       snackbar.show(msg, "success");
       // Re-fetch rates matrix to guarantee data consistency
-      const activeMethod = payload?.method || rateGrid.value?.method || "per_lot";
+      const activeMethod =
+        payload?.method || rateGrid.value?.method || "per_lot";
       fetchRateGrid(referralLinkId, activeMethod, true);
     };
 
@@ -289,17 +293,24 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
       actionLoading.value = false;
     };
 
-    return apiRequest(urls.KEYS.PUT, urls.ibCommission.saveRates(referralLinkId), {
-      data: payload,
-      isTokenRequired: true,
-      onSuccess: successHandler,
-      onFailure: failureHandler,
-      onFinally: finallyHandler,
-    });
+    return apiRequest(
+      urls.KEYS.PUT,
+      urls.ibCommission.saveRates(referralLinkId),
+      {
+        data: payload,
+        isTokenRequired: true,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+        onFinally: finallyHandler,
+      },
+    );
   };
 
   // ─── 9. Symbol Groups Actions ──────────────────────────
-  const fetchSymbolGroups = (params = { active_only: false }, force = false) => {
+  const fetchSymbolGroups = (
+    params = { active_only: false },
+    force = false,
+  ) => {
     if (inFlight.symbolGroups) return;
     if (isFetched.value.symbolGroups && !force) return;
 
@@ -335,7 +346,10 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     actionLoading.value = true;
 
     const successHandler = (res) => {
-      snackbar.show(res?.message || "Symbol group created successfully", "success");
+      snackbar.show(
+        res?.message || "Symbol group created successfully",
+        "success",
+      );
       fetchSymbolGroups({ active_only: false }, true);
       // Invalidate symbols cache because mapping might have changed
       isFetched.value.symbolsList = false;
@@ -363,7 +377,10 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     actionLoading.value = true;
 
     const successHandler = (res) => {
-      snackbar.show(res?.message || "Symbol group updated successfully", "success");
+      snackbar.show(
+        res?.message || "Symbol group updated successfully",
+        "success",
+      );
       fetchSymbolGroups({ active_only: false }, true);
     };
 
@@ -375,13 +392,17 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
       actionLoading.value = false;
     };
 
-    return apiRequest(urls.KEYS.PUT, urls.ibCommission.symbolGroupDetail(groupId), {
-      data: payload,
-      isTokenRequired: true,
-      onSuccess: successHandler,
-      onFailure: failureHandler,
-      onFinally: finallyHandler,
-    });
+    return apiRequest(
+      urls.KEYS.PUT,
+      urls.ibCommission.symbolGroupDetail(groupId),
+      {
+        data: payload,
+        isTokenRequired: true,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+        onFinally: finallyHandler,
+      },
+    );
   };
 
   const deleteSymbolGroup = (groupId) => {
@@ -389,7 +410,10 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     actionLoading.value = true;
 
     const successHandler = (res) => {
-      snackbar.show(res?.message || "Symbol group deleted successfully", "success");
+      snackbar.show(
+        res?.message || "Symbol group deleted successfully",
+        "success",
+      );
       fetchSymbolGroups({ active_only: false }, true);
       isFetched.value.symbolsList = false;
     };
@@ -402,12 +426,16 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
       actionLoading.value = false;
     };
 
-    return apiRequest(urls.KEYS.DELETE, urls.ibCommission.symbolGroupDetail(groupId), {
-      isTokenRequired: true,
-      onSuccess: successHandler,
-      onFailure: failureHandler,
-      onFinally: finallyHandler,
-    });
+    return apiRequest(
+      urls.KEYS.DELETE,
+      urls.ibCommission.symbolGroupDetail(groupId),
+      {
+        isTokenRequired: true,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+        onFinally: finallyHandler,
+      },
+    );
   };
 
   // ─── 10. Symbol Group Members Actions ──────────────────
@@ -432,12 +460,16 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
       loading.value = false;
     };
 
-    return apiRequest(urls.KEYS.GET, urls.ibCommission.symbolGroupMembers(groupId), {
-      isTokenRequired: true,
-      onSuccess: successHandler,
-      onFailure: failureHandler,
-      onFinally: finallyHandler,
-    });
+    return apiRequest(
+      urls.KEYS.GET,
+      urls.ibCommission.symbolGroupMembers(groupId),
+      {
+        isTokenRequired: true,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+        onFinally: finallyHandler,
+      },
+    );
   };
 
   const assignSymbolsToGroup = (groupId, payload) => {
@@ -448,7 +480,13 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
       snackbar.show(res?.message || "Symbols assigned successfully", "success");
       fetchSymbolGroupMembers(groupId, true);
       fetchSymbolGroups({ active_only: false }, true);
-      fetchSymbols({ page: symbolsPagination.value.page, per_page: symbolsPagination.value.per_page }, true);
+      fetchSymbols(
+        {
+          page: symbolsPagination.value.page,
+          per_page: symbolsPagination.value.per_page,
+        },
+        true,
+      );
     };
 
     const failureHandler = (err) => {
@@ -459,22 +497,35 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
       actionLoading.value = false;
     };
 
-    return apiRequest(urls.KEYS.POST, urls.ibCommission.symbolGroupMembers(groupId), {
-      data: payload,
-      isTokenRequired: true,
-      onSuccess: successHandler,
-      onFailure: failureHandler,
-      onFinally: finallyHandler,
-    });
+    return apiRequest(
+      urls.KEYS.POST,
+      urls.ibCommission.symbolGroupMembers(groupId),
+      {
+        data: payload,
+        isTokenRequired: true,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+        onFinally: finallyHandler,
+      },
+    );
   };
 
   const unassignSymbols = (payload) => {
     actionLoading.value = true;
 
     const successHandler = (res) => {
-      snackbar.show(res?.message || "Symbols unassigned successfully", "success");
+      snackbar.show(
+        res?.message || "Symbols unassigned successfully",
+        "success",
+      );
       fetchSymbolGroups({ active_only: false }, true);
-      fetchSymbols({ page: symbolsPagination.value.page, per_page: symbolsPagination.value.per_page }, true);
+      fetchSymbols(
+        {
+          page: symbolsPagination.value.page,
+          per_page: symbolsPagination.value.per_page,
+        },
+        true,
+      );
       if (activeSymbolGroup.value?.id) {
         fetchSymbolGroupMembers(activeSymbolGroup.value.id, true);
       }
@@ -504,7 +555,7 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
       !params.q &&
       !params.unmapped_only &&
       (!params.page || params.page === 1) &&
-      (!params.per_page || params.per_page === 50);
+      (!params.per_page || params.per_page === 10);
     if (isFetched.value.symbolsList && !force && isDefault) return;
 
     inFlight.symbolsList = true;
@@ -512,16 +563,20 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
 
     const queryParams = {
       q: params.q || undefined,
-      unmapped_only: params.unmapped_only !== undefined ? params.unmapped_only : false,
+      unmapped_only:
+        params.unmapped_only !== undefined ? params.unmapped_only : false,
       page: params.page || 1,
-      per_page: params.per_page || 50,
+      per_page: params.per_page || 10,
     };
 
     const successHandler = (res) => {
       if (res?.data?.items) {
         const page = res.data.page || queryParams.page;
         const per_page = res.data.per_page || queryParams.per_page;
-        const total = res.data.total !== undefined ? res.data.total : symbolsList.value.length;
+        const total =
+          res.data.total !== undefined
+            ? res.data.total
+            : symbolsList.value.length;
         const pages = Math.max(1, Math.ceil(total / per_page));
 
         symbolsList.value = Array.isArray(res.data.items) ? res.data.items : [];
@@ -547,7 +602,7 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
         symbolsList.value = [];
         symbolsPagination.value = {
           page: 1,
-          per_page: 50,
+          per_page: 10,
           total_items: 0,
           total_pages: 1,
           total: 0,
@@ -611,7 +666,10 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     actionLoading.value = true;
 
     const successHandler = (res) => {
-      snackbar.show(res?.message || "Deals sync triggered successfully", "success");
+      snackbar.show(
+        res?.message || "Deals sync triggered successfully",
+        "success",
+      );
       fetchSyncStatus(true);
     };
 
@@ -635,9 +693,15 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     actionLoading.value = true;
 
     const successHandler = (res) => {
-      snackbar.show(res?.message || "Symbols sync triggered successfully", "success");
+      snackbar.show(
+        res?.message || "Symbols sync triggered successfully",
+        "success",
+      );
       fetchSyncStatus(true);
-      fetchSymbols({ page: 1, per_page: symbolsPagination.value.per_page }, true);
+      fetchSymbols(
+        { page: 1, per_page: symbolsPagination.value.per_page },
+        true,
+      );
     };
 
     const failureHandler = (err) => {
@@ -670,7 +734,10 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     };
 
     const failureHandler = (err) => {
-      snackbar.show(err?.message || "Failed to fetch commission workflow settings", "error");
+      snackbar.show(
+        err?.message || "Failed to fetch commission workflow settings",
+        "error",
+      );
     };
 
     const finallyHandler = () => {
@@ -696,12 +763,15 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
           (isAuto
             ? "Workflow updated: Auto wallet credit enabled (no pending approval required)"
             : "Workflow updated: Commissions will require admin approval before crediting wallet"),
-        "success"
+        "success",
       );
     };
 
     const failureHandler = (err) => {
-      snackbar.show(err?.message || "Failed to update workflow settings", "error");
+      snackbar.show(
+        err?.message || "Failed to update workflow settings",
+        "error",
+      );
     };
 
     const finallyHandler = () => {
@@ -728,7 +798,7 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
       !params.date_from &&
       !params.date_to &&
       (!params.page || params.page === 1) &&
-      (!params.per_page || params.per_page === 50);
+      (!params.per_page || params.per_page === 10);
 
     if (isFetched.value.tradesList && !force && isDefault) return;
 
@@ -744,14 +814,15 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
       date_to: params.date_to || undefined,
       date_field: params.date_field || "close_time",
       page: params.page || 1,
-      per_page: params.per_page || 50,
+      per_page: params.per_page || 10,
     };
 
     const successHandler = (res) => {
       if (res?.data?.items) {
         const page = res.data.page || queryParams.page;
         const per_page = res.data.per_page || queryParams.per_page;
-        const total = res.data.total !== undefined ? res.data.total : res.data.items.length;
+        const total =
+          res.data.total !== undefined ? res.data.total : res.data.items.length;
         const pages = Math.max(1, Math.ceil(total / per_page));
 
         tradesList.value = Array.isArray(res.data.items) ? res.data.items : [];
@@ -777,7 +848,7 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
         tradesList.value = [];
         tradesPagination.value = {
           page: 1,
-          per_page: 50,
+          per_page: 10,
           total_items: 0,
           total_pages: 1,
           total: 0,
@@ -815,9 +886,15 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
       snackbar.show(
         res?.message ||
           `Trades rebuilt: ${d.positions ?? 0} positions, ${d.upserted ?? 0} upserted, ${d.closed ?? 0} closed.`,
-        "success"
+        "success",
       );
-      fetchTrades({ page: tradesPagination.value.page, per_page: tradesPagination.value.per_page }, true);
+      fetchTrades(
+        {
+          page: tradesPagination.value.page,
+          per_page: tradesPagination.value.per_page,
+        },
+        true,
+      );
     };
 
     const failureHandler = (err) => {
@@ -849,7 +926,7 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
       !params.date_from &&
       !params.date_to &&
       (!params.page || params.page === 1) &&
-      (!params.per_page || params.per_page === 50);
+      (!params.per_page || params.per_page === 10);
 
     if (isFetched.value.commissionsList && !force && isDefault) return;
 
@@ -867,17 +944,20 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
       date_to: params.date_to || undefined,
       date_field: params.date_field || "created_at",
       page: params.page || 1,
-      per_page: params.per_page || 50,
+      per_page: params.per_page || 10,
     };
 
     const successHandler = (res) => {
       if (res?.data?.items) {
         const page = res.data.page || queryParams.page;
         const per_page = res.data.per_page || queryParams.per_page;
-        const total = res.data.total !== undefined ? res.data.total : res.data.items.length;
+        const total =
+          res.data.total !== undefined ? res.data.total : res.data.items.length;
         const pages = Math.max(1, Math.ceil(total / per_page));
 
-        commissionsList.value = Array.isArray(res.data.items) ? res.data.items : [];
+        commissionsList.value = Array.isArray(res.data.items)
+          ? res.data.items
+          : [];
         commissionsPagination.value = {
           page,
           per_page,
@@ -900,7 +980,7 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
         commissionsList.value = [];
         commissionsPagination.value = {
           page: 1,
-          per_page: 50,
+          per_page: 10,
           total_items: 0,
           total_pages: 1,
           total: 0,
@@ -930,7 +1010,9 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     });
   };
 
-  const calculateCommissions = (payload = { limit: 500, login: null, reclaim_skipped: true }) => {
+  const calculateCommissions = (
+    payload = { limit: 100, login: null, reclaim_skipped: true },
+  ) => {
     actionLoading.value = true;
 
     const successHandler = (res) => {
@@ -939,17 +1021,29 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
         snackbar.show(
           res?.message ||
             `Calculated ${d.trades_processed ?? 0} trades. ${d.auto_wallet_credited ?? 0} commissions credited directly to IB wallet!`,
-          "success"
+          "success",
         );
       } else {
         snackbar.show(
           res?.message ||
             `Calculated ${d.trades_processed ?? 0} trades. ${d.pending_entries ?? 0} pending commissions created awaiting admin approval.`,
-          "success"
+          "success",
         );
       }
-      fetchCommissions({ page: commissionsPagination.value.page, per_page: commissionsPagination.value.per_page }, true);
-      fetchTrades({ page: tradesPagination.value.page, per_page: tradesPagination.value.per_page }, true);
+      fetchCommissions(
+        {
+          page: commissionsPagination.value.page,
+          per_page: commissionsPagination.value.per_page,
+        },
+        true,
+      );
+      fetchTrades(
+        {
+          page: tradesPagination.value.page,
+          per_page: tradesPagination.value.per_page,
+        },
+        true,
+      );
     };
 
     const failureHandler = (err) => {
@@ -974,12 +1068,25 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     actionLoading.value = true;
 
     const successHandler = (res) => {
-      snackbar.show(res?.message || `Commission #${id} approved and wallet credited successfully.`, "success");
-      fetchCommissions({ page: commissionsPagination.value.page, per_page: commissionsPagination.value.per_page }, true);
+      snackbar.show(
+        res?.message ||
+          `Commission #${id} approved and wallet credited successfully.`,
+        "success",
+      );
+      fetchCommissions(
+        {
+          page: commissionsPagination.value.page,
+          per_page: commissionsPagination.value.per_page,
+        },
+        true,
+      );
     };
 
     const failureHandler = (err) => {
-      snackbar.show(err?.message || `Failed to approve commission #${id}`, "error");
+      snackbar.show(
+        err?.message || `Failed to approve commission #${id}`,
+        "error",
+      );
     };
 
     const finallyHandler = () => {
@@ -999,12 +1106,24 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     actionLoading.value = true;
 
     const successHandler = (res) => {
-      snackbar.show(res?.message || `Commission #${id} rejected successfully.`, "success");
-      fetchCommissions({ page: commissionsPagination.value.page, per_page: commissionsPagination.value.per_page }, true);
+      snackbar.show(
+        res?.message || `Commission #${id} rejected successfully.`,
+        "success",
+      );
+      fetchCommissions(
+        {
+          page: commissionsPagination.value.page,
+          per_page: commissionsPagination.value.per_page,
+        },
+        true,
+      );
     };
 
     const failureHandler = (err) => {
-      snackbar.show(err?.message || `Failed to reject commission #${id}`, "error");
+      snackbar.show(
+        err?.message || `Failed to reject commission #${id}`,
+        "error",
+      );
     };
 
     const finallyHandler = () => {
@@ -1030,26 +1149,39 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
       snackbar.show(
         res?.message ||
           `Bulk approval complete: ${appCount} approved successfully${failCount > 0 ? `, ${failCount} failed` : ""}.`,
-        "success"
+        "success",
       );
-      fetchCommissions({ page: commissionsPagination.value.page, per_page: commissionsPagination.value.per_page }, true);
+      fetchCommissions(
+        {
+          page: commissionsPagination.value.page,
+          per_page: commissionsPagination.value.per_page,
+        },
+        true,
+      );
     };
 
     const failureHandler = (err) => {
-      snackbar.show(err?.message || "Failed to bulk approve commissions", "error");
+      snackbar.show(
+        err?.message || "Failed to bulk approve commissions",
+        "error",
+      );
     };
 
     const finallyHandler = () => {
       actionLoading.value = false;
     };
 
-    return apiRequest(urls.KEYS.POST, urls.ibCommission.bulkApproveCommissions, {
-      data: { ids },
-      isTokenRequired: true,
-      onSuccess: successHandler,
-      onFailure: failureHandler,
-      onFinally: finallyHandler,
-    });
+    return apiRequest(
+      urls.KEYS.POST,
+      urls.ibCommission.bulkApproveCommissions,
+      {
+        data: { ids },
+        isTokenRequired: true,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+        onFinally: finallyHandler,
+      },
+    );
   };
 
   // ─── 16. Master Payout Settings Actions ────────────────
@@ -1068,7 +1200,10 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
 
     const failureHandler = (err) => {
       error.value = err?.message || "Failed to fetch master payout summary";
-      snackbar.show(err?.message || "Failed to fetch master payout summary", "error");
+      snackbar.show(
+        err?.message || "Failed to fetch master payout summary",
+        "error",
+      );
     };
 
     const finallyHandler = () => {
@@ -1088,7 +1223,8 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     actionLoading.value = true;
 
     const successHandler = (res) => {
-      const msg = res?.message || "Payout settings applied to all IBs successfully";
+      const msg =
+        res?.message || "Payout settings applied to all IBs successfully";
       snackbar.show(msg, "success");
       fetchMasterPayoutSummary(true);
       if (currentIbPayoutSettings.value?.ib_id) {
@@ -1097,7 +1233,10 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     };
 
     const failureHandler = (err) => {
-      snackbar.show(err?.message || "Failed to apply payout settings to all IBs", "error");
+      snackbar.show(
+        err?.message || "Failed to apply payout settings to all IBs",
+        "error",
+      );
     };
 
     const finallyHandler = () => {
@@ -1128,8 +1267,12 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     };
 
     const failureHandler = (err) => {
-      error.value = err?.message || `Failed to fetch payout settings for IB #${ibId}`;
-      snackbar.show(err?.message || `Failed to fetch payout settings for IB #${ibId}`, "error");
+      error.value =
+        err?.message || `Failed to fetch payout settings for IB #${ibId}`;
+      snackbar.show(
+        err?.message || `Failed to fetch payout settings for IB #${ibId}`,
+        "error",
+      );
     };
 
     const finallyHandler = () => {
@@ -1151,12 +1294,18 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
 
     const successHandler = (res) => {
       currentIbPayoutSettings.value = res?.data || null;
-      snackbar.show(res?.message || `Payout settings saved for IB #${ibId}`, "success");
+      snackbar.show(
+        res?.message || `Payout settings saved for IB #${ibId}`,
+        "success",
+      );
       fetchMasterPayoutSummary(true);
     };
 
     const failureHandler = (err) => {
-      snackbar.show(err?.message || `Failed to save payout settings for IB #${ibId}`, "error");
+      snackbar.show(
+        err?.message || `Failed to save payout settings for IB #${ibId}`,
+        "error",
+      );
     };
 
     const finallyHandler = () => {
@@ -1181,7 +1330,7 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
       !params.period_key &&
       !params.status &&
       (!params.page || params.page === 1) &&
-      (!params.per_page || params.per_page === 50);
+      (!params.per_page || params.per_page === 10);
 
     if (isFetched.value.settlementBatches && !force && isDefault) return;
 
@@ -1194,17 +1343,20 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
       period_key: params.period_key || undefined,
       status: params.status || undefined,
       page: params.page || 1,
-      per_page: params.per_page || 50,
+      per_page: params.per_page || 10,
     };
 
     const successHandler = (res) => {
       if (res?.data?.items) {
         const page = res.data.page || queryParams.page;
         const per_page = res.data.per_page || queryParams.per_page;
-        const total = res.data.total !== undefined ? res.data.total : res.data.items.length;
+        const total =
+          res.data.total !== undefined ? res.data.total : res.data.items.length;
         const pages = Math.max(1, Math.ceil(total / per_page));
 
-        settlementBatches.value = Array.isArray(res.data.items) ? res.data.items : [];
+        settlementBatches.value = Array.isArray(res.data.items)
+          ? res.data.items
+          : [];
         settlementPagination.value = {
           page,
           per_page,
@@ -1227,7 +1379,7 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
         settlementBatches.value = [];
         settlementPagination.value = {
           page: 1,
-          per_page: 50,
+          per_page: 10,
           total_items: 0,
           total_pages: 1,
           total: 0,
@@ -1240,7 +1392,10 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     };
 
     const failureHandler = (err) => {
-      snackbar.show(err?.message || "Failed to fetch settlement batches", "error");
+      snackbar.show(
+        err?.message || "Failed to fetch settlement batches",
+        "error",
+      );
     };
 
     const finallyHandler = () => {
@@ -1264,11 +1419,31 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
       const successHandler = (res) => {
         const isDryRun = !!payload.dry_run;
         if (isDryRun) {
-          snackbar.show(res?.message || "Settlement dry-run completed successfully (preview only).", "info");
+          snackbar.show(
+            res?.message ||
+              "Settlement dry-run completed successfully (preview only).",
+            "info",
+          );
         } else {
-          snackbar.show(res?.message || "Settlement executed and wallet credited successfully!", "success");
-          fetchSettlements({ page: settlementPagination.value.page, per_page: settlementPagination.value.per_page }, true);
-          fetchCommissions({ page: commissionsPagination.value.page, per_page: commissionsPagination.value.per_page }, true);
+          snackbar.show(
+            res?.message ||
+              "Settlement executed and wallet credited successfully!",
+            "success",
+          );
+          fetchSettlements(
+            {
+              page: settlementPagination.value.page,
+              per_page: settlementPagination.value.per_page,
+            },
+            true,
+          );
+          fetchCommissions(
+            {
+              page: commissionsPagination.value.page,
+              per_page: commissionsPagination.value.per_page,
+            },
+            true,
+          );
         }
         resolve(res);
       };
@@ -1307,7 +1482,8 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
         }
         const options = list.map((ib) => {
           const id = ib.ib_id || ib.id || ib.user_id;
-          const name = ib.ib_name || ib.name || ib.label_name || ib.email || `IB #${id}`;
+          const name =
+            ib.ib_name || ib.name || ib.label_name || ib.email || `IB #${id}`;
           const email = ib.email || ib.ib_email || "";
           return {
             label: email ? `${name} (${email})` : `${name} (ID: ${id})`,
@@ -1357,9 +1533,12 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
       demoWalletsList.value = data?.items || (Array.isArray(data) ? data : []);
       demoWalletsPagination.value = {
         page: data?.page || params.page || 1,
-        per_page: data?.per_page || params.per_page || 50,
+        per_page: data?.per_page || params.per_page || 10,
         total_items: data?.total || demoWalletsList.value.length,
-        total_pages: data?.pages || Math.ceil((data?.total || 1) / (data?.per_page || 50)) || 1,
+        total_pages:
+          data?.pages ||
+          Math.ceil((data?.total || 1) / (data?.per_page || 10)) ||
+          1,
         total: data?.total || demoWalletsList.value.length,
         pages: data?.pages || 1,
       };
@@ -1396,7 +1575,10 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     };
 
     const failureHandler = (err) => {
-      snackbar.show(err?.message || "Failed to load demo wallet details", "error");
+      snackbar.show(
+        err?.message || "Failed to load demo wallet details",
+        "error",
+      );
     };
 
     const finallyHandler = () => {
@@ -1421,19 +1603,26 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     };
 
     const failureHandler = (err) => {
-      snackbar.show(err?.message || "Failed to load demo wallet details", "error");
+      snackbar.show(
+        err?.message || "Failed to load demo wallet details",
+        "error",
+      );
     };
 
     const finallyHandler = () => {
       actionLoading.value = false;
     };
 
-    return apiRequest(urls.KEYS.GET, urls.ibCommission.demoWalletByUser(userId), {
-      isTokenRequired: true,
-      onSuccess: successHandler,
-      onFailure: failureHandler,
-      onFinally: finallyHandler,
-    });
+    return apiRequest(
+      urls.KEYS.GET,
+      urls.ibCommission.demoWalletByUser(userId),
+      {
+        isTokenRequired: true,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+        onFinally: finallyHandler,
+      },
+    );
   };
 
   // ─── 23. Fetch Demo Wallet Transactions ────────────────
@@ -1447,12 +1636,16 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
 
     const successHandler = (res) => {
       const data = res?.data;
-      demoTransactionsList.value = data?.items || (Array.isArray(data) ? data : []);
+      demoTransactionsList.value =
+        data?.items || (Array.isArray(data) ? data : []);
       demoTransactionsPagination.value = {
         page: data?.page || params.page || 1,
-        per_page: data?.per_page || params.per_page || 50,
+        per_page: data?.per_page || params.per_page || 10,
         total_items: data?.total || demoTransactionsList.value.length,
-        total_pages: data?.pages || Math.ceil((data?.total || 1) / (data?.per_page || 50)) || 1,
+        total_pages:
+          data?.pages ||
+          Math.ceil((data?.total || 1) / (data?.per_page || 10)) ||
+          1,
         total: data?.total || demoTransactionsList.value.length,
         pages: data?.pages || 1,
       };
@@ -1461,7 +1654,10 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
 
     const failureHandler = (err) => {
       error.value = err?.message || "Failed to load demo transactions";
-      snackbar.show(err?.message || "Failed to load demo transactions", "error");
+      snackbar.show(
+        err?.message || "Failed to load demo transactions",
+        "error",
+      );
     };
 
     const finallyHandler = () => {
