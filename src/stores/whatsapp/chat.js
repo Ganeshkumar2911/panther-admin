@@ -44,6 +44,100 @@ export const formatMessageDate = (time) => {
   }
 }
 
+export const isMessageIncoming = (m, raw = {}) => {
+  if (!m && !raw) return false
+
+  // 1. Explicit boolean flag if present
+  if (typeof m.isIncoming === 'boolean') return m.isIncoming
+  if (typeof raw.isIncoming === 'boolean') return raw.isIncoming
+  if (typeof m.from_customer === 'boolean') return m.from_customer
+  if (typeof raw.from_customer === 'boolean') return raw.from_customer
+
+  const originType = String(
+    m.messageOriginType ||
+    m.originType ||
+    m.message_origin_type ||
+    raw.messageOriginType ||
+    raw.originType ||
+    ''
+  ).trim().toUpperCase()
+
+  const direction = String(
+    m.direction ||
+    m.messageDirection ||
+    raw.direction ||
+    ''
+  ).trim().toLowerCase()
+
+  const senderType = String(
+    m.senderType ||
+    m.sender_type ||
+    raw.senderType ||
+    ''
+  ).trim().toLowerCase()
+
+  const senderId = String(
+    m.senderId ||
+    m.sender_id ||
+    raw.senderId ||
+    ''
+  ).trim()
+
+  const hasSenderUser = Boolean(
+    (m.senderUser && typeof m.senderUser === 'object' && m.senderUser.id) ||
+    (raw.senderUser && typeof raw.senderUser === 'object' && raw.senderUser.id)
+  )
+
+  // 2. Customer / Inbound checks:
+  if (
+    originType === 'CUSTOMER' ||
+    originType === 'CLIENT' ||
+    senderType === 'customer' ||
+    senderType === 'client' ||
+    direction === 'inbound' ||
+    direction === 'incoming' ||
+    direction === 'in'
+  ) {
+    return true
+  }
+
+  // 3. Business / Outbound checks:
+  if (
+    originType === 'USER' ||
+    originType === 'BUSINESS' ||
+    originType === 'BOT' ||
+    originType === 'ADMIN' ||
+    originType === 'AGENT' ||
+    senderType === 'user' ||
+    senderType === 'agent' ||
+    senderType === 'bot' ||
+    senderType === 'admin' ||
+    direction === 'outbound' ||
+    direction === 'outgoing' ||
+    direction === 'out' ||
+    hasSenderUser ||
+    senderId.startsWith('user_')
+  ) {
+    return false
+  }
+
+  // 4. Fallbacks
+  if (senderId.startsWith('customer_')) {
+    return true
+  }
+
+  const sentCount = Number(m.sentCount ?? raw.sentCount ?? 0)
+  if (sentCount > 0) {
+    return false
+  }
+
+  if (m.receivedAt || raw.receivedAt) {
+    return true
+  }
+
+  return false
+}
+
 export const normalizeMessage = (raw, dtCustId = null, currentPhone = '') => {
   if (!raw) return null
 
@@ -68,102 +162,28 @@ export const normalizeMessage = (raw, dtCustId = null, currentPhone = '') => {
     m = m.message
   }
 
-  const originType = String(
-    m.messageOriginType ||
-    m.originType ||
-    m.message_origin_type ||
-    m.origin_type ||
-    m.origin ||
-    m.message?.messageOriginType ||
-    m.message?.originType ||
-    m.message?.message_origin_type ||
-    raw.messageOriginType ||
-    raw.originType ||
-    raw.message_origin_type ||
-    ''
-  ).trim().toUpperCase()
+  const isIncoming = isMessageIncoming(m, raw)
+
+  const originType = isIncoming
+    ? 'CUSTOMER'
+    : String(
+        m.messageOriginType ||
+        m.originType ||
+        raw.messageOriginType ||
+        raw.originType ||
+        'USER'
+      ).trim().toUpperCase()
 
   const senderId = String(
     m.senderId ||
     m.sender_id ||
     m.sender ||
     m.from ||
-    m.dtCustomerId ||
-    m.customerPhone ||
     m.senderUser?.id ||
-    m.message?.senderId ||
-    m.message?.sender_id ||
     raw.senderId ||
     raw.sender_id ||
-    raw.dtCustomerId ||
-    raw.customerPhone ||
     ''
   ).trim()
-
-  const direction = String(
-    m.direction ||
-    m.messageDirection ||
-    m.message_direction ||
-    raw.direction ||
-    ''
-  ).trim().toLowerCase()
-
-  const senderType = String(
-    m.senderType ||
-    m.sender_type ||
-    m.sender?.type ||
-    raw.senderType ||
-    ''
-  ).trim().toLowerCase()
-
-  // 1. Definite business / bot checks:
-  const isBusinessUser =
-    originType === 'USER' ||
-    originType === 'BUSINESS' ||
-    originType === 'BOT' ||
-    originType === 'ADMIN' ||
-    originType === 'AGENT' ||
-    senderId.startsWith('user_') ||
-    senderType === 'user' ||
-    senderType === 'agent' ||
-    senderType === 'bot' ||
-    direction === 'outbound' ||
-    direction === 'outgoing' ||
-    direction === 'out' ||
-    (m.senderUser?.id && String(m.senderUser.id).startsWith('user_')) ||
-    (raw.senderUser?.id && String(raw.senderUser.id).startsWith('user_'))
-
-  // 2. Definite customer / incoming checks (covers both API and WebSocket formats):
-  const isCustomerExplicit =
-    originType === 'CUSTOMER' ||
-    originType === 'CLIENT' ||
-    originType === 'INCOMING' ||
-    originType === 'INBOUND' ||
-    senderId.startsWith('customer_') ||
-    senderType === 'customer' ||
-    senderType === 'client' ||
-    direction === 'inbound' ||
-    direction === 'incoming' ||
-    direction === 'in' ||
-    m.isIncoming === true ||
-    raw.isIncoming === true ||
-    m.from_customer === true ||
-    raw.from_customer === true ||
-    !!m.receivedAt ||
-    !!raw.receivedAt ||
-    !!m.customerPhone ||
-    !!raw.customerPhone ||
-    !!m.customerName ||
-    !!raw.customerName ||
-    (dtCustId && (senderId === dtCustId || m.dtCustomerId === dtCustId || raw.dtCustomerId === dtCustId)) ||
-    (currentPhone && cleanPhoneNumber(senderId || m.customerPhone || raw.customerPhone) === cleanPhoneNumber(currentPhone))
-
-  // Final boolean: Customer explicit takes absolute precedence over everything else
-  const isIncoming = isCustomerExplicit
-    ? true
-    : isBusinessUser
-      ? false
-      : (m.sentCount === 0 && !m.senderUser?.id)
 
   // Extract text content cleanly across all message types (text, template, interactive, button, system)
   let textContent = ''
@@ -204,14 +224,23 @@ export const normalizeMessage = (raw, dtCustId = null, currentPhone = '') => {
     if (!isNaN(t)) msgTime = t
   }
 
-  const messageId = m.dtMessageId || raw.dtMessageId || m.id || m.messageId || raw.id || `msg_${Date.now()}_${Math.random()}`
+  const messageId =
+    m.messageId ||
+    m.dtMessageId ||
+    raw.messageId ||
+    raw.dtMessageId ||
+    m.id ||
+    raw.id ||
+    `msg_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`
 
   return {
     id: messageId,
     isIncoming: isIncoming,
-    originType: isIncoming ? 'CUSTOMER' : (originType || 'USER'),
+    originType: originType,
     senderId: senderId,
-    senderName: m.customerName || raw.customerName || m.senderUser?.name || raw.senderUser?.name || '',
+    senderName: isIncoming
+      ? (m.customerName || raw.customerName || 'Client')
+      : (m.senderUser?.name || raw.senderUser?.name || 'Panther Capitals'),
     text: textContent,
     mediaUrl: m.mediaUrl || raw.mediaUrl || m.media_url || raw.media_url || null,
     messageType: m.type || m.message?.messageType || m.messageType || raw.type || raw.messageType || 'text',
@@ -361,8 +390,9 @@ export const useWhatsAppChatStore = defineStore('whatsappChat', () => {
         skipAdminPrefix: true,
         onSuccess: (res) => {
           sending.value = false
-          if (res?.id || res?.data?.id) {
-            tempMsg.id = res?.id || res?.data?.id
+          const realId = res?.messageId || res?.id || res?.data?.messageId || res?.data?.id || res?.dtMessageId
+          if (realId) {
+            tempMsg.id = realId
           }
           resolve(res)
         },
@@ -378,16 +408,46 @@ export const useWhatsAppChatStore = defineStore('whatsappChat', () => {
     })
   }
 
-  const sendTemplate = ({ phoneNumber, templateName, placeholders = [], optimisticText = '' }) => {
+  const sendTemplate = (options = {}) => {
+    let phoneNumber = ''
+    let templateName = ''
+    let placeholders = []
+    let optimisticText = ''
+
+    if (typeof options === 'string') {
+      phoneNumber = options
+      templateName = arguments[1] || ''
+      placeholders = arguments[2] || []
+      optimisticText = arguments[3] || ''
+    } else if (typeof options === 'object' && options !== null) {
+      phoneNumber =
+        options.phoneNumber ||
+        options.phone_number ||
+        options.to ||
+        options.phone ||
+        options.cleanPhone ||
+        currentPhoneNumber.value
+      templateName =
+        options.templateName ||
+        options.template_name ||
+        options.name ||
+        options.template ||
+        ''
+      placeholders = options.placeholders || options.variables || []
+      optimisticText = options.optimisticText || options.optimistic_text || options.text || ''
+    }
+
     const rawNumber = phoneNumber || currentPhoneNumber.value
     const digitsOnly = cleanPhoneNumber(rawNumber)
     if (!digitsOnly || !templateName?.trim()) {
-      return Promise.reject(new Error('Phone number and template name required'))
+      const errMsg = 'Phone number and template name required'
+      snackbar.show(errMsg, 'error')
+      return Promise.reject(new Error(errMsg))
     }
 
     const formattedTo = `+${digitsOnly.replace(/^\+/, '')}`
     const tempMsg = {
-      id: `temp_${Date.now()}`,
+      id: `temp_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
       isIncoming: false,
       originType: 'BUSINESS',
       text: optimisticText || `[Template: ${templateName}]`,
@@ -420,9 +480,12 @@ export const useWhatsAppChatStore = defineStore('whatsappChat', () => {
         skipAdminPrefix: true, // Direct /whatsapp/send/template
         onSuccess: (res) => {
           sending.value = false
-          isSessionOpen.value = true
-          if (res?.id || res?.data?.id) {
-            tempMsg.id = res?.id || res?.data?.id
+          if (res?.isOpen !== undefined) {
+            isSessionOpen.value = !!res.isOpen
+          }
+          const realId = res?.messageId || res?.id || res?.data?.messageId || res?.data?.id || res?.dtMessageId
+          if (realId) {
+            tempMsg.id = realId
           }
           resolve(res)
         },
@@ -438,6 +501,8 @@ export const useWhatsAppChatStore = defineStore('whatsappChat', () => {
     })
   }
 
+  const sendTemplateMessage = sendTemplate
+
   const handleIncomingSocketMessage = (payload) => {
     if (!payload) return
     console.log('[WS WhatsApp Chat] Incoming raw payload:', payload)
@@ -446,13 +511,18 @@ export const useWhatsAppChatStore = defineStore('whatsappChat', () => {
 
     console.log('[WS WhatsApp Chat] Parsed normalized message:', normalized)
 
+    // If an incoming message from the client is received, the 24-hour chat window opens
+    if (normalized.isIncoming) {
+      isSessionOpen.value = true
+    }
+
     // Check if message already exists by id OR matches an optimistic temp message with same text
     const existingIndex = messages.value.findIndex((existing) => {
       if (existing.id === normalized.id) return true
       if (
         !normalized.isIncoming &&
         existing.id?.startsWith('temp_') &&
-        existing.text === normalized.text
+        existing.text?.trim() === normalized.text?.trim()
       ) {
         return true
       }
@@ -492,6 +562,7 @@ export const useWhatsAppChatStore = defineStore('whatsappChat', () => {
     fetchChat,
     sendMessage,
     sendTemplate,
+    sendTemplateMessage,
     handleIncomingSocketMessage,
     resetChat,
   }
