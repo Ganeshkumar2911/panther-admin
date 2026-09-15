@@ -188,7 +188,9 @@ const handleKeydown = (e) => {
 const handleTemplateSent = () => {
   scrollToBottom(true)
   nextTick(() => {
-    inputMessageRef.value?.focus()
+    if (chatStore.isSessionOpen) {
+      inputMessageRef.value?.focus()
+    }
   })
 }
 

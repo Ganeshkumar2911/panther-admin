@@ -223,15 +223,14 @@ const handleSendTemplate = async () => {
 
     await chatStore.sendTemplateMessage({
       template_name: selectedTemplate.value.name,
+      templateName: selectedTemplate.value.name,
+      phoneNumber: cleanPhone.value,
       to: cleanPhone.value,
       placeholders: placeholders,
       optimisticText: fullMessage.trim(),
     })
 
-    // Successfully sent: Open the chat session
-    chatStore.isSessionOpen = true
-
-    snackbar.show('Template message sent! Chat session is now active.', 'success')
+    snackbar.show('Template message sent successfully!', 'success')
     emit('template-sent')
     emit('close')
   } catch (err) {
