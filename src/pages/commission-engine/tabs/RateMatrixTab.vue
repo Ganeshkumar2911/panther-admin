@@ -20,6 +20,7 @@ import {
 import { useCommissionEngineStore } from "@/stores/commissionEngine/commissionEngine";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import BaseSelect from "@/components/common/BaseSelect.vue";
+import LiveBadge from "@/components/LiveBadge.vue";
 
 const store = useCommissionEngineStore();
 const { hasPermission } = usePermissionCheck();
@@ -281,29 +282,20 @@ const handleSave = async () => {
 <template>
   <div class="space-y-5">
     <!-- Top Configuration Header & Method Selector -->
-    <div
-      class="p-5 rounded-2xl bg-card-background border border-primary-border space-y-4"
-    >
+    <div class="glass-card space-y-4">
       <div
         class="flex flex-col lg:flex-row lg:items-center justify-between gap-4"
       >
         <!-- Title & Context -->
         <div class="flex items-center gap-3.5">
           <div>
-            <div class="flex items-center gap-2 flex-wrap">
+            <div class="flex items-center gap-2.5 flex-wrap">
               <h2 class="text-base text-primary-text font-bold tracking-tight">
                 Rate Matrix Configuration
               </h2>
-              <span
-                class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-bold font-mono uppercase tracking-wider"
-              >
-                <span
-                  class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"
-                ></span>
-                CLUSTER LIVE
-              </span>
+              <LiveBadge />
             </div>
-            <p class="text-xs text-secondary-text mt-0.5">
+            <p class="text-xs text-secondary-text mt-1">
               Commission rates per MT5 broker group, affiliate level, and symbol
               group hierarchy
             </p>
@@ -314,31 +306,35 @@ const handleSave = async () => {
         <div class="flex items-center gap-3 flex-wrap">
           <!-- Method Selector Buttons -->
           <div
-            class="inline-flex p-1 rounded-lg bg-background border border-primary-border"
+            class="inline-flex p-1 rounded-xl bg-gray-100/70 dark:bg-background/60 border border-gray-200/80 dark:border-primary-border gap-1 backdrop-blur-xs rounded-lg"
           >
-            <button
+            <Tooltip
               v-for="m in methodOptions"
               :key="m.value"
-              type="button"
-              class="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer"
-              :class="[
-                activeMethod === m.value
-                  ? 'bg-primary text-white  font-bold'
-                  : 'text-secondary-text hover:text-primary-text hover:bg-card-background/60',
-              ]"
-              @click="handleMethodChange(m.value)"
-              :title="m.description"
+              :text="m.description"
+              position="bottom"
             >
-              <span class="font-mono text-[11px] opacity-80">{{
-                m.prefix
-              }}</span>
-              <span>{{ m.label }}</span>
-            </button>
+              <button
+                type="button"
+                class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 cursor-pointer"
+                :class="[
+                  activeMethod === m.value
+                    ? 'bg-gradient-to-r from-primary to-primary-hover text-white font-bold '
+                    : 'text-secondary-text hover:text-primary-text hover:bg-gradient-to-r hover:from-white hover:to-gray-100/80 dark:hover:from-slate-800 dark:hover:to-slate-700/60',
+                ]"
+                @click="handleMethodChange(m.value)"
+              >
+                <span class="font-mono text-[11px] opacity-85">{{
+                  m.prefix
+                }}</span>
+                <span>{{ m.label }}</span>
+              </button>
+            </Tooltip>
           </div>
 
           <!-- Mode indicator Pill -->
           <div
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-background border border-primary-border text-xs font-mono font-medium text-secondary-text"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-100/70 dark:bg-background/60 border border-gray-200/80 dark:border-primary-border text-xs font-mono font-medium text-secondary-text rounded-lg"
           >
             <HugeIcon
               :icon="SlidersHorizontalIcon"
@@ -566,7 +562,7 @@ const handleSave = async () => {
       <!-- Active Tab Card Container -->
       <div
         v-if="activeTab"
-        class="bg-card-background border border-primary-border rounded-xl overflow-hidden shadow-xs"
+        class="bg-card-background border border-primary-border rounded-xl overflow-hidden "
       >
         <!-- Group Tab Meta Summary Bar -->
         <div
@@ -865,7 +861,7 @@ const handleSave = async () => {
               v-if="canManageRates"
               type="button"
               :disabled="store.actionLoading"
-              class="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover text-white text-xs font-bold rounded-lg transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto justify-center shadow-xs"
+              class="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover text-white text-xs font-bold rounded-lg transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto justify-center "
               @click="handleSave"
             >
               <HugeIcon

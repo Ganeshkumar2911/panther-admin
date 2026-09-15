@@ -89,6 +89,13 @@ export const navClusters = [
     icon: Calculator,
     children: [
       {
+        label: "Approvals",
+        to: "/commission-engine/approvals",
+        icon: ShieldCheck,
+        permission: ["ib_commission.view", "ib_commission.approve"],
+        keywords: ["approvals", "draft workflow", "period approval", "batch", "ib commissions"],
+      },
+      {
         label: "Commissions",
         to: "/commission-engine/commissions",
         icon: Coins,

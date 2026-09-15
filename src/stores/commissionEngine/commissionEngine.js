@@ -102,6 +102,19 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     pages: 1,
   });
 
+  // Approvals Workflow State
+  const approvalPeriods = ref({ frequency: "monthly", options: [] });
+  const approvalsSummary = ref(null);
+  const approvalEntriesList = ref([]);
+  const approvalEntriesPagination = ref({
+    page: 1,
+    per_page: 50,
+    total_items: 0,
+    total_pages: 1,
+    total: 0,
+    pages: 1,
+  });
+
   // ─── 2. In-Flight Tracking (Prevents Parallel Duplicate Requests) ─
   const inFlight = {
     referralLinks: false,
@@ -119,6 +132,10 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     demoWallets: false,
     demoTransactions: false,
     demoWalletDetail: false,
+    approvalPeriods: false,
+    approvalsSummary: false,
+    approvalEntries: false,
+    approveIbPeriod: false,
   };
 
   // ─── 3. isFetched Tracking (Prevents Redundant API Calls) ─
@@ -137,6 +154,7 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     settlementBatches: false,
     demoWallets: false,
     demoTransactions: false,
+    approvalsSummary: false,
   });
 
   // ─── 4. Loading & Error Flags ──────────────────────────
@@ -150,6 +168,10 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
   const runSettlementLoading = ref(false);
   const demoWalletsLoading = ref(false);
   const demoTransactionsLoading = ref(false);
+  const approvalsLoading = ref(false);
+  const approvalPeriodsLoading = ref(false);
+  const approvalEntriesLoading = ref(false);
+  const approveIbLoading = ref(false);
   const error = ref(null);
 
   // ─── 5. Reset Helper ──────────────────────────────────
@@ -169,6 +191,7 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
       settlementBatches: false,
       demoWallets: false,
       demoTransactions: false,
+      approvalsSummary: false,
     };
   };
 
@@ -1674,6 +1697,156 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     });
   };
 
+  // ─── 24. Approvals / Draft Commission Workflow Actions ──
+  const fetchApprovalPeriods = (frequency = "monthly", count = 12) => {
+    inFlight.approvalPeriods = true;
+    approvalPeriodsLoading.value = true;
+
+    return new Promise((resolve, reject) => {
+      const successHandler = (res) => {
+        approvalPeriods.value = res?.data || { frequency, options: [] };
+        resolve(approvalPeriods.value);
+      };
+
+      const failureHandler = (err) => {
+        snackbar.show(err?.message || "Failed to load approval periods", "error");
+        reject(err);
+      };
+
+      const finallyHandler = () => {
+        inFlight.approvalPeriods = false;
+        approvalPeriodsLoading.value = false;
+      };
+
+      apiRequest(urls.KEYS.GET, urls.ibCommission.approvalPeriods, {
+        params: { frequency, count },
+        isTokenRequired: true,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+        onFinally: finallyHandler,
+      });
+    });
+  };
+
+  const fetchApprovalsSummary = (params = {}, force = false) => {
+    if (inFlight.approvalsSummary) return;
+    if (isFetched.value.approvalsSummary && !force) return;
+
+    inFlight.approvalsSummary = true;
+    approvalsLoading.value = true;
+    error.value = null;
+
+    const successHandler = (res) => {
+      approvalsSummary.value = res?.data || null;
+      isFetched.value.approvalsSummary = true;
+    };
+
+    const failureHandler = (err) => {
+      error.value = err?.message || "Failed to load commission approvals workflow";
+      snackbar.show(err?.message || "Failed to load commission approvals workflow", "error");
+    };
+
+    const finallyHandler = () => {
+      inFlight.approvalsSummary = false;
+      approvalsLoading.value = false;
+    };
+
+    return apiRequest(urls.KEYS.GET, urls.ibCommission.approvalsSummary, {
+      params,
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+      onFinally: finallyHandler,
+    });
+  };
+
+  const fetchApprovalEntries = (params = {}, force = false) => {
+    inFlight.approvalEntries = true;
+    approvalEntriesLoading.value = true;
+
+    const successHandler = (res) => {
+      const data = res?.data;
+      approvalEntriesList.value = data?.items || (Array.isArray(data) ? data : []);
+      approvalEntriesPagination.value = {
+        page: data?.page || params.page || 1,
+        per_page: data?.per_page || params.per_page || 50,
+        total_items: data?.total || approvalEntriesList.value.length,
+        total_pages: data?.pages || Math.ceil((data?.total || 1) / (data?.per_page || 50)) || 1,
+        total: data?.total || approvalEntriesList.value.length,
+        pages: data?.pages || 1,
+      };
+    };
+
+    const failureHandler = (err) => {
+      snackbar.show(err?.message || "Failed to load IB approval line items", "error");
+    };
+
+    const finallyHandler = () => {
+      inFlight.approvalEntries = false;
+      approvalEntriesLoading.value = false;
+    };
+
+    return apiRequest(urls.KEYS.GET, urls.ibCommission.approvalEntries, {
+      params,
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+      onFinally: finallyHandler,
+    });
+  };
+
+  const approveIbPeriod = (payload = {}) => {
+    inFlight.approveIbPeriod = true;
+    approveIbLoading.value = true;
+    actionLoading.value = true;
+
+    return new Promise((resolve, reject) => {
+      const successHandler = (res) => {
+        const d = res?.data || {};
+        const isDryRun = !!payload.dry_run;
+        if (isDryRun) {
+          snackbar.show(
+            res?.message || `Dry-run preview: ${d.approved_count || 0} entries totaling $${Number(d.total_amount || 0).toFixed(2)} ready for approval to ${d.wallet_target || "main"} wallet.`,
+            "info"
+          );
+        } else {
+          snackbar.show(
+            res?.message || `Approved ${d.approved_count || 0} commissions ($${Number(d.total_amount || 0).toFixed(2)}) credited to ${d.wallet_target || "main"} wallet!`,
+            "success"
+          );
+          // Refresh summary
+          fetchApprovalsSummary(
+            {
+              frequency: payload.frequency,
+              period_key: payload.period_key,
+            },
+            true
+          );
+        }
+        resolve(res);
+      };
+
+      const failureHandler = (err) => {
+        snackbar.show(err?.message || "Failed to approve IB period commissions", "error");
+        reject(err);
+      };
+
+      const finallyHandler = () => {
+        inFlight.approveIbPeriod = false;
+        approveIbLoading.value = false;
+        actionLoading.value = false;
+      };
+
+      apiRequest(urls.KEYS.POST, urls.ibCommission.approveIbPeriod, {
+        data: payload,
+        isTokenRequired: true,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+        onFinally: finallyHandler,
+      });
+    });
+  };
+
   return {
     // State
     referralLinks,
@@ -1702,6 +1875,10 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     selectedDemoWallet,
     demoTransactionsList,
     demoTransactionsPagination,
+    approvalPeriods,
+    approvalsSummary,
+    approvalEntriesList,
+    approvalEntriesPagination,
 
     // Loading & tracking
     inFlight,
@@ -1716,6 +1893,10 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     runSettlementLoading,
     demoWalletsLoading,
     demoTransactionsLoading,
+    approvalsLoading,
+    approvalPeriodsLoading,
+    approvalEntriesLoading,
+    approveIbLoading,
     error,
 
     // Actions
@@ -1754,5 +1935,9 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     fetchDemoWalletByIb,
     fetchDemoWalletByUser,
     fetchDemoTransactions,
+    fetchApprovalPeriods,
+    fetchApprovalsSummary,
+    fetchApprovalEntries,
+    approveIbPeriod,
   };
 });

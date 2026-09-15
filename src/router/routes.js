@@ -704,6 +704,16 @@ const routes = [
         },
       },
       {
+        path: "/commission-engine/approvals",
+        name: "commission-engine-approvals",
+        component: () => import("@/pages/commission-engine/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Draft Commission Workflow",
+          description: "Period-based review and batch approval of pending IB commissions.",
+        },
+      },
+      {
         path: "/commission-engine/commissions",
         name: "commission-engine-commissions",
         component: () => import("@/pages/commission-engine/index.vue"),
