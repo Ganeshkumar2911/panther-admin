@@ -59,6 +59,49 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     pages: 1,
   });
 
+  // Master Payout Summary: { total_ibs, require_approval_count, auto_settlement_count, inactive_settings_count, configured_count, unconfigured_count, master_state, legacy_global_workflow_deprecated }
+  const masterPayoutSummary = ref(null);
+
+  // Per-IB Payout Settings: { ib_id, payout_mode, settlement_frequency, settle_hour, settle_minute, weekly_weekday, monthly_day, is_active, updated_at, updated_by, exists }
+  const currentIbPayoutSettings = ref(null);
+
+  // Settlement Batches: { total, page, per_page, items: [...] }
+  const settlementBatches = ref([]);
+  const settlementPagination = ref({
+    page: 1,
+    per_page: 50,
+    total_items: 0,
+    total_pages: 1,
+    total: 0,
+    pages: 1,
+  });
+
+  // IB Search Options
+  const ibSearchOptions = ref([]);
+
+  // Demo Wallets: { items: [...], total, page, per_page, pages }
+  const demoWalletsList = ref([]);
+  const demoWalletsPagination = ref({
+    page: 1,
+    per_page: 50,
+    total_items: 0,
+    total_pages: 1,
+    total: 0,
+    pages: 1,
+  });
+  const selectedDemoWallet = ref(null);
+
+  // Demo Wallet Transactions: { items: [...], total, page, per_page, pages }
+  const demoTransactionsList = ref([]);
+  const demoTransactionsPagination = ref({
+    page: 1,
+    per_page: 50,
+    total_items: 0,
+    total_pages: 1,
+    total: 0,
+    pages: 1,
+  });
+
   // ─── 2. In-Flight Tracking (Prevents Parallel Duplicate Requests) ─
   const inFlight = {
     referralLinks: false,
@@ -70,6 +113,12 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     workflowSettings: false,
     tradesList: false,
     commissionsList: false,
+    masterPayoutSummary: false,
+    currentIbPayoutSettings: false,
+    settlementBatches: false,
+    demoWallets: false,
+    demoTransactions: false,
+    demoWalletDetail: false,
   };
 
   // ─── 3. isFetched Tracking (Prevents Redundant API Calls) ─
@@ -83,6 +132,11 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     workflowSettings: false,
     tradesList: false,
     commissionsList: false,
+    masterPayoutSummary: false,
+    currentIbPayoutSettings: false,
+    settlementBatches: false,
+    demoWallets: false,
+    demoTransactions: false,
   });
 
   // ─── 4. Loading & Error Flags ──────────────────────────
@@ -91,6 +145,11 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
   const ratesLoading = ref(false);
   const searchLoading = ref(false);
   const syncLoading = ref(false);
+  const settingsLoading = ref(false);
+  const settlementLoading = ref(false);
+  const runSettlementLoading = ref(false);
+  const demoWalletsLoading = ref(false);
+  const demoTransactionsLoading = ref(false);
   const error = ref(null);
 
   // ─── 5. Reset Helper ──────────────────────────────────
@@ -105,6 +164,11 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
       workflowSettings: false,
       tradesList: false,
       commissionsList: false,
+      masterPayoutSummary: false,
+      currentIbPayoutSettings: false,
+      settlementBatches: false,
+      demoWallets: false,
+      demoTransactions: false,
     };
   };
 
@@ -794,6 +858,7 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
 
     const queryParams = {
       status: params.status || undefined,
+      wallet_target: params.wallet_target || undefined,
       ib_id: params.ib_id || undefined,
       login: params.login || undefined,
       trade_id: params.trade_id || undefined,
@@ -987,6 +1052,432 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     });
   };
 
+  // ─── 16. Master Payout Settings Actions ────────────────
+  const fetchMasterPayoutSummary = (force = false) => {
+    if (inFlight.masterPayoutSummary) return;
+    if (isFetched.value.masterPayoutSummary && !force) return;
+
+    inFlight.masterPayoutSummary = true;
+    settingsLoading.value = true;
+    error.value = null;
+
+    const successHandler = (res) => {
+      masterPayoutSummary.value = res?.data || null;
+      isFetched.value.masterPayoutSummary = true;
+    };
+
+    const failureHandler = (err) => {
+      error.value = err?.message || "Failed to fetch master payout summary";
+      snackbar.show(err?.message || "Failed to fetch master payout summary", "error");
+    };
+
+    const finallyHandler = () => {
+      inFlight.masterPayoutSummary = false;
+      settingsLoading.value = false;
+    };
+
+    return apiRequest(urls.KEYS.GET, urls.ibCommission.payoutAllSettings, {
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+      onFinally: finallyHandler,
+    });
+  };
+
+  const applyPayoutToAll = (payload) => {
+    actionLoading.value = true;
+
+    const successHandler = (res) => {
+      const msg = res?.message || "Payout settings applied to all IBs successfully";
+      snackbar.show(msg, "success");
+      fetchMasterPayoutSummary(true);
+      if (currentIbPayoutSettings.value?.ib_id) {
+        fetchIbPayoutSettings(currentIbPayoutSettings.value.ib_id, true);
+      }
+    };
+
+    const failureHandler = (err) => {
+      snackbar.show(err?.message || "Failed to apply payout settings to all IBs", "error");
+    };
+
+    const finallyHandler = () => {
+      actionLoading.value = false;
+    };
+
+    return apiRequest(urls.KEYS.PUT, urls.ibCommission.payoutAllSettings, {
+      data: payload,
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+      onFinally: finallyHandler,
+    });
+  };
+
+  // ─── 17. Single IB Payout Settings Actions ─────────────
+  const fetchIbPayoutSettings = (ibId, force = false) => {
+    if (!ibId) return;
+    if (inFlight.currentIbPayoutSettings) return;
+
+    inFlight.currentIbPayoutSettings = true;
+    settingsLoading.value = true;
+    error.value = null;
+
+    const successHandler = (res) => {
+      currentIbPayoutSettings.value = res?.data || null;
+      isFetched.value.currentIbPayoutSettings = true;
+    };
+
+    const failureHandler = (err) => {
+      error.value = err?.message || `Failed to fetch payout settings for IB #${ibId}`;
+      snackbar.show(err?.message || `Failed to fetch payout settings for IB #${ibId}`, "error");
+    };
+
+    const finallyHandler = () => {
+      inFlight.currentIbPayoutSettings = false;
+      settingsLoading.value = false;
+    };
+
+    return apiRequest(urls.KEYS.GET, urls.ibCommission.ibPayoutSettings(ibId), {
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+      onFinally: finallyHandler,
+    });
+  };
+
+  const saveIbPayoutSettings = (ibId, payload) => {
+    if (!ibId) return;
+    actionLoading.value = true;
+
+    const successHandler = (res) => {
+      currentIbPayoutSettings.value = res?.data || null;
+      snackbar.show(res?.message || `Payout settings saved for IB #${ibId}`, "success");
+      fetchMasterPayoutSummary(true);
+    };
+
+    const failureHandler = (err) => {
+      snackbar.show(err?.message || `Failed to save payout settings for IB #${ibId}`, "error");
+    };
+
+    const finallyHandler = () => {
+      actionLoading.value = false;
+    };
+
+    return apiRequest(urls.KEYS.PUT, urls.ibCommission.ibPayoutSettings(ibId), {
+      data: payload,
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+      onFinally: finallyHandler,
+    });
+  };
+
+  // ─── 18. Settlement Batches Actions ────────────────────
+  const fetchSettlements = (params = {}, force = false) => {
+    if (inFlight.settlementBatches) return;
+    const isDefault =
+      !params.ib_id &&
+      !params.period_type &&
+      !params.period_key &&
+      !params.status &&
+      (!params.page || params.page === 1) &&
+      (!params.per_page || params.per_page === 50);
+
+    if (isFetched.value.settlementBatches && !force && isDefault) return;
+
+    inFlight.settlementBatches = true;
+    settlementLoading.value = true;
+
+    const queryParams = {
+      ib_id: params.ib_id || undefined,
+      period_type: params.period_type || undefined,
+      period_key: params.period_key || undefined,
+      status: params.status || undefined,
+      page: params.page || 1,
+      per_page: params.per_page || 50,
+    };
+
+    const successHandler = (res) => {
+      if (res?.data?.items) {
+        const page = res.data.page || queryParams.page;
+        const per_page = res.data.per_page || queryParams.per_page;
+        const total = res.data.total !== undefined ? res.data.total : res.data.items.length;
+        const pages = Math.max(1, Math.ceil(total / per_page));
+
+        settlementBatches.value = Array.isArray(res.data.items) ? res.data.items : [];
+        settlementPagination.value = {
+          page,
+          per_page,
+          total_items: total,
+          total_pages: pages,
+          total,
+          pages,
+        };
+      } else if (Array.isArray(res?.data)) {
+        settlementBatches.value = res.data;
+        settlementPagination.value = {
+          page: 1,
+          per_page: res.data.length,
+          total_items: res.data.length,
+          total_pages: 1,
+          total: res.data.length,
+          pages: 1,
+        };
+      } else {
+        settlementBatches.value = [];
+        settlementPagination.value = {
+          page: 1,
+          per_page: 50,
+          total_items: 0,
+          total_pages: 1,
+          total: 0,
+          pages: 1,
+        };
+      }
+      if (isDefault) {
+        isFetched.value.settlementBatches = true;
+      }
+    };
+
+    const failureHandler = (err) => {
+      snackbar.show(err?.message || "Failed to fetch settlement batches", "error");
+    };
+
+    const finallyHandler = () => {
+      inFlight.settlementBatches = false;
+      settlementLoading.value = false;
+    };
+
+    return apiRequest(urls.KEYS.GET, urls.ibCommission.settlements, {
+      params: queryParams,
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+      onFinally: finallyHandler,
+    });
+  };
+
+  const runSettlement = (payload = {}) => {
+    runSettlementLoading.value = true;
+
+    return new Promise((resolve, reject) => {
+      const successHandler = (res) => {
+        const isDryRun = !!payload.dry_run;
+        if (isDryRun) {
+          snackbar.show(res?.message || "Settlement dry-run completed successfully (preview only).", "info");
+        } else {
+          snackbar.show(res?.message || "Settlement executed and wallet credited successfully!", "success");
+          fetchSettlements({ page: settlementPagination.value.page, per_page: settlementPagination.value.per_page }, true);
+          fetchCommissions({ page: commissionsPagination.value.page, per_page: commissionsPagination.value.per_page }, true);
+        }
+        resolve(res);
+      };
+
+      const failureHandler = (err) => {
+        snackbar.show(err?.message || "Settlement run failed", "error");
+        reject(err);
+      };
+
+      const finallyHandler = () => {
+        runSettlementLoading.value = false;
+      };
+
+      apiRequest(urls.KEYS.POST, urls.ibCommission.runSettlements, {
+        data: payload,
+        isTokenRequired: true,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+        onFinally: finallyHandler,
+      });
+    });
+  };
+
+  // ─── 19. Search IBs Helper ─────────────────────────────
+  const searchIbs = (query = "") => {
+    const searchQuery = String(query).trim();
+    searchLoading.value = true;
+
+    return new Promise((resolve, reject) => {
+      const successHandler = (res) => {
+        let list = [];
+        if (Array.isArray(res?.data)) {
+          list = res.data;
+        } else if (res?.data?.items && Array.isArray(res.data.items)) {
+          list = res.data.items;
+        }
+        const options = list.map((ib) => {
+          const id = ib.ib_id || ib.id || ib.user_id;
+          const name = ib.ib_name || ib.name || ib.label_name || ib.email || `IB #${id}`;
+          const email = ib.email || ib.ib_email || "";
+          return {
+            label: email ? `${name} (${email})` : `${name} (ID: ${id})`,
+            value: id,
+            ib_id: id,
+            name,
+            email,
+            referral_code: ib.referral_code || ib.code || "",
+          };
+        });
+        ibSearchOptions.value = options;
+        searchLoading.value = false;
+        resolve(options);
+      };
+
+      const failureHandler = (err) => {
+        searchLoading.value = false;
+        reject(err);
+      };
+
+      const finallyHandler = () => {
+        searchLoading.value = false;
+      };
+
+      apiRequest(urls.KEYS.GET, urls.ibLedger.allIbs, {
+        params: { search: searchQuery },
+        isTokenRequired: true,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+        onFinally: finallyHandler,
+      });
+    });
+  };
+
+  // ─── 20. Fetch Demo Wallets ────────────────────────────
+  const fetchDemoWallets = (params = {}, force = false) => {
+    if (inFlight.demoWallets) return;
+    if (isFetched.value.demoWallets && !force) return;
+
+    inFlight.demoWallets = true;
+    demoWalletsLoading.value = true;
+    loading.value = true;
+    error.value = null;
+
+    const successHandler = (res) => {
+      const data = res?.data;
+      demoWalletsList.value = data?.items || (Array.isArray(data) ? data : []);
+      demoWalletsPagination.value = {
+        page: data?.page || params.page || 1,
+        per_page: data?.per_page || params.per_page || 50,
+        total_items: data?.total || demoWalletsList.value.length,
+        total_pages: data?.pages || Math.ceil((data?.total || 1) / (data?.per_page || 50)) || 1,
+        total: data?.total || demoWalletsList.value.length,
+        pages: data?.pages || 1,
+      };
+      isFetched.value.demoWallets = true;
+    };
+
+    const failureHandler = (err) => {
+      error.value = err?.message || "Failed to load demo wallets";
+      snackbar.show(err?.message || "Failed to load demo wallets", "error");
+    };
+
+    const finallyHandler = () => {
+      inFlight.demoWallets = false;
+      demoWalletsLoading.value = false;
+      loading.value = false;
+    };
+
+    return apiRequest(urls.KEYS.GET, urls.ibCommission.demoWallets, {
+      params,
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+      onFinally: finallyHandler,
+    });
+  };
+
+  // ─── 21. Get Single Demo Wallet by IB ──────────────────
+  const fetchDemoWalletByIb = (ibId) => {
+    if (!ibId) return;
+    actionLoading.value = true;
+
+    const successHandler = (res) => {
+      selectedDemoWallet.value = res?.data || null;
+    };
+
+    const failureHandler = (err) => {
+      snackbar.show(err?.message || "Failed to load demo wallet details", "error");
+    };
+
+    const finallyHandler = () => {
+      actionLoading.value = false;
+    };
+
+    return apiRequest(urls.KEYS.GET, urls.ibCommission.demoWalletByIb(ibId), {
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+      onFinally: finallyHandler,
+    });
+  };
+
+  // ─── 22. Get Single Demo Wallet by User ────────────────
+  const fetchDemoWalletByUser = (userId) => {
+    if (!userId) return;
+    actionLoading.value = true;
+
+    const successHandler = (res) => {
+      selectedDemoWallet.value = res?.data || null;
+    };
+
+    const failureHandler = (err) => {
+      snackbar.show(err?.message || "Failed to load demo wallet details", "error");
+    };
+
+    const finallyHandler = () => {
+      actionLoading.value = false;
+    };
+
+    return apiRequest(urls.KEYS.GET, urls.ibCommission.demoWalletByUser(userId), {
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+      onFinally: finallyHandler,
+    });
+  };
+
+  // ─── 23. Fetch Demo Wallet Transactions ────────────────
+  const fetchDemoTransactions = (params = {}, force = false) => {
+    if (inFlight.demoTransactions) return;
+    if (isFetched.value.demoTransactions && !force) return;
+
+    inFlight.demoTransactions = true;
+    demoTransactionsLoading.value = true;
+    error.value = null;
+
+    const successHandler = (res) => {
+      const data = res?.data;
+      demoTransactionsList.value = data?.items || (Array.isArray(data) ? data : []);
+      demoTransactionsPagination.value = {
+        page: data?.page || params.page || 1,
+        per_page: data?.per_page || params.per_page || 50,
+        total_items: data?.total || demoTransactionsList.value.length,
+        total_pages: data?.pages || Math.ceil((data?.total || 1) / (data?.per_page || 50)) || 1,
+        total: data?.total || demoTransactionsList.value.length,
+        pages: data?.pages || 1,
+      };
+      isFetched.value.demoTransactions = true;
+    };
+
+    const failureHandler = (err) => {
+      error.value = err?.message || "Failed to load demo transactions";
+      snackbar.show(err?.message || "Failed to load demo transactions", "error");
+    };
+
+    const finallyHandler = () => {
+      inFlight.demoTransactions = false;
+      demoTransactionsLoading.value = false;
+    };
+
+    return apiRequest(urls.KEYS.GET, urls.ibCommission.demoWalletTransactions, {
+      params,
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+      onFinally: finallyHandler,
+    });
+  };
+
   return {
     // State
     referralLinks,
@@ -1005,6 +1496,16 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     tradesPagination,
     commissionsList,
     commissionsPagination,
+    masterPayoutSummary,
+    currentIbPayoutSettings,
+    settlementBatches,
+    settlementPagination,
+    ibSearchOptions,
+    demoWalletsList,
+    demoWalletsPagination,
+    selectedDemoWallet,
+    demoTransactionsList,
+    demoTransactionsPagination,
 
     // Loading & tracking
     inFlight,
@@ -1014,6 +1515,11 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     ratesLoading,
     searchLoading,
     syncLoading,
+    settingsLoading,
+    settlementLoading,
+    runSettlementLoading,
+    demoWalletsLoading,
+    demoTransactionsLoading,
     error,
 
     // Actions
@@ -1041,5 +1547,16 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     approveCommission,
     rejectCommission,
     bulkApproveCommissions,
+    fetchMasterPayoutSummary,
+    applyPayoutToAll,
+    fetchIbPayoutSettings,
+    saveIbPayoutSettings,
+    fetchSettlements,
+    runSettlement,
+    searchIbs,
+    fetchDemoWallets,
+    fetchDemoWalletByIb,
+    fetchDemoWalletByUser,
+    fetchDemoTransactions,
   };
 });

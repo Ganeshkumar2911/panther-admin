@@ -409,6 +409,16 @@ const urls = {
     approveCommission: (id) => `/ib-commission/commissions/${id}/approve`,
     rejectCommission: (id) => `/ib-commission/commissions/${id}/reject`,
     bulkApproveCommissions: "/ib-commission/commissions/approve-bulk",
+    // Payout Settings & Settlement Batches
+    payoutAllSettings: "/ib-commission/settings/payout-all",
+    ibPayoutSettings: (ibId) => `/ib-commission/ibs/${ibId}/payout-settings`,
+    settlements: "/ib-commission/settlements",
+    runSettlements: "/ib-commission/settlements/run",
+    // Demo Wallets
+    demoWallets: "/ib-commission/demo-wallets",
+    demoWalletByIb: (ibId) => `/ib-commission/demo-wallets/by-ib/${ibId}`,
+    demoWalletByUser: (userId) => `/ib-commission/demo-wallets/by-user/${userId}`,
+    demoWalletTransactions: "/ib-commission/demo-wallets/transactions",
   },
 };
 

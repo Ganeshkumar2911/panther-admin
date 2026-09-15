@@ -67,7 +67,22 @@ const dateFieldOptions = [
 
 onMounted(() => {
   loadTrades(1);
+  if (!store.ibSearchOptions.length) {
+    store.searchIbs("");
+  }
 });
+
+let ibSearchTimer = null;
+const onIbSearch = (query) => {
+  clearTimeout(ibSearchTimer);
+  if (!query || !query.trim()) {
+    store.searchIbs("");
+    return;
+  }
+  ibSearchTimer = setTimeout(() => {
+    store.searchIbs(query).catch(() => {});
+  }, 300);
+};
 
 const loadTrades = (page = 1, force = false) => {
   const loginVal = loginFilter.value != null ? String(loginFilter.value).trim() : "";
@@ -238,14 +253,17 @@ const formatDate = (val) => {
                 />
               </div>
 
-              <!-- IB ID Filter -->
-              <div class="w-24 sm:w-28">
-                <input
+              <!-- IB Filter -->
+              <div class="w-full sm:w-52 xl:w-52">
+                <BaseSelect
                   v-model="ibIdFilter"
-                  type="number"
-                  placeholder="IB ID"
-                  class="input-field w-full px-2.5 py-1.5 text-xs font-mono"
-                  @input="handleFilterChange"
+                  :options="store.ibSearchOptions"
+                  :isLoading="store.searchLoading"
+                  placeholder="Search IB..."
+                  searchable
+                  variant="surface"
+                  @search="onIbSearch"
+                  @update:modelValue="handleFilterChange"
                 />
               </div>
             </div>

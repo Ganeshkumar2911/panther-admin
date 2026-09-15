@@ -31,6 +31,7 @@ const canSync = computed(() => hasPermission("ib_commission.sync"));
 
 // Filters
 const statusFilter = ref("pending"); // 'pending' | 'approved' | 'rejected' | ''
+const walletTargetFilter = ref(""); // '' | 'main' | 'demo'
 const loginFilter = ref("");
 const ibIdFilter = ref("");
 const tradeIdFilter = ref("");
@@ -83,10 +84,31 @@ const dateFieldOptions = [
   { label: "Trade Close Time", value: "close_time" },
 ];
 
+const walletTargetOptions = [
+  { label: "All Wallets", value: "" },
+  { label: "Main Wallet", value: "main" },
+  { label: "Demo Wallet", value: "demo" },
+];
+
 onMounted(() => {
   store.fetchWorkflowSettings();
   loadCommissions(1);
+  if (!store.ibSearchOptions.length) {
+    store.searchIbs("");
+  }
 });
+
+let ibSearchTimer = null;
+const onIbSearch = (query) => {
+  clearTimeout(ibSearchTimer);
+  if (!query || !query.trim()) {
+    store.searchIbs("");
+    return;
+  }
+  ibSearchTimer = setTimeout(() => {
+    store.searchIbs(query).catch(() => {});
+  }, 300);
+};
 
 // Auto-adjust default filter if workflow is auto_wallet
 watch(
@@ -107,6 +129,7 @@ const loadCommissions = (page = 1, force = false) => {
 
   const params = {
     status: statusFilter.value || undefined,
+    wallet_target: walletTargetFilter.value || undefined,
     login: loginVal ? Number(loginVal) : undefined,
     ib_id: ibIdVal ? Number(ibIdVal) : undefined,
     trade_id: tradeIdVal ? Number(tradeIdVal) : undefined,
@@ -131,6 +154,7 @@ const handleFilterChange = () => {
 
 const handleResetFilters = () => {
   statusFilter.value = store.workflowSettings?.auto_wallet_credit ? "approved" : "pending";
+  walletTargetFilter.value = "";
   loginFilter.value = "";
   ibIdFilter.value = "";
   tradeIdFilter.value = "";
@@ -269,10 +293,10 @@ const formatDate = (val) => {
       </div>
 
       <!-- Interactive Mode Segmented Toggle Buttons -->
-      <div class="flex items-center gap-2 shrink-0 self-start md:self-center">
-        <div class="inline-flex p-1 rounded-xl bg-background border border-primary-border items-center gap-1 shadow-xs">
+      <!-- <div class="flex items-center gap-2 shrink-0 self-start md:self-center">
+        <div class="inline-flex p-1 rounded-xl bg-background border border-primary-border items-center gap-1 shadow-xs"> -->
           <!-- Option 1: Approval Required -->
-          <button
+          <!-- <button
             type="button"
             :disabled="!canApprove || store.actionLoading"
             class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
@@ -292,10 +316,10 @@ const formatDate = (val) => {
             />
             <HugeIcon v-else :icon="Alert02Icon" :size="13" class="text-primary" />
             <span>Require Approval</span>
-          </button>
+          </button> -->
 
           <!-- Option 2: Auto Wallet Credit -->
-          <button
+          <!-- <button
             type="button"
             :disabled="!canApprove || store.actionLoading"
             class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
@@ -315,9 +339,9 @@ const formatDate = (val) => {
             />
             <HugeIcon v-else :icon="CheckmarkCircle02Icon" :size="13" />
             <span>Auto Wallet Credit</span>
-          </button>
-        </div>
-      </div>
+          </button> -->
+        <!-- </div>
+      </div> -->
     </div>
 
     <!-- Commissions DataTable -->
@@ -407,6 +431,17 @@ const formatDate = (val) => {
                 </button>
               </div>
 
+              <!-- Wallet Target Filter -->
+              <div class="w-32 sm:w-36">
+                <BaseSelect
+                  v-model="walletTargetFilter"
+                  :options="walletTargetOptions"
+                  placeholder="All Wallets"
+                  variant="surface"
+                  @update:model-value="handleFilterChange"
+                />
+              </div>
+
               <!-- MT5 Login Filter -->
               <div class="w-28 sm:w-32">
                 <input
@@ -418,14 +453,17 @@ const formatDate = (val) => {
                 />
               </div>
 
-              <!-- IB ID Filter -->
-              <div class="w-24 sm:w-28">
-                <input
+              <!-- IB Filter -->
+              <div class="w-full sm:w-52 xl:w-52">
+                <BaseSelect
                   v-model="ibIdFilter"
-                  type="number"
-                  placeholder="IB ID"
-                  class="input-field w-full px-2.5 py-1.5 text-xs font-mono"
-                  @input="handleFilterChange"
+                  :options="store.ibSearchOptions"
+                  :isLoading="store.searchLoading"
+                  placeholder="Search IB..."
+                  searchable
+                  variant="surface"
+                  @search="onIbSearch"
+                  @update:modelValue="handleFilterChange"
                 />
               </div>
 
@@ -557,8 +595,21 @@ const formatDate = (val) => {
 
       <!-- Cell: IB Partner -->
       <template #cell-ib_partner="{ row }">
-        <div class="text-xs font-mono">
-          <p class="font-bold text-primary-text">IB #{{ row.ib_id }}</p>
+        <div class="text-xs font-mono space-y-0.5">
+          <div class="flex items-center gap-1.5">
+            <p class="font-bold text-primary-text">IB #{{ row.ib_id }}</p>
+            <span
+              v-if="row.wallet_target"
+              class="px-1.5 py-0.2 rounded text-[9px] font-bold uppercase tracking-wider border inline-block"
+              :class="
+                row.wallet_target === 'demo'
+                  ? 'bg-primary-blue/10 text-primary-blue border-primary-blue/20'
+                  : 'bg-primary-green/10 text-primary-green border-primary-green/20'
+              "
+            >
+              {{ row.wallet_target }}
+            </span>
+          </div>
           <p class="text-[10px] text-secondary-text">User #{{ row.ib_user_id || "N/A" }} &middot; Link #{{ row.referral_link_id }}</p>
         </div>
       </template>

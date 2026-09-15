@@ -213,6 +213,7 @@ const handleLogin = () => {
                 searchable
                 local-search
                 variant="surface"
+                py="2.5"
                 @update:modelValue="clearError('baseUrl')"
               />
 

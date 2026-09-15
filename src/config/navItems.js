@@ -129,6 +129,20 @@ export const navClusters = [
         permission: ["ib_commission.view", "ib_commission.sync"],
         keywords: ["sync", "status", "etl", "deals sync", "symbols sync", "health"],
       },
+      {
+        label: "Demo Wallets",
+        to: "/commission-engine/demo-wallets",
+        icon: Wallet,
+        permission: "ib_commission.view",
+        keywords: ["demo wallets", "demo balances", "transactions", "demo ledger", "wallet_target"],
+      },
+      {
+        label: "Settings",
+        to: "/commission-engine/settings",
+        icon: Settings,
+        permission: ["ib_commission.view", "ib_commission.manage_rates", "ib_commission.approve"],
+        keywords: ["settings", "payout mode", "settlement", "auto settlement", "schedule", "batches"],
+      },
     ],
   },
 

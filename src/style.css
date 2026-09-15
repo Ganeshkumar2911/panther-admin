@@ -83,7 +83,7 @@ body {
 }
 
 .input-field {
-  @apply w-full border border-primary-border rounded-xl bg-background text-primary-text text-sm placeholder-secondary-text/50 outline-none transition-all duration-150;
+  @apply w-full border border-primary-border rounded-lg bg-background text-primary-text text-sm placeholder-secondary-text/50 outline-none transition-all duration-150;
 }
 
 .input-field:focus {

@@ -327,7 +327,7 @@ watch(
   () => {
     autoExpandActiveCluster();
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 // Collapsed mode flyout state
@@ -387,12 +387,12 @@ const handleFlyoutMouseLeave = () => {
     >
       <div v-if="!isCollapsed" class="flex items-center gap-2.5">
         <div class="w-48 h-28 flex items-center justify-center">
-          <img src="/panther-logo.svg" alt="Logo" />
+          <img src="/logo_full.svg" alt="Logo" />
         </div>
       </div>
       <div v-else class="flex items-center justify-center w-full">
         <div class="w-12 h-12 rounded-lg flex items-center justify-center">
-          <img src="/panther-fav.svg" alt="Logo" />
+          <img src="/logo.svg" alt="Logo" />
         </div>
       </div>
     </div>
@@ -472,8 +472,8 @@ const handleFlyoutMouseLeave = () => {
               selectedIndex === index
                 ? 'bg-primary text-white shadow-sm font-semibold'
                 : isActive(item.to)
-                ? 'bg-white/10 text-white font-semibold'
-                : 'text-white/70 hover:text-white hover:bg-white/10',
+                  ? 'bg-white/10 text-white font-semibold'
+                  : 'text-white/70 hover:text-white hover:bg-white/10',
             ]"
           >
             <component
@@ -609,7 +609,9 @@ const handleFlyoutMouseLeave = () => {
                 <!-- Accordion Chevron -->
                 <ChevronDown
                   class="w-3.5 h-3.5 text-white/50 transition-transform duration-200"
-                  :class="{ 'rotate-180 text-white': isClusterOpen(cluster.id) }"
+                  :class="{
+                    'rotate-180 text-white': isClusterOpen(cluster.id),
+                  }"
                 />
               </div>
             </button>

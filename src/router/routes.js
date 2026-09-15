@@ -743,6 +743,26 @@ const routes = [
         },
       },
       {
+        path: "/commission-engine/settings",
+        name: "commission-engine-settings",
+        component: () => import("@/pages/commission-engine/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "IB Commission Settings",
+          description: "Configure per-IB payout mode, auto settlement schedule, and manage settlement batches.",
+        },
+      },
+      {
+        path: "/commission-engine/demo-wallets",
+        name: "commission-engine-demo-wallets",
+        component: () => import("@/pages/commission-engine/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Demo Wallets Ledger",
+          description: "Admin ledger for demo wallet balances and credit transactions.",
+        },
+      },
+      {
         path: "/settings",
         name: "settings",
         component: () => import("@/pages/settings/index.vue"),
