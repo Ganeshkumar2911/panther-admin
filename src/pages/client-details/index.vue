@@ -399,6 +399,7 @@ import {
   MessageSquare,
   RefreshCw,
   Bell,
+  Landmark,
 } from "lucide-vue-next";
 const route = useRoute();
 const router = useRouter();
@@ -670,6 +671,7 @@ const currentActiveTab = computed(() => {
   const currentPath = route.path.replace(/\/$/, "");
   if (currentPath.endsWith("/profile") || route.name === "client-details-profile") return "profile";
   if (currentPath.endsWith("/financials") || route.name === "client-details-financials") return "financials";
+  if (currentPath.endsWith("/bank-details") || route.name === "client-details-bank-details") return "bank-details";
   if (currentPath.endsWith("/marketing") || route.name === "client-details-marketing") return "marketing";
   if (currentPath.endsWith("/notifications") || route.name === "client-details-notifications") return "notifications";
   if (currentPath.endsWith("/trading") || route.name === "client-details-trading") return "trading";
@@ -757,6 +759,12 @@ const tabs = computed(() => [
     to: `/client/details/${route.params.id}/financials`,
     icon: CreditCard,
   },
+  {
+    key: "bank-details",
+    label: "Bank Details",
+    to: `/client/details/${route.params.id}/bank-details`,
+    icon: Landmark,
+  },
   // {
   //   key: "trading",
   //   label: "Trading",
@@ -775,12 +783,12 @@ const tabs = computed(() => [
     to: `/client/details/${route.params.id}/marketing`,
     icon: Megaphone,
   },
-  {
-    key: "notifications",
-    label: "Notifications",
-    to: `/client/details/${route.params.id}/notifications`,
-    icon: Bell,
-  },
+  // {
+  //   key: "notifications",
+  //   label: "Notifications",
+  //   to: `/client/details/${route.params.id}/notifications`,
+  //   icon: Bell,
+  // },
 ]);
 
 const isTabActive = (tab) => {

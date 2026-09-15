@@ -436,7 +436,11 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
   // ─── 11. Symbols Catalog Actions ───────────────────────
   const fetchSymbols = (params = {}, force = false) => {
     if (inFlight.symbolsList) return;
-    const isDefault = !params.q && !params.unmapped_only && (!params.page || params.page === 1);
+    const isDefault =
+      !params.q &&
+      !params.unmapped_only &&
+      (!params.page || params.page === 1) &&
+      (!params.per_page || params.per_page === 50);
     if (isFetched.value.symbolsList && !force && isDefault) return;
 
     inFlight.symbolsList = true;
@@ -659,7 +663,8 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
       !params.symbol &&
       !params.date_from &&
       !params.date_to &&
-      (!params.page || params.page === 1);
+      (!params.page || params.page === 1) &&
+      (!params.per_page || params.per_page === 50);
 
     if (isFetched.value.tradesList && !force && isDefault) return;
 
@@ -779,7 +784,8 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
       !params.symbol &&
       !params.date_from &&
       !params.date_to &&
-      (!params.page || params.page === 1);
+      (!params.page || params.page === 1) &&
+      (!params.per_page || params.per_page === 50);
 
     if (isFetched.value.commissionsList && !force && isDefault) return;
 

@@ -87,6 +87,17 @@ const routes = [
             },
           },
           {
+            path: "bank-details",
+            name: "client-details-bank-details",
+            component: () => import("@/pages/client-details/bankDetails.vue"),
+            meta: {
+              showBackButton: true,
+              requiresAuth: true,
+              title: "Client Bank Details",
+              description: "View client saved bank accounts and payout destinations.",
+            },
+          },
+          {
             path: "trading",
             name: "client-details-trading",
             component: () => import("@/pages/client-details/trading.vue"),
