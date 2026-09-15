@@ -336,6 +336,16 @@ const urls = {
     import: "/watchlist/symbols/import",
     template: "/watchlist/symbols/template",
   },
+  whatsapp: {
+    templates: "/whatsapp/templates",
+    createTemplate: "/whatsapp/create-template",
+    getById: `/whatsapp/templates`,
+    updateTemplate: `/whatsapp/templates`,
+    deleteTemplate: `/whatsapp/templates`,
+    chatOpen: "/whatsapp/chat/open",
+    sendMessage: "/whatsapp/send/chat",
+    sendTemplate: "/whatsapp/send/template",
+  },
   blogs: {
     list: "/blogs",
     create: "/create-blog",
@@ -423,3 +433,4 @@ const urls = {
 };
 
 export default urls;
+
