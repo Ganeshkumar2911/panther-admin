@@ -117,10 +117,25 @@ const initLocalCells = () => {
     activeTab.value.rows.forEach((row) => {
       symbolGroups.value.forEach((sg) => {
         const key = `${row.ib_id}_${sg.id}`;
-        const val = row.rates
+        const raw = row.rates
           ? (row.rates[sg.id] ?? row.rates[String(sg.id)])
           : null;
-        map[key] = val !== undefined ? val : null;
+        if (raw !== null && typeof raw === "object") {
+          map[key] = {
+            rate: raw.rate !== null && raw.rate !== undefined ? raw.rate : "",
+            rate_type: raw.rate_type || "value",
+          };
+        } else if (typeof raw === "number" || typeof raw === "string") {
+          map[key] = {
+            rate: raw,
+            rate_type: "value",
+          };
+        } else {
+          map[key] = {
+            rate: "",
+            rate_type: "value",
+          };
+        }
       });
     });
   }
@@ -198,30 +213,59 @@ const handleTabSelect = (configId) => {
   store.activeGroupConfigId = configId;
 };
 
-const handleCellInput = (ibId, symbolGroupId, event) => {
+const getCellValue = (ibId, symbolGroupId) => {
+  const key = `${ibId}_${symbolGroupId}`;
+  return localCells.value[key]?.rate ?? "";
+};
+
+const getCellType = (ibId, symbolGroupId) => {
+  const key = `${ibId}_${symbolGroupId}`;
+  return localCells.value[key]?.rate_type || "value";
+};
+
+const handleCellRateInput = (ibId, symbolGroupId, event) => {
   const rawValue = event.target.value;
   const key = `${ibId}_${symbolGroupId}`;
-  if (rawValue === "" || rawValue === null || rawValue === undefined) {
-    localCells.value[key] = null;
-  } else {
-    const num = Number(rawValue);
-    localCells.value[key] = isNaN(num) ? null : num;
-  }
+  const existingType = localCells.value[key]?.rate_type || "value";
+  localCells.value[key] = {
+    rate: rawValue === "" ? "" : Number(rawValue),
+    rate_type: existingType,
+  };
   isDirty.value = true;
 };
 
-const getCellValue = (ibId, symbolGroupId) => {
+const handleCellTypeChange = (ibId, symbolGroupId, newType) => {
   const key = `${ibId}_${symbolGroupId}`;
-  const val = localCells.value[key];
-  return val !== null && val !== undefined ? val : "";
+  const existingRate = localCells.value[key]?.rate ?? "";
+  localCells.value[key] = {
+    rate: existingRate,
+    rate_type: newType,
+  };
+  isDirty.value = true;
 };
 
-// Fill row across all symbol groups
-const handleFillRow = (row, rateVal) => {
+// Fill row across all symbol groups using first symbol group's values
+const handleFillRow = (row, sourceSgId) => {
+  const sourceKey = `${row.ib_id}_${sourceSgId}`;
+  const sourceCell = localCells.value[sourceKey] || { rate: "", rate_type: "value" };
   symbolGroups.value.forEach((sg) => {
     const key = `${row.ib_id}_${sg.id}`;
-    localCells.value[key] =
-      rateVal !== "" && rateVal !== null ? Number(rateVal) : null;
+    localCells.value[key] = {
+      rate: sourceCell.rate !== "" && sourceCell.rate !== null ? Number(sourceCell.rate) : "",
+      rate_type: sourceCell.rate_type || "value",
+    };
+  });
+  isDirty.value = true;
+};
+
+// Clear an affiliate's row
+const handleClearRow = (row) => {
+  symbolGroups.value.forEach((sg) => {
+    const key = `${row.ib_id}_${sg.id}`;
+    localCells.value[key] = {
+      rate: "",
+      rate_type: "value",
+    };
   });
   isDirty.value = true;
 };
@@ -232,7 +276,10 @@ const handleClearTab = () => {
   activeTab.value.rows.forEach((row) => {
     symbolGroups.value.forEach((sg) => {
       const key = `${row.ib_id}_${sg.id}`;
-      localCells.value[key] = null;
+      localCells.value[key] = {
+        rate: "",
+        rate_type: "value",
+      };
     });
   });
   isDirty.value = true;
@@ -251,7 +298,9 @@ const handleSave = async () => {
     activeTab.value.rows.forEach((row) => {
       symbolGroups.value.forEach((sg) => {
         const key = `${row.ib_id}_${sg.id}`;
-        const val = localCells.value[key];
+        const cell = localCells.value[key];
+        const val = cell?.rate;
+        const rateType = cell?.rate_type || "value";
         cells.push({
           ib_id: row.ib_id,
           symbol_group_id: sg.id,
@@ -259,6 +308,7 @@ const handleSave = async () => {
             val !== "" && val !== null && val !== undefined
               ? Number(val)
               : null,
+          rate_type: rateType,
         });
       });
     });
@@ -282,7 +332,7 @@ const handleSave = async () => {
 <template>
   <div class="space-y-5">
     <!-- Top Configuration Header & Method Selector -->
-    <div class="glass-card space-y-4">
+    <div class="bg-card-background p-6 rounded-lg space-y-4 border border-primary-border">
       <div
         class="flex flex-col lg:flex-row lg:items-center justify-between gap-4"
       >
@@ -306,7 +356,7 @@ const handleSave = async () => {
         <div class="flex items-center gap-3 flex-wrap">
           <!-- Method Selector Buttons -->
           <div
-            class="inline-flex p-1 bg-background border border-primary-border gap-1 backdrop-blur-xs rounded-lg"
+            class="inline-flex p-1 bg-background border border-primary-border gap-1 rounded-lg"
           >
             <Tooltip
               v-for="m in methodOptions"
@@ -635,20 +685,12 @@ const handleSave = async () => {
                 <th
                   v-for="sg in symbolGroups"
                   :key="sg.id"
-                  class="py-3 px-4 min-w-[130px] text-center whitespace-nowrap bg-card-background/40"
+                  class="py-3 px-4 min-w-[160px] text-center whitespace-nowrap bg-card-background/40"
                 >
                   <div class="flex flex-col items-center gap-0.5">
-                    <div class="flex items-center gap-1">
-                      <span
-                        class="font-bold text-primary-text uppercase tracking-tight"
-                        >{{ sg.name }}</span
-                      >
-                      <span
-                        class="text-[10px] px-1.5 py-0.2 rounded bg-primary/10 text-primary font-mono font-bold"
-                      >
-                        {{ getMethodUnit }}
-                      </span>
-                    </div>
+                    <span class="font-bold text-primary-text uppercase tracking-tight">
+                      {{ sg.name }}
+                    </span>
                     <span
                       v-if="sg.code"
                       class="text-[10px] text-secondary-text font-mono font-normal lowercase"
@@ -687,7 +729,7 @@ const handleSave = async () => {
                         :class="
                           row.level === 1
                             ? 'bg-primary-green/10 text-primary-green border border-primary-green/20'
-                            : 'bg-primary/10 text-primary border border-primary/20'
+                            : 'bg-primary/10 text-primary border border-primary-20'
                         "
                       >
                         LEVEL {{ row.level }}
@@ -734,15 +776,14 @@ const handleSave = async () => {
                   class="py-2.5 px-3 text-center"
                 >
                   <div
-                    class="relative inline-flex items-center justify-center w-full max-w-[125px]"
+                    class="relative inline-flex items-center w-full min-w-[145px] max-w-[170px] h-8 bg-background border rounded-lg overflow-hidden transition-colors duration-150 focus-within:border-primary"
+                    :class="[
+                      getCellValue(row.ib_id, sg.id) !== ''
+                        ? 'border-primary/50 bg-primary/5'
+                        : 'border-primary-border bg-background hover:border-primary-border/80',
+                    ]"
                   >
-                    <!-- Prefix (e.g. $) -->
-                    <span
-                      v-if="getMethodUnit !== '%'"
-                      class="absolute left-3 text-xs text-secondary-text font-mono font-semibold pointer-events-none select-none"
-                    >
-                      {{ getMethodUnit }}
-                    </span>
+                    <!-- Number input -->
                     <input
                       type="number"
                       step="any"
@@ -750,22 +791,46 @@ const handleSave = async () => {
                       :disabled="!canManageRates"
                       :value="getCellValue(row.ib_id, sg.id)"
                       placeholder="0.00"
-                      class="w-full text-center font-mono text-xs py-2 font-bold rounded-lg border transition-all focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:bg-background/80"
+                      class="flex-1 min-w-0 h-full pl-2 pr-1 font-mono text-xs font-bold text-center bg-transparent border-0 outline-none focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none disabled:bg-background/80"
                       :class="[
-                        getMethodUnit !== '%' ? 'pl-6 pr-2.5' : 'pl-2.5 pr-6',
                         getCellValue(row.ib_id, sg.id) !== ''
-                          ? 'border-primary/50 bg-primary/5 text-primary font-bold'
-                          : 'border-primary-border text-primary-text bg-background focus:bg-card-background',
+                          ? 'text-primary font-bold'
+                          : 'text-primary-text',
                       ]"
-                      @input="handleCellInput(row.ib_id, sg.id, $event)"
+                      @input="handleCellRateInput(row.ib_id, sg.id, $event)"
                     />
-                    <!-- Suffix (e.g. %) -->
-                    <span
-                      v-if="getMethodUnit === '%'"
-                      class="absolute right-3 text-xs text-secondary-text font-mono font-semibold pointer-events-none select-none"
-                    >
-                      %
-                    </span>
+
+                    <!-- Type Switcher (val | %) -->
+                    <div class="flex items-center shrink-0 h-full border-l border-primary-border bg-card-background/70 p-0.5 select-none">
+                      <button
+                        type="button"
+                        :disabled="!canManageRates"
+                        class="px-1.5 py-0.5 text-[10px] font-mono font-bold rounded transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                        :class="
+                          getCellType(row.ib_id, sg.id) === 'value'
+                            ? 'bg-primary text-white'
+                            : 'text-secondary-text hover:text-primary-text hover:bg-background'
+                        "
+                        title="Value multiplier (commission = base × rate)"
+                        @click="handleCellTypeChange(row.ib_id, sg.id, 'value')"
+                      >
+                        val
+                      </button>
+                      <button
+                        type="button"
+                        :disabled="!canManageRates"
+                        class="px-1.5 py-0.5 text-[10px] font-mono font-bold rounded transition-colors cursor-pointer ml-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                        :class="
+                          getCellType(row.ib_id, sg.id) === 'percent'
+                            ? 'bg-primary text-white'
+                            : 'text-secondary-text hover:text-primary-text hover:bg-background'
+                        "
+                        title="Percentage share (commission = base × (rate / 100))"
+                        @click="handleCellTypeChange(row.ib_id, sg.id, 'percent')"
+                      >
+                        %
+                      </button>
+                    </div>
                   </div>
                 </td>
 
@@ -778,14 +843,8 @@ const handleSave = async () => {
                     <button
                       type="button"
                       class="px-2.5 py-1 text-[11px] font-semibold text-primary hover:bg-primary/10 border border-primary/20 rounded-lg transition-colors cursor-pointer"
-                      title="Set flat rate across row based on first column"
-                      @click="
-                        const firstVal = getCellValue(
-                          row.ib_id,
-                          symbolGroups[0]?.id,
-                        );
-                        handleFillRow(row, firstVal);
-                      "
+                      title="Set flat rate and rate type across row based on first column"
+                      @click="handleFillRow(row, symbolGroups[0]?.id)"
                     >
                       Fill Row
                     </button>
@@ -793,7 +852,7 @@ const handleSave = async () => {
                       type="button"
                       class="p-1.5 text-secondary-text hover:text-primary-red hover:bg-primary-red/10 border border-primary-border hover:border-primary-red/30 rounded-lg transition-colors cursor-pointer"
                       title="Clear this affiliate's row"
-                      @click="handleFillRow(row, '')"
+                      @click="handleClearRow(row)"
                     >
                       <HugeIcon :icon="Cancel01Icon" :size="13" />
                     </button>
@@ -802,6 +861,14 @@ const handleSave = async () => {
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <!-- Rate Type Footnote Helper -->
+        <div class="flex items-center gap-2 text-[11px] text-secondary-text px-5 py-2.5 bg-background/30 border-t border-primary-border/60">
+          <HugeIcon :icon="InformationCircleIcon" :size="13" class="text-primary shrink-0" />
+          <span>
+            <strong>Rate Types:</strong> <code class="px-1 py-0.2 bg-background border border-primary-border rounded font-mono text-[10px] text-primary">val</code> = Fixed multiplier (base &times; rate). <code class="px-1 py-0.2 bg-background border border-primary-border rounded font-mono text-[10px] text-primary">%</code> = Share of base (base &times; rate / 100).
+          </span>
         </div>
 
         <!-- Tab Footer with Sync Status & Save Action -->

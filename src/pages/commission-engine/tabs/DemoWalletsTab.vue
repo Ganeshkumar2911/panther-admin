@@ -1,119 +1,121 @@
 <template>
-  <div class="space-y-6">
-    <!-- Header & Info Banner -->
-    <div class="space-y-3">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div class="flex items-center gap-2">
-            <h2 class="text-lg font-bold text-primary-text tracking-tight">Demo Wallets</h2>
-            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-primary/10 text-primary border border-primary/20">
-              wallet_target = demo
-            </span>
-          </div>
-          <p class="text-xs text-secondary-text mt-0.5">
-            Admin ledger for demo wallet balances and credit transactions credited from IB commissions.
-          </p>
+  <div class="space-y-5">
+    <!-- Header & Info Banner (Single Row Card) -->
+    <div
+      class="bg-card-background border border-primary-border rounded-lg p-4 flex flex-col md:flex-row md:items-center justify-between gap-4"
+    >
+      <div class="flex items-center gap-3">
+        <div
+          class="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center border border-primary/20 shrink-0"
+        >
+          <HugeIcon :icon="InformationCircleIcon" :size="18" />
         </div>
-
-        <div class="flex items-center gap-2">
-          <!-- Jump to Settings -->
-          <router-link
-            to="/commission-engine/settings"
-            class="flex items-center gap-1.5 px-3 py-1.5 bg-card-background border border-primary-border hover:bg-background text-primary-text text-xs font-semibold rounded-xl transition-colors cursor-pointer"
-          >
-            <HugeIcon :icon="Settings01Icon" :size="14" />
-            <span>Configure Destination</span>
-          </router-link>
-
-          <!-- Refresh All -->
-          <button
-            type="button"
-            :disabled="store.demoWalletsLoading || store.demoTransactionsLoading"
-            class="flex items-center gap-1.5 px-3 py-1.5 bg-card-background border border-primary-border hover:bg-background text-primary-text text-xs font-semibold rounded-xl transition-colors cursor-pointer"
-            title="Refresh Wallets and History"
-            @click="refreshAll"
-          >
-            <HugeIcon
-              :icon="RefreshCwIcon"
-              :size="14"
-              :class="{ 'animate-spin': store.demoWalletsLoading || store.demoTransactionsLoading }"
-            />
-            <span>Refresh</span>
-          </button>
+        <div class="text-xs text-secondary-text leading-relaxed">
+          <span class="font-semibold text-primary-text">Demo Wallet Destination:</span>
+          When an IB is configured with
+          <code class="px-1.5 py-0.5 bg-background border border-primary-border rounded text-primary font-mono text-[11px] font-bold">wallet_target=demo</code>,
+          approved commissions &amp; settlement batches credit directly to demo wallets.
         </div>
       </div>
 
-      <!-- Informational Callout -->
-      <div class="flex items-start gap-3 p-3.5 bg-card-background border border-primary-border rounded-xl">
-        <div class="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0 mt-0.5">
-          <HugeIcon :icon="InformationCircleIcon" :size="16" />
-        </div>
-        <div class="text-xs text-secondary-text leading-relaxed flex-1">
-          <span class="font-semibold text-primary-text">Demo Wallet Destination:</span>
-          When an IB is set to <code class="px-1 py-0.5 bg-background rounded text-primary font-mono text-[11px]">wallet_target=demo</code>, all approved commission approvals and settlement batches credit directly to these demo wallets instead of CRM main wallets.
-        </div>
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-2 shrink-0 self-end md:self-auto">
+        <router-link
+          to="/commission-engine/settings"
+          class="flex items-center gap-1.5 px-3 py-1.5 bg-background border border-primary-border hover:bg-card-background text-primary-text text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+        >
+          <HugeIcon :icon="Settings01Icon" :size="13" />
+          <span>Configure Destination</span>
+        </router-link>
+
+        <button
+          type="button"
+          :disabled="store.demoWalletsLoading || store.demoTransactionsLoading"
+          class="flex items-center gap-1.5 px-3 py-1.5 bg-card-background border border-primary-border hover:bg-background text-primary-text text-xs font-semibold rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+          title="Refresh Wallets and History"
+          @click="refreshAll"
+        >
+          <HugeIcon
+            :icon="RefreshCwIcon"
+            :size="13"
+            :class="{ 'animate-spin': store.demoWalletsLoading || store.demoTransactionsLoading }"
+          />
+          <span>Refresh</span>
+        </button>
       </div>
     </div>
 
     <!-- Summary KPI Cards -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <!-- Total Wallets -->
-      <div class="bg-card-background border border-primary-border rounded-xl p-4 flex items-center justify-between shadow-2xs">
-        <div>
-          <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text mb-1">
+      <div class="bg-card-background border border-primary-border rounded-lg p-4 flex items-center justify-between">
+        <div class="space-y-1">
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text">
             Total Demo Wallets
           </p>
           <div class="text-xl font-bold font-mono text-primary-text">
             {{ store.demoWalletsPagination.total || store.demoWalletsList.length }}
           </div>
+          <p class="text-[10px] text-secondary-text">
+            Configured partner accounts
+          </p>
         </div>
-        <div class="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
-          <HugeIcon :icon="Wallet01Icon" :size="20" />
+        <div class="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+          <HugeIcon :icon="Wallet01Icon" :size="18" />
         </div>
       </div>
 
       <!-- Positive Balance Wallets -->
-      <div class="bg-card-background border border-primary-border rounded-xl p-4 flex items-center justify-between shadow-2xs">
-        <div>
-          <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text mb-1">
+      <div class="bg-card-background border border-primary-border rounded-lg p-4 flex items-center justify-between">
+        <div class="space-y-1">
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text">
             Active Balances
           </p>
           <div class="text-xl font-bold font-mono text-primary-green">
             {{ positiveCount }}
           </div>
+          <p class="text-[10px] text-secondary-text">
+            Wallets with balance &gt; $0
+          </p>
         </div>
-        <div class="w-10 h-10 rounded-xl bg-primary-green/10 border border-primary-green/20 flex items-center justify-center text-primary-green">
-          <HugeIcon :icon="Coins01Icon" :size="20" />
+        <div class="w-10 h-10 rounded-lg bg-primary-green/10 border border-primary-green/20 flex items-center justify-center text-primary-green shrink-0">
+          <HugeIcon :icon="Coins01Icon" :size="18" />
         </div>
       </div>
 
       <!-- Total Demo Balance -->
-      <div class="bg-card-background border border-primary-border rounded-xl p-4 flex items-center justify-between shadow-2xs">
-        <div>
-          <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text mb-1">
-            Total Balance
+      <div class="bg-card-background border border-primary-border rounded-lg p-4 flex items-center justify-between">
+        <div class="space-y-1">
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text">
+            Cumulative Balance
           </p>
           <div class="text-xl font-bold font-mono text-primary-text">
             ${{ formatNum(totalBalanceSum) }}
           </div>
+          <p class="text-[10px] text-secondary-text">
+            Total across demo wallets
+          </p>
         </div>
-        <div class="w-10 h-10 rounded-xl bg-card-background border border-primary-border flex items-center justify-center text-secondary-text">
-          <HugeIcon :icon="Invoice01Icon" :size="20" />
+        <div class="w-10 h-10 rounded-lg bg-background border border-primary-border flex items-center justify-center text-secondary-text shrink-0">
+          <HugeIcon :icon="Invoice01Icon" :size="18" />
         </div>
       </div>
 
       <!-- Available Demo Balance -->
-      <div class="bg-card-background border border-primary-border rounded-xl p-4 flex items-center justify-between shadow-2xs">
-        <div>
-          <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text mb-1">
-            Available Balance
+      <div class="bg-card-background border border-primary-border rounded-lg p-4 flex items-center justify-between">
+        <div class="space-y-1">
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text">
+            Available Funds
           </p>
           <div class="text-xl font-bold font-mono text-primary-green">
             ${{ formatNum(totalAvailableSum) }}
           </div>
+          <p class="text-[10px] text-secondary-text">
+            Net available balance
+          </p>
         </div>
-        <div class="w-10 h-10 rounded-xl bg-primary-green/10 border border-primary-green/20 flex items-center justify-center text-primary-green">
-          <HugeIcon :icon="Tick02Icon" :size="20" />
+        <div class="w-10 h-10 rounded-lg bg-primary-green/10 border border-primary-green/20 flex items-center justify-center text-primary-green shrink-0">
+          <HugeIcon :icon="Tick02Icon" :size="18" />
         </div>
       </div>
     </div>
@@ -135,95 +137,101 @@
       <!-- Toolbar -->
       <template #toolbar>
         <div class="space-y-3">
-          <!-- Top Filters Row -->
-          <div class="flex flex-wrap items-center gap-2.5">
-            <!-- Search Input (q) -->
-            <div class="relative w-48 sm:w-56">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <!-- Left Filter Group -->
+            <div class="flex flex-wrap items-center gap-2.5 flex-1">
+              <!-- Search Input (q) -->
+              <div class="relative w-full sm:w-64">
+                <HugeIcon
+                  :icon="Search01Icon"
+                  :size="13"
+                  class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary-text pointer-events-none"
+                />
+                <input
+                  v-model="walletFilterQ"
+                  type="text"
+                  placeholder="Search partner, email, IB ID..."
+                  class="input-field w-full pl-8 pr-7 py-1.5 text-xs"
+                  @input="handleWalletFilterChange"
+                />
+                <button
+                  v-if="walletFilterQ"
+                  type="button"
+                  class="absolute right-2 top-1/2 -translate-y-1/2 text-secondary-text hover:text-primary-text p-0.5 cursor-pointer"
+                  @click="walletFilterQ = ''; handleWalletFilterChange();"
+                >
+                  <HugeIcon :icon="Cancel01Icon" :size="12" />
+                </button>
+              </div>
+
+              <!-- IB Search Select -->
+              <div class="w-full sm:w-56">
+                <BaseSelect
+                  v-model="walletFilterIbId"
+                  :options="store.ibSearchOptions"
+                  :isLoading="store.searchLoading"
+                  placeholder="Filter by IB..."
+                  searchable
+                  variant="surface"
+                  @search="onIbSearch"
+                  @update:modelValue="handleWalletFilterChange"
+                />
+              </div>
+
+              <!-- Positive Balance Filter Pill -->
+              <div class="inline-flex p-1 rounded-lg bg-background border border-primary-border shrink-0">
+                <button
+                  type="button"
+                  class="px-3 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer"
+                  :class="[
+                    !walletFilterOnlyPositive
+                      ? 'bg-card-background text-primary-text font-bold'
+                      : 'text-secondary-text hover:text-primary-text'
+                  ]"
+                  @click="walletFilterOnlyPositive = false; loadDemoWallets(1, true);"
+                >
+                  All Wallets
+                </button>
+                <button
+                  type="button"
+                  class="px-3 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer"
+                  :class="[
+                    walletFilterOnlyPositive
+                      ? 'bg-primary text-white font-bold'
+                      : 'text-secondary-text hover:text-primary-text'
+                  ]"
+                  @click="walletFilterOnlyPositive = true; loadDemoWallets(1, true);"
+                >
+                  Balance &gt; 0
+                </button>
+              </div>
+
+              <!-- Clear Wallet Filters -->
+              <button
+                v-if="hasWalletFilters"
+                type="button"
+                class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs text-secondary-text hover:text-primary-red hover:bg-primary-red/5 rounded-lg transition-colors cursor-pointer"
+                title="Clear all wallet filters"
+                @click="handleResetWalletFilters"
+              >
+                <HugeIcon :icon="Cancel01Icon" :size="13" />
+                <span>Clear</span>
+              </button>
+            </div>
+
+            <!-- Right Refresh Action -->
+            <button
+              type="button"
+              :disabled="store.demoWalletsLoading"
+              class="p-2 border border-primary-border rounded-lg text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer disabled:opacity-50"
+              title="Refresh Wallets Table"
+              @click="loadDemoWallets(store.demoWalletsPagination.page, true)"
+            >
               <HugeIcon
-                :icon="Search01Icon"
-                :size="13"
-                class="absolute left-2.5 top-1/2 -translate-y-1/2 text-secondary-text pointer-events-none"
+                :icon="RefreshCwIcon"
+                :size="14"
+                :class="{ 'animate-spin': store.demoWalletsLoading }"
               />
-              <input
-                v-model="walletFilterQ"
-                type="text"
-                placeholder="Search name, email, ID..."
-                class="input-field w-full pl-7 pr-3 py-1.5 text-xs"
-                @input="handleWalletFilterChange"
-              />
-            </div>
-
-            <!-- IB Search Select -->
-            <div class="w-full sm:w-52 xl:w-56">
-              <BaseSelect
-                v-model="walletFilterIbId"
-                :options="store.ibSearchOptions"
-                :isLoading="store.searchLoading"
-                placeholder="Filter by IB..."
-                searchable
-                variant="surface"
-                @search="onIbSearch"
-                @update:modelValue="handleWalletFilterChange"
-              />
-            </div>
-
-            <!-- User ID Input -->
-            <div class="w-24 sm:w-28">
-              <input
-                v-model="walletFilterUserId"
-                type="number"
-                placeholder="User ID"
-                class="input-field w-full px-2.5 py-1.5 text-xs font-mono"
-                @input="handleWalletFilterChange"
-              />
-            </div>
-
-            <!-- Min Balance -->
-            <div class="w-24 sm:w-28">
-              <input
-                v-model="walletFilterMinBal"
-                type="number"
-                step="0.01"
-                placeholder="Min $"
-                class="input-field w-full px-2.5 py-1.5 text-xs font-mono"
-                @input="handleWalletFilterChange"
-              />
-            </div>
-
-            <!-- Max Balance -->
-            <div class="w-24 sm:w-28">
-              <input
-                v-model="walletFilterMaxBal"
-                type="number"
-                step="0.01"
-                placeholder="Max $"
-                class="input-field w-full px-2.5 py-1.5 text-xs font-mono"
-                @input="handleWalletFilterChange"
-              />
-            </div>
-
-            <!-- Only Positive Toggle -->
-            <button
-              type="button"
-              class="px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition-colors cursor-pointer"
-              :class="
-                walletFilterOnlyPositive
-                  ? 'bg-primary/10 border-primary/30 text-primary'
-                  : 'bg-card-background border-primary-border text-secondary-text hover:text-primary-text'
-              "
-              @click="toggleOnlyPositive"
-            >
-              Balance &gt; 0
-            </button>
-
-            <!-- Clear Wallet Filters -->
-            <button
-              v-if="hasWalletFilters"
-              type="button"
-              class="px-2.5 py-1 text-[11px] text-secondary-text hover:text-primary-red transition-colors cursor-pointer underline"
-              @click="handleResetWalletFilters"
-            >
-              Clear filters
             </button>
           </div>
         </div>
@@ -232,20 +240,24 @@
       <!-- Cell: IB Partner -->
       <template #cell-ib="{ row }">
         <div class="space-y-0.5">
-          <div class="flex items-center gap-1.5">
-            <span class="font-mono text-xs font-semibold text-primary-text">
-              IB #{{ row.ib_id }}
-            </span>
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <p class="text-xs font-bold text-primary-text">
+              {{ row.user_name || `IB #${row.ib_id}` }}
+            </p>
             <span
               v-if="row.ib_active !== undefined"
-              class="px-1.5 py-0.2 rounded text-[10px] font-semibold uppercase"
-              :class="row.ib_active ? 'bg-primary-green/10 text-primary-green' : 'bg-primary-red/10 text-primary-red'"
+              class="px-1.5 py-0.2 rounded text-[9px] font-bold uppercase tracking-wider border"
+              :class="
+                row.ib_active
+                  ? 'bg-primary-green/10 text-primary-green border-primary-green/20'
+                  : 'bg-primary-red/10 text-primary-red border-primary-red/20'
+              "
             >
               {{ row.ib_active ? 'Active' : 'Inactive' }}
             </span>
           </div>
-          <p class="text-xs text-secondary-text font-medium truncate max-w-[160px]">
-            {{ row.user_name || '—' }}
+          <p class="text-[10px] text-secondary-text font-mono">
+            IB #{{ row.ib_id }}
           </p>
         </div>
       </template>
@@ -253,10 +265,10 @@
       <!-- Cell: User -->
       <template #cell-user="{ row }">
         <div class="space-y-0.5">
-          <span class="font-mono text-xs text-primary-text">
+          <p class="text-xs font-semibold text-primary-text">
             User #{{ row.user_id }}
-          </span>
-          <p class="text-xs text-secondary-text font-mono truncate max-w-[180px]">
+          </p>
+          <p class="text-[11px] text-secondary-text font-mono truncate max-w-[180px]">
             {{ row.user_email || '—' }}
           </p>
         </div>
@@ -264,16 +276,14 @@
 
       <!-- Cell: Wallet -->
       <template #cell-wallet="{ row }">
-        <div class="space-y-0.5">
-          <div class="flex items-center gap-1.5 font-mono text-xs font-medium text-primary-text">
-            <span>#{{ row.wallet_id || '—' }}</span>
-          </div>
-          <span
+        <div class="space-y-0.5 font-mono text-xs">
+          <span class="font-semibold text-primary-text">#{{ row.wallet_id || '—' }}</span>
+          <p
             v-if="row.exists === false"
-            class="inline-block px-1.5 py-0.2 text-[10px] font-semibold bg-background border border-primary-border text-secondary-text rounded"
+            class="text-[10px] text-secondary-text italic"
           >
             Uninitialized
-          </span>
+          </p>
         </div>
       </template>
 
@@ -300,26 +310,28 @@
 
       <!-- Cell: Updated At -->
       <template #cell-updated_at="{ row }">
-        <span class="text-xs text-secondary-text">
+        <span class="text-[11px] text-secondary-text font-mono">
           {{ formatDate(row.updated_at) }}
         </span>
       </template>
 
       <!-- Cell: Actions -->
       <template #cell-actions="{ row }">
-        <button
-          type="button"
-          class="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
-          :class="
-            selectedWalletIbId === row.ib_id
-              ? 'bg-primary text-white shadow-2xs'
-              : 'bg-card-background border border-primary-border hover:bg-background text-primary-text'
-          "
-          @click="selectWalletForHistory(row)"
-        >
-          <span>History</span>
-          <HugeIcon :icon="ArrowRight01Icon" :size="12" />
-        </button>
+        <div class="flex items-center justify-end">
+          <button
+            type="button"
+            class="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+            :class="
+              selectedWalletIbId === row.ib_id
+                ? 'bg-primary text-white'
+                : 'bg-background border border-primary-border hover:bg-card-background text-primary-text'
+            "
+            @click="selectWalletForHistory(row)"
+          >
+            <span>History</span>
+            <HugeIcon :icon="ArrowRight01Icon" :size="12" />
+          </button>
+        </div>
       </template>
     </DataTable>
 
@@ -328,17 +340,17 @@
       <!-- Section Header & Selected Context Banner -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-xl bg-card-background border border-primary-border flex items-center justify-center text-primary-text">
-            <HugeIcon :icon="Invoice01Icon" :size="16" />
+          <div class="w-8 h-8 rounded-lg bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shrink-0">
+            <HugeIcon :icon="Invoice01Icon" :size="15" />
           </div>
           <div>
-            <h3 class="text-base font-bold text-primary-text">Transaction History</h3>
-            <p class="text-xs text-secondary-text">
+            <h3 class="text-sm font-bold text-primary-text">Transaction History &amp; Ledger</h3>
+            <p class="text-xs text-secondary-text mt-0.5">
               <template v-if="selectedWallet">
-                Showing transactions for <strong class="text-primary-text">{{ selectedWallet.user_name || `IB #${selectedWallet.ib_id}` }}</strong> (IB #{{ selectedWallet.ib_id }} / User #{{ selectedWallet.user_id }})
+                Showing transactions for <strong class="text-primary-text">{{ selectedWallet.user_name || `IB #${selectedWallet.ib_id}` }}</strong> (IB #{{ selectedWallet.ib_id }} &middot; User #{{ selectedWallet.user_id }})
               </template>
               <template v-else>
-                Viewing all demo wallet credit transactions and settlement batches.
+                Viewing all demo wallet credit transactions and settlement ledger batches.
               </template>
             </p>
           </div>
@@ -347,11 +359,11 @@
         <div v-if="selectedWallet" class="flex items-center gap-2">
           <button
             type="button"
-            class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-secondary-text hover:text-primary-text bg-card-background border border-primary-border rounded-xl transition-colors cursor-pointer"
+            class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-secondary-text hover:text-primary-text bg-card-background border border-primary-border rounded-lg transition-colors cursor-pointer"
             @click="clearSelectedWallet"
           >
-            <HugeIcon :icon="Cancel01Icon" :size="13" />
-            <span>Show All Transactions</span>
+            <HugeIcon :icon="Cancel01Icon" :size="12" />
+            <span>Show All IBs</span>
           </button>
         </div>
       </div>
@@ -372,87 +384,90 @@
       >
         <!-- Toolbar -->
         <template #toolbar>
-          <div class="flex flex-wrap items-center gap-2.5">
-            <!-- Reference Type Filter -->
-            <div class="w-44 sm:w-48">
-              <BaseSelect
-                v-model="txFilterRefType"
-                :options="refTypeOptions"
-                placeholder="All Reference Types"
-                variant="surface"
-                @update:modelValue="handleTxFilterChange"
-              />
-            </div>
-
-            <!-- Transaction Type Filter -->
-            <div class="w-36 sm:w-40">
-              <BaseSelect
-                v-model="txFilterType"
-                :options="txTypeOptions"
-                placeholder="All Types"
-                variant="surface"
-                @update:modelValue="handleTxFilterChange"
-              />
-            </div>
-
-            <!-- Status Filter -->
-            <div class="w-36 sm:w-40">
-              <BaseSelect
-                v-model="txFilterStatus"
-                :options="txStatusOptions"
-                placeholder="All Statuses"
-                variant="surface"
-                @update:modelValue="handleTxFilterChange"
-              />
-            </div>
-
-            <!-- Reference ID Filter -->
-            <div class="w-32 sm:w-36">
-              <input
-                v-model="txFilterRefId"
-                type="text"
-                placeholder="Ref ID (e.g. 12)"
-                class="input-field w-full px-2.5 py-1.5 text-xs font-mono"
-                @input="handleTxFilterChange"
-              />
-            </div>
-
-            <!-- Date Range Filter -->
-            <div class="w-56 sm:w-60">
-              <BaseDatePicker
-                v-model="txDateRangeValue"
-                :range="true"
-                placeholder="Date range..."
-                variant="surface"
-              />
-            </div>
-
-            <!-- Clear Tx Filters -->
-            <button
-              v-if="hasTxFilters"
-              type="button"
-              class="px-2.5 py-1 text-[11px] text-secondary-text hover:text-primary-red transition-colors cursor-pointer underline"
-              @click="handleResetTxFilters"
-            >
-              Clear filters
-            </button>
-
-            <!-- Refresh Tx Button -->
-            <div class="ml-auto">
-              <button
-                type="button"
-                :disabled="store.demoTransactionsLoading"
-                class="p-2 border border-primary-border rounded-lg text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer"
-                title="Refresh Transactions"
-                @click="loadDemoTransactions(store.demoTransactionsPagination.page, true)"
-              >
-                <HugeIcon
-                  :icon="RefreshCwIcon"
-                  :size="14"
-                  :class="{ 'animate-spin': store.demoTransactionsLoading }"
+          <div class="flex flex-wrap items-center justify-between gap-2.5">
+            <div class="flex flex-wrap items-center gap-2.5 flex-1">
+              <!-- Reference Type Filter -->
+              <div class="w-full sm:w-48">
+                <BaseSelect
+                  v-model="txFilterRefType"
+                  :options="refTypeOptions"
+                  placeholder="All Reference Types"
+                  variant="surface"
+                  @update:modelValue="handleTxFilterChange"
                 />
+              </div>
+
+              <!-- Transaction Type Filter -->
+              <div class="w-full sm:w-36">
+                <BaseSelect
+                  v-model="txFilterType"
+                  :options="txTypeOptions"
+                  placeholder="All Types"
+                  variant="surface"
+                  @update:modelValue="handleTxFilterChange"
+                />
+              </div>
+
+              <!-- Status Filter -->
+              <div class="w-full sm:w-36">
+                <BaseSelect
+                  v-model="txFilterStatus"
+                  :options="txStatusOptions"
+                  placeholder="All Statuses"
+                  variant="surface"
+                  @update:modelValue="handleTxFilterChange"
+                />
+              </div>
+
+              <!-- Reference ID Filter -->
+              <div class="w-full sm:w-32">
+                <input
+                  v-model="txFilterRefId"
+                  type="text"
+                  placeholder="Ref ID (#)"
+                  class="input-field w-full px-2.5 py-1.5 text-xs font-mono"
+                  @input="handleTxFilterChange"
+                />
+              </div>
+
+              <!-- Date Range Filter -->
+              <div class="w-full sm:w-56">
+                <BaseDatePicker
+                  v-model="txDateRangeValue"
+                  :range="true"
+                  placeholder="Date range..."
+                  variant="surface"
+                  placement="top"
+                />
+              </div>
+
+              <!-- Clear Tx Filters -->
+              <button
+                v-if="hasTxFilters"
+                type="button"
+                class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs text-secondary-text hover:text-primary-red hover:bg-primary-red/5 rounded-lg transition-colors cursor-pointer"
+                title="Clear transaction filters"
+                @click="handleResetTxFilters"
+              >
+                <HugeIcon :icon="Cancel01Icon" :size="13" />
+                <span>Clear</span>
               </button>
             </div>
+
+            <!-- Refresh Tx Button -->
+            <button
+              type="button"
+              :disabled="store.demoTransactionsLoading"
+              class="p-2 border border-primary-border rounded-lg text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer disabled:opacity-50 shrink-0"
+              title="Refresh Transactions"
+              @click="loadDemoTransactions(store.demoTransactionsPagination.page, true)"
+            >
+              <HugeIcon
+                :icon="RefreshCwIcon"
+                :size="14"
+                :class="{ 'animate-spin': store.demoTransactionsLoading }"
+              />
+            </button>
           </div>
         </template>
 
@@ -462,7 +477,7 @@
             <span class="font-mono text-xs font-semibold text-primary-text">
               #{{ row.id }}
             </span>
-            <p class="text-[11px] text-secondary-text">
+            <p class="text-[10px] text-secondary-text font-mono">
               {{ formatDate(row.created_at) }}
             </p>
           </div>
@@ -470,11 +485,11 @@
 
         <!-- Cell: Target (User/Wallet) -->
         <template #cell-target="{ row }">
-          <div class="space-y-0.5">
-            <span class="font-mono text-xs text-primary-text">
+          <div class="space-y-0.5 font-mono text-xs">
+            <span class="text-primary-text">
               User #{{ row.user_id }}
             </span>
-            <p class="text-[11px] text-secondary-text font-mono">
+            <p class="text-[10px] text-secondary-text">
               Wallet #{{ row.wallet_id }}
             </p>
           </div>
@@ -506,7 +521,7 @@
         <!-- Cell: Status -->
         <template #cell-status="{ row }">
           <span
-            class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold"
+            class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold"
             :class="{
               'bg-primary-green/10 text-primary-green border border-primary-green/20': row.status === 'completed',
               'bg-primary/10 text-primary border border-primary/20': row.status === 'pending',
@@ -532,21 +547,28 @@
               {{ formatRefType(row.reference_type) }}
             </span>
             <p v-if="row.reference_id" class="text-xs font-mono text-primary-text font-semibold">
-              Ref ID: #{{ row.reference_id }}
+              Ref #{{ row.reference_id }}
             </p>
           </div>
         </template>
 
         <!-- Cell: Description -->
         <template #cell-description="{ row }">
-          <div class="max-w-[280px]">
-            <p class="text-xs text-primary-text truncate" :title="row.description">
-              {{ row.description || '—' }}
-            </p>
-            <p v-if="row.remarks" class="text-[11px] text-secondary-text truncate italic" :title="row.remarks">
-              {{ row.remarks }}
-            </p>
-          </div>
+          <Tooltip
+            v-if="row.description || row.remarks"
+            :text="[row.description, row.remarks].filter(Boolean).join(' • ')"
+            position="top"
+          >
+            <div class="max-w-[280px] cursor-default">
+              <p class="text-xs text-primary-text truncate">
+                {{ row.description || '—' }}
+              </p>
+              <p v-if="row.remarks" class="text-[11px] text-secondary-text truncate italic">
+                {{ row.remarks }}
+              </p>
+            </div>
+          </Tooltip>
+          <span v-else class="text-secondary-text text-xs">—</span>
         </template>
       </DataTable>
     </div>
@@ -649,7 +671,7 @@ const walletColumns = [
   { key: "locked", label: "Locked", align: "right", width: "130px" },
   { key: "available", label: "Available Balance", align: "right", width: "160px", sortable: true },
   { key: "updated_at", label: "Last Updated", width: "160px" },
-  { key: "actions", label: "Action", align: "center", width: "110px" },
+  { key: "actions", label: "Actions", align: "right", width: "120px", sticky: "right" },
 ];
 
 const transactionColumns = [

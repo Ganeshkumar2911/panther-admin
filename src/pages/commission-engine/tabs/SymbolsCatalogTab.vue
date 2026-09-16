@@ -17,6 +17,7 @@ import { useCommissionEngineStore } from "@/stores/commissionEngine/commissionEn
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import BulkAssignSymbolsModal from "../components/BulkAssignSymbolsModal.vue";
+import ConfirmationDialog from "@/components/common/ConfirmationDialog.vue";
 
 const store = useCommissionEngineStore();
 const { hasPermission } = usePermissionCheck();
@@ -29,6 +30,9 @@ const unmappedFilter = ref("all"); // 'all' | 'unmapped'
 const selectedGroupFilter = ref(null);
 const selectedSymbols = ref([]);
 const isBulkModalOpen = ref(false);
+const isUnassignConfirmOpen = ref(false);
+const symbolToUnassign = ref(null);
+const symbolGroupNameToUnassign = ref("");
 const searchTimer = ref(null);
 
 onMounted(() => {
@@ -172,10 +176,19 @@ const openBulkAssign = (symbolsToAssign = null) => {
   isBulkModalOpen.value = true;
 };
 
-const handleUnassignSingle = async (symbol) => {
-  if (!symbol) return;
+const openUnassignConfirm = (row) => {
+  symbolToUnassign.value = row.symbol;
+  const group = getGroupInfo(row.symbol_group_id);
+  symbolGroupNameToUnassign.value = group?.name || `Group #${row.symbol_group_id}`;
+  isUnassignConfirmOpen.value = true;
+};
+
+const handleConfirmUnassign = async () => {
+  if (!symbolToUnassign.value) return;
   try {
-    await store.unassignSymbols({ symbols: [symbol] });
+    await store.unassignSymbols({ symbols: [symbolToUnassign.value] });
+    isUnassignConfirmOpen.value = false;
+    symbolToUnassign.value = null;
     loadSymbols(store.symbolsPagination.page, true);
   } catch (err) {
     // Handled in store
@@ -236,7 +249,7 @@ const handleAssignedCallback = () => {
             </div>
 
             <!-- Filter Pills (All / Unmapped Only) -->
-            <div class="inline-flex p-1 rounded-xl bg-background border border-primary-border shrink-0">
+            <div class="inline-flex p-1 rounded-lg bg-background border border-primary-border shrink-0">
               <button
                 type="button"
                 class="px-3 py-1 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
@@ -284,7 +297,7 @@ const handleAssignedCallback = () => {
             <button
               v-if="canManage && selectedSymbols.length > 0"
               type="button"
-              class="flex items-center gap-1.5 px-3.5 py-1.5 bg-primary hover:bg-primary-hover text-white text-xs font-bold rounded-xl transition-colors cursor-pointer shadow-2xs"
+              class="flex items-center gap-1.5 px-3.5 py-1.5 bg-primary hover:bg-primary-hover text-white text-xs font-bold rounded-lg transition-colors cursor-pointer shadow-2xs"
               @click="openBulkAssign()"
             >
               <HugeIcon :icon="Tag01Icon" :size="14" />
@@ -295,7 +308,7 @@ const handleAssignedCallback = () => {
             <button
               type="button"
               :disabled="store.loading"
-              class="p-2 border border-primary-border rounded-xl text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer"
+              class="p-2 border border-primary-border rounded-lg text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer"
               title="Refresh Catalog"
               @click="loadSymbols(store.symbolsPagination.page, true)"
             >
@@ -330,7 +343,7 @@ const handleAssignedCallback = () => {
 
       <!-- Custom Cell: MT5 Path -->
       <template #cell-path="{ row }">
-        <span class="text-xs font-mono text-secondary-text truncate block max-w-[200px]" :title="row.path">
+        <span class="text-xs font-mono text-secondary-text block">
           {{ row.path || "Direct Symbol" }}
         </span>
       </template>
@@ -409,7 +422,7 @@ const handleAssignedCallback = () => {
             type="button"
             class="p-1.5 text-secondary-text hover:text-primary-red hover:bg-primary-red/10 rounded-lg transition-colors cursor-pointer"
             title="Unassign symbol from group"
-            @click="handleUnassignSingle(row.symbol)"
+            @click="openUnassignConfirm(row)"
           >
             <HugeIcon :icon="Delete02Icon" :size="14" />
           </button>
@@ -422,6 +435,18 @@ const handleAssignedCallback = () => {
       v-model="isBulkModalOpen"
       :symbols="selectedSymbols"
       @assigned="handleAssignedCallback"
+    />
+
+    <!-- Unassign Confirmation Dialog -->
+    <ConfirmationDialog
+      :open="isUnassignConfirmOpen"
+      title="Unassign Symbol"
+      :message="`Are you sure you want to unassign '${symbolToUnassign}' from '${symbolGroupNameToUnassign}'?`"
+      confirm-text="Unassign Symbol"
+      type="danger"
+      :loading="store.actionLoading"
+      @confirm="handleConfirmUnassign"
+      @cancel="isUnassignConfirmOpen = false"
     />
   </div>
 </template>

@@ -248,10 +248,10 @@ const hasActiveFilters = computed(() => {
 });
 
 const columns = [
-  { key: "id", label: "ID", width: "80px", sortable: true },
+  { key: "id", label: "ID", width: "75px", sortable: true },
   { key: "status", label: "Status", align: "center", width: "110px" },
-  { key: "ib_partner", label: "IB Partner", width: "150px" },
-  { key: "trade_info", label: "Trade (MT5 Login & Symbol)", width: "180px" },
+  { key: "ib_partner", label: "IB Partner", width: "180px" },
+  { key: "trade_info", label: "Client & Trade Details", width: "210px" },
   { key: "rates", label: "Rate Applied", width: "150px" },
   {
     key: "commission_per_lot",
@@ -452,7 +452,7 @@ const formatDate = (val) => {
               </button>
 
               <!-- Refresh Button -->
-              <Tooltip text="Refresh List" position="center">
+             
                 <button
                   type="button"
                   :disabled="store.loading"
@@ -465,7 +465,7 @@ const formatDate = (val) => {
                     :class="{ 'animate-spin': store.loading }"
                   />
                 </button>
-              </Tooltip>
+
             </div>
           </div>
 
@@ -594,9 +594,11 @@ const formatDate = (val) => {
 
       <!-- Cell: IB Partner -->
       <template #cell-ib_partner="{ row }">
-        <div class="text-xs font-mono space-y-0.5">
-          <div class="flex items-center gap-1.5">
-            <p class="font-bold text-primary-text">IB #{{ row.ib_id }}</p>
+        <div class="space-y-0.5">
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <p class="font-bold text-primary-text text-xs">
+              {{ row.ib_name || `IB #${row.ib_id}` }}
+            </p>
             <span
               v-if="row.wallet_target"
               class="px-1.5 py-0.2 rounded text-[9px] font-bold uppercase tracking-wider border inline-block"
@@ -609,28 +611,40 @@ const formatDate = (val) => {
               {{ row.wallet_target }}
             </span>
           </div>
-          <p class="text-[10px] text-secondary-text">
-            User #{{ row.ib_user_id || "N/A" }} &middot; Link #{{
-              row.referral_link_id
-            }}
+          <p class="text-[10px] text-secondary-text font-mono">
+            IB #{{ row.ib_id }} &middot; User #{{ row.ib_user_id || "N/A" }}
+            <span v-if="row.referral_link_id"> &middot; Link #{{ row.referral_link_id }}</span>
           </p>
         </div>
       </template>
 
       <!-- Cell: Trade Info -->
       <template #cell-trade_info="{ row }">
-        <div class="text-xs">
-          <div class="flex items-center gap-1.5">
-            <span class="font-mono font-bold text-primary-text">
-              {{ row.trade?.symbol || "N/A" }}
+        <div class="text-xs space-y-0.5">
+          <!-- Trader / Client Name -->
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <span class="font-bold text-primary-text">
+              {{ row.user_name || `User #${row.user_id || row.trade?.user_id || 'N/A'}` }}
             </span>
-            <span class="text-[11px] font-mono text-secondary-text">
-              ({{ row.closed_volume_lots ?? "-" }} lots)
+            <span
+              v-if="row.user_id || row.trade?.user_id"
+              class="text-[10px] text-secondary-text font-mono px-1 py-0.2 bg-background rounded border border-primary-border"
+            >
+              #{{ row.user_id || row.trade?.user_id }}
             </span>
           </div>
+          <!-- Symbol & Volume Lots -->
+          <div class="flex items-center gap-1.5 text-[11px] font-mono text-secondary-text">
+            <span class="font-bold text-primary-text">
+              {{ row.trade?.symbol || "N/A" }}
+            </span>
+            <span>&middot;</span>
+            <span>{{ row.closed_volume_lots ?? row.volume_lots ?? "-" }} lots</span>
+          </div>
+          <!-- Login & Trade ID -->
           <p class="text-[10px] text-secondary-text font-mono">
             Login: {{ row.trade?.login || "-" }} &middot; Trade #{{
-              row.trade_id
+              row.trade_id || row.trade?.position_id || "-"
             }}
           </p>
         </div>
@@ -639,27 +653,29 @@ const formatDate = (val) => {
       <!-- Cell: Rates Applied -->
       <template #cell-rates="{ row }">
         <div class="text-[11px] font-mono space-y-0.5">
-          <p v-if="row.rate_per_lot !== null">
+          <p v-if="row.rate_per_lot !== null && row.rate_per_lot !== undefined">
             Per Lot:
-            <strong class="text-primary-text">${{ row.rate_per_lot }}</strong>
+            <strong class="text-primary-text">
+              {{ row.rate_type_per_lot === 'percent' ? `${row.rate_per_lot}%` : `$${row.rate_per_lot}` }}
+            </strong>
           </p>
-          <p v-if="row.rate_per_spread !== null">
+          <p v-if="row.rate_per_spread !== null && row.rate_per_spread !== undefined">
             Per Spread:
-            <strong class="text-primary-text"
-              >{{ row.rate_per_spread }}%</strong
-            >
+            <strong class="text-primary-text">
+              {{ row.rate_type_per_spread === 'percent' || row.rate_type_per_spread === undefined ? `${row.rate_per_spread}%` : `$${row.rate_per_spread}` }}
+            </strong>
           </p>
-          <p v-if="row.rate_per_millions_volume !== null">
+          <p v-if="row.rate_per_millions_volume !== null && row.rate_per_millions_volume !== undefined">
             Per M. Vol:
-            <strong class="text-primary-text"
-              >${{ row.rate_per_millions_volume }}</strong
-            >
+            <strong class="text-primary-text">
+              {{ row.rate_type_per_millions_volume === 'percent' ? `${row.rate_per_millions_volume}%` : `$${row.rate_per_millions_volume}` }}
+            </strong>
           </p>
           <p
             v-if="
-              row.rate_per_lot === null &&
-              row.rate_per_spread === null &&
-              row.rate_per_millions_volume === null
+              (row.rate_per_lot === null || row.rate_per_lot === undefined) &&
+              (row.rate_per_spread === null || row.rate_per_spread === undefined) &&
+              (row.rate_per_millions_volume === null || row.rate_per_millions_volume === undefined)
             "
             class="text-secondary-text"
           >

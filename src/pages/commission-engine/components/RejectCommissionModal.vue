@@ -110,8 +110,16 @@ const handleReject = async () => {
             <div v-if="commission" class="p-3.5 rounded-xl bg-background border border-primary-border space-y-1.5 text-xs">
               <div class="flex items-center justify-between">
                 <span class="text-secondary-text">IB Partner:</span>
-                <span class="font-mono font-semibold text-primary-text">
-                  IB #{{ commission.ib_id }}
+                <span class="font-semibold text-primary-text">
+                  {{ commission.ib_name || `IB #${commission.ib_id}` }}
+                  <span class="text-secondary-text font-mono text-[11px] font-normal">(#{{ commission.ib_id }})</span>
+                </span>
+              </div>
+              <div v-if="commission.user_name" class="flex items-center justify-between">
+                <span class="text-secondary-text">Trader / Client:</span>
+                <span class="text-primary-text font-medium">
+                  {{ commission.user_name }}
+                  <span class="text-secondary-text font-mono text-[11px]">(#{{ commission.user_id || commission.trade?.user_id || 'N/A' }})</span>
                 </span>
               </div>
               <div class="flex items-center justify-between">
@@ -123,7 +131,7 @@ const handleReject = async () => {
               <div class="flex items-center justify-between">
                 <span class="text-secondary-text">Symbol & Lots:</span>
                 <span class="font-mono text-primary-text">
-                  {{ commission.trade?.symbol || "N/A" }} ({{ commission.closed_volume_lots ?? '-' }} lots)
+                  {{ commission.trade?.symbol || "N/A" }} ({{ commission.closed_volume_lots ?? commission.volume_lots ?? '-' }} lots)
                 </span>
               </div>
             </div>
