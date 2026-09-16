@@ -24,7 +24,7 @@
           <label class="text-xs font-bold uppercase tracking-wider text-secondary-text">
             Frequency:
           </label>
-          <div class="inline-flex p-1 rounded-xl bg-background border border-primary-border shadow-2xs">
+          <div class="inline-flex p-1 rounded-lg bg-background border border-primary-border ">
             <button
               v-for="freq in frequencies"
               :key="freq.value"
@@ -32,7 +32,7 @@
               class="px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer"
               :class="[
                 activeFrequency === freq.value
-                  ? 'bg-primary text-white shadow-2xs font-bold'
+                  ? 'bg-primary text-white  font-bold'
                   : 'text-secondary-text hover:text-primary-text hover:bg-card-background/60',
               ]"
               @click="handleFrequencyChange(freq.value)"
@@ -126,7 +126,7 @@
             <button
               type="button"
               :disabled="store.approvalsLoading || store.approvalPeriodsLoading"
-              class="flex items-center justify-center w-9 h-9 text-secondary-text hover:text-primary-text bg-background hover:bg-card-background border border-primary-border rounded-xl transition-all cursor-pointer shrink-0 disabled:opacity-50"
+              class="flex items-center justify-center w-9 h-9 text-secondary-text hover:text-primary-text bg-background hover:bg-card-background border border-primary-border rounded-lg transition-all cursor-pointer shrink-0 disabled:opacity-50"
               @click="loadApprovalsSummary(true)"
             >
               <HugeIcon
@@ -146,7 +146,7 @@
       class="grid grid-cols-2 lg:grid-cols-4 gap-4"
     >
       <!-- Grand Total -->
-      <div class="bg-card-background border border-primary-border rounded-xl p-4 flex items-center justify-between shadow-2xs">
+      <div class="bg-card-background border border-primary-border rounded-lg p-4 flex items-center justify-between ">
         <div>
           <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text mb-1">
             Grand Total Pending
@@ -155,13 +155,13 @@
             +${{ formatNum(store.approvalsSummary.grand_total) }}
           </div>
         </div>
-        <div class="w-10 h-10 rounded-xl bg-primary-green/10 border border-primary-green/20 flex items-center justify-center text-primary-green">
+        <div class="w-10 h-10 rounded-lg bg-primary-green/10 border border-primary-green/20 flex items-center justify-center text-primary-green">
           <HugeIcon :icon="Coins01Icon" :size="20" />
         </div>
       </div>
 
       <!-- Total IBs -->
-      <div class="bg-card-background border border-primary-border rounded-xl p-4 flex items-center justify-between shadow-2xs">
+      <div class="bg-card-background border border-primary-border rounded-lg p-4 flex items-center justify-between ">
         <div>
           <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text mb-1">
             IBs with Pending
@@ -170,13 +170,13 @@
             {{ store.approvalsSummary.ib_count }}
           </div>
         </div>
-        <div class="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+        <div class="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
           <HugeIcon :icon="UserGroupIcon" :size="20" />
         </div>
       </div>
 
       <!-- Pending Entries Count -->
-      <div class="bg-card-background border border-primary-border rounded-xl p-4 flex items-center justify-between shadow-2xs">
+      <div class="bg-card-background border border-primary-border rounded-lg p-4 flex items-center justify-between ">
         <div>
           <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text mb-1">
             Pending Line Items
@@ -185,13 +185,13 @@
             {{ store.approvalsSummary.entry_count }}
           </div>
         </div>
-        <div class="w-10 h-10 rounded-xl bg-card-background border border-primary-border flex items-center justify-center text-secondary-text">
+        <div class="w-10 h-10 rounded-lg bg-card-background border border-primary-border flex items-center justify-center text-secondary-text">
           <HugeIcon :icon="Invoice01Icon" :size="20" />
         </div>
       </div>
 
       <!-- Period Date Window -->
-      <div class="bg-card-background border border-primary-border rounded-xl p-4 flex items-center justify-between shadow-2xs">
+      <div class="bg-card-background border border-primary-border rounded-lg p-4 flex items-center justify-between ">
         <div>
           <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text mb-1">
             Period Window
@@ -203,7 +203,7 @@
             {{ formatShortDate(store.approvalsSummary.start) }} &rarr; {{ formatShortDate(store.approvalsSummary.end) }}
           </p>
         </div>
-        <div class="w-10 h-10 rounded-xl bg-card-background border border-primary-border flex items-center justify-center text-secondary-text">
+        <div class="w-10 h-10 rounded-lg bg-card-background border border-primary-border flex items-center justify-center text-secondary-text">
           <HugeIcon :icon="Calendar01Icon" :size="20" />
         </div>
       </div>
@@ -220,7 +220,7 @@
     <!-- Empty State (Matches UI Requirement & API empty_message) -->
     <div
       v-else-if="!store.approvalsSummary || store.approvalsSummary.empty || !store.approvalsSummary.items?.length"
-      class="flex flex-col items-center justify-center p-14 rounded-2xl bg-card-background border border-primary-border text-center min-h-[320px] space-y-4 shadow-2xs"
+      class="flex flex-col items-center justify-center p-14 rounded-2xl bg-card-background border border-primary-border text-center min-h-[320px] space-y-4 "
     >
       <div class="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
         <HugeIcon :icon="CheckmarkCircle02Icon" :size="24" />
@@ -237,7 +237,7 @@
       <div class="flex items-center gap-3 pt-2">
         <router-link
           to="/commission-engine/commissions"
-          class="flex items-center gap-1.5 px-4 py-2 bg-card-background border border-primary-border hover:bg-background text-primary-text text-xs font-semibold rounded-xl transition-all cursor-pointer shadow-xs"
+          class="flex items-center gap-1.5 px-4 py-2 bg-card-background border border-primary-border hover:bg-background text-primary-text text-xs font-semibold rounded-lg transition-all cursor-pointer "
         >
           <HugeIcon :icon="Coins01Icon" :size="14" />
           <span>View All Commissions</span>
@@ -348,7 +348,7 @@
               v-if="canApprove && row.can_approve !== false"
               type="button"
               :disabled="store.approveIbLoading"
-              class="flex items-center gap-1.5 px-3 py-1 bg-primary-green hover:bg-primary-green/90 text-white text-xs font-bold rounded-lg transition-all cursor-pointer shadow-xs disabled:opacity-50"
+              class="flex items-center gap-1.5 px-3 py-1 bg-primary-green hover:bg-primary-green/90 text-white text-xs font-bold rounded-lg transition-all cursor-pointer  disabled:opacity-50"
               title="Approve all pending commissions for this IB in this period"
               @click="openApproveConfirm(row)"
             >

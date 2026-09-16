@@ -495,9 +495,9 @@ const getWalletTargetMasterBadge = (state) => {
     <!-- ═════════════════════════════════════════════════════════════ -->
     <!-- SECTION 0: MASTER (ALL IBs) SETTINGS                        -->
     <!-- ═════════════════════════════════════════════════════════════ -->
-    <div class="rounded-lg bg-card-background border border-primary-border overflow-hidden">
+    <div class="rounded-lg bg-card-background/80 backdrop-blur-xl border border-primary-border/50 overflow-hidden">
       <!-- Section Header -->
-      <div class="p-4 sm:p-5 border-b border-primary-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-background/30">
+      <div class="p-4 sm:p-5 border-b border-primary-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-background/40">
         <div class="flex items-center gap-3">
           <div class="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center border border-primary/20 shrink-0">
             <HugeIcon :icon="Settings01Icon" :size="18" />
@@ -536,7 +536,7 @@ const getWalletTargetMasterBadge = (state) => {
       <div class="p-4 sm:p-5 space-y-4">
         <!-- Summary Stats Pills Grid -->
         <div v-if="store.masterPayoutSummary" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-          <div class="p-3 rounded-lg bg-background border border-primary-border">
+          <div class="p-3 rounded-lg bg-background/60 border border-primary-border/50 backdrop-blur-sm ">
             <span class="text-[11px] text-secondary-text block mb-0.5">Total IBs</span>
             <span class="text-base font-bold text-primary-text font-mono">
               {{ store.masterPayoutSummary.total_ibs ?? 0 }}
@@ -557,7 +557,7 @@ const getWalletTargetMasterBadge = (state) => {
             </span>
           </div>
 
-          <div class="p-3 rounded-lg bg-background border border-primary-border">
+          <div class="p-3 rounded-lg bg-background/60 border border-primary-border/50 backdrop-blur-sm ">
             <div class="flex items-center justify-between mb-0.5">
               <span class="text-[11px] text-secondary-text">Wallet Target</span>
               <span
@@ -573,7 +573,7 @@ const getWalletTargetMasterBadge = (state) => {
             </span>
           </div>
 
-          <div class="p-3 rounded-lg bg-background border border-primary-border col-span-2 sm:col-span-1">
+          <div class="p-3 rounded-lg bg-background/60 border border-primary-border/50 backdrop-blur-sm  col-span-2 sm:col-span-1">
             <span class="text-[11px] text-secondary-text block mb-0.5">Overrides / Defaults</span>
             <span class="text-xs font-semibold text-primary-text font-mono block">
               {{ store.masterPayoutSummary.configured_count ?? 0 }} custom / {{ store.masterPayoutSummary.unconfigured_count ?? 0 }} defaults
@@ -649,7 +649,7 @@ const getWalletTargetMasterBadge = (state) => {
         <!-- If Auto Settlement Selected: Detailed Schedule Settings -->
         <div
           v-if="masterForm.payout_mode === 'auto_settlement'"
-          class="p-3.5 rounded-lg bg-background border border-primary-border space-y-3"
+          class="p-3.5 rounded-lg bg-background/60 border border-primary-border/50 backdrop-blur-sm  space-y-3"
         >
           <h4 class="text-xs font-semibold text-primary-text flex items-center gap-1.5">
             <HugeIcon :icon="Clock01Icon" :size="14" class="text-primary" />
@@ -737,7 +737,7 @@ const getWalletTargetMasterBadge = (state) => {
           </span>
           <button
             type="button"
-            class="inline-flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg bg-primary text-white hover:bg-primary-hover shadow-xs transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+            class="inline-flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg bg-primary text-white hover:bg-primary-hover  transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
             :disabled="store.actionLoading"
             @click="handleApplyToAllClick"
           >
@@ -754,7 +754,7 @@ const getWalletTargetMasterBadge = (state) => {
     <!-- ═════════════════════════════════════════════════════════════ -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
       <!-- Left Column: IB Selection & Override Configuration Form -->
-      <div class="lg:col-span-7 bg-card-background border border-primary-border rounded-lg p-4 sm:p-5 space-y-4">
+      <div class="lg:col-span-7 bg-card-background/80 backdrop-blur-xl border border-primary-border/50 rounded-2xl  p-4 sm:p-5 space-y-4">
         <div class="flex items-center justify-between gap-3 border-b border-primary-border pb-3">
           <div class="flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center border border-primary/20 shrink-0">
@@ -784,7 +784,7 @@ const getWalletTargetMasterBadge = (state) => {
         <!-- Selected IB Profile Pill Banner -->
         <div
           v-if="selectedIbId && store.currentIbPayoutSettings"
-          class="p-3 rounded-lg bg-background border border-primary-border flex flex-wrap items-center justify-between gap-2"
+          class="p-3 rounded-lg bg-background/60 border border-primary-border/50 backdrop-blur-sm  flex flex-wrap items-center justify-between gap-2"
         >
           <div class="flex items-center gap-2 min-w-0">
             <div class="w-7 h-7 rounded-md bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0">
@@ -890,7 +890,7 @@ const getWalletTargetMasterBadge = (state) => {
           <!-- Auto Settlement Configuration for This IB -->
           <div
             v-if="ibForm.payout_mode === 'auto_settlement'"
-            class="p-3.5 rounded-lg bg-background border border-primary-border space-y-3"
+            class="p-3.5 rounded-lg bg-background/60 border border-primary-border/50 backdrop-blur-sm  space-y-3"
           >
             <h4 class="text-xs font-semibold text-primary-text flex items-center gap-1.5">
               <HugeIcon :icon="Clock01Icon" :size="14" class="text-primary" />
@@ -990,7 +990,7 @@ const getWalletTargetMasterBadge = (state) => {
           <div v-if="canManageRates" class="flex items-center justify-end pt-2 border-t border-primary-border">
             <button
               type="button"
-              class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg bg-primary text-white hover:bg-primary-hover shadow-xs transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg bg-primary text-white hover:bg-primary-hover  transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               :disabled="store.actionLoading"
               @click="handleSaveIb"
             >
@@ -1003,13 +1003,13 @@ const getWalletTargetMasterBadge = (state) => {
       </div>
 
       <!-- Right Column: Live Status & Immediate Settlement Operations -->
-      <div class="lg:col-span-5 bg-card-background border border-primary-border rounded-lg p-4 sm:p-5 flex flex-col justify-between">
+      <div class="lg:col-span-5 bg-card-background/80 backdrop-blur-xl border border-primary-border/50 rounded-2xl  p-4 sm:p-5 flex flex-col justify-between">
         <!-- Empty State if no IB is selected -->
         <div
           v-if="!selectedIbId"
           class="flex flex-col items-center justify-center text-center py-12 px-4 space-y-2.5 h-full"
         >
-          <div class="w-10 h-10 rounded-lg bg-background border border-primary-border flex items-center justify-center text-secondary-text">
+          <div class="w-10 h-10 rounded-lg bg-background/60 border border-primary-border/50 backdrop-blur-sm  flex items-center justify-center text-secondary-text">
             <HugeIcon :icon="UserIcon" :size="18" />
           </div>
           <h4 class="text-xs font-semibold text-primary-text">No IB Partner Selected</h4>
@@ -1033,7 +1033,7 @@ const getWalletTargetMasterBadge = (state) => {
 
             <button
               type="button"
-              class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-background border border-primary-border text-primary hover:text-primary-hover hover:border-primary/40 transition-colors cursor-pointer"
+              class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-background/60 border border-primary-border/50 backdrop-blur-sm  text-primary hover:text-primary-hover hover:border-primary/40 transition-colors cursor-pointer"
               @click="navigateToCommissionsForIb"
             >
               <span>Commissions</span>
@@ -1043,7 +1043,7 @@ const getWalletTargetMasterBadge = (state) => {
 
           <!-- Pending Summary Metrics Cards -->
           <div class="grid grid-cols-2 gap-3">
-            <div class="p-3 rounded-lg bg-background border border-primary-border">
+            <div class="p-3 rounded-lg bg-background/60 border border-primary-border/50 backdrop-blur-sm ">
               <span class="text-[11px] text-secondary-text block mb-0.5">Pending Records</span>
               <span class="text-base font-bold text-primary-text font-mono">
                 {{ store.currentIbPayoutSettings?.pending_summary?.pending_count ?? 0 }}
@@ -1059,7 +1059,7 @@ const getWalletTargetMasterBadge = (state) => {
           </div>
 
           <!-- Payout Detail List -->
-          <div class="p-3.5 rounded-lg bg-background border border-primary-border space-y-2.5 text-xs">
+          <div class="p-3.5 rounded-lg bg-background/60 border border-primary-border/50 backdrop-blur-sm  space-y-2.5 text-xs">
             <div class="flex items-center justify-between">
               <span class="text-secondary-text">Target Destination:</span>
               <span class="font-semibold text-primary-text capitalize">
@@ -1090,7 +1090,7 @@ const getWalletTargetMasterBadge = (state) => {
             <div class="grid grid-cols-2 gap-2">
               <button
                 type="button"
-                class="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-background border border-primary-border text-primary-blue hover:bg-primary-blue/10 hover:border-primary-blue/30 transition-colors cursor-pointer disabled:opacity-50"
+                class="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-background/60 border border-primary-border/50 backdrop-blur-sm  text-primary-blue hover:bg-primary-blue/10 hover:border-primary-blue/30 transition-colors cursor-pointer disabled:opacity-50"
                 :disabled="store.runSettlementLoading"
                 @click="handleDryRunSingleIb"
               >
@@ -1149,7 +1149,7 @@ const getWalletTargetMasterBadge = (state) => {
               <div v-if="canApprove" class="flex items-center gap-2 shrink-0">
                 <button
                   type="button"
-                  class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-background border border-primary-border text-primary-blue hover:bg-primary-blue/10 hover:border-primary-blue/30 transition-colors cursor-pointer disabled:opacity-50"
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-background/60 border border-primary-border/50 backdrop-blur-sm  text-primary-blue hover:bg-primary-blue/10 hover:border-primary-blue/30 transition-colors cursor-pointer disabled:opacity-50"
                   :disabled="store.runSettlementLoading"
                   @click="handleDryRunAll"
                 >
@@ -1159,7 +1159,7 @@ const getWalletTargetMasterBadge = (state) => {
 
                 <button
                   type="button"
-                  class="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-primary-green text-white hover:bg-primary-green/90 shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                  class="inline-flex items-center gap-1.5 p-2 text-xs font-semibold rounded-lg bg-primary-green text-white hover:bg-primary-green/90  transition-colors cursor-pointer disabled:opacity-50"
                   :disabled="store.runSettlementLoading"
                   @click="handleRunAllDueClick"
                 >
@@ -1225,7 +1225,7 @@ const getWalletTargetMasterBadge = (state) => {
               <div class="flex items-center gap-1.5 ml-auto">
                 <button
                   type="button"
-                  class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-background border border-primary-border text-secondary-text hover:text-primary-text transition-colors cursor-pointer"
+                  class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-background/60 border border-primary-border/50 backdrop-blur-sm  text-secondary-text hover:text-primary-text transition-colors cursor-pointer"
                   title="Reset Filters"
                   @click="handleResetFilters"
                 >
@@ -1233,7 +1233,7 @@ const getWalletTargetMasterBadge = (state) => {
                 </button>
                 <button
                   type="button"
-                  class="p-1.5 rounded-lg bg-background border border-primary-border text-secondary-text hover:text-primary-text transition-colors cursor-pointer"
+                  class="p-1.5 rounded-lg bg-background/60 border border-primary-border/50 backdrop-blur-sm  text-secondary-text hover:text-primary-text transition-colors cursor-pointer"
                   title="Refresh Settlements"
                   :disabled="store.settlementLoading"
                   @click="loadSettlements(store.settlementPagination.page, true)"
@@ -1314,7 +1314,7 @@ const getWalletTargetMasterBadge = (state) => {
         <template #cell-actions="{ row }">
           <button
             type="button"
-            class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-background border border-primary-border text-secondary-text hover:text-primary-text hover:border-primary/40 transition-colors cursor-pointer"
+            class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-background/60 border border-primary-border/50 backdrop-blur-sm  text-secondary-text hover:text-primary-text hover:border-primary/40 transition-colors cursor-pointer"
             @click="openBatchDetails(row)"
           >
             <HugeIcon :icon="EyeIcon" :size="12" />
@@ -1327,33 +1327,35 @@ const getWalletTargetMasterBadge = (state) => {
     <!-- ═════════════════════════════════════════════════════════════ -->
     <!-- SECTION 3: HOW AUTO SETTLEMENT TIMING WORKS (HELP BANNER)   -->
     <!-- ═════════════════════════════════════════════════════════════ -->
-    <div class="p-4 sm:p-5 rounded-lg bg-card-background border border-primary-border space-y-3">
-      <div class="flex items-center gap-2 text-primary">
-        <HugeIcon :icon="InformationCircleIcon" :size="16" />
+    <div class="p-4 sm:p-5 rounded-lg bg-card-background border border-primary-border space-y-4">
+      <div class="flex items-center gap-2 text-primary-blue">
+        <div class="w-5 h-5 rounded-full bg-primary-blue/10 flex items-center justify-center text-primary-blue shrink-0">
+          <HugeIcon :icon="InformationCircleIcon" :size="12" />
+        </div>
         <h4 class="text-xs font-bold text-primary-text uppercase tracking-wider">
           How Auto Settlement Timing Works
         </h4>
       </div>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs text-secondary-text">
-        <div class="p-3 rounded-lg bg-background border border-primary-border space-y-1">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs text-secondary-text">
+        <div class="pl-4 border-l-2 border-primary-blue space-y-1.5 py-1">
           <span class="font-bold text-primary-text block">1. Five-Minute Engine Cron</span>
           <p class="leading-relaxed">
             The background settlement scheduler executes every ~5 minutes, checking which active IBs have reached their specified UTC settle hour and minute window.
           </p>
         </div>
-        <div class="p-3 rounded-lg bg-background border border-primary-border space-y-1">
+        <div class="pl-4 border-l-2 border-primary-green space-y-1.5 py-1">
           <span class="font-bold text-primary-text block">2. Completed Periods Only</span>
           <p class="leading-relaxed">
             Settlement aggregates trades strictly from the <strong>previous completed</strong> period:
-            <strong>Daily</strong> (yesterday <code class="text-primary-text">YYYY-MM-DD</code>),
-            <strong>Weekly</strong> (last ISO week <code class="text-primary-text">YYYY-Www</code>), or
-            <strong>Monthly</strong> (last calendar month <code class="text-primary-text">YYYY-MM</code>).
+            <strong>Daily</strong> (yesterday <code class="text-primary-text bg-background px-1 py-0.5 rounded">YYYY-MM-DD</code>),
+            <strong>Weekly</strong> (last ISO week <code class="text-primary-text bg-background px-1 py-0.5 rounded">YYYY-Www</code>), or
+            <strong>Monthly</strong> (last calendar month <code class="text-primary-text bg-background px-1 py-0.5 rounded">YYYY-MM</code>).
           </p>
         </div>
-        <div class="p-3 rounded-lg bg-background border border-primary-border space-y-1">
+        <div class="pl-4 border-l-2 border-primary-purple space-y-1.5 py-1">
           <span class="font-bold text-primary-text block">3. Single Wallet Credit &amp; Idempotency</span>
           <p class="leading-relaxed">
-            Pending commissions for the period are summed and credited into the IB wallet in <strong>one single batch</strong>. Re-running the same completed period will never double-pay.
+            Pending commissions for the period are summed and credited into the IB wallet in <strong>one single batch</strong>. Re-running the same completed period will never double-pay due to cryptographic lock keys.
           </p>
         </div>
       </div>

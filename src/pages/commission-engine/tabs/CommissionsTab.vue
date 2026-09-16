@@ -332,7 +332,7 @@ const formatDate = (val) => {
           >
             <!-- Status Filter Pills -->
             <div
-              class="inline-flex p-1 rounded-xl bg-background border border-primary-border shrink-0 self-start sm:self-auto shadow-2xs"
+              class="inline-flex p-1 rounded-lg bg-background border border-primary-border shrink-0 self-start sm:self-auto shadow-2xs"
             >
               <!-- Pending -->
               <button
@@ -428,7 +428,7 @@ const formatDate = (val) => {
                 v-if="canApprove && pendingSelectedCommissions.length > 0"
                 type="button"
                 :disabled="store.actionLoading"
-                class="flex items-center gap-1.5 px-3.5 py-1.5 bg-primary-green hover:bg-primary-green/90 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-xs animate-in fade-in zoom-in-95 duration-150"
+                class="flex items-center gap-1.5 px-3.5 py-1.5 bg-primary-green hover:bg-primary-green/90 text-white text-xs font-bold rounded-lg transition-all cursor-pointer shadow-xs animate-in fade-in zoom-in-95 duration-150"
                 @click="openBulkApprove"
               >
                 <HugeIcon :icon="CheckmarkCircle02Icon" :size="14" />
@@ -444,7 +444,7 @@ const formatDate = (val) => {
                 v-if="canSync"
                 type="button"
                 :disabled="store.actionLoading"
-                class="flex items-center gap-1.5 px-3.5 py-1.5 bg-primary hover:bg-primary-hover text-white text-xs font-semibold rounded-xl transition-all cursor-pointer shadow-xs disabled:opacity-50"
+                class="flex items-center gap-1.5 px-3.5 py-1.5 bg-primary hover:bg-primary-hover text-white text-xs font-semibold rounded-lg transition-all cursor-pointer shadow-xs disabled:opacity-50"
                 @click="isCalculateModalOpen = true"
               >
                 <HugeIcon :icon="Coins01Icon" :size="14" />
@@ -456,7 +456,7 @@ const formatDate = (val) => {
                 <button
                   type="button"
                   :disabled="store.loading"
-                  class="flex items-center justify-center w-8 h-8 border border-primary-border rounded-xl text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer disabled:opacity-50"
+                  class="flex items-center justify-center w-8 h-8 border border-primary-border rounded-lg text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer disabled:opacity-50"
                   @click="loadCommissions(store.commissionsPagination.page, true)"
                 >
                   <HugeIcon

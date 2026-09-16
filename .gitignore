@@ -31,3 +31,6 @@ dist-ssr
 docs/
 documentation/
 
+
+# Antigravity custom configurations
+.agents/mcp_config.json
