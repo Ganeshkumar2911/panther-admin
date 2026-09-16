@@ -275,6 +275,13 @@ const columns = [
     sortable: true,
   },
   {
+    key: "commission_per_pips",
+    label: "Comm / Pips",
+    align: "right",
+    width: "120px",
+    sortable: true,
+  },
+  {
     key: "total_commission",
     label: "Total Commission",
     align: "right",
@@ -671,11 +678,18 @@ const formatDate = (val) => {
               {{ row.rate_type_per_millions_volume === 'percent' ? `${row.rate_per_millions_volume}%` : `$${row.rate_per_millions_volume}` }}
             </strong>
           </p>
+          <p v-if="row.rate_per_pips !== null && row.rate_per_pips !== undefined">
+            Per Pips:
+            <strong class="text-primary-text">
+              {{ row.rate_type_per_pips === 'percent' ? `${row.rate_per_pips}%` : `P${row.rate_per_pips}` }}
+            </strong>
+          </p>
           <p
             v-if="
               (row.rate_per_lot === null || row.rate_per_lot === undefined) &&
               (row.rate_per_spread === null || row.rate_per_spread === undefined) &&
-              (row.rate_per_millions_volume === null || row.rate_per_millions_volume === undefined)
+              (row.rate_per_millions_volume === null || row.rate_per_millions_volume === undefined) &&
+              (row.rate_per_pips === null || row.rate_per_pips === undefined)
             "
             class="text-secondary-text"
           >
@@ -727,6 +741,22 @@ const formatDate = (val) => {
             class="text-primary-text font-semibold"
           >
             ${{ Number(row.commission_per_spread || 0).toFixed(4) }}
+          </span>
+          <span v-else class="text-secondary-text">-</span>
+        </div>
+      </template>
+
+      <!-- Cell: Commission Per Pips -->
+      <template #cell-commission_per_pips="{ row }">
+        <div class="text-right font-mono text-xs">
+          <span
+            v-if="
+              row.commission_per_pips !== null &&
+              row.commission_per_pips !== undefined
+            "
+            class="text-primary-text font-semibold"
+          >
+            ${{ Number(row.commission_per_pips || 0).toFixed(4) }}
           </span>
           <span v-else class="text-secondary-text">-</span>
         </div>

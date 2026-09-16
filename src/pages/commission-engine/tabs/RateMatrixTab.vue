@@ -61,23 +61,32 @@ const methodOptions = [
     prefix: "$/M",
     description: "USD per million volume traded",
   },
+  {
+    value: "per_pips",
+    label: "Per Pips",
+    prefix: "P",
+    description: "Affiliate pips based on pip value",
+  },
 ];
 
 const getMethodUnit = computed(() => {
   if (activeMethod.value === "per_spread") return "%";
   if (activeMethod.value === "per_millions_volume") return "$/M";
+  if (activeMethod.value === "per_pips") return "Pips";
   return "$";
 });
 
 const getMethodUnitLabel = computed(() => {
   if (activeMethod.value === "per_spread") return "% Spread";
   if (activeMethod.value === "per_millions_volume") return "$ / Million";
+  if (activeMethod.value === "per_pips") return "Pips";
   return "$ / Lot";
 });
 
 const getModeDisplay = computed(() => {
   if (activeMethod.value === "per_spread") return "Spread %";
   if (activeMethod.value === "per_millions_volume") return "USD / Million";
+  if (activeMethod.value === "per_pips") return "Pips";
   return "USD / Lot";
 });
 
