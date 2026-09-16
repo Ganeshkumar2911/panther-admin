@@ -323,7 +323,6 @@ export const useWhatsAppChatStore = defineStore('whatsappChat', () => {
       apiRequest(urls.KEYS.GET, urls.whatsapp.chatOpen, {
         params: { phone_number: cleanNumber },
         isTokenRequired: true,
-        skipAdminPrefix: true, // Direct /whatsapp/chat/open
         onSuccess: (res) => {
           rawData.value = res
           dtCustomerId.value = res?.dtCustomerId || null
@@ -387,7 +386,6 @@ export const useWhatsAppChatStore = defineStore('whatsappChat', () => {
       apiRequest(urls.KEYS.POST, urls.whatsapp.sendMessage, {
         data: payload,
         isTokenRequired: true,
-        skipAdminPrefix: true,
         onSuccess: (res) => {
           sending.value = false
           const realId = res?.messageId || res?.id || res?.data?.messageId || res?.data?.id || res?.dtMessageId
@@ -477,7 +475,6 @@ export const useWhatsAppChatStore = defineStore('whatsappChat', () => {
       apiRequest(urls.KEYS.POST, urls.whatsapp.sendTemplate, {
         data: payload,
         isTokenRequired: true,
-        skipAdminPrefix: true, // Direct /whatsapp/send/template
         onSuccess: (res) => {
           sending.value = false
           if (res?.isOpen !== undefined) {

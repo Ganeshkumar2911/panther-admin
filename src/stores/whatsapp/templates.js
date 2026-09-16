@@ -227,7 +227,6 @@ export const useWhatsAppTemplatesStore = defineStore('whatsappTemplates', () => 
       apiRequest(urls.KEYS.GET, urls.whatsapp.templates, {
         params: queryParams,
         isTokenRequired: true,
-        skipAdminPrefix: true, // No admin/fm prefix
         onSuccess: (res) => {
           let rawList = []
           if (Array.isArray(res)) {
@@ -285,7 +284,6 @@ export const useWhatsAppTemplatesStore = defineStore('whatsappTemplates', () => 
       apiRequest(urls.KEYS.POST, urls.whatsapp.createTemplate, {
         data: templatePayload,
         isTokenRequired: true,
-        skipAdminPrefix: true, // No admin/fm prefix
         onSuccess: async (res) => {
           saving.value = false
           snackbar.show(res?.message || 'Template created successfully!', 'success')
@@ -307,7 +305,6 @@ export const useWhatsAppTemplatesStore = defineStore('whatsappTemplates', () => 
       apiRequest(urls.KEYS.DELETE, urls.whatsapp.deleteTemplate, {
         look_up_key: id,
         isTokenRequired: true,
-        skipAdminPrefix: true, // No admin/fm prefix
         onSuccess: (res) => {
           templates.value = templates.value.filter((t) => t.id !== id)
           deleting.value = false
