@@ -44,16 +44,15 @@ import DemoWalletsTab from "./tabs/DemoWalletsTab.vue";
 import ApprovalsTab from "./tabs/ApprovalsTab.vue";
 
 const route = useRoute();
-const { hasPermission } = usePermissionCheck();
+const { hasPermission, userCodes } = usePermissionCheck();
 
-const hasAccess = computed(
-  () =>
-    hasPermission("ib_commission.view") ||
-    hasPermission("ib_commission.manage_rates") ||
-    hasPermission("ib_commission.manage_symbol_groups") ||
-    hasPermission("ib_commission.sync") ||
-    hasPermission("ib_commission.approve")
-);
+const hasAccess = computed(() => {
+  if (!userCodes.value) return false;
+  for (const code of userCodes.value) {
+    if (code.startsWith("ib_commission.")) return true;
+  }
+  return false;
+});
 
 const validTabKeys = [
   "approvals",
