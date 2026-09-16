@@ -650,6 +650,13 @@
       :item="selectedDetailsItem"
       @close="detailsDrawerOpen = false"
     />
+
+    <!-- FM Login Confirmation Modal -->
+    <FMLoginModal
+      :open="fmLoginModalOpen"
+      :fm="selectedFmForLogin || {}"
+      @close="closeFmLoginModal"
+    />
   </div>
 </template>
 
@@ -674,12 +681,14 @@ import {
   Calculator,
   Tag,
   Users,
-  BookOpen
+  BookOpen,
+  LogIn
 } from 'lucide-vue-next'
 import { useFmLeaderboardStore } from '@/stores/fmLeaderboard/fmLeaderboard'
 import Pagination from '@/components/common/Pagination.vue'
 import AddEditFundManager from '@/components/fundManager/AddEditFundManager.vue'
 import FmDetailsDrawer from '@/components/fundManager/FmDetailsDrawer.vue'
+import FMLoginModal from '@/components/common/FMLoginModal.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import Tooltip from '@/components/common/Tooltip.vue'
 import DropdownMenu from '@/components/common/DropdownMenu.vue'
@@ -702,6 +711,9 @@ const selectedItem = ref(null)
 
 const detailsDrawerOpen = ref(false)
 const selectedDetailsItem = ref(null)
+
+const fmLoginModalOpen = ref(false)
+const selectedFmForLogin = ref(null)
 
 const visibilityOptions = [
   { label: 'All Visibility', value: 'ALL' },
@@ -834,6 +846,16 @@ const openDetailsDrawer = (item) => {
   detailsDrawerOpen.value = true
 }
 
+const handleFmLogin = (item) => {
+  selectedFmForLogin.value = item
+  fmLoginModalOpen.value = true
+}
+
+const closeFmLoginModal = () => {
+  fmLoginModalOpen.value = false
+  selectedFmForLogin.value = null
+}
+
 const handlePageChange = (page) => {
   store.pagination.page = page
   store.fetchFmLeaderboard(true, page)
@@ -883,6 +905,14 @@ const getRowActions = (item) => {
     },
   ]
 
+  if (hasPermission('xtention_dev.login_as_fm')) {
+    actions.splice(1, 0, {
+      action: 'fmLogin',
+      label: 'Login to Dashboard',
+      icon: LogIn,
+    })
+  }
+
   if (hasPermission('fund_manager.view_seletement')) {
     actions.push({
       action: 'settlement',
@@ -907,6 +937,8 @@ const onMenuSelect = (menuItem, item) => {
   switch (menuItem.action) {
     case 'details':
       return openDetailsDrawer(item)
+    case 'fmLogin':
+      return handleFmLogin(item)
     case 'trade-book':
       return router.push({
         name: 'fm-trade-book',
