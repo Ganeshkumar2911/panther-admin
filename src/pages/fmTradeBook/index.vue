@@ -23,8 +23,8 @@
                 class="px-2 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wide border"
                 :class="
                   isFollowerMode
-                    ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20'
-                    : 'bg-primary/10 text-primary border-primary/20'
+                    ? 'bg-purple-500/10 text-purple-500 border border-purple-500/20'
+                    : 'bg-primary/10 text-primary border border-primary/20'
                 "
               >
                 {{ isFollowerMode ? "Follower Trade Book" : "FM Trade Book" }}
@@ -35,13 +35,13 @@
                 class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold border"
                 :class="
                   activeStatus
-                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                    : 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'
+                    ? 'bg-primary-green/10 text-primary-green border-primary-green/20'
+                    : 'bg-background text-secondary-text border-primary-border'
                 "
               >
                 <span
                   class="w-1.5 h-1.5 rounded-full"
-                  :class="activeStatus ? 'bg-emerald-500' : 'bg-zinc-500'"
+                  :class="activeStatus ? 'bg-primary-green' : 'bg-zinc-400'"
                 />
                 {{ activeStatus ? "Active" : "Inactive" }}
               </span>
@@ -125,9 +125,9 @@
             <span class="text-[10px] uppercase font-bold tracking-wider"
               >Open Trades</span
             >
-            <Clock class="w-3.5 h-3.5 text-amber-500" />
+            <Clock class="w-3.5 h-3.5 text-primary-yellow" />
           </div>
-          <p class="text-xl font-extrabold text-amber-500 font-mono">
+          <p class="text-xl font-extrabold text-primary-yellow font-mono">
             {{ store.summary.open_trades ?? store.summary.open_positions ?? 0 }}
           </p>
         </div>
@@ -141,7 +141,7 @@
             <span class="text-[10px] uppercase font-bold tracking-wider"
               >Closed Trades</span
             >
-            <CheckCircle2 class="w-3.5 h-3.5 text-emerald-500" />
+            <CheckCircle2 class="w-3.5 h-3.5 text-primary-green" />
           </div>
           <p class="text-xl font-extrabold text-primary-text font-mono">
             {{
@@ -184,9 +184,9 @@
                   store.summary.total_pnl ?? store.summary.total_profit ?? 0,
                 ) >= 0
               "
-              class="w-3.5 h-3.5 text-emerald-500"
+              class="w-3.5 h-3.5 text-primary-green"
             />
-            <TrendingDown v-else class="w-3.5 h-3.5 text-rose-500" />
+            <TrendingDown v-else class="w-3.5 h-3.5 text-primary-red" />
           </div>
           <p
             class="text-xl font-extrabold font-mono"
@@ -194,8 +194,8 @@
               Number(
                 store.summary.total_pnl ?? store.summary.total_profit ?? 0,
               ) >= 0
-                ? 'text-emerald-500'
-                : 'text-rose-500'
+                ? 'text-primary-green'
+                : 'text-primary-red'
             "
           >
             {{
@@ -237,9 +237,9 @@
             <span class="text-[10px] uppercase font-bold tracking-wider"
               >Open Positions</span
             >
-            <Clock class="w-3.5 h-3.5 text-amber-500" />
+            <Clock class="w-3.5 h-3.5 text-primary-yellow" />
           </div>
-          <p class="text-xl font-extrabold text-amber-500 font-mono">
+          <p class="text-xl font-extrabold text-primary-yellow font-mono">
             {{ store.summary.open_positions ?? store.summary.open_trades ?? 0 }}
           </p>
         </div>
@@ -253,7 +253,7 @@
             <span class="text-[10px] uppercase font-bold tracking-wider"
               >Closed Positions</span
             >
-            <CheckCircle2 class="w-3.5 h-3.5 text-emerald-500" />
+            <CheckCircle2 class="w-3.5 h-3.5 text-primary-green" />
           </div>
           <p class="text-xl font-extrabold text-primary-text font-mono">
             {{
@@ -271,10 +271,10 @@
             <span class="text-[10px] uppercase font-bold tracking-wider"
               >Win Rate</span
             >
-            <TrendingUp class="w-3.5 h-3.5 text-emerald-500" />
+            <TrendingUp class="w-3.5 h-3.5 text-primary-green" />
           </div>
           <div class="flex items-baseline gap-1.5">
-            <p class="text-xl font-extrabold text-emerald-500 font-mono">
+            <p class="text-xl font-extrabold text-primary-green font-mono">
               {{
                 store.summary.win_rate != null
                   ? Number(store.summary.win_rate).toFixed(1) + "%"
@@ -339,9 +339,9 @@
                   store.summary.total_profit ?? store.summary.total_pnl ?? 0,
                 ) >= 0
               "
-              class="w-3.5 h-3.5 text-emerald-500"
+              class="w-3.5 h-3.5 text-primary-green"
             />
-            <TrendingDown v-else class="w-3.5 h-3.5 text-rose-500" />
+            <TrendingDown v-else class="w-3.5 h-3.5 text-primary-red" />
           </div>
           <p
             class="text-xl font-extrabold font-mono"
@@ -349,8 +349,8 @@
               Number(
                 store.summary.total_profit ?? store.summary.total_pnl ?? 0,
               ) >= 0
-                ? 'text-emerald-500'
-                : 'text-rose-500'
+                ? 'text-primary-green'
+                : 'text-primary-red'
             "
           >
             {{
@@ -390,9 +390,9 @@
             <span class="text-[10px] uppercase font-bold tracking-wider"
               >Filled Orders</span
             >
-            <CheckCircle2 class="w-3.5 h-3.5 text-emerald-500" />
+            <CheckCircle2 class="w-3.5 h-3.5 text-primary-green" />
           </div>
-          <p class="text-xl font-extrabold text-emerald-500 font-mono">
+          <p class="text-xl font-extrabold text-primary-green font-mono">
             {{ store.summary.filled_orders ?? 0 }}
           </p>
         </div>
@@ -406,9 +406,9 @@
             <span class="text-[10px] uppercase font-bold tracking-wider"
               >Rejected Orders</span
             >
-            <X class="w-3.5 h-3.5 text-rose-500" />
+            <X class="w-3.5 h-3.5 text-primary-red" />
           </div>
-          <p class="text-xl font-extrabold text-rose-500 font-mono">
+          <p class="text-xl font-extrabold text-primary-red font-mono">
             {{ store.summary.rejected_orders ?? 0 }}
           </p>
         </div>
@@ -491,9 +491,9 @@
             <span class="text-[10px] uppercase font-bold tracking-wider"
               >IN Deals</span
             >
-            <Clock class="w-3.5 h-3.5 text-amber-500" />
+            <Clock class="w-3.5 h-3.5 text-primary-yellow" />
           </div>
-          <p class="text-xl font-extrabold text-amber-500 font-mono">
+          <p class="text-xl font-extrabold text-primary-yellow font-mono">
             {{ store.summary.in_deals ?? 0 }}
           </p>
         </div>
@@ -507,9 +507,9 @@
             <span class="text-[10px] uppercase font-bold tracking-wider"
               >OUT Deals</span
             >
-            <CheckCircle2 class="w-3.5 h-3.5 text-emerald-500" />
+            <CheckCircle2 class="w-3.5 h-3.5 text-primary-green" />
           </div>
-          <p class="text-xl font-extrabold text-emerald-500 font-mono">
+          <p class="text-xl font-extrabold text-primary-green font-mono">
             {{ store.summary.out_deals ?? 0 }}
           </p>
         </div>
@@ -571,9 +571,9 @@
                   store.summary.total_profit ?? store.summary.total_pnl ?? 0,
                 ) >= 0
               "
-              class="w-3.5 h-3.5 text-emerald-500"
+              class="w-3.5 h-3.5 text-primary-green"
             />
-            <TrendingDown v-else class="w-3.5 h-3.5 text-rose-500" />
+            <TrendingDown v-else class="w-3.5 h-3.5 text-primary-red" />
           </div>
           <p
             class="text-xl font-extrabold font-mono"
@@ -581,8 +581,8 @@
               Number(
                 store.summary.total_profit ?? store.summary.total_pnl ?? 0,
               ) >= 0
-                ? 'text-emerald-500'
-                : 'text-rose-500'
+                ? 'text-primary-green'
+                : 'text-primary-red'
             "
           >
             {{
@@ -850,8 +850,8 @@
                       item.action_name === 'BUY' ||
                       item.action === 0 ||
                       item.type === 'BUY'
-                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                        : 'bg-rose-500/10 text-rose-600 border-rose-500/20'
+                        ? 'bg-primary-green/10 text-primary-green border border-primary-green/20'
+                        : 'bg-primary-red/10 text-primary-red border border-primary-red/20'
                     "
                   >
                     {{
@@ -869,13 +869,13 @@
                     class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide border"
                     :class="
                       String(item.status || '').toUpperCase() === 'OPEN'
-                        ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
-                        : 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'
+                        ? 'bg-primary-yellow/10 text-primary-yellow border-primary-yellow/20'
+                        : 'bg-background text-secondary-text border-primary-border'
                     "
                   >
                     <span
                       v-if="String(item.status || '').toUpperCase() === 'OPEN'"
-                      class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"
+                      class="w-1.5 h-1.5 rounded-full bg-primary-yellow animate-pulse"
                     />
                     {{ item.status || (item.is_open ? "OPEN" : "CLOSED") }}
                   </span>
@@ -903,8 +903,8 @@
                     class="tabular-nums transition-colors duration-200"
                     :class="
                       Number(livePNL(item)) >= 0
-                        ? 'text-emerald-500'
-                        : 'text-rose-500'
+                        ? 'text-primary-green'
+                        : 'text-primary-red'
                     "
                   >
                     {{ formatPnl(livePNL(item)) }}
@@ -1012,8 +1012,8 @@
                       order.type_name === 'BUY' ||
                       order.type === 0 ||
                       order.action_name === 'BUY'
-                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                        : 'bg-rose-500/10 text-rose-600 border-rose-500/20'
+                        ? 'bg-primary-green/10 text-primary-green border border-primary-green/20'
+                        : 'bg-primary-red/10 text-primary-red border border-primary-red/20'
                     "
                   >
                     {{
@@ -1039,10 +1039,10 @@
                     position="center"
                   >
                     <span
-                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide border bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20 cursor-help"
+                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide border bg-primary-red/10 text-primary-red border-primary-red/20 cursor-help"
                     >
                       <span>{{ order.state_name || "REJECTED" }}</span>
-                      <Info class="w-3 h-3 text-rose-400 shrink-0" />
+                      <Info class="w-3 h-3 text-primary-red shrink-0" />
                     </span>
                   </Tooltip>
                   <span
@@ -1050,7 +1050,7 @@
                       String(order.state_name || '').toUpperCase() ===
                         'FILLED' || order.state === 4
                     "
-                    class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide border bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                    class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide border bg-primary-green/10 text-primary-green border border-primary-green/20"
                   >
                     {{ order.state_name || "FILLED" }}
                   </span>
@@ -1184,8 +1184,8 @@
                     class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wide border"
                     :class="
                       deal.action_name === 'BUY' || deal.action === 0
-                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                        : 'bg-rose-500/10 text-rose-600 border-rose-500/20'
+                        ? 'bg-primary-green/10 text-primary-green border border-primary-green/20'
+                        : 'bg-primary-red/10 text-primary-red border border-primary-red/20'
                     "
                   >
                     {{
@@ -1203,8 +1203,8 @@
                     class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide border"
                     :class="
                       deal.entry_name === 'IN' || deal.entry === 0
-                        ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20'
-                        : 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20'
+                        ? 'bg-primary-blue/10 text-primary-blue border border-primary-blue/20'
+                        : 'bg-purple-500/10 text-purple-500 border border-purple-500/20'
                     "
                   >
                     {{
@@ -1228,8 +1228,8 @@
                   <span
                     :class="
                       Number(deal.profit ?? deal.profit_raw ?? 0) >= 0
-                        ? 'text-emerald-500'
-                        : 'text-rose-500'
+                        ? 'text-primary-green'
+                        : 'text-primary-red'
                     "
                   >
                     {{ formatPnl(deal.profit ?? deal.profit_raw) }}

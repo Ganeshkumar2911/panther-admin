@@ -24,9 +24,9 @@
               class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border"
               :class="getHeaderIconClass(log?.status)"
             >
-              <ShieldAlert v-if="isFailed(log?.status)" class="w-5 h-5 text-red-500" />
-              <CheckCircle2 v-else-if="isSuccess(log?.status)" class="w-5 h-5 text-emerald-500" />
-              <Activity v-else class="w-5 h-5 text-amber-500" />
+              <ShieldAlert v-if="isFailed(log?.status)" class="w-5 h-5 text-primary-red" />
+              <CheckCircle2 v-else-if="isSuccess(log?.status)" class="w-5 h-5 text-primary-green" />
+              <Activity v-else class="w-5 h-5 text-primary-yellow" />
             </div>
             <div class="min-w-0">
               <div class="flex items-center gap-2 flex-wrap">
@@ -112,22 +112,22 @@
             <!-- Failure Reason Alert Banner -->
             <div
               v-if="failureReason"
-              class="rounded-xl border border-red-500/30 bg-red-500/5 p-4 text-xs space-y-2 relative overflow-hidden"
+              class="rounded-xl border border-primary-red/30 bg-primary-red/5 p-4 text-xs space-y-2 relative overflow-hidden"
             >
               <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2 text-red-500 font-bold">
+                <div class="flex items-center gap-2 text-primary-red font-bold">
                   <AlertTriangle class="w-4 h-4 shrink-0" />
                   <span>Execution Failure Details</span>
                 </div>
                 <button
                   type="button"
-                  class="text-[10px] font-semibold text-red-400 hover:text-red-300 underline cursor-pointer"
+                  class="text-[10px] font-semibold text-primary-red hover:underline cursor-pointer"
                   @click="copyText(failureReason, 'Failure Reason')"
                 >
                   Copy Reason
                 </button>
               </div>
-              <p class="text-secondary-text font-mono text-[11px] leading-relaxed break-words bg-black/20 p-2.5 rounded-lg border border-red-500/20">
+              <p class="text-secondary-text font-mono text-[11px] leading-relaxed break-words bg-black/20 p-2.5 rounded-lg border border-primary-red/20">
                 {{ failureReason }}
               </p>
             </div>
@@ -243,7 +243,7 @@
                     <span v-if="metaDestination?.user_id" class="text-[9px] font-mono text-secondary-text">
                       User #{{ metaDestination.user_id }}
                     </span>
-                    <span v-if="metaDestination?.trading_account_id" class="text-[9px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
+                    <span v-if="metaDestination?.trading_account_id" class="text-[9px] font-mono text-primary-green font-semibold">
                       Account #{{ metaDestination.trading_account_id }}
                     </span>
                   </div>
@@ -343,22 +343,22 @@
                     <span class="font-mono">{{ field.key }}</span>
                     <span
                       v-if="field.hasChanged"
-                      class="text-[9px] font-semibold px-2 py-0.2 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+                      class="text-[9px] font-semibold px-2 py-0.2 rounded bg-primary-yellow/10 text-primary-yellow border border-primary-yellow/20"
                     >
                       MODIFIED
                     </span>
                   </div>
                   <div class="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-primary-border text-xs">
-                    <div class="p-3 bg-red-500/5">
-                      <span class="text-[9px] font-bold uppercase tracking-wider text-red-500 block mb-1">Before (Old Value)</span>
-                      <span v-if="field.oldValue !== undefined" class="font-mono text-red-600 dark:text-red-400 break-all select-all text-[11px]">
+                    <div class="p-3 bg-primary-red/5">
+                      <span class="text-[9px] font-bold uppercase tracking-wider text-primary-red block mb-1">Before (Old Value)</span>
+                      <span v-if="field.oldValue !== undefined" class="font-mono text-primary-red break-all select-all text-[11px]">
                         {{ formatValue(field.oldValue) }}
                       </span>
                       <span v-else class="text-secondary-text opacity-50 italic">— (none)</span>
                     </div>
-                    <div class="p-3 bg-emerald-500/5">
-                      <span class="text-[9px] font-bold uppercase tracking-wider text-emerald-500 block mb-1">After (New Value)</span>
-                      <span v-if="field.newValue !== undefined" class="font-mono text-emerald-600 dark:text-emerald-400 break-all select-all text-[11px]">
+                    <div class="p-3 bg-primary-green/5">
+                      <span class="text-[9px] font-bold uppercase tracking-wider text-primary-green block mb-1">After (New Value)</span>
+                      <span v-if="field.newValue !== undefined" class="font-mono text-primary-green break-all select-all text-[11px]">
                         {{ formatValue(field.newValue) }}
                       </span>
                       <span v-else class="text-secondary-text opacity-50 italic">— (none)</span>
@@ -370,12 +370,12 @@
               <!-- Fallback raw JSON -->
               <div v-else class="space-y-3 text-xs">
                 <div v-if="log?.old_data" class="space-y-1">
-                  <span class="text-[10px] uppercase font-bold text-red-500 tracking-wider">Old Data</span>
-                  <pre class="bg-red-500/5 border border-red-500/20 rounded-xl p-3 text-[10px] font-mono text-red-600 dark:text-red-400 overflow-auto max-h-56 leading-relaxed">{{ JSON.stringify(log.old_data, null, 2) }}</pre>
+                  <span class="text-[10px] uppercase font-bold text-primary-red tracking-wider">Old Data</span>
+                  <pre class="bg-primary-red/5 border border-primary-red/20 rounded-xl p-3 text-[10px] font-mono text-primary-red overflow-auto max-h-56 leading-relaxed">{{ JSON.stringify(log.old_data, null, 2) }}</pre>
                 </div>
                 <div v-if="log?.new_data" class="space-y-1">
-                  <span class="text-[10px] uppercase font-bold text-emerald-500 tracking-wider">New Data</span>
-                  <pre class="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-3 text-[10px] font-mono text-emerald-600 dark:text-emerald-400 overflow-auto max-h-56 leading-relaxed">{{ JSON.stringify(log.new_data, null, 2) }}</pre>
+                  <span class="text-[10px] uppercase font-bold text-primary-green tracking-wider">New Data</span>
+                  <pre class="bg-primary-green/5 border border-primary-green/20 rounded-xl p-3 text-[10px] font-mono text-primary-green overflow-auto max-h-56 leading-relaxed">{{ JSON.stringify(log.new_data, null, 2) }}</pre>
                 </div>
               </div>
             </div>
@@ -483,24 +483,24 @@ const formatAction = (action) => {
 
 const getStatusClass = (status) => {
   if (isSuccess(status)) {
-    return 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20'
+    return 'bg-primary-green/10 text-primary-green border-primary-green/20'
   }
   if (isFailed(status)) {
-    return 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20'
+    return 'bg-primary-red/10 text-primary-red border-primary-red/20'
   }
-  return 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20'
+  return 'bg-primary-yellow/10 text-primary-yellow border-primary-yellow/20'
 }
 
 const getStatusDotClass = (status) => {
-  if (isSuccess(status)) return 'bg-emerald-500'
-  if (isFailed(status)) return 'bg-red-500'
-  return 'bg-amber-500'
+  if (isSuccess(status)) return 'bg-primary-green'
+  if (isFailed(status)) return 'bg-primary-red'
+  return 'bg-primary-yellow'
 }
 
 const getHeaderIconClass = (status) => {
-  if (isSuccess(status)) return 'bg-emerald-500/10 border-emerald-500/20'
-  if (isFailed(status)) return 'bg-red-500/10 border-red-500/20'
-  return 'bg-amber-500/10 border-amber-500/20'
+  if (isSuccess(status)) return 'bg-primary-green/10 border-primary-green/20'
+  if (isFailed(status)) return 'bg-primary-red/10 border-primary-red/20'
+  return 'bg-primary-yellow/10 border-primary-yellow/20'
 }
 
 const actorUser = computed(() => {
@@ -561,7 +561,7 @@ const miscellaneousFields = computed(() => {
       label: 'Payout Amount',
       displayValue: `${misc.payout_amount} ${pCur}`,
       isBadge: true,
-      badgeClass: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+      badgeClass: 'bg-primary-green/10 text-primary-green border border-primary-green/20'
     })
   }
 
@@ -583,7 +583,7 @@ const miscellaneousFields = computed(() => {
       label: 'Auto Submitted',
       displayValue: misc.auto_submitted ? 'Yes' : 'No',
       isBadge: true,
-      badgeClass: misc.auto_submitted ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : 'bg-background text-secondary-text border-primary-border'
+      badgeClass: misc.auto_submitted ? 'bg-primary-green/10 text-primary-green border border-primary-green/20' : 'bg-background text-secondary-text border border-primary-border'
     })
   }
 

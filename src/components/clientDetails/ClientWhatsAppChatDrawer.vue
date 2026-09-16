@@ -251,7 +251,7 @@ const renderMarkdown = (text, isIncoming = false) => {
                 </div>
                 <!-- Live Presence Indicator -->
                 <div
-                  class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-card-background flex items-center justify-center"
+                  class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-primary-green border-2 border-card-background flex items-center justify-center"
                 >
                   <ShieldCheck class="w-2 h-2 text-white" />
                 </div>
@@ -283,8 +283,8 @@ const renderMarkdown = (text, isIncoming = false) => {
                     {{ clientPhone || 'No Phone' }}
                   </span>
                   <span>•</span>
-                  <span class="text-[10.5px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-medium">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span class="text-[10.5px] text-primary-green flex items-center gap-1 font-medium">
+                    <span class="w-1.5 h-1.5 rounded-full bg-primary-green animate-pulse" />
                     Live WhatsApp
                   </span>
                 </div>
@@ -486,12 +486,12 @@ const renderMarkdown = (text, isIncoming = false) => {
               <Lock class="w-3.5 h-3.5 shrink-0" />
               <span class="truncate text-[11px] font-medium">Read-only mode (Send permission required)</span>
             </div>
-            <div v-else-if="!chatStore.isSessionOpen" class="flex items-center gap-2 text-amber-600 dark:text-amber-400 min-w-0">
+            <div v-else-if="!chatStore.isSessionOpen" class="flex items-center gap-2 text-primary-yellow min-w-0">
               <Clock class="w-3.5 h-3.5 shrink-0" />
               <span class="truncate text-[11px] font-medium">24h window closed. Send a template to chat.</span>
             </div>
-            <div v-else class="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 min-w-0">
-              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+            <div v-else class="flex items-center gap-2 text-primary-green min-w-0">
+              <span class="w-2 h-2 rounded-full bg-primary-green animate-pulse shrink-0" />
               <span class="truncate text-[11px] font-medium">24-hour conversation window active</span>
             </div>
 

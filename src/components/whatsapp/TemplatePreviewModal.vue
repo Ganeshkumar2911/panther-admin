@@ -54,19 +54,19 @@ const copyText = (text) => {
                 </span>
                 <span
                   v-if="template.status === 'APPROVED'"
-                  class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                  class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary-green/10 text-primary-green border border-primary-green/20"
                 >
                   {{ template.status }}
                 </span>
                 <span
                   v-else-if="template.status === 'PENDING'"
-                  class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+                  class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary-yellow/10 text-primary-yellow border border-primary-yellow/20"
                 >
                   {{ template.status }}
                 </span>
                 <span
                   v-else
-                  class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
+                  class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary-red/10 text-primary-red border border-primary-red/20"
                 >
                   {{ template.status }}
                 </span>

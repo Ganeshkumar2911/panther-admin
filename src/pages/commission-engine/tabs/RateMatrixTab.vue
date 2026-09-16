@@ -306,7 +306,7 @@ const handleSave = async () => {
         <div class="flex items-center gap-3 flex-wrap">
           <!-- Method Selector Buttons -->
           <div
-            class="inline-flex p-1 rounded-xl bg-gray-100/70 dark:bg-background/60 border border-gray-200/80 dark:border-primary-border gap-1 backdrop-blur-xs rounded-lg"
+            class="inline-flex p-1 bg-background border border-primary-border gap-1 backdrop-blur-xs rounded-lg"
           >
             <Tooltip
               v-for="m in methodOptions"
@@ -320,7 +320,7 @@ const handleSave = async () => {
                 :class="[
                   activeMethod === m.value
                     ? 'bg-gradient-to-r from-primary to-primary-hover text-white font-bold '
-                    : 'text-secondary-text hover:text-primary-text hover:bg-gradient-to-r hover:from-white hover:to-gray-100/80 dark:hover:from-slate-800 dark:hover:to-slate-700/60',
+                    : 'text-secondary-text hover:text-primary-text hover:bg-card-background',
                 ]"
                 @click="handleMethodChange(m.value)"
               >
@@ -330,23 +330,6 @@ const handleSave = async () => {
                 <span>{{ m.label }}</span>
               </button>
             </Tooltip>
-          </div>
-
-          <!-- Mode indicator Pill -->
-          <div
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-100/70 dark:bg-background/60 border border-gray-200/80 dark:border-primary-border text-xs font-mono font-medium text-secondary-text rounded-lg"
-          >
-            <HugeIcon
-              :icon="SlidersHorizontalIcon"
-              :size="14"
-              class="text-primary"
-            />
-            <span
-              >Mode:
-              <strong class="text-primary-text">{{
-                getModeDisplay
-              }}</strong></span
-            >
           </div>
         </div>
       </div>
@@ -455,7 +438,7 @@ const handleSave = async () => {
         <div class="inline-flex items-center gap-1.5">
           <span class="text-secondary-text">Active Unit:</span>
           <span
-            class="font-mono font-bold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[11px]"
+            class="font-mono font-bold px-2 py-0.5 rounded-md bg-primary-green/10 text-primary-green border border-primary-green/20 text-[11px]"
           >
             {{ getMethodUnitLabel }}
           </span>
@@ -696,14 +679,14 @@ const handleSave = async () => {
                     <!-- Left Stripe -->
                     <span
                       class="w-1.5 h-7 rounded-full shrink-0"
-                      :class="row.level === 1 ? 'bg-emerald-500' : 'bg-primary'"
+                      :class="row.level === 1 ? 'bg-primary-green' : 'bg-primary'"
                     />
                     <div class="space-y-0.5">
                       <span
                         class="px-2 py-0.5 rounded text-[11px] font-bold font-mono inline-block uppercase tracking-wider"
                         :class="
                           row.level === 1
-                            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                            ? 'bg-primary-green/10 text-primary-green border border-primary-green/20'
                             : 'bg-primary/10 text-primary border border-primary/20'
                         "
                       >
@@ -829,19 +812,19 @@ const handleSave = async () => {
           <div class="flex items-center gap-3 text-xs w-full lg:w-auto">
             <div
               v-if="isDirty"
-              class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold"
+              class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary-yellow/10 text-primary-yellow border border-primary-yellow/30 font-bold"
             >
-              <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+              <span class="w-2 h-2 rounded-full bg-primary-yellow animate-ping" />
               <span>Unsaved changes on this MT5 group tab</span>
             </div>
             <div
               v-else
-              class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-bold text-xs"
+              class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary-green/10 text-primary-green border border-primary-green/20 font-bold text-xs"
             >
               <HugeIcon
                 :icon="Tick02Icon"
                 :size="14"
-                class="text-emerald-500"
+                class="text-primary-green"
               />
               <span>All rates on this tab are synchronized with server</span>
             </div>

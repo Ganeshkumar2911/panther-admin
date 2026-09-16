@@ -246,11 +246,11 @@
                   class="text-[10px] font-bold tracking-wide uppercase px-2.5 py-0.5 rounded-full border inline-flex items-center gap-1.5 shadow-2xs"
                   :class="
                     item.is_active
-                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                      : 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'
+                      ? 'bg-primary-green/10 text-primary-green border border-primary-green/20'
+                      : 'bg-background text-secondary-text border border-primary-border'
                   "
                 >
-                  <span class="w-1.5 h-1.5 rounded-full animate-pulse" :class="item.is_active ? 'bg-emerald-500' : 'bg-zinc-400'" />
+                  <span class="w-1.5 h-1.5 rounded-full animate-pulse" :class="item.is_active ? 'bg-primary-green' : 'bg-zinc-400'" />
                   {{ item.is_active ? 'Active' : 'Inactive' }}
                 </span>
                 <span
@@ -335,7 +335,7 @@
                   title="FM Share"
                 />
                 <div
-                  class="bg-emerald-500 h-full transition-all"
+                  class="bg-primary-green h-full transition-all"
                   :style="{ width: `${Math.min(100, item.ib_pool_percentage || 0)}%` }"
                   title="IB Pool Percentage"
                 />
@@ -369,7 +369,7 @@
                   :class="{
                     'bg-primary/10 text-primary border-primary/20': Number(item.follower_account_type) === 1,
                     'bg-indigo-500/10 text-indigo-500 border-indigo-500/20': Number(item.follower_account_type) === 2,
-                    'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20': Number(item.follower_account_type) === 3,
+                    'bg-primary-green/10 text-primary-green border border-primary-green/20': Number(item.follower_account_type) === 3,
                   }"
                 >
                   {{ getFollowerAccountTypeLabel(item.follower_account_type) }}
@@ -498,11 +498,11 @@
                         class="text-[10px] font-bold tracking-wide uppercase px-2 py-0.5 rounded-full border inline-flex items-center gap-1"
                         :class="
                           item.is_active
-                            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                            : 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'
+                            ? 'bg-primary-green/10 text-primary-green border border-primary-green/20'
+                            : 'bg-background text-secondary-text border border-primary-border'
                         "
                       >
-                        <span class="w-1.5 h-1.5 rounded-full" :class="item.is_active ? 'bg-emerald-500' : 'bg-zinc-400'" />
+                        <span class="w-1.5 h-1.5 rounded-full" :class="item.is_active ? 'bg-primary-green' : 'bg-zinc-400'" />
                         {{ item.is_active ? 'Active' : 'Inactive' }}
                       </span>
                       <span
@@ -526,7 +526,7 @@
                       :class="{
                         'bg-primary/10 text-primary border-primary/20': Number(item.follower_account_type) === 1,
                         'bg-indigo-500/10 text-indigo-500 border-indigo-500/20': Number(item.follower_account_type) === 2,
-                        'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20': Number(item.follower_account_type) === 3,
+                        'bg-primary-green/10 text-primary-green border border-primary-green/20': Number(item.follower_account_type) === 3,
                       }"
                     >
                       {{ getFollowerAccountTypeLabel(item.follower_account_type) }}
@@ -568,8 +568,8 @@
                   class="text-[10px] font-bold tracking-wide uppercase px-2 py-0.5 rounded-full border"
                   :class="
                     item.is_active
-                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                      : 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'
+                      ? 'bg-primary-green/10 text-primary-green border border-primary-green/20'
+                      : 'bg-background text-secondary-text border border-primary-border'
                   "
                 >
                   {{ item.is_active ? 'Active' : 'Inactive' }}
@@ -795,10 +795,10 @@ const formatPercent = (val) => {
 }
 
 const getKycBadgeClass = (status) => {
-  if (status === 'approved') return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-  if (status === 'pending') return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
-  if (status === 'rejected') return 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
-  return 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'
+  if (status === 'approved') return 'bg-primary-green/10 text-primary-green border border-primary-green/20'
+  if (status === 'pending') return 'bg-primary-yellow/10 text-primary-yellow border border-primary-yellow/20'
+  if (status === 'rejected') return 'bg-primary-red/10 text-primary-red border border-primary-red/20'
+  return 'bg-background text-secondary-text border border-primary-border'
 }
 
 const getFollowerAccountTypeLabel = (type) => {

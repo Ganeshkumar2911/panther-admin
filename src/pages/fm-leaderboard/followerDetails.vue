@@ -67,12 +67,12 @@
                 <span
                   class="text-[10px] font-bold uppercase tracking-wide px-2.5 py-0.5 rounded-full border inline-flex items-center gap-1.5 shadow-2xs"
                   :class="store.details.is_active !== false
-                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                    : 'bg-rose-500/10 text-rose-600 border-rose-500/20'"
+                    ? 'bg-primary-green/10 text-primary-green border-primary-green/20'
+                    : 'bg-primary-red/10 text-primary-red border-primary-red/20'"
                 >
                   <span
                     class="w-1.5 h-1.5 rounded-full"
-                    :class="store.details.is_active !== false ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'"
+                    :class="store.details.is_active !== false ? 'bg-primary-green animate-pulse' : 'bg-primary-red'"
                   />
                   {{ store.details.is_active !== false ? 'Active Follower' : 'Inactive' }}
                 </span>
@@ -102,7 +102,7 @@
                 >
                   <Mail class="w-3 h-3 text-secondary-text" />
                   <span>{{ store.details.user_email }}</span>
-                  <Check v-if="copiedField === 'email'" class="w-3 h-3 text-emerald-500" />
+                  <Check v-if="copiedField === 'email'" class="w-3 h-3 text-primary-green" />
                   <Copy v-else class="w-3 h-3 opacity-60" />
                 </button>
 
@@ -169,7 +169,7 @@
           <div class="bg-background/60 border border-primary-border/60 rounded-lg p-3.5 transition-all hover:bg-background">
             <div class="flex items-center justify-between text-secondary-text mb-1">
               <span class="text-[10px] uppercase font-bold tracking-wider">Account Balance</span>
-              <Wallet class="w-3.5 h-3.5 text-emerald-500" />
+              <Wallet class="w-3.5 h-3.5 text-primary-green" />
             </div>
             <p class="text-base sm:text-lg font-extrabold text-primary-text font-mono">
               {{ formatCurrency(store.details.balance) }}
@@ -202,7 +202,7 @@
           <div class="bg-background/60 border border-primary-border/60 rounded-lg p-3.5 transition-all hover:bg-background">
             <div class="flex items-center justify-between text-secondary-text mb-1">
               <span class="text-[10px] uppercase font-bold tracking-wider">Registration Fee</span>
-              <Shield class="w-3.5 h-3.5 text-amber-500" />
+              <Shield class="w-3.5 h-3.5 text-primary-yellow" />
             </div>
             <p class="text-base sm:text-lg font-extrabold text-primary-text font-mono">
               {{ formatCurrency(store.details.registration_fee) }}
@@ -273,7 +273,7 @@
 
               <div class="bg-background/60 border border-primary-border/60 rounded-lg p-3">
                 <p class="text-[10px] uppercase font-bold text-secondary-text tracking-wider mb-1">Available Balance</p>
-                <p class="text-sm font-black text-emerald-500 font-mono">
+                <p class="text-sm font-black text-primary-green font-mono">
                   {{ formatCurrency(store.details.balance) }}
                 </p>
               </div>
@@ -291,7 +291,7 @@
           <div class="bg-card-background border border-primary-border rounded-lg overflow-hidden shadow-2xs">
             <div class="flex items-center justify-between px-4 py-3 border-b border-primary-border bg-background/40">
               <div class="flex items-center gap-2.5">
-                <div class="w-7 h-7 rounded-md bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-bold text-xs">
+                <div class="w-7 h-7 rounded-md bg-primary-green/10 text-primary-green flex items-center justify-center font-bold text-xs">
                   <SlidersHorizontal class="w-3.5 h-3.5" />
                 </div>
                 <div>
@@ -375,8 +375,8 @@
                   <span
                     class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border inline-block"
                     :class="store.details.is_active !== false
-                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                      : 'bg-rose-500/10 text-rose-600 border-rose-500/20'"
+                      ? 'bg-primary-green/10 text-primary-green border-primary-green/20'
+                      : 'bg-primary-red/10 text-primary-red border-primary-red/20'"
                   >
                     {{ store.details.is_active !== false ? 'Active' : 'Inactive' }}
                   </span>
@@ -389,7 +389,7 @@
           <div class="bg-card-background border border-primary-border rounded-lg overflow-hidden shadow-2xs">
             <div class="flex items-center justify-between px-4 py-3 border-b border-primary-border bg-background/40">
               <div class="flex items-center gap-2.5">
-                <div class="w-7 h-7 rounded-md bg-amber-500/10 text-amber-500 flex items-center justify-center font-bold text-xs">
+                <div class="w-7 h-7 rounded-md bg-primary-yellow/10 text-primary-yellow flex items-center justify-center font-bold text-xs">
                   <Tag class="w-3.5 h-3.5" />
                 </div>
                 <div>

@@ -237,12 +237,12 @@ const form = ref({
 const getKycBadgeClass = (status) => {
   const s = String(status || "").toLowerCase();
   if (s === "approved" || s === "verified")
-    return "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20";
+    return "bg-primary-green/10 text-primary-green border border-primary-green/20";
   if (s === "pending" || s === "in_progress")
-    return "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20";
+    return "bg-primary-yellow/10 text-primary-yellow border border-primary-yellow/20";
   if (s === "rejected")
-    return "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20";
-  return "bg-zinc-500/10 text-zinc-500 border-zinc-500/20";
+    return "bg-primary-red/10 text-primary-red border border-primary-red/20";
+  return "bg-background text-secondary-text border border-primary-border";
 };
 
 const populateForm = () => {

@@ -40,7 +40,7 @@
               class="px-4 py-1.5 rounded-md text-xs font-medium transition-colors"
               :class="
                 activeTab === tab.value
-                  ? 'bg-primary text-white'
+                  ? 'bg-primary text-btn-text-primary'
                   : 'text-secondary-text hover:text-primary-text'
               "
               @click="activeTab = tab.value"
@@ -71,7 +71,7 @@
                 />
 
                 <div
-                  class="relative w-11 h-6 rounded-full bg-gray-300 dark:bg-gray-700 shadow-inner transition-colors duration-200 peer peer-checked:bg-primary after:absolute after:left-[2px] after:top-[2px] after:w-5 after:h-5 after:rounded-full after:bg-white after:shadow-md after:transition-transform after:duration-200 peer-checked:after:translate-x-5"
+                  class="relative w-11 h-6 rounded-full bg-primary-border shadow-inner transition-colors duration-200 peer peer-checked:bg-primary after:absolute after:left-[2px] after:top-[2px] after:w-5 after:h-5 after:rounded-full after:bg-white after:shadow-md after:transition-transform after:duration-200 peer-checked:after:translate-x-5"
                 ></div>
               </label>
             </div>
@@ -233,7 +233,7 @@
                   (sendToAll && !sendToAllTarget) ||
                   !store.selectedTemplate
                 "
-                class="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                class="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-btn-text-primary text-xs font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 @click="store.sendTemplateEmail(sendToAllTarget)"
               >
                 <Loader2
@@ -268,7 +268,7 @@
                 />
 
                 <div
-                  class="relative w-11 h-6 rounded-full bg-gray-300 dark:bg-gray-700 shadow-inner transition-colors duration-200 peer peer-checked:bg-primary after:absolute after:left-[2px] after:top-[2px] after:w-5 after:h-5 after:rounded-full after:bg-white after:shadow-md after:transition-transform after:duration-200 peer-checked:after:translate-x-5"
+                  class="relative w-11 h-6 rounded-full bg-primary-border shadow-inner transition-colors duration-200 peer peer-checked:bg-primary after:absolute after:left-[2px] after:top-[2px] after:w-5 after:h-5 after:rounded-full after:bg-white after:shadow-md after:transition-transform after:duration-200 peer-checked:after:translate-x-5"
                 ></div>
               </label>
             </div>
@@ -415,7 +415,7 @@
                   !store.customEmail.body_html ||
                   !store.customEmail.tag
                 "
-                class="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                class="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-btn-text-primary text-xs font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 @click="store.sendCustomEmail(sendToAllTarget)"
               >
                 <Loader2

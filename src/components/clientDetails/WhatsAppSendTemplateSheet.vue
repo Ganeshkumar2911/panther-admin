@@ -428,10 +428,10 @@ const handleSendTemplate = async () => {
                         class="text-[10px] font-semibold px-2 py-0.5 rounded-md shrink-0 uppercase border"
                         :class="[
                           tpl.category === 'MARKETING'
-                            ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20'
+                            ? 'bg-purple-500/10 text-purple-500 border-purple-500/20'
                             : tpl.category === 'AUTHENTICATION'
-                            ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
-                            : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+                            ? 'bg-primary-yellow/10 text-primary-yellow border-primary-yellow/20'
+                            : 'bg-primary-green/10 text-primary-green border-primary-green/20',
                         ]"
                       >
                         {{ tpl.category }}

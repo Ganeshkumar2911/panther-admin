@@ -154,7 +154,7 @@
               <!-- Type Badge -->
               <td class="py-3 px-3">
                 <span
-                  class="text-[10px] font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1 border bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
+                  class="text-[10px] font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1 border bg-primary-blue/10 text-primary-blue border-primary-blue/20"
                 >
                   <component
                     :is="isImageFile(item) ? ImageIcon : FileText"
@@ -240,7 +240,7 @@
           >
             <div class="flex items-center gap-3">
               <div
-                class="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 flex items-center justify-center shrink-0"
+                class="w-10 h-10 rounded-xl bg-primary-red/10 border border-primary-red/20 text-primary-red flex items-center justify-center shrink-0"
               >
                 <AlertTriangle class="w-5 h-5" />
               </div>
@@ -279,7 +279,7 @@
                 type="button"
                 @click="confirmDelete"
                 :disabled="clientDepthStore.isDeletingReference"
-                class="px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                class="px-4 py-2 text-xs font-semibold text-white bg-primary-red hover:bg-primary-red/90 rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
               >
                 <Loader2
                   v-if="clientDepthStore.isDeletingReference"

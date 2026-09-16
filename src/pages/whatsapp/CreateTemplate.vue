@@ -63,7 +63,7 @@ const categories = [
     value: 'MARKETING',
     title: 'Marketing',
     rate: 'High Engagement',
-    badgeClass: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20',
+    badgeClass: 'bg-purple-500/10 text-purple-500 border border-purple-500/20',
     desc: 'Send promotional offers, seasonal announcements, newsletters, and marketing updates to build brand loyalty.',
     icon: Megaphone,
   },
@@ -71,7 +71,7 @@ const categories = [
     value: 'UTILITY',
     title: 'Utility',
     rate: '99% Delivery Rate',
-    badgeClass: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+    badgeClass: 'bg-primary-green/10 text-primary-green border border-primary-green/20',
     desc: 'Send transactional messages about account changes, order updates, deposit/withdrawal alerts, and invoices.',
     icon: BellRing,
   },
@@ -79,7 +79,7 @@ const categories = [
     value: 'AUTHENTICATION',
     title: 'Authentication',
     rate: 'Instant Delivery',
-    badgeClass: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+    badgeClass: 'bg-primary-yellow/10 text-primary-yellow border border-primary-yellow/20',
     desc: 'Send one-time password (OTP) verification codes and security alerts to verify user logins and actions.',
     icon: ShieldCheck,
   },
@@ -529,7 +529,7 @@ const handleSubmit = async () => {
         >
           <div class="flex items-center justify-between border-b border-primary-border pb-3">
             <div class="flex items-center gap-2.5">
-              <div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-xs">
+              <div class="w-7 h-7 rounded-lg bg-primary-green/10 text-primary-green border border-primary-green/20 flex items-center justify-center font-bold text-xs">
                 3
               </div>
               <div>
@@ -611,7 +611,7 @@ const handleSubmit = async () => {
               <Edit3 class="w-3 h-3" />
               <span>Back to Form</span>
             </button>
-            <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+            <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary-green/10 text-primary-green border border-primary-green/20">
               Real-Time Sync
             </span>
           </div>
