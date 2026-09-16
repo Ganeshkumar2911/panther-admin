@@ -776,7 +776,7 @@ const handleSave = async () => {
                   class="py-2.5 px-3 text-center"
                 >
                   <div
-                    class="relative inline-flex items-center w-full min-w-[145px] max-w-[170px] h-8 bg-background border rounded-lg overflow-hidden transition-colors duration-150 focus-within:border-primary"
+                    class="relative inline-flex items-center w-full min-w-[160px] max-w-[190px] h-8 bg-background border rounded-lg transition-colors duration-150 focus-within:border-primary"
                     :class="[
                       getCellValue(row.ib_id, sg.id) !== ''
                         ? 'border-primary/50 bg-primary/5'
@@ -791,7 +791,7 @@ const handleSave = async () => {
                       :disabled="!canManageRates"
                       :value="getCellValue(row.ib_id, sg.id)"
                       placeholder="0.00"
-                      class="flex-1 min-w-0 h-full pl-2 pr-1 font-mono text-xs font-bold text-center bg-transparent border-0 outline-none focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none disabled:bg-background/80"
+                      class="flex-1 min-w-0 h-full pl-2 pr-1 font-mono text-xs font-bold text-center bg-transparent border-0 outline-none focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none disabled:bg-background/80 rounded-l-lg"
                       :class="[
                         getCellValue(row.ib_id, sg.id) !== ''
                           ? 'text-primary font-bold'
@@ -800,36 +800,33 @@ const handleSave = async () => {
                       @input="handleCellRateInput(row.ib_id, sg.id, $event)"
                     />
 
-                    <!-- Type Switcher (val | %) -->
-                    <div class="flex items-center shrink-0 h-full border-l border-primary-border bg-card-background/70 p-0.5 select-none">
-                      <button
-                        type="button"
-                        :disabled="!canManageRates"
-                        class="px-1.5 py-0.5 text-[10px] font-mono font-bold rounded transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                        :class="
-                          getCellType(row.ib_id, sg.id) === 'value'
-                            ? 'bg-primary text-white'
-                            : 'text-secondary-text hover:text-primary-text hover:bg-background'
-                        "
-                        title="Value multiplier (commission = base × rate)"
-                        @click="handleCellTypeChange(row.ib_id, sg.id, 'value')"
-                      >
-                        val
-                      </button>
-                      <button
-                        type="button"
-                        :disabled="!canManageRates"
-                        class="px-1.5 py-0.5 text-[10px] font-mono font-bold rounded transition-colors cursor-pointer ml-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
-                        :class="
-                          getCellType(row.ib_id, sg.id) === 'percent'
-                            ? 'bg-primary text-white'
-                            : 'text-secondary-text hover:text-primary-text hover:bg-background'
-                        "
-                        title="Percentage share (commission = base × (rate / 100))"
-                        @click="handleCellTypeChange(row.ib_id, sg.id, 'percent')"
-                      >
-                        %
-                      </button>
+                    <!-- Type Switcher Toggle (val | %) -->
+                    <div class="flex items-center shrink-0 h-full border-l border-primary-border bg-card-background/70 px-1 gap-1 select-none rounded-r-lg">
+                      <Tooltip text="val: Value multiplier | %: Percentage share" position="top">
+                        <div class="text-secondary-text hover:text-primary-text cursor-help flex items-center justify-center p-0.5">
+                          <HugeIcon :icon="InformationCircleIcon" :size="12" />
+                        </div>
+                      </Tooltip>
+                      <div class="flex items-center bg-background border border-primary-border/50 rounded-full p-0.5">
+                        <button
+                          type="button"
+                          :disabled="!canManageRates"
+                          class="px-1.5 py-0.5 text-[10px] font-mono font-bold rounded-full transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                          :class="getCellType(row.ib_id, sg.id) === 'value' ? 'bg-primary text-white' : 'text-secondary-text hover:text-primary-text hover:bg-card-background'"
+                          @click="handleCellTypeChange(row.ib_id, sg.id, 'value')"
+                        >
+                          val
+                        </button>
+                        <button
+                          type="button"
+                          :disabled="!canManageRates"
+                          class="px-1.5 py-0.5 text-[10px] font-mono font-bold rounded-full transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                          :class="getCellType(row.ib_id, sg.id) === 'percent' ? 'bg-primary text-white' : 'text-secondary-text hover:text-primary-text hover:bg-card-background'"
+                          @click="handleCellTypeChange(row.ib_id, sg.id, 'percent')"
+                        >
+                          %
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </td>

@@ -415,7 +415,7 @@ const frequencies = [
   { value: "daily", label: "Daily" },
 ];
 
-const activeFrequency = ref("monthly");
+const activeFrequency = ref("daily");
 const selectedPeriodKey = ref("");
 
 // ─── Secondary Filters ──────────────────────────────────

@@ -33,7 +33,11 @@ const { hasPermission } = usePermissionCheck();
 
 // ─── Permissions ─────────────────────────────────────────
 const canView = computed(() => hasPermission("ib_commission.view"));
-const canManageRates = computed(() => hasPermission("ib_commission.manage_rates"));
+const canManageSettings = computed(() => 
+  hasPermission("ib_commission.manage_settings") || 
+  hasPermission("ib_commission.manage_rates") || 
+  hasPermission("ib_commission.approve")
+);
 const canApprove = computed(() => hasPermission("ib_commission.approve"));
 
 // ─── Master Form State ───────────────────────────────────
@@ -731,7 +735,7 @@ const getWalletTargetMasterBadge = (state) => {
         </div>
 
         <!-- Master Apply Action Button -->
-        <div v-if="canManageRates" class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-primary-border">
+        <div v-if="canManageSettings" class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-primary-border">
           <span class="text-xs text-secondary-text">
             Upserts this payout configuration to all matching IB records. Individual IB overrides can still be configured below.
           </span>
@@ -987,7 +991,7 @@ const getWalletTargetMasterBadge = (state) => {
           </div>
 
           <!-- Bottom Action: Save Button -->
-          <div v-if="canManageRates" class="flex items-center justify-end pt-2 border-t border-primary-border">
+          <div v-if="canManageSettings" class="flex items-center justify-end pt-2 border-t border-primary-border">
             <button
               type="button"
               class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg bg-primary text-white hover:bg-primary-hover  transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
