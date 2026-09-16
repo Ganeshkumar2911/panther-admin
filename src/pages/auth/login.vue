@@ -75,7 +75,10 @@ const handleLogin = () => {
       // ignore
     }
     loading.value = false
-    router.push(myPermissionsStore.firstAllowedPath)
+    const targetPath = myPermissionsStore.firstAllowedPath || '/dashboard'
+    router.push(targetPath).catch(() => {
+      window.location.href = targetPath
+    })
   }
 
   const failureHandler = (err) => {

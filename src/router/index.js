@@ -61,4 +61,25 @@ router.beforeEach(async (to, from) => {
   return true;
 });
 
+// Handle dynamic import / chunk load failures caused by new deployments
+router.onError((error, to) => {
+  const errorMessage = error?.message || error?.toString() || "";
+  const isChunkLoadFailed =
+    errorMessage.includes("Failed to fetch dynamically imported module") ||
+    errorMessage.includes("Importing a module script failed") ||
+    error?.name === "ChunkLoadError";
+
+  if (isChunkLoadFailed) {
+    const targetPath = to?.fullPath || window.location.href;
+    const reloadKey = "chunk_load_failed_reload";
+    const lastReload = sessionStorage.getItem(reloadKey);
+    const now = Date.now();
+
+    if (!lastReload || now - Number(lastReload) > 10000) {
+      sessionStorage.setItem(reloadKey, String(now));
+      window.location.href = targetPath;
+    }
+  }
+});
+
 export default router;
