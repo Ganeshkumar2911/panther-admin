@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import apiRequest from '@/api/request'
 import urls from '@/api/urls'
 import { useSnackbarStore } from '@/stores/snackbar/snackbar'
@@ -28,7 +28,12 @@ export const useAccountTransactionsStore = defineStore('accountTransactions', ()
     search: '',
     page: 1,
     per_page: 10,
+    from_date: '',
+    to_date: '',
   })
+
+  const from_date = ref('')
+  const to_date = ref('')
 
   const isLoading = ref(false)
 
@@ -99,6 +104,8 @@ export const useAccountTransactionsStore = defineStore('accountTransactions', ()
           page: filters.value.page,
           per_page: filters.value.per_page,
           // search: filters.value.search || undefined,
+          ...(filters.value.from_date ? { from_date: filters.value.from_date } : {}),
+          ...(filters.value.to_date ? { to_date: filters.value.to_date } : {}),
         },
 
         isTokenRequired: true,
@@ -146,9 +153,32 @@ export const useAccountTransactionsStore = defineStore('accountTransactions', ()
       search: '',
       page: 1,
       per_page: 10,
+      from_date: '',
+      to_date: '',
     }
 
+    from_date.value = ''
+    to_date.value = ''
     isLoading.value = false
+  }
+
+  // Store the current accountId so watchers can re-fetch
+  const _accountId = ref(null)
+
+  const setDateRange = (from, to, accountId) => {
+    filters.value.from_date = from
+    filters.value.to_date = to
+    from_date.value = from
+    to_date.value = to
+    if (accountId) _accountId.value = accountId
+    if (_accountId.value) {
+      filters.value.page = 1
+      fetchTransactions(_accountId.value, 1)
+    }
+  }
+
+  const initAccountId = (id) => {
+    _accountId.value = id
   }
 
   return {
@@ -158,12 +188,16 @@ export const useAccountTransactionsStore = defineStore('accountTransactions', ()
     perPageOptions,
 
     filters,
+    from_date,
+    to_date,
 
     isLoading,
 
     fetchTransactions,
     applyFilters,
     updatePerPage,
+    setDateRange,
+    initAccountId,
     reset,
   }
 })

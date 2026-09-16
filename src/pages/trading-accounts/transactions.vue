@@ -108,6 +108,14 @@
 
     <!-- Filter bar -->
     <div class="flex items-center justify-end gap-3 mb-4">
+      <!-- Date Range Filter -->
+      <div class="w-56 sm:w-64">
+        <BaseDatePicker
+          v-model="dateRangeValue"
+          :range="true"
+          placeholder="Select date range..."
+        />
+      </div>
       <BaseSelect
         :modelValue="store.pagination.per_page"
         :options="store.perPageOptions"
@@ -117,199 +125,125 @@
       />
     </div>
 
-    <!-- Desktop Table -->
-    <div class="hidden md:block border border-primary-border rounded-2xl overflow-hidden">
-      <table class="w-full border-collapse">
-        <thead class="border-b border-primary-border bg-card-background">
-          <tr>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-4 py-3">Transaction</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-4 py-3">Type</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-4 py-3">Direction</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-4 py-3">Amount</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-4 py-3">Bal. Before</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-4 py-3">Bal. After</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-4 py-3">Reference</th>
-            <th class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-widest px-4 py-3">Date</th>
-          </tr>
-        </thead>
-
-        <!-- Skeleton -->
-        <tbody v-if="store.isLoading">
-          <tr v-for="n in 8" :key="n" class="border-b border-primary-border bg-card-background animate-pulse">
-            <td class="px-4 py-3.5">
-              <div class="space-y-1.5">
-                <div class="h-3 w-10 bg-background rounded" />
-                <div class="h-2.5 w-28 bg-background rounded" />
-              </div>
-            </td>
-            <td class="px-4 py-3.5"><div class="h-5 w-16 bg-background rounded-full" /></td>
-            <td class="px-4 py-3.5"><div class="h-5 w-14 bg-background rounded-full" /></td>
-            <td class="px-4 py-3.5"><div class="h-3 w-16 bg-background rounded" /></td>
-            <td class="px-4 py-3.5"><div class="h-3 w-16 bg-background rounded" /></td>
-            <td class="px-4 py-3.5"><div class="h-3 w-16 bg-background rounded" /></td>
-            <td class="px-4 py-3.5"><div class="h-3 w-20 bg-background rounded" /></td>
-            <td class="px-4 py-3.5 flex justify-end"><div class="h-3 w-20 bg-background rounded" /></td>
-          </tr>
-        </tbody>
-
-        <!-- Empty -->
-        <tbody v-else-if="store.data.length === 0">
-          <tr>
-            <td colspan="8" class="py-20 text-center bg-card-background">
-              <div class="flex flex-col items-center gap-3">
-                <div class="w-12 h-12 rounded-full bg-background flex items-center justify-center">
-                  <Receipt class="w-5 h-5 text-secondary-text" />
-                </div>
-                <p class="text-sm font-medium text-primary-text">No transactions found</p>
-                <p class="text-xs text-secondary-text">Transactions will appear here once recorded</p>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-
-        <!-- Data -->
-        <tbody v-else>
-          <tr
-            v-for="tx in store.data"
-            :key="tx.transaction_id"
-            class="border-b border-primary-border last:border-none bg-card-background hover:bg-background transition-colors"
-          >
-            <td class="px-4 py-3.5">
-              <p class="text-xs font-medium text-primary-text">#{{ tx.transaction_id }}</p>
-              <p class="text-[11px] text-secondary-text max-w-[160px] truncate">{{ tx.description }}</p>
-            </td>
-
-            <td class="px-4 py-3.5">
-              <span class="text-[11px] font-medium px-2 py-0.5 rounded-full capitalize" :class="typeClass(tx.type)">
-                {{ formatType(tx.type) }}
-              </span>
-            </td>
-
-            <td class="px-4 py-3.5">
-              <span
-                class="text-[11px] font-medium px-2.5 py-1 rounded-full flex items-center gap-1 w-fit capitalize"
-                :class="tx.direction === 'credit'
-                  ? 'bg-primary-green text-white'
-                  : 'bg-primary-red text-white'"
-              >
-                <ArrowDownLeft v-if="tx.direction === 'credit'" class="w-3 h-3" />
-                <ArrowUpRight v-else class="w-3 h-3" />
-                {{ tx.direction }}
-              </span>
-            </td>
-
-            <td class="px-4 py-3.5">
-              <span
-                class="text-xs font-medium tabular-nums"
-                :class="tx.direction === 'credit' ? 'text-primary-green' : 'text-primary-red'"
-              >
-                {{ tx.direction === 'credit' ? '+' : '-' }}{{ formatMoney(tx.amount) }}
-              </span>
-            </td>
-
-            <td class="px-4 py-3.5 text-xs text-secondary-text tabular-nums">{{ formatMoney(tx.balance_before) }}</td>
-            <td class="px-4 py-3.5 text-xs text-primary-text tabular-nums">{{ formatMoney(tx.balance_after) }}</td>
-            <td class="px-4 py-3.5 text-xs text-secondary-text">{{ tx.reference_id ?? '—' }}</td>
-            <td class="px-4 py-3.5 text-xs text-secondary-text text-right">{{ formatDate(tx.created_at) }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Mobile Cards -->
-    <div class="md:hidden space-y-3">
-      <template v-if="store.isLoading">
-        <div v-for="n in 4" :key="n" class="bg-card-background border border-primary-border rounded-2xl p-4 animate-pulse space-y-3">
-          <div class="flex items-center justify-between">
-            <div class="h-3 w-16 bg-background rounded" />
-            <div class="h-5 w-14 bg-background rounded-full" />
-          </div>
-          <div class="grid grid-cols-2 gap-2">
-            <div v-for="m in 4" :key="m" class="h-12 bg-background rounded-xl" />
-          </div>
-        </div>
+    <!-- DataTable -->
+    <DataTable
+      :data="store.data"
+      :columns="txColumns"
+      :pagination="store.pagination"
+      :loading="store.isLoading"
+      row-key="transaction_id"
+      table-key="account-transactions-table"
+      empty-title="No transactions found"
+      empty-text="Transactions will appear here once recorded"
+      @page-change="handlePageChange"
+    >
+      <!-- Custom Cell: Transaction -->
+      <template #cell-transaction_id="{ row }">
+        <p class="text-xs font-medium text-primary-text">#{{ row.transaction_id }}</p>
+        <p class="text-[11px] text-secondary-text max-w-[160px] truncate">{{ row.description }}</p>
       </template>
 
-      <div v-else-if="store.data.length === 0" class="py-16 text-center">
-        <div class="flex flex-col items-center gap-3">
-          <div class="w-12 h-12 rounded-full bg-card-background flex items-center justify-center">
-            <Receipt class="w-5 h-5 text-secondary-text" />
-          </div>
-          <p class="text-sm font-medium text-primary-text">No transactions found</p>
-        </div>
-      </div>
+      <!-- Custom Cell: Type badge -->
+      <template #cell-type="{ row }">
+        <span class="text-[11px] font-medium px-2 py-0.5 rounded-full capitalize" :class="typeClass(row.type)">
+          {{ formatType(row.type) }}
+        </span>
+      </template>
 
-      <div
-        v-else
-        v-for="tx in store.data"
-        :key="tx.transaction_id"
-        class="bg-card-background border border-primary-border rounded-2xl p-4 space-y-3"
-      >
-        <div class="flex items-start justify-between gap-2">
-          <div>
-            <p class="text-xs font-medium text-primary-text">#{{ tx.transaction_id }}</p>
-            <p class="text-[11px] text-secondary-text mt-0.5">{{ tx.description }}</p>
-          </div>
-          <div class="flex items-center gap-1.5 shrink-0">
-            <span class="text-[11px] font-medium px-2 py-0.5 rounded-full capitalize" :class="typeClass(tx.type)">
-              {{ formatType(tx.type) }}
-            </span>
-            <span
-              class="text-[11px] font-medium px-2 py-0.5 rounded-full capitalize"
-              :class="tx.direction === 'credit' ? 'bg-primary-green text-white' : 'bg-primary-red text-white'"
-            >
-              {{ tx.direction }}
-            </span>
-          </div>
-        </div>
+      <!-- Custom Cell: Direction badge -->
+      <template #cell-direction="{ row }">
+        <span
+          class="text-[11px] font-medium px-2.5 py-1 rounded-full flex items-center gap-1 w-fit capitalize"
+          :class="row.direction === 'credit'
+            ? 'bg-primary-green text-white'
+            : 'bg-primary-red text-white'"
+        >
+          <ArrowDownLeft v-if="row.direction === 'credit'" class="w-3 h-3" />
+          <ArrowUpRight v-else class="w-3 h-3" />
+          {{ row.direction }}
+        </span>
+      </template>
 
-        <div class="grid grid-cols-2 gap-2">
-          <div class="bg-background rounded-xl px-3 py-2.5">
-            <p class="text-[10px] text-secondary-text mb-1">Amount</p>
-            <p class="text-xs font-semibold tabular-nums" :class="tx.direction === 'credit' ? 'text-primary-green' : 'text-primary-red'">
-              {{ tx.direction === 'credit' ? '+' : '-' }}{{ formatMoney(tx.amount) }}
-            </p>
-          </div>
-          <div class="bg-background rounded-xl px-3 py-2.5">
-            <p class="text-[10px] text-secondary-text mb-1">Balance After</p>
-            <p class="text-xs font-semibold text-primary-text tabular-nums">{{ formatMoney(tx.balance_after) }}</p>
-          </div>
-          <div class="bg-background rounded-xl px-3 py-2.5">
-            <p class="text-[10px] text-secondary-text mb-1">Reference</p>
-            <p class="text-xs font-medium text-primary-text truncate">{{ tx.reference_id ?? '—' }}</p>
-          </div>
-          <div class="bg-background rounded-xl px-3 py-2.5">
-            <p class="text-[10px] text-secondary-text mb-1">Date</p>
-            <p class="text-xs font-medium text-primary-text">{{ formatDate(tx.created_at) }}</p>
-          </div>
-        </div>
-      </div>
-    </div>
+      <!-- Custom Cell: Amount -->
+      <template #cell-amount="{ row }">
+        <span
+          class="text-xs font-medium tabular-nums"
+          :class="row.direction === 'credit' ? 'text-primary-green' : 'text-primary-red'"
+        >
+          {{ row.direction === 'credit' ? '+' : '-' }}{{ formatMoney(row.amount) }}
+        </span>
+      </template>
 
-    <div class="mt-4">
-      <Pagination
-        v-if="store.pagination.total_items > store.pagination.per_page"
-        :pagination="store.pagination"
-        @page-change="handlePageChange"
-      />
-    </div>
+      <!-- Custom Cell: Balance Before -->
+      <template #cell-balance_before="{ row }">
+        <span class="text-xs text-secondary-text tabular-nums">{{ formatMoney(row.balance_before) }}</span>
+      </template>
+
+      <!-- Custom Cell: Balance After -->
+      <template #cell-balance_after="{ row }">
+        <span class="text-xs text-primary-text tabular-nums">{{ formatMoney(row.balance_after) }}</span>
+      </template>
+
+      <!-- Custom Cell: Reference -->
+      <template #cell-reference_id="{ row }">
+        <span class="text-xs text-secondary-text">{{ row.reference_id ?? '—' }}</span>
+      </template>
+
+      <!-- Custom Cell: Date -->
+      <template #cell-created_at="{ row }">
+        <span class="text-xs text-secondary-text whitespace-nowrap">{{ formatDate(row.created_at) }}</span>
+      </template>
+    </DataTable>
 
   </div>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { Search, Receipt, ArrowUpRight, ArrowDownLeft } from 'lucide-vue-next'
+import { ArrowUpRight, ArrowDownLeft } from 'lucide-vue-next'
 import { useAccountTransactionsStore } from '@/stores/tradingAccounts/transactions'
-import Pagination from '@/components/common/Pagination.vue'
+import DataTable from '@/components/common/DataTable/DataTable.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
+import BaseDatePicker from '@/components/common/BaseDatePicker.vue'
 import { formatDate } from "@/utils/timeFormatter";
 
 const store = useAccountTransactionsStore()
 const route = useRoute()
 const searchQuery = ref('')
 const activeCurrency = ref(localStorage.getItem('active_currency') || 'USD')
+
+const txColumns = [
+  { key: 'transaction_id', label: 'Transaction' },
+  { key: 'type', label: 'Type' },
+  { key: 'direction', label: 'Direction' },
+  { key: 'amount', label: 'Amount' },
+  { key: 'balance_before', label: 'Bal. Before' },
+  { key: 'balance_after', label: 'Bal. After' },
+  { key: 'reference_id', label: 'Reference' },
+  { key: 'created_at', label: 'Date', align: 'right' },
+]
+
+const dateRangeValue = computed({
+  get() {
+    if (store.from_date || store.to_date) {
+      return {
+        start: store.from_date || null,
+        end: store.to_date || null,
+      }
+    }
+    return null
+  },
+  set(val) {
+    if (!val) {
+      store.setDateRange('', '', route.params.id)
+    } else if (Array.isArray(val)) {
+      store.setDateRange(val[0] || '', val[1] || '', route.params.id)
+    } else if (typeof val === 'object') {
+      store.setDateRange(val.start || val.from || '', val.end || val.to || '', route.params.id)
+    }
+  },
+})
 
 let searchTimer = null
 const onSearch = () => {
@@ -324,6 +258,9 @@ const handlePageChange = (page) => {
 }
 const activeAccount = JSON.parse(
   localStorage.getItem('active_account')
+)
+const currencyDisplay = computed(
+  () => activeAccount?.broker_currency || activeAccount?.currency || activeCurrency.value || 'USD'
 )
 
 const formatNum = (val) => (val ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -341,5 +278,8 @@ const typeClass = (type) => ({
   withdrawal:'bg-primary-red text-white',
 }[type] ?? 'border border-primary-border text-secondary-text')
 
-onMounted(() => store.fetchTransactions(route.params.id))
+onMounted(() => {
+  store.initAccountId(route.params.id)
+  store.fetchTransactions(route.params.id)
+})
 </script>

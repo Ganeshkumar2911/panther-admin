@@ -15,6 +15,8 @@ export const useAccountTradesStore = defineStore('accountTrades', () => {
   const loading     = ref(false)
   const error       = ref(null)
   const side        = ref(null) // null | 'open' | 'close'
+  const from_date   = ref('')
+  const to_date     = ref('')
 
   const summary = ref({
     total_lots: 0,
@@ -31,7 +33,12 @@ export const useAccountTradesStore = defineStore('accountTrades', () => {
   const accountId = ref(null)
 
   // ─── Fetch Trades ──────────────────────────────────────
-  const fetchTrades = (id, sideParam = side.value) => {
+  const fetchTrades = (
+    id = accountId.value,
+    sideParam = side.value,
+    fromDateParam = from_date.value,
+    toDateParam = to_date.value
+  ) => {
     if (!id) return
 
     accountId.value = id
@@ -76,6 +83,14 @@ export const useAccountTradesStore = defineStore('accountTrades', () => {
       params.side = sideParam
     }
 
+    if (fromDateParam) {
+      params.from_date = fromDateParam
+    }
+
+    if (toDateParam) {
+      params.to_date = toDateParam
+    }
+
     apiRequest('get', urls.tradingAccounts.accountTrades, {
       look_up_key: id,
       params,
@@ -88,19 +103,26 @@ export const useAccountTradesStore = defineStore('accountTrades', () => {
   // ─── Pagination ────────────────────────────────────────
   const setPage = (page) => {
     pagination.page = page
-    fetchTrades(accountId.value, side.value)
+    fetchTrades(accountId.value, side.value, from_date.value, to_date.value)
   }
 
   const updatePerPage = (newPerPage) => {
     pagination.per_page = Number(newPerPage)
     pagination.page = 1
-    fetchTrades(accountId.value, side.value)
+    fetchTrades(accountId.value, side.value, from_date.value, to_date.value)
   }
 
   const setSide = (nextSide) => {
     side.value = nextSide || null
     pagination.page = 1
-    fetchTrades(accountId.value, side.value)
+    fetchTrades(accountId.value, side.value, from_date.value, to_date.value)
+  }
+
+  const setDateRange = (from, to) => {
+    from_date.value = from || ''
+    to_date.value = to || ''
+    pagination.page = 1
+    fetchTrades(accountId.value, side.value, from_date.value, to_date.value)
   }
 
   // ─── Reset ─────────────────────────────────────────────
@@ -109,6 +131,8 @@ export const useAccountTradesStore = defineStore('accountTrades', () => {
     loading.value   = false
     error.value     = null
     side.value      = null
+    from_date.value = ''
+    to_date.value   = ''
 
     summary.value = {
       total_lots: 0,
@@ -132,12 +156,15 @@ export const useAccountTradesStore = defineStore('accountTrades', () => {
     pagination,
     summary,
     side,
+    from_date,
+    to_date,
     perPageOptions,
 
     fetchTrades,
     setPage,
     updatePerPage,
     setSide,
+    setDateRange,
     reset,
   }
 })
