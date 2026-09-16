@@ -19,6 +19,7 @@ import {
 import { useProfileStore } from "@/stores/profile/profile";
 import { useMyPermissionsStore } from "@/stores/rbac/myPermissions";
 import Tooltip from "@/components/common/Tooltip.vue";
+import ProfileDialog from '@/components/common/profileDialog.vue';
 import { navClusters } from "@/config/navItems";
 
 const store = useProfileStore();
@@ -43,6 +44,15 @@ const searchQuery = ref("");
 const searchInputRef = ref(null);
 const selectedIndex = ref(0);
 const resultItemRefs = ref([]);
+const profileDialogOpen = ref(false);
+
+function openProfileDialog() {
+  profileDialogOpen.value = true;
+}
+
+function closeProfileDialog() {
+  profileDialogOpen.value = false;
+}
 
 onBeforeUpdate(() => {
   resultItemRefs.value = [];
@@ -662,8 +672,9 @@ const handleFlyoutMouseLeave = () => {
           :class="isCollapsed ? 'justify-center' : 'gap-3'"
         >
           <div
-            class="flex items-center min-w-0"
+            class="flex items-center min-w-0 cursor-pointer hover:opacity-80 transition-opacity"
             :class="isCollapsed ? 'hidden' : 'gap-3'"
+            @click="openProfileDialog"
           >
             <div
               class="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0"
@@ -755,6 +766,9 @@ const handleFlyoutMouseLeave = () => {
       </div>
     </div>
   </Teleport>
+
+  <!-- Profile Dialog -->
+  <ProfileDialog :open="profileDialogOpen" @close="closeProfileDialog" />
 </template>
 
 <style scoped>
