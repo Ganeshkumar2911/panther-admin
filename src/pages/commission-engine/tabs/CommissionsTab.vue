@@ -254,6 +254,42 @@ const columns = [
   { key: "trade_info", label: "Client & Trade Details", width: "210px" },
   { key: "rates", label: "Rate Applied", width: "150px" },
   {
+    key: "close_market_ask",
+    label: "Market Ask",
+    align: "right",
+    width: "120px",
+  },
+  {
+    key: "close_market_bid",
+    label: "Market Bid",
+    align: "right",
+    width: "120px",
+  },
+  {
+    key: "closed_spread_points",
+    label: "Spread (Pts)",
+    align: "right",
+    width: "120px",
+  },
+  {
+    key: "closed_volume",
+    label: "Closed Volume",
+    align: "right",
+    width: "130px",
+  },
+  {
+    key: "contract_size",
+    label: "Contract Size",
+    align: "right",
+    width: "120px",
+  },
+  {
+    key: "digits",
+    label: "Digits",
+    align: "right",
+    width: "90px",
+  },
+  {
     key: "commission_per_lot",
     label: "Comm / Lot",
     align: "right",
@@ -695,6 +731,84 @@ const formatDate = (val) => {
           >
             Standard Matrix
           </p>
+        </div>
+      </template>
+
+      <!-- Cell: Market Ask -->
+      <template #cell-close_market_ask="{ row }">
+        <div class="text-right font-mono text-xs">
+          <span
+            v-if="row.calculation?.close_market_ask != null"
+            class="text-primary-text font-semibold"
+          >
+            {{ row.calculation.close_market_ask }}
+          </span>
+          <span v-else class="text-secondary-text">-</span>
+        </div>
+      </template>
+
+      <!-- Cell: Market Bid -->
+      <template #cell-close_market_bid="{ row }">
+        <div class="text-right font-mono text-xs">
+          <span
+            v-if="row.calculation?.close_market_bid != null"
+            class="text-primary-text font-semibold"
+          >
+            {{ row.calculation.close_market_bid }}
+          </span>
+          <span v-else class="text-secondary-text">-</span>
+        </div>
+      </template>
+
+      <!-- Cell: Closed Spread Points -->
+      <template #cell-closed_spread_points="{ row }">
+        <div class="text-right font-mono text-xs">
+          <span
+            v-if="row.calculation?.closed_spread_points != null"
+            class="text-primary-text font-semibold"
+          >
+            {{ row.calculation.closed_spread_points }}
+          </span>
+          <span v-else class="text-secondary-text">-</span>
+        </div>
+      </template>
+
+      <!-- Cell: Closed Volume -->
+      <template #cell-closed_volume="{ row }">
+        <div class="text-right font-mono text-xs">
+          <span
+            v-if="row.calculation?.closed_volume != null || row.closed_volume != null"
+            class="text-primary-text font-semibold"
+          >
+            {{ Number(row.calculation?.closed_volume ?? row.closed_volume).toLocaleString('en-US', { maximumFractionDigits: 4 }) }}
+          </span>
+          <span v-else class="text-secondary-text">-</span>
+        </div>
+      </template>
+
+      <!-- Cell: Contract Size -->
+      <template #cell-contract_size="{ row }">
+        <div class="text-right font-mono text-xs">
+          <span
+            v-if="row.calculation?.contract_size != null || row.contract_size != null"
+            class="text-primary-text font-semibold"
+          >
+            {{ row.calculation?.contract_size ?? row.contract_size }}
+          </span>
+          <span v-else class="text-secondary-text">-</span>
+        </div>
+      </template>
+
+      <!-- Cell: Digits -->
+      <template #cell-digits="{ row }">
+        <div class="text-right font-mono text-xs">
+          <span
+            v-if="row.calculation?.digits != null || row.digits != null"
+            class="text-primary-text font-semibold"
+          >
+            {{ row.calculation?.digits ?? row.digits }}
+          </span>
+          <span v-else class="text-secondary-text">-</span>
         </div>
       </template>
 
