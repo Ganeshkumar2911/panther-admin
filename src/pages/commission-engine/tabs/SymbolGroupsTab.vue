@@ -84,6 +84,7 @@ const handlePerPageChange = (newPerPage) => {
 
 const columns = [
   { key: "group", label: "Group Name & Code", sortable: true },
+  { key: "currency", label: "Currency", align: "center", width: "100px", sortable: true },
   { key: "sort_order", label: "Sort Order", align: "center", width: "110px", sortable: true },
   { key: "member_count", label: "Mapped Symbols", align: "center", width: "160px", sortable: true },
   { key: "status", label: "Status", align: "center", width: "120px" },
@@ -209,6 +210,13 @@ const handleDeleteConfirm = async () => {
             </p>
           </div>
         </div>
+      </template>
+
+      <!-- Custom Cell: Currency -->
+      <template #cell-currency="{ row }">
+        <span class="font-mono text-[11px] font-bold text-primary">
+          {{ row.currency || "—" }}
+        </span>
       </template>
 
       <!-- Custom Cell: Sort Order -->

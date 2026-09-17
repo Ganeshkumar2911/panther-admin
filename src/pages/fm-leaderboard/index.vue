@@ -347,8 +347,16 @@
               <div class="flex items-center justify-between">
                 <span class="text-secondary-text text-[11px]">Accounts</span>
                 <span class="font-bold text-primary-text font-mono text-[11px]">
-                  Master: <span class="text-primary font-bold">{{ item.master_account?.account_number || `#${item.master_account_id}` }}</span>
-                  · Cov: <span class="text-indigo-400 font-bold">{{ item.coverage_account?.account_number || `#${item.coverage_account_id}` }}</span>
+                  Master: <span 
+                    class="text-primary font-bold"
+                    :class="{ 'cursor-pointer hover:underline': item.master_account }"
+                    @click.stop="item.master_account && goToTradingAccount(item.master_account?.account_number)"
+                  >{{ item.master_account?.account_number || `#${item.master_account_id}` }}</span>
+                  · Cov: <span 
+                    class="text-indigo-400 font-bold"
+                    :class="{ 'cursor-pointer hover:underline': item.coverage_account }"
+                    @click.stop="item.coverage_account && goToTradingAccount(item.coverage_account?.account_number)"
+                  >{{ item.coverage_account?.account_number || `#${item.coverage_account_id}` }}</span>
                 </span>
               </div>
 
@@ -454,10 +462,18 @@
                 <td class="py-3.5 px-3">
                   <div class="space-y-0.5">
                     <div class="font-mono text-[11px] text-primary-text font-semibold">
-                      Master: <span class="font-bold text-primary">{{ item.master_account?.account_number || `#${item.master_account_id}` }}</span>
+                      Master: <span 
+                        class="font-bold text-primary"
+                        :class="{ 'cursor-pointer hover:underline': item.master_account }"
+                        @click.stop="item.master_account && goToTradingAccount(item.master_account?.account_number)"
+                      >{{ item.master_account?.account_number || `#${item.master_account_id}` }}</span>
                     </div>
                     <div class="font-mono text-[11px] text-secondary-text">
-                      Coverage: <span class="font-semibold text-primary-text">{{ item.coverage_account?.account_number || `#${item.coverage_account_id}` }}</span>
+                      Coverage: <span 
+                        class="font-semibold text-primary-text"
+                        :class="{ 'cursor-pointer hover:underline': item.coverage_account }"
+                        @click.stop="item.coverage_account && goToTradingAccount(item.coverage_account?.account_number)"
+                      >{{ item.coverage_account?.account_number || `#${item.coverage_account_id}` }}</span>
                     </div>
                     <div class="flex items-center gap-1.5 text-[11px]">
                       <Tooltip v-if="item.broker_group" :text="item.broker_group" placement="left">
@@ -593,11 +609,19 @@
               </div>
               <div>
                 <span class="text-[10px] text-secondary-text block uppercase">Master Account</span>
-                <span class="font-mono text-primary-text font-bold">{{ item.master_account?.account_number || `#${item.master_account_id}` }}</span>
+                <span 
+                  class="font-mono text-primary-text font-bold"
+                  :class="{ 'cursor-pointer hover:underline text-primary': item.master_account }"
+                  @click.stop="item.master_account && goToTradingAccount(item.master_account?.account_number)"
+                >{{ item.master_account?.account_number || `#${item.master_account_id}` }}</span>
               </div>
               <div>
                 <span class="text-[10px] text-secondary-text block uppercase">Coverage Account</span>
-                <span class="font-mono text-primary-text font-bold">{{ item.coverage_account?.account_number || `#${item.coverage_account_id}` }}</span>
+                <span 
+                  class="font-mono text-primary-text font-bold"
+                  :class="{ 'cursor-pointer hover:underline text-primary': item.coverage_account }"
+                  @click.stop="item.coverage_account && goToTradingAccount(item.coverage_account?.account_number)"
+                >{{ item.coverage_account?.account_number || `#${item.coverage_account_id}` }}</span>
               </div>
               <div>
                 <span class="text-[10px] text-secondary-text block uppercase">Follower Type</span>
@@ -663,6 +687,7 @@
 <script setup>
 import { onMounted, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useGoToTradingAccount } from '@/composables/useGoToTradingAccount'
 import {
   CalendarDays,
   Edit,
@@ -698,6 +723,7 @@ import { perPageOptions } from '@/constants/pagination'
 const store = useFmLeaderboardStore()
 const { hasPermission } = usePermissionCheck()
 const router = useRouter()
+const { goToTradingAccount } = useGoToTradingAccount()
 
 const layoutMode = ref('grid')
 const searchQuery = ref('')
