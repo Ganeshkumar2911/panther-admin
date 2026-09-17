@@ -189,12 +189,12 @@ function getStageBadge(lead) {
 
 function getKycStatusBadge(kycStatus) {
   const status = (kycStatus || "pending").toLowerCase().replace(/_/g, " ");
-  let badgeClass = "bg-amber-500/10 text-amber-400 border-amber-500/30";
+  let badgeClass = "bg-primary-yellow/10 text-primary-yellow border border-primary-yellow/30";
 
   if (["approved", "verified", "completed"].includes(status)) {
-    badgeClass = "bg-emerald-500/10 text-emerald-400 border-emerald-500/30";
+    badgeClass = "bg-primary-green/10 text-primary-green border border-primary-green/30";
   } else if (["rejected", "failed", "declined"].includes(status)) {
-    badgeClass = "bg-red-500/10 text-red-400 border-red-500/30";
+    badgeClass = "bg-primary-red/10 text-primary-red border border-primary-red/30";
   }
 
   return {
@@ -359,7 +359,7 @@ function formatSourceLabel(source) {
             class="transition-colors group cursor-pointer"
             :class="[
               selectedLeadIds.includes(lead.id)
-                ? 'bg-primary/5 dark:bg-primary/10 hover:bg-primary/10 dark:hover:bg-primary/15'
+                ? 'bg-primary/10 hover:bg-primary/15'
                 : 'hover:bg-background/80'
             ]"
           >

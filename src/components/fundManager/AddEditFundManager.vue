@@ -23,44 +23,49 @@
         >
           <div class="flex items-center gap-3">
             <div
-              class="p-2.5 rounded-xl border transition-colors bg-primary/10 border-primary/20 text-primary"
+              class="p-2.5 rounded-xl bg-primary/10 border border-primary/20 text-primary"
             >
-              <Bot v-if="isDummyMode" class="w-5 h-5" />
-              <Sliders v-else-if="currentMode === 'edit'" class="w-5 h-5" />
+              <Sliders v-if="mode === 'edit'" class="w-5 h-5" />
               <Plus v-else class="w-5 h-5" />
             </div>
             <div>
-              <div class="flex items-center gap-2">
-                <h2 class="text-primary-text text-base font-bold">
-                  {{ getTitle() }}
-                </h2>
-                <span
-                  v-if="isDummyMode"
-                  class="text-[10px] font-extrabold uppercase tracking-wide px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 inline-flex items-center gap-1"
-                >
-                  <Sparkles class="w-3 h-3 text-primary" />
-                  Dummy FM
-                </span>
-              </div>
+              <h2 class="text-primary-text text-base font-bold">
+                {{ getTitle() }}
+              </h2>
               <p class="text-secondary-text text-xs mt-0.5">
-                {{ getSubtitle() }}
+                {{
+                  mode === "add"
+                    ? "Create a new fund manager leaderboard account and MT5 trading setup"
+                    : `Update configuration & profile for ID: #${item?.id}`
+                }}
               </p>
             </div>
           </div>
-
           <div class="flex items-center gap-2">
-            <!-- Create as Dummy FM button in Header -->
-            <button
-              v-if="currentMode === 'edit'"
-              type="button"
-              @click="handleCreateAsDummy"
-              :disabled="store.isSubmitting"
-              class="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 bg-primary/10 text-primary border border-primary/20 hover:bg-primary hover:text-white transition-all cursor-pointer shadow-2xs disabled:opacity-50"
-              title="Create a new Dummy Fund Manager with these parameters"
-            >
-              <Sparkles class="w-3.5 h-3.5" />
-              <span>Create as Dummy FM</span>
-            </button>
+            <!-- Create Dummy FM Button (Only in edit mode) -->
+            <template v-if="mode === 'edit'">
+              <!-- If dummy already created -->
+              <span
+                v-if="isDummyCreated"
+                class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary/10 text-primary border border-primary/20 flex items-center gap-1.5"
+                title="Dummy Fund Manager already exists for this account"
+              >
+                <Sparkles class="w-3.5 h-3.5 text-primary" />
+                <span>Dummy FM Exists</span>
+              </span>
+
+              <!-- If dummy NOT created yet -->
+              <button
+                v-else
+                type="button"
+                @click="handleCreateDummy"
+                class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary/10 hover:bg-primary text-primary hover:text-white border border-primary/30 transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                title="Create a Dummy FM for this fund manager"
+              >
+                <Sparkles class="w-3.5 h-3.5" />
+                <span>+ Create Dummy FM</span>
+              </button>
+            </template>
 
             <button
               @click="closeDialog"
@@ -73,27 +78,6 @@
 
         <!-- Scrollable Form Body -->
         <div class="px-6 py-5 flex flex-col gap-6 overflow-y-auto flex-1">
-          <!-- Real FM to Dummy FM Conversion Banner -->
-          <div
-            v-if="currentMode === 'clone_to_dummy' || (isDummyMode && (props.item?.id || form.fake_id))"
-            class="bg-primary/10 border border-primary/20 rounded-xl p-3.5 flex items-center justify-between gap-3 shrink-0 shadow-2xs"
-          >
-            <div class="flex items-center gap-2.5 min-w-0">
-              <Sparkles class="w-4 h-4 text-primary shrink-0" />
-              <div class="min-w-0">
-                <p class="text-xs font-bold text-primary truncate">
-                  Converting Real FM to Dummy FM
-                </p>
-                <p class="text-[11px] text-secondary-text truncate">
-                  Source: {{ props.item?.label_name || props.item?.user?.name || form.name || 'Real FM' }} (ID #{{ props.item?.id || form.fake_id }})
-                </p>
-              </div>
-            </div>
-            <span class="text-[10px] font-mono font-bold px-2 py-1 rounded bg-primary/20 text-primary border border-primary/30 shrink-0">
-              fake_id: {{ props.item?.id || form.fake_id }}
-            </span>
-          </div>
-
           <!-- SECTION 1: GENERAL IDENTITY & AUTH -->
           <div
             class="space-y-3.5 bg-background/40 border border-primary-border/60 rounded-xl p-4"
@@ -385,7 +369,7 @@
                 >
               </div>
 
-              <!-- Broker Currency -->
+              <!-- Broker Currency (Disabled / Auto-selected from Group) -->
               <div class="flex flex-col gap-1.5">
                 <label class="text-xs font-semibold text-secondary-text">
                   Broker Currency <span class="text-primary-red">*</span>
@@ -393,8 +377,9 @@
                 <BaseSelect
                   :modelValue="form.broker_currency"
                   :options="currencyOptions"
+                  :disabled="true"
                   placeholder="Select currency"
-                  @update:modelValue="(val) => { form.broker_currency = val; errors.broker_currency = ''; }"
+                  @update:modelValue="form.broker_currency = $event"
                 />
                 <span
                   v-if="errors.broker_currency"
@@ -411,8 +396,9 @@
                 <BaseSelect
                   :modelValue="form.broker_leverage"
                   :options="leverageOptions"
+                  :disabled="true"
                   placeholder="Select leverage"
-                  @update:modelValue="(val) => { form.broker_leverage = Number(val); errors.broker_leverage = ''; }"
+                  @update:modelValue="form.broker_leverage = $event"
                 />
                 <span
                   v-if="errors.broker_leverage"
@@ -905,25 +891,24 @@
 
         <!-- Footer Actions -->
         <div
-          class="px-6 py-4 border-t border-primary-border bg-background/60 flex items-center justify-end gap-3 shrink-0"
+          class="px-6 py-4 border-t border-primary-border bg-background/60 flex items-center gap-3 shrink-0"
         >
           <button
-            type="button"
             @click="closeDialog"
             :disabled="store.isSubmitting"
-            class="px-5 py-2.5 rounded-xl text-xs font-semibold text-secondary-text border border-primary-border hover:text-primary-text hover:bg-background transition-all cursor-pointer disabled:opacity-50"
+            class="flex-1 px-4 py-2.5 rounded-xl text-xs font-semibold text-secondary-text border border-primary-border hover:text-primary-text hover:bg-background transition-all cursor-pointer disabled:opacity-50"
           >
             Cancel
           </button>
-
           <button
-            type="button"
             @click="handleSubmit"
             :disabled="store.isSubmitting"
-            class="px-6 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 text-white bg-primary hover:bg-primary-hover transition-all cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+            class="flex-1 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 bg-primary text-white hover:bg-primary-hover transition-all cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Loader2 v-if="store.isSubmitting" class="w-4 h-4 animate-spin" />
-            <span v-else>{{ getSubmitButtonText() }}</span>
+            <span v-else>{{
+              mode === "add" ? "Create Fund Manager" : "Update Fund Manager"
+            }}</span>
           </button>
         </div>
       </div>
@@ -944,7 +929,6 @@ import {
   MapPin,
   ShieldCheck,
   AlertTriangle,
-  Bot,
   Sparkles,
 } from "lucide-vue-next";
 import { useFmLeaderboardStore } from "@/stores/fmLeaderboard/fmLeaderboard";
@@ -956,25 +940,23 @@ import urls from "@/api/urls";
 
 const props = defineProps({
   open: { type: Boolean, default: false },
-  mode: { type: String, default: "add" }, // 'add' | 'edit' | 'add_dummy' | 'edit_dummy' | 'clone_to_dummy'
+  mode: { type: String, default: "add" },
   item: { type: Object, default: null },
 });
 
-const emit = defineEmits(["close", "success"]);
+const emit = defineEmits(["close", "success", "create-dummy"]);
 const store = useFmLeaderboardStore();
 
-const currentMode = ref(props.mode);
+const isDummyCreated = computed(() => {
+  return Boolean(
+    props.item?.is_dummy_created === true ||
+    props.item?.dummy_created === true
+  );
+});
 
-watch(
-  () => props.mode,
-  (newMode) => {
-    currentMode.value = newMode;
-  }
-);
-
-const isDummyMode = computed(() =>
-  ["add_dummy", "edit_dummy", "clone_to_dummy"].includes(currentMode.value)
-);
+const handleCreateDummy = () => {
+  emit("create-dummy", props.item);
+};
 
 const rawGroups = ref([]);
 const groupsLoading = ref(false);
@@ -1053,10 +1035,8 @@ const groupOptions = computed(() => {
       data: g,
     }));
 });
-const form = ref({
-  // Dummy FM tracking
-  fake_id: "",
 
+const form = ref({
   // Required identity / login
   email: "",
   name: "",
@@ -1165,92 +1145,83 @@ const fetchAvailableGroups = async () => {
   }
 };
 
-const onGroupSelect = (val) => {
-  selectedGroupValue.value = val;
+const onGroupPresetSelect = (groupValue) => {
+  selectedGroupValue.value = groupValue;
   const match = rawGroups.value.find(
-    (g) => (g.group || g.config_id || g.label) === val
+    (g) =>
+      g.group === groupValue ||
+      String(g.config_id) === String(groupValue) ||
+      g.label === groupValue,
   );
   if (match) {
-    form.value.broker_group = match.group || match.label || val;
-    form.value.group_config_id = match.config_id ?? match.id ?? null;
+    form.value.broker_group = match.group || groupValue;
     if (match.currency) form.value.broker_currency = match.currency;
-    if (match.leverage) {
-      const lev = Number(match.leverage);
-      if (!isNaN(lev) && lev > 0) form.value.broker_leverage = lev;
-    }
-    if (errors.value.broker_group) errors.value.broker_group = "";
-    if (errors.value.broker_currency) errors.value.broker_currency = "";
-    if (errors.value.broker_leverage) errors.value.broker_leverage = "";
+    if (match.leverage) form.value.broker_leverage = Number(match.leverage);
+    form.value.group_config_id =
+      match.config_id || match.group_config_id || match.id || null;
   } else {
-    form.value.broker_group = val;
+    form.value.broker_group = groupValue;
   }
 };
 
-const onGroupPresetSelect = onGroupSelect;
-
+// Reset & Auto-fill form fields when drawer opens
 const originalFollowerAccountType = ref(null);
 
 const isFollowerAccountTypeChanged = computed(() => {
-  if (
-    currentMode.value !== "edit" &&
-    currentMode.value !== "edit_dummy"
-  )
-    return false;
-  if (originalFollowerAccountType.value == null) return false;
+  if (props.mode !== "edit" || originalFollowerAccountType.value == null) return false;
   return (
-    Number(form.value.follower_account_type) !==
-    Number(originalFollowerAccountType.value)
+    Number(form.value.follower_account_type) === 2 &&
+    Number(originalFollowerAccountType.value) !== 2
   );
 });
+
 const resetForm = () => {
-  currentMode.value = props.mode;
-  if (props.item && currentMode.value !== "add") {
+  selectedGroupValue.value = "";
+  if (props.mode === "edit" && props.item) {
+    const initialFollowerType =
+      props.item.follower_account_type != null
+        ? Number(props.item.follower_account_type)
+        : 1;
+    originalFollowerAccountType.value = initialFollowerType;
+
     const u = props.item.user || {};
-    originalFollowerAccountType.value = Number(
-      props.item.follower_account_type ?? 1
-    );
-
-    selectedGroupValue.value =
-      props.item.broker_group ||
-      props.item.group_config_id ||
-      "";
-
-    const rawLeverage = Number(props.item.broker_leverage);
-    const resolvedLeverage = !isNaN(rawLeverage) && rawLeverage > 0 ? rawLeverage : 100;
-
     form.value = {
-      fake_id: props.item.id != null ? String(props.item.id) : "",
       email: u.email ?? props.item.email ?? "",
       name: u.name ?? props.item.name ?? "",
       password: "",
       label_name: props.item.label_name ?? u.name ?? props.item.name ?? "",
       visibility_type: props.item.visibility_type ?? "public",
-      follower_account_type: Number(props.item.follower_account_type ?? 1),
+      follower_account_type: initialFollowerType,
       follower_account_type_action: "keep",
-      is_active: props.item.is_active ?? true,
+      is_active: props.item.is_active ?? u.is_active ?? true,
 
-      broker_group: props.item.broker_group ?? "real\\FM",
+      broker_group:
+        props.item.broker_group ??
+        props.item.coverage_account?.broker_group ??
+        "",
       broker_currency:
         props.item.broker_currency ??
         props.item.coverage_account?.broker_currency ??
-        props.item.master_account?.broker_currency ??
         "USD",
-      broker_leverage: resolvedLeverage,
-      group_config_id: props.item.group_config_id ?? null,
+      broker_leverage:
+        props.item.broker_leverage ??
+        props.item.coverage_account?.broker_leverage ??
+        100,
+      group_config_id:
+        props.item.group_config_id ??
+        props.item.coverage_account?.group_config_id ??
+        null,
 
-      min_capital: props.item.min_capital ?? "",
-      performance_fee: props.item.performance_fee ?? "",
+      min_capital: props.item.min_capital ?? 1000,
+      performance_fee: props.item.performance_fee ?? 20,
       fm_share: props.item.fm_share ?? 70,
       broker_share: props.item.broker_share ?? 30,
       ib_pool_percentage: props.item.ib_pool_percentage ?? 10,
       settlement_type:
-        props.item.settlement_type ??
-        props.item.settlement ??
-        "monthly",
+        props.item.settlement_type ?? props.item.settlement ?? "monthly",
       settlement_time: props.item.settlement_time ?? "00:00",
-      management_fee: props.item.management_fee ?? 0,
-      management_fee_interval:
-        props.item.management_fee_interval ?? "monthly",
+      management_fee: props.item.management_fee ?? 2,
+      management_fee_interval: props.item.management_fee_interval ?? "monthly",
       registration_fee: props.item.registration_fee ?? 0,
 
       phone_number: u.phone_number ?? props.item.phone_number ?? "",
@@ -1271,8 +1242,8 @@ const resetForm = () => {
     };
   } else {
     originalFollowerAccountType.value = null;
+    // Add mode initial defaults matching new payload schema
     form.value = {
-      fake_id: "",
       email: "",
       name: "",
       password: "",
@@ -1287,14 +1258,14 @@ const resetForm = () => {
       broker_leverage: 100,
       group_config_id: null,
 
-      min_capital: "",
-      performance_fee: "",
+      min_capital: 1000,
+      performance_fee: 20,
       fm_share: 70,
       broker_share: 30,
       ib_pool_percentage: 10,
       settlement_type: "monthly",
       settlement_time: "00:00",
-      management_fee: 0,
+      management_fee: 2,
       management_fee_interval: "monthly",
       registration_fee: 0,
 
@@ -1348,8 +1319,8 @@ const validateForm = () => {
     newErrors.name = "Full Name is required";
   }
 
-  // Password (Required only for fresh real FM create)
-  if (currentMode.value === "add" && !form.value.password) {
+  // Password (Required for create)
+  if (props.mode === "add" && !form.value.password) {
     newErrors.password = "Password is required";
   }
 
@@ -1362,8 +1333,7 @@ const validateForm = () => {
   if (!form.value.broker_currency) {
     newErrors.broker_currency = "Currency is required";
   }
-  const leverageNum = Number(form.value.broker_leverage);
-  if (!form.value.broker_leverage || isNaN(leverageNum) || leverageNum <= 0) {
+  if (!form.value.broker_leverage) {
     newErrors.broker_leverage = "Leverage is required";
   }
 
@@ -1418,135 +1388,114 @@ const validateForm = () => {
   return Object.keys(newErrors).length === 0;
 };
 
-const buildCreatePayload = () => {
-  const payload = {
-    email: form.value.email.trim(),
-    name: form.value.name.trim(),
-    password: form.value.password || "Dummy@12345",
-    label_name: form.value.label_name?.trim() || form.value.name.trim(),
-    visibility_type: form.value.visibility_type || "public",
-    follower_account_type: Number(form.value.follower_account_type) || 1,
-    is_active: Boolean(form.value.is_active),
-
-    broker_group: form.value.broker_group.trim(),
-    broker_currency: form.value.broker_currency || "USD",
-    broker_leverage: Number(form.value.broker_leverage) || 100,
-
-    min_capital: Number(form.value.min_capital) || 0,
-    performance_fee: Number(form.value.performance_fee) || 0,
-    fm_share: Number(form.value.fm_share) || 0,
-    broker_share: Number(form.value.broker_share) || 0,
-    ib_pool_percentage: Number(form.value.ib_pool_percentage) || 0,
-    settlement_type: form.value.settlement_type || "monthly",
-    settlement_time: form.value.settlement_time || "00:00",
-    management_fee: Number(form.value.management_fee) || 0,
-    management_fee_interval: form.value.management_fee_interval || "monthly",
-    registration_fee: Number(form.value.registration_fee) || 0,
-  };
-
-  // If dummy mode or clone to dummy, include fake_id (ID of the real FM being made into dummy)
-  if (isDummyMode.value || currentMode.value === "clone_to_dummy" || currentMode.value === "add_dummy") {
-    payload.fake_id = props.item?.id != null ? String(props.item.id) : (form.value.fake_id || "");
-  }
-
-  if (form.value.group_config_id != null && form.value.group_config_id !== "") {
-    payload.group_config_id = Number(form.value.group_config_id);
-  }
-  if (form.value.phone_number?.trim())
-    payload.phone_number = form.value.phone_number.trim();
-  if (form.value.country?.trim())
-    payload.country = form.value.country.trim();
-  if (form.value.state?.trim()) payload.state = form.value.state.trim();
-  if (form.value.city?.trim()) payload.city = form.value.city.trim();
-  if (form.value.address?.trim())
-    payload.address = form.value.address.trim();
-  if (form.value.zip_code?.trim())
-    payload.zip_code = form.value.zip_code.trim();
-
-  return payload;
-};
-
-const buildEditPayload = () => {
-  const payload = {
-    label_name: form.value.label_name?.trim() || form.value.name.trim(),
-    is_active: Boolean(form.value.is_active),
-    follower_account_type: Number(form.value.follower_account_type) || 1,
-    min_capital: Number(form.value.min_capital) || 0,
-    performance_fee: Number(form.value.performance_fee) || 0,
-    fm_share: Number(form.value.fm_share) || 0,
-    broker_share: Number(form.value.broker_share) || 0,
-    ib_pool_percentage: Number(form.value.ib_pool_percentage) || 0,
-    settlement_type: form.value.settlement_type || "monthly",
-    settlement_time: form.value.settlement_time || "00:00",
-    management_fee: Number(form.value.management_fee) || 0,
-    management_fee_interval: form.value.management_fee_interval || "monthly",
-    registration_fee: Number(form.value.registration_fee) || 0,
-    visibility_type: form.value.visibility_type || "public",
-    broker_group: form.value.broker_group.trim(),
-    broker_leverage: Number(form.value.broker_leverage) || 100,
-    broker_currency: form.value.broker_currency || "USD",
-
-    name: form.value.name.trim(),
-    email: form.value.email.trim(),
-    phone_number: form.value.phone_number?.trim() || "",
-    date_of_birth: form.value.date_of_birth || null,
-    country: form.value.country?.trim() || "",
-    state: form.value.state?.trim() || "",
-    city: form.value.city?.trim() || "",
-    address: form.value.address?.trim() || "",
-    zip_code: form.value.zip_code?.trim() || "",
-    verification_channel: form.value.verification_channel || "Manual",
-    docs_uploaded: form.value.docs_uploaded || "Yes",
-    doc_approved: form.value.doc_approved || "Yes",
-    kyc_status: form.value.kyc_status || "approved",
-    kyc_reject_reason:
-      form.value.kyc_status === "rejected"
-        ? form.value.kyc_reject_reason || null
-        : null,
-
-    user: {
-      is_active: Boolean(form.value.is_active),
-    },
-  };
-
-  if (form.value.group_config_id != null && form.value.group_config_id !== "") {
-    payload.group_config_id = Number(form.value.group_config_id);
-  }
-
-  if (form.value.password && form.value.password.trim() !== "") {
-    payload.password = form.value.password.trim();
-  }
-
-  if (isFollowerAccountTypeChanged.value) {
-    payload.follower_account_type_action =
-      form.value.follower_account_type_action || "keep";
-  }
-
-  return payload;
-};
-
-// User clicked "Create as Dummy FM" button in header while editing a real FM
-const handleCreateAsDummy = () => {
-  currentMode.value = "clone_to_dummy";
-  errors.value = {};
-};
-
 const handleSubmit = async () => {
   if (!validateForm()) return;
 
-  if (currentMode.value === "add") {
-    const payload = buildCreatePayload();
-    await store.createFundManager(payload);
-  } else if (currentMode.value === "add_dummy" || currentMode.value === "clone_to_dummy") {
-    const payload = buildCreatePayload();
-    await store.createDummyFundManager(payload);
-  } else if (currentMode.value === "edit_dummy") {
-    const payload = buildEditPayload();
-    await store.editDummyFundManager(props.item.id, payload);
+  if (props.mode === "add") {
+    const createPayload = {
+      email: form.value.email.trim(),
+      name: form.value.name.trim(),
+      password: form.value.password,
+      label_name: form.value.label_name?.trim() || form.value.name.trim(),
+      visibility_type: form.value.visibility_type || "public",
+      follower_account_type: Number(form.value.follower_account_type) || 1,
+      is_active: Boolean(form.value.is_active),
+
+      broker_group: form.value.broker_group.trim(),
+      broker_currency: form.value.broker_currency || "USD",
+      broker_leverage: Number(form.value.broker_leverage) || 100,
+
+      min_capital: Number(form.value.min_capital) || 0,
+      performance_fee: Number(form.value.performance_fee) || 0,
+      fm_share: Number(form.value.fm_share) || 0,
+      broker_share: Number(form.value.broker_share) || 0,
+      ib_pool_percentage: Number(form.value.ib_pool_percentage) || 0,
+      settlement_type: form.value.settlement_type || "monthly",
+      settlement_time: form.value.settlement_time || "00:00",
+      management_fee: Number(form.value.management_fee) || 0,
+      management_fee_interval: form.value.management_fee_interval || "monthly",
+      registration_fee: Number(form.value.registration_fee) || 0,
+    };
+
+    if (
+      form.value.group_config_id != null &&
+      form.value.group_config_id !== ""
+    ) {
+      createPayload.group_config_id = Number(form.value.group_config_id);
+    }
+    if (form.value.phone_number?.trim())
+      createPayload.phone_number = form.value.phone_number.trim();
+    if (form.value.country?.trim())
+      createPayload.country = form.value.country.trim();
+    if (form.value.state?.trim()) createPayload.state = form.value.state.trim();
+    if (form.value.city?.trim()) createPayload.city = form.value.city.trim();
+    if (form.value.address?.trim())
+      createPayload.address = form.value.address.trim();
+    if (form.value.zip_code?.trim())
+      createPayload.zip_code = form.value.zip_code.trim();
+
+    await store.createFundManager(createPayload);
   } else {
-    // Standard Real FM Edit
-    const payload = buildEditPayload();
-    await store.editFundManager(props.item.id, payload);
+    // Edit Mode Payload
+    const editPayload = {
+      label_name: form.value.label_name?.trim() || form.value.name.trim(),
+      is_active: Boolean(form.value.is_active),
+      follower_account_type: Number(form.value.follower_account_type) || 1,
+      min_capital: Number(form.value.min_capital) || 0,
+      performance_fee: Number(form.value.performance_fee) || 0,
+      fm_share: Number(form.value.fm_share) || 0,
+      broker_share: Number(form.value.broker_share) || 0,
+      ib_pool_percentage: Number(form.value.ib_pool_percentage) || 0,
+      settlement_type: form.value.settlement_type || "monthly",
+      settlement_time: form.value.settlement_time || "00:00",
+      management_fee: Number(form.value.management_fee) || 0,
+      management_fee_interval: form.value.management_fee_interval || "monthly",
+      registration_fee: Number(form.value.registration_fee) || 0,
+      visibility_type: form.value.visibility_type || "public",
+      broker_group: form.value.broker_group.trim(),
+      broker_leverage: Number(form.value.broker_leverage) || 100,
+      broker_currency: form.value.broker_currency || "USD",
+
+      name: form.value.name.trim(),
+      email: form.value.email.trim(),
+      phone_number: form.value.phone_number?.trim() || "",
+      date_of_birth: form.value.date_of_birth || null,
+      country: form.value.country?.trim() || "",
+      state: form.value.state?.trim() || "",
+      city: form.value.city?.trim() || "",
+      address: form.value.address?.trim() || "",
+      zip_code: form.value.zip_code?.trim() || "",
+      verification_channel: form.value.verification_channel || "Manual",
+      docs_uploaded: form.value.docs_uploaded || "Yes",
+      doc_approved: form.value.doc_approved || "Yes",
+      kyc_status: form.value.kyc_status || "approved",
+      kyc_reject_reason:
+        form.value.kyc_status === "rejected"
+          ? form.value.kyc_reject_reason || null
+          : null,
+
+      user: {
+        is_active: Boolean(form.value.is_active),
+      },
+    };
+
+    if (
+      form.value.group_config_id != null &&
+      form.value.group_config_id !== ""
+    ) {
+      editPayload.group_config_id = Number(form.value.group_config_id);
+    }
+
+    if (form.value.password && form.value.password.trim() !== "") {
+      editPayload.password = form.value.password.trim();
+    }
+
+    if (isFollowerAccountTypeChanged.value) {
+      editPayload.follower_account_type_action =
+        form.value.follower_account_type_action || "keep";
+    }
+
+    await store.editFundManager(props.item.id, editPayload);
   }
 
   if (!store.error) {
@@ -1555,51 +1504,8 @@ const handleSubmit = async () => {
   }
 };
 
-const getTitle = () => {
-  switch (currentMode.value) {
-    case "add_dummy":
-    case "clone_to_dummy":
-      return "Create Dummy Fund Manager";
-    case "edit_dummy":
-      return "Edit Dummy Fund Manager";
-    case "edit":
-      return "Edit Fund Manager";
-    case "add":
-    default:
-      return "Create Fund Manager";
-  }
-};
-
-const getSubtitle = () => {
-  switch (currentMode.value) {
-    case "clone_to_dummy":
-      return `Create a new Dummy Fund Manager with pre-filled parameters from ID: #${props.item?.id}`;
-    case "add_dummy":
-      return "Create a new dummy fund manager account for demonstration/leaderboard";
-    case "edit_dummy":
-      return `Update dummy configuration & profile for ID: #${props.item?.id}`;
-    case "edit":
-      return `Update configuration & profile for ID: #${props.item?.id}`;
-    case "add":
-    default:
-      return "Create a new fund manager leaderboard account and MT5 trading setup";
-  }
-};
-
-const getSubmitButtonText = () => {
-  switch (currentMode.value) {
-    case "add_dummy":
-    case "clone_to_dummy":
-      return "Create Dummy Fund Manager";
-    case "edit_dummy":
-      return "Update Dummy FM";
-    case "edit":
-      return "Update Fund Manager";
-    case "add":
-    default:
-      return "Create Fund Manager";
-  }
-};
+const getTitle = () =>
+  props.mode === "add" ? "Create Fund Manager" : "Edit Fund Manager";
 </script>
 
 <style scoped>

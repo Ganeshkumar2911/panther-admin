@@ -18,6 +18,7 @@ import { useCommissionEngineStore } from "@/stores/commissionEngine/commissionEn
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import BaseDatePicker from "@/components/common/BaseDatePicker.vue";
+import Tooltip from "@/components/common/Tooltip.vue";
 import ApproveCommissionModal from "../components/ApproveCommissionModal.vue";
 import RejectCommissionModal from "../components/RejectCommissionModal.vue";
 import CalculateCommissionsModal from "../components/CalculateCommissionsModal.vue";
@@ -31,6 +32,7 @@ const canSync = computed(() => hasPermission("ib_commission.sync"));
 
 // Filters
 const statusFilter = ref("pending"); // 'pending' | 'approved' | 'rejected' | ''
+const walletTargetFilter = ref(""); // '' | 'main' | 'demo'
 const loginFilter = ref("");
 const ibIdFilter = ref("");
 const tradeIdFilter = ref("");
@@ -83,30 +85,60 @@ const dateFieldOptions = [
   { label: "Trade Close Time", value: "close_time" },
 ];
 
+const walletTargetOptions = [
+  { label: "All Wallets", value: "" },
+  { label: "Main Wallet", value: "main" },
+  { label: "Demo Wallet", value: "demo" },
+];
+
 onMounted(() => {
   store.fetchWorkflowSettings();
   loadCommissions(1);
+  if (!store.ibSearchOptions.length) {
+    store.searchIbs("");
+  }
 });
+
+let ibSearchTimer = null;
+const onIbSearch = (query) => {
+  clearTimeout(ibSearchTimer);
+  if (!query || !query.trim()) {
+    store.searchIbs("");
+    return;
+  }
+  ibSearchTimer = setTimeout(() => {
+    store.searchIbs(query).catch(() => {});
+  }, 300);
+};
 
 // Auto-adjust default filter if workflow is auto_wallet
 watch(
   () => store.workflowSettings?.auto_wallet_credit,
   (isAuto) => {
-    if (isAuto && statusFilter.value === "pending" && !store.commissionsList?.length) {
+    if (
+      isAuto &&
+      statusFilter.value === "pending" &&
+      !store.commissionsList?.length
+    ) {
       statusFilter.value = "approved";
       loadCommissions(1, true);
     }
-  }
+  },
 );
 
 const loadCommissions = (page = 1, force = false) => {
-  const loginVal = loginFilter.value != null ? String(loginFilter.value).trim() : "";
-  const ibIdVal = ibIdFilter.value != null ? String(ibIdFilter.value).trim() : "";
-  const tradeIdVal = tradeIdFilter.value != null ? String(tradeIdFilter.value).trim() : "";
-  const symbolVal = symbolFilter.value != null ? String(symbolFilter.value).trim() : "";
+  const loginVal =
+    loginFilter.value != null ? String(loginFilter.value).trim() : "";
+  const ibIdVal =
+    ibIdFilter.value != null ? String(ibIdFilter.value).trim() : "";
+  const tradeIdVal =
+    tradeIdFilter.value != null ? String(tradeIdFilter.value).trim() : "";
+  const symbolVal =
+    symbolFilter.value != null ? String(symbolFilter.value).trim() : "";
 
   const params = {
     status: statusFilter.value || undefined,
+    wallet_target: walletTargetFilter.value || undefined,
     login: loginVal ? Number(loginVal) : undefined,
     ib_id: ibIdVal ? Number(ibIdVal) : undefined,
     trade_id: tradeIdVal ? Number(tradeIdVal) : undefined,
@@ -130,7 +162,10 @@ const handleFilterChange = () => {
 };
 
 const handleResetFilters = () => {
-  statusFilter.value = store.workflowSettings?.auto_wallet_credit ? "approved" : "pending";
+  statusFilter.value = store.workflowSettings?.auto_wallet_credit
+    ? "approved"
+    : "pending";
+  walletTargetFilter.value = "";
   loginFilter.value = "";
   ibIdFilter.value = "";
   tradeIdFilter.value = "";
@@ -200,126 +235,85 @@ const pendingSelectedCommissions = computed(() => {
   return selectedCommissions.value.filter((c) => c.status === "pending");
 });
 
+const hasActiveFilters = computed(() => {
+  return (
+    !!walletTargetFilter.value ||
+    !!loginFilter.value ||
+    !!ibIdFilter.value ||
+    !!tradeIdFilter.value ||
+    !!symbolFilter.value ||
+    !!dateFrom.value ||
+    !!dateTo.value
+  );
+});
+
 const columns = [
-  { key: "id", label: "ID", width: "80px", sortable: true },
+  { key: "id", label: "ID", width: "75px", sortable: true },
   { key: "status", label: "Status", align: "center", width: "110px" },
-  { key: "ib_partner", label: "IB Partner", width: "150px" },
-  { key: "trade_info", label: "Trade (MT5 Login & Symbol)", width: "180px" },
+  { key: "ib_partner", label: "IB Partner", width: "180px" },
+  { key: "trade_info", label: "Client & Trade Details", width: "210px" },
   { key: "rates", label: "Rate Applied", width: "150px" },
-  { key: "commission_per_lot", label: "Comm / Lot", align: "right", width: "120px", sortable: true },
-  { key: "commission_per_millions_volume", label: "Comm / M.Vol", align: "right", width: "130px", sortable: true },
-  { key: "commission_per_spread", label: "Comm / Spread", align: "right", width: "130px", sortable: true },
-  { key: "total_commission", label: "Total Commission", align: "right", width: "140px", sortable: true },
+  {
+    key: "commission_per_lot",
+    label: "Comm / Lot",
+    align: "right",
+    width: "120px",
+    sortable: true,
+  },
+  {
+    key: "commission_per_millions_volume",
+    label: "Comm / M.Vol",
+    align: "right",
+    width: "130px",
+    sortable: true,
+  },
+  {
+    key: "commission_per_spread",
+    label: "Comm / Spread",
+    align: "right",
+    width: "130px",
+    sortable: true,
+  },
+  {
+    key: "commission_per_pips",
+    label: "Comm / Pips",
+    align: "right",
+    width: "120px",
+    sortable: true,
+  },
+  {
+    key: "total_commission",
+    label: "Total Commission",
+    align: "right",
+    width: "140px",
+    sortable: true,
+  },
   { key: "timeline", label: "Timeline & Audit", width: "170px" },
-  { key: "actions", label: "Actions", align: "right", width: "140px" },
+  {
+    key: "actions",
+    label: "Actions",
+    align: "right",
+    width: "140px",
+    sticky: "right",
+  },
 ];
 
 const formatDate = (val) => {
   if (!val) return "-";
   const d = new Date(val);
-  return isNaN(d.getTime()) ? val : d.toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  return isNaN(d.getTime())
+    ? val
+    : d.toLocaleString([], {
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
 };
 </script>
 
 <template>
   <div class="space-y-4">
-    <!-- Workflow Mode Settings Bar -->
-    <div
-      class="p-4 rounded-xl bg-card-background border border-primary-border flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
-    >
-      <div class="flex items-center gap-3.5">
-        <div
-          class="w-10 h-10 rounded-xl flex items-center justify-center border shrink-0 transition-colors"
-          :class="
-            store.workflowSettings?.auto_wallet_credit
-              ? 'bg-primary-green/10 text-primary-green border-primary-green/20'
-              : 'bg-primary/10 text-primary border-primary/20'
-          "
-        >
-          <HugeIcon :icon="Coins01Icon" :size="20" />
-        </div>
-        <div>
-          <div class="flex flex-wrap items-center gap-2">
-            <h3 class="text-sm font-bold text-primary-text">
-              Commission Workflow Mode
-            </h3>
-            <span
-              class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold"
-              :class="
-                store.workflowSettings?.auto_wallet_credit
-                  ? 'bg-primary-green/10 text-primary-green border border-primary-green/20'
-                  : 'bg-primary/10 text-primary border border-primary/20'
-              "
-            >
-              <span
-                class="w-1.5 h-1.5 rounded-full"
-                :class="store.workflowSettings?.auto_wallet_credit ? 'bg-primary-green animate-pulse' : 'bg-primary'"
-              ></span>
-              {{ store.workflowSettings?.auto_wallet_credit ? "Auto Wallet Credit" : "Pending Approval Required" }}
-            </span>
-          </div>
-          <p class="text-xs text-secondary-text mt-0.5">
-            {{
-              store.workflowSettings?.auto_wallet_credit
-                ? "Calculated commissions credit the IB wallet immediately upon calculation without a pending queue."
-                : "Calculated commissions remain in Pending status until authorized by an administrator."
-            }}
-          </p>
-        </div>
-      </div>
-
-      <!-- Interactive Mode Segmented Toggle Buttons -->
-      <div class="flex items-center gap-2 shrink-0 self-start md:self-center">
-        <div class="inline-flex p-1 rounded-xl bg-background border border-primary-border items-center gap-1 shadow-xs">
-          <!-- Option 1: Approval Required -->
-          <button
-            type="button"
-            :disabled="!canApprove || store.actionLoading"
-            class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-            :class="
-              !store.workflowSettings?.auto_wallet_credit
-                ? 'bg-card-background text-primary-text shadow-xs border border-primary-border font-bold'
-                : 'text-secondary-text hover:text-primary-text border border-transparent'
-            "
-            title="Calculated commissions wait in Pending status for admin approval"
-            @click="setWorkflowMode(false)"
-          >
-            <HugeIcon
-              v-if="store.actionLoading && !store.workflowSettings?.auto_wallet_credit"
-              :icon="Loading03Icon"
-              :size="13"
-              class="animate-spin text-primary"
-            />
-            <HugeIcon v-else :icon="Alert02Icon" :size="13" class="text-primary" />
-            <span>Require Approval</span>
-          </button>
-
-          <!-- Option 2: Auto Wallet Credit -->
-          <button
-            type="button"
-            :disabled="!canApprove || store.actionLoading"
-            class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-            :class="
-              store.workflowSettings?.auto_wallet_credit
-                ? 'bg-primary-green text-white shadow-xs font-bold border border-primary-green/30'
-                : 'text-secondary-text hover:text-primary-text border border-transparent'
-            "
-            title="Calculated commissions credit IB wallet immediately upon calculation"
-            @click="setWorkflowMode(true)"
-          >
-            <HugeIcon
-              v-if="store.actionLoading && store.workflowSettings?.auto_wallet_credit"
-              :icon="Loading03Icon"
-              :size="13"
-              class="animate-spin text-white"
-            />
-            <HugeIcon v-else :icon="CheckmarkCircle02Icon" :size="13" />
-            <span>Auto Wallet Credit</span>
-          </button>
-        </div>
-      </div>
-    </div>
-
     <!-- Commissions DataTable -->
     <DataTable
       :columns="columns"
@@ -330,7 +324,7 @@ const formatDate = (val) => {
       v-model:selected="selectedCommissions"
       row-key="id"
       table-key="ib-commissions-table"
-      :per-page-options="[20, 50, 100, 200]"
+      :per-page-options="[10, 20, 50, 100, 200]"
       empty-title="No commission records found"
       empty-text="No commissions match the current filter or status criteria."
       @page-change="handlePageChange"
@@ -339,125 +333,117 @@ const formatDate = (val) => {
       <!-- Toolbar Slot -->
       <template #toolbar>
         <div class="space-y-3">
-          <!-- Top Row: Filters & Calculate Action -->
-          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-            <!-- Left: Status Pills & Filter Inputs -->
-            <div class="flex flex-wrap items-center gap-2.5 flex-1">
-              <!-- Status Filter Pills -->
-              <div class="inline-flex p-1 rounded-lg bg-background border border-primary-border shrink-0">
-                <button
-                  type="button"
-                  class="px-3 py-1 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
-                  :class="[
-                    statusFilter === 'pending'
-                      ? 'bg-primary text-white font-bold'
-                      : 'text-secondary-text hover:text-primary-text'
-                  ]"
-                  @click="
-                    statusFilter = 'pending';
-                    handleFilterChange();
-                  "
-                >
-                  Pending
-                </button>
-                <button
-                  type="button"
-                  class="px-3 py-1 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
-                  :class="[
+          <!-- Top Row: Status Tabs (Left) & Actions (Right) -->
+          <div
+            class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-primary-border/60"
+          >
+            <!-- Status Filter Pills -->
+            <div
+              class="inline-flex p-1 rounded-lg bg-background border border-primary-border shrink-0 self-start sm:self-auto shadow-2xs"
+            >
+              <!-- Pending -->
+              <button
+                type="button"
+                class="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer"
+                :class="[
+                  statusFilter === 'pending'
+                    ? 'bg-primary text-white shadow-2xs font-bold'
+                    : 'text-secondary-text hover:text-primary-text hover:bg-card-background/60',
+                ]"
+                @click="
+                  statusFilter = 'pending';
+                  handleFilterChange();
+                "
+              >
+                <span
+                  class="w-2 h-2 rounded-full"
+                  :class="statusFilter === 'pending' ? 'bg-white' : 'bg-primary/80'"
+                />
+                <span>Pending</span>
+              </button>
+
+              <!-- Approved -->
+              <button
+                type="button"
+                class="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer"
+                :class="[
+                  statusFilter === 'approved'
+                    ? 'bg-primary-green text-white shadow-2xs font-bold'
+                    : 'text-secondary-text hover:text-primary-text hover:bg-card-background/60',
+                ]"
+                @click="
+                  statusFilter = 'approved';
+                  handleFilterChange();
+                "
+              >
+                <span
+                  class="w-2 h-2 rounded-full"
+                  :class="
                     statusFilter === 'approved'
-                      ? 'bg-primary-green text-white font-bold'
-                      : 'text-secondary-text hover:text-primary-text'
-                  ]"
-                  @click="
-                    statusFilter = 'approved';
-                    handleFilterChange();
+                      ? 'bg-white'
+                      : 'bg-primary-green/80'
                   "
-                >
-                  Approved
-                </button>
-                <button
-                  type="button"
-                  class="px-3 py-1 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
-                  :class="[
-                    statusFilter === 'rejected'
-                      ? 'bg-primary-red text-white font-bold'
-                      : 'text-secondary-text hover:text-primary-text'
-                  ]"
-                  @click="
-                    statusFilter = 'rejected';
-                    handleFilterChange();
+                />
+                <span>Approved</span>
+              </button>
+
+              <!-- Rejected -->
+              <button
+                type="button"
+                class="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer"
+                :class="[
+                  statusFilter === 'rejected'
+                    ? 'bg-primary-red text-white shadow-2xs font-bold'
+                    : 'text-secondary-text hover:text-primary-text hover:bg-card-background/60',
+                ]"
+                @click="
+                  statusFilter = 'rejected';
+                  handleFilterChange();
+                "
+              >
+                <span
+                  class="w-2 h-2 rounded-full"
+                  :class="
+                    statusFilter === 'rejected' ? 'bg-white' : 'bg-primary-red/80'
                   "
-                >
-                  Rejected
-                </button>
-                <button
-                  type="button"
-                  class="px-3 py-1 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
-                  :class="[
-                    statusFilter === ''
-                      ? 'bg-card-background text-primary-text font-bold shadow-2xs'
-                      : 'text-secondary-text hover:text-primary-text'
-                  ]"
-                  @click="
-                    statusFilter = '';
-                    handleFilterChange();
-                  "
-                >
-                  All
-                </button>
-              </div>
+                />
+                <span>Rejected</span>
+              </button>
 
-              <!-- MT5 Login Filter -->
-              <div class="w-28 sm:w-32">
-                <input
-                  v-model="loginFilter"
-                  type="number"
-                  placeholder="MT5 Login"
-                  class="input-field w-full px-2.5 py-1.5 text-xs font-mono"
-                  @input="handleFilterChange"
-                />
-              </div>
-
-              <!-- IB ID Filter -->
-              <div class="w-24 sm:w-28">
-                <input
-                  v-model="ibIdFilter"
-                  type="number"
-                  placeholder="IB ID"
-                  class="input-field w-full px-2.5 py-1.5 text-xs font-mono"
-                  @input="handleFilterChange"
-                />
-              </div>
-
-              <!-- Symbol Search -->
-              <div class="relative w-32 sm:w-36">
-                <HugeIcon
-                  :icon="Search01Icon"
-                  :size="13"
-                  class="absolute left-2.5 top-1/2 -translate-y-1/2 text-secondary-text pointer-events-none"
-                />
-                <input
-                  v-model="symbolFilter"
-                  type="text"
-                  placeholder="Symbol"
-                  class="input-field w-full pl-7 pr-3 py-1.5 text-xs font-mono uppercase"
-                  @input="handleFilterChange"
-                />
-              </div>
+              <!-- All -->
+              <button
+                type="button"
+                class="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer"
+                :class="[
+                  statusFilter === ''
+                    ? 'bg-card-background text-primary-text shadow-2xs border border-primary-border font-bold'
+                    : 'text-secondary-text hover:text-primary-text hover:bg-card-background/60',
+                ]"
+                @click="
+                  statusFilter = '';
+                  handleFilterChange();
+                "
+              >
+                <span>All</span>
+              </button>
             </div>
 
             <!-- Right: Action Buttons -->
-            <div class="flex items-center gap-2 justify-end shrink-0">
+            <div class="flex items-center gap-2 self-end sm:self-auto shrink-0 flex-wrap">
               <!-- Bulk Approve Button -->
               <button
                 v-if="canApprove && pendingSelectedCommissions.length > 0"
                 type="button"
                 :disabled="store.actionLoading"
-                class="flex items-center gap-1.5 px-3.5 py-1.5 bg-primary-green hover:bg-primary-green/90 text-white text-xs font-bold rounded-lg transition-colors cursor-pointer shadow-2xs"
+                class="flex items-center gap-1.5 px-3.5 py-1.5 bg-primary-green hover:bg-primary-green/90 text-white text-xs font-bold rounded-lg transition-all cursor-pointer shadow-xs animate-in fade-in zoom-in-95 duration-150"
                 @click="openBulkApprove"
               >
                 <HugeIcon :icon="CheckmarkCircle02Icon" :size="14" />
-                <span>Approve Selected ({{ pendingSelectedCommissions.length }})</span>
+                <span
+                  >Approve Selected ({{
+                    pendingSelectedCommissions.length
+                  }})</span
+                >
               </button>
 
               <!-- Calculate Commissions Button -->
@@ -465,7 +451,7 @@ const formatDate = (val) => {
                 v-if="canSync"
                 type="button"
                 :disabled="store.actionLoading"
-                class="flex items-center gap-1.5 px-3.5 py-1.5 bg-primary hover:bg-primary-hover text-white text-xs font-bold rounded-lg transition-colors cursor-pointer shadow-2xs"
+                class="flex items-center gap-1.5 px-3.5 py-1.5 bg-primary hover:bg-primary-hover text-white text-xs font-semibold rounded-lg transition-all cursor-pointer shadow-xs disabled:opacity-50"
                 @click="isCalculateModalOpen = true"
               >
                 <HugeIcon :icon="Coins01Icon" :size="14" />
@@ -473,30 +459,81 @@ const formatDate = (val) => {
               </button>
 
               <!-- Refresh Button -->
-              <button
-                type="button"
-                :disabled="store.loading"
-                class="p-2 border border-primary-border rounded-lg text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer"
-                title="Refresh Commissions"
-                @click="loadCommissions(store.commissionsPagination.page, true)"
-              >
-                <HugeIcon
-                  :icon="RefreshCwIcon"
-                  :size="14"
-                  :class="{ 'animate-spin': store.loading }"
-                />
-              </button>
+             
+                <button
+                  type="button"
+                  :disabled="store.loading"
+                  class="flex items-center justify-center w-8 h-8 border border-primary-border rounded-lg text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer disabled:opacity-50"
+                  @click="loadCommissions(store.commissionsPagination.page, true)"
+                >
+                  <HugeIcon
+                    :icon="RefreshCwIcon"
+                    :size="14"
+                    :class="{ 'animate-spin': store.loading }"
+                  />
+                </button>
+
             </div>
           </div>
 
-          <!-- Bottom Row: Date Range & Date Field Filter -->
-          <div class="flex flex-wrap items-center gap-2.5 pt-2 border-t border-primary-border/50 text-xs">
-            <span class="text-secondary-text font-medium flex items-center gap-1">
-              <HugeIcon :icon="Calendar01Icon" :size="13" />
-              <span>Date Filter:</span>
-            </span>
+          <!-- Bottom Row: Filter Controls -->
+          <div class="flex flex-wrap items-center gap-2.5">
+            <!-- IB Filter -->
+            <div class="w-full sm:w-52 md:w-56">
+              <BaseSelect
+                v-model="ibIdFilter"
+                :options="store.ibSearchOptions"
+                :isLoading="store.searchLoading"
+                placeholder="Search IB..."
+                searchable
+                variant="surface"
+                @search="onIbSearch"
+                @update:modelValue="handleFilterChange"
+              />
+            </div>
 
-            <div class="w-44">
+            <!-- MT5 Login Filter -->
+            <div class="w-28 sm:w-32">
+              <input
+                v-model="loginFilter"
+                type="number"
+                placeholder="MT5 Login"
+                class="input-field w-full px-2.5 py-1.5 text-xs font-mono"
+                @input="handleFilterChange"
+              />
+            </div>
+
+            <!-- Symbol Search -->
+            <div class="relative w-32 sm:w-36">
+              <HugeIcon
+                :icon="Search01Icon"
+                :size="13"
+                class="absolute left-2.5 top-1/2 -translate-y-1/2 text-secondary-text pointer-events-none"
+              />
+              <input
+                v-model="symbolFilter"
+                type="text"
+                placeholder="Symbol"
+                class="input-field w-full pl-7 pr-3 py-1.5 text-xs font-mono uppercase"
+                @input="handleFilterChange"
+              />
+            </div>
+
+            <!-- Wallet Target Filter -->
+            <div class="w-32 sm:w-36">
+              <BaseSelect
+                v-model="walletTargetFilter"
+                :options="walletTargetOptions"
+                placeholder="All Wallets"
+                variant="surface"
+                @update:model-value="handleFilterChange"
+              />
+            </div>
+
+            <div class="h-5 w-px bg-primary-border/60 hidden xl:block mx-0.5" />
+
+            <!-- Date Field Select -->
+            <div class="w-36 sm:w-40">
               <BaseSelect
                 v-model="dateField"
                 :options="dateFieldOptions"
@@ -505,7 +542,8 @@ const formatDate = (val) => {
               />
             </div>
 
-            <div class="w-60">
+            <!-- Date Range Picker -->
+            <div class="w-56 sm:w-60">
               <BaseDatePicker
                 v-model="dateRangeValue"
                 :range="true"
@@ -514,13 +552,16 @@ const formatDate = (val) => {
               />
             </div>
 
+            <!-- Reset / Clear Filter Button -->
             <button
-              v-if="loginFilter || ibIdFilter || tradeIdFilter || symbolFilter || dateFrom || dateTo"
+              v-if="hasActiveFilters"
               type="button"
-              class="px-2.5 py-1 text-[11px] text-secondary-text hover:text-primary-red transition-colors cursor-pointer underline"
+              class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs text-secondary-text hover:text-primary-red hover:bg-primary-red/5 rounded-lg transition-colors cursor-pointer"
+              title="Clear all active filters"
               @click="handleResetFilters"
             >
-              Clear filters
+              <HugeIcon :icon="Cancel01Icon" :size="13" />
+              <span>Clear</span>
             </button>
           </div>
         </div>
@@ -538,9 +579,12 @@ const formatDate = (val) => {
         <span
           class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold"
           :class="{
-            'bg-primary-green/10 text-primary-green border border-primary-green/20': row.status === 'approved',
-            'bg-primary/10 text-primary border border-primary/20': row.status === 'pending',
-            'bg-primary-red/10 text-primary-red border border-primary-red/20': row.status === 'rejected',
+            'bg-primary-green/10 text-primary-green border border-primary-green/20':
+              row.status === 'approved',
+            'bg-primary/10 text-primary border border-primary/20':
+              row.status === 'pending',
+            'bg-primary-red/10 text-primary-red border border-primary-red/20':
+              row.status === 'rejected',
           }"
         >
           <span
@@ -557,25 +601,58 @@ const formatDate = (val) => {
 
       <!-- Cell: IB Partner -->
       <template #cell-ib_partner="{ row }">
-        <div class="text-xs font-mono">
-          <p class="font-bold text-primary-text">IB #{{ row.ib_id }}</p>
-          <p class="text-[10px] text-secondary-text">User #{{ row.ib_user_id || "N/A" }} &middot; Link #{{ row.referral_link_id }}</p>
+        <div class="space-y-0.5">
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <p class="font-bold text-primary-text text-xs">
+              {{ row.ib_name || `IB #${row.ib_id}` }}
+            </p>
+            <span
+              v-if="row.wallet_target"
+              class="px-1.5 py-0.2 rounded text-[9px] font-bold uppercase tracking-wider border inline-block"
+              :class="
+                row.wallet_target === 'demo'
+                  ? 'bg-primary-blue/10 text-primary-blue border-primary-blue/20'
+                  : 'bg-primary-green/10 text-primary-green border-primary-green/20'
+              "
+            >
+              {{ row.wallet_target }}
+            </span>
+          </div>
+          <p class="text-[10px] text-secondary-text font-mono">
+            IB #{{ row.ib_id }} &middot; User #{{ row.ib_user_id || "N/A" }}
+            <span v-if="row.referral_link_id"> &middot; Link #{{ row.referral_link_id }}</span>
+          </p>
         </div>
       </template>
 
       <!-- Cell: Trade Info -->
       <template #cell-trade_info="{ row }">
-        <div class="text-xs">
-          <div class="flex items-center gap-1.5">
-            <span class="font-mono font-bold text-primary-text">
-              {{ row.trade?.symbol || "N/A" }}
+        <div class="text-xs space-y-0.5">
+          <!-- Trader / Client Name -->
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <span class="font-bold text-primary-text">
+              {{ row.user_name || `User #${row.user_id || row.trade?.user_id || 'N/A'}` }}
             </span>
-            <span class="text-[11px] font-mono text-secondary-text">
-              ({{ row.closed_volume_lots ?? '-' }} lots)
+            <span
+              v-if="row.user_id || row.trade?.user_id"
+              class="text-[10px] text-secondary-text font-mono px-1 py-0.2 bg-background rounded border border-primary-border"
+            >
+              #{{ row.user_id || row.trade?.user_id }}
             </span>
           </div>
+          <!-- Symbol & Volume Lots -->
+          <div class="flex items-center gap-1.5 text-[11px] font-mono text-secondary-text">
+            <span class="font-bold text-primary-text">
+              {{ row.trade?.symbol || "N/A" }}
+            </span>
+            <span>&middot;</span>
+            <span>{{ row.closed_volume_lots ?? row.volume_lots ?? "-" }} lots</span>
+          </div>
+          <!-- Login & Trade ID -->
           <p class="text-[10px] text-secondary-text font-mono">
-            Login: {{ row.trade?.login || '-' }} &middot; Trade #{{ row.trade_id }}
+            Login: {{ row.trade?.login || "-" }} &middot; Trade #{{
+              row.trade_id || row.trade?.position_id || "-"
+            }}
           </p>
         </div>
       </template>
@@ -583,16 +660,39 @@ const formatDate = (val) => {
       <!-- Cell: Rates Applied -->
       <template #cell-rates="{ row }">
         <div class="text-[11px] font-mono space-y-0.5">
-          <p v-if="row.rate_per_lot !== null">
-            Per Lot: <strong class="text-primary-text">${{ row.rate_per_lot }}</strong>
+          <p v-if="row.rate_per_lot !== null && row.rate_per_lot !== undefined">
+            Per Lot:
+            <strong class="text-primary-text">
+              {{ row.rate_type_per_lot === 'percent' ? `${row.rate_per_lot}%` : `$${row.rate_per_lot}` }}
+            </strong>
           </p>
-          <p v-if="row.rate_per_spread !== null">
-            Per Spread: <strong class="text-primary-text">{{ row.rate_per_spread }}%</strong>
+          <p v-if="row.rate_per_spread !== null && row.rate_per_spread !== undefined">
+            Per Spread:
+            <strong class="text-primary-text">
+              {{ row.rate_type_per_spread === 'percent' || row.rate_type_per_spread === undefined ? `${row.rate_per_spread}%` : `$${row.rate_per_spread}` }}
+            </strong>
           </p>
-          <p v-if="row.rate_per_millions_volume !== null">
-            Per M. Vol: <strong class="text-primary-text">${{ row.rate_per_millions_volume }}</strong>
+          <p v-if="row.rate_per_millions_volume !== null && row.rate_per_millions_volume !== undefined">
+            Per M. Vol:
+            <strong class="text-primary-text">
+              {{ row.rate_type_per_millions_volume === 'percent' ? `${row.rate_per_millions_volume}%` : `$${row.rate_per_millions_volume}` }}
+            </strong>
           </p>
-          <p v-if="row.rate_per_lot === null && row.rate_per_spread === null && row.rate_per_millions_volume === null" class="text-secondary-text">
+          <p v-if="row.rate_per_pips !== null && row.rate_per_pips !== undefined">
+            Per Pips:
+            <strong class="text-primary-text">
+              {{ row.rate_type_per_pips === 'percent' ? `${row.rate_per_pips}%` : `P${row.rate_per_pips}` }}
+            </strong>
+          </p>
+          <p
+            v-if="
+              (row.rate_per_lot === null || row.rate_per_lot === undefined) &&
+              (row.rate_per_spread === null || row.rate_per_spread === undefined) &&
+              (row.rate_per_millions_volume === null || row.rate_per_millions_volume === undefined) &&
+              (row.rate_per_pips === null || row.rate_per_pips === undefined)
+            "
+            class="text-secondary-text"
+          >
             Standard Matrix
           </p>
         </div>
@@ -602,7 +702,10 @@ const formatDate = (val) => {
       <template #cell-commission_per_lot="{ row }">
         <div class="text-right font-mono text-xs">
           <span
-            v-if="row.commission_per_lot !== null && row.commission_per_lot !== undefined"
+            v-if="
+              row.commission_per_lot !== null &&
+              row.commission_per_lot !== undefined
+            "
             class="text-primary-text font-semibold"
           >
             ${{ Number(row.commission_per_lot || 0).toFixed(4) }}
@@ -615,7 +718,10 @@ const formatDate = (val) => {
       <template #cell-commission_per_millions_volume="{ row }">
         <div class="text-right font-mono text-xs">
           <span
-            v-if="row.commission_per_millions_volume !== null && row.commission_per_millions_volume !== undefined"
+            v-if="
+              row.commission_per_millions_volume !== null &&
+              row.commission_per_millions_volume !== undefined
+            "
             class="text-primary-text font-semibold"
           >
             ${{ Number(row.commission_per_millions_volume || 0).toFixed(4) }}
@@ -628,10 +734,29 @@ const formatDate = (val) => {
       <template #cell-commission_per_spread="{ row }">
         <div class="text-right font-mono text-xs">
           <span
-            v-if="row.commission_per_spread !== null && row.commission_per_spread !== undefined"
+            v-if="
+              row.commission_per_spread !== null &&
+              row.commission_per_spread !== undefined
+            "
             class="text-primary-text font-semibold"
           >
             ${{ Number(row.commission_per_spread || 0).toFixed(4) }}
+          </span>
+          <span v-else class="text-secondary-text">-</span>
+        </div>
+      </template>
+
+      <!-- Cell: Commission Per Pips -->
+      <template #cell-commission_per_pips="{ row }">
+        <div class="text-right font-mono text-xs">
+          <span
+            v-if="
+              row.commission_per_pips !== null &&
+              row.commission_per_pips !== undefined
+            "
+            class="text-primary-text font-semibold"
+          >
+            ${{ Number(row.commission_per_pips || 0).toFixed(4) }}
           </span>
           <span v-else class="text-secondary-text">-</span>
         </div>
@@ -653,17 +778,33 @@ const formatDate = (val) => {
       <template #cell-timeline="{ row }">
         <div class="text-[11px] text-secondary-text space-y-0.5">
           <p>
-            Created: <span class="text-primary-text font-mono">{{ formatDate(row.created_at) }}</span>
+            Created:
+            <span class="text-primary-text font-mono">{{
+              formatDate(row.created_at)
+            }}</span>
           </p>
           <p v-if="row.approved_at">
-            Approved: <span class="text-primary-green font-mono">{{ formatDate(row.approved_at) }}</span>
-            <span v-if="row.wallet_transaction_id" class="block text-[10px] font-mono">
+            Approved:
+            <span class="text-primary-green font-mono">{{
+              formatDate(row.approved_at)
+            }}</span>
+            <span
+              v-if="row.wallet_transaction_id"
+              class="block text-[10px] font-mono"
+            >
               Trx #{{ row.wallet_transaction_id }}
             </span>
           </p>
           <p v-if="row.rejected_at">
-            Rejected: <span class="text-primary-red font-mono">{{ formatDate(row.rejected_at) }}</span>
-            <span v-if="row.reject_reason" class="block text-[10px] text-primary-red truncate max-w-[150px]" :title="row.reject_reason">
+            Rejected:
+            <span class="text-primary-red font-mono">{{
+              formatDate(row.rejected_at)
+            }}</span>
+            <span
+              v-if="row.reject_reason"
+              class="block text-[10px] text-primary-red truncate max-w-[150px]"
+              :title="row.reject_reason"
+            >
               "{{ row.reject_reason }}"
             </span>
           </p>

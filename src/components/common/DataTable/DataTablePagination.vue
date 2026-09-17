@@ -62,7 +62,7 @@
         <Transition name="fade">
           <div
             v-if="jumpError"
-            class="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 px-2 py-1 rounded bg-primary-red text-white text-[10px] whitespace-nowrap shadow-md z-30 pointer-events-none"
+            class="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 px-2 py-1 rounded bg-primary-red text-white text-[10px] whitespace-nowrap  z-30 pointer-events-none"
           >
             {{ jumpError }}
           </div>
@@ -110,7 +110,7 @@
             @click="goToPage(p)"
             class="w-7 h-7 flex items-center justify-center rounded-lg text-xs font-semibold border transition cursor-pointer select-none"
             :class="p === currentPage
-              ? 'bg-primary text-white border-primary shadow-xs'
+              ? 'bg-primary text-white border-primary '
               : 'bg-background text-secondary-text border-primary-border hover:text-primary-text hover:border-primary'"
           >
             {{ p }}

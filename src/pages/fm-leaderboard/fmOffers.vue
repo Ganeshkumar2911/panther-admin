@@ -14,9 +14,9 @@
               </h2>
               <span
                 class="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border inline-flex items-center gap-1"
-                :class="fmInfo.is_active ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'"
+                :class="fmInfo.is_active ? 'bg-primary-green/10 text-primary-green border-primary-green/20' : 'bg-background text-secondary-text border-primary-border'"
               >
-                <span class="w-1.5 h-1.5 rounded-full" :class="fmInfo.is_active ? 'bg-emerald-500' : 'bg-zinc-400'" />
+                <span class="w-1.5 h-1.5 rounded-full" :class="fmInfo.is_active ? 'bg-primary-green' : 'bg-zinc-400'" />
                 {{ fmInfo.is_active ? 'Active' : 'Inactive' }}
               </span>
               <span class="text-[9px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-md border text-secondary-text bg-background/80 border-primary-border">
@@ -184,10 +184,10 @@
                     <span
                       class="text-[10px] font-bold tracking-wide uppercase px-2.5 py-0.5 rounded-full border inline-flex items-center gap-1.5 shadow-2xs"
                       :class="offer.is_active
-                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                        : 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'"
+                        ? 'bg-primary-green/10 text-primary-green border-primary-green/20'
+                        : 'bg-background text-secondary-text border-primary-border'"
                     >
-                      <span class="w-1.5 h-1.5 rounded-full" :class="offer.is_active ? 'bg-emerald-500 animate-pulse' : 'bg-zinc-400'" />
+                      <span class="w-1.5 h-1.5 rounded-full" :class="offer.is_active ? 'bg-primary-green animate-pulse' : 'bg-zinc-400'" />
                       {{ offer.is_active ? 'Active' : 'Inactive' }}
                     </span>
                     <span class="text-[9px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-md border text-secondary-text bg-background/80 border-primary-border">
@@ -276,11 +276,11 @@
             <div class="flex items-center gap-1.5 shrink-0">
               <span
                 class="text-[10px] font-bold px-2 py-0.5 rounded-full border capitalize"
-                :class="offer.visibility === 'public' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : 'bg-amber-500/10 text-amber-600 border-amber-500/20'"
+                :class="offer.visibility === 'public' ? 'bg-primary-green/10 text-primary-green border-primary-green/20' : 'bg-primary-yellow/10 text-primary-yellow border-primary-yellow/20'"
               >{{ offer.visibility }}</span>
               <span
                 class="text-[10px] font-bold px-2 py-0.5 rounded-full border capitalize"
-                :class="offer.is_active ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : 'bg-rose-500/10 text-rose-600 border-rose-500/20'"
+                :class="offer.is_active ? 'bg-primary-green/10 text-primary-green border-primary-green/20' : 'bg-primary-red/10 text-primary-red border-primary-red/20'"
               >{{ offer.is_active ? 'Active' : 'Inactive' }}</span>
             </div>
           </div>

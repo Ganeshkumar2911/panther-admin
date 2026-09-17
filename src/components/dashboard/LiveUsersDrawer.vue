@@ -43,7 +43,7 @@ const copiedId = ref(null);
 
 const pagination = ref({
   page: 1,
-  per_page: 25,
+  per_page: 10,
   total_pages: 1,
   total: 0,
 });
@@ -198,7 +198,7 @@ watch(
     } else {
       window.removeEventListener("keydown", handleKeydown);
     }
-  }
+  },
 );
 
 watch(
@@ -209,7 +209,7 @@ watch(
       pagination.value.page = 1;
       fetchLiveUsers(1);
     }
-  }
+  },
 );
 
 onMounted(() => {
@@ -264,7 +264,9 @@ onUnmounted(() => {
                   <span
                     class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
                   >
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span
+                      class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"
+                    />
                     LIVE
                   </span>
                   <span
@@ -302,9 +304,13 @@ onUnmounted(() => {
           </div>
 
           <!-- Role Filter Tabs & Search Bar -->
-          <div class="px-6 py-3 border-b border-primary-border/60 bg-background/40 space-y-3 shrink-0">
+          <div
+            class="px-6 py-3 border-b border-primary-border/60 bg-background/40 space-y-3 shrink-0"
+          >
             <!-- Filter Pills -->
-            <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
+            <div
+              class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5"
+            >
               <button
                 v-for="roleItem in rolesList"
                 :key="roleItem.id"
@@ -372,7 +378,9 @@ onUnmounted(() => {
               <div
                 class="py-16 px-4 text-center flex flex-col items-center justify-center max-w-sm mx-auto space-y-3 text-secondary-text"
               >
-                <div class="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                <div
+                  class="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary"
+                >
                   <Users class="w-6 h-6 opacity-60" />
                 </div>
                 <p class="text-sm font-bold text-primary-text">
@@ -421,7 +429,10 @@ onUnmounted(() => {
                     <!-- User Name & Email -->
                     <div class="min-w-0">
                       <div class="flex items-center gap-2 flex-wrap">
-                        <p class="text-sm font-bold text-primary-text truncate" :title="user.name">
+                        <p
+                          class="text-sm font-bold text-primary-text truncate"
+                          :title="user.name"
+                        >
                           {{ user.name || "Unnamed User" }}
                         </p>
                         <span
@@ -431,8 +442,12 @@ onUnmounted(() => {
                         </span>
                       </div>
 
-                      <div class="flex items-center gap-1.5 text-xs text-secondary-text mt-0.5">
-                        <span class="truncate" :title="user.email">{{ user.email || "No email" }}</span>
+                      <div
+                        class="flex items-center gap-1.5 text-xs text-secondary-text mt-0.5"
+                      >
+                        <span class="truncate" :title="user.email">{{
+                          user.email || "No email"
+                        }}</span>
                         <button
                           v-if="user.email"
                           type="button"
@@ -464,7 +479,8 @@ onUnmounted(() => {
                       class="inline-flex items-center gap-1 text-[10px] font-semibold text-secondary-text"
                     >
                       <Monitor class="w-3 h-3 opacity-60" />
-                      {{ user.active_sessions }} {{ user.active_sessions === 1 ? 'session' : 'sessions' }}
+                      {{ user.active_sessions }}
+                      {{ user.active_sessions === 1 ? "session" : "sessions" }}
                     </span>
                   </div>
                 </div>
@@ -476,7 +492,9 @@ onUnmounted(() => {
                   <!-- IP Address -->
                   <div class="flex items-center gap-1.5 truncate">
                     <Globe class="w-3.5 h-3.5 opacity-60 shrink-0" />
-                    <span class="font-mono text-primary-text select-all truncate">
+                    <span
+                      class="font-mono text-primary-text select-all truncate"
+                    >
                       {{ user.ip_address || "—" }}
                     </span>
                     <button
@@ -495,9 +513,14 @@ onUnmounted(() => {
                   </div>
 
                   <!-- Last Seen -->
-                  <div class="flex items-center gap-1.5 sm:justify-end truncate">
+                  <div
+                    class="flex items-center gap-1.5 sm:justify-end truncate"
+                  >
                     <Clock class="w-3.5 h-3.5 opacity-60 shrink-0" />
-                    <span class="text-secondary-text truncate" :title="user.last_seen">
+                    <span
+                      class="text-secondary-text truncate"
+                      :title="user.last_seen"
+                    >
                       {{ formatDate(user.last_seen) }}
                     </span>
                   </div>
@@ -514,14 +537,26 @@ onUnmounted(() => {
             <p class="text-xs text-secondary-text">
               Showing
               <span class="font-bold text-primary-text">
-                {{ Math.min((pagination.page - 1) * pagination.per_page + 1, pagination.total) }}
+                {{
+                  Math.min(
+                    (pagination.page - 1) * pagination.per_page + 1,
+                    pagination.total,
+                  )
+                }}
               </span>
               to
               <span class="font-bold text-primary-text">
-                {{ Math.min(pagination.page * pagination.per_page, pagination.total) }}
+                {{
+                  Math.min(
+                    pagination.page * pagination.per_page,
+                    pagination.total,
+                  )
+                }}
               </span>
               of
-              <span class="font-bold text-primary-text">{{ pagination.total }}</span>
+              <span class="font-bold text-primary-text">{{
+                pagination.total
+              }}</span>
               users
             </p>
 
@@ -543,7 +578,9 @@ onUnmounted(() => {
               <button
                 type="button"
                 class="px-2.5 py-1 text-xs rounded-lg border border-primary-border bg-card-background text-secondary-text hover:text-primary-text hover:border-primary/40 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-semibold cursor-pointer"
-                :disabled="pagination.page >= pagination.total_pages || isLoading"
+                :disabled="
+                  pagination.page >= pagination.total_pages || isLoading
+                "
                 @click="handlePageChange(pagination.page + 1)"
               >
                 Next

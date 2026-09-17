@@ -14,9 +14,9 @@
               </h2>
               <span
                 class="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border inline-flex items-center gap-1"
-                :class="fmInfo.is_active ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'"
+                :class="fmInfo.is_active ? 'bg-primary-green/10 text-primary-green border border-primary-green/20' : 'bg-background text-secondary-text border border-primary-border'"
               >
-                <span class="w-1.5 h-1.5 rounded-full" :class="fmInfo.is_active ? 'bg-emerald-500' : 'bg-zinc-400'" />
+                <span class="w-1.5 h-1.5 rounded-full" :class="fmInfo.is_active ? 'bg-primary-green' : 'bg-zinc-400'" />
                 {{ fmInfo.is_active ? 'Active' : 'Inactive' }}
               </span>
               <span class="text-[9px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-md border text-secondary-text bg-background/80 border-primary-border">
@@ -708,21 +708,21 @@ const isPastFollower = (row) => {
 const getStatusBadgeClass = (row) => {
   const s = String(row?.status || (row?.is_active ? 'active' : 'inactive')).toLowerCase()
   if (s === 'active') {
-    return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+    return 'bg-primary-green/10 text-primary-green border border-primary-green/20'
   }
   if (s === 'paused') {
-    return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
+    return 'bg-primary-yellow/10 text-primary-yellow border border-primary-yellow/20'
   }
   if (s === 'past' || s === 'history' || s === 'unfollowed') {
-    return 'bg-zinc-500/10 text-zinc-500 dark:text-zinc-400 border-zinc-500/20'
+    return 'bg-background text-secondary-text border border-primary-border'
   }
-  return 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'
+  return 'bg-background text-secondary-text border border-primary-border'
 }
 
 const getStatusDotClass = (row) => {
   const s = String(row?.status || (row?.is_active ? 'active' : 'inactive')).toLowerCase()
-  if (s === 'active') return 'bg-emerald-500 animate-pulse'
-  if (s === 'paused') return 'bg-amber-500'
+  if (s === 'active') return 'bg-primary-green animate-pulse'
+  if (s === 'paused') return 'bg-primary-yellow'
   if (s === 'past' || s === 'history' || s === 'unfollowed') return 'bg-zinc-400'
   return 'bg-zinc-400'
 }

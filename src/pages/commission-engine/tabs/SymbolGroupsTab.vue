@@ -295,12 +295,14 @@ const handleDeleteConfirm = async () => {
     />
 
     <ConfirmationDialog
-      v-model="isDeleteDialogOpen"
+      :open="isDeleteDialogOpen"
       title="Delete Symbol Group"
       :message="`Are you sure you want to delete the symbol group '${groupToDelete?.name}'? Mapped symbols will become unassigned.`"
       confirm-text="Delete Group"
+      type="danger"
       :loading="store.actionLoading"
       @confirm="handleDeleteConfirm"
+      @cancel="isDeleteDialogOpen = false"
     />
   </div>
 </template>

@@ -120,15 +120,15 @@
                   class="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border inline-flex items-center gap-1"
                   :class="
                     userData.user?.is_active
-                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                      : 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'
+                      ? 'bg-primary-green/10 text-primary-green border border-primary-green/20'
+                      : 'bg-background text-secondary-text border border-primary-border'
                   "
                 >
                   <span
                     class="w-1.5 h-1.5 rounded-full"
                     :class="
                       userData.user?.is_active
-                        ? 'bg-emerald-500'
+                        ? 'bg-primary-green'
                         : 'bg-zinc-400'
                     "
                   />
@@ -500,14 +500,14 @@
                   class="text-[9px] uppercase font-bold px-2 py-0.5 rounded-full border inline-flex items-center gap-1"
                   :class="
                     follower.is_active
-                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                      : 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'
+                      ? 'bg-primary-green/10 text-primary-green border border-primary-green/20'
+                      : 'bg-background text-secondary-text border border-primary-border'
                   "
                 >
                   <span
                     class="w-1.5 h-1.5 rounded-full"
                     :class="
-                      follower.is_active ? 'bg-emerald-500' : 'bg-zinc-400'
+                      follower.is_active ? 'bg-primary-green' : 'bg-zinc-400'
                     "
                   />
                   {{ follower.is_active ? "Active" : "Inactive" }}

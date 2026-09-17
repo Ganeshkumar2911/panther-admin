@@ -1,82 +1,48 @@
 <template>
   <div class="space-y-4 py-2">
-    <!-- TOP TAB SWITCHER (Real vs Dummy Fund Managers) -->
-    <div class="flex items-center gap-2 border-b border-primary-border pb-3 flex-wrap">
-      <!-- Real FM Tab -->
-      <button
-        type="button"
-        @click="activeMainTab = 'real'"
-        class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border"
-        :class="
-          activeMainTab === 'real'
-            ? 'bg-primary/10 text-primary border-primary/30 shadow-xs ring-1 ring-primary/20'
-            : 'bg-card-background/60 text-secondary-text border-primary-border hover:text-primary-text hover:bg-background'
-        "
-      >
-        <Users class="w-4 h-4" />
-        <span>Real Fund Managers</span>
-        <span
-          class="text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold"
-          :class="
-            activeMainTab === 'real'
-              ? 'bg-primary text-white'
-              : 'bg-background text-secondary-text border border-primary-border'
-          "
+    <!-- REAL FUND MANAGERS VIEW -->
+    <div v-if="activeTab === 'real'" class="space-y-4">
+      <!-- Toolbar Header: Search, Filters, View Switcher & Actions -->
+      <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3">
+        <div
+          class="flex w-full min-w-0 flex-col gap-2 rounded-xl border border-primary-border bg-card-background/40 p-2 sm:flex-row sm:items-center xl:flex-1 xl:flex-nowrap"
         >
-          {{ realCount }}
-        </span>
-      </button>
+          <!-- Real / Dummy FM Tab Switcher Pill -->
+          <div class="flex items-center gap-1 p-0.5 bg-background border border-primary-border rounded-lg shrink-0 h-9">
+            <button
+              type="button"
+              @click="switchTab('real')"
+              class="flex items-center gap-1.5 px-3 h-7 rounded-md text-xs font-bold transition-all cursor-pointer select-none"
+              :class="
+                activeTab === 'real'
+                  ? 'bg-primary text-white shadow-xs'
+                  : 'text-secondary-text hover:text-primary-text hover:bg-card-background'
+              "
+            >
+              <Users class="w-3.5 h-3.5" />
+              <span>Real FM</span>
+            </button>
 
-      <!-- Dummy FM Tab -->
-      <button
-        type="button"
-        @click="activeMainTab = 'dummy'"
-        class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border"
-        :class="
-          activeMainTab === 'dummy'
-            ? 'bg-primary/10 text-primary border-primary/30 shadow-xs ring-1 ring-primary/20'
-            : 'bg-card-background/60 text-secondary-text border-primary-border hover:text-primary-text hover:bg-background'
-        "
-      >
-        <Sparkles class="w-4 h-4 text-primary" />
-        <span>Dummy Fund Managers</span>
-        <span
-          class="text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold"
-          :class="
-            activeMainTab === 'dummy'
-              ? 'bg-primary text-white'
-              : 'bg-background text-secondary-text border border-primary-border'
-          "
-        >
-          {{ dummyCount }}
-        </span>
-      </button>
+            <button
+              type="button"
+              @click="switchTab('dummy')"
+              class="flex items-center gap-1.5 px-3 h-7 rounded-md text-xs font-bold transition-all cursor-pointer select-none"
+              :class="
+                activeTab === 'dummy'
+                  ? 'bg-primary text-white shadow-xs'
+                  : 'text-secondary-text hover:text-primary-text hover:bg-card-background'
+              "
+            >
+              <Sparkles class="w-3.5 h-3.5" />
+              <span>Dummy FM</span>
+            </button>
+          </div>
 
-      <!-- All Tab -->
-      <button
-        type="button"
-        @click="activeMainTab = 'all'"
-        class="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer border sm:ml-auto"
-        :class="
-          activeMainTab === 'all'
-            ? 'bg-card-background text-primary-text border-primary-border shadow-xs'
-            : 'bg-transparent text-secondary-text border-transparent hover:text-primary-text'
-        "
-      >
-        <span>All ({{ totalCount }})</span>
-      </button>
-    </div>
-
-    <!-- Toolbar Header: Search, Filters, View Switcher & Actions -->
-    <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3">
-      <div
-        class="flex w-full min-w-0 flex-col gap-2 rounded-xl border border-primary-border bg-card-background/40 p-2.5 sm:flex-row sm:items-center xl:flex-1 xl:flex-nowrap"
-      >
-        <!-- Search Input -->
-        <div class="relative w-full sm:w-56 xl:w-64 h-9">
-          <Search
-            class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-secondary-text pointer-events-none"
-          />
+          <!-- Search Input -->
+          <div class="relative w-full sm:w-56 xl:w-60 h-9">
+            <Search
+              class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-secondary-text pointer-events-none"
+            />
           <input
             v-model="searchQuery"
             type="text"
@@ -152,7 +118,7 @@
       </div>
 
       <!-- View Switcher & Add Button -->
-      <div class="flex items-center gap-2 justify-between xl:justify-end shrink-0 flex-wrap sm:flex-nowrap">
+      <div class="flex items-center gap-2 justify-between xl:justify-end shrink-0">
         <!-- View Switcher (Grid / List) -->
         <div
           class="flex items-center gap-1 bg-background border border-primary-border rounded-lg p-1 h-9 shrink-0"
@@ -186,16 +152,14 @@
           </Tooltip>
         </div>
 
-        <!-- Dynamic Add Button (Real vs Dummy based on Active Tab) -->
+        <!-- Add Fund Manager Button -->
         <button
           v-if="hasPermission('fund_manager.create')"
-          class="flex items-center gap-1.5 px-4 py-2 text-white bg-primary hover:bg-primary-hover rounded-lg text-xs font-bold transition-all cursor-pointer shadow-sm hover:shadow h-9 shrink-0"
-          :title="activeMainTab === 'dummy' ? 'Create a new Dummy Fund Manager' : 'Create a new Real Fund Manager'"
-          @click="handlePrimaryAdd"
+          class="flex items-center gap-1.5 px-3.5 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-sm hover:shadow h-9"
+          @click="handleAdd"
         >
-          <Sparkles v-if="activeMainTab === 'dummy'" class="w-4 h-4" />
-          <Plus v-else class="w-4 h-4" />
-          <span>{{ activeMainTab === 'dummy' ? 'Add Dummy FM' : 'Add Fund Manager' }}</span>
+          <Plus class="w-4 h-4" />
+          <span>Add Fund Manager</span>
         </button>
       </div>
     </div>
@@ -207,30 +171,105 @@
         <div
           v-for="n in 6"
           :key="n"
-          class="bg-card-background border border-primary-border rounded-2xl overflow-hidden animate-pulse p-5 space-y-4"
+          class="bg-card-background border border-primary-border rounded-2xl p-5 flex flex-col justify-between animate-pulse space-y-4"
         >
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl bg-background" />
-              <div class="space-y-1.5">
-                <div class="h-3.5 w-32 bg-background rounded" />
-                <div class="h-2.5 w-24 bg-background rounded" />
+          <div>
+            <!-- Card Identity Header Skeleton -->
+            <div class="flex items-start justify-between gap-3 mb-3">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="w-11 h-11 rounded-xl bg-background border border-primary-border/60 shrink-0" />
+                <div class="space-y-1.5 min-w-0">
+                  <div class="h-4 w-32 bg-background rounded" />
+                  <div class="h-3 w-20 bg-background rounded" />
+                </div>
+              </div>
+              <div class="flex flex-col items-end gap-1.5 shrink-0">
+                <div class="h-5 w-16 bg-background rounded-full" />
+                <div class="h-4 w-12 bg-background rounded-md" />
               </div>
             </div>
-            <div class="h-5 w-16 bg-background rounded-full" />
+
+            <!-- Prominent Email & KYC Banner Skeleton -->
+            <div class="bg-background/80 border border-primary-border/80 rounded-xl px-3 py-2 flex items-center justify-between mb-3.5">
+              <div class="flex items-center gap-2">
+                <div class="w-3.5 h-3.5 rounded bg-background shrink-0" />
+                <div class="h-3 w-40 bg-background rounded" />
+              </div>
+              <div class="h-4 w-16 bg-background rounded-md" />
+            </div>
+
+            <!-- Hero Min Capital Banner Skeleton -->
+            <div class="bg-background/70 border border-primary-border/80 rounded-xl p-3 flex items-center justify-between mb-3">
+              <div class="space-y-1.5">
+                <div class="h-2.5 w-28 bg-background rounded" />
+                <div class="h-5 w-28 bg-background rounded" />
+              </div>
+              <div class="flex flex-col items-end space-y-1.5">
+                <div class="h-2.5 w-14 bg-background rounded" />
+                <div class="h-6 w-14 bg-background rounded-lg" />
+              </div>
+            </div>
+
+            <!-- Core Fees Grid Skeleton (3 columns) -->
+            <div class="grid grid-cols-3 gap-2 mb-3">
+              <div class="bg-background/40 border border-primary-border/40 rounded-xl p-2 flex flex-col items-center gap-1">
+                <div class="h-2 w-16 bg-background rounded" />
+                <div class="h-3.5 w-10 bg-background rounded" />
+                <div class="h-2 w-12 bg-background rounded" />
+              </div>
+              <div class="bg-background/40 border border-primary-border/40 rounded-xl p-2 flex flex-col items-center gap-1">
+                <div class="h-2 w-16 bg-background rounded" />
+                <div class="h-3.5 w-14 bg-background rounded" />
+              </div>
+              <div class="bg-background/40 border border-primary-border/40 rounded-xl p-2 flex flex-col items-center gap-1">
+                <div class="h-2 w-14 bg-background rounded" />
+                <div class="h-3.5 w-10 bg-background rounded" />
+                <div class="h-2 w-8 bg-background rounded" />
+              </div>
+            </div>
+
+            <!-- Share Distribution Progress Bar Skeleton -->
+            <div class="bg-background/40 border border-primary-border/40 rounded-xl p-2.5 mb-3 space-y-2">
+              <div class="flex items-center justify-between">
+                <div class="h-2 w-24 bg-background rounded" />
+                <div class="h-2 w-36 bg-background rounded" />
+              </div>
+              <div class="h-2 w-full bg-background border border-primary-border/60 rounded-full" />
+            </div>
+
+            <!-- Account Specifications Summary Skeleton -->
+            <div class="space-y-2 py-2 border-t border-primary-border/60 text-xs">
+              <div class="flex items-center justify-between">
+                <div class="h-2.5 w-16 bg-background rounded" />
+                <div class="h-2.5 w-36 bg-background rounded" />
+              </div>
+              <div class="flex items-center justify-between">
+                <div class="h-2.5 w-20 bg-background rounded" />
+                <div class="h-2.5 w-40 bg-background rounded" />
+              </div>
+              <div class="flex items-center justify-between">
+                <div class="h-2.5 w-28 bg-background rounded" />
+                <div class="h-4 w-28 bg-background rounded-md" />
+              </div>
+              <div class="flex items-center justify-between">
+                <div class="h-2.5 w-24 bg-background rounded" />
+                <div class="h-2.5 w-16 bg-background rounded" />
+              </div>
+            </div>
           </div>
-          <div class="h-16 bg-background rounded-xl" />
-          <div class="grid grid-cols-3 gap-2">
-            <div v-for="m in 3" :key="m" class="h-12 bg-background rounded-xl" />
+
+          <!-- Card Action Footer Skeleton -->
+          <div class="pt-3 mt-2 border-t border-primary-border/60 flex items-center justify-between gap-2">
+            <div class="h-7 w-24 bg-background border border-primary-border/60 rounded-lg" />
+            <div class="h-7 w-7 bg-background border border-primary-border/60 rounded-lg" />
           </div>
-          <div class="h-10 bg-background rounded-xl" />
         </div>
       </div>
 
       <!-- List Skeleton -->
       <div v-else class="border border-primary-border rounded-2xl overflow-hidden bg-card-background/40">
         <div class="p-4 space-y-3">
-          <div v-for="n in 5" :key="n" class="h-10 bg-background rounded animate-pulse w-full" />
+          <div v-for="n in 5" :key="n" class="h-12 bg-background rounded-xl animate-pulse w-full" />
         </div>
       </div>
     </div>
@@ -245,26 +284,17 @@
         <div
           class="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-background border border-primary-border shadow-sm mb-4"
         >
-          <Bot v-if="activeMainTab === 'dummy'" class="w-8 h-8 text-primary" />
-          <UserRoundPlus v-else class="w-8 h-8 text-secondary-text" />
+          <UserRoundPlus class="w-8 h-8 text-secondary-text" />
         </div>
 
         <h3 class="text-base font-semibold text-primary-text mb-1">
-          {{
-            hasActiveFilters
-              ? 'No matching fund managers found'
-              : activeMainTab === 'dummy'
-                ? 'No dummy fund managers found'
-                : 'No fund managers found'
-          }}
+          {{ hasActiveFilters ? 'No matching fund managers found' : 'No fund managers found' }}
         </h3>
         <p class="max-w-xs text-xs text-secondary-text mb-5">
           {{
             hasActiveFilters
               ? 'Try adjusting your search criteria or clearing active filters.'
-              : activeMainTab === 'dummy'
-                ? 'Get started by creating your first dummy fund manager for leaderboard simulation.'
-                : 'Get started by adding your first fund manager to configure shares and fees.'
+              : 'Get started by adding your first fund manager to configure shares and fees.'
           }}
         </p>
 
@@ -278,12 +308,11 @@
         </button>
         <button
           v-else-if="hasPermission('fund_manager.create')"
-          @click="handlePrimaryAdd"
-          class="inline-flex items-center justify-center rounded-lg px-4 py-2.5 text-xs font-bold text-white shadow cursor-pointer transition-colors bg-primary hover:bg-primary-hover"
+          @click="handleAdd"
+          class="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-xs font-medium text-white shadow cursor-pointer hover:bg-primary-hover transition-colors"
         >
-          <Sparkles v-if="activeMainTab === 'dummy'" class="mr-1.5 h-4 w-4" />
-          <Plus v-else class="mr-1.5 h-4 w-4" />
-          <span>{{ activeMainTab === 'dummy' ? 'Add Dummy FM' : 'Add Fund Manager' }}</span>
+          <Plus class="mr-1.5 h-4 w-4" />
+          Add Fund Manager
         </button>
       </div>
 
@@ -302,10 +331,9 @@
             <div class="flex items-start justify-between gap-3 mb-3">
               <div class="flex items-center gap-3 min-w-0">
                 <div
-                  class="w-11 h-11 rounded-xl border flex items-center justify-center font-bold text-sm shrink-0 group-hover:scale-105 transition-transform bg-primary/10 border-primary/20 text-primary"
+                  class="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center font-bold text-sm shrink-0 group-hover:scale-105 transition-transform"
                 >
-                  <Bot v-if="isDummy(item)" class="w-5 h-5" />
-                  <span v-else>{{ (item.label_name || 'FM')[0].toUpperCase() }}</span>
+                  {{ (item.label_name || 'FM')[0].toUpperCase() }}
                 </div>
                 <div class="min-w-0">
                   <h4
@@ -320,34 +348,19 @@
                 </div>
               </div>
 
-              <!-- Status & Type Badges -->
+              <!-- Status Badges -->
               <div class="flex flex-col items-end gap-1.5 shrink-0">
-                <div class="flex items-center gap-1">
-                  <span
-                    v-if="isDummy(item)"
-                    class="text-[9px] font-extrabold uppercase tracking-wide px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 inline-flex items-center gap-1 shadow-2xs"
-                  >
-                    <Sparkles class="w-3 h-3 text-primary" />
-                    Dummy
-                  </span>
-                  <span
-                    v-else
-                    class="text-[9px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 shadow-2xs"
-                  >
-                    Real
-                  </span>
-                  <span
-                    class="text-[10px] font-bold tracking-wide uppercase px-2.5 py-0.5 rounded-full border inline-flex items-center gap-1.5 shadow-2xs"
-                    :class="
-                      item.is_active
-                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                        : 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'
-                    "
-                  >
-                    <span class="w-1.5 h-1.5 rounded-full animate-pulse" :class="item.is_active ? 'bg-emerald-500' : 'bg-zinc-400'" />
-                    {{ item.is_active ? 'Active' : 'Inactive' }}
-                  </span>
-                </div>
+                <span
+                  class="text-[10px] font-bold tracking-wide uppercase px-2.5 py-0.5 rounded-full border inline-flex items-center gap-1.5 shadow-2xs"
+                  :class="
+                    item.is_active
+                      ? 'bg-primary-green/10 text-primary-green border border-primary-green/20'
+                      : 'bg-background text-secondary-text border border-primary-border'
+                  "
+                >
+                  <span class="w-1.5 h-1.5 rounded-full animate-pulse" :class="item.is_active ? 'bg-primary-green' : 'bg-zinc-400'" />
+                  {{ item.is_active ? 'Active' : 'Inactive' }}
+                </span>
                 <span
                   class="text-[9px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-md border text-secondary-text bg-background/80 border-primary-border"
                 >
@@ -430,7 +443,7 @@
                   title="FM Share"
                 />
                 <div
-                  class="bg-emerald-500 h-full transition-all"
+                  class="bg-primary-green h-full transition-all"
                   :style="{ width: `${Math.min(100, item.ib_pool_percentage || 0)}%` }"
                   title="IB Pool Percentage"
                 />
@@ -464,7 +477,7 @@
                   :class="{
                     'bg-primary/10 text-primary border-primary/20': Number(item.follower_account_type) === 1,
                     'bg-indigo-500/10 text-indigo-500 border-indigo-500/20': Number(item.follower_account_type) === 2,
-                    'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20': Number(item.follower_account_type) === 3,
+                    'bg-primary-green/10 text-primary-green border border-primary-green/20': Number(item.follower_account_type) === 3,
                   }"
                 >
                   {{ getFollowerAccountTypeLabel(item.follower_account_type) }}
@@ -527,30 +540,14 @@
                 <td class="py-3.5 px-4">
                   <div class="flex items-center gap-3">
                     <div
-                      class="w-8 h-8 rounded-lg border flex items-center justify-center text-xs font-bold shrink-0 bg-primary/10 border-primary/20 text-primary"
+                      class="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0"
                     >
-                      <Bot v-if="isDummy(item)" class="w-4 h-4" />
-                      <span v-else>#{{ item.id }}</span>
+                      #{{ item.id }}
                     </div>
                     <div class="min-w-0">
-                      <div class="flex items-center gap-1.5 flex-wrap">
-                        <p class="font-bold text-primary-text text-xs truncate" :title="item.label_name">
-                          {{ item.label_name || 'Unnamed FM' }}
-                        </p>
-                        <span
-                          v-if="isDummy(item)"
-                          class="text-[9px] font-extrabold uppercase px-1.5 py-0.2 rounded bg-primary/10 text-primary border border-primary/20 inline-flex items-center gap-0.5"
-                        >
-                          <Sparkles class="w-2.5 h-2.5" />
-                          Dummy
-                        </span>
-                        <span
-                          v-else
-                          class="text-[9px] font-bold uppercase px-1.5 py-0.2 rounded bg-primary/10 text-primary border border-primary/20"
-                        >
-                          Real
-                        </span>
-                      </div>
+                      <p class="font-bold text-primary-text text-xs truncate" :title="item.label_name">
+                        {{ item.label_name || 'Unnamed FM' }}
+                      </p>
                       <p class="text-[11px] font-semibold text-primary select-all truncate max-w-[210px]" :title="item.user?.email">
                         {{ item.user?.email || 'No email' }}
                       </p>
@@ -609,11 +606,11 @@
                         class="text-[10px] font-bold tracking-wide uppercase px-2 py-0.5 rounded-full border inline-flex items-center gap-1"
                         :class="
                           item.is_active
-                            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                            : 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'
+                            ? 'bg-primary-green/10 text-primary-green border border-primary-green/20'
+                            : 'bg-background text-secondary-text border border-primary-border'
                         "
                       >
-                        <span class="w-1.5 h-1.5 rounded-full" :class="item.is_active ? 'bg-emerald-500' : 'bg-zinc-400'" />
+                        <span class="w-1.5 h-1.5 rounded-full" :class="item.is_active ? 'bg-primary-green' : 'bg-zinc-400'" />
                         {{ item.is_active ? 'Active' : 'Inactive' }}
                       </span>
                       <span
@@ -637,7 +634,7 @@
                       :class="{
                         'bg-primary/10 text-primary border-primary/20': Number(item.follower_account_type) === 1,
                         'bg-indigo-500/10 text-indigo-500 border-indigo-500/20': Number(item.follower_account_type) === 2,
-                        'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20': Number(item.follower_account_type) === 3,
+                        'bg-primary-green/10 text-primary-green border border-primary-green/20': Number(item.follower_account_type) === 3,
                       }"
                     >
                       {{ getFollowerAccountTypeLabel(item.follower_account_type) }}
@@ -666,22 +663,11 @@
           >
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2.5 min-w-0">
-                <div
-                  class="w-8 h-8 rounded-lg border font-bold text-xs flex items-center justify-center shrink-0 bg-primary/10 border-primary/20 text-primary"
-                >
-                  <Bot v-if="isDummy(item)" class="w-4 h-4" />
-                  <span v-else>#{{ item.id }}</span>
+                <div class="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 text-primary font-bold text-xs flex items-center justify-center shrink-0">
+                  #{{ item.id }}
                 </div>
                 <div class="min-w-0">
-                  <div class="flex items-center gap-1.5">
-                    <p class="font-bold text-primary-text text-sm truncate">{{ item.label_name || 'Unnamed FM' }}</p>
-                    <span
-                      v-if="isDummy(item)"
-                      class="text-[9px] font-extrabold uppercase px-1.5 py-0.2 rounded bg-primary/10 text-primary border border-primary/20"
-                    >
-                      Dummy
-                    </span>
-                  </div>
+                  <p class="font-bold text-primary-text text-sm truncate">{{ item.label_name || 'Unnamed FM' }}</p>
                   <p class="text-[11px] font-semibold text-primary truncate select-all">{{ item.user?.email || 'No email' }}</p>
                 </div>
               </div>
@@ -690,8 +676,8 @@
                   class="text-[10px] font-bold tracking-wide uppercase px-2 py-0.5 rounded-full border"
                   :class="
                     item.is_active
-                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                      : 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'
+                      ? 'bg-primary-green/10 text-primary-green border border-primary-green/20'
+                      : 'bg-background text-secondary-text border border-primary-border'
                   "
                 >
                   {{ item.is_active ? 'Active' : 'Inactive' }}
@@ -748,12 +734,27 @@
       </div>
     </div>
 
-    <!-- PAGINATION -->
-    <div class="mt-4">
-      <Pagination
-        v-if="store.pagination.total_items > store.pagination.per_page"
-        :pagination="store.pagination"
-        @page-change="handlePageChange"
+      <!-- PAGINATION -->
+      <div class="mt-4">
+        <Pagination
+          v-if="store.pagination.total_items > store.pagination.per_page"
+          :pagination="store.pagination"
+          @page-change="handlePageChange"
+        />
+      </div>
+    </div>
+
+    <!-- DUMMY FUND MANAGERS VIEW -->
+    <div v-else-if="activeTab === 'dummy'">
+      <DummyFmLeaderboard
+        :active-tab="activeTab"
+        @switch-tab="switchTab"
+        :is-toggling="togglingId ? { [togglingId]: true } : {}"
+        @open-details="openDummyDetailsDrawer"
+        @edit-dummy="openEditDummySheet"
+        @import-trades="openImportTradesDrawer"
+        @toggle-status="handleToggleDummy"
+        @switch-to-real="switchTab('real')"
       />
     </div>
 
@@ -763,23 +764,61 @@
       :mode="dialogMode"
       :item="selectedItem"
       @close="dialogOpen = false"
-      @success="handleDialogSuccess"
+      @success="dialogOpen = false"
+      @create-dummy="handleOpenCreateDummy"
     />
 
-    <!-- FULL DETAILS SIDE DRAWER PANEL -->
+    <!-- DUMMY FM CREATE / EDIT SHEET -->
+    <DummyFmSheet
+      :open="dummySheetOpen"
+      :item="selectedDummyFmItem"
+      :is-edit="isDummySheetEdit"
+      @close="dummySheetOpen = false"
+      @success="onDummySheetSuccess"
+    />
+
+    <!-- FULL DETAILS SIDE DRAWER PANEL (Real FM) -->
     <FmDetailsDrawer
       :open="detailsDrawerOpen"
       :item="selectedDetailsItem"
       @close="detailsDrawerOpen = false"
-      @edit="handleEditFromDetails"
-      @create-dummy="handleCreateDummyFromDetails"
+    />
+
+    <!-- FULL DETAILS SIDE DRAWER PANEL (Dummy FM) -->
+    <DummyFmDetailsDrawer
+      :open="dummyDetailsDrawerOpen"
+      :item="selectedDummyDetailsItem"
+      @close="dummyDetailsDrawerOpen = false"
+      @edit-dummy="openEditDummySheet"
+      @import-trades="openImportTradesDrawer"
+    />
+
+    <!-- IMPORT DUMMY TRADES SIDE DRAWER -->
+    <ImportDummyTradesDrawer
+      :open="importTradesDrawerOpen"
+      :item="selectedImportTradesItem"
+      @close="importTradesDrawerOpen = false"
+      @success="importTradesDrawerOpen = false"
+    />
+
+    <!-- TOGGLE CONFIRMATION MODAL -->
+    <ConfirmationDialog
+      :open="toggleConfirmOpen"
+      :title="itemToToggle?.is_dummy ? 'Switch to Real Fund Manager' : 'Switch to Dummy Fund Manager'"
+      :message="`Are you sure you want to switch '${itemToToggle?.label_name || 'this Fund Manager'}' to ${itemToToggle?.is_dummy ? 'Real' : 'Dummy'} mode?`"
+      :confirm-text="itemToToggle?.is_dummy ? 'Switch to Real' : 'Switch to Dummy'"
+      cancel-text="Cancel"
+      type="warning"
+      :loading="isTogglingConfirm"
+      @confirm="handleConfirmToggle"
+      @cancel="toggleConfirmOpen = false"
     />
   </div>
 </template>
 
 <script setup>
-import { onMounted, ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { onMounted, ref, computed, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import {
   CalendarDays,
   Edit,
@@ -799,55 +838,119 @@ import {
   Tag,
   Users,
   BookOpen,
-  Bot,
   Sparkles,
 } from 'lucide-vue-next'
 import { useFmLeaderboardStore } from '@/stores/fmLeaderboard/fmLeaderboard'
 import Pagination from '@/components/common/Pagination.vue'
 import AddEditFundManager from '@/components/fundManager/AddEditFundManager.vue'
 import FmDetailsDrawer from '@/components/fundManager/FmDetailsDrawer.vue'
+import DummyFmLeaderboard from '@/components/fundManager/DummyFmLeaderboard.vue'
+import DummyFmSheet from '@/components/fundManager/DummyFmSheet.vue'
+import DummyFmDetailsDrawer from '@/components/fundManager/DummyFmDetailsDrawer.vue'
+import ImportDummyTradesDrawer from '@/components/fundManager/ImportDummyTradesDrawer.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import Tooltip from '@/components/common/Tooltip.vue'
 import DropdownMenu from '@/components/common/DropdownMenu.vue'
+import ConfirmationDialog from '@/components/common/ConfirmationDialog.vue'
 import { usePermissionCheck } from '@/composables/usePermissionCheck'
 import { perPageOptions } from '@/constants/pagination'
 
 const store = useFmLeaderboardStore()
 const { hasPermission } = usePermissionCheck()
 const router = useRouter()
+const route = useRoute()
+
+const getInitialTab = () => {
+  const queryTab = route.query.tab
+  if (queryTab === 'dummy' || queryTab === 'real') return queryTab
+  try {
+    const savedTab = localStorage.getItem('fm_leaderboard_tab')
+    if (savedTab === 'dummy' || savedTab === 'real') return savedTab
+  } catch (_) {}
+  return 'real'
+}
+
+const activeTab = ref(getInitialTab())
+
+const switchTab = (tab) => {
+  if (activeTab.value === tab) return
+  activeTab.value = tab
+  try {
+    localStorage.setItem('fm_leaderboard_tab', tab)
+  } catch (_) {}
+  router.replace({
+    query: {
+      ...route.query,
+      tab,
+    },
+  })
+  store.fetchFmLeaderboard(true, 1, tab)
+}
+
+watch(
+  () => route.query.tab,
+  (newTab) => {
+    if (newTab && (newTab === 'dummy' || newTab === 'real') && newTab !== activeTab.value) {
+      activeTab.value = newTab
+      try {
+        localStorage.setItem('fm_leaderboard_tab', newTab)
+      } catch (_) {}
+      store.fetchFmLeaderboard(true, 1, newTab)
+    }
+  }
+)
 
 const layoutMode = ref('grid')
 const searchQuery = ref('')
-const activeMainTab = ref('real') // 'real' | 'dummy' | 'all'
 const selectedVisibility = ref('ALL')
 const selectedStatus = ref('ALL')
 const selectedKyc = ref('ALL')
 
 const dialogOpen = ref(false)
-const dialogMode = ref('add') // 'add' | 'edit' | 'add_dummy' | 'edit_dummy' | 'clone_to_dummy'
+const dialogMode = ref('add')
 const selectedItem = ref(null)
+
+const dummySheetOpen = ref(false)
+const selectedDummyFmItem = ref(null)
+const isDummySheetEdit = ref(false)
 
 const detailsDrawerOpen = ref(false)
 const selectedDetailsItem = ref(null)
 
-const isDummy = (item) => {
-  return Boolean(item?.is_dummy === true || item?.type === 'dummy' || item?.is_dummy === 1)
+const dummyDetailsDrawerOpen = ref(false)
+const selectedDummyDetailsItem = ref(null)
+
+const importTradesDrawerOpen = ref(false)
+const selectedImportTradesItem = ref(null)
+
+const openImportTradesDrawer = (item) => {
+  setActiveFm(item)
+  selectedImportTradesItem.value = item
+  importTradesDrawerOpen.value = true
 }
 
-const realCount = computed(() => {
-  if (!store.data || !Array.isArray(store.data)) return 0
-  return store.data.filter((i) => !isDummy(i)).length
-})
+const handleOpenCreateDummy = (item) => {
+  dialogOpen.value = false
+  selectedDummyFmItem.value = item
+  isDummySheetEdit.value = false
+  dummySheetOpen.value = true
+}
 
-const dummyCount = computed(() => {
-  if (!store.data || !Array.isArray(store.data)) return 0
-  return store.data.filter((i) => isDummy(i)).length
-})
+const openEditDummySheet = (item) => {
+  selectedDummyFmItem.value = item
+  isDummySheetEdit.value = true
+  dummySheetOpen.value = true
+}
 
-const totalCount = computed(() => {
-  if (!store.data || !Array.isArray(store.data)) return 0
-  return store.data.length
-})
+const openDummyDetailsDrawer = (item) => {
+  selectedDummyDetailsItem.value = item
+  dummyDetailsDrawerOpen.value = true
+}
+
+const onDummySheetSuccess = () => {
+  dummySheetOpen.value = false
+  store.fetchFmLeaderboard(true, store.pagination.page, activeTab.value)
+}
 
 const visibilityOptions = [
   { label: 'All Visibility', value: 'ALL' },
@@ -887,10 +990,6 @@ const resetFilters = () => {
 const filteredData = computed(() => {
   if (!store.data || !Array.isArray(store.data)) return []
   return store.data.filter((item) => {
-    // Top Main Tab Filter (Real vs Dummy vs All)
-    if (activeMainTab.value === 'real' && isDummy(item)) return false
-    if (activeMainTab.value === 'dummy' && !isDummy(item)) return false
-
     // Search filter
     if (searchQuery.value.trim()) {
       const q = searchQuery.value.trim().toLowerCase()
@@ -907,7 +1006,6 @@ const filteredData = computed(() => {
         return false
       }
     }
-
     // Visibility filter
     if (selectedVisibility.value !== 'ALL') {
       if (item.visibility_type !== selectedVisibility.value) return false
@@ -946,10 +1044,10 @@ const formatPercent = (val) => {
 }
 
 const getKycBadgeClass = (status) => {
-  if (status === 'approved') return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-  if (status === 'pending') return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
-  if (status === 'rejected') return 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
-  return 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'
+  if (status === 'approved') return 'bg-primary-green/10 text-primary-green border border-primary-green/20'
+  if (status === 'pending') return 'bg-primary-yellow/10 text-primary-yellow border border-primary-yellow/20'
+  if (status === 'rejected') return 'bg-primary-red/10 text-primary-red border border-primary-red/20'
+  return 'bg-background text-secondary-text border border-primary-border'
 }
 
 const getFollowerAccountTypeLabel = (type) => {
@@ -964,47 +1062,10 @@ const handleAdd = () => {
   dialogOpen.value = true
 }
 
-const handleAddDummy = () => {
-  dialogMode.value = 'add_dummy'
-  selectedItem.value = null
-  dialogOpen.value = true
-}
-
-const handlePrimaryAdd = () => {
-  if (activeMainTab.value === 'dummy') {
-    handleAddDummy()
-  } else {
-    handleAdd()
-  }
-}
-
-const handleCloneToDummy = (item) => {
-  dialogMode.value = 'clone_to_dummy'
-  selectedItem.value = item
-  dialogOpen.value = true
-}
-
 const handleEdit = (item) => {
-  dialogMode.value = isDummy(item) ? 'edit_dummy' : 'edit'
+  dialogMode.value = 'edit'
   selectedItem.value = item
   dialogOpen.value = true
-}
-
-const handleEditFromDetails = (item) => {
-  detailsDrawerOpen.value = false
-  handleEdit(item)
-}
-
-const handleCreateDummyFromDetails = (item) => {
-  detailsDrawerOpen.value = false
-  handleCloneToDummy(item)
-}
-
-const handleDialogSuccess = () => {
-  dialogOpen.value = false
-  if (dialogMode.value === 'clone_to_dummy' || dialogMode.value === 'add_dummy') {
-    activeMainTab.value = 'dummy'
-  }
 }
 
 const setActiveFm = (item) => {
@@ -1024,11 +1085,52 @@ const openDetailsDrawer = (item) => {
 
 const handlePageChange = (page) => {
   store.pagination.page = page
-  store.fetchFmLeaderboard(true, page)
+  store.fetchFmLeaderboard(true, page, activeTab.value)
 }
 
 const handlePerPageChange = (val) => {
   store.updatePerPage(val)
+}
+
+const togglingId = ref(null)
+const toggleConfirmOpen = ref(false)
+const itemToToggle = ref(null)
+const isTogglingConfirm = ref(false)
+
+const openToggleConfirm = (item) => {
+  itemToToggle.value = item
+  toggleConfirmOpen.value = true
+}
+
+const handleConfirmToggle = async () => {
+  if (!itemToToggle.value) return
+  isTogglingConfirm.value = true
+  try {
+    await store.toggleFundManagerType(itemToToggle.value)
+    toggleConfirmOpen.value = false
+    itemToToggle.value = null
+  } catch (err) {
+    console.error('Failed to toggle FM mode:', err)
+  } finally {
+    isTogglingConfirm.value = false
+  }
+}
+
+const isDummyCreated = (item) => {
+  return Boolean(item?.is_dummy_created === true || item?.dummy_created === true || item?.dummy_fm || item?.is_dummy)
+}
+
+const handleToggleDummy = async (item) => {
+  const fmId = item?.fm_id || item?.dummy_fm?.fm_id || item?.fund_manager?.id || item?.id
+  if (!fmId || togglingId.value) return
+  togglingId.value = fmId
+  try {
+    await store.toggleFundManagerType(item)
+  } catch (err) {
+    console.error('Failed to toggle FM type:', err)
+  } finally {
+    togglingId.value = null
+  }
 }
 
 const handleSettlement = (item) => {
@@ -1048,7 +1150,6 @@ const handleSettlement = (item) => {
 }
 
 const getRowActions = (item) => {
-  const dummy = isDummy(item)
   const actions = [
     {
       action: 'details',
@@ -1072,6 +1173,14 @@ const getRowActions = (item) => {
     },
   ]
 
+  if (isDummyCreated(item)) {
+    actions.push({
+      action: 'toggle-mode',
+      label: item.is_dummy ? 'Switch to Real FM' : 'Switch to Dummy FM',
+      icon: item.is_dummy ? Users : Sparkles,
+    })
+  }
+
   if (hasPermission('fund_manager.view_seletement')) {
     actions.push({
       action: 'settlement',
@@ -1083,17 +1192,8 @@ const getRowActions = (item) => {
   if (hasPermission('fund_manager.update')) {
     actions.push({
       action: 'edit',
-      label: dummy ? 'Edit Dummy FM' : 'Edit',
+      label: 'Edit',
       icon: Edit,
-    })
-  }
-
-  // If real FM, provide "Clone as Dummy FM" in row actions
-  if (!dummy && hasPermission('fund_manager.create')) {
-    actions.push({
-      action: 'clone_dummy',
-      label: 'Clone as Dummy FM',
-      icon: Sparkles,
     })
   }
 
@@ -1123,16 +1223,26 @@ const onMenuSelect = (menuItem, item) => {
         params: { id: item.id },
         query: { currency: item.broker_currency || item.currency || item.coverage_account?.broker_currency || item.master_account?.broker_currency },
       })
+    case 'toggle-mode':
+      return openToggleConfirm(item)
     case 'settlement':
       return handleSettlement(item)
-    case 'clone_dummy':
-      return handleCloneToDummy(item)
     case 'edit':
       return handleEdit(item)
   }
 }
 
 onMounted(() => {
-  store.fetchFmLeaderboard()
+  const initial = getInitialTab()
+  activeTab.value = initial
+  if (route.query.tab !== initial) {
+    router.replace({
+      query: {
+        ...route.query,
+        tab: initial,
+      },
+    })
+  }
+  store.fetchFmLeaderboard(true, 1, initial)
 })
 </script>

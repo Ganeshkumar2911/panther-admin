@@ -1041,8 +1041,8 @@ onMounted(() => {
             <span
               :class="
                 row.docs_uploaded === 'True'
-                  ? 'text-green-600'
-                  : 'text-orange-600'
+                  ? 'text-primary-green'
+                  : 'text-primary-yellow'
               "
             >
               Docs: {{ row.docs_uploaded ?? "—" }}
@@ -1051,7 +1051,7 @@ onMounted(() => {
           <p class="text-xs text-primary-text mb-1">
             {{ row.doc_approved ?? "—" }}
           </p>
-          <p v-if="row.kyc_reject_reason" class="text-[10px] text-red-600">
+          <p v-if="row.kyc_reject_reason" class="text-[10px] text-primary-red">
             Reject: {{ row.kyc_reject_reason }}
           </p>
         </template>
@@ -1211,7 +1211,7 @@ onMounted(() => {
         class="border rounded-2xl p-4 space-y-3 transition-colors duration-150"
         :class="[
           selectedClientIds.includes(client.id)
-            ? 'bg-primary/5 dark:bg-primary/10 border-primary/40 shadow-xs'
+            ? 'bg-primary/10 border-primary/40 shadow-xs'
             : 'bg-card-background border-primary-border',
         ]"
       >
@@ -1490,11 +1490,11 @@ onMounted(() => {
             </p>
             <p
               v-if="client.kyc_verified_at"
-              class="text-[10px] text-green-600 mb-1"
+              class="text-[10px] text-primary-green mb-1"
             >
               ✓ Verified: {{ formatDate(client.kyc_verified_at) }}
             </p>
-            <p v-if="client.kyc_reject_reason" class="text-[10px] text-red-600">
+            <p v-if="client.kyc_reject_reason" class="text-[10px] text-primary-red">
               Reject Reason: {{ client.kyc_reject_reason }}
             </p>
           </div>
@@ -1507,8 +1507,8 @@ onMounted(() => {
               <span
                 :class="
                   client.docs_uploaded === 'True'
-                    ? 'text-green-600'
-                    : 'text-orange-600'
+                    ? 'text-primary-green'
+                    : 'text-primary-yellow'
                 "
                 >{{ client.docs_uploaded ?? "—" }}</span
               >

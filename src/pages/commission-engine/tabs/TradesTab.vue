@@ -14,6 +14,7 @@ import { useCommissionEngineStore } from "@/stores/commissionEngine/commissionEn
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import BaseDatePicker from "@/components/common/BaseDatePicker.vue";
+import Tooltip from "@/components/common/Tooltip.vue";
 import RebuildTradesModal from "../components/RebuildTradesModal.vue";
 
 const store = useCommissionEngineStore();
@@ -59,6 +60,17 @@ const dateRangeValue = computed({
 const isRebuildModalOpen = ref(false);
 const searchTimer = ref(null);
 
+const hasActiveFilters = computed(() => {
+  return (
+    !!statusFilter.value ||
+    !!loginFilter.value ||
+    !!ibIdFilter.value ||
+    !!symbolFilter.value ||
+    !!dateFrom.value ||
+    !!dateTo.value
+  );
+});
+
 const dateFieldOptions = [
   { label: "Close Time", value: "close_time" },
   { label: "Open Time", value: "open_time" },
@@ -67,7 +79,22 @@ const dateFieldOptions = [
 
 onMounted(() => {
   loadTrades(1);
+  if (!store.ibSearchOptions.length) {
+    store.searchIbs("");
+  }
 });
+
+let ibSearchTimer = null;
+const onIbSearch = (query) => {
+  clearTimeout(ibSearchTimer);
+  if (!query || !query.trim()) {
+    store.searchIbs("");
+    return;
+  }
+  ibSearchTimer = setTimeout(() => {
+    store.searchIbs(query).catch(() => {});
+  }, 300);
+};
 
 const loadTrades = (page = 1, force = false) => {
   const loginVal = loginFilter.value != null ? String(loginFilter.value).trim() : "";
@@ -158,106 +185,82 @@ const formatDate = (val) => {
       <!-- Toolbar Slot -->
       <template #toolbar>
         <div class="space-y-3">
-          <!-- Top Row: Filters & Ops -->
-          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-            <!-- Left: Status Pills & Main Search -->
-            <div class="flex flex-wrap items-center gap-2.5 flex-1">
-              <!-- Status Filter Pills -->
-              <div class="inline-flex p-1 rounded-xl bg-background border border-primary-border shrink-0">
-                <button
-                  type="button"
-                  class="px-3 py-1 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
-                  :class="[
-                    statusFilter === ''
-                      ? 'bg-card-background text-primary-text font-bold shadow-2xs'
-                      : 'text-secondary-text hover:text-primary-text'
-                  ]"
-                  @click="
-                    statusFilter = '';
-                    handleFilterChange();
-                  "
-                >
-                  All Trades
-                </button>
-                <button
-                  type="button"
-                  class="px-3 py-1 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
-                  :class="[
-                    statusFilter === 'closed'
-                      ? 'bg-primary text-white font-bold'
-                      : 'text-secondary-text hover:text-primary-text'
-                  ]"
-                  @click="
-                    statusFilter = 'closed';
-                    handleFilterChange();
-                  "
-                >
-                  Closed Only
-                </button>
-                <button
-                  type="button"
-                  class="px-3 py-1 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
-                  :class="[
-                    statusFilter === 'open'
-                      ? 'bg-primary text-white font-bold'
-                      : 'text-secondary-text hover:text-primary-text'
-                  ]"
-                  @click="
-                    statusFilter = 'open';
-                    handleFilterChange();
-                  "
-                >
-                  Open Only
-                </button>
-              </div>
+          <!-- Top Row: Status Tabs (Left) & Actions (Right) -->
+          <div
+            class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-primary-border/60"
+          >
+            <!-- Status Filter Pills -->
+            <div
+              class="inline-flex p-1 rounded-xl bg-background border border-primary-border shrink-0 self-start sm:self-auto shadow-2xs"
+            >
+              <!-- All Trades -->
+              <button
+                type="button"
+                class="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer"
+                :class="[
+                  statusFilter === ''
+                    ? 'bg-card-background text-primary-text shadow-2xs border border-primary-border font-bold'
+                    : 'text-secondary-text hover:text-primary-text hover:bg-card-background/60',
+                ]"
+                @click="
+                  statusFilter = '';
+                  handleFilterChange();
+                "
+              >
+                <span>All Trades</span>
+              </button>
 
-              <!-- Symbol Search -->
-              <div class="relative w-36 sm:w-44">
-                <HugeIcon
-                  :icon="Search01Icon"
-                  :size="13"
-                  class="absolute left-2.5 top-1/2 -translate-y-1/2 text-secondary-text pointer-events-none"
+              <!-- Closed Only -->
+              <button
+                type="button"
+                class="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer"
+                :class="[
+                  statusFilter === 'closed'
+                    ? 'bg-primary text-white shadow-2xs font-bold'
+                    : 'text-secondary-text hover:text-primary-text hover:bg-card-background/60',
+                ]"
+                @click="
+                  statusFilter = 'closed';
+                  handleFilterChange();
+                "
+              >
+                <span
+                  class="w-2 h-2 rounded-full"
+                  :class="statusFilter === 'closed' ? 'bg-white' : 'bg-primary/80'"
                 />
-                <input
-                  v-model="symbolFilter"
-                  type="text"
-                  placeholder="Symbol (e.g. XAU)"
-                  class="input-field w-full pl-7 pr-3 py-1.5 text-xs font-mono uppercase"
-                  @input="handleFilterChange"
-                />
-              </div>
+                <span>Closed Only</span>
+              </button>
 
-              <!-- Login Filter -->
-              <div class="w-28 sm:w-32">
-                <input
-                  v-model="loginFilter"
-                  type="number"
-                  placeholder="MT5 Login"
-                  class="input-field w-full px-2.5 py-1.5 text-xs font-mono"
-                  @input="handleFilterChange"
+              <!-- Open Only -->
+              <button
+                type="button"
+                class="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer"
+                :class="[
+                  statusFilter === 'open'
+                    ? 'bg-primary-green text-white shadow-2xs font-bold'
+                    : 'text-secondary-text hover:text-primary-text hover:bg-card-background/60',
+                ]"
+                @click="
+                  statusFilter = 'open';
+                  handleFilterChange();
+                "
+              >
+                <span
+                  class="w-2 h-2 rounded-full"
+                  :class="statusFilter === 'open' ? 'bg-white' : 'bg-primary-green/80'"
                 />
-              </div>
-
-              <!-- IB ID Filter -->
-              <div class="w-24 sm:w-28">
-                <input
-                  v-model="ibIdFilter"
-                  type="number"
-                  placeholder="IB ID"
-                  class="input-field w-full px-2.5 py-1.5 text-xs font-mono"
-                  @input="handleFilterChange"
-                />
-              </div>
+                <span>Open Only</span>
+              </button>
             </div>
 
             <!-- Right: Actions -->
-            <div class="flex items-center gap-2 justify-end shrink-0">
+            <div class="flex items-center gap-2 self-end sm:self-auto shrink-0 flex-wrap">
               <!-- Rebuild Trades Ops Button -->
               <button
                 v-if="canSync"
                 type="button"
                 :disabled="store.actionLoading"
-                class="flex items-center gap-1.5 px-3 py-1.5 bg-card-background border border-primary-border hover:bg-background text-primary-text text-xs font-semibold rounded-xl transition-colors cursor-pointer"
+                class="flex items-center gap-1.5 px-3.5 py-1.5 bg-card-background border border-primary-border hover:bg-background text-primary-text text-xs font-semibold rounded-xl transition-all cursor-pointer shadow-xs disabled:opacity-50"
                 title="Reconstruct trade positions"
                 @click="isRebuildModalOpen = true"
               >
@@ -266,30 +269,70 @@ const formatDate = (val) => {
               </button>
 
               <!-- Refresh Button -->
-              <button
-                type="button"
-                :disabled="store.loading"
-                class="p-2 border border-primary-border rounded-xl text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer"
-                title="Refresh Trades"
-                @click="loadTrades(store.tradesPagination.page, true)"
-              >
-                <HugeIcon
-                  :icon="RefreshCwIcon"
-                  :size="14"
-                  :class="{ 'animate-spin': store.loading }"
-                />
-              </button>
+              <Tooltip text="Refresh Trades" position="center">
+                <button
+                  type="button"
+                  :disabled="store.loading"
+                  class="flex items-center justify-center w-8 h-8 border border-primary-border rounded-xl text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer disabled:opacity-50"
+                  @click="loadTrades(store.tradesPagination.page, true)"
+                >
+                  <HugeIcon
+                    :icon="RefreshCwIcon"
+                    :size="14"
+                    :class="{ 'animate-spin': store.loading }"
+                  />
+                </button>
+              </Tooltip>
             </div>
           </div>
 
-          <!-- Bottom Row: Date Range & Date Field Filter -->
-          <div class="flex flex-wrap items-center gap-2.5 pt-2 border-t border-primary-border/50 text-xs">
-            <span class="text-secondary-text font-medium flex items-center gap-1">
-              <HugeIcon :icon="Calendar01Icon" :size="13" />
-              <span>Date Filter:</span>
-            </span>
+          <!-- Bottom Row: Filter Controls -->
+          <div class="flex flex-wrap items-center gap-2.5">
+            <!-- IB Filter -->
+            <div class="w-full sm:w-52 md:w-56">
+              <BaseSelect
+                v-model="ibIdFilter"
+                :options="store.ibSearchOptions"
+                :isLoading="store.searchLoading"
+                placeholder="Search IB..."
+                searchable
+                variant="surface"
+                @search="onIbSearch"
+                @update:modelValue="handleFilterChange"
+              />
+            </div>
 
-            <div class="w-44">
+            <!-- MT5 Login Filter -->
+            <div class="w-28 sm:w-32">
+              <input
+                v-model="loginFilter"
+                type="number"
+                placeholder="MT5 Login"
+                class="input-field w-full px-2.5 py-1.5 text-xs font-mono"
+                @input="handleFilterChange"
+              />
+            </div>
+
+            <!-- Symbol Search -->
+            <div class="relative w-36 sm:w-44">
+              <HugeIcon
+                :icon="Search01Icon"
+                :size="13"
+                class="absolute left-2.5 top-1/2 -translate-y-1/2 text-secondary-text pointer-events-none"
+              />
+              <input
+                v-model="symbolFilter"
+                type="text"
+                placeholder="Symbol (e.g. XAU)"
+                class="input-field w-full pl-7 pr-3 py-1.5 text-xs font-mono uppercase"
+                @input="handleFilterChange"
+              />
+            </div>
+
+            <div class="h-5 w-px bg-primary-border/60 hidden xl:block mx-0.5" />
+
+            <!-- Date Field Select -->
+            <div class="w-40 sm:w-44">
               <BaseSelect
                 v-model="dateField"
                 :options="dateFieldOptions"
@@ -298,7 +341,8 @@ const formatDate = (val) => {
               />
             </div>
 
-            <div class="w-60">
+            <!-- Date Range Picker -->
+            <div class="w-56 sm:w-60">
               <BaseDatePicker
                 v-model="dateRangeValue"
                 :range="true"
@@ -307,13 +351,16 @@ const formatDate = (val) => {
               />
             </div>
 
+            <!-- Reset / Clear Filter Button -->
             <button
-              v-if="statusFilter || loginFilter || ibIdFilter || symbolFilter || dateFrom || dateTo"
+              v-if="hasActiveFilters"
               type="button"
-              class="px-2.5 py-1 text-[11px] text-secondary-text hover:text-primary-red transition-colors cursor-pointer underline"
+              class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs text-secondary-text hover:text-primary-red hover:bg-primary-red/5 rounded-lg transition-colors cursor-pointer"
+              title="Clear all active filters"
               @click="handleResetFilters"
             >
-              Clear filters
+              <HugeIcon :icon="Cancel01Icon" :size="13" />
+              <span>Clear</span>
             </button>
           </div>
         </div>
@@ -368,8 +415,18 @@ const formatDate = (val) => {
 
       <!-- Cell: MT5 Group -->
       <template #cell-mt5_group="{ row }">
-        <span class="text-xs font-mono text-secondary-text truncate block max-w-[190px]" :title="row.mt5_group">
-          {{ row.mt5_group || "-" }}
+        <Tooltip
+          v-if="row.mt5_group"
+          :text="row.mt5_group"
+          position="center"
+          block
+        >
+          <span class="text-xs font-mono text-secondary-text block ">
+            {{ row.mt5_group }}
+          </span>
+        </Tooltip>
+        <span v-else class="text-xs font-mono text-secondary-text">
+          -
         </span>
       </template>
 

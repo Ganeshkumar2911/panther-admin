@@ -82,7 +82,7 @@
             <div v-if="selectedProgram" class="pt-2 border-t border-primary-border/60 flex flex-wrap gap-1.5 text-[10px]">
               <span
                 v-if="isExcludeCopyAccounts"
-                class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 font-medium"
+                class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-primary-yellow/10 text-primary-yellow border border-primary-yellow/20 font-medium"
               >
                 <HugeIcon :icon="ShieldAlertIcon" :size="12" class="shrink-0" />
                 Copy Trading Accounts Excluded
@@ -97,7 +97,7 @@
 
               <span
                 v-if="isRequireKyc"
-                class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 font-medium"
+                class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-primary-blue/10 text-primary-blue border border-primary-blue/20 font-medium"
               >
                 <HugeIcon :icon="ShieldCheckIcon" :size="12" class="shrink-0" />
                 KYC Required
@@ -147,7 +147,7 @@
                 </div>
                 <span
                   class="px-2 py-0.5 rounded-full text-[10px] font-medium uppercase shrink-0"
-                  :class="selectedClient.kyc_status === 'approved' ? 'bg-primary-green/10 text-primary-green border border-primary-green/20' : 'bg-amber-500/10 text-amber-600 border border-amber-500/20'"
+                  :class="selectedClient.kyc_status === 'approved' ? 'bg-primary-green/10 text-primary-green border border-primary-green/20' : 'bg-primary-yellow/10 text-primary-yellow border border-primary-yellow/20'"
                 >
                   KYC: {{ selectedClient.kyc_status || 'Pending' }}
                 </span>
@@ -255,19 +255,19 @@
                   <template v-else>
                     <span
                       v-if="selectedAccount.restrict_deposit"
-                      class="px-2 py-0.5 rounded bg-rose-500/10 text-rose-500 border border-rose-500/20 font-medium"
+                      class="px-2 py-0.5 rounded bg-primary-red/10 text-primary-red border border-primary-red/20 font-medium"
                     >
                       Deposit Restricted
                     </span>
                     <span
                       v-if="selectedAccount.restrict_withdrawal"
-                      class="px-2 py-0.5 rounded bg-rose-500/10 text-rose-500 border border-rose-500/20 font-medium"
+                      class="px-2 py-0.5 rounded bg-primary-red/10 text-primary-red border border-primary-red/20 font-medium"
                     >
                       Withdrawal Restricted
                     </span>
                     <span
                       v-if="selectedAccount.restrict_internal_transfer"
-                      class="px-2 py-0.5 rounded bg-rose-500/10 text-rose-500 border border-rose-500/20 font-medium"
+                      class="px-2 py-0.5 rounded bg-primary-red/10 text-primary-red border border-primary-red/20 font-medium"
                     >
                       Transfer Restricted
                     </span>
@@ -278,7 +278,7 @@
               <!-- Warning if no eligible accounts -->
               <div
                 v-if="selectedClient && accountOptions.length === 0"
-                class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-[11px] flex items-start gap-2.5"
+                class="p-3 rounded-xl bg-primary-yellow/10 border border-primary-yellow/20 text-primary-yellow text-[11px] flex items-start gap-2.5"
               >
                 <HugeIcon :icon="Alert02Icon" :size="16" class="shrink-0 mt-0.5" />
                 <div class="space-y-0.5">

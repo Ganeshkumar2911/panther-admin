@@ -70,7 +70,7 @@
                   Type
                 </p>
                 <span
-                  class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20"
+                  class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-primary-blue/10 text-primary-blue border border-primary-blue/20"
                 >
                   {{ isImage ? "Image" : "Document" }}
                 </span>
@@ -218,7 +218,7 @@
                 v-if="canDelete"
                 type="button"
                 @click="onDeleteClick"
-                class="px-3.5 py-2 text-xs font-semibold text-rose-500 hover:bg-rose-500/10 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer"
+                class="px-3.5 py-2 text-xs font-semibold text-primary-red hover:bg-primary-red/10 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer"
               >
                 <Trash2 class="w-3.5 h-3.5" />
                 Delete

@@ -163,12 +163,12 @@
       </template>
     </div>
 
-    <!-- Positions Tabs -->
-    <div class="flex items-center justify-between gap-2 mb-4">
+    <!-- Positions Tabs & Filters -->
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
       <div class="flex items-center gap-2">
         <button
           type="button"
-          class="px-3 py-1.5 text-xs font-medium rounded-full border transition-colors"
+          class="px-3 py-1.5 text-xs font-medium rounded-full border transition-colors cursor-pointer"
           :class="
             store.side == null
               ? 'bg-primary-text text-background border-primary-text'
@@ -180,7 +180,7 @@
         </button>
         <button
           type="button"
-          class="px-3 py-1.5 text-xs font-medium rounded-full border transition-colors"
+          class="px-3 py-1.5 text-xs font-medium rounded-full border transition-colors cursor-pointer"
           :class="
             store.side === 'open'
               ? 'bg-primary-text text-background border-primary-text'
@@ -192,7 +192,7 @@
         </button>
         <button
           type="button"
-          class="px-3 py-1.5 text-xs font-medium rounded-full border transition-colors"
+          class="px-3 py-1.5 text-xs font-medium rounded-full border transition-colors cursor-pointer"
           :class="
             store.side === 'closed'
               ? 'bg-primary-text text-background border-primary-text'
@@ -204,225 +204,121 @@
         </button>
       </div>
 
-      <BaseSelect
-        :modelValue="store.pagination.per_page"
-        :options="store.perPageOptions"
-        placeholder="Per page..."
-        class="w-full sm:w-32 xl:w-32"
-        @update:modelValue="store.updatePerPage"
-      />
+      <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+        <!-- Date Range Filter -->
+        <div class="w-56 sm:w-64">
+          <BaseDatePicker
+            v-model="dateRangeValue"
+            :range="true"
+            placeholder="Select date range..."
+          />
+        </div>
+        <BaseSelect
+          :modelValue="store.pagination.per_page"
+          :options="store.perPageOptions"
+          placeholder="Per page..."
+          class="w-28 sm:w-32"
+          @update:modelValue="store.updatePerPage"
+        />
+      </div>
     </div>
 
-    <!-- Table -->
-    <div class="w-full border border-primary-border rounded-xl overflow-x-auto">
-      <table class="w-full border-collapse">
-        <thead>
-          <tr class="border-b border-primary-border">
-            <th
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
-            >
-              Trade ID
-            </th>
-            <th
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
-            >
-              Symbol
-            </th>
-            <th
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
-            >
-              Type
-            </th>
-            <th
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
-            >
-              Volume
-            </th>
-            <th
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
-            >
-              Entry
-            </th>
-            <th
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
-            >
-              Exit
-            </th>
-            <th
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
-            >
-              LTP
-            </th>
-            <th
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
-            >
-              PnL
-            </th>
-            <th
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
-            >
-              Status
-            </th>
-            <th
-              class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3 whitespace-nowrap"
-            >
-              Created
-            </th>
-          </tr>
-        </thead>
+    <!-- DataTable -->
+    <DataTable
+      :data="store.data"
+      :columns="tradeColumns"
+      :pagination="store.pagination"
+      :loading="store.loading"
+      row-key="trade_id"
+      table-key="account-trades-table"
+      empty-title="No trades found"
+      empty-text="Trades will appear here once executed"
+      @page-change="handlePageChange"
+    >
+      <!-- Custom Cell: Trade ID -->
+      <template #cell-trade_id="{ row }">
+        <span class="text-xs font-medium text-primary-text">#{{ row.trade_id }}</span>
+      </template>
 
-        <!-- Skeleton -->
-        <tbody v-if="store.loading">
-          <tr
-            v-for="n in 8"
-            :key="n"
-            class="border-b border-primary-border animate-pulse"
-          >
-            <td class="p-3">
-              <div class="h-3 w-10 bg-card-background rounded" />
-            </td>
-            <td class="p-3">
-              <div class="h-3 w-16 bg-card-background rounded" />
-            </td>
-            <td class="p-3">
-              <div class="h-5 w-10 bg-card-background rounded-full" />
-            </td>
-            <td class="p-3">
-              <div class="h-3 w-10 bg-card-background rounded" />
-            </td>
-            <td class="p-3">
-              <div class="h-3 w-14 bg-card-background rounded" />
-            </td>
-            <td class="p-3">
-              <div class="h-3 w-14 bg-card-background rounded" />
-            </td>
-            <td class="p-3">
-              <div class="h-3 w-16 bg-card-background rounded" />
-            </td>
-            <td class="p-3">
-              <div class="h-5 w-14 bg-card-background rounded-full" />
-            </td>
-            <td class="p-3 flex justify-end">
-              <div class="h-3 w-20 bg-card-background rounded" />
-            </td>
-          </tr>
-        </tbody>
+      <!-- Custom Cell: Type badge -->
+      <template #cell-type="{ row }">
+        <span
+          class="text-[11px] font-medium px-2 py-0.5 rounded-full border capitalize"
+          :class="
+            row.type === 'BUY'
+              ? 'bg-primary-green/10 text-green-800 border-primary-green/20'
+              : 'bg-primary-red/10 text-red-800 border-primary-red/20'
+          "
+        >
+          {{ row.type }}
+        </span>
+      </template>
 
-        <!-- Empty -->
-        <tbody v-else-if="store.data.length === 0">
-          <tr>
-            <td colspan="9" class="py-16 text-center">
-              <div class="flex flex-col items-center gap-3">
-                <div
-                  class="w-12 h-12 rounded-full bg-card-background flex items-center justify-center"
-                >
-                  <BarChart2 class="w-5 h-5 text-secondary-text" />
-                </div>
-                <p class="text-sm font-medium text-primary-text">
-                  No trades found
-                </p>
-                <p class="text-xs text-secondary-text">
-                  Trades will appear here once executed
-                </p>
-              </div>
-            </td>
-          </tr>
-        </tbody>
+      <!-- Custom Cell: Volume -->
+      <template #cell-lot="{ row }">
+        <span class="text-xs text-primary-text tabular-nums">{{ row.lot?.toFixed(2) }}</span>
+      </template>
 
-        <!-- Data -->
-        <tbody v-else>
-          <tr
-            v-for="trade in store.data"
-            :key="trade.trade_id"
-            class="border-b border-primary-border last:border-none hover:bg-card-background transition-colors"
-          >
-            <td class="p-3 text-xs font-medium text-primary-text">
-              #{{ trade.trade_id }}
-            </td>
+      <!-- Custom Cell: Entry Price -->
+      <template #cell-entry_price="{ row }">
+        <span class="text-xs text-primary-text tabular-nums">
+          {{ row.entry_price != null ? Number(row.entry_price) : "—" }}
+        </span>
+      </template>
 
-            <td class="p-3 text-xs font-medium text-primary-text">
-              {{ trade.symbol }}
-            </td>
+      <!-- Custom Cell: Exit Price -->
+      <template #cell-exit_price="{ row }">
+        <span class="text-xs text-primary-text tabular-nums">
+          {{ row.exit_price != null ? formatNum(row.exit_price) : "—" }}
+        </span>
+      </template>
 
-            <td class="p-3">
-              <span
-                class="text-[11px] font-medium px-2 py-0.5 rounded-full border capitalize"
-                :class="
-                  trade.type === 'BUY'
-                    ? 'bg-primary-green/10 text-green-800 border-primary-green/20'
-                    : 'bg-primary-red/10 text-red-800 border-primary-red/20'
-                "
-              >
-                {{ trade.type }}
-              </span>
-            </td>
+      <!-- Custom Cell: LTP -->
+      <template #cell-ltp="{ row }">
+        <span class="text-xs text-primary-text tabular-nums">{{ lastTickerPriceText(row) }}</span>
+      </template>
 
-            <td class="p-3 text-xs text-primary-text tabular-nums">
-              {{ trade.lot.toFixed(2) }}
-            </td>
+      <!-- Custom Cell: PnL -->
+      <template #cell-pnl="{ row }">
+        <span
+          class="text-xs tabular-nums font-medium"
+          :class="pnlValue(row) >= 0 ? 'text-green-700' : 'text-red-700'"
+        >
+          {{ pnlValue(row) >= 0 ? "+" : "" }}{{ formatMoney(pnlValue(row)) }}
+        </span>
+      </template>
 
-            <td class="p-3 text-xs text-primary-text tabular-nums">
-              {{ trade.entry_price != null ? Number(trade.entry_price) : "—" }}
-            </td>
+      <!-- Custom Cell: Status badge -->
+      <template #cell-status="{ row }">
+        <span
+          class="text-[11px] font-medium px-2 py-0.5 rounded-full border capitalize"
+          :class="
+            row.status === 'CLOSED'
+              ? 'bg-background text-secondary-text border-primary-border'
+              : 'bg-primary-blue/20 text-primary'
+          "
+        >
+          {{ row.status }}
+        </span>
+      </template>
 
-            <td class="p-3 text-xs text-primary-text tabular-nums">
-              {{ trade.exit_price != null ? formatNum(trade.exit_price) : "—" }}
-            </td>
-
-            <td class="p-3 text-xs text-primary-text tabular-nums">
-              {{ lastTickerPriceText(trade) }}
-            </td>
-
-            <td class="p-3">
-              <span
-                class="text-xs tabular-nums font-medium"
-                :class="
-                  pnlValue(trade) >= 0 ? 'text-green-700' : 'text-red-700'
-                "
-              >
-                {{ pnlValue(trade) >= 0 ? "+" : ""
-                }}{{ formatMoney(pnlValue(trade)) }}
-              </span>
-            </td>
-
-            <td class="p-3">
-              <span
-                class="text-[11px] font-medium px-2 py-0.5 rounded-full border capitalize"
-                :class="
-                  trade.status === 'CLOSED'
-                    ? 'bg-background text-secondary-text border-primary-border'
-                    : 'bg-primary-blue/20 text-primary'
-                "
-              >
-                {{ trade.status }}
-              </span>
-            </td>
-
-            <td class="p-3 text-xs text-secondary-text text-right whitespace-nowrap font-mono">
-              {{ formatDate(trade.created_at) }}
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="mt-4">
-      <Pagination
-        v-if="store.pagination.total_items > store.pagination.per_page"
-        :pagination="store.pagination"
-        @page-change="handlePageChange"
-      />
-    </div>
+      <!-- Custom Cell: Created At -->
+      <template #cell-created_at="{ row }">
+        <span class="text-xs text-secondary-text whitespace-nowrap font-mono">
+          {{ row.created_at }}
+        </span>
+      </template>
+    </DataTable>
   </div>
 </template>
 
 <script setup>
-import { onMounted, watch, ref } from "vue";
+import { onMounted, watch, ref, computed } from "vue";
 import { useRoute } from "vue-router";
-import { BarChart2 } from "lucide-vue-next";
 import { useAccountTradesStore } from "@/stores/tradingAccounts/accountsTrades";
-import Pagination from "@/components/common/Pagination.vue";
+import DataTable from "@/components/common/DataTable/DataTable.vue";
 import BaseSelect from "@/components/common/BaseSelect.vue";
+import BaseDatePicker from "@/components/common/BaseDatePicker.vue";
 import { livePNL } from "@/utils/livePNL";
 import { useTickerStore } from "@/stores/ws/ticker";
 import moment from "moment-timezone";
@@ -433,6 +329,48 @@ const route = useRoute();
 const accountId = route.params.id;
 const tickerStore = useTickerStore();
 
+const tradeColumns = [
+  { key: 'trade_id', label: 'Trade ID' },
+  { key: 'symbol', label: 'Symbol' },
+  { key: 'type', label: 'Type' },
+  { key: 'lot', label: 'Volume' },
+  { key: 'entry_price', label: 'Entry' },
+  { key: 'exit_price', label: 'Exit' },
+  { key: 'ltp', label: 'LTP' },
+  { key: 'pnl', label: 'PnL' },
+  { key: 'status', label: 'Status' },
+  { key: 'created_at', label: 'Created', align: 'right' },
+];
+
+const dateRangeValue = computed({
+  get() {
+    if (store.from_date || store.to_date) {
+      return {
+        start: store.from_date || null,
+        end: store.to_date || null,
+      };
+    }
+    return null;
+  },
+  set(val) {
+    if (!val) {
+      store.setDateRange("", "");
+    } else if (Array.isArray(val)) {
+      store.setDateRange(val[0] || "", val[1] || "");
+    } else if (typeof val === "object") {
+      store.setDateRange(val.start || val.from || "", val.end || val.to || "");
+    }
+  },
+});
+
+const hasActiveDateFilter = computed(
+  () => !!store.from_date || !!store.to_date
+);
+
+const clearDateFilter = () => {
+  store.setDateRange("", "");
+};
+
 const isOpenTrade = (trade) =>
   String(trade?.status ?? "").toUpperCase() === "OPEN";
 const pnlValue = (trade) => {
@@ -441,6 +379,9 @@ const pnlValue = (trade) => {
   return Number.isFinite(val) ? val : 0;
 };
 const activeAccount = JSON.parse(localStorage.getItem("active_account"));
+const currencyDisplay = computed(
+  () => activeAccount?.broker_currency || activeAccount?.currency || activeCurrency.value || "USD"
+);
 
 const lastTickerPriceText = (trade) => {
   const quote = tickerStore?.getLastPrice?.(trade?.symbol);

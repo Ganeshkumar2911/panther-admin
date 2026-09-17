@@ -95,9 +95,10 @@ const urls = {
     list: "/fund_managers",
     create: "/fund_managers/create",
     edit: "/fund_managers/edit",
-    dummyList: "/dummy_fund_managers",
-    dummyCreate: "/create/dummy-fm",
-    dummyEdit: "/dummy_fund_managers/edit",
+    dummyList: "/get-dummy/fm",
+    dummyCreate: (fmId) => (fmId ? `/create/dummy-fm/${fmId}` : "/create/dummy-fm"),
+    dummyEdit: (fmId) => `/dummy-fm/${fmId}`,
+    dummyToggle: (fmId) => `/dummy-fm/${fmId}`,
     requestList: "/fm/requests",
     acceptRequest: "/fm/requests/approve",
     rejectRequest: "/fm/requests/reject",
@@ -112,9 +113,12 @@ const urls = {
     offerAgents: "/fund_managers/offers/agents",
   },
   dummyFm: {
-    list: "/dummy_fund_managers",
-    create: "/create/dummy-fm",
-    edit: "/dummy_fund_managers/edit",
+    list: "/get-dummy/fm",
+    create: (fmId) => (fmId ? `/create/dummy-fm/${fmId}` : "/create/dummy-fm"),
+    edit: (fmId) => `/dummy-fm/${fmId}`,
+    toggle: (fmId) => `/dummy-fm/${fmId}`,
+    delete: (fmId) => `/delete/dummy-fm/${fmId}`,
+    importTrades: (fmId) => `/import/dummy_trades/${fmId}`,
     offers: "/dummy_fund_managers/offers",
     followers: (fmId) => (fmId ? `/dummy_fund_managers/followers/${fmId}` : "/dummy_fund_managers/followers"),
   },
@@ -346,6 +350,16 @@ const urls = {
     import: "/watchlist/symbols/import",
     template: "/watchlist/symbols/template",
   },
+  whatsapp: {
+    templates: "/whatsapp/templates",
+    createTemplate: "/whatsapp/create-template",
+    getById: `/whatsapp/templates`,
+    updateTemplate: `/whatsapp/templates`,
+    deleteTemplate: `/whatsapp/templates`,
+    chatOpen: "/whatsapp/chat/open",
+    sendMessage: "/whatsapp/send/chat",
+    sendTemplate: "/whatsapp/send/template",
+  },
   blogs: {
     list: "/blogs",
     create: "/create-blog",
@@ -419,7 +433,23 @@ const urls = {
     approveCommission: (id) => `/ib-commission/commissions/${id}/approve`,
     rejectCommission: (id) => `/ib-commission/commissions/${id}/reject`,
     bulkApproveCommissions: "/ib-commission/commissions/approve-bulk",
+    // Payout Settings & Settlement Batches
+    payoutAllSettings: "/ib-commission/settings/payout-all",
+    ibPayoutSettings: (ibId) => `/ib-commission/ibs/${ibId}/payout-settings`,
+    settlements: "/ib-commission/settlements",
+    runSettlements: "/ib-commission/settlements/run",
+    // Demo Wallets
+    demoWallets: "/ib-commission/demo-wallets",
+    demoWalletByIb: (ibId) => `/ib-commission/demo-wallets/by-ib/${ibId}`,
+    demoWalletByUser: (userId) => `/ib-commission/demo-wallets/by-user/${userId}`,
+    demoWalletTransactions: "/ib-commission/demo-wallets/transactions",
+    // Approvals / Draft Commission Workflow
+    approvalPeriods: "/ib-commission/commissions/approvals/periods",
+    approvalsSummary: "/ib-commission/commissions/approvals",
+    approvalEntries: "/ib-commission/commissions/approvals/entries",
+    approveIbPeriod: "/ib-commission/commissions/approvals/approve-ib",
   },
 };
 
 export default urls;
+

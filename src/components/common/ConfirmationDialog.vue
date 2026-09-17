@@ -36,22 +36,25 @@ const props = defineProps({
 const emit = defineEmits(['confirm', 'cancel'])
 
 const iconClass = {
-  info: 'text-blue-500',
-  warning: 'text-yellow-500',
-  danger: 'text-red-500',
-  success: 'text-green-600',
+  info: 'text-primary',
+  primary: 'text-primary',
+  warning: 'text-amber-500',
+  danger: 'text-primary-red',
+  success: 'text-primary-green',
 }
 
 const buttonClass = {
-  info: 'bg-blue-600 hover:bg-blue-700',
-  warning: 'bg-yellow-600 hover:bg-yellow-700',
+  info: 'bg-primary hover:bg-primary-hover',
+  primary: 'bg-primary hover:bg-primary-hover',
+  warning: 'bg-primary hover:bg-primary-hover',
   danger: 'bg-primary-red hover:bg-primary-red/90',
   success: 'bg-primary-green hover:bg-primary-green/90',
 }
 
 const bgClass = {
-  info: 'bg-blue-50',
-  warning: 'bg-yellow-50',
+  info: 'bg-primary/10',
+  primary: 'bg-primary/10',
+  warning: 'bg-primary/10',
   danger: 'bg-primary-red/10',
   success: 'bg-primary-green/10',
 }

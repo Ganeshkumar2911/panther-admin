@@ -18,11 +18,8 @@
         <!-- Header -->
         <div class="px-6 py-5 border-b border-primary-border flex items-center justify-between gap-4 bg-background/50 shrink-0">
           <div class="flex items-center gap-3 min-w-0">
-            <div
-              class="w-10 h-10 rounded-xl border flex items-center justify-center font-bold text-base shrink-0 bg-primary/10 border-primary/20 text-primary"
-            >
-              <Bot v-if="item?.is_dummy || item?.type === 'dummy'" class="w-5 h-5" />
-              <span v-else>{{ (item?.label_name || item?.user?.name || 'FM').charAt(0).toUpperCase() }}</span>
+            <div class="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-base shrink-0">
+              {{ (item?.label_name || item?.user?.name || 'FM').charAt(0).toUpperCase() }}
             </div>
             <div class="min-w-0">
               <div class="flex items-center gap-2 flex-wrap">
@@ -30,29 +27,16 @@
                   {{ item?.label_name || item?.user?.name || 'Fund Manager Details' }}
                 </h3>
                 <span
-                  v-if="item?.is_dummy || item?.type === 'dummy'"
-                  class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20 inline-flex items-center gap-1"
-                >
-                  <Sparkles class="w-3 h-3" />
-                  Dummy FM
-                </span>
-                <span
-                  v-else
-                  class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20"
-                >
-                  Real FM
-                </span>
-                <span
                   class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border"
                   :class="item?.is_active
-                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                    : 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'"
+                    ? 'bg-primary-green/10 text-primary-green border-primary-green/20'
+                    : 'bg-background text-secondary-text border-primary-border'"
                 >
                   {{ item?.is_active ? 'Active' : 'Inactive' }}
                 </span>
                 <span
                   v-if="item?.visibility_type"
-                  class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-background/80 text-secondary-text border border-primary-border"
+                  class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20"
                 >
                   {{ item?.visibility_type || 'public' }}
                 </span>
@@ -65,41 +49,19 @@
           </div>
 
           <div class="flex items-center gap-1.5 shrink-0">
-            <!-- Clone / Create as Dummy FM Button -->
-            <button
-              type="button"
-              class="hidden sm:inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-primary/10 text-primary border border-primary/20 hover:bg-primary hover:text-white transition-all cursor-pointer shadow-2xs"
-              title="Create a new Dummy Fund Manager using these parameters"
-              @click="emit('create-dummy', item)"
-            >
-              <Sparkles class="w-3.5 h-3.5" />
-              <span>Clone as Dummy FM</span>
-            </button>
-
-            <!-- Edit Button -->
-            <button
-              type="button"
-              class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-background border border-primary-border hover:bg-background/80 text-primary-text transition cursor-pointer"
-              title="Edit Fund Manager"
-              @click="emit('edit', item)"
-            >
-              <Edit class="w-3.5 h-3.5 text-primary" />
-              <span>Edit</span>
-            </button>
-
             <!-- Header Copy Button -->
             <button
               v-if="item?.user?.email"
               type="button"
               class="relative p-2 rounded-lg transition-all cursor-pointer overflow-visible"
               :class="copiedKey === 'header_email'
-                ? 'text-emerald-500 bg-emerald-500/10 border border-emerald-500/30 ring-1 ring-emerald-500/20'
+                ? 'text-primary-green bg-primary-green/10 border border-primary-green/30 ring-1 ring-primary-green/20'
                 : 'text-secondary-text hover:text-primary-text hover:bg-background border border-transparent'"
               :title="copiedKey === 'header_email' ? 'Copied!' : 'Copy Email'"
               @click="copyText(item?.user?.email, 'header_email')"
             >
               <template v-if="copiedKey === 'header_email'">
-                <Check class="w-4 h-4 text-emerald-500 animate-scale-pop" />
+                <Check class="w-4 h-4 text-primary-green animate-scale-pop" />
                 <span class="sparkle-particle sparkle-1">✦</span>
                 <span class="sparkle-particle sparkle-2">★</span>
                 <span class="sparkle-particle sparkle-3">✦</span>
@@ -191,11 +153,11 @@
                       type="button"
                       @click="copyText(item.user.email, 'overview_email')"
                       class="relative text-secondary-text hover:text-primary transition p-1 rounded-md hover:bg-background cursor-pointer overflow-visible"
-                      :class="{ 'text-emerald-500': copiedKey === 'overview_email' }"
+                      :class="{ 'text-primary-green': copiedKey === 'overview_email' }"
                       :title="copiedKey === 'overview_email' ? 'Copied!' : 'Copy Email'"
                     >
                       <template v-if="copiedKey === 'overview_email'">
-                        <Check class="w-3.5 h-3.5 text-emerald-500 animate-scale-pop" />
+                        <Check class="w-3.5 h-3.5 text-primary-green animate-scale-pop" />
                         <span class="sparkle-particle sparkle-1">✦</span>
                         <span class="sparkle-particle sparkle-2">★</span>
                         <span class="sparkle-particle sparkle-3">✦</span>
@@ -261,7 +223,7 @@
                 </div>
                 <div>
                   <span class="text-secondary-text text-[11px] block">Active Status</span>
-                  <span class="font-bold" :class="item?.is_active ? 'text-emerald-500' : 'text-zinc-500'">
+                  <span class="font-bold" :class="item?.is_active ? 'text-primary-green' : 'text-secondary-text'">
                     {{ item?.is_active ? 'Active' : 'Inactive' }}
                   </span>
                 </div>
@@ -305,11 +267,11 @@
                       type="button"
                       @click="copyText(item?.master_account?.account_number || item?.master_account_id, 'master_acc')"
                       class="relative text-secondary-text hover:text-primary transition p-1 rounded-md hover:bg-background cursor-pointer overflow-visible"
-                      :class="{ 'text-emerald-500': copiedKey === 'master_acc' }"
+                      :class="{ 'text-primary-green': copiedKey === 'master_acc' }"
                       :title="copiedKey === 'master_acc' ? 'Copied!' : 'Copy Account Number'"
                     >
                       <template v-if="copiedKey === 'master_acc'">
-                        <Check class="w-3.5 h-3.5 text-emerald-500 animate-scale-pop" />
+                        <Check class="w-3.5 h-3.5 text-primary-green animate-scale-pop" />
                         <span class="sparkle-particle sparkle-1">✦</span>
                         <span class="sparkle-particle sparkle-2">★</span>
                         <span class="sparkle-particle sparkle-3">✦</span>
@@ -363,11 +325,11 @@
                       type="button"
                       @click="copyText(item?.coverage_account?.account_number || item?.coverage_account_id, 'coverage_acc')"
                       class="relative text-secondary-text hover:text-primary transition p-1 rounded-md hover:bg-background cursor-pointer overflow-visible"
-                      :class="{ 'text-emerald-500': copiedKey === 'coverage_acc' }"
+                      :class="{ 'text-primary-green': copiedKey === 'coverage_acc' }"
                       :title="copiedKey === 'coverage_acc' ? 'Copied!' : 'Copy Account Number'"
                     >
                       <template v-if="copiedKey === 'coverage_acc'">
-                        <Check class="w-3.5 h-3.5 text-emerald-500 animate-scale-pop" />
+                        <Check class="w-3.5 h-3.5 text-primary-green animate-scale-pop" />
                         <span class="sparkle-particle sparkle-1">✦</span>
                         <span class="sparkle-particle sparkle-2">★</span>
                         <span class="sparkle-particle sparkle-3">✦</span>
@@ -472,10 +434,10 @@
                 <div class="space-y-1">
                   <div class="flex justify-between text-xs">
                     <span class="text-secondary-text font-semibold">IB Pool Percentage</span>
-                    <span class="font-bold text-emerald-400">{{ formatPercent(item?.ib_pool_percentage) }}</span>
+                    <span class="font-bold text-primary-green">{{ formatPercent(item?.ib_pool_percentage) }}</span>
                   </div>
                   <div class="w-full h-2 bg-background border border-primary-border/60 rounded-full overflow-hidden">
-                    <div class="bg-emerald-500 h-full transition-all" :style="{ width: `${Math.min(100, item?.ib_pool_percentage || 0)}%` }" />
+                    <div class="bg-primary-green h-full transition-all" :style="{ width: `${Math.min(100, item?.ib_pool_percentage || 0)}%` }" />
                   </div>
                 </div>
               </div>
@@ -491,11 +453,11 @@
                 @click="copyText(JSON.stringify(item, null, 2), 'raw_json')"
                 class="relative px-3 py-1.5 rounded-lg border text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 overflow-visible"
                 :class="copiedKey === 'raw_json'
-                  ? 'border-emerald-500/40 text-emerald-500 bg-emerald-500/10 shadow-xs'
+                  ? 'border-primary-green/40 text-primary-green bg-primary-green/10 shadow-xs'
                   : 'border-primary/30 text-primary hover:bg-primary/10'"
               >
                 <template v-if="copiedKey === 'raw_json'">
-                  <Check class="w-3.5 h-3.5 text-emerald-500 animate-scale-pop" />
+                  <Check class="w-3.5 h-3.5 text-primary-green animate-scale-pop" />
                   <span>Copied!</span>
                   <span class="sparkle-particle sparkle-1">✦</span>
                   <span class="sparkle-particle sparkle-2">★</span>
@@ -541,10 +503,7 @@ import {
   FileCode,
   Sliders,
   Briefcase,
-  ShieldCheck,
-  Bot,
-  Sparkles,
-  Edit,
+  ShieldCheck
 } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -552,7 +511,7 @@ const props = defineProps({
   item: { type: Object, default: () => null },
 })
 
-const emit = defineEmits(['close', 'edit', 'create-dummy'])
+const emit = defineEmits(['close'])
 
 const activeTab = ref('overview')
 const copiedKey = ref('')
@@ -609,10 +568,10 @@ const formatPercent = (val) => {
 }
 
 const getKycBadgeClass = (status) => {
-  if (status === 'approved') return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-  if (status === 'pending') return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
-  if (status === 'rejected') return 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
-  return 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'
+  if (status === 'approved') return 'bg-primary-green/10 text-primary-green border border-primary-green/20'
+  if (status === 'pending') return 'bg-primary-yellow/10 text-primary-yellow border border-primary-yellow/20'
+  if (status === 'rejected') return 'bg-primary-red/10 text-primary-red border border-primary-red/20'
+  return 'bg-background text-secondary-text border border-primary-border'
 }
 
 const getFollowerAccountTypeLabel = (type) => {

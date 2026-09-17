@@ -578,6 +578,27 @@ const routes = [
         },
       },
       {
+        path: "/whatsapp/templates",
+        name: "whatsapp-templates",
+        component: () => import("@/pages/whatsapp/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "WhatsApp Templates",
+          description: "Manage WhatsApp message templates and campaigns",
+        },
+      },
+      {
+        path: "/whatsapp/templates/create",
+        name: "whatsapp-template-create",
+        component: () => import("@/pages/whatsapp/CreateTemplate.vue"),
+        meta: {
+          showBackButton: true,
+          requiresAuth: true,
+          title: "Create WhatsApp Template",
+          description: "Create and configure new WhatsApp message template",
+        },
+      },
+      {
         path: "/watchlist",
         name: "watchlist",
         component: () => import("@/pages/watchlist/index.vue"),
@@ -683,6 +704,16 @@ const routes = [
         },
       },
       {
+        path: "/commission-engine/approvals",
+        name: "commission-engine-approvals",
+        component: () => import("@/pages/commission-engine/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Draft Commission Workflow",
+          description: "Period-based review and batch approval of pending IB commissions.",
+        },
+      },
+      {
         path: "/commission-engine/commissions",
         name: "commission-engine-commissions",
         component: () => import("@/pages/commission-engine/index.vue"),
@@ -740,6 +771,26 @@ const routes = [
           requiresAuth: true,
           title: "Commission Sync Status",
           description: "Monitor ETL sync cursors and trigger manual synchronization.",
+        },
+      },
+      {
+        path: "/commission-engine/settings",
+        name: "commission-engine-settings",
+        component: () => import("@/pages/commission-engine/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "IB Commission Settings",
+          description: "Configure per-IB payout mode, auto settlement schedule, and manage settlement batches.",
+        },
+      },
+      {
+        path: "/commission-engine/demo-wallets",
+        name: "commission-engine-demo-wallets",
+        component: () => import("@/pages/commission-engine/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Demo Wallets Ledger",
+          description: "Admin ledger for demo wallet balances and credit transactions.",
         },
       },
       {

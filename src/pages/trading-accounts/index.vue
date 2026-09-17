@@ -16,8 +16,7 @@ import {
   Layers,
   SlidersHorizontal,
 } from "lucide-vue-next";
-import Pagination from "@/components/common/Pagination.vue";
-import DropdownMenu from "@/components/common/DropdownMenu.vue";
+import DataTable from "@/components/common/DataTable/DataTable.vue";
 import ChangePasswordDialog from "@/components/trading-accounts/ChangePasswordDialog.vue";
 import DepositWithdrawalDialog from "@/components/trading-accounts/DepositWithdrawal.vue";
 import AddEditAccount from "@/components/trading-accounts/AddEditAccount.vue";
@@ -163,6 +162,30 @@ const switchTab = (val) => {
 const handlePageChange = (page) => {
   store.setPage(page);
 };
+
+const handlePerPageChange = (val) => {
+  const perPage = typeof val === "object" ? val.per_page : val;
+  store.updatePerPage(perPage);
+};
+
+const accountColumns = [
+  { key: "account", label: "Account", sortable: true, sortKey: "account_number", minWidth: 140 },
+  { key: "client", label: "Client", sortable: true, sortKey: "client_name", minWidth: 160 },
+  { key: "entity_type", label: "Entity", sortable: true, minWidth: 110 },
+  { key: "trading_type", label: "Trading", sortable: true, minWidth: 110 },
+  { key: "account_type", label: "Type", sortable: true, minWidth: 110 },
+  { key: "account_role", label: "Role", sortable: true, minWidth: 100 },
+  { key: "account_category", label: "Acc. Category", sortable: true, minWidth: 130 },
+  { key: "broker", label: "Broker", sortable: true, sortKey: "broker_label", minWidth: 150 },
+  { key: "server", label: "Server", sortable: true, minWidth: 120 },
+  { key: "currency", label: "Currency", sortable: true, sortKey: "broker_currency", minWidth: 100 },
+  { key: "leverage", label: "Leverage", sortable: true, sortKey: "broker_leverage", minWidth: 100 },
+  { key: "balance", label: "Balance", align: "right", sortable: true, minWidth: 120 },
+  { key: "equity", label: "Equity", align: "right", sortable: true, minWidth: 120 },
+  { key: "credit", label: "Credit", align: "right", sortable: true, minWidth: 110 },
+  { key: "status", label: "Status", align: "center", sortable: true, sortKey: "is_active", minWidth: 100 },
+  { key: "created_at", label: "Created", sortable: true, minWidth: 130 },
+];
 
 const setTradingType = (type) => {
   const nextFilters = {
@@ -656,292 +679,202 @@ onBeforeUnmount(() => clearTimeout(searchTimer));
       </div>
     </div>
 
-    <!-- Table -->
-    <div class="w-full border border-primary-border rounded-lg overflow-x-auto">
-      <table class="w-full border-collapse">
-        <thead>
-          <tr class="border-b border-primary-border">
-            <th
-              v-for="col in [
-                'Account',
-                'Client',
-                'Entity',
-                'Trading',
-                'Type',
-                'Role',
-                'Acc. Category',
-                'Broker',
-                'Server',
-                'Currency',
-                'Leverage',
-                'Balance',
-                'Equity',
-                'Credit',
-                // 'PnL',
-                'Status',
-                'Created',
-                'Actions',
-              ]"
-              :key="col"
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-3 py-3 whitespace-nowrap"
-              :class="col === 'Actions' ? 'text-right' : ''"
-            >
-              {{ col }}
-            </th>
-          </tr>
-        </thead>
+    <!-- DataTable -->
+    <DataTable
+      :data="store.data"
+      :columns="accountColumns"
+      :pagination="store.pagination"
+      :loading="store.loading"
+      :actions="getRowActions"
+      :per-page-options="[10, 25, 50, 100]"
+      row-key="id"
+      table-key="trading-accounts-table"
+      :empty-title="emptyStateTitle"
+      :empty-text="emptyStateDescription"
+      @page-change="handlePageChange"
+      @per-page-change="handlePerPageChange"
+      @action="({ action, item, row }) => onMenuSelect(item || { action }, row)"
+    >
+      <!-- Custom Cell: Account -->
+      <template #cell-account="{ row }">
+        <span class="text-sm font-medium text-primary-text tabular-nums">
+          #{{ row.account_number ?? "—" }}
+        </span>
+        <p class="mt-1 text-[11px] text-secondary-text tabular-nums">
+          ID {{ getAccountId(row) ?? "—" }}
+        </p>
+      </template>
 
-        <!-- Loading skeleton -->
-        <tbody v-if="store.loading">
-          <tr
-            v-for="n in 6"
-            :key="n"
-            class="border-b border-primary-border animate-pulse"
+      <!-- Custom Cell: Client -->
+      <template #cell-client="{ row }">
+        <p class="text-xs font-medium text-primary-text whitespace-nowrap">
+          {{ row.client_name ?? row.user?.name ?? "—" }}
+        </p>
+        <p class="mt-1 text-[11px] text-secondary-text whitespace-nowrap">
+          {{ row.user?.email ?? "—" }}
+        </p>
+      </template>
+
+      <!-- Custom Cell: Entity -->
+      <template #cell-entity_type="{ row }">
+        <span
+          class="text-[11px] font-medium px-2 py-1 rounded-full bg-card-background text-secondary-text capitalize whitespace-nowrap"
+        >
+          {{ formatLabel(row.entity_type) }}
+        </span>
+      </template>
+
+      <!-- Custom Cell: Trading -->
+      <template #cell-trading_type="{ row }">
+        <span
+          class="text-[11px] font-medium px-2 py-1 rounded-full bg-card-background text-secondary-text capitalize whitespace-nowrap"
+        >
+          {{ formatLabel(row.trading_type) }}
+        </span>
+      </template>
+
+      <!-- Custom Cell: Type -->
+      <template #cell-account_type="{ row }">
+        <span
+          class="text-[11px] font-medium px-2 py-1 rounded-full bg-card-background text-secondary-text capitalize whitespace-nowrap"
+        >
+          {{ formatLabel(row.account_type) }}
+        </span>
+      </template>
+
+      <!-- Custom Cell: Role -->
+      <template #cell-account_role="{ row }">
+        <span
+          v-if="row.account_role"
+          class="text-[11px] font-medium px-2 py-1 rounded-full border capitalize"
+          :class="
+            row.account_role === 'master'
+              ? 'bg-primary-blue/40 text-primary'
+              : 'bg-background text-secondary-text border-primary-border'
+          "
+        >
+          {{ row.account_role }}
+        </span>
+        <span v-else class="text-xs text-secondary-text">—</span>
+      </template>
+
+      <!-- Custom Cell: Acc. Category -->
+      <template #cell-account_category="{ row }">
+        <span class="text-xs text-primary-text whitespace-nowrap">
+          {{ row.account_category ?? "—" }}
+        </span>
+      </template>
+
+      <!-- Custom Cell: Broker -->
+      <template #cell-broker="{ row }">
+        <p class="text-xs font-medium text-primary-text whitespace-nowrap">
+          {{ row.broker_label ?? row.broker ?? "—" }}
+        </p>
+        <p class="mt-1 text-[11px] text-secondary-text whitespace-nowrap">
+          {{ row.broker_group ?? row.broker ?? "—" }}
+        </p>
+      </template>
+
+      <!-- Custom Cell: Server -->
+      <template #cell-server="{ row }">
+        <span class="text-xs text-primary-text whitespace-nowrap">
+          {{ row.server ?? "—" }}
+        </span>
+      </template>
+
+      <!-- Custom Cell: Currency -->
+      <template #cell-currency="{ row }">
+        <span class="text-xs text-primary-text whitespace-nowrap">
+          {{ row.broker_currency ?? row.currency ?? "—" }}
+        </span>
+      </template>
+
+      <!-- Custom Cell: Leverage -->
+      <template #cell-leverage="{ row }">
+        <span class="text-xs text-primary-text tabular-nums whitespace-nowrap">
+          {{ row.broker_leverage ?? "—" }}
+        </span>
+      </template>
+
+      <!-- Custom Cell: Balance -->
+      <template #cell-balance="{ row }">
+        <span class="text-xs text-primary-text tabular-nums whitespace-nowrap">
+          {{ formatMoney(row.balance, row.broker_currency ?? row.currency) }}
+        </span>
+      </template>
+
+      <!-- Custom Cell: Equity -->
+      <template #cell-equity="{ row }">
+        <span class="text-xs text-primary-text tabular-nums whitespace-nowrap">
+          {{
+            formatMoney(
+              row.account_type === 'copy_trading' ||
+                row.trading_type === 'copy_trading'
+                ? row.balance
+                : row.equity,
+              row.broker_currency ?? row.currency
+            )
+          }}
+        </span>
+      </template>
+
+      <!-- Custom Cell: Credit -->
+      <template #cell-credit="{ row }">
+        <span class="text-xs text-primary-text tabular-nums whitespace-nowrap">
+          {{ formatMoney(row.credit, row.broker_currency ?? row.currency) }}
+        </span>
+      </template>
+
+      <!-- Custom Cell: Status -->
+      <template #cell-status="{ row }">
+        <button
+          type="button"
+          class="text-[11px] font-medium px-2.5 py-1 rounded-full capitalize whitespace-nowrap text-white transition-all flex items-center gap-1 mx-auto"
+          :class="[
+            row.is_active ? 'bg-primary-green/100' : 'bg-primary-red/100',
+            hasPermission('trading_account.update') &&
+            row.account_type !== 'copy_trading' &&
+            row.trading_type !== 'copy_trading'
+              ? 'hover:opacity-80 active:scale-95 cursor-pointer'
+              : 'cursor-not-allowed opacity-80',
+          ]"
+          :disabled="
+            !hasPermission('trading_account.update') ||
+            row.account_type === 'copy_trading' ||
+            row.trading_type === 'copy_trading'
+          "
+          @click.stop="openToggleTrading(row)"
+        >
+          {{ row.is_active ? "Active" : "Inactive" }}
+        </button>
+      </template>
+
+      <!-- Custom Cell: Created -->
+      <template #cell-created_at="{ row }">
+        <span class="text-xs text-secondary-text whitespace-nowrap">
+          {{ formatDate(row.created_at) }}
+        </span>
+      </template>
+
+      <!-- Empty State -->
+      <template #empty>
+        <div class="flex flex-col items-center gap-3 py-16">
+          <div
+            class="w-14 h-14 rounded-full bg-card-background border border-primary-border flex items-center justify-center"
           >
-            <td class="px-3 py-4">
-              <div class="h-3 w-24 bg-card-background rounded" />
-            </td>
-            <td class="px-3 py-4">
-              <div class="h-3 w-24 bg-card-background rounded" />
-            </td>
-            <td class="px-3 py-4">
-              <div class="h-5 w-16 bg-card-background rounded-full" />
-            </td>
-            <td class="px-3 py-4">
-              <div class="h-5 w-20 bg-card-background rounded-full" />
-            </td>
-            <td class="px-3 py-4">
-              <div class="h-5 w-14 bg-card-background rounded-full" />
-            </td>
-            <td class="px-3 py-4">
-              <div class="h-5 w-16 bg-card-background rounded-full" />
-            </td>
-            <td class="px-3 py-4">
-              <div class="h-3 w-10 bg-card-background rounded" />
-            </td>
-            <td class="px-3 py-4">
-              <div class="h-3 w-20 bg-card-background rounded" />
-            </td>
-            <td class="px-3 py-4">
-              <div class="h-3 w-14 bg-card-background rounded" />
-            </td>
-            <td class="px-3 py-4">
-              <div class="h-3 w-14 bg-card-background rounded" />
-            </td>
-            <td class="px-3 py-4">
-              <div class="h-3 w-16 bg-card-background rounded" />
-            </td>
-            <td class="px-3 py-4">
-              <div class="h-3 w-16 bg-card-background rounded" />
-            </td>
-            <td class="px-3 py-4">
-              <div class="h-5 w-14 bg-card-background rounded-full" />
-            </td>
-            <td class="px-3 py-4">
-              <div class="h-3 w-20 bg-card-background rounded" />
-            </td>
-            <td class="px-3 py-4">
-              <div class="flex justify-end gap-2">
-                <div class="h-7 w-16 bg-card-background rounded-lg" />
-                <div class="h-7 w-20 bg-card-background rounded-lg" />
-                <div class="h-7 w-7 bg-card-background rounded-lg" />
-              </div>
-            </td>
-          </tr>
-        </tbody>
-
-        <!-- Empty state -->
-        <tbody v-else-if="store.data.length === 0">
-          <tr>
-            <td colspan="15" class="px-3 py-16 text-center">
-              <div class="flex flex-col items-center gap-3">
-                <div
-                  class="w-14 h-14 rounded-full bg-card-background border border-primary-border flex items-center justify-center"
-                >
-                  <WalletIcon class="w-6 h-6 text-secondary-text" />
-                </div>
-                <div>
-                  <h3 class="text-sm font-medium text-primary-text mb-1">
-                    {{ emptyStateTitle }}
-                  </h3>
-                  <p class="text-xs text-secondary-text">
-                    {{ emptyStateDescription }}
-                  </p>
-                </div>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-
-        <!-- Data rows -->
-        <tbody v-else>
-          <tr
-            v-for="acc in store.data"
-            :key="getAccountId(acc) ?? acc.account_number"
-            class="border-b border-primary-border last:border-none hover:bg-card-background transition-colors"
-          >
-            <td class="px-3 py-4">
-              <span class="text-sm font-medium text-primary-text tabular-nums">
-                #{{ acc.account_number ?? "—" }}
-              </span>
-              <p class="mt-1 text-[11px] text-secondary-text tabular-nums">
-                ID {{ getAccountId(acc) ?? "—" }}
-              </p>
-            </td>
-
-            <td class="px-3 py-4">
-              <p
-                class="text-xs font-medium text-primary-text whitespace-nowrap"
-              >
-                {{ acc.client_name ?? acc.user?.name ?? "—" }}
-              </p>
-              <p class="mt-1 text-[11px] text-secondary-text whitespace-nowrap">
-                {{ acc.user?.email ?? "—" }}
-              </p>
-            </td>
-
-            <td class="px-3 py-4">
-              <span
-                class="text-[11px] font-medium px-2 py-1 rounded-full bg-card-background text-secondary-text capitalize whitespace-nowrap"
-              >
-                {{ formatLabel(acc.entity_type) }}
-              </span>
-            </td>
-
-            <td class="px-3 py-4">
-              <span
-                class="text-[11px] font-medium px-2 py-1 rounded-full bg-card-background text-secondary-text capitalize whitespace-nowrap"
-              >
-                {{ formatLabel(acc.trading_type) }}
-              </span>
-            </td>
-
-            <td class="px-3 py-4">
-              <span
-                class="text-[11px] font-medium px-2 py-1 rounded-full bg-card-background text-secondary-text capitalize whitespace-nowrap"
-              >
-                {{ formatLabel(acc.account_type) }}
-              </span>
-            </td>
-
-            <td class="px-3 py-4">
-              <span
-                v-if="acc.account_role"
-                class="text-[11px] font-medium px-2 py-1 rounded-full border capitalize"
-                :class="
-                  acc.account_role === 'master'
-                    ? 'bg-primary-blue/40 text-primary'
-                    : 'bg-background text-secondary-text border-primary-border'
-                "
-              >
-                {{ acc.account_role }}
-              </span>
-              <span v-else class="text-xs text-secondary-text">—</span>
-            </td>
-
-            <td class="px-3 py-4 text-xs text-primary-text whitespace-nowrap">
-              {{ acc.account_category ?? "—" }}
-            </td>
-
-            <td class="px-3 py-4">
-              <p
-                class="text-xs font-medium text-primary-text whitespace-nowrap"
-              >
-                {{ acc.broker_label ?? acc.broker ?? "—" }}
-              </p>
-              <p class="mt-1 text-[11px] text-secondary-text whitespace-nowrap">
-                {{ acc.broker_group ?? acc.broker ?? "—" }}
-              </p>
-            </td>
-
-            <td class="px-3 py-4 text-xs text-primary-text whitespace-nowrap">
-              {{ acc.server ?? "—" }}
-            </td>
-
-            <td class="px-3 py-4 text-xs text-primary-text whitespace-nowrap">
-              {{ acc.broker_currency ?? acc.currency ?? "—" }}
-            </td>
-
-            <td
-              class="px-3 py-4 text-xs text-primary-text tabular-nums whitespace-nowrap"
-            >
-              {{ acc.broker_leverage ?? "—" }}
-            </td>
-
-            <td class="px-3 py-4 text-xs text-primary-text tabular-nums">
-              {{
-                formatMoney(acc.balance, acc.broker_currency ?? acc.currency)
-              }}
-            </td>
-            <td class="px-3 py-4 text-xs text-primary-text tabular-nums">
-              {{
-                formatMoney(
-                  acc.account_type === 'copy_trading' ||
-                    acc.trading_type === 'copy_trading'
-                    ? acc.balance
-                    : acc.equity,
-                  acc.broker_currency ?? acc.currency
-                )
-              }}
-            </td>
-            <td class="px-3 py-4 text-xs text-primary-text tabular-nums">
-              {{ formatMoney(acc.credit, acc.broker_currency ?? acc.currency) }}
-            </td>
-
-            <!-- <td class="px-3 py-4 text-nowrap">
-              <span
-                class="text-xs tabular-nums"
-                :class="Number(acc.pnl ?? 0) >= 0 ? 'text-green-700' : 'text-red-700'"
-              >
-                {{ Number(acc.pnl ?? 0) >= 0 ? '+' : '' }}{{ formatMoney(acc.pnl, acc.broker_currency ?? acc.currency) }}
-              </span>
-            </td> -->
-
-            <td class="px-3 py-4">
-              <button
-                type="button"
-                class="text-[11px] font-medium px-2.5 py-1 rounded-full capitalize whitespace-nowrap text-white transition-all flex items-center gap-1"
-                :class="[
-                  acc.is_active ? 'bg-primary-green/100' : 'bg-primary-red/100',
-                  hasPermission('trading_account.update') &&
-                  acc.account_type !== 'copy_trading' &&
-                  acc.trading_type !== 'copy_trading'
-                    ? 'hover:opacity-80 active:scale-95 cursor-pointer'
-                    : 'cursor-not-allowed opacity-80',
-                ]"
-                :disabled="
-                  !hasPermission('trading_account.update') ||
-                  acc.account_type === 'copy_trading' ||
-                  acc.trading_type === 'copy_trading'
-                "
-                @click="openToggleTrading(acc)"
-              >
-                {{ acc.is_active ? "Active" : "Inactive" }}
-              </button>
-            </td>
-
-            <td class="px-3 py-4 text-xs text-secondary-text">
-              {{ formatDate(acc.created_at) }}
-            </td>
-
-            <td class="px-3 py-4 text-right">
-              <DropdownMenu
-                :items="getRowActions(acc)"
-                @select="(item) => onMenuSelect(item, acc)"
-              />
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="mt-4">
-      <Pagination
-        v-if="store.pagination.total_items > store.pagination.per_page"
-        :pagination="store.pagination"
-        @page-change="handlePageChange"
-      />
-    </div>
+            <WalletIcon class="w-6 h-6 text-secondary-text" />
+          </div>
+          <div>
+            <h3 class="text-sm font-medium text-primary-text mb-1">
+              {{ emptyStateTitle }}
+            </h3>
+            <p class="text-xs text-secondary-text">
+              {{ emptyStateDescription }}
+            </p>
+          </div>
+        </div>
+      </template>
+    </DataTable>
 
     <ChangePasswordDialog
       :open="changePasswordDialog.open"

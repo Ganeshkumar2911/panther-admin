@@ -34,7 +34,7 @@
             <span>Loyalty Program</span>
             <span
               v-if="isExcludeCopyAccounts"
-              class="text-[10px] text-amber-600 dark:text-amber-400 font-normal"
+              class="text-[10px] text-primary-yellow font-normal"
             >
               (Copy accounts excluded)
             </span>
@@ -83,7 +83,7 @@
         <!-- Warning if no eligible accounts -->
         <div
           v-if="form.user_id && selectedClient && accountOptions.length === 0"
-          class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-[11px] flex items-start gap-2"
+          class="p-3 rounded-xl bg-primary-yellow/10 border border-primary-yellow/20 text-primary-yellow text-[11px] flex items-start gap-2"
         >
           <HugeIcon :icon="Alert02Icon" :size="16" class="shrink-0 mt-0.5" />
           <p>
@@ -103,8 +103,8 @@
               <p class="text-[10px] text-secondary-text font-mono">#{{ selectedClient.id }} · {{ selectedClient.email }}</p>
             </div>
             <span
-              class="px-2 py-0.5 rounded text-[10px] uppercase font-medium"
-              :class="selectedClient.kyc_status === 'approved' ? 'bg-primary-green/10 text-primary-green' : 'bg-amber-500/10 text-amber-600'"
+              class="px-2 py-0.5 rounded text-[10px] uppercase font-medium border"
+              :class="selectedClient.kyc_status === 'approved' ? 'bg-primary-green/10 text-primary-green border-primary-green/20' : 'bg-primary-yellow/10 text-primary-yellow border-primary-yellow/20'"
             >
               KYC: {{ selectedClient.kyc_status || 'Pending' }}
             </span>

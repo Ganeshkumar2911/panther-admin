@@ -110,10 +110,10 @@
 
           <!-- Deposits Count -->
           <div class="flex flex-col items-center gap-2 pt-2 sm:pt-0">
-            <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
+            <div class="w-9 h-9 rounded-xl bg-primary-green/10 border border-primary-green/20 flex items-center justify-center text-primary-green">
               <TrendingUp class="w-4 h-4" />
             </div>
-            <span class="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400 tabular-nums">
+            <span class="text-2xl sm:text-3xl font-black text-primary-green tabular-nums">
               {{ depositsCount }}
             </span>
             <span class="text-[11px] sm:text-xs text-secondary-text font-semibold uppercase tracking-wider">
@@ -123,7 +123,7 @@
 
           <!-- Withdrawals Count -->
           <div class="flex flex-col items-center gap-2 pt-2 sm:pt-0">
-            <div class="w-9 h-9 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500">
+            <div class="w-9 h-9 rounded-xl bg-primary-red/10 border border-primary-red/20 flex items-center justify-center text-primary-red">
               <TrendingDown class="w-4 h-4" />
             </div>
             <span class="text-2xl sm:text-3xl font-black text-primary-text tabular-nums">
@@ -158,8 +158,8 @@
           <!-- Card Header -->
           <div class="flex items-center justify-between pb-4 border-b border-primary-border/60">
             <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg bg-rose-500/10 flex items-center justify-center text-rose-500">
-                <Heart class="w-4 h-4 fill-rose-500" />
+              <div class="w-7 h-7 rounded-lg bg-primary-red/10 flex items-center justify-center text-primary-red">
+                <Heart class="w-4 h-4 fill-primary-red" />
               </div>
               <h3 class="font-bold text-primary-text text-sm sm:text-base">
                 Client Health Score
@@ -167,7 +167,7 @@
             </div>
             <span
               v-if="momentumIndicator"
-              class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+              class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary-green/10 text-primary-green border border-primary-green/20"
             >
               {{ momentumIndicator }}
             </span>
@@ -219,7 +219,7 @@
                 {{ healthStatus || 'Healthy' }}
               </span>
               <p class="text-xs text-secondary-text font-medium flex items-center gap-1">
-                <Star class="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                <Star class="w-3.5 h-3.5 text-primary-yellow fill-primary-yellow" />
                 Rating: <span class="font-bold text-primary-text">{{ healthRatingLabel }}</span>
               </p>
             </div>
@@ -229,7 +229,7 @@
           <div class="pt-4 border-t border-primary-border/60 grid grid-cols-2 gap-2 text-center text-xs">
             <div class="p-2.5 rounded-xl bg-background/50 border border-primary-border/40">
               <p class="text-[10px] text-secondary-text uppercase font-semibold">Retention</p>
-              <p class="font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">High Potential</p>
+              <p class="font-bold text-primary-green mt-0.5">High Potential</p>
             </div>
             <div class="p-2.5 rounded-xl bg-background/50 border border-primary-border/40">
               <p class="text-[10px] text-secondary-text uppercase font-semibold">Activity</p>
@@ -646,10 +646,10 @@ const summaryCards = computed(() => [
   {
     title: "Total Deposits",
     value: `$${formatCurrency(totalDeposits.value)}`,
-    valueClass: "text-emerald-600 dark:text-emerald-400",
+    valueClass: "text-primary-green",
     subtext: `${depositsCount.value} ${depositsCount.value === 1 ? 'deposit' : 'deposits'} · Total Inflow`,
     icon: DollarSign,
-    iconBoxClass: "bg-emerald-500/10 border-emerald-500/20 text-emerald-500",
+    iconBoxClass: "bg-primary-green/10 border-primary-green/20 text-primary-green",
   },
   {
     title: "Total Equity",
@@ -657,23 +657,23 @@ const summaryCards = computed(() => [
     valueClass: "text-primary-text",
     subtext: `${accountsCount.value} ${accountsCount.value === 1 ? 'Account' : 'Accounts'} · Live balance`,
     icon: Layers,
-    iconBoxClass: "bg-blue-500/10 border-blue-500/20 text-blue-500",
+    iconBoxClass: "bg-primary-blue/10 border-primary-blue/20 text-primary-blue",
   },
   {
     title: "Net P&L",
     value: `${netPnl.value >= 0 ? '+' : ''}$${formatCurrency(netPnl.value)}`,
-    valueClass: netPnl.value >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400",
+    valueClass: netPnl.value >= 0 ? "text-primary-green" : "text-primary-red",
     subtext: `${netPnl.value >= 0 ? '↑ Net Profit' : '↓ Net Loss'} · All-time trading`,
     icon: netPnl.value >= 0 ? TrendingUp : TrendingDown,
-    iconBoxClass: netPnl.value >= 0 ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500" : "bg-rose-500/10 border-rose-500/20 text-rose-500",
+    iconBoxClass: netPnl.value >= 0 ? "bg-primary-green/10 border-primary-green/20 text-primary-green" : "bg-primary-red/10 border-primary-red/20 text-primary-red",
   },
   {
     title: "Referral Earnings",
     value: `$${formatCurrency(referralEarnings.value)}`,
-    valueClass: "text-amber-600 dark:text-amber-400",
+    valueClass: "text-primary-yellow",
     subtext: `${qualifiedReferrals.value} Qualified · Affiliate reward`,
     icon: Sparkles,
-    iconBoxClass: "bg-amber-500/10 border-amber-500/20 text-amber-500",
+    iconBoxClass: "bg-primary-yellow/10 border-primary-yellow/20 text-primary-yellow",
   },
   {
     title: "Total Withdrawals",
@@ -681,7 +681,7 @@ const summaryCards = computed(() => [
     valueClass: "text-primary-text",
     subtext: `${withdrawalsCount.value} ${withdrawalsCount.value === 1 ? 'withdrawal' : 'withdrawals'} · Total Outflow`,
     icon: Wallet,
-    iconBoxClass: "bg-rose-500/10 border-rose-500/20 text-rose-500",
+    iconBoxClass: "bg-primary-red/10 border-primary-red/20 text-primary-red",
   },
   {
     title: "Engagement Rate",
@@ -689,7 +689,7 @@ const summaryCards = computed(() => [
     valueClass: "text-primary-text",
     subtext: "Weekly activity index",
     icon: Zap,
-    iconBoxClass: "bg-blue-500/10 border-blue-500/20 text-blue-500",
+    iconBoxClass: "bg-primary-blue/10 border-primary-blue/20 text-primary-blue",
   },
   {
     title: "Risk Level",
@@ -697,7 +697,7 @@ const summaryCards = computed(() => [
     valueClass: "text-primary-text",
     subtext: "Based on behavioral rating",
     icon: Shield,
-    iconBoxClass: "bg-amber-500/10 border-amber-500/20 text-amber-500",
+    iconBoxClass: "bg-primary-yellow/10 border-primary-yellow/20 text-primary-yellow",
   },
 ]);
 
@@ -726,16 +726,16 @@ const healthRatingLabel = computed(() => {
 
 const ringColorClass = computed(() => {
   const score = healthScore.value;
-  if (score >= 70) return "stroke-emerald-500";
-  if (score >= 40) return "stroke-amber-500";
-  return "stroke-rose-500";
+  if (score >= 70) return "stroke-primary-green";
+  if (score >= 40) return "stroke-primary-yellow";
+  return "stroke-primary-red";
 });
 
 const healthBadgeClass = computed(() => {
   const score = healthScore.value;
-  if (score >= 70) return "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20";
-  if (score >= 40) return "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20";
-  return "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20";
+  if (score >= 70) return "bg-primary-green/10 text-primary-green border-primary-green/20";
+  if (score >= 40) return "bg-primary-yellow/10 text-primary-yellow border-primary-yellow/20";
+  return "bg-primary-red/10 text-primary-red border-primary-red/20";
 });
 
 const RADIUS = 50;
@@ -756,10 +756,10 @@ const dimensionMeta = {
   account_utilization: {
     label: "Account Usage",
     icon: Layers,
-    iconBgClass: "bg-amber-500/10 border border-amber-500/20",
-    iconTextClass: "text-amber-500",
-    barColor: "bg-amber-500",
-    badgeClass: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+    iconBgClass: "bg-primary-yellow/10 border border-primary-yellow/20",
+    iconTextClass: "text-primary-yellow",
+    barColor: "bg-primary-yellow",
+    badgeClass: "bg-primary-yellow/10 text-primary-yellow border-primary-yellow/20",
   },
   client_momentum: {
     label: "Client Momentum",
@@ -767,23 +767,23 @@ const dimensionMeta = {
     iconBgClass: "bg-purple-500/10 border border-purple-500/20",
     iconTextClass: "text-purple-500",
     barColor: "bg-purple-500",
-    badgeClass: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20",
+    badgeClass: "bg-purple-500/10 text-purple-500 border border-purple-500/20",
   },
   funding_health: {
     label: "Deposit Activity",
     icon: DollarSign,
-    iconBgClass: "bg-blue-500/10 border border-blue-500/20",
-    iconTextClass: "text-blue-500",
-    barColor: "bg-blue-500",
-    badgeClass: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
+    iconBgClass: "bg-primary-blue/10 border border-primary-blue/20",
+    iconTextClass: "text-primary-blue",
+    barColor: "bg-primary-blue",
+    badgeClass: "bg-primary-blue/10 text-primary-blue border-primary-blue/20",
   },
   platform_engagement: {
     label: "Engagement",
     icon: Activity,
-    iconBgClass: "bg-emerald-500/10 border border-emerald-500/20",
-    iconTextClass: "text-emerald-500",
-    barColor: "bg-emerald-500",
-    badgeClass: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+    iconBgClass: "bg-primary-green/10 border border-primary-green/20",
+    iconTextClass: "text-primary-green",
+    barColor: "bg-primary-green",
+    badgeClass: "bg-primary-green/10 text-primary-green border-primary-green/20",
   },
   trading_activity: {
     label: "Trading Activity",
@@ -791,7 +791,7 @@ const dimensionMeta = {
     iconBgClass: "bg-indigo-500/10 border border-indigo-500/20",
     iconTextClass: "text-indigo-500",
     barColor: "bg-indigo-500",
-    badgeClass: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20",
+    badgeClass: "bg-indigo-500/10 text-indigo-500 border border-indigo-500/20",
   },
 };
 

@@ -111,6 +111,24 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+
+  // Custom Trigger Styling Props
+  triggerClass: {
+    type: [String, Object, Array],
+    default: "",
+  },
+  buttonClass: {
+    type: [String, Object, Array],
+    default: "",
+  },
+  customClass: {
+    type: [String, Object, Array],
+    default: "",
+  },
+  py: {
+    type: [String, Number],
+    default: "",
+  },
 });
 
 // ─── Emits ────────────────────────────────────────────────────────────────────
@@ -288,6 +306,38 @@ const selectedFlagCode = computed(() => {
 // Background control
 const triggerBgClass = computed(() => {
   return props.variant === "surface" ? "bg-background" : "bg-card-background";
+});
+
+const triggerClassList = computed(() => {
+  const custom =
+    props.triggerClass || props.buttonClass || props.customClass || "";
+  const customStr = typeof custom === "string" ? custom : "";
+  const hasCustomPx = /\bpx-\S+/.test(customStr);
+  const hasCustomPy =
+    /\bpy-\S+/.test(customStr) ||
+    props.py !== "" && props.py !== null && props.py !== undefined;
+  const hasCustomRounded = /\brounded(-\S+)?/.test(customStr);
+  const hasCustomText = /\btext-(xs|sm|base|lg|\[\S+\])/.test(customStr);
+
+  const pyVal =
+    props.py !== "" && props.py !== null && props.py !== undefined
+      ? String(props.py).startsWith("py-")
+        ? String(props.py)
+        : `py-${props.py}`
+      : "";
+
+  return [
+    "flex items-center justify-between w-full min-w-0 transition-all duration-200 ease-in-out focus:outline-none select-none border border-primary-border",
+    !hasCustomPx ? "px-4" : "",
+    !hasCustomPy ? "py-1" : pyVal,
+    !hasCustomRounded ? "rounded-lg" : "",
+    !hasCustomText ? "text-sm font-medium" : "",
+    props.disabled
+      ? "opacity-60 cursor-not-allowed bg-background/50 pointer-events-none"
+      : "cursor-pointer",
+    triggerBgClass.value,
+    custom,
+  ];
 });
 
 const dropdownBgClass = computed(() => {
@@ -523,13 +573,7 @@ onBeforeUnmount(() => {
       :aria-expanded="isOpen"
       :disabled="disabled"
       @click="toggle"
-      :class="[
-        'flex items-center justify-between w-full min-w-0 px-4 py-1 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out focus:outline-none select-none border border-primary-border',
-        disabled
-          ? 'opacity-60 cursor-not-allowed bg-background/50 pointer-events-none'
-          : 'cursor-pointer',
-        triggerBgClass,
-      ]"
+      :class="triggerClassList"
     >
       <span
         :class="[

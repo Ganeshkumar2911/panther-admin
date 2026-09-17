@@ -83,13 +83,18 @@ body {
 }
 
 .input-field {
-  @apply w-full border border-primary-border rounded-xl bg-background text-primary-text text-sm placeholder-secondary-text/50 outline-none transition-all duration-150;
+  @apply w-full border border-primary-border rounded-lg bg-background text-primary-text text-sm placeholder-secondary-text/50 outline-none transition-all duration-150;
 }
 
 .input-field:focus {
   outline: none;
   box-shadow: none; /* remove glow */
   border-color: var(--color-primary); /* optional */
+}
+
+/* Glass-morphism card */
+.glass-card {
+  @apply bg-white/80 dark:bg-card-background/80 backdrop-blur-sm border border-gray-200 dark:border-primary-border shadow-md rounded-2xl p-5;
 }
 
 /* ─── Hide Number Input Spinners Globally ────────────────────────────── */

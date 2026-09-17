@@ -124,7 +124,10 @@ const handleLogin = () => {
     }
     loading.value = false;
     snackbar.show("Connected to target host successfully.", "success");
-    router.push(myPermissionsStore.firstAllowedPath);
+    const targetPath = myPermissionsStore.firstAllowedPath || "/dashboard";
+    router.push(targetPath).catch(() => {
+      window.location.href = targetPath;
+    });
   };
 
   const failureHandler = (err) => {
@@ -213,6 +216,7 @@ const handleLogin = () => {
                 searchable
                 local-search
                 variant="surface"
+                py="2.5"
                 @update:modelValue="clearError('baseUrl')"
               />
 

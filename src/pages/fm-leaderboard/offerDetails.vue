@@ -25,10 +25,10 @@
                 v-if="activeOffer"
                 class="text-[10px] font-bold uppercase tracking-wide px-2.5 py-0.5 rounded-full border inline-flex items-center gap-1.5 shadow-2xs"
                 :class="activeOffer.is_active
-                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                  ? 'bg-primary-green/10 text-primary-green border-primary-green/20'
                   : 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'"
               >
-                <span class="w-1.5 h-1.5 rounded-full" :class="activeOffer.is_active ? 'bg-emerald-500 animate-pulse' : 'bg-zinc-400'" />
+                <span class="w-1.5 h-1.5 rounded-full" :class="activeOffer.is_active ? 'bg-primary-green animate-pulse' : 'bg-zinc-400'" />
                 {{ activeOffer.is_active ? 'Active' : 'Inactive' }}
               </span>
             </div>
@@ -447,8 +447,8 @@
                   <span
                     class="text-[10px] font-bold tracking-wide uppercase px-2.5 py-0.5 rounded-full border inline-flex items-center gap-1 shadow-2xs"
                     :class="link.is_active !== false
-                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                      : 'bg-rose-500/10 text-rose-600 border-rose-500/20'"
+                      ? 'bg-primary-green/10 text-primary-green border-primary-green/20'
+                      : 'bg-primary-red/10 text-primary-red border-primary-red/20'"
                   >
                     <CheckCircle2 v-if="link.is_active !== false" class="w-3 h-3" />
                     <XCircle v-else class="w-3 h-3" />
@@ -615,8 +615,8 @@
                   <span
                     class="text-[10px] font-bold tracking-wide uppercase px-2.5 py-0.5 rounded-full border inline-flex items-center gap-1 shadow-2xs"
                     :class="agent.is_active
-                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                      : 'bg-rose-500/10 text-rose-600 border-rose-500/20'"
+                      ? 'bg-primary-green/10 text-primary-green border-primary-green/20'
+                      : 'bg-primary-red/10 text-primary-red border-primary-red/20'"
                   >
                     {{ agent.is_active ? 'Active' : 'Inactive' }}
                   </span>

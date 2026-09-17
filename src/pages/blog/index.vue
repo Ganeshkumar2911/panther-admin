@@ -64,12 +64,12 @@
           <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text">
             Published
           </p>
-          <p class="text-2xl sm:text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">
+          <p class="text-2xl sm:text-3xl font-extrabold text-primary-green mt-1">
             {{ publishedCount }}
           </p>
         </div>
         <div
-          class="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 shrink-0"
+          class="w-11 h-11 rounded-xl bg-primary-green/10 border border-primary-green/20 flex items-center justify-center text-primary-green shrink-0"
         >
           <CheckCircle2 class="w-5 h-5" />
         </div>
@@ -83,12 +83,12 @@
           <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text">
             Drafts
           </p>
-          <p class="text-2xl sm:text-3xl font-extrabold text-amber-600 dark:text-amber-400 mt-1">
+          <p class="text-2xl sm:text-3xl font-extrabold text-primary-yellow mt-1">
             {{ draftCount }}
           </p>
         </div>
         <div
-          class="w-11 h-11 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 shrink-0"
+          class="w-11 h-11 rounded-xl bg-primary-yellow/10 border border-primary-yellow/20 flex items-center justify-center text-primary-yellow shrink-0"
         >
           <Edit3 class="w-5 h-5" />
         </div>
@@ -225,13 +225,13 @@
               <td class="py-3.5 px-4">
                 <span
                   v-if="blog.status === 'Published'"
-                  class="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-2.5 py-0.5 rounded-full text-[10px] font-bold"
+                  class="bg-primary-green/10 text-primary-green border border-primary-green/20 px-2.5 py-0.5 rounded-full text-[10px] font-bold"
                 >
                   Published
                 </span>
                 <span
                   v-else
-                  class="bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 px-2.5 py-0.5 rounded-full text-[10px] font-bold"
+                  class="bg-primary-yellow/10 text-primary-yellow border border-primary-yellow/20 px-2.5 py-0.5 rounded-full text-[10px] font-bold"
                 >
                   Draft
                 </span>
@@ -500,7 +500,7 @@
       <div
         class="bg-card-background border border-primary-border rounded-2xl w-full max-w-sm p-6 space-y-4 text-center shadow-2xl"
       >
-        <div class="w-12 h-12 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center mx-auto">
+        <div class="w-12 h-12 rounded-full bg-primary-red/10 text-primary-red flex items-center justify-center mx-auto">
           <Trash2 class="w-6 h-6" />
         </div>
         <div>
@@ -520,7 +520,7 @@
           <button
             type="button"
             @click="confirmDelete"
-            class="flex-1 bg-rose-500 hover:bg-rose-600 text-white font-bold py-2 rounded-xl text-xs cursor-pointer transition-colors"
+            class="flex-1 bg-primary-red hover:bg-primary-red/90 text-white font-bold py-2 rounded-xl text-xs cursor-pointer transition-colors"
           >
             Delete
           </button>

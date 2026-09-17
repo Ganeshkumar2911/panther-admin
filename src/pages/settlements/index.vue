@@ -478,9 +478,9 @@ const formatDateShort = (val) => {
 
 const statusClass = (s) =>
   ({
-    completed: 'bg-primary-green/20 text-green-700 border-green-300 dark:bg-primary-green/10 dark:text-green-400 dark:border-green-500/20',
-    pending: 'bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-yellow-500/10 dark:text-yellow-400 dark:border-yellow-500/20',
-    failed: 'bg-primary-red/20 text-red-700 border-red-300 dark:bg-primary-red/10 dark:text-red-400 dark:border-red-500/20',
+    completed: 'bg-primary-green/10 text-primary-green border-primary-green/20',
+    pending: 'bg-primary-yellow/10 text-primary-yellow border-primary-yellow/20',
+    failed: 'bg-primary-red/10 text-primary-red border-primary-red/20',
   }[String(s).toLowerCase()] ?? 'bg-background text-secondary-text border-primary-border')
 
 const goToDetail = (settlementId) => {

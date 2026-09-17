@@ -144,7 +144,7 @@
           </p>
           <div class="flex items-center gap-1.5 mt-2">
             <Tooltip
-              v-for="action in quickActions"
+              v-for="action in visibleQuickActions"
               :key="action.label"
               :text="action.label"
               position="bottom"
@@ -360,6 +360,13 @@
       :client="user"
       @close="emailTriggerPanelOpen = false"
     />
+
+    <!-- WhatsApp Real-Time Chat Drawer (Quick Action) -->
+    <ClientWhatsAppChatDrawer
+      :open="whatsappDrawerOpen"
+      :client="user"
+      @close="whatsappDrawerOpen = false"
+    />
   </div>
 </template>
 
@@ -370,8 +377,10 @@ import { getFlagCode, cleanCountryLabel } from "@/utils/countries";
 import Tooltip from "@/components/common/Tooltip.vue";
 import UploadKycDocumentModal from "@/components/clientDetails/UploadKycDocumentModal.vue";
 import ClientEmailTriggerPanel from "@/components/clientDetails/ClientEmailTriggerPanel.vue";
+import ClientWhatsAppChatDrawer from "@/components/clientDetails/ClientWhatsAppChatDrawer.vue";
 import { useClientDepthStore } from "@/stores/clientDepth/clientDepth";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
+import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import {
   User,
   Info,
@@ -396,6 +405,7 @@ const route = useRoute();
 const router = useRouter();
 const snackbar = useSnackbarStore();
 const clientDepthStore = useClientDepthStore();
+const { hasPermission } = usePermissionCheck();
 
 // ─── Account Badges Styling & Navigation ───────────────────────────────────────
 const chooseBgColor = {
@@ -584,18 +594,27 @@ const kycClass = computed(() => {
 // ─── Quick Actions ────────────────────────────────────────────────────────────
 const uploadDocModalOpen = ref(false);
 const emailTriggerPanelOpen = ref(false);
+const whatsappDrawerOpen = ref(false);
 
 const quickActions = [
   { action: "call", label: "Call", icon: Phone },
-  { action: "email", label: "Email", icon: Mail },
-  { action: "message", label: "Message", icon: MessageSquare },
-  { action: "documents", label: "Documents", icon: FileText },
+  { action: "email", label: "Email", icon: Mail, permission: ["email.manage", "email.template_manual_trigger", "email.view"] },
+  { action: "message", label: "WhatsApp Chat", icon: MessageSquare, permission: ["whatsapp.send", "whatsapp.view"] },
+  { action: "documents", label: "Documents", icon: FileText, permission: ["client.document_add", "client.document_view"] },
 ];
+
+const visibleQuickActions = computed(() => {
+  return quickActions.filter((action) => !action.permission || hasPermission(action.permission));
+});
 
 const handleQuickAction = (action) => {
   const actionType = action.action || action.label?.toLowerCase();
 
   if (actionType === "documents") {
+    if (action.permission && !hasPermission(action.permission)) {
+      snackbar.show("You do not have permission to manage documents.", "error");
+      return;
+    }
     uploadDocModalOpen.value = true;
     return;
   }
@@ -608,6 +627,10 @@ const handleQuickAction = (action) => {
     return;
   }
   if (actionType === "email") {
+    if (action.permission && !hasPermission(action.permission)) {
+      snackbar.show("You do not have permission to send emails.", "error");
+      return;
+    }
     if (user.value?.email) {
       emailTriggerPanelOpen.value = true;
     } else {
@@ -615,14 +638,15 @@ const handleQuickAction = (action) => {
     }
     return;
   }
-  if (actionType === "message") {
+  if (actionType === "message" || actionType?.includes("whatsapp")) {
+    if (!hasPermission(["whatsapp.send", "whatsapp.view"])) {
+      snackbar.show("You do not have permission to access WhatsApp chat.", "error");
+      return;
+    }
     if (user.value?.phone_number) {
-      const cleanPhone = String(user.value.phone_number).replace(/\D/g, "");
-      window.open(`https://wa.me/${cleanPhone}`, "_blank");
-    } else if (user.value?.email) {
-      window.open(`mailto:${user.value.email}`);
+      whatsappDrawerOpen.value = true;
     } else {
-      snackbar.show("Contact details not available for messaging.", "info");
+      snackbar.show("Phone number not available for WhatsApp chat.", "info");
     }
     return;
   }
