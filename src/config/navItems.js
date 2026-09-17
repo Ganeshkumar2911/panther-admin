@@ -374,6 +374,13 @@ export const navClusters = [
         permission: ["loyalty.view"],
         keywords: ["loyalty", "rewards", "deals", "points", "loyalty tiers", "promotions", "gamification"],
       },
+      {
+        label: "Cashback Program",
+        to: "/cashback",
+        icon: DollarSign,
+        permission: ["cashback.view"],
+        keywords: ["cashback", "rebate", "usd", "earnings", "loyalty"],
+      },
     ],
   },
 
