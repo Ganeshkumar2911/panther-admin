@@ -13,40 +13,44 @@
     <Transition name="drawer">
       <div
         v-if="open"
-        class="fixed inset-y-0 right-0 z-50 w-full max-w-xl bg-card-background border-l border-primary-border shadow-2xl flex flex-col overflow-hidden"
+        class="fixed inset-y-0 right-0 z-50 w-full max-w-2xl bg-card-background border-l border-primary-border shadow-2xl flex flex-col overflow-hidden"
       >
         <!-- Header -->
-        <div class="px-6 py-5 border-b border-primary-border flex items-center justify-between gap-4 bg-background/50 shrink-0">
-          <div class="flex items-center gap-3 min-w-0">
+        <div class="px-6 py-4 border-b border-primary-border flex items-center justify-between gap-4 bg-background/50 shrink-0">
+          <div class="flex items-center gap-3 min-w-0 flex-1">
             <div
-              class="w-10 h-10 rounded-xl border flex items-center justify-center font-bold text-base shrink-0 bg-primary/10 border-primary/20 text-primary"
+              class="w-10 h-10 rounded-xl border flex items-center justify-center font-bold text-sm shrink-0 bg-primary/10 border-primary/20 text-primary"
             >
-              <Sparkles class="w-5 h-5 text-primary" />
+              <HugeIcon :icon="User02Icon" :size="20" class="text-primary" />
             </div>
-            <div class="min-w-0">
+            <div class="min-w-0 flex-1">
               <div class="flex items-center gap-2 flex-wrap">
-                <h3 class="text-base font-bold text-primary-text truncate">
+                <h3 class="text-base font-bold text-primary-text truncate" :title="labelName">
                   {{ labelName }}
                 </h3>
-                <span
-                  class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20 inline-flex items-center gap-1 shadow-2xs"
-                >
-                  <Sparkles class="w-3 h-3" />
-                  Dummy FM
+                <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-background border border-primary-border text-secondary-text shrink-0">
+                  #{{ fmId }}
                 </span>
                 <span
-                  class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border shadow-2xs"
+                  class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20 inline-flex items-center gap-1"
+                >
+                  <HugeIcon :icon="AiMagicIcon" :size="10" />
+                  <span>Dummy FM</span>
+                </span>
+                <span
+                  class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border inline-flex items-center gap-1"
                   :class="isEnabled
-                    ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                    ? 'bg-primary-green/10 text-primary-green border-primary-green/20'
                     : 'bg-background text-secondary-text border-primary-border'"
                 >
-                  <span class="inline-block w-1.5 h-1.5 rounded-full mr-1" :class="isEnabled ? 'bg-emerald-500 animate-pulse' : 'bg-zinc-400'" />
-                  {{ isEnabled ? 'Simulation Enabled' : 'Disabled' }}
+                  <span class="inline-block w-1.5 h-1.5 rounded-full" :class="isEnabled ? 'bg-primary-green animate-pulse' : 'bg-zinc-400'" />
+                  <span>{{ isEnabled ? 'Active' : 'Inactive' }}</span>
                 </span>
               </div>
-              <p class="text-xs text-secondary-text truncate mt-0.5 flex items-center gap-1.5">
-                <Mail class="w-3.5 h-3.5 text-primary shrink-0" />
-                <span class="font-medium text-primary-text font-mono select-all">{{ userEmail }}</span>
+              <p class="text-xs text-secondary-text truncate mt-0.5 flex items-center gap-1.5 font-medium">
+                <span v-if="userName" class="truncate">{{ userName }}</span>
+                <span v-if="userName" class="text-secondary-text/50">·</span>
+                <span class="font-mono text-secondary-text select-all truncate">{{ userEmail }}</span>
               </p>
             </div>
           </div>
@@ -55,87 +59,91 @@
             <!-- Import Dummy Trades Button -->
             <button
               type="button"
-              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border border-primary/30 bg-primary/10 text-primary hover:bg-primary hover:text-white transition cursor-pointer shadow-2xs"
+              class="h-8 inline-flex items-center gap-1.5 px-3 rounded-lg text-xs font-semibold border border-primary-border bg-card-background hover:bg-background text-primary-text transition cursor-pointer"
               title="Import Dummy Trades"
               @click="handleImportTrades"
             >
-              <FileSpreadsheet class="w-3.5 h-3.5" />
-              <span>Import Trades</span>
+              <FileSpreadsheet class="w-3.5 h-3.5 text-primary" />
+              <span class="hidden sm:inline">Import Trades</span>
             </button>
 
             <!-- Edit Dummy FM Button -->
             <button
               type="button"
-              class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold bg-primary text-white hover:bg-primary-hover transition cursor-pointer shadow-sm"
+              class="h-8 inline-flex items-center gap-1.5 px-3 rounded-lg text-xs font-bold bg-primary text-white hover:bg-primary-hover transition cursor-pointer shadow-xs"
               title="Edit Dummy Simulation Metrics"
               @click="handleEdit"
             >
               <Pencil class="w-3.5 h-3.5" />
-              <span>Edit Dummy FM</span>
+              <span>Edit</span>
             </button>
 
             <!-- Close Button -->
             <button
               type="button"
-              class="p-2 rounded-lg hover:bg-background text-secondary-text hover:text-primary-text transition cursor-pointer"
+              class="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-background text-secondary-text hover:text-primary-text transition cursor-pointer"
               @click="emit('close')"
             >
-              <X class="w-5 h-5" />
+              <X class="w-4 h-4" />
             </button>
           </div>
         </div>
 
         <!-- Drawer Content Body -->
-        <div class="flex-1 overflow-y-auto p-6 space-y-5">
+        <div class="flex-1 overflow-y-auto p-6 space-y-4">
           <!-- HERO SIMULATION PERFORMANCE BANNER -->
-          <div class="bg-primary/5 border border-primary/20 rounded-2xl p-5 space-y-4 shadow-2xs">
-            <div class="flex items-center justify-between border-b border-primary/20 pb-3">
+          <div class="bg-card-background border border-primary-border rounded-xl p-4 space-y-3.5">
+            <div class="flex items-center justify-between border-b border-primary-border/60 pb-2.5">
               <div class="flex items-center gap-2">
                 <TrendingUp class="w-4 h-4 text-primary" />
-                <h4 class="text-xs font-bold uppercase tracking-wider text-primary">
-                  Leaderboard Simulation Metrics
+                <h4 class="text-xs font-bold uppercase tracking-wider text-primary-text">
+                  Simulation Performance Metrics
                 </h4>
               </div>
-              <span class="font-mono text-xs font-bold px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
-                FM ID: #{{ fmId }}
+              <span
+                v-if="isEnabled"
+                class="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border inline-flex items-center gap-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30"
+              >
+                <HugeIcon :icon="AddTeamIcon" :size="11" class="text-amber-500 shrink-0" />
+                <span>Dummy Enabled</span>
               </span>
             </div>
 
-            <!-- Return & Win Rate Grid -->
-            <div class="grid grid-cols-2 gap-4">
-              <div class="bg-background/80 border border-primary-border/60 rounded-xl p-3.5">
+            <!-- Return & Win Rate Hero Grid -->
+            <div class="grid grid-cols-2 gap-3">
+              <div class="bg-background/70 border border-primary-border/70 rounded-lg p-3">
                 <span class="text-[10px] uppercase font-bold tracking-wider text-secondary-text block">Total Return</span>
-                <span class="text-xl font-extrabold text-emerald-500 tracking-tight mt-1 block">
+                <span class="text-base font-bold text-primary-green tracking-tight mt-0.5 block font-mono">
                   +{{ formatMoney(totalReturn, currency) }}
                 </span>
               </div>
-              <div class="bg-background/80 border border-primary-border/60 rounded-xl p-3.5">
+              <div class="bg-background/70 border border-primary-border/70 rounded-lg p-3">
                 <span class="text-[10px] uppercase font-bold tracking-wider text-secondary-text block">Win Rate</span>
-                <span class="text-xl font-extrabold text-primary tracking-tight mt-1 block">
+                <span class="text-base font-bold text-primary tracking-tight mt-0.5 block font-mono">
                   {{ formatPercent(winRate) }}
                 </span>
               </div>
             </div>
 
-            <!-- Simulation Parameters Grid -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs pt-1">
-              <div class="bg-background/50 border border-primary-border/40 rounded-xl p-3">
+            <!-- Simulation Parameters 3-Column Grid -->
+            <div class="grid grid-cols-3 gap-2.5 text-xs">
+              <div class="bg-background/40 border border-primary-border/50 rounded-lg p-2.5 text-center">
                 <span class="text-secondary-text text-[10px] uppercase font-semibold block">Profit Sharing</span>
-                <span class="font-bold text-primary-text text-sm mt-0.5 block">{{ formatPercent(profitSharing) }}</span>
+                <span class="font-bold text-primary-text text-xs mt-0.5 block font-mono">{{ formatPercent(profitSharing) }}</span>
               </div>
-              <div class="bg-background/50 border border-primary-border/40 rounded-xl p-3">
+              <div class="bg-background/40 border border-primary-border/50 rounded-lg p-2.5 text-center">
                 <span class="text-secondary-text text-[10px] uppercase font-semibold block">Max Drawdown</span>
-                <span class="font-bold text-rose-500 text-sm mt-0.5 block">{{ formatPercent(maxDrawdown) }}</span>
+                <span class="font-bold text-primary-red text-xs mt-0.5 block font-mono">{{ formatPercent(maxDrawdown) }}</span>
               </div>
-              <div class="bg-background/50 border border-primary-border/40 rounded-xl p-3">
+              <div class="bg-background/40 border border-primary-border/50 rounded-lg p-2.5 text-center">
                 <span class="text-secondary-text text-[10px] uppercase font-semibold block">Copiers</span>
-                <span class="font-bold text-primary text-sm mt-0.5 block">{{ copiersCount }} users</span>
+                <span class="font-bold text-primary text-xs mt-0.5 block font-mono">{{ copiersCount }} users</span>
               </div>
             </div>
 
             <!-- Active Since -->
-            <div class="bg-background/60 border border-primary-border/60 rounded-xl p-3 flex items-center justify-between text-xs">
-              <span class="text-secondary-text font-semibold flex items-center gap-1.5">
+            <div class="bg-background/40 border border-primary-border/50 rounded-lg p-2.5 flex items-center justify-between text-xs">
+              <span class="text-secondary-text font-medium flex items-center gap-1.5 text-[11px]">
                 <Calendar class="w-3.5 h-3.5 text-primary" />
                 Active Since Date
               </span>
@@ -144,10 +152,10 @@
           </div>
 
           <!-- ASSOCIATED REAL FUND MANAGER PROFILE -->
-          <div class="bg-background/50 border border-primary-border rounded-2xl p-5 space-y-4 shadow-xs">
-            <div class="flex items-center justify-between border-b border-primary-border/60 pb-3">
-              <h4 class="text-xs font-bold uppercase tracking-wider text-secondary-text flex items-center gap-2">
-                <User class="w-4 h-4 text-primary" />
+          <div class="bg-card-background border border-primary-border rounded-xl p-4 space-y-3">
+            <div class="flex items-center justify-between border-b border-primary-border/60 pb-2.5">
+              <h4 class="text-xs font-bold uppercase tracking-wider text-secondary-text flex items-center gap-1.5">
+                <User class="w-3.5 h-3.5 text-primary" />
                 <span>Fund Manager Profile</span>
               </h4>
               <span
@@ -159,7 +167,7 @@
               </span>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div>
                 <span class="text-secondary-text text-[11px] block">Full Name</span>
                 <span class="font-bold text-primary-text">{{ userName || '—' }}</span>
@@ -167,15 +175,15 @@
               <div>
                 <span class="text-secondary-text text-[11px] block">Email Address</span>
                 <div class="flex items-center gap-1.5">
-                  <span class="font-bold text-primary-text font-mono select-all">{{ userEmail }}</span>
+                  <span class="font-bold text-primary-text font-mono select-all truncate">{{ userEmail }}</span>
                   <button
-                    v-if="userEmail"
+                    v-if="userEmail && userEmail !== 'N/A' && userEmail !== '—'"
                     type="button"
                     @click="copyText(userEmail)"
-                    class="text-secondary-text hover:text-primary transition p-1 rounded hover:bg-background cursor-pointer"
+                    class="text-secondary-text hover:text-primary transition p-0.5 rounded hover:bg-background cursor-pointer shrink-0"
                     title="Copy Email"
                   >
-                    <Check v-if="copied" class="w-3.5 h-3.5 text-emerald-500" />
+                    <Check v-if="copied" class="w-3.5 h-3.5 text-primary-green" />
                     <Copy v-else class="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -197,8 +205,8 @@
                 <span class="font-semibold text-primary-text">{{ followerAccountTypeLabel }}</span>
               </div>
               <div v-if="brokerGroup" class="sm:col-span-2">
-                <span class="text-secondary-text text-[11px] block">Broker Group</span>
-                <span class="font-mono font-medium text-primary-text select-all break-all bg-background p-2 rounded-lg border border-primary-border/60 block mt-0.5">
+                <span class="text-secondary-text text-[11px] block mb-1">Broker Group</span>
+                <span class="font-mono text-xs font-medium text-primary-text select-all break-all bg-background/80 px-2.5 py-1.5 rounded-lg border border-primary-border/60 block">
                   {{ brokerGroup }}
                 </span>
               </div>
@@ -207,10 +215,10 @@
         </div>
 
         <!-- Drawer Footer -->
-        <div class="px-6 py-4 border-t border-primary-border bg-background/50 flex items-center justify-between shrink-0">
+        <div class="px-6 py-3.5 border-t border-primary-border bg-background/50 flex items-center justify-between shrink-0">
           <button
             type="button"
-            class="px-3 py-2 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white text-xs font-semibold transition cursor-pointer flex items-center gap-1.5"
+            class="h-8 px-3 rounded-lg border border-primary-red/30 bg-primary-red/10 text-primary-red hover:bg-primary-red hover:text-white text-xs font-semibold transition cursor-pointer flex items-center gap-1.5"
             @click="isDeleteModalOpen = true"
           >
             <Trash2 class="w-3.5 h-3.5" />
@@ -219,7 +227,7 @@
 
           <button
             type="button"
-            class="px-4 py-2 rounded-xl bg-card-background border border-primary-border text-primary-text hover:bg-background text-xs font-semibold transition cursor-pointer"
+            class="h-8 px-4 rounded-lg bg-card-background border border-primary-border text-primary-text hover:bg-background text-xs font-semibold transition cursor-pointer"
             @click="emit('close')"
           >
             Close
@@ -247,10 +255,8 @@
 import { ref, computed } from 'vue'
 import {
   X,
-  Sparkles,
   TrendingUp,
   User,
-  Mail,
   Calendar,
   Pencil,
   Trash2,
@@ -258,6 +264,7 @@ import {
   Copy,
   Check,
 } from 'lucide-vue-next'
+import { AiMagicIcon,User02Icon,AddTeamIcon } from '@hugeicons/core-free-icons'
 import ConfirmationDialog from '@/components/common/ConfirmationDialog.vue'
 import { useMyPermissionsStore } from '@/stores/rbac/myPermissions'
 import { useFmLeaderboardStore } from '@/stores/fmLeaderboard/fmLeaderboard'
@@ -327,9 +334,12 @@ const userEmail = computed(() => {
   return fmData.value?.user_email || props.item?.user_email || fmData.value?.user?.email || '—'
 })
 
+const isTruthy = (val) => val === true || val === 1 || val === '1' || val === 'true'
+
 const isEnabled = computed(() => {
-  if (dummyData.value?.enabled !== undefined) return Boolean(dummyData.value.enabled)
-  if (props.item?.enabled !== undefined) return Boolean(props.item.enabled)
+  if (dummyData.value?.enabled !== undefined) return isTruthy(dummyData.value.enabled)
+  if (props.item?.enabled !== undefined) return isTruthy(props.item.enabled)
+  if (props.item?.is_dummy !== undefined) return isTruthy(props.item.is_dummy)
   return true
 })
 
@@ -414,9 +424,9 @@ const formatDate = (dateStr) => {
 
 const getKycBadgeClass = (status) => {
   const s = String(status || '').toLowerCase()
-  if (s === 'approved' || s === 'verified') return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+  if (s === 'approved' || s === 'verified') return 'bg-primary-green/10 text-primary-green border-primary-green/20'
   if (s === 'pending' || s === 'submitted') return 'bg-amber-500/10 text-amber-500 border-amber-500/20'
-  if (s === 'rejected') return 'bg-rose-500/10 text-rose-500 border-rose-500/20'
+  if (s === 'rejected') return 'bg-primary-red/10 text-primary-red border-primary-red/20'
   return 'bg-background text-secondary-text border-primary-border'
 }
 

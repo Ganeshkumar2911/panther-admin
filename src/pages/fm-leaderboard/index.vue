@@ -19,8 +19,8 @@
                   : 'text-secondary-text hover:text-primary-text hover:bg-card-background'
               "
             >
-              <Users class="w-3.5 h-3.5" />
-              <span>Real FM</span>
+              <HugeIcon :icon="UserGroupIcon" :size="15" />
+              <span>Real FM Info</span>
             </button>
 
             <button
@@ -33,8 +33,8 @@
                   : 'text-secondary-text hover:text-primary-text hover:bg-card-background'
               "
             >
-              <Sparkles class="w-3.5 h-3.5" />
-              <span>Dummy FM</span>
+              <HugeIcon :icon="UserAiIcon" :size="15" />
+              <span>Dummy FM Info</span>
             </button>
           </div>
 
@@ -171,7 +171,7 @@
         <div
           v-for="n in 6"
           :key="n"
-          class="bg-card-background border border-primary-border rounded-2xl p-5 flex flex-col justify-between animate-pulse space-y-4"
+          class="bg-card-background border border-primary-border rounded-lg p-5 flex flex-col justify-between animate-pulse space-y-4"
         >
           <div>
             <!-- Card Identity Header Skeleton -->
@@ -267,7 +267,7 @@
       </div>
 
       <!-- List Skeleton -->
-      <div v-else class="border border-primary-border rounded-2xl overflow-hidden bg-card-background/40">
+      <div v-else class="border border-primary-border rounded-lg overflow-hidden bg-card-background/40">
         <div class="p-4 space-y-3">
           <div v-for="n in 5" :key="n" class="h-12 bg-background rounded-xl animate-pulse w-full" />
         </div>
@@ -279,10 +279,10 @@
       <!-- EMPTY STATE -->
       <div
         v-if="filteredData.length === 0"
-        class="flex flex-col items-center justify-center rounded-2xl border border-dashed border-primary-border bg-card-background/30 py-16 px-4 text-center"
+        class="flex flex-col items-center justify-center rounded-lg border border-dashed border-primary-border bg-card-background/30 py-16 px-4 text-center"
       >
         <div
-          class="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-background border border-primary-border shadow-sm mb-4"
+          class="relative flex h-16 w-16 items-center justify-center rounded-lg bg-background border border-primary-border shadow-sm mb-4"
         >
           <UserRoundPlus class="w-8 h-8 text-secondary-text" />
         </div>
@@ -324,24 +324,29 @@
         <div
           v-for="item in filteredData"
           :key="item.id"
-          class="bg-card-background border border-primary-border rounded-2xl p-5 transition-all duration-200 flex flex-col justify-between group relative overflow-hidden"
+          class="bg-card-background border border-primary-border rounded-lg p-5 transition-all duration-200 flex flex-col justify-between group relative overflow-hidden"
         >
           <div>
             <!-- Card Identity Header -->
             <div class="flex items-start justify-between gap-3 mb-3">
-              <div class="flex items-center gap-3 min-w-0">
+              <div class="flex items-center gap-3 min-w-0 flex-1">
                 <div
                   class="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center font-bold text-sm shrink-0 group-hover:scale-105 transition-transform"
                 >
                   {{ (item.label_name || 'FM')[0].toUpperCase() }}
                 </div>
-                <div class="min-w-0">
-                  <h4
-                    class="text-base font-bold text-primary-text truncate tracking-tight"
-                    :title="item.label_name"
-                  >
-                    {{ item.label_name || 'Unnamed Fund Manager' }}
-                  </h4>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-1.5">
+                    <h4
+                      class="text-base font-bold text-primary-text truncate tracking-tight"
+                      :title="item.label_name"
+                    >
+                      {{ item.label_name || 'Unnamed Fund Manager' }}
+                    </h4>
+                    <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-background border border-primary-border text-secondary-text shrink-0" title="Fund Manager ID">
+                      #{{ item.id }}
+                    </span>
+                  </div>
                   <p v-if="item.user?.name" class="text-xs text-secondary-text truncate font-medium">
                     {{ item.user.name }}
                   </p>
@@ -351,7 +356,7 @@
               <!-- Status Badges -->
               <div class="flex flex-col items-end gap-1.5 shrink-0">
                 <span
-                  class="text-[10px] font-bold tracking-wide uppercase px-2.5 py-0.5 rounded-full border inline-flex items-center gap-1.5 shadow-2xs"
+                  class="text-[10px] font-bold tracking-wide uppercase px-2.5 py-0.5 rounded-full border inline-flex items-center gap-1.5"
                   :class="
                     item.is_active
                       ? 'bg-primary-green/10 text-primary-green border border-primary-green/20'
@@ -361,16 +366,28 @@
                   <span class="w-1.5 h-1.5 rounded-full animate-pulse" :class="item.is_active ? 'bg-primary-green' : 'bg-zinc-400'" />
                   {{ item.is_active ? 'Active' : 'Inactive' }}
                 </span>
-                <span
-                  class="text-[9px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-md border text-secondary-text bg-background/80 border-primary-border"
-                >
-                  {{ item.visibility_type || 'public' }}
-                </span>
+
+                <div class="flex items-center gap-1.5 flex-wrap justify-end">
+                  <span
+                    v-if="isDummyActive(item)"
+                    class="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border inline-flex items-center gap-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30"
+                    title="Dummy Leaderboard Simulation is Enabled"
+                  >
+                    <HugeIcon :icon="AiMagicIcon" :size="11" class="text-amber-500 shrink-0" />
+                    <span>Dummy Enabled</span>
+                  </span>
+
+                  <span
+                    class="text-[9px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-md border text-secondary-text bg-background/80 border-primary-border"
+                  >
+                    {{ item.visibility_type || 'public' }}
+                  </span>
+                </div>
               </div>
             </div>
 
             <!-- Prominent User Email Banner -->
-            <div class="bg-background/80 border border-primary-border/80 rounded-xl px-3 py-2 flex items-center justify-between mb-3.5 shadow-2xs">
+            <div class="bg-background/80 border border-primary-border/80 rounded-lg px-3 py-2 flex items-center justify-between mb-3.5">
               <div class="flex items-center gap-2 min-w-0">
                 <Mail class="w-3.5 h-3.5 text-primary shrink-0" />
                 <span class="text-xs font-semibold text-primary-text truncate font-mono select-all" :title="item.user?.email">
@@ -383,7 +400,7 @@
             </div>
 
             <!-- Hero Min Capital Banner -->
-            <div class="bg-background/70 border border-primary-border/80 rounded-xl p-3 flex items-center justify-between mb-3 shadow-2xs">
+            <div class="bg-background/70 border border-primary-border/80 rounded-lg p-3 flex items-center justify-between mb-3">
               <div>
                 <p class="text-[10px] font-semibold uppercase tracking-wider text-secondary-text">Min Investment Capital</p>
                 <p class="text-base font-extrabold text-primary-text tracking-tight mt-0.5">
@@ -400,20 +417,20 @@
 
             <!-- Core Fees Grid -->
             <div class="grid grid-cols-3 gap-2 mb-3">
-              <div class="bg-background/40 border border-primary-border/40 rounded-xl p-2 text-center">
+              <div class="bg-background/40 border border-primary-border/40 rounded-lg p-2 text-center">
                 <p class="text-[9px] uppercase font-semibold tracking-wider text-secondary-text mb-0.5">Management</p>
                 <p class="text-xs font-bold text-primary-text">{{ formatPercent(item.management_fee) }}</p>
                 <p v-if="item.management_fee_interval" class="text-[9px] text-secondary-text capitalize">
                   {{ item.management_fee_interval }}
                 </p>
               </div>
-              <div class="bg-background/40 border border-primary-border/40 rounded-xl p-2 text-center">
+              <div class="bg-background/40 border border-primary-border/40 rounded-lg p-2 text-center">
                 <p class="text-[9px] uppercase font-semibold tracking-wider text-secondary-text mb-0.5">Registration</p>
                 <p class="text-xs font-bold text-primary-text">
                   {{ item.registration_fee ? formatMoney(item.registration_fee, item.broker_currency) : 'Free' }}
                 </p>
               </div>
-              <div class="bg-background/40 border border-primary-border/40 rounded-xl p-2 text-center">
+              <div class="bg-background/40 border border-primary-border/40 rounded-lg p-2 text-center">
                 <p class="text-[9px] uppercase font-semibold tracking-wider text-secondary-text mb-0.5">Leverage</p>
                 <p class="text-xs font-bold text-primary">1:{{ item.broker_leverage || '—' }}</p>
                 <p class="text-[9px] text-secondary-text uppercase font-mono">
@@ -423,7 +440,7 @@
             </div>
 
             <!-- Shares Allocation Visual Distribution Bar -->
-            <div class="bg-background/40 border border-primary-border/40 rounded-xl p-2.5 mb-3 space-y-1.5">
+            <div class="bg-background/40 border border-primary-border/40 rounded-lg p-2.5 mb-3 space-y-1.5">
               <div class="flex items-center justify-between text-[11px] font-semibold text-secondary-text">
                 <span class="uppercase tracking-wider text-[9px]">Share Distribution</span>
                 <span class="text-primary-text text-[10px] font-bold">
@@ -515,7 +532,7 @@
       <div v-else-if="layoutMode === 'list'" class="space-y-3">
         <!-- Desktop Table (md and up) -->
         <div
-          class="hidden md:block w-full border border-primary-border rounded-2xl overflow-x-auto bg-card-background/40 shadow-sm"
+          class="hidden md:block w-full border border-primary-border rounded-lg overflow-x-auto bg-card-background/40 shadow-sm"
         >
           <table class="w-full min-w-[980px] border-collapse text-left text-xs">
             <thead>
@@ -614,6 +631,14 @@
                         {{ item.is_active ? 'Active' : 'Inactive' }}
                       </span>
                       <span
+                        v-if="isDummyActive(item)"
+                        class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md border inline-flex items-center gap-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30"
+                        title="Dummy Simulation is Enabled"
+                      >
+                        <HugeIcon :icon="AiMagicIcon" :size="11" class="text-amber-500 shrink-0" />
+                        <span>Dummy Enabled</span>
+                      </span>
+                      <span
                         class="text-[9px] uppercase tracking-widest font-bold px-1.5 py-0.5 rounded-md border text-secondary-text bg-background/80 border-primary-border"
                       >
                         {{ item.visibility_type || 'public' }}
@@ -672,16 +697,25 @@
                 </div>
               </div>
               <div class="flex flex-col items-end gap-1 shrink-0">
-                <span
-                  class="text-[10px] font-bold tracking-wide uppercase px-2 py-0.5 rounded-full border"
-                  :class="
-                    item.is_active
-                      ? 'bg-primary-green/10 text-primary-green border border-primary-green/20'
-                      : 'bg-background text-secondary-text border border-primary-border'
-                  "
-                >
-                  {{ item.is_active ? 'Active' : 'Inactive' }}
-                </span>
+                <div class="flex items-center gap-1.5 flex-wrap justify-end">
+                  <span
+                    class="text-[10px] font-bold tracking-wide uppercase px-2 py-0.5 rounded-full border"
+                    :class="
+                      item.is_active
+                        ? 'bg-primary-green/10 text-primary-green border border-primary-green/20'
+                        : 'bg-background text-secondary-text border border-primary-border'
+                    "
+                  >
+                    {{ item.is_active ? 'Active' : 'Inactive' }}
+                  </span>
+                  <span
+                    v-if="isDummyActive(item)"
+                    class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md border inline-flex items-center gap-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30"
+                  >
+                    <HugeIcon :icon="AiMagicIcon" :size="11" class="text-amber-500 shrink-0" />
+                    <span>Dummy Enabled</span>
+                  </span>
+                </div>
                 <span
                   class="text-[9px] uppercase tracking-widest font-bold px-1.5 py-0.5 rounded-md border text-secondary-text bg-background/80 border-primary-border"
                 >
@@ -840,6 +874,7 @@ import {
   BookOpen,
   Sparkles,
 } from 'lucide-vue-next'
+import { UserGroupIcon, UserAiIcon, AiMagicIcon } from '@hugeicons/core-free-icons'
 import { useFmLeaderboardStore } from '@/stores/fmLeaderboard/fmLeaderboard'
 import Pagination from '@/components/common/Pagination.vue'
 import AddEditFundManager from '@/components/fundManager/AddEditFundManager.vue'
@@ -1114,6 +1149,22 @@ const handleConfirmToggle = async () => {
   } finally {
     isTogglingConfirm.value = false
   }
+}
+
+const isDummyActive = (item) => {
+  if (item?.dummy_fm && typeof item.dummy_fm.enabled !== 'undefined') {
+    const v = item.dummy_fm.enabled
+    return v === true || v === 1 || v === '1' || v === 'true'
+  }
+  if (typeof item?.is_dummy !== 'undefined') {
+    const v = item.is_dummy
+    return v === true || v === 1 || v === '1' || v === 'true'
+  }
+  if (typeof item?.enabled !== 'undefined') {
+    const v = item.enabled
+    return v === true || v === 1 || v === '1' || v === 'true'
+  }
+  return false
 }
 
 const isDummyCreated = (item) => {

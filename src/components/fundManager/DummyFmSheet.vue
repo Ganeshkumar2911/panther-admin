@@ -57,11 +57,11 @@
         <div class="px-6 py-5 flex flex-col gap-5 overflow-y-auto flex-1">
           <!-- Real FM Target Banner -->
           <div
-            class="bg-background/80 border border-primary-border rounded-xl p-3.5 flex items-center justify-between gap-3 shadow-2xs"
+            class="bg-background/80 border border-primary-border rounded-lg p-3.5 flex items-center justify-between gap-3"
           >
             <div class="flex items-center gap-3 min-w-0">
               <div
-                class="w-10 h-10 rounded-xl border flex items-center justify-center font-bold text-sm bg-primary/10 border-primary/20 text-primary shrink-0"
+                class="w-10 h-10 rounded-lg border flex items-center justify-center font-bold text-sm bg-primary/10 border-primary/20 text-primary shrink-0"
               >
                 <span>{{ (item?.label_name || item?.fund_manager?.label_name || item?.user_name || item?.user?.name || 'FM')[0].toUpperCase() }}</span>
               </div>
@@ -83,7 +83,7 @@
 
           <!-- ENABLED STATUS SWITCH -->
           <div
-            class="bg-background/40 border border-primary-border/70 rounded-xl p-4 flex items-center justify-between"
+            class="bg-background/40 border border-primary-border/70 rounded-lg p-4 flex items-center justify-between"
           >
             <div>
               <label class="text-xs font-bold text-primary-text block">Dummy FM Status</label>
@@ -115,7 +115,7 @@
           </div>
 
           <!-- METRICS FORM FIELDS -->
-          <div class="space-y-4 bg-background/40 border border-primary-border/60 rounded-xl p-4">
+          <div class="space-y-4 bg-background/40 border border-primary-border/60 rounded-lg p-4">
             <h3 class="text-xs font-bold uppercase tracking-wider text-secondary-text flex items-center gap-1.5">
               <TrendingUp class="w-3.5 h-3.5 text-primary" />
               <span>Simulation Performance Metrics</span>

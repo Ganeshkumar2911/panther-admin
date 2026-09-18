@@ -13,10 +13,12 @@
     <Transition name="drawer">
       <div
         v-if="open"
-        class="fixed inset-y-0 right-0 z-50 w-full max-w-4xl bg-card-background border-l border-primary-border shadow-2xl flex flex-col overflow-hidden"
+        class="fixed inset-y-0 right-0 z-50 w-full max-w-2xl bg-card-background border-l border-primary-border shadow-2xl flex flex-col overflow-hidden"
       >
         <!-- Header -->
-        <div class="px-6 py-4.5 border-b border-primary-border flex items-center justify-between gap-4 bg-background/50 shrink-0">
+        <div
+          class="px-6 py-4.5 border-b border-primary-border flex items-center justify-between gap-4 bg-background/50 shrink-0"
+        >
           <div class="flex items-center gap-3 min-w-0">
             <div
               class="w-10 h-10 rounded-xl border flex items-center justify-center font-bold text-base shrink-0 bg-primary/10 border-primary/20 text-primary"
@@ -39,7 +41,8 @@
                 </span>
               </div>
               <p class="text-xs text-secondary-text truncate mt-0.5">
-                Upload and preview trade history data in Excel (.xlsx, .xls) or CSV format.
+                Upload and preview trade history data in Excel (.xlsx, .xls) or
+                CSV format.
               </p>
             </div>
           </div>
@@ -49,7 +52,7 @@
             <button
               type="button"
               @click="downloadTemplate"
-              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary-border hover:bg-background text-primary-text text-xs font-semibold transition cursor-pointer shadow-2xs"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary-border hover:bg-background text-primary-text text-xs font-semibold transition cursor-pointer"
               title="Download sample spreadsheet template"
             >
               <Download class="w-3.5 h-3.5 text-primary" />
@@ -77,7 +80,7 @@
                 ? 'border-primary bg-primary/5 scale-[0.99]'
                 : selectedFile
                   ? 'border-primary/40 bg-card-background/60'
-                  : 'border-primary-border hover:border-primary/50 bg-background/30 hover:bg-background/50'
+                  : 'border-primary-border hover:border-primary/50 bg-background/30 hover:bg-background/50',
             ]"
             @dragover.prevent="dragOver = true"
             @dragleave.prevent="dragOver = false"
@@ -92,32 +95,55 @@
             />
 
             <!-- Empty State / Drag Prompt -->
-            <div v-if="!selectedFile" class="flex flex-col items-center justify-center py-4 cursor-pointer" @click="triggerFileInput">
-              <div class="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-3 shadow-xs">
+            <div
+              v-if="!selectedFile"
+              class="flex flex-col items-center justify-center py-4 cursor-pointer"
+              @click="triggerFileInput"
+            >
+              <div
+                class="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-3 shadow-xs"
+              >
                 <UploadCloud class="w-7 h-7 text-primary animate-bounce-slow" />
               </div>
               <h4 class="text-sm font-bold text-primary-text mb-1">
-                Drop your Excel or CSV file here, or <span class="text-primary underline">browse</span>
+                Drop your Excel or CSV file here, or
+                <span class="text-primary underline">browse</span>
               </h4>
               <p class="text-xs text-secondary-text max-w-sm">
-                Supports .xlsx, .xls and .csv files formatted with standard trade columns (ticket, symbol, type, lot, entry_price, exit_price, pnl, status, etc.).
+                Supports .xlsx, .xls and .csv files formatted with standard
+                trade columns (ticket, symbol, type, lot, entry_price,
+                exit_price, pnl, status, etc.).
               </p>
             </div>
 
             <!-- File Selected Banner -->
-            <div v-else class="flex flex-col sm:flex-row items-center justify-between gap-4 py-2">
+            <div
+              v-else
+              class="flex flex-col sm:flex-row items-center justify-between gap-4 py-2"
+            >
               <div class="flex items-center gap-3.5 min-w-0">
-                <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 shrink-0">
+                <div
+                  class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 shrink-0"
+                >
                   <FileSpreadsheet class="w-6 h-6" />
                 </div>
                 <div class="text-left min-w-0">
-                  <h4 class="text-sm font-bold text-primary-text truncate" :title="selectedFile.name">
+                  <h4
+                    class="text-sm font-bold text-primary-text truncate"
+                    :title="selectedFile.name"
+                  >
                     {{ selectedFile.name }}
                   </h4>
-                  <div class="flex items-center gap-2 text-xs text-secondary-text mt-0.5">
-                    <span class="font-mono">{{ formatFileSize(selectedFile.size) }}</span>
+                  <div
+                    class="flex items-center gap-2 text-xs text-secondary-text mt-0.5"
+                  >
+                    <span class="font-mono">{{
+                      formatFileSize(selectedFile.size)
+                    }}</span>
                     <span>•</span>
-                    <span class="text-emerald-500 font-semibold flex items-center gap-1">
+                    <span
+                      class="text-emerald-500 font-semibold flex items-center gap-1"
+                    >
                       <CheckCircle2 class="w-3.5 h-3.5" />
                       {{ previewRows.length }} rows parsed
                     </span>
@@ -129,14 +155,14 @@
                 <button
                   type="button"
                   @click="triggerFileInput"
-                  class="px-3 py-1.5 rounded-lg border border-primary-border bg-card-background hover:bg-background text-xs font-semibold text-primary-text transition cursor-pointer shadow-2xs"
+                  class="px-3 py-1.5 rounded-lg border border-primary-border bg-card-background hover:bg-background text-xs font-semibold text-primary-text transition cursor-pointer"
                 >
                   Change File
                 </button>
                 <button
                   type="button"
                   @click="clearFile"
-                  class="p-1.5 rounded-lg border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500 hover:text-white text-rose-500 transition cursor-pointer shadow-2xs"
+                  class="p-1.5 rounded-lg border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500 hover:text-white text-rose-500 transition cursor-pointer"
                   title="Remove File"
                 >
                   <Trash2 class="w-4 h-4" />
@@ -146,9 +172,14 @@
           </div>
 
           <!-- PARSING LOADER / ERROR -->
-          <div v-if="isParsing" class="flex items-center justify-center py-10 gap-3 text-secondary-text">
+          <div
+            v-if="isParsing"
+            class="flex items-center justify-center py-10 gap-3 text-secondary-text"
+          >
             <Loader2 class="w-5 h-5 animate-spin text-primary" />
-            <span class="text-xs font-semibold">Reading spreadsheet data...</span>
+            <span class="text-xs font-semibold"
+              >Reading spreadsheet data...</span
+            >
           </div>
 
           <div
@@ -166,42 +197,98 @@
           <div v-else-if="previewRows.length > 0" class="space-y-3">
             <!-- Preview Metrics Summary Bar -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div class="bg-background/60 border border-primary-border/60 rounded-xl p-3">
-                <span class="text-[10px] uppercase font-bold tracking-wider text-secondary-text block">Total Trades</span>
-                <span class="text-base font-extrabold text-primary-text font-mono mt-0.5 block">
+              <div
+                class="bg-background/60 border border-primary-border/60 rounded-xl p-3"
+              >
+                <span
+                  class="text-[10px] uppercase font-bold tracking-wider text-secondary-text block"
+                  >Total Trades</span
+                >
+                <span
+                  class="text-base font-extrabold text-primary-text font-mono mt-0.5 block"
+                >
                   {{ previewRows.length }}
                 </span>
               </div>
-              <div class="bg-background/60 border border-primary-border/60 rounded-xl p-3">
-                <span class="text-[10px] uppercase font-bold tracking-wider text-secondary-text block">Buy / Sell</span>
-                <span class="text-base font-extrabold text-primary font-mono mt-0.5 block">
-                  {{ buyCount }} <span class="text-xs font-normal text-secondary-text">BUY</span> / {{ sellCount }} <span class="text-xs font-normal text-secondary-text">SELL</span>
+              <div
+                class="bg-background/60 border border-primary-border/60 rounded-xl p-3"
+              >
+                <span
+                  class="text-[10px] uppercase font-bold tracking-wider text-secondary-text block"
+                  >Buy / Sell</span
+                >
+                <span
+                  class="text-base font-extrabold text-primary font-mono mt-0.5 block"
+                >
+                  {{ buyCount }}
+                  <span class="text-xs font-normal text-secondary-text"
+                    >BUY</span
+                  >
+                  / {{ sellCount }}
+                  <span class="text-xs font-normal text-secondary-text"
+                    >SELL</span
+                  >
                 </span>
               </div>
-              <div class="bg-background/60 border border-primary-border/60 rounded-xl p-3">
-                <span class="text-[10px] uppercase font-bold tracking-wider text-secondary-text block">Total Net PnL</span>
+              <div
+                class="bg-background/60 border border-primary-border/60 rounded-xl p-3"
+              >
+                <span
+                  class="text-[10px] uppercase font-bold tracking-wider text-secondary-text block"
+                  >Total Net PnL</span
+                >
                 <span
                   class="text-base font-extrabold font-mono mt-0.5 block"
-                  :class="totalPnL >= 0 ? 'text-primary-green' : 'text-primary-red'"
+                  :class="
+                    totalPnL >= 0 ? 'text-primary-green' : 'text-primary-red'
+                  "
                 >
-                  {{ totalPnL >= 0 ? '+' : '' }}{{ totalPnL.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+                  {{ totalPnL >= 0 ? "+" : ""
+                  }}{{
+                    totalPnL.toLocaleString("en-US", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })
+                  }}
                 </span>
               </div>
-              <div class="bg-background/60 border border-primary-border/60 rounded-xl p-3">
-                <span class="text-[10px] uppercase font-bold tracking-wider text-secondary-text block">Status Split</span>
-                <span class="text-base font-extrabold text-primary-text font-mono mt-0.5 block">
-                  {{ closedCount }} <span class="text-xs font-normal text-secondary-text">Closed</span> / {{ openCount }} <span class="text-xs font-normal text-secondary-text">Open</span>
+              <div
+                class="bg-background/60 border border-primary-border/60 rounded-xl p-3"
+              >
+                <span
+                  class="text-[10px] uppercase font-bold tracking-wider text-secondary-text block"
+                  >Status Split</span
+                >
+                <span
+                  class="text-base font-extrabold text-primary-text font-mono mt-0.5 block"
+                >
+                  {{ closedCount }}
+                  <span class="text-xs font-normal text-secondary-text"
+                    >Closed</span
+                  >
+                  / {{ openCount }}
+                  <span class="text-xs font-normal text-secondary-text"
+                    >Open</span
+                  >
                 </span>
               </div>
             </div>
 
             <!-- Table Container (Spreadsheet Look) -->
-            <div class="border border-primary-border rounded-2xl overflow-hidden bg-card-background/60 shadow-xs">
-              <div class="px-4 py-3 border-b border-primary-border bg-background/50 flex items-center justify-between gap-3">
+            <div
+              class="border border-primary-border rounded-2xl overflow-hidden bg-card-background/60 shadow-xs"
+            >
+              <div
+                class="px-4 py-3 border-b border-primary-border bg-background/50 flex items-center justify-between gap-3"
+              >
                 <div class="flex items-center gap-2">
                   <FileSpreadsheet class="w-4 h-4 text-primary" />
-                  <span class="text-xs font-bold text-primary-text">Spreadsheet Preview</span>
-                  <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
+                  <span class="text-xs font-bold text-primary-text"
+                    >Spreadsheet Preview</span
+                  >
+                  <span
+                    class="text-[10px] font-mono px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20"
+                  >
                     Showing {{ previewRows.length }} rows
                   </span>
                 </div>
@@ -212,9 +299,15 @@
               </div>
 
               <div class="overflow-x-auto max-h-[380px] overflow-y-auto">
-                <table class="w-full min-w-[920px] border-collapse text-left text-xs">
-                  <thead class="sticky top-0 z-10 bg-background border-b border-primary-border shadow-2xs">
-                    <tr class="text-[10px] font-bold uppercase tracking-wider text-secondary-text">
+                <table
+                  class="w-full min-w-[920px] border-collapse text-left text-xs"
+                >
+                  <thead
+                    class="sticky top-0 z-10 bg-background border-b border-primary-border shadow-2xs"
+                  >
+                    <tr
+                      class="text-[10px] font-bold uppercase tracking-wider text-secondary-text"
+                    >
                       <th class="py-2.5 px-3">#</th>
                       <th class="py-2.5 px-3">Ticket</th>
                       <th class="py-2.5 px-3">Symbol</th>
@@ -243,13 +336,15 @@
 
                       <!-- Ticket -->
                       <td class="py-2 px-3 font-bold text-primary-text">
-                        {{ row.ticket || row.Ticket || '—' }}
+                        {{ row.ticket || row.Ticket || "—" }}
                       </td>
 
                       <!-- Symbol -->
                       <td class="py-2 px-3 font-extrabold text-primary-text">
-                        <span class="px-1.5 py-0.5 rounded bg-background border border-primary-border">
-                          {{ row.symbol || row.Symbol || '—' }}
+                        <span
+                          class="px-1.5 py-0.5 rounded bg-background border border-primary-border"
+                        >
+                          {{ row.symbol || row.Symbol || "—" }}
                         </span>
                       </td>
 
@@ -257,43 +352,71 @@
                       <td class="py-2 px-3">
                         <span
                           class="px-1.5 py-0.5 rounded font-extrabold text-[9px] uppercase tracking-wider border"
-                          :class="isBuyType(row.type || row.Type)
-                            ? 'bg-primary-green/10 text-primary-green border-primary-green/20'
-                            : 'bg-primary-red/10 text-primary-red border-primary-red/20'"
+                          :class="
+                            isBuyType(row.type || row.Type)
+                              ? 'bg-primary-green/10 text-primary-green border-primary-green/20'
+                              : 'bg-primary-red/10 text-primary-red border-primary-red/20'
+                          "
                         >
-                          {{ (row.type || row.Type || 'BUY').toUpperCase() }}
+                          {{ (row.type || row.Type || "BUY").toUpperCase() }}
                         </span>
                       </td>
 
                       <!-- Lot -->
-                      <td class="py-2 px-3 text-right text-primary-text font-bold">
-                        {{ row.lot ?? row.Lot ?? '—' }}
+                      <td
+                        class="py-2 px-3 text-right text-primary-text font-bold"
+                      >
+                        {{ row.lot ?? row.Lot ?? "—" }}
                       </td>
 
                       <!-- Entry Price -->
                       <td class="py-2 px-3 text-right text-primary-text">
-                        {{ formatNum(row.entry_price ?? row.Entry_Price ?? row.entryPrice) }}
+                        {{
+                          formatNum(
+                            row.entry_price ??
+                              row.Entry_Price ??
+                              row.entryPrice,
+                          )
+                        }}
                       </td>
 
                       <!-- Exit Price -->
                       <td class="py-2 px-3 text-right text-primary-text">
-                        {{ formatNum(row.exit_price ?? row.Exit_Price ?? row.exitPrice) }}
+                        {{
+                          formatNum(
+                            row.exit_price ?? row.Exit_Price ?? row.exitPrice,
+                          )
+                        }}
                       </td>
 
                       <!-- SL -->
                       <td class="py-2 px-3 text-right text-secondary-text">
-                        {{ formatNum(row.stop_loss ?? row.Stop_Loss ?? row.stopLoss) }}
+                        {{
+                          formatNum(
+                            row.stop_loss ?? row.Stop_Loss ?? row.stopLoss,
+                          )
+                        }}
                       </td>
 
                       <!-- TP -->
                       <td class="py-2 px-3 text-right text-secondary-text">
-                        {{ formatNum(row.take_profit ?? row.Take_Profit ?? row.takeProfit) }}
+                        {{
+                          formatNum(
+                            row.take_profit ??
+                              row.Take_Profit ??
+                              row.takeProfit,
+                          )
+                        }}
                       </td>
 
                       <!-- PnL -->
                       <td
                         class="py-2 px-3 text-right font-bold"
-                        :class="Number(row.pnl ?? row.PnL ?? row.p_n_l ?? 0) >= 0 ? 'text-primary-green' : 'text-primary-red'"
+                        :class="
+                          Number(row.pnl ?? row.PnL ?? row.p_n_l ?? 0) >= 0
+                            ? 'text-primary-green'
+                            : 'text-primary-red'
+                        "
                       >
                         {{ formatPnl(row.pnl ?? row.PnL ?? row.p_n_l) }}
                       </td>
@@ -302,22 +425,34 @@
                       <td class="py-2 px-3 text-center">
                         <span
                           class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border"
-                          :class="String(row.status || row.Status || '').toLowerCase() === 'open'
-                            ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
-                            : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'"
+                          :class="
+                            String(
+                              row.status || row.Status || '',
+                            ).toLowerCase() === 'open'
+                              ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                              : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                          "
                         >
-                          {{ row.status || row.Status || 'closed' }}
+                          {{ row.status || row.Status || "closed" }}
                         </span>
                       </td>
 
                       <!-- Opened At -->
-                      <td class="py-2 px-3 text-secondary-text whitespace-nowrap text-[10px]">
-                        {{ row.opened_at || row.Opened_At || row.openedAt || '—' }}
+                      <td
+                        class="py-2 px-3 text-secondary-text whitespace-nowrap text-[10px]"
+                      >
+                        {{
+                          row.opened_at || row.Opened_At || row.openedAt || "—"
+                        }}
                       </td>
 
                       <!-- Closed At -->
-                      <td class="py-2 px-3 text-secondary-text whitespace-nowrap text-[10px]">
-                        {{ row.closed_at || row.Closed_At || row.closedAt || '—' }}
+                      <td
+                        class="py-2 px-3 text-secondary-text whitespace-nowrap text-[10px]"
+                      >
+                        {{
+                          row.closed_at || row.Closed_At || row.closedAt || "—"
+                        }}
                       </td>
                     </tr>
                   </tbody>
@@ -328,9 +463,14 @@
         </div>
 
         <!-- Drawer Footer -->
-        <div class="px-6 py-4 border-t border-primary-border bg-background/50 flex items-center justify-between gap-3 shrink-0">
+        <div
+          class="px-6 py-4 border-t border-primary-border bg-background/50 flex items-center justify-between gap-3 shrink-0"
+        >
           <div class="text-xs text-secondary-text">
-            <span v-if="previewRows.length > 0" class="font-mono text-primary-text font-bold">
+            <span
+              v-if="previewRows.length > 0"
+              class="font-mono text-primary-text font-bold"
+            >
               {{ previewRows.length }} trades ready to import
             </span>
             <span v-else>
@@ -341,7 +481,7 @@
           <div class="flex items-center gap-2.5">
             <button
               type="button"
-              class="px-4 py-2 rounded-xl bg-card-background border border-primary-border text-primary-text hover:bg-background text-xs font-semibold transition cursor-pointer"
+              class="px-4 py-2 rounded-lg bg-card-background border border-primary-border text-primary-text hover:bg-background text-xs font-semibold transition cursor-pointer"
               :disabled="isSubmitting"
               @click="handleClose"
             >
@@ -350,13 +490,17 @@
 
             <button
               type="button"
-              class="px-5 py-2 rounded-xl bg-primary text-white hover:bg-primary-hover text-xs font-bold transition cursor-pointer shadow-md flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              :disabled="!selectedFile || previewRows.length === 0 || isSubmitting"
+              class="px-5 py-2 rounded-lg bg-primary text-white hover:bg-primary-hover text-xs font-bold transition cursor-pointer shadow-md flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              :disabled="
+                !selectedFile || previewRows.length === 0 || isSubmitting
+              "
               @click="handleImportSubmit"
             >
               <Loader2 v-if="isSubmitting" class="w-4 h-4 animate-spin" />
               <FileSpreadsheet v-else class="w-4 h-4" />
-              <span>{{ isSubmitting ? 'Importing Trades...' : 'Import Dummy Trades' }}</span>
+              <span>{{
+                isSubmitting ? "Importing Trades..." : "Import Dummy Trades"
+              }}</span>
             </button>
           </div>
         </div>
@@ -366,7 +510,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed } from "vue";
 import {
   X,
   FileSpreadsheet,
@@ -377,156 +521,174 @@ import {
   AlertCircle,
   Loader2,
   Sparkles,
-} from 'lucide-vue-next'
-import * as XLSX from 'xlsx'
-import { useFmLeaderboardStore } from '@/stores/fmLeaderboard/fmLeaderboard'
-import { useSnackbarStore } from '@/stores/snackbar/snackbar'
+} from "lucide-vue-next";
+import * as XLSX from "xlsx";
+import { useFmLeaderboardStore } from "@/stores/fmLeaderboard/fmLeaderboard";
+import { useSnackbarStore } from "@/stores/snackbar/snackbar";
 
 const props = defineProps({
   open: { type: Boolean, default: false },
   item: { type: Object, default: null },
-})
+});
 
-const emit = defineEmits(['close', 'success'])
+const emit = defineEmits(["close", "success"]);
 
-const store = useFmLeaderboardStore()
-const snackbar = useSnackbarStore()
+const store = useFmLeaderboardStore();
+const snackbar = useSnackbarStore();
 
-const fileInputRef = ref(null)
-const selectedFile = ref(null)
-const dragOver = ref(false)
-const previewRows = ref([])
-const isParsing = ref(false)
-const parseError = ref(null)
-const isSubmitting = ref(false)
+const fileInputRef = ref(null);
+const selectedFile = ref(null);
+const dragOver = ref(false);
+const previewRows = ref([]);
+const isParsing = ref(false);
+const parseError = ref(null);
+const isSubmitting = ref(false);
 
 const fmId = computed(() => {
-  return props.item?.fm_id || props.item?.dummy_fm?.fm_id || props.item?.fund_manager?.id || props.item?.id || '—'
-})
+  return (
+    props.item?.fm_id ||
+    props.item?.dummy_fm?.fm_id ||
+    props.item?.fund_manager?.id ||
+    props.item?.id ||
+    "—"
+  );
+});
 
 const labelName = computed(() => {
-  return props.item?.label_name || props.item?.fund_manager?.label_name || props.item?.user_name || `FM #${fmId.value}`
-})
+  return (
+    props.item?.label_name ||
+    props.item?.fund_manager?.label_name ||
+    props.item?.user_name ||
+    `FM #${fmId.value}`
+  );
+});
 
 // Metrics computed for preview
 const buyCount = computed(() => {
-  return previewRows.value.filter((r) => isBuyType(r.type || r.Type)).length
-})
+  return previewRows.value.filter((r) => isBuyType(r.type || r.Type)).length;
+});
 
 const sellCount = computed(() => {
-  return previewRows.value.length - buyCount.value
-})
+  return previewRows.value.length - buyCount.value;
+});
 
 const totalPnL = computed(() => {
   return previewRows.value.reduce((acc, r) => {
-    const val = Number(r.pnl ?? r.PnL ?? r.p_n_l ?? 0) || 0
-    return acc + val
-  }, 0)
-})
+    const val = Number(r.pnl ?? r.PnL ?? r.p_n_l ?? 0) || 0;
+    return acc + val;
+  }, 0);
+});
 
 const closedCount = computed(() => {
-  return previewRows.value.filter((r) => String(r.status || r.Status || '').toLowerCase() !== 'open').length
-})
+  return previewRows.value.filter(
+    (r) => String(r.status || r.Status || "").toLowerCase() !== "open",
+  ).length;
+});
 
 const openCount = computed(() => {
-  return previewRows.value.length - closedCount.value
-})
+  return previewRows.value.length - closedCount.value;
+});
 
 const isBuyType = (val) => {
-  return String(val || '').trim().toUpperCase() === 'BUY'
-}
+  return (
+    String(val || "")
+      .trim()
+      .toUpperCase() === "BUY"
+  );
+};
 
 const formatNum = (val) => {
-  if (val === '' || val === null || val === undefined) return '—'
-  const num = Number(val)
-  return isNaN(num) ? String(val) : num.toString()
-}
+  if (val === "" || val === null || val === undefined) return "—";
+  const num = Number(val);
+  return isNaN(num) ? String(val) : num.toString();
+};
 
 const formatPnl = (val) => {
-  if (val === '' || val === null || val === undefined) return '0.00'
-  const num = Number(val) || 0
-  return (num >= 0 ? '+' : '') + num.toFixed(2)
-}
+  if (val === "" || val === null || val === undefined) return "0.00";
+  const num = Number(val) || 0;
+  return (num >= 0 ? "+" : "") + num.toFixed(2);
+};
 
 const formatFileSize = (bytes) => {
-  if (!bytes) return '0 B'
-  const k = 1024
-  const sizes = ['B', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`
-}
+  if (!bytes) return "0 B";
+  const k = 1024;
+  const sizes = ["B", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+};
 
 const triggerFileInput = () => {
-  fileInputRef.value?.click()
-}
+  fileInputRef.value?.click();
+};
 
 const onFileSelected = (e) => {
-  const file = e.target.files?.[0]
-  if (file) processFile(file)
-}
+  const file = e.target.files?.[0];
+  if (file) processFile(file);
+};
 
 const onDrop = (e) => {
-  dragOver.value = false
-  const file = e.dataTransfer.files?.[0]
-  if (file) processFile(file)
-}
+  dragOver.value = false;
+  const file = e.dataTransfer.files?.[0];
+  if (file) processFile(file);
+};
 
 const processFile = (file) => {
-  const isExtValid = /\.(xlsx|xls|csv)$/i.test(file.name)
+  const isExtValid = /\.(xlsx|xls|csv)$/i.test(file.name);
   if (!isExtValid) {
-    snackbar.show('Please upload an Excel (.xlsx, .xls) or CSV file.', 'error')
-    return
+    snackbar.show("Please upload an Excel (.xlsx, .xls) or CSV file.", "error");
+    return;
   }
 
-  selectedFile.value = file
-  isParsing.value = true
-  parseError.value = null
-  previewRows.value = []
+  selectedFile.value = file;
+  isParsing.value = true;
+  parseError.value = null;
+  previewRows.value = [];
 
-  const reader = new FileReader()
+  const reader = new FileReader();
   reader.onload = (e) => {
     try {
-      const data = new Uint8Array(e.target.result)
-      const workbook = XLSX.read(data, { type: 'array' })
-      const firstSheetName = workbook.SheetNames[0]
-      const worksheet = workbook.Sheets[firstSheetName]
-      const json = XLSX.utils.sheet_to_json(worksheet, { defval: '' })
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: "array" });
+      const firstSheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[firstSheetName];
+      const json = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
 
       if (!json || json.length === 0) {
-        parseError.value = 'The uploaded spreadsheet contains no data rows.'
-        isParsing.value = false
-        return
+        parseError.value = "The uploaded spreadsheet contains no data rows.";
+        isParsing.value = false;
+        return;
       }
 
-      previewRows.value = json
-      isParsing.value = false
+      previewRows.value = json;
+      isParsing.value = false;
     } catch (err) {
-      console.error('File parsing error:', err)
-      parseError.value = 'Could not parse the file. Please ensure it is a valid spreadsheet.'
-      isParsing.value = false
+      console.error("File parsing error:", err);
+      parseError.value =
+        "Could not parse the file. Please ensure it is a valid spreadsheet.";
+      isParsing.value = false;
     }
-  }
+  };
 
   reader.onerror = () => {
-    parseError.value = 'Error reading the uploaded file.'
-    isParsing.value = false
-  }
+    parseError.value = "Error reading the uploaded file.";
+    isParsing.value = false;
+  };
 
-  reader.readAsArrayBuffer(file)
-}
+  reader.readAsArrayBuffer(file);
+};
 
 const clearFile = () => {
-  selectedFile.value = null
-  previewRows.value = []
-  parseError.value = null
-  if (fileInputRef.value) fileInputRef.value.value = ''
-}
+  selectedFile.value = null;
+  previewRows.value = [];
+  parseError.value = null;
+  if (fileInputRef.value) fileInputRef.value.value = "";
+};
 
 const handleClose = () => {
-  if (isSubmitting.value) return
-  clearFile()
-  emit('close')
-}
+  if (isSubmitting.value) return;
+  clearFile();
+  emit("close");
+};
 
 // Download Sample Template matching the exact screenshot
 const downloadTemplate = () => {
@@ -671,29 +833,29 @@ const downloadTemplate = () => {
       opened_at: "2026-08-14 08:30:00",
       closed_at: "",
     },
-  ]
+  ];
 
-  const ws = XLSX.utils.json_to_sheet(sampleData)
-  const wb = XLSX.utils.book_new()
-  XLSX.utils.book_append_sheet(wb, ws, "Dummy Trades")
-  XLSX.writeFile(wb, "dummy_trades_template.xlsx")
-}
+  const ws = XLSX.utils.json_to_sheet(sampleData);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Dummy Trades");
+  XLSX.writeFile(wb, "dummy_trades_template.xlsx");
+};
 
 // Handle Import Submit
 const handleImportSubmit = async () => {
-  if (!selectedFile.value || !fmId.value || fmId.value === '—') return
+  if (!selectedFile.value || !fmId.value || fmId.value === "—") return;
 
-  isSubmitting.value = true
+  isSubmitting.value = true;
   try {
-    await store.importDummyTrades(fmId.value, selectedFile.value)
-    emit('success')
-    handleClose()
+    await store.importDummyTrades(fmId.value, selectedFile.value);
+    emit("success");
+    handleClose();
   } catch (_) {
     // Error snackbar handled by store
   } finally {
-    isSubmitting.value = false
+    isSubmitting.value = false;
   }
-}
+};
 </script>
 
 <style scoped>
@@ -716,7 +878,8 @@ const handleImportSubmit = async () => {
 }
 
 @keyframes bounce-slow {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {
