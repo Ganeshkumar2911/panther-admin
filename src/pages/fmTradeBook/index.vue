@@ -2,7 +2,7 @@
   <div class="space-y-6 pb-12">
     <!-- TOP HEADER / BREADCRUMB CARD -->
     <div
-      class="bg-card-background border border-primary-border rounded-lg p-5 shadow-2xs"
+      class="bg-card-background border border-primary-border rounded-lg p-5 "
     >
       <div
         class="flex flex-col md:flex-row md:items-center justify-between gap-4"
@@ -79,7 +79,7 @@
         <!-- Right Quick Actions -->
         <div class="flex items-center gap-2.5 shrink-0 flex-wrap">
           <button
-            class="p-2 rounded-lg border border-primary-border bg-background text-secondary-text hover:text-primary-text hover:bg-card-background transition-colors cursor-pointer shadow-2xs"
+            class="p-2 rounded-lg border border-primary-border bg-background text-secondary-text hover:text-primary-text hover:bg-card-background transition-colors cursor-pointer "
             :disabled="store.isLoading || store.isRefreshing"
             @click="store.fetchTradesData(true)"
             title="Refresh Data"
@@ -595,7 +595,7 @@
 
     <!-- TABS BAR & FILTERS SECTION -->
     <div
-      class="bg-card-background border border-primary-border rounded-lg p-4 space-y-4 shadow-2xs"
+      class="bg-card-background border border-primary-border rounded-lg p-4 space-y-4 "
     >
       <!-- Tabs Switcher -->
       <div
@@ -604,7 +604,7 @@
         <!-- For FM Master Trade Book: Show Single Master Trades Tab -->
         <div v-if="!isFollowerMode" class="flex items-center gap-1.5">
           <div
-            class="px-3.5 py-1.5 rounded-lg text-xs font-bold inline-flex items-center gap-2 bg-primary text-white shadow-xs"
+            class="px-3.5 py-1.5 rounded-lg text-xs font-bold inline-flex items-center gap-2 bg-primary text-white "
           >
             <Layers class="w-3.5 h-3.5" />
             <span>Master Trades</span>
@@ -630,7 +630,7 @@
             class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-2"
             :class="
               store.activeTab === 'positions'
-                ? 'bg-primary text-white shadow-xs'
+                ? 'bg-primary text-white '
                 : 'bg-background border border-primary-border text-secondary-text hover:text-primary-text'
             "
             @click="store.setActiveTab('positions')"
@@ -653,7 +653,7 @@
             class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-2"
             :class="
               store.activeTab === 'orders'
-                ? 'bg-primary text-white shadow-xs'
+                ? 'bg-primary text-white '
                 : 'bg-background border border-primary-border text-secondary-text hover:text-primary-text'
             "
             @click="store.setActiveTab('orders')"
@@ -676,7 +676,7 @@
             class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-2"
             :class="
               store.activeTab === 'deals'
-                ? 'bg-primary text-white shadow-xs'
+                ? 'bg-primary text-white '
                 : 'bg-background border border-primary-border text-secondary-text hover:text-primary-text'
             "
             @click="store.setActiveTab('deals')"
@@ -758,7 +758,7 @@
         <!-- Reset Filter Button -->
         <button
           v-if="hasActiveFilters"
-          class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg text-secondary-text hover:text-primary-text bg-background border border-primary-border hover:border-primary/40 transition-colors cursor-pointer shadow-2xs shrink-0"
+          class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg text-secondary-text hover:text-primary-text bg-background border border-primary-border hover:border-primary/40 transition-colors cursor-pointer  shrink-0"
           @click="handleResetFilters"
         >
           <RotateCcw class="w-3.5 h-3.5" />
