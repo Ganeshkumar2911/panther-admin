@@ -783,6 +783,7 @@
             >
               <th class="py-3 px-4">Ticket / Position ID</th>
               <th class="py-3 px-3">Account</th>
+              <th class="py-3 px-3">Broker Group</th>
               <th class="py-3 px-3">Symbol</th>
               <th class="py-3 px-3">Type</th>
               <th class="py-3 px-3">Status</th>
@@ -798,7 +799,7 @@
           <tbody class="divide-y divide-primary-border/60">
             <template v-if="store.isLoading">
               <tr v-for="n in 5" :key="n" class="animate-pulse">
-                <td v-for="c in 11" :key="c" class="py-4 px-3">
+                <td v-for="c in 12" :key="c" class="py-4 px-3">
                   <div class="h-4 bg-background rounded w-3/4" />
                 </td>
               </tr>
@@ -806,7 +807,7 @@
 
             <template v-else-if="store.positions.length === 0">
               <tr>
-                <td colspan="11" class="py-16 px-4 text-center">
+                <td colspan="12" class="py-16 px-4 text-center">
                   <div
                     class="flex flex-col items-center justify-center max-w-sm mx-auto space-y-2 text-secondary-text"
                   >
@@ -839,6 +840,9 @@
                 </td>
                 <td class="py-3 px-3 font-mono font-bold text-primary-text">
                   {{ item.account_number || "-" }}
+                </td>
+                <td class="py-3 px-3 font-mono text-secondary-text">
+                  {{ item.broker_group || "-" }}
                 </td>
                 <td class="py-3 px-3 font-bold text-primary-text">
                   {{ item.symbol || "-" }}
@@ -1109,6 +1113,7 @@
               <th class="py-3 px-3">Position Ticket</th>
               <th class="py-3 px-3">Order Ticket</th>
               <th class="py-3 px-3">Account</th>
+              <th class="py-3 px-3">Broker Group</th>
               <th class="py-3 px-3">Symbol</th>
               <th class="py-3 px-3">Action</th>
               <th class="py-3 px-3">Entry</th>
@@ -1128,7 +1133,7 @@
           <tbody class="divide-y divide-primary-border/60">
             <template v-if="store.isLoading">
               <tr v-for="n in 5" :key="n" class="animate-pulse">
-                <td v-for="c in 13" :key="c" class="py-4 px-3">
+                <td v-for="c in 14" :key="c" class="py-4 px-3">
                   <div class="h-4 bg-background rounded w-3/4" />
                 </td>
               </tr>
@@ -1136,7 +1141,7 @@
 
             <template v-else-if="store.deals.length === 0">
               <tr>
-                <td colspan="13" class="py-16 px-4 text-center">
+                <td colspan="14" class="py-16 px-4 text-center">
                   <div
                     class="flex flex-col items-center justify-center max-w-sm mx-auto space-y-2 text-secondary-text"
                   >
@@ -1175,6 +1180,9 @@
                 </td>
                 <td class="py-3 px-3 font-mono font-bold text-primary-text">
                   {{ deal.account_number || "-" }}
+                </td>
+                <td class="py-3 px-3 font-mono text-secondary-text">
+                  {{ deal.broker_group || "-" }}
                 </td>
                 <td class="py-3 px-3 font-bold text-primary-text">
                   {{ deal.symbol || "-" }}
