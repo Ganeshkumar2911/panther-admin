@@ -8,30 +8,31 @@
         <div class="relative w-full sm:w-64">
           <Search class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-secondary-text" />
           <input
-            v-model="searchQuery"
+            v-model="store.filters.search"
             type="text"
-            placeholder="Search methods, gateways..."
+            placeholder="Search by wallet label..."
             class="w-full pl-8 pr-7 py-2 bg-card-background border border-primary-border rounded-lg text-xs text-primary-text placeholder:text-secondary-text/60 outline-none focus:border-primary transition-all shadow-2xs"
+            @input="onSearchInput"
           />
           <button
-            v-if="searchQuery"
+            v-if="store.filters.search"
             class="absolute right-2 top-1/2 -translate-y-1/2 text-secondary-text hover:text-primary-text p-0.5 cursor-pointer"
-            @click="searchQuery = ''"
+            @click="clearSearch"
           >
             <X class="w-3 h-3" />
           </button>
         </div>
 
-        <!-- Gateway Filter Pills -->
-        <div class="hidden md:flex items-center p-0.5 bg-card-background border border-primary-border rounded-lg text-xs">
+        <!-- Method Type Filter Pills -->
+        <div class="hidden md:flex flex-wrap items-center p-0.5 bg-card-background border border-primary-border rounded-lg text-xs">
           <button
-            v-for="filter in gatewayFilters"
+            v-for="filter in METHOD_TYPES"
             :key="filter.value"
             class="px-2.5 py-1 rounded-md font-medium transition cursor-pointer"
-            :class="selectedGatewayFilter === filter.value
+            :class="store.filters.method_type === filter.value
               ? 'bg-primary text-white font-semibold shadow-2xs'
               : 'text-secondary-text hover:text-primary-text'"
-            @click="selectedGatewayFilter = filter.value"
+            @click="onMethodTypeChange(filter.value)"
           >
             {{ filter.label }}
           </button>
@@ -90,14 +91,14 @@
     </div>
 
     <!-- Empty State -->
-    <div v-else-if="filteredRecords.length === 0" class="flex flex-col items-center gap-4 py-20 bg-card-background border border-dashed border-primary-border rounded-2xl">
+    <div v-else-if="store.records.length === 0" class="flex flex-col items-center gap-4 py-20 bg-card-background border border-dashed border-primary-border rounded-2xl">
       <div class="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
         <Wallet class="w-6 h-6" />
       </div>
       <div class="text-center space-y-1">
         <p class="text-sm font-bold text-primary-text">No payment methods found</p>
         <p class="text-xs text-secondary-text max-w-sm mx-auto">
-          {{ searchQuery ? 'No methods match your search filter.' : 'Create payment methods or aggregator gateways to start accepting client deposits and payouts.' }}
+          {{ store.filters.search || store.filters.method_type ? 'No methods match your search filter.' : 'Create payment methods or aggregator gateways to start accepting client deposits and payouts.' }}
         </p>
       </div>
       <button
@@ -113,7 +114,7 @@
     <!-- Payment Method Cards Grid -->
     <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4.5">
       <div
-        v-for="record in filteredRecords"
+        v-for="record in store.records"
         :key="record.id"
         class="bg-card-background border border-primary-border rounded-2xl p-5 flex flex-col justify-between gap-4.5 transition-all duration-200 group relative shadow-2xs hover:shadow-md"
       >
@@ -436,18 +437,36 @@ const isCurrencyDrawerOpen = ref(false)
 const isEditDialogOpen = ref(false)
 const selectedPaymentMethod = ref(null)
 
-// ── Search & Filter State ──
-const searchQuery = ref('')
-const selectedGatewayFilter = ref('all')
-
-const gatewayFilters = [
-  { label: 'All', value: 'all' },
-  { label: 'Paymaxis', value: 'paymaxis' },
-  { label: 'UPI', value: 'upi' },
-  { label: 'Bank', value: 'bank' },
-  { label: 'Crypto', value: 'crypto' },
-  { label: 'Internal', value: 'internal' },
+const METHOD_TYPES = [
+  { value: "", label: "All types" },
+  { value: "crypto", label: "Crypto" },
+  { value: "upi", label: "UPI" },
+  { value: "bank", label: "Bank" },
+  { value: "bank_transfer", label: "Bank transfer" },
+  { value: "wallet", label: "Wallet" },
+  { value: "card", label: "Card" },
+  { value: "internal_transfer", label: "Internal transfer" },
 ]
+
+let searchTimeout = null
+const onSearchInput = () => {
+  if (searchTimeout) clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(() => {
+    store.pagination.page = 1
+    store.fetchPaymentMethods(true)
+  }, 300)
+}
+
+const clearSearch = () => {
+  store.filters.search = ''
+  onSearchInput()
+}
+
+const onMethodTypeChange = (val) => {
+  store.filters.method_type = val
+  store.pagination.page = 1
+  store.fetchPaymentMethods(true)
+}
 
 // ── Inline Edit Label State ──
 const editingId = ref(null)
@@ -455,29 +474,6 @@ const editingLabel = ref('')
 const savingId = ref(null)
 const labelInput = ref(null)
 const togglingId = ref(null)
-
-// ── Computed Filtered Records ──
-const filteredRecords = computed(() => {
-  let list = store.records || []
-
-  if (selectedGatewayFilter.value !== 'all') {
-    list = list.filter((r) => (r.gateway || '').toLowerCase() === selectedGatewayFilter.value.toLowerCase())
-  }
-
-  const q = searchQuery.value.trim().toLowerCase()
-  if (q) {
-    list = list.filter(
-      (r) =>
-        (r.wallet_label && r.wallet_label.toLowerCase().includes(q)) ||
-        (r.gateway && r.gateway.toLowerCase().includes(q)) ||
-        (r.method_type && r.method_type.toLowerCase().includes(q)) ||
-        (r.payment_method_code && r.payment_method_code.toLowerCase().includes(q)) ||
-        (r.remarks && r.remarks.toLowerCase().includes(q))
-    )
-  }
-
-  return list
-})
 
 // ── Handlers ──
 const handleOpenEdit = (record) => {

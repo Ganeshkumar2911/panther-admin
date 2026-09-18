@@ -768,523 +768,237 @@
     </div>
 
     <!-- MAIN DATA TABLE -->
-    <div
-      class="bg-card-background border border-primary-border rounded-lg overflow-hidden shadow-2xs"
-    >
+    
       <div class="overflow-x-auto">
+
         <!-- 1. POSITIONS TABLE (Used for both FM Master Trades and Follower Positions) -->
-        <table
+        <DataTable
           v-if="store.activeTab === 'positions'"
-          class="w-full border-collapse text-left text-xs min-w-240"
-        >
-          <thead>
-            <tr
-              class="border-b border-primary-border bg-background/60 text-secondary-text font-bold uppercase tracking-wider text-[10px]"
-            >
-              <th class="py-3 px-4">Ticket / Position ID</th>
-              <th class="py-3 px-3">Account</th>
-              <th class="py-3 px-3">Broker Group</th>
-              <th class="py-3 px-3">Symbol</th>
-              <th class="py-3 px-3">Type</th>
-              <th class="py-3 px-3">Status</th>
-              <th class="py-3 px-3 text-right">Volume (Lots)</th>
-              <th class="py-3 px-3 text-right">Entry Price</th>
-              <th class="py-3 px-3 text-right">Exit Price</th>
-              <th class="py-3 px-3 text-right">PnL ({{ currencySymbol }})</th>
-              <th class="py-3 px-3 text-right">Opened Time</th>
-              <th class="py-3 px-4 text-right">Closed Time</th>
-            </tr>
-          </thead>
-
-          <tbody class="divide-y divide-primary-border/60">
-            <template v-if="store.isLoading">
-              <tr v-for="n in 5" :key="n" class="animate-pulse">
-                <td v-for="c in 12" :key="c" class="py-4 px-3">
-                  <div class="h-4 bg-background rounded w-3/4" />
-                </td>
-              </tr>
-            </template>
-
-            <template v-else-if="store.positions.length === 0">
-              <tr>
-                <td colspan="12" class="py-16 px-4 text-center">
-                  <div
-                    class="flex flex-col items-center justify-center max-w-sm mx-auto space-y-2 text-secondary-text"
-                  >
-                    <BookOpen class="w-8 h-8 opacity-40 mb-1" />
-                    <p class="text-sm font-bold text-primary-text">
-                      No positions found
-                    </p>
-                    <p class="text-xs">
-                      {{
-                        hasActiveFilters
-                          ? "No positions match your current search filters."
-                          : "There are currently no position records available."
-                      }}
-                    </p>
-                  </div>
-                </td>
-              </tr>
-            </template>
-
-            <template v-else>
-              <tr
-                v-for="item in store.positions"
-                :key="item.id || item.position_ticket"
-                class="hover:bg-background/40 transition-colors"
-              >
-                <td
-                  class="py-3 px-4 font-mono font-bold text-primary select-all"
-                >
-                  #{{ item.position_ticket || item.id || "-" }}
-                </td>
-                <td class="py-3 px-3 font-mono font-bold text-primary-text">
-                  {{ item.account_number || "-" }}
-                </td>
-                <td class="py-3 px-3 font-mono text-secondary-text">
-                  {{ item.broker_group || "-" }}
-                </td>
-                <td class="py-3 px-3 font-bold text-primary-text">
-                  {{ item.symbol || "-" }}
-                </td>
-                <td class="py-3 px-3">
-                  <span
-                    class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wide border"
-                    :class="
-                      item.action_name === 'BUY' ||
-                      item.action === 0 ||
-                      item.type === 'BUY'
-                        ? 'bg-primary-green/10 text-primary-green border border-primary-green/20'
-                        : 'bg-primary-red/10 text-primary-red border border-primary-red/20'
-                    "
-                  >
-                    {{
-                      item.action_name ||
-                      (item.action === 0
-                        ? "BUY"
-                        : item.action === 1
-                          ? "SELL"
-                          : item.type || "-")
-                    }}
-                  </span>
-                </td>
-                <td class="py-3 px-3">
-                  <span
-                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide border"
-                    :class="
-                      String(item.status || '').toUpperCase() === 'OPEN'
-                        ? 'bg-primary-yellow/10 text-primary-yellow border-primary-yellow/20'
-                        : 'bg-background text-secondary-text border-primary-border'
-                    "
-                  >
-                    <span
-                      v-if="String(item.status || '').toUpperCase() === 'OPEN'"
-                      class="w-1.5 h-1.5 rounded-full bg-primary-yellow animate-pulse"
-                    />
-                    {{ item.status || (item.is_open ? "OPEN" : "CLOSED") }}
-                  </span>
-                </td>
-                <td
-                  class="py-3 px-3 text-right font-mono font-bold text-primary-text"
-                >
-                  {{ formatLot(getTradeLot(item)) }}
-                </td>
-                <td class="py-3 px-3 text-right font-mono text-secondary-text">
-                  {{
-                    formatPrice(
-                      item.price_open ??
-                        item.entry_price ??
-                        item.price_position ??
-                        item.price,
-                    )
-                  }}
-                </td>
-                <td class="py-3 px-3 text-right font-mono text-secondary-text">
-                  {{ formatPrice(item.price_close ?? item.exit_price) }}
-                </td>
-                <td class="py-3 px-3 text-right font-mono font-bold whitespace-nowrap">
-                  <span
-                    class="tabular-nums transition-colors duration-200"
-                    :class="
-                      Number(livePNL(item)) >= 0
-                        ? 'text-primary-green'
-                        : 'text-primary-red'
-                    "
-                  >
-                    {{ formatPnl(livePNL(item)) }}
-                  </span>
-                </td>
-                <td
-                  class="py-3 px-3 text-right font-medium text-secondary-text whitespace-nowrap"
-                >
-                  {{
-                  
-                      item.created_at
-                  }}
-                </td>
-                <td
-                  class="py-3 px-4 text-right font-medium text-secondary-text whitespace-nowrap"
-                >
-                  {{
-                   item.closed_at
-                  }}
-                </td>
-              </tr>
-            </template>
-          </tbody>
-        </table>
-
-        <!-- 2. ORDERS TABLE (Follower Mode) -->
-        <table
-          v-else-if="store.activeTab === 'orders'"
-          class="w-full border-collapse text-left text-xs min-w-240"
-        >
-          <thead>
-            <tr
-              class="border-b border-primary-border bg-background/60 text-secondary-text font-bold uppercase tracking-wider text-[10px]"
-            >
-              <th class="py-3 px-4">Order Ticket</th>
-              <th class="py-3 px-3">Position Ticket</th>
-              <th class="py-3 px-3">Account</th>
-              <th class="py-3 px-3">Symbol</th>
-              <th class="py-3 px-3">Side</th>
-              <th class="py-3 px-3">State</th>
-              <th class="py-3 px-3 text-right">Initial Vol</th>
-              <th class="py-3 px-3 text-right">Current Vol</th>
-              <th class="py-3 px-3 text-right">Order Price</th>
-              <th class="py-3 px-3 text-right">Current Price</th>
-              <th class="py-3 px-3 text-right">Setup Time</th>
-              <th class="py-3 px-4 text-right">Done Time</th>
-            </tr>
-          </thead>
-
-          <tbody class="divide-y divide-primary-border/60">
-            <template v-if="store.isLoading">
-              <tr v-for="n in 5" :key="n" class="animate-pulse">
-                <td v-for="c in 12" :key="c" class="py-4 px-3">
-                  <div class="h-4 bg-background rounded w-3/4" />
-                </td>
-              </tr>
-            </template>
-
-            <template v-else-if="store.orders.length === 0">
-              <tr>
-                <td colspan="12" class="py-16 px-4 text-center">
-                  <div
-                    class="flex flex-col items-center justify-center max-w-sm mx-auto space-y-2 text-secondary-text"
-                  >
-                    <Clock class="w-8 h-8 opacity-40 mb-1" />
-                    <p class="text-sm font-bold text-primary-text">
-                      No orders found
-                    </p>
-                    <p class="text-xs">
-                      {{
-                        hasActiveFilters
-                          ? "No orders match your current filters."
-                          : "There are currently no orders recorded."
-                      }}
-                    </p>
-                  </div>
-                </td>
-              </tr>
-            </template>
-
-            <template v-else>
-              <tr
-                v-for="order in store.orders"
-                :key="order.id || order.order_ticket"
-                class="hover:bg-background/40 transition-colors"
-              >
-                <td
-                  class="py-3 px-4 font-mono font-bold text-primary select-all"
-                >
-                  #{{ order.order_ticket || order.id || "-" }}
-                </td>
-                <td class="py-3 px-3 font-mono text-secondary-text">
-                  #{{ order.position_ticket || "-" }}
-                </td>
-                <td class="py-3 px-3 font-mono font-bold text-primary-text">
-                  {{ order.account_number || "-" }}
-                </td>
-                <td class="py-3 px-3 font-bold text-primary-text">
-                  {{ order.symbol || "-" }}
-                </td>
-                <td class="py-3 px-3">
-                  <span
-                    class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wide border"
-                    :class="
-                      order.type_name === 'BUY' ||
-                      order.type === 0 ||
-                      order.action_name === 'BUY'
-                        ? 'bg-primary-green/10 text-primary-green border border-primary-green/20'
-                        : 'bg-primary-red/10 text-primary-red border border-primary-red/20'
-                    "
-                  >
-                    {{
-                      order.type_name ||
-                      (order.type === 0
-                        ? "BUY"
-                        : order.type === 1
-                          ? "SELL"
-                          : order.action_name || "-")
-                    }}
-                  </span>
-                </td>
-                <td class="py-3 px-3">
-                  <Tooltip
-                    v-if="
-                      String(order.state_name || '').toUpperCase() ===
-                        'REJECTED' ||
-                      order.state === 5 ||
-                      order.reject_reason ||
-                      order.comment
-                    "
-                    :text="order.reject_reason || order.comment || 'REJECTED'"
-                    position="center"
-                  >
-                    <span
-                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide border bg-primary-red/10 text-primary-red border-primary-red/20 cursor-help"
-                    >
-                      <span>{{ order.state_name || "REJECTED" }}</span>
-                      <Info class="w-3 h-3 text-primary-red shrink-0" />
-                    </span>
-                  </Tooltip>
-                  <span
-                    v-else-if="
-                      String(order.state_name || '').toUpperCase() ===
-                        'FILLED' || order.state === 4
-                    "
-                    class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide border bg-primary-green/10 text-primary-green border border-primary-green/20"
-                  >
-                    {{ order.state_name || "FILLED" }}
-                  </span>
-                  <span
-                    v-else
-                    class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide border bg-zinc-500/10 text-zinc-400 border-zinc-500/20"
-                  >
-                    {{ order.state_name || order.state || "-" }}
-                  </span>
-                </td>
-                <td
-                  class="py-3 px-3 text-right font-mono font-bold text-primary-text"
-                >
-                  {{ formatLot(getTradeLot(order)) }}
-                </td>
-                <td class="py-3 px-3 text-right font-mono text-secondary-text">
-                  {{
-                    formatLot(order.volume_current ?? order.volume_closed ?? 0)
-                  }}
-                </td>
-                <td class="py-3 px-3 text-right font-mono text-secondary-text">
-                  {{ formatPrice(order.price_order ?? order.price) }}
-                </td>
-                <td class="py-3 px-3 text-right font-mono text-secondary-text">
-                  {{ formatPrice(order.price_current ?? order.price_position) }}
-                </td>
-                <td
-                  class="py-3 px-3 text-right font-medium text-secondary-text whitespace-nowrap"
-                >
-                  {{ order.time_setup || order.created_at }}
-                </td>
-                <td
-                  class="py-3 px-4 text-right font-medium text-secondary-text whitespace-nowrap"
-                >
-                  {{
-                    order.time_done || order.closed_at
-                      ? order.time_done || order.closed_at
-                      : "-"
-                  }}
-                </td>
-              </tr>
-            </template>
-          </tbody>
-        </table>
-
-        <!-- 3. DEALS HISTORY TABLE (Follower Mode) -->
-        <table
-          v-else-if="store.activeTab === 'deals'"
-          class="w-full border-collapse text-left text-xs min-w-240"
-        >
-          <thead>
-            <tr
-              class="border-b border-primary-border bg-background/60 text-secondary-text font-bold uppercase tracking-wider text-[10px]"
-            >
-              <th class="py-3 px-4">Deal Ticket</th>
-              <th class="py-3 px-3">Position Ticket</th>
-              <th class="py-3 px-3">Order Ticket</th>
-              <th class="py-3 px-3">Account</th>
-              <th class="py-3 px-3">Broker Group</th>
-              <th class="py-3 px-3">Symbol</th>
-              <th class="py-3 px-3">Action</th>
-              <th class="py-3 px-3">Entry</th>
-              <th class="py-3 px-3 text-right">Volume</th>
-              <th class="py-3 px-3 text-right">Deal Price</th>
-              <th class="py-3 px-3 text-right">Position Price</th>
-              <th class="py-3 px-3 text-right">
-                Profit ({{ currencySymbol }})
-              </th>
-              <th class="py-3 px-3 text-right">
-                Commission / Fee ({{ currencySymbol }})
-              </th>
-              <th class="py-3 px-4 text-right">Time</th>
-            </tr>
-          </thead>
-
-          <tbody class="divide-y divide-primary-border/60">
-            <template v-if="store.isLoading">
-              <tr v-for="n in 5" :key="n" class="animate-pulse">
-                <td v-for="c in 14" :key="c" class="py-4 px-3">
-                  <div class="h-4 bg-background rounded w-3/4" />
-                </td>
-              </tr>
-            </template>
-
-            <template v-else-if="store.deals.length === 0">
-              <tr>
-                <td colspan="14" class="py-16 px-4 text-center">
-                  <div
-                    class="flex flex-col items-center justify-center max-w-sm mx-auto space-y-2 text-secondary-text"
-                  >
-                    <CheckCircle2 class="w-8 h-8 opacity-40 mb-1" />
-                    <p class="text-sm font-bold text-primary-text">
-                      No deal history found
-                    </p>
-                    <p class="text-xs">
-                      {{
-                        hasActiveFilters
-                          ? "No deals match your current filters."
-                          : "There are currently no deals recorded."
-                      }}
-                    </p>
-                  </div>
-                </td>
-              </tr>
-            </template>
-
-            <template v-else>
-              <tr
-                v-for="deal in store.deals"
-                :key="deal.id || deal.deal_ticket"
-                class="hover:bg-background/40 transition-colors"
-              >
-                <td
-                  class="py-3 px-4 font-mono font-bold text-primary select-all"
-                >
-                  #{{ deal.deal_ticket || deal.id || "-" }}
-                </td>
-                <td class="py-3 px-3 font-mono text-secondary-text">
-                  #{{ deal.position_ticket || "-" }}
-                </td>
-                <td class="py-3 px-3 font-mono text-secondary-text">
-                  #{{ deal.order_ticket || "-" }}
-                </td>
-                <td class="py-3 px-3 font-mono font-bold text-primary-text">
-                  {{ deal.account_number || "-" }}
-                </td>
-                <td class="py-3 px-3 font-mono text-secondary-text">
-                  {{ deal.broker_group || "-" }}
-                </td>
-                <td class="py-3 px-3 font-bold text-primary-text">
-                  {{ deal.symbol || "-" }}
-                </td>
-                <td class="py-3 px-3">
-                  <span
-                    class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wide border"
-                    :class="
-                      deal.action_name === 'BUY' || deal.action === 0
-                        ? 'bg-primary-green/10 text-primary-green border border-primary-green/20'
-                        : 'bg-primary-red/10 text-primary-red border border-primary-red/20'
-                    "
-                  >
-                    {{
-                      deal.action_name ||
-                      (deal.action === 0
-                        ? "BUY"
-                        : deal.action === 1
-                          ? "SELL"
-                          : "-")
-                    }}
-                  </span>
-                </td>
-                <td class="py-3 px-3">
-                  <span
-                    class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide border"
-                    :class="
-                      deal.entry_name === 'IN' || deal.entry === 0
-                        ? 'bg-primary-blue/10 text-primary-blue border border-primary-blue/20'
-                        : 'bg-purple-500/10 text-purple-500 border border-purple-500/20'
-                    "
-                  >
-                    {{
-                      deal.entry_name ||
-                      (deal.entry === 0 ? "IN" : deal.entry === 1 ? "OUT" : "-")
-                    }}
-                  </span>
-                </td>
-                <td
-                  class="py-3 px-3 text-right font-mono font-bold text-primary-text"
-                >
-                  {{ formatLot(getTradeLot(deal)) }}
-                </td>
-                <td class="py-3 px-3 text-right font-mono text-secondary-text">
-                  {{ formatPrice(deal.price) }}
-                </td>
-                <td class="py-3 px-3 text-right font-mono text-secondary-text">
-                  {{ formatPrice(deal.price_position) }}
-                </td>
-                <td class="py-3 px-3 text-right font-mono font-bold">
-                  <span
-                    :class="
-                      Number(deal.profit ?? deal.profit_raw ?? 0) >= 0
-                        ? 'text-primary-green'
-                        : 'text-primary-red'
-                    "
-                  >
-                    {{ formatPnl(deal.profit ?? deal.profit_raw) }}
-                  </span>
-                </td>
-                <td class="py-3 px-3 text-right font-mono text-secondary-text">
-                  {{ formatCurrency(deal.commission || deal.fee || 0) }}
-                </td>
-                <td
-                  class="py-3 px-4 text-right font-medium text-secondary-text whitespace-nowrap"
-                >
-                  {{ formatDate(deal.time) }}
-                </td>
-              </tr>
-            </template>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Table Bottom Summary & Pagination Bar -->
-      <div
-        class="px-5 py-3.5 border-t border-primary-border bg-background/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
-      >
-        <div class="text-secondary-text font-medium">
-          Showing
-          <strong class="text-primary-text font-mono">{{
-            currentTableCount
-          }}</strong>
-          entries
-          <span v-if="store.pagination.total_items > 0">
-            of
-            <strong class="text-primary-text font-mono">{{
-              store.pagination.total_items
-            }}</strong>
-            total
-          </span>
-        </div>
-
-        <!-- Pagination Controls -->
-        <Pagination
-          v-if="store.pagination.total_pages > 1"
+          :columns="positionsColumns"
+          :data="store.positions"
+          :loading="store.isLoading"
           :pagination="store.pagination"
           @page-change="store.setPage"
-        />
+          @per-page-change="store.setPerPage"
+          empty-title="No positions found"
+          empty-text="There are currently no position records available."
+        >
+          <template #cell-ticket="{ row: item }">
+            <span class="font-mono font-bold text-primary select-all">#{{ item.position_ticket || item.id || "-" }}</span>
+          </template>
+          <template #cell-account="{ row: item }">
+            <span class="font-mono font-bold text-primary-text">{{ item.account_number || "-" }}</span>
+          </template>
+          <template #cell-broker_group="{ row: item }">
+            <span class="font-mono text-secondary-text">{{ item.broker_group || "-" }}</span>
+          </template>
+          <template #cell-symbol="{ row: item }">
+            <span class="font-bold text-primary-text">{{ item.symbol || "-" }}</span>
+          </template>
+          <template #cell-type="{ row: item }">
+            <span
+              class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wide border"
+              :class="
+                item.action_name === 'BUY' || item.action === 0 || item.type === 'BUY'
+                  ? 'bg-primary-green/10 text-primary-green border border-primary-green/20'
+                  : 'bg-primary-red/10 text-primary-red border border-primary-red/20'
+              "
+            >
+              {{ item.action_name || (item.action === 0 ? "BUY" : item.action === 1 ? "SELL" : item.type || "-") }}
+            </span>
+          </template>
+          <template #cell-status="{ row: item }">
+            <span
+              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide border"
+              :class="
+                String(item.status || '').toUpperCase() === 'OPEN'
+                  ? 'bg-primary-yellow/10 text-primary-yellow border-primary-yellow/20'
+                  : 'bg-background text-secondary-text border-primary-border'
+              "
+            >
+              <span v-if="String(item.status || '').toUpperCase() === 'OPEN'" class="w-1.5 h-1.5 rounded-full bg-primary-yellow animate-pulse" />
+              {{ item.status || (item.is_open ? "OPEN" : "CLOSED") }}
+            </span>
+          </template>
+          <template #cell-volume="{ row: item }">
+            <span class="font-mono font-bold text-primary-text">{{ formatLot(getTradeLot(item)) }}</span>
+          </template>
+          <template #cell-entry_price="{ row: item }">
+            <span class="font-mono text-secondary-text">{{ formatPrice(item.price_open ?? item.entry_price ?? item.price_position ?? item.price) }}</span>
+          </template>
+          <template #cell-exit_price="{ row: item }">
+            <span class="font-mono text-secondary-text">{{ formatPrice(item.price_close ?? item.exit_price) }}</span>
+          </template>
+          <template #cell-pnl="{ row: item }">
+            <span class="tabular-nums transition-colors duration-200 font-mono font-bold whitespace-nowrap" :class="Number(livePNL(item)) >= 0 ? 'text-primary-green' : 'text-primary-red'">
+              {{ formatPnl(livePNL(item)) }}
+            </span>
+          </template>
+          <template #cell-opened="{ row: item }">
+            <span class="font-medium text-secondary-text whitespace-nowrap">{{ item.created_at }}</span>
+          </template>
+          <template #cell-closed="{ row: item }">
+            <span class="font-medium text-secondary-text whitespace-nowrap">{{ item.closed_at }}</span>
+          </template>
+        </DataTable>
+
+        <!-- 2. ORDERS TABLE (Follower Mode) -->
+        <DataTable
+          v-else-if="store.activeTab === 'orders'"
+          :columns="ordersColumns"
+          :data="store.orders"
+          :loading="store.isLoading"
+          :pagination="store.pagination"
+          @page-change="store.setPage"
+          @per-page-change="store.setPerPage"
+          empty-title="No orders found"
+          empty-text="There are currently no orders recorded."
+        >
+          <template #cell-order_ticket="{ row: order }">
+            <span class="font-mono font-bold text-primary select-all">#{{ order.order_ticket || order.id || "-" }}</span>
+          </template>
+          <template #cell-position_ticket="{ row: order }">
+            <span class="font-mono text-secondary-text">#{{ order.position_ticket || "-" }}</span>
+          </template>
+          <template #cell-account="{ row: order }">
+            <span class="font-mono font-bold text-primary-text">{{ order.account_number || "-" }}</span>
+          </template>
+          <template #cell-symbol="{ row: order }">
+            <span class="font-bold text-primary-text">{{ order.symbol || "-" }}</span>
+          </template>
+          <template #cell-side="{ row: order }">
+            <span
+              class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wide border"
+              :class="
+                order.type_name === 'BUY' || order.type === 0 || order.action_name === 'BUY'
+                  ? 'bg-primary-green/10 text-primary-green border border-primary-green/20'
+                  : 'bg-primary-red/10 text-primary-red border border-primary-red/20'
+              "
+            >
+              {{ order.type_name || (order.type === 0 ? "BUY" : order.type === 1 ? "SELL" : order.action_name || "-") }}
+            </span>
+          </template>
+          <template #cell-state="{ row: order }">
+            <Tooltip
+              v-if="String(order.state_name || '').toUpperCase() === 'REJECTED' || order.state === 5 || order.reject_reason || order.comment"
+              :text="order.reject_reason || order.comment || 'REJECTED'"
+              position="center"
+            >
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide border bg-primary-red/10 text-primary-red border-primary-red/20 cursor-help">
+                <span>{{ order.state_name || "REJECTED" }}</span>
+                <Info class="w-3 h-3 text-primary-red shrink-0" />
+              </span>
+            </Tooltip>
+            <span
+              v-else-if="String(order.state_name || '').toUpperCase() === 'FILLED' || order.state === 4"
+              class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide border bg-primary-green/10 text-primary-green border border-primary-green/20"
+            >
+              {{ order.state_name || "FILLED" }}
+            </span>
+            <span v-else class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide border bg-zinc-500/10 text-zinc-400 border-zinc-500/20">
+              {{ order.state_name || order.state || "-" }}
+            </span>
+          </template>
+          <template #cell-initial_vol="{ row: order }">
+            <span class="font-mono font-bold text-primary-text">{{ formatLot(getTradeLot(order)) }}</span>
+          </template>
+          <template #cell-current_vol="{ row: order }">
+            <span class="font-mono text-secondary-text">{{ formatLot(order.volume_current ?? order.volume_closed ?? 0) }}</span>
+          </template>
+          <template #cell-order_price="{ row: order }">
+            <span class="font-mono text-secondary-text">{{ formatPrice(order.price_order ?? order.price) }}</span>
+          </template>
+          <template #cell-current_price="{ row: order }">
+            <span class="font-mono text-secondary-text">{{ formatPrice(order.price_current ?? order.price_position) }}</span>
+          </template>
+          <template #cell-setup_time="{ row: order }">
+            <span class="font-medium text-secondary-text whitespace-nowrap">{{ order.time_setup || order.created_at }}</span>
+          </template>
+          <template #cell-done_time="{ row: order }">
+            <span class="font-medium text-secondary-text whitespace-nowrap">{{ order.time_done || order.closed_at ? order.time_done || order.closed_at : "-" }}</span>
+          </template>
+        </DataTable>
+
+        <!-- 3. DEALS / HISTORY TABLE -->
+        <DataTable
+          v-else-if="store.activeTab === 'deals'"
+          :columns="dealsColumns"
+          :data="store.deals"
+          :loading="store.isLoading"
+          :pagination="store.pagination"
+          @page-change="store.setPage"
+          @per-page-change="store.setPerPage"
+          empty-title="No deal history found"
+          empty-text="There are currently no deals recorded."
+        >
+          <template #cell-deal_ticket="{ row: deal }">
+            <span class="font-mono font-bold text-primary select-all">#{{ deal.deal_ticket || deal.id || "-" }}</span>
+          </template>
+          <template #cell-position_ticket="{ row: deal }">
+            <span class="font-mono text-secondary-text">#{{ deal.position_ticket || "-" }}</span>
+          </template>
+          <template #cell-order_ticket="{ row: deal }">
+            <span class="font-mono text-secondary-text">#{{ deal.order_ticket || "-" }}</span>
+          </template>
+          <template #cell-account="{ row: deal }">
+            <span class="font-mono font-bold text-primary-text">{{ deal.account_number || "-" }}</span>
+          </template>
+          <template #cell-broker_group="{ row: deal }">
+            <span class="font-mono text-secondary-text">{{ deal.broker_group || "-" }}</span>
+          </template>
+          <template #cell-symbol="{ row: deal }">
+            <span class="font-bold text-primary-text">{{ deal.symbol || "-" }}</span>
+          </template>
+          <template #cell-action="{ row: deal }">
+            <span
+              class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wide border"
+              :class="
+                deal.action_name === 'BUY' || deal.action === 0
+                  ? 'bg-primary-green/10 text-primary-green border border-primary-green/20'
+                  : 'bg-primary-red/10 text-primary-red border border-primary-red/20'
+              "
+            >
+              {{ deal.action_name || (deal.action === 0 ? "BUY" : deal.action === 1 ? "SELL" : "-") }}
+            </span>
+          </template>
+          <template #cell-entry="{ row: deal }">
+            <span
+              class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide border"
+              :class="
+                deal.entry_name === 'IN' || deal.entry === 0
+                  ? 'bg-primary-blue/10 text-primary-blue border border-primary-blue/20'
+                  : 'bg-purple-500/10 text-purple-500 border border-purple-500/20'
+              "
+            >
+              {{ deal.entry_name || (deal.entry === 0 ? "IN" : deal.entry === 1 ? "OUT" : "-") }}
+            </span>
+          </template>
+          <template #cell-volume="{ row: deal }">
+            <span class="font-mono font-bold text-primary-text">{{ formatLot(getTradeLot(deal)) }}</span>
+          </template>
+          <template #cell-deal_price="{ row: deal }">
+            <span class="font-mono text-secondary-text">{{ formatPrice(deal.price) }}</span>
+          </template>
+          <template #cell-position_price="{ row: deal }">
+            <span class="font-mono text-secondary-text">{{ formatPrice(deal.price_position) }}</span>
+          </template>
+          <template #cell-profit="{ row: deal }">
+            <span class="font-mono font-bold whitespace-nowrap" :class="Number(deal.profit ?? deal.profit_raw ?? 0) >= 0 ? 'text-primary-green' : 'text-primary-red'">
+              {{ formatPnl(deal.profit ?? deal.profit_raw) }}
+            </span>
+          </template>
+          <template #cell-commission="{ row: deal }">
+            <span class="font-mono text-secondary-text">{{ formatCurrency(deal.commission || deal.fee || 0) }}</span>
+          </template>
+          <template #cell-time="{ row: deal }">
+            <span class="font-medium text-secondary-text whitespace-nowrap">{{ formatDate(deal.time) }}</span>
+          </template>
+        </DataTable>
       </div>
+
+
     </div>
-  </div>
+
 </template>
 
 <script setup>
@@ -1308,6 +1022,7 @@ import {
   Info,
 } from "lucide-vue-next";
 import { useFmTradeBookStore } from "@/stores/fmTradeBook/fmTradeBook";
+import DataTable from "@/components/common/DataTable/DataTable.vue";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import BaseDatePicker from "@/components/common/BaseDatePicker.vue";
 import Pagination from "@/components/common/Pagination.vue";
@@ -1632,6 +1347,56 @@ const activeCurrency = computed(() => {
 
 const isUsc = computed(() => activeCurrency.value === "USC");
 const currencySymbol = computed(() => (isUsc.value ? "USC" : "$"));
+
+
+const positionsColumns = computed(() => [
+  { key: 'ticket', label: 'Ticket / Position ID' },
+  { key: 'account', label: 'Account' },
+  { key: 'broker_group', label: 'Broker Group' },
+  { key: 'symbol', label: 'Symbol' },
+  { key: 'type', label: 'Type' },
+  { key: 'status', label: 'Status' },
+  { key: 'volume', label: 'Volume (Lots)', align: 'right' },
+  { key: 'entry_price', label: 'Entry Price', align: 'right' },
+  { key: 'exit_price', label: 'Exit Price', align: 'right' },
+  { key: 'pnl', label: `PnL (${currencySymbol.value})`, align: 'right' },
+  { key: 'opened', label: 'Opened Time', align: 'right' },
+  { key: 'closed', label: 'Closed Time', align: 'right' },
+]);
+
+const ordersColumns = computed(() => [
+  { key: 'order_ticket', label: 'Order Ticket' },
+  { key: 'position_ticket', label: 'Position Ticket' },
+  { key: 'account', label: 'Account' },
+  { key: 'symbol', label: 'Symbol' },
+  { key: 'side', label: 'Side' },
+  { key: 'state', label: 'State' },
+  { key: 'initial_vol', label: 'Initial Vol', align: 'right' },
+  { key: 'current_vol', label: 'Current Vol', align: 'right' },
+  { key: 'order_price', label: 'Order Price', align: 'right' },
+  { key: 'current_price', label: 'Current Price', align: 'right' },
+  { key: 'setup_time', label: 'Setup Time', align: 'right' },
+  { key: 'done_time', label: 'Done Time', align: 'right' },
+]);
+
+const dealsColumns = computed(() => [
+  { key: 'deal_ticket', label: 'Deal Ticket' },
+  { key: 'position_ticket', label: 'Position Ticket' },
+  { key: 'order_ticket', label: 'Order Ticket' },
+  { key: 'account', label: 'Account' },
+  { key: 'broker_group', label: 'Broker Group' },
+  { key: 'symbol', label: 'Symbol' },
+  { key: 'action', label: 'Action' },
+  { key: 'entry', label: 'Entry' },
+  { key: 'volume', label: 'Volume', align: 'right' },
+  { key: 'deal_price', label: 'Deal Price', align: 'right' },
+  { key: 'position_price', label: 'Position Price', align: 'right' },
+  { key: 'profit', label: `Profit (${currencySymbol.value})`, align: 'right' },
+  { key: 'commission', label: `Commission / Fee (${currencySymbol.value})`, align: 'right' },
+  { key: 'time', label: 'Time', align: 'right' },
+]);
+
+
 
 const formatCurrency = (val) => {
   if (val === null || val === undefined || val === "") return "-";
