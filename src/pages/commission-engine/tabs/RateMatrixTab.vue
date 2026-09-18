@@ -26,7 +26,7 @@ const store = useCommissionEngineStore();
 const { hasPermission } = usePermissionCheck();
 
 const canManageRates = computed(() =>
-  hasPermission("ib_commission.manage_rates"),
+  hasPermission("ib_commission.rates.update"),
 );
 
 // Selection state

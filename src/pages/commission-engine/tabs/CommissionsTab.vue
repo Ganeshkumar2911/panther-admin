@@ -26,9 +26,13 @@ import CalculateCommissionsModal from "../components/CalculateCommissionsModal.v
 const store = useCommissionEngineStore();
 const { hasPermission } = usePermissionCheck();
 
-const canView = computed(() => hasPermission("ib_commission.view"));
-const canApprove = computed(() => hasPermission("ib_commission.approve"));
-const canSync = computed(() => hasPermission("ib_commission.sync"));
+const canView = computed(() =>
+  hasPermission(["ib_commission.commissions.view", "ib_commission.view"])
+);
+const canApprove = computed(() => hasPermission("ib_commission.commissions.approve"));
+const canSync = computed(() =>
+  hasPermission(["ib_commission.sync.update", "ib_commission.commissions.approve"])
+);
 
 // Filters
 const statusFilter = ref("pending"); // 'pending' | 'approved' | 'rejected' | ''

@@ -19,7 +19,7 @@ import { usePermissionCheck } from "@/composables/usePermissionCheck";
 const store = useCommissionEngineStore();
 const { hasPermission } = usePermissionCheck();
 
-const canSync = computed(() => hasPermission("ib_commission.sync"));
+const canSync = computed(() => hasPermission("ib_commission.sync.update"));
 
 onMounted(() => {
   if (!store.isFetched.syncStatus) {

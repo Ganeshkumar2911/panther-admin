@@ -19,7 +19,9 @@ import ConfirmationDialog from "@/components/common/ConfirmationDialog.vue";
 const store = useCommissionEngineStore();
 const { hasPermission } = usePermissionCheck();
 
-const canManage = computed(() => hasPermission("ib_commission.manage_symbol_groups"));
+const canCreate = computed(() => hasPermission("ib_commission.symbol_groups.create"));
+const canEdit = computed(() => hasPermission("ib_commission.symbol_groups.update"));
+const canDelete = computed(() => hasPermission("ib_commission.symbol_groups.delete"));
 
 const searchQuery = ref("");
 const isModalOpen = ref(false);
@@ -181,7 +183,7 @@ const handleDeleteConfirm = async () => {
             </button>
 
             <button
-              v-if="canManage"
+              v-if="canCreate"
               type="button"
               class="flex items-center gap-1.5 px-3.5 py-1.5 bg-primary hover:bg-primary-hover text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer shadow-2xs"
               @click="openCreateModal"
@@ -267,7 +269,7 @@ const handleDeleteConfirm = async () => {
           </button>
 
           <button
-            v-if="canManage"
+            v-if="canEdit"
             type="button"
             class="p-1.5 text-secondary-text hover:text-primary hover:bg-background rounded-lg transition-colors cursor-pointer"
             title="Edit Group"
@@ -277,7 +279,7 @@ const handleDeleteConfirm = async () => {
           </button>
 
           <button
-            v-if="canManage"
+            v-if="canDelete"
             type="button"
             class="p-1.5 text-secondary-text hover:text-primary-red hover:bg-primary-red/10 rounded-lg transition-colors cursor-pointer"
             title="Delete Group"
