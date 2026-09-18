@@ -651,6 +651,16 @@ const routes = [
         },
       },
       {
+        path: "/enhanced-audit-logs",
+        name: "enhanced-audit-logs",
+        component: () => import("@/pages/enhanced-audit-logs/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Enhanced Audit Logs",
+          description: "Advanced tracking and detailed view of system modifications and events.",
+        },
+      },
+      {
         path: "/rbac",
         name: "rbac",
         component: () => import("@/pages/rbac/index.vue"),
