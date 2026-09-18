@@ -117,7 +117,8 @@ export const useFmLeaderboardStore = defineStore("fmLeaderboard", () => {
         );
       };
 
-      apiRequest(urls.KEYS.POST, `${urls.fm.edit}/${id}`, {
+      apiRequest(urls.KEYS.PATCH, urls.fm.edit, {
+        look_up_key: id,
         data: formData,
         isTokenRequired: true,
         onSuccess: successHandler,

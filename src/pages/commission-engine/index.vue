@@ -44,10 +44,10 @@ import DemoWalletsTab from "./tabs/DemoWalletsTab.vue";
 import ApprovalsTab from "./tabs/ApprovalsTab.vue";
 
 const route = useRoute();
-const { hasModulePermission } = usePermissionCheck();
+const { hasModulePermission, hasPermission } = usePermissionCheck();
 
 const hasAccess = computed(() => {
-  return hasModulePermission("ib_commission");
+  return hasModulePermission("ib_commission") || hasPermission("ib_commission.view");
 });
 
 const validTabKeys = [

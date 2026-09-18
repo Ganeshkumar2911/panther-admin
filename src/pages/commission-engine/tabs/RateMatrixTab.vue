@@ -26,7 +26,7 @@ const store = useCommissionEngineStore();
 const { hasPermission } = usePermissionCheck();
 
 const canManageRates = computed(() =>
-  hasPermission("ib_commission.manage_rates"),
+  hasPermission("ib_commission.rates.update"),
 );
 
 // Selection state
@@ -117,7 +117,7 @@ const activeTab = computed(() => {
 });
 
 // Symbol groups headers
-const symbolGroups = computed(() => store.rateGrid?.symbol_groups || []);
+const symbolGroups = computed(() => activeTab.value?.symbol_groups || store.rateGrid?.symbol_groups || []);
 
 // Sync local cells when active tab or rateGrid changes
 const initLocalCells = () => {
@@ -237,7 +237,7 @@ const handleCellRateInput = (ibId, symbolGroupId, event) => {
   const key = `${ibId}_${symbolGroupId}`;
   const existingType = localCells.value[key]?.rate_type || "value";
   localCells.value[key] = {
-    rate: rawValue === "" ? "" : Number(rawValue),
+    rate: rawValue,
     rate_type: existingType,
   };
   isDirty.value = true;
@@ -260,7 +260,7 @@ const handleFillRow = (row, sourceSgId) => {
   symbolGroups.value.forEach((sg) => {
     const key = `${row.ib_id}_${sg.id}`;
     localCells.value[key] = {
-      rate: sourceCell.rate !== "" && sourceCell.rate !== null ? Number(sourceCell.rate) : "",
+      rate: sourceCell.rate !== "" && sourceCell.rate !== null ? sourceCell.rate : "",
       rate_type: sourceCell.rate_type || "value",
     };
   });
@@ -800,17 +800,21 @@ const handleSave = async () => {
                       :disabled="!canManageRates"
                       :value="getCellValue(row.ib_id, sg.id)"
                       placeholder="0.00"
-                      class="flex-1 min-w-0 h-full pl-2 pr-1 font-mono text-xs font-bold text-center bg-transparent border-0 outline-none focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none disabled:bg-background/80 rounded-l-lg"
+                      class="flex-1 min-w-0 h-full pl-2 pr-1 font-mono text-xs font-bold text-center bg-transparent border-0 outline-none focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none disabled:bg-background/80"
                       :class="[
                         getCellValue(row.ib_id, sg.id) !== ''
                           ? 'text-primary font-bold'
                           : 'text-primary-text',
+                        activeMethod === 'per_spread' ? 'rounded-l-lg' : 'rounded-lg'
                       ]"
                       @input="handleCellRateInput(row.ib_id, sg.id, $event)"
                     />
 
                     <!-- Type Switcher Toggle (val | %) -->
-                    <div class="flex items-center shrink-0 h-full border-l border-primary-border bg-card-background/70 px-1 gap-1 select-none rounded-r-lg">
+                    <div 
+                      v-if="activeMethod === 'per_spread'"
+                      class="flex items-center shrink-0 h-full border-l border-primary-border bg-card-background/70 px-1 gap-1 select-none rounded-r-lg"
+                    >
                       <Tooltip text="val: Value multiplier | %: Percentage share" position="top">
                         <div class="text-secondary-text hover:text-primary-text cursor-help flex items-center justify-center p-0.5">
                           <HugeIcon :icon="InformationCircleIcon" :size="12" />

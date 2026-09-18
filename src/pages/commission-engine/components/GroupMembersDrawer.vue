@@ -29,7 +29,10 @@ const emit = defineEmits(["update:modelValue", "updated"]);
 const store = useCommissionEngineStore();
 const { hasPermission } = usePermissionCheck();
 
-const canManage = computed(() => hasPermission("ib_commission.manage_symbol_groups"));
+const canAssign = computed(() => hasPermission("ib_commission.symbol_groups.update"));
+const canRemove = computed(() =>
+  hasPermission(["ib_commission.symbol_groups.delete", "ib_commission.symbol_groups.update"])
+);
 
 const searchQuery = ref("");
 const newSymbolInput = ref("");
@@ -198,7 +201,7 @@ const handleBulkRemove = async () => {
 
           <!-- Add Symbols Form -->
           <div
-            v-if="canManage"
+            v-if="canAssign"
             class="p-4 bg-background/50 border-b border-primary-border space-y-2 shrink-0"
           >
             <label class="block text-xs font-semibold text-primary-text">
@@ -240,7 +243,7 @@ const handleBulkRemove = async () => {
               :data="paginatedMembers"
               :loading="store.loading"
               :pagination="drawerPagination"
-              :selectable="canManage"
+              :selectable="canRemove"
               v-model:selected="selectedSymbolsToRemove"
               row-key="symbol"
               table-key="group-members-table"
@@ -270,7 +273,7 @@ const handleBulkRemove = async () => {
 
                   <div class="flex items-center gap-1.5 shrink-0">
                     <button
-                      v-if="canManage && selectedSymbolsToRemove.length > 0"
+                      v-if="canRemove && selectedSymbolsToRemove.length > 0"
                       type="button"
                       :disabled="store.actionLoading"
                       class="flex items-center gap-1 px-2.5 py-1 bg-primary-red/10 border border-primary-red/20 text-primary-red hover:bg-primary-red/20 text-xs font-semibold rounded-lg transition-all cursor-pointer"
@@ -309,7 +312,7 @@ const handleBulkRemove = async () => {
               <!-- Custom Cell: Actions -->
               <template #cell-actions="{ row }">
                 <button
-                  v-if="canManage"
+                  v-if="canRemove"
                   type="button"
                   :disabled="store.actionLoading"
                   class="p-1 text-secondary-text hover:text-primary-red hover:bg-primary-red/10 rounded transition-colors cursor-pointer"

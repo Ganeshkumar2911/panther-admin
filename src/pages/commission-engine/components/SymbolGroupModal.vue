@@ -7,6 +7,12 @@ import {
   Tick02Icon,
 } from "@hugeicons/core-free-icons";
 import { useCommissionEngineStore } from "@/stores/commissionEngine/commissionEngine";
+import BaseSelect from "@/components/common/BaseSelect.vue";
+
+const currencyOptions = [
+  { label: "USD", value: "USD" },
+  { label: "USC", value: "USC" },
+];
 
 const props = defineProps({
   modelValue: {
@@ -28,6 +34,7 @@ const isEdit = computed(() => !!props.group?.id);
 const formData = ref({
   name: "",
   code: "",
+  currency: "",
   sort_order: 1,
   is_active: true,
 });
@@ -41,6 +48,7 @@ watch(
       formData.value = {
         name: val.name || "",
         code: val.code || "",
+        currency: val.currency || "",
         sort_order: val.sort_order ?? 1,
         is_active: val.is_active !== undefined ? val.is_active : true,
       };
@@ -48,13 +56,14 @@ watch(
       formData.value = {
         name: "",
         code: "",
+        currency: "",
         sort_order: (store.symbolGroups?.length || 0) + 1,
         is_active: true,
       };
     }
     formErrors.value = {};
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 const closeModal = () => {
@@ -63,11 +72,16 @@ const closeModal = () => {
 
 const validate = () => {
   formErrors.value = {};
+  let isValid = true;
   if (!formData.value.name.trim()) {
     formErrors.value.name = "Group name is required";
-    return false;
+    isValid = false;
   }
-  return true;
+  if (!formData.value.currency) {
+    formErrors.value.currency = "Currency is required";
+    isValid = false;
+  }
+  return isValid;
 };
 
 const handleSubmit = async () => {
@@ -75,7 +89,12 @@ const handleSubmit = async () => {
 
   const payload = {
     name: formData.value.name.trim(),
-    code: formData.value.code ? formData.value.code.trim().toLowerCase().replace(/\s+/g, "_") : undefined,
+    code: formData.value.code
+      ? formData.value.code.trim().toLowerCase().replace(/\s+/g, "_")
+      : undefined,
+    currency: formData.value.currency
+      ? formData.value.currency.trim().toUpperCase()
+      : undefined,
     sort_order: Number(formData.value.sort_order) || 1,
     is_active: !!formData.value.is_active,
   };
@@ -116,7 +135,9 @@ const handleSubmit = async () => {
                 <HugeIcon :icon="Folder01Icon" :size="18" />
               </div>
               <div>
-                <h3 class="title-text text-base text-primary-text font-semibold">
+                <h3
+                  class="title-text text-base text-primary-text font-semibold"
+                >
                   {{ isEdit ? "Edit Symbol Group" : "Create Symbol Group" }}
                 </h3>
                 <p class="text-xs text-secondary-text">
@@ -138,7 +159,10 @@ const handleSubmit = async () => {
           </div>
 
           <!-- Form Body -->
-          <form @submit.prevent="handleSubmit" class="p-5 space-y-4 overflow-y-auto">
+          <form
+            @submit.prevent="handleSubmit"
+            class="p-5 space-y-4 overflow-y-auto"
+          >
             <!-- Group Name -->
             <div class="space-y-1.5">
               <label class="block text-xs font-semibold text-primary-text">
@@ -161,7 +185,9 @@ const handleSubmit = async () => {
             <div class="space-y-1.5">
               <label class="block text-xs font-semibold text-primary-text">
                 Group Code
-                <span class="text-[10px] text-secondary-text font-normal ml-1">(Optional identifier)</span>
+                <span class="text-[10px] text-secondary-text font-normal ml-1"
+                  >(Optional identifier)</span
+                >
               </label>
               <input
                 v-model="formData.code"
@@ -171,6 +197,22 @@ const handleSubmit = async () => {
               />
               <p class="text-[11px] text-secondary-text">
                 Unique identifier string used for matrix mapping headers.
+              </p>
+            </div>
+
+            <!-- Currency -->
+            <div class="space-y-1.5">
+              <label class="block text-xs font-semibold text-primary-text">
+                Currency <span class="text-primary-red">*</span>
+              </label>
+              <BaseSelect
+                v-model="formData.currency"
+                :options="currencyOptions"
+                placeholder="Select Currency"
+                :class="{ 'ring-1 ring-primary-red': formErrors.currency }"
+              />
+              <p v-if="formErrors.currency" class="text-[11px] text-primary-red">
+                {{ formErrors.currency }}
               </p>
             </div>
 
@@ -192,10 +234,14 @@ const handleSubmit = async () => {
 
               <!-- Active Status Toggle -->
               <div class="space-y-1.5 flex flex-col justify-end">
-                <label class="block text-xs font-semibold text-primary-text mb-2">
+                <label
+                  class="block text-xs font-semibold text-primary-text mb-2"
+                >
                   Status
                 </label>
-                <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                <label
+                  class="inline-flex items-center gap-2 cursor-pointer select-none"
+                >
                   <input
                     v-model="formData.is_active"
                     type="checkbox"
@@ -209,7 +255,9 @@ const handleSubmit = async () => {
             </div>
 
             <!-- Modal Footer -->
-            <div class="pt-4 flex items-center justify-end gap-2.5 border-t border-primary-border">
+            <div
+              class="pt-4 flex items-center justify-end gap-2.5 border-t border-primary-border"
+            >
               <button
                 type="button"
                 class="px-4 py-2 text-xs font-medium text-secondary-text hover:text-primary-text hover:bg-background border border-primary-border rounded-xl transition-all cursor-pointer"

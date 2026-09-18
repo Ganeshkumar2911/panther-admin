@@ -1036,6 +1036,8 @@ const groupOptions = computed(() => {
     }));
 });
 
+const originalForm = ref(null);
+
 const form = ref({
   // Required identity / login
   email: "",
@@ -1284,6 +1286,7 @@ const resetForm = () => {
       kyc_reject_reason: "",
     };
   }
+  originalForm.value = JSON.parse(JSON.stringify(form.value));
   errors.value = {};
 };
 
@@ -1437,62 +1440,76 @@ const handleSubmit = async () => {
     await store.createFundManager(createPayload);
   } else {
     // Edit Mode Payload
-    const editPayload = {
-      label_name: form.value.label_name?.trim() || form.value.name.trim(),
-      is_active: Boolean(form.value.is_active),
-      follower_account_type: Number(form.value.follower_account_type) || 1,
-      min_capital: Number(form.value.min_capital) || 0,
-      performance_fee: Number(form.value.performance_fee) || 0,
-      fm_share: Number(form.value.fm_share) || 0,
-      broker_share: Number(form.value.broker_share) || 0,
-      ib_pool_percentage: Number(form.value.ib_pool_percentage) || 0,
-      settlement_type: form.value.settlement_type || "monthly",
-      settlement_time: form.value.settlement_time || "00:00",
-      management_fee: Number(form.value.management_fee) || 0,
-      management_fee_interval: form.value.management_fee_interval || "monthly",
-      registration_fee: Number(form.value.registration_fee) || 0,
-      visibility_type: form.value.visibility_type || "public",
-      broker_group: form.value.broker_group.trim(),
-      broker_leverage: Number(form.value.broker_leverage) || 100,
-      broker_currency: form.value.broker_currency || "USD",
+    const buildEditPayload = (srcForm) => {
+      const payload = {
+        label_name: srcForm.label_name?.trim() || srcForm.name.trim(),
+        is_active: Boolean(srcForm.is_active),
+        follower_account_type: Number(srcForm.follower_account_type) || 1,
+        min_capital: Number(srcForm.min_capital) || 0,
+        performance_fee: Number(srcForm.performance_fee) || 0,
+        fm_share: Number(srcForm.fm_share) || 0,
+        broker_share: Number(srcForm.broker_share) || 0,
+        ib_pool_percentage: Number(srcForm.ib_pool_percentage) || 0,
+        settlement_type: srcForm.settlement_type || "monthly",
+        settlement_time: srcForm.settlement_time || "00:00",
+        management_fee: Number(srcForm.management_fee) || 0,
+        management_fee_interval: srcForm.management_fee_interval || "monthly",
+        registration_fee: Number(srcForm.registration_fee) || 0,
+        visibility_type: srcForm.visibility_type || "public",
+        broker_group: srcForm.broker_group.trim(),
+        broker_leverage: Number(srcForm.broker_leverage) || 100,
+        broker_currency: srcForm.broker_currency || "USD",
 
-      name: form.value.name.trim(),
-      email: form.value.email.trim(),
-      phone_number: form.value.phone_number?.trim() || "",
-      date_of_birth: form.value.date_of_birth || null,
-      country: form.value.country?.trim() || "",
-      state: form.value.state?.trim() || "",
-      city: form.value.city?.trim() || "",
-      address: form.value.address?.trim() || "",
-      zip_code: form.value.zip_code?.trim() || "",
-      verification_channel: form.value.verification_channel || "Manual",
-      docs_uploaded: form.value.docs_uploaded || "Yes",
-      doc_approved: form.value.doc_approved || "Yes",
-      kyc_status: form.value.kyc_status || "approved",
-      kyc_reject_reason:
-        form.value.kyc_status === "rejected"
-          ? form.value.kyc_reject_reason || null
-          : null,
+        name: srcForm.name.trim(),
+        email: srcForm.email.trim(),
+        phone_number: srcForm.phone_number?.trim() || "",
+        date_of_birth: srcForm.date_of_birth || null,
+        country: srcForm.country?.trim() || "",
+        state: srcForm.state?.trim() || "",
+        city: srcForm.city?.trim() || "",
+        address: srcForm.address?.trim() || "",
+        zip_code: srcForm.zip_code?.trim() || "",
+        verification_channel: srcForm.verification_channel || "Manual",
+        docs_uploaded: srcForm.docs_uploaded || "Yes",
+        doc_approved: srcForm.doc_approved || "Yes",
+        kyc_status: srcForm.kyc_status || "approved",
+        kyc_reject_reason:
+          srcForm.kyc_status === "rejected"
+            ? srcForm.kyc_reject_reason || null
+            : null,
 
-      user: {
-        is_active: Boolean(form.value.is_active),
-      },
+        user: {
+          is_active: Boolean(srcForm.is_active),
+        },
+      };
+
+      if (
+        srcForm.group_config_id != null &&
+        srcForm.group_config_id !== ""
+      ) {
+        payload.group_config_id = Number(srcForm.group_config_id);
+      }
+
+      if (srcForm.password && srcForm.password.trim() !== "") {
+        payload.password = srcForm.password.trim();
+      }
+
+      if (isFollowerAccountTypeChanged.value) {
+        payload.follower_account_type_action =
+          srcForm.follower_account_type_action || "keep";
+      }
+
+      return payload;
     };
 
-    if (
-      form.value.group_config_id != null &&
-      form.value.group_config_id !== ""
-    ) {
-      editPayload.group_config_id = Number(form.value.group_config_id);
-    }
+    const currentPayload = buildEditPayload(form.value);
+    const originalPayload = buildEditPayload(originalForm.value);
 
-    if (form.value.password && form.value.password.trim() !== "") {
-      editPayload.password = form.value.password.trim();
-    }
-
-    if (isFollowerAccountTypeChanged.value) {
-      editPayload.follower_account_type_action =
-        form.value.follower_account_type_action || "keep";
+    const editPayload = {};
+    for (const key in currentPayload) {
+      if (JSON.stringify(currentPayload[key]) !== JSON.stringify(originalPayload[key])) {
+        editPayload[key] = currentPayload[key];
+      }
     }
 
     await store.editFundManager(props.item.id, editPayload);

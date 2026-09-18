@@ -19,7 +19,9 @@ import ConfirmationDialog from "@/components/common/ConfirmationDialog.vue";
 const store = useCommissionEngineStore();
 const { hasPermission } = usePermissionCheck();
 
-const canManage = computed(() => hasPermission("ib_commission.manage_symbol_groups"));
+const canCreate = computed(() => hasPermission("ib_commission.symbol_groups.create"));
+const canEdit = computed(() => hasPermission("ib_commission.symbol_groups.update"));
+const canDelete = computed(() => hasPermission("ib_commission.symbol_groups.delete"));
 
 const searchQuery = ref("");
 const isModalOpen = ref(false);
@@ -84,6 +86,7 @@ const handlePerPageChange = (newPerPage) => {
 
 const columns = [
   { key: "group", label: "Group Name & Code", sortable: true },
+  { key: "currency", label: "Currency", align: "center", width: "100px", sortable: true },
   { key: "sort_order", label: "Sort Order", align: "center", width: "110px", sortable: true },
   { key: "member_count", label: "Mapped Symbols", align: "center", width: "160px", sortable: true },
   { key: "status", label: "Status", align: "center", width: "120px" },
@@ -180,7 +183,7 @@ const handleDeleteConfirm = async () => {
             </button>
 
             <button
-              v-if="canManage"
+              v-if="canCreate"
               type="button"
               class="flex items-center gap-1.5 px-3.5 py-1.5 bg-primary hover:bg-primary-hover text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer shadow-2xs"
               @click="openCreateModal"
@@ -209,6 +212,13 @@ const handleDeleteConfirm = async () => {
             </p>
           </div>
         </div>
+      </template>
+
+      <!-- Custom Cell: Currency -->
+      <template #cell-currency="{ row }">
+        <span class="font-mono text-[11px] font-bold text-primary">
+          {{ row.currency || "—" }}
+        </span>
       </template>
 
       <!-- Custom Cell: Sort Order -->
@@ -259,7 +269,7 @@ const handleDeleteConfirm = async () => {
           </button>
 
           <button
-            v-if="canManage"
+            v-if="canEdit"
             type="button"
             class="p-1.5 text-secondary-text hover:text-primary hover:bg-background rounded-lg transition-colors cursor-pointer"
             title="Edit Group"
@@ -269,7 +279,7 @@ const handleDeleteConfirm = async () => {
           </button>
 
           <button
-            v-if="canManage"
+            v-if="canDelete"
             type="button"
             class="p-1.5 text-secondary-text hover:text-primary-red hover:bg-primary-red/10 rounded-lg transition-colors cursor-pointer"
             title="Delete Group"

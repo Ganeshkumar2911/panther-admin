@@ -20,7 +20,9 @@ import RebuildTradesModal from "../components/RebuildTradesModal.vue";
 const store = useCommissionEngineStore();
 const { hasPermission } = usePermissionCheck();
 
-const canSync = computed(() => hasPermission("ib_commission.sync"));
+const canSync = computed(() =>
+  hasPermission(["ib_commission.trades.update", "ib_commission.sync.update"])
+);
 
 // Filters
 const statusFilter = ref(""); // '' | 'open' | 'closed'
@@ -269,20 +271,19 @@ const formatDate = (val) => {
               </button>
 
               <!-- Refresh Button -->
-              <Tooltip text="Refresh Trades" position="center">
-                <button
-                  type="button"
-                  :disabled="store.loading"
-                  class="flex items-center justify-center w-8 h-8 border border-primary-border rounded-xl text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer disabled:opacity-50"
-                  @click="loadTrades(store.tradesPagination.page, true)"
-                >
-                  <HugeIcon
-                    :icon="RefreshCwIcon"
-                    :size="14"
-                    :class="{ 'animate-spin': store.loading }"
-                  />
-                </button>
-              </Tooltip>
+            
+              <button
+                type="button"
+                :disabled="store.loading"
+                class="flex items-center justify-center w-8 h-8 border border-primary-border rounded-xl text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer disabled:opacity-50"
+                @click="loadTrades(store.tradesPagination.page, true)"
+              >
+                <HugeIcon
+                  :icon="RefreshCwIcon"
+                  :size="14"
+                  :class="{ 'animate-spin': store.loading }"
+                />
+              </button>
             </div>
           </div>
 

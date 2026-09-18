@@ -406,7 +406,9 @@ import IbApprovalEntriesDrawer from "../components/IbApprovalEntriesDrawer.vue";
 
 const store = useCommissionEngineStore();
 const { hasPermission } = usePermissionCheck();
-const canApprove = computed(() => hasPermission("ib_commission.approve"));
+const canApprove = computed(() =>
+  hasPermission(["ib_commission.approvals.approve", "ib_commission.settlements.approve"])
+);
 
 // ─── Frequencies ────────────────────────────────────────
 const frequencies = [

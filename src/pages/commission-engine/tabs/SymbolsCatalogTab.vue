@@ -22,7 +22,11 @@ import ConfirmationDialog from "@/components/common/ConfirmationDialog.vue";
 const store = useCommissionEngineStore();
 const { hasPermission } = usePermissionCheck();
 
-const canManage = computed(() => hasPermission("ib_commission.manage_symbol_groups"));
+const canAssign = computed(() => hasPermission("ib_commission.symbol_groups.update"));
+const canUnassign = computed(() =>
+  hasPermission(["ib_commission.symbol_groups.delete", "ib_commission.symbol_groups.update"])
+);
+const canManage = computed(() => canAssign.value);
 
 // Filters state
 const searchQuery = ref("");
@@ -408,7 +412,7 @@ const handleAssignedCallback = () => {
       <template #cell-actions="{ row }">
         <div class="flex items-center justify-end gap-1.5">
           <button
-            v-if="canManage && !row.symbol_group_id"
+            v-if="canAssign && !row.symbol_group_id"
             type="button"
             class="flex items-center gap-1 px-2.5 py-1 text-xs bg-primary/10 hover:bg-primary/20 text-primary rounded-lg transition-colors font-semibold cursor-pointer"
             @click="openBulkAssign([row.symbol])"
@@ -418,7 +422,7 @@ const handleAssignedCallback = () => {
           </button>
 
           <button
-            v-if="canManage && row.symbol_group_id"
+            v-if="canUnassign && row.symbol_group_id"
             type="button"
             class="p-1.5 text-secondary-text hover:text-primary-red hover:bg-primary-red/10 rounded-lg transition-colors cursor-pointer"
             title="Unassign symbol from group"

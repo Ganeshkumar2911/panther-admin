@@ -43,6 +43,10 @@ const handleCalculate = async () => {
     const res = await store.calculateCommissions(payload);
     if (res?.data) {
       calculationResult.value = res.data;
+      // Auto-close modal after 3 seconds so user can see the result banner
+      setTimeout(() => {
+        if (calculationResult.value) closeModal();
+      }, 3000);
     }
     emit("calculated");
   } catch (err) {

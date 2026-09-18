@@ -472,8 +472,16 @@
               <div class="flex items-center justify-between">
                 <span class="text-secondary-text text-[11px]">Accounts</span>
                 <span class="font-bold text-primary-text font-mono text-[11px]">
-                  Master: <span class="text-primary font-bold">{{ item.master_account?.account_number || `#${item.master_account_id}` }}</span>
-                  · Cov: <span class="text-indigo-400 font-bold">{{ item.coverage_account?.account_number || `#${item.coverage_account_id}` }}</span>
+                  Master: <span 
+                    class="text-primary font-bold"
+                    :class="{ 'cursor-pointer hover:underline': item.master_account }"
+                    @click.stop="item.master_account && goToTradingAccount(item.master_account?.account_number)"
+                  >{{ item.master_account?.account_number || `#${item.master_account_id}` }}</span>
+                  · Cov: <span 
+                    class="text-indigo-400 font-bold"
+                    :class="{ 'cursor-pointer hover:underline': item.coverage_account }"
+                    @click.stop="item.coverage_account && goToTradingAccount(item.coverage_account?.account_number)"
+                  >{{ item.coverage_account?.account_number || `#${item.coverage_account_id}` }}</span>
                 </span>
               </div>
 
@@ -579,10 +587,18 @@
                 <td class="py-3.5 px-3">
                   <div class="space-y-0.5">
                     <div class="font-mono text-[11px] text-primary-text font-semibold">
-                      Master: <span class="font-bold text-primary">{{ item.master_account?.account_number || `#${item.master_account_id}` }}</span>
+                      Master: <span 
+                        class="font-bold text-primary"
+                        :class="{ 'cursor-pointer hover:underline': item.master_account }"
+                        @click.stop="item.master_account && goToTradingAccount(item.master_account?.account_number)"
+                      >{{ item.master_account?.account_number || `#${item.master_account_id}` }}</span>
                     </div>
                     <div class="font-mono text-[11px] text-secondary-text">
-                      Coverage: <span class="font-semibold text-primary-text">{{ item.coverage_account?.account_number || `#${item.coverage_account_id}` }}</span>
+                      Coverage: <span 
+                        class="font-semibold text-primary-text"
+                        :class="{ 'cursor-pointer hover:underline': item.coverage_account }"
+                        @click.stop="item.coverage_account && goToTradingAccount(item.coverage_account?.account_number)"
+                      >{{ item.coverage_account?.account_number || `#${item.coverage_account_id}` }}</span>
                     </div>
                     <div class="flex items-center gap-1.5 text-[11px]">
                       <Tooltip v-if="item.broker_group" :text="item.broker_group" placement="left">
@@ -735,11 +751,19 @@
               </div>
               <div>
                 <span class="text-[10px] text-secondary-text block uppercase">Master Account</span>
-                <span class="font-mono text-primary-text font-bold">{{ item.master_account?.account_number || `#${item.master_account_id}` }}</span>
+                <span 
+                  class="font-mono text-primary-text font-bold"
+                  :class="{ 'cursor-pointer hover:underline text-primary': item.master_account }"
+                  @click.stop="item.master_account && goToTradingAccount(item.master_account?.account_number)"
+                >{{ item.master_account?.account_number || `#${item.master_account_id}` }}</span>
               </div>
               <div>
                 <span class="text-[10px] text-secondary-text block uppercase">Coverage Account</span>
-                <span class="font-mono text-primary-text font-bold">{{ item.coverage_account?.account_number || `#${item.coverage_account_id}` }}</span>
+                <span 
+                  class="font-mono text-primary-text font-bold"
+                  :class="{ 'cursor-pointer hover:underline text-primary': item.coverage_account }"
+                  @click.stop="item.coverage_account && goToTradingAccount(item.coverage_account?.account_number)"
+                >{{ item.coverage_account?.account_number || `#${item.coverage_account_id}` }}</span>
               </div>
               <div>
                 <span class="text-[10px] text-secondary-text block uppercase">Follower Type</span>
@@ -846,13 +870,21 @@
       :loading="isTogglingConfirm"
       @confirm="handleConfirmToggle"
       @cancel="toggleConfirmOpen = false"
+      />
+
+    <!-- FM Login Confirmation Modal -->
+    <FMLoginModal
+      :open="fmLoginModalOpen"
+      :fm="selectedFmForLogin || {}"
+      @close="closeFmLoginModal"
     />
   </div>
 </template>
 
 <script setup>
-import { onMounted, ref, computed, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { onMounted, ref, computed,watch } from 'vue'
+import { useRouter,useRoute } from 'vue-router'
+import { useGoToTradingAccount } from '@/composables/useGoToTradingAccount'
 import {
   CalendarDays,
   Edit,
@@ -873,6 +905,7 @@ import {
   Users,
   BookOpen,
   Sparkles,
+  LogIn
 } from 'lucide-vue-next'
 import { UserGroupIcon, UserAiIcon, AiMagicIcon } from '@hugeicons/core-free-icons'
 import { useFmLeaderboardStore } from '@/stores/fmLeaderboard/fmLeaderboard'
@@ -883,6 +916,7 @@ import DummyFmLeaderboard from '@/components/fundManager/DummyFmLeaderboard.vue'
 import DummyFmSheet from '@/components/fundManager/DummyFmSheet.vue'
 import DummyFmDetailsDrawer from '@/components/fundManager/DummyFmDetailsDrawer.vue'
 import ImportDummyTradesDrawer from '@/components/fundManager/ImportDummyTradesDrawer.vue'
+import FMLoginModal from '@/components/common/FMLoginModal.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import Tooltip from '@/components/common/Tooltip.vue'
 import DropdownMenu from '@/components/common/DropdownMenu.vue'
@@ -934,6 +968,7 @@ watch(
     }
   }
 )
+const { goToTradingAccount } = useGoToTradingAccount()
 
 const layoutMode = ref('grid')
 const searchQuery = ref('')
@@ -986,6 +1021,8 @@ const onDummySheetSuccess = () => {
   dummySheetOpen.value = false
   store.fetchFmLeaderboard(true, store.pagination.page, activeTab.value)
 }
+const fmLoginModalOpen = ref(false)
+const selectedFmForLogin = ref(null)
 
 const visibilityOptions = [
   { label: 'All Visibility', value: 'ALL' },
@@ -1118,6 +1155,16 @@ const openDetailsDrawer = (item) => {
   detailsDrawerOpen.value = true
 }
 
+const handleFmLogin = (item) => {
+  selectedFmForLogin.value = item
+  fmLoginModalOpen.value = true
+}
+
+const closeFmLoginModal = () => {
+  fmLoginModalOpen.value = false
+  selectedFmForLogin.value = null
+}
+
 const handlePageChange = (page) => {
   store.pagination.page = page
   store.fetchFmLeaderboard(true, page, activeTab.value)
@@ -1231,6 +1278,13 @@ const getRowActions = (item) => {
       icon: item.is_dummy ? Users : Sparkles,
     })
   }
+  if (hasPermission('xtention_dev.login_as_fm')) {
+    actions.splice(1, 0, {
+      action: 'fmLogin',
+      label: 'Login to Dashboard',
+      icon: LogIn,
+    })
+  }
 
   if (hasPermission('fund_manager.view_seletement')) {
     actions.push({
@@ -1256,6 +1310,8 @@ const onMenuSelect = (menuItem, item) => {
   switch (menuItem.action) {
     case 'details':
       return openDetailsDrawer(item)
+    case 'fmLogin':
+      return handleFmLogin(item)
     case 'trade-book':
       return router.push({
         name: 'fm-trade-book',
