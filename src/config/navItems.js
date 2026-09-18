@@ -343,7 +343,7 @@ export const navClusters = [
   // 8. Support & Engagement
   {
     id: "support",
-    label: "Support & Loyalty",
+    label: "Support",
     icon: Tickets,
     children: [
       {
@@ -367,6 +367,15 @@ export const navClusters = [
         permission: ["tags.view"],
         keywords: ["labels", "tags", "categories", "user tags", "classification"],
       },
+    ],
+  },
+
+  // 9. Programs
+  {
+    id: "programs",
+    label: "Programs",
+    icon: Award,
+    children: [
       {
         label: "Loyalty Program",
         to: "/loyalty-program",
@@ -384,7 +393,7 @@ export const navClusters = [
     ],
   },
 
-  // 9. Administration & Security
+  // 10. Administration & Security
   {
     id: "administration",
     label: "Administration",

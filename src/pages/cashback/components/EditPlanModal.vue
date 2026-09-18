@@ -3,7 +3,7 @@
     <div class="bg-card-background border border-primary-border rounded-xl shadow-lg w-full max-w-sm overflow-hidden flex flex-col">
       <div class="flex justify-between items-center p-5 border-b border-primary-border">
         <h3 class="text-lg font-semibold text-primary-text">Edit Plan</h3>
-        <button @click="$emit('close')" class="text-secondary-text hover:text-primary-text">
+        <button @click="$emit('close')" class="text-secondary-text hover:text-primary-text cursor-pointer">
           <HugeIcon :icon="Cancel01Icon" :size="20" />
         </button>
       </div>
@@ -11,11 +11,15 @@
       <div class="p-5 space-y-4">
         <div>
           <label class="block text-sm font-medium text-secondary-text mb-1">Status</label>
-          <select v-model="formData.status" class="input-field px-3 py-2 text-sm w-full">
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-            <option value="paused">Paused</option>
-          </select>
+          <BaseSelect
+            v-model="formData.status"
+            :options="[
+              { label: 'Active', value: 'active' },
+              { label: 'Inactive', value: 'inactive' },
+              { label: 'Paused', value: 'paused' }
+            ]"
+            placeholder="Select Status"
+          />
         </div>
 
         <div>
@@ -27,7 +31,7 @@
       <div class="flex justify-end gap-3 p-5 border-t border-primary-border bg-background/50">
         <button
           type="button"
-          class="px-4 py-2 text-sm font-medium text-secondary-text hover:text-primary-text border border-primary-border rounded-lg"
+          class="px-4 py-2 text-sm font-medium text-secondary-text hover:text-primary-text border border-primary-border rounded-lg cursor-pointer"
           @click="$emit('close')"
           :disabled="store.actionLoading"
         >
@@ -35,7 +39,7 @@
         </button>
         <button
           type="button"
-          class="px-4 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary-hover flex items-center gap-2"
+          class="px-4 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary-hover flex items-center gap-2 cursor-pointer"
           @click="handleSubmit"
           :disabled="store.actionLoading"
         >
@@ -50,6 +54,7 @@
 <script setup>
 import { ref } from "vue";
 import { Cancel01Icon, Loading03Icon } from "@hugeicons/core-free-icons";
+import BaseSelect from "@/components/common/BaseSelect.vue";
 import { useCashbackStore } from "@/stores/cashback/cashback";
 
 const props = defineProps({

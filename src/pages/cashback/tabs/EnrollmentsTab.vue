@@ -1,12 +1,8 @@
 <template>
   <div class="space-y-4">
-    <div class="flex justify-between items-center">
-      <div>
-        <h2 class="title-text">Enrollments</h2>
-        <p class="sub-text text-secondary-text">Manage user trading account enrollments in cashback plans</p>
-      </div>
+    <div class="flex justify-end items-center">
       <button
-        class="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-hover transition-colors"
+        class="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-hover transition-colors cursor-pointer"
         @click="isEnrollModalOpen = true"
       >
         Enroll Account
@@ -40,7 +36,7 @@
         <template #cell-actions="{ row }">
           <button
             v-if="row.status === 'active'"
-            class="text-xs text-primary-red hover:underline font-medium"
+            class="text-xs text-primary-red hover:underline font-medium cursor-pointer"
             @click="handleUnenroll(row)"
           >
             Unenroll
@@ -61,7 +57,7 @@
 import { ref, onMounted } from "vue";
 import { useCashbackStore } from "@/stores/cashback/cashback";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
-import DataTable from "@/components/common/DataTable.vue";
+import DataTable from "@/components/common/DataTable/DataTable.vue";
 import StatusBadge from "@/components/common/StatusBadge.vue";
 import CreateEnrollmentModal from "../components/CreateEnrollmentModal.vue";
 

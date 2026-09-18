@@ -1,11 +1,5 @@
 <template>
   <div class="space-y-4">
-    <div class="flex justify-between items-center">
-      <div>
-        <h2 class="title-text">Ledger Transactions</h2>
-        <p class="sub-text text-secondary-text">View cashback ledger activity (Earns, Adjustments, etc.)</p>
-      </div>
-    </div>
 
     <div class="bg-card-background border border-primary-border rounded-xl">
       <DataTable
@@ -38,7 +32,7 @@
 <script setup>
 import { onMounted } from "vue";
 import { useCashbackStore } from "@/stores/cashback/cashback";
-import DataTable from "@/components/common/DataTable.vue";
+import DataTable from "@/components/common/DataTable/DataTable.vue";
 import StatusBadge from "@/components/common/StatusBadge.vue";
 
 const store = useCashbackStore();
