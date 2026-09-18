@@ -330,6 +330,88 @@
                 </label>
               </div>
             </div>
+
+            <!-- Deposit Bonus (Promo Grant) -->
+            <div class="p-4 rounded-xl bg-background/50 border border-primary-border space-y-3.5">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] uppercase font-bold tracking-wider text-secondary-text flex items-center gap-1.5">
+                  <Coins class="w-3.5 h-3.5 text-primary" />
+                  Deposit Bonus (Promo Grant)
+                </span>
+                <label class="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    v-model="form.deposit_bonus_enabled"
+                    type="checkbox"
+                    class="w-4 h-4 rounded text-primary border-primary-border focus:ring-0 cursor-pointer"
+                  />
+                  <span class="text-xs font-semibold" :class="form.deposit_bonus_enabled ? 'text-primary' : 'text-secondary-text'">
+                    {{ form.deposit_bonus_enabled ? 'Enabled' : 'Disabled' }}
+                  </span>
+                </label>
+              </div>
+
+              <p class="text-[10px] text-secondary-text">
+                Grant wallet points on PaymentRequest-backed deposits. Ledger entries are recorded as ADJUST lots.
+              </p>
+
+              <div v-if="form.deposit_bonus_enabled" class="space-y-3 pt-2 border-t border-primary-border/60">
+                <div class="space-y-1">
+                  <label class="font-semibold text-primary-text">Bonus Grant Mode</label>
+                  <BaseSelect
+                    v-model="form.deposit_bonus_mode"
+                    :options="depositBonusModeOptions"
+                    placeholder="Select mode..."
+                  />
+                  <p class="text-[10px] text-secondary-text">
+                    {{
+                      form.deposit_bonus_mode === 'conversion'
+                        ? 'Awards points = deposited USD × conversion rate on every qualifying deposit.'
+                        : form.deposit_bonus_mode === 'fixed_first'
+                          ? 'Awards a fixed point bonus on the first qualifying deposit only.'
+                          : 'Awards fixed points on the first deposit, then conversion rate on all later deposits.'
+                    }}
+                  </p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                  <div class="space-y-1">
+                    <label class="font-semibold text-primary-text">Min Deposit (USD)</label>
+                    <input
+                      v-model.number="form.deposit_bonus_min_usd"
+                      type="number"
+                      step="any"
+                      placeholder="0.00"
+                      class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono"
+                    />
+                    <p class="text-[9px] text-secondary-text">Min funded USD to qualify</p>
+                  </div>
+
+                  <div v-if="form.deposit_bonus_mode === 'conversion' || form.deposit_bonus_mode === 'both'" class="space-y-1">
+                    <label class="font-semibold text-primary-text">Points Per USD Rate</label>
+                    <input
+                      v-model.number="form.deposit_bonus_points_per_usd"
+                      type="number"
+                      step="any"
+                      placeholder="1.0000"
+                      class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono"
+                    />
+                    <p class="text-[9px] text-secondary-text">e.g. 1.00 = 1 pt per $1</p>
+                  </div>
+
+                  <div v-if="form.deposit_bonus_mode === 'fixed_first' || form.deposit_bonus_mode === 'both'" class="space-y-1">
+                    <label class="font-semibold text-primary-text">Fixed Bonus Points</label>
+                    <input
+                      v-model.number="form.deposit_bonus_fixed_points"
+                      type="number"
+                      step="any"
+                      placeholder="100.00"
+                      class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono"
+                    />
+                    <p class="text-[9px] text-secondary-text">Fixed grant for first deposit</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- Account Eligibility Rules -->
@@ -656,6 +738,12 @@ const scopeOptions = [
   { label: "All Eligible Accounts", value: "all_eligible_accounts" },
 ];
 
+const depositBonusModeOptions = [
+  { label: "Conversion Rate (Every qualifying deposit)", value: "conversion" },
+  { label: "Fixed First (First deposit only)", value: "fixed_first" },
+  { label: "Both (Fixed on first, conversion on subsequent)", value: "both" },
+];
+
 const matchTypeOptions = [
   { label: "Exact Match", value: "exact" },
   { label: "Prefix Match", value: "prefix" },
@@ -709,6 +797,11 @@ const form = reactive({
   terms_version: "1.0",
   carry_over_enrollments: false,
   allow_general_wallet_transfer: false,
+  deposit_bonus_enabled: false,
+  deposit_bonus_mode: "conversion",
+  deposit_bonus_min_usd: 0,
+  deposit_bonus_points_per_usd: 0,
+  deposit_bonus_fixed_points: 0,
   eligibility_rules: {
     require_kyc: false,
     require_live: true,
@@ -782,6 +875,11 @@ watch(
       form.terms_version = p.terms_version ?? "1.0";
       form.carry_over_enrollments = Boolean(p.carry_over_enrollments);
       form.allow_general_wallet_transfer = Boolean(p.allow_general_wallet_transfer);
+      form.deposit_bonus_enabled = Boolean(p.deposit_bonus_enabled);
+      form.deposit_bonus_mode = p.deposit_bonus_mode || "conversion";
+      form.deposit_bonus_min_usd = p.deposit_bonus_min_usd !== undefined ? Number(p.deposit_bonus_min_usd) : 0;
+      form.deposit_bonus_points_per_usd = p.deposit_bonus_points_per_usd !== undefined ? Number(p.deposit_bonus_points_per_usd) : 0;
+      form.deposit_bonus_fixed_points = p.deposit_bonus_fixed_points !== undefined ? Number(p.deposit_bonus_fixed_points) : 0;
 
       // Images
       if (Array.isArray(p.image_urls) && p.image_urls.length > 0) {
@@ -901,6 +999,23 @@ const handleSubmit = async () => {
   }
   if (Boolean(form.allow_general_wallet_transfer) !== Boolean(p.allow_general_wallet_transfer)) {
     payload.allow_general_wallet_transfer = Boolean(form.allow_general_wallet_transfer);
+  }
+
+  // Deposit bonus diff
+  if (Boolean(form.deposit_bonus_enabled) !== Boolean(p.deposit_bonus_enabled)) {
+    payload.deposit_bonus_enabled = Boolean(form.deposit_bonus_enabled);
+  }
+  if (form.deposit_bonus_mode !== (p.deposit_bonus_mode || "conversion")) {
+    payload.deposit_bonus_mode = form.deposit_bonus_mode;
+  }
+  if (Number(form.deposit_bonus_min_usd) !== Number(p.deposit_bonus_min_usd || 0)) {
+    payload.deposit_bonus_min_usd = String(Number(form.deposit_bonus_min_usd).toFixed(2));
+  }
+  if (Number(form.deposit_bonus_points_per_usd) !== Number(p.deposit_bonus_points_per_usd || 0)) {
+    payload.deposit_bonus_points_per_usd = String(Number(form.deposit_bonus_points_per_usd).toFixed(4));
+  }
+  if (Number(form.deposit_bonus_fixed_points) !== Number(p.deposit_bonus_fixed_points || 0)) {
+    payload.deposit_bonus_fixed_points = String(Number(form.deposit_bonus_fixed_points).toFixed(2));
   }
 
   // Check Eligibility Rules diff

@@ -43,6 +43,13 @@
                 <HugeIcon :icon="Dollar01Icon" :size="14" />
                 <span>Base Currency: <span class="font-medium text-primary-text">{{ store.activeProgram.currency }} ($)</span></span>
               </div>
+              <template v-if="store.activeProgram.updated_at">
+                <div class="w-1 h-1 rounded-full bg-primary-border"></div>
+                <div class="flex items-center gap-1.5">
+                  <HugeIcon :icon="Clock01Icon" :size="14" />
+                  <span>Last Updated: <span class="font-medium text-primary-text">{{ formatDateTime(store.activeProgram.updated_at) }}</span></span>
+                </div>
+              </template>
             </div>
           </div>
           
@@ -77,13 +84,6 @@
               <StatusBadge :status="store.activeProgram.status" />
             </div>
             <div class="flex justify-between items-center">
-              <span class="text-xs font-semibold text-secondary-text tracking-wide">PROGRAM IDENTIFIER</span>
-              <div class="flex items-center gap-1 bg-background px-2 py-1 rounded-lg border border-primary-border">
-                <span class="text-sm font-bold text-primary-text">{{ store.activeProgram.code }}</span>
-                <HugeIcon :icon="Copy01Icon" :size="14" class="text-secondary-text cursor-pointer" />
-              </div>
-            </div>
-            <div class="flex justify-between items-center">
               <span class="text-xs font-semibold text-secondary-text tracking-wide">ACTIVATION EPOCH</span>
               <span class="text-sm font-medium text-primary-text">{{ formatDateTimeCompact(store.activeProgram.start_at) }}</span>
             </div>
@@ -96,10 +96,13 @@
             </div>
             <div class="flex justify-between items-center">
               <span class="text-xs font-semibold text-secondary-text tracking-wide">TERMS & CONDITIONS</span>
-              <span class="text-sm font-medium text-primary cursor-pointer hover:underline flex items-center gap-1">
+              <span class="text-sm font-medium text-primary cursor-pointer flex items-center gap-1">
                 Version {{ store.activeProgram.terms_version }}
-                <HugeIcon :icon="ExternalLinkIcon" :size="14" />
               </span>
+            </div>
+            <div v-if="store.activeProgram.updated_at" class="flex justify-between items-center">
+              <span class="text-xs font-semibold text-secondary-text tracking-wide">LAST UPDATED</span>
+              <span class="text-sm font-medium text-primary-text">{{ formatDateTimeCompact(store.activeProgram.updated_at) }}</span>
             </div>
           </div>
 
@@ -247,7 +250,7 @@
             </div>
 
             <div class="space-y-4 flex-1">
-              <div class="flex justify-between items-center border-b border-primary-border border-dashed pb-4">
+              <div class="flex justify-between items-center border-primary-border pb-4">
                 <span class="text-[10px] font-bold text-secondary-text tracking-wider uppercase w-20 leading-tight">QUALIFYING CONDITION</span>
                 <div class="flex items-center gap-2 font-bold text-sm text-primary-text text-right capitalize">
                   {{ plan.qualify_on }}
@@ -306,7 +309,8 @@ import {
   Shield01Icon,
   FlashIcon,
   GlobeIcon,
-  ServerIcon
+  ServerIcon,
+  Clock01Icon
 } from "@hugeicons/core-free-icons";
 
 const store = useCashbackStore();
