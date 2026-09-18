@@ -29,9 +29,16 @@ const emit = defineEmits(["update:modelValue", "updated"]);
 const store = useCommissionEngineStore();
 const { hasPermission } = usePermissionCheck();
 
-const canAssign = computed(() => hasPermission("ib_commission.symbol_groups.update"));
+const canAssign = computed(() =>
+  hasPermission(["ib_commission_symbol_groups.update", "ib_commission.symbol_groups.update"])
+);
 const canRemove = computed(() =>
-  hasPermission(["ib_commission.symbol_groups.delete", "ib_commission.symbol_groups.update"])
+  hasPermission([
+    "ib_commission_symbol_groups.delete",
+    "ib_commission.symbol_groups.delete",
+    "ib_commission_symbol_groups.update",
+    "ib_commission.symbol_groups.update",
+  ])
 );
 
 const searchQuery = ref("");

@@ -21,7 +21,12 @@ const store = useCommissionEngineStore();
 const { hasPermission } = usePermissionCheck();
 
 const canSync = computed(() =>
-  hasPermission(["ib_commission.trades.update", "ib_commission.sync.update"])
+  hasPermission([
+    "ib_commission_trades.update",
+    "ib_commission.trades.update",
+    "ib_commission_sync.update",
+    "ib_commission.sync.update",
+  ])
 );
 
 // Filters

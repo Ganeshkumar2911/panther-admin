@@ -19,9 +19,15 @@ import ConfirmationDialog from "@/components/common/ConfirmationDialog.vue";
 const store = useCommissionEngineStore();
 const { hasPermission } = usePermissionCheck();
 
-const canCreate = computed(() => hasPermission("ib_commission.symbol_groups.create"));
-const canEdit = computed(() => hasPermission("ib_commission.symbol_groups.update"));
-const canDelete = computed(() => hasPermission("ib_commission.symbol_groups.delete"));
+const canCreate = computed(() =>
+  hasPermission(["ib_commission_symbol_groups.create", "ib_commission.symbol_groups.create"])
+);
+const canEdit = computed(() =>
+  hasPermission(["ib_commission_symbol_groups.update", "ib_commission.symbol_groups.update"])
+);
+const canDelete = computed(() =>
+  hasPermission(["ib_commission_symbol_groups.delete", "ib_commission.symbol_groups.delete"])
+);
 
 const searchQuery = ref("");
 const isModalOpen = ref(false);

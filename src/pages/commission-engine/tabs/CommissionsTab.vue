@@ -27,11 +27,25 @@ const store = useCommissionEngineStore();
 const { hasPermission } = usePermissionCheck();
 
 const canView = computed(() =>
-  hasPermission(["ib_commission.commissions.view", "ib_commission.view"])
+  hasPermission([
+    "ib_commission_commissions.view",
+    "ib_commission.commissions.view",
+    "ib_commission.view",
+  ])
 );
-const canApprove = computed(() => hasPermission("ib_commission.commissions.approve"));
+const canApprove = computed(() =>
+  hasPermission([
+    "ib_commission_commissions.approve",
+    "ib_commission.commissions.approve",
+  ])
+);
 const canSync = computed(() =>
-  hasPermission(["ib_commission.sync.update", "ib_commission.commissions.approve"])
+  hasPermission([
+    "ib_commission_sync.update",
+    "ib_commission.sync.update",
+    "ib_commission_commissions.approve",
+    "ib_commission.commissions.approve",
+  ])
 );
 
 // Filters

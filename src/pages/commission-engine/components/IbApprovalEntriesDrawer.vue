@@ -227,7 +227,12 @@ const emit = defineEmits(["close", "approve"]);
 const store = useCommissionEngineStore();
 const { hasPermission } = usePermissionCheck();
 const canApprove = computed(() =>
-  hasPermission(["ib_commission.approvals.approve", "ib_commission.settlements.approve"])
+  hasPermission([
+    "ib_commission_approvals.approve",
+    "ib_commission.approvals.approve",
+    "ib_commission_settlements.approve",
+    "ib_commission.settlements.approve",
+  ])
 );
 
 const loadEntries = (page = 1) => {
