@@ -20,7 +20,14 @@ import RebuildTradesModal from "../components/RebuildTradesModal.vue";
 const store = useCommissionEngineStore();
 const { hasPermission } = usePermissionCheck();
 
-const canSync = computed(() => hasPermission("ib_commission.sync"));
+const canSync = computed(() =>
+  hasPermission([
+    "ib_commission_trades.update",
+    "ib_commission.trades.update",
+    "ib_commission_sync.update",
+    "ib_commission.sync.update",
+  ])
+);
 
 // Filters
 const statusFilter = ref(""); // '' | 'open' | 'closed'

@@ -44,10 +44,32 @@ import DemoWalletsTab from "./tabs/DemoWalletsTab.vue";
 import ApprovalsTab from "./tabs/ApprovalsTab.vue";
 
 const route = useRoute();
-const { hasModulePermission } = usePermissionCheck();
+const { hasModulePermission, hasPermission } = usePermissionCheck();
 
 const hasAccess = computed(() => {
-  return hasModulePermission("ib_commission");
+  return (
+    hasPermission("ib_commission.view") ||
+    hasPermission("ib_commission_rates.view") ||
+    hasPermission("ib_commission.rates.view") ||
+    hasPermission("ib_commission_symbol_groups.view") ||
+    hasPermission("ib_commission.symbol_groups.view") ||
+    hasPermission("ib_commission_symbols.view") ||
+    hasPermission("ib_commission.symbols.view") ||
+    hasPermission("ib_commission_sync.view") ||
+    hasPermission("ib_commission.sync.view") ||
+    hasPermission("ib_commission_commissions.view") ||
+    hasPermission("ib_commission.commissions.view") ||
+    hasPermission("ib_commission_trades.view") ||
+    hasPermission("ib_commission.trades.view") ||
+    hasPermission("ib_commission_settings.view") ||
+    hasPermission("ib_commission.settings.view") ||
+    hasPermission("ib_commission_demo_wallets.view") ||
+    hasPermission("ib_commission.demo_wallets.view") ||
+    hasPermission("ib_commission_approvals.view") ||
+    hasPermission("ib_commission.approvals.view") ||
+    hasModulePermission("ib_commission") ||
+    hasModulePermission("commission_engine")
+  );
 });
 
 const validTabKeys = [

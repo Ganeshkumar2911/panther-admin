@@ -1,3 +1,4 @@
+import { WhatsappIcon } from "@hugeicons/core-free-icons/index";
 import {
   LayoutDashboard,
   Users,
@@ -115,7 +116,11 @@ export const navClusters = [
         label: "Approvals",
         to: "/commission-engine/approvals",
         icon: ShieldCheck,
-        permission: ["ib_commission.view_approvals"],
+        permission: [
+          "ib_commission_approvals.view",
+          "ib_commission.approvals.view",
+          "ib_commission.view",
+        ],
         keywords: [
           "approvals",
           "draft workflow",
@@ -128,7 +133,11 @@ export const navClusters = [
         label: "Commissions",
         to: "/commission-engine/commissions",
         icon: Coins,
-        permission: ["ib_commission.view_commissions"],
+        permission: [
+          "ib_commission_commissions.view",
+          "ib_commission.commissions.view",
+          "ib_commission.view",
+        ],
         keywords: [
           "commissions",
           "pending",
@@ -143,7 +152,11 @@ export const navClusters = [
         label: "Trades",
         to: "/commission-engine/trades",
         icon: LineChart,
-        permission: ["ib_commission.view_trades"],
+        permission: [
+          "ib_commission_trades.view",
+          "ib_commission.trades.view",
+          "ib_commission.view",
+        ],
         keywords: [
           "trades",
           "open trades",
@@ -157,7 +170,11 @@ export const navClusters = [
         label: "Rate Matrix",
         to: "/commission-engine/rates",
         icon: FileSpreadsheet,
-        permission: ["ib_commission.view_rates"],
+        permission: [
+          "ib_commission_rates.view",
+          "ib_commission.rates.view",
+          "ib_commission.view",
+        ],
         keywords: [
           "rates",
           "matrix",
@@ -173,7 +190,11 @@ export const navClusters = [
         label: "Symbol Groups",
         to: "/commission-engine/symbol-groups",
         icon: FolderTree,
-        permission: ["ib_commission.view_symbol_groups"],
+        permission: [
+          "ib_commission_symbol_groups.view",
+          "ib_commission.symbol_groups.view",
+          "ib_commission.view",
+        ],
         keywords: [
           "symbol groups",
           "forex major",
@@ -186,14 +207,18 @@ export const navClusters = [
         label: "Symbols Catalog",
         to: "/commission-engine/symbols",
         icon: Grid,
-        permission: ["ib_commission.view_symbols"],
+        permission: ["ib_commission_symbols.view", "ib_commission.symbols.view", "ib_commission.view"],
         keywords: ["symbols", "catalog", "unmapped", "pairs", "mt5 symbols"],
       },
       {
         label: "Sync Status",
         to: "/commission-engine/sync",
         icon: Database,
-        permission: ["ib_commission.view_sync"],
+        permission: [
+          "ib_commission_sync.view",
+          "ib_commission.sync.view",
+          "ib_commission.view",
+        ],
         keywords: [
           "sync",
           "status",
@@ -207,7 +232,11 @@ export const navClusters = [
         label: "Demo Wallets",
         to: "/commission-engine/demo-wallets",
         icon: Wallet,
-        permission: ["ib_commission.view_demo_wallets"],
+        permission: [
+          "ib_commission_demo_wallets.view",
+          "ib_commission.demo_wallets.view",
+          "ib_commission.view",
+        ],
         keywords: [
           "demo wallets",
           "demo balances",
@@ -220,7 +249,11 @@ export const navClusters = [
         label: "Settings",
         to: "/commission-engine/settings",
         icon: Settings,
-        permission: ["ib_commission.view_settings"],
+        permission: [
+          "ib_commission_settings.view",
+          "ib_commission.settings.view",
+          "ib_commission.view",
+        ],
         keywords: [
           "settings",
           "payout mode",
@@ -446,7 +479,7 @@ export const navClusters = [
       {
         label: "WhatsApp",
         to: "/whatsapp/templates",
-        icon: MessageSquare,
+        hugeIcon: WhatsappIcon,
         permission: ["whatsapp.view", "whatsapp.create"],
         keywords: ["whatsapp", "templates", "chat", "messages", "meta"],
       },

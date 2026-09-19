@@ -32,13 +32,27 @@ const router = useRouter();
 const { hasPermission } = usePermissionCheck();
 
 // ─── Permissions ─────────────────────────────────────────
-const canView = computed(() => hasPermission("ib_commission.view"));
-const canManageSettings = computed(() => 
-  hasPermission("ib_commission.manage_settings") || 
-  hasPermission("ib_commission.manage_rates") || 
-  hasPermission("ib_commission.approve")
+const canView = computed(() =>
+  hasPermission([
+    "ib_commission_settings.view",
+    "ib_commission.settings.view",
+    "ib_commission.view",
+  ])
 );
-const canApprove = computed(() => hasPermission("ib_commission.approve"));
+const canManageSettings = computed(() =>
+  hasPermission([
+    "ib_commission_settings.update",
+    "ib_commission.settings.update",
+  ])
+);
+const canApprove = computed(() =>
+  hasPermission([
+    "ib_commission_settlements.approve",
+    "ib_commission.settlements.approve",
+    "ib_commission_approvals.approve",
+    "ib_commission.approvals.approve",
+  ])
+);
 
 // ─── Master Form State ───────────────────────────────────
 const masterForm = ref({
