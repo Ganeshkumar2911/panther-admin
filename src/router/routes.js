@@ -814,6 +814,16 @@ const routes = [
             "Configure system-wide settings, transaction restrictions, and miscellaneous platform settings.",
         },
       },
+      {
+        path: "/cashback",
+        name: "cashback",
+        component: () => import("@/pages/cashback/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Cashback Program",
+          description: "Manage Cashback Program rules, plans, enrollments, and ledger transactions.",
+        },
+      },
     ],
   },
 ];

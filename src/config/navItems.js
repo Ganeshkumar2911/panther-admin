@@ -1,3 +1,4 @@
+import { WhatsappIcon } from "@hugeicons/core-free-icons/index";
 import {
   LayoutDashboard,
   Users,
@@ -48,7 +49,7 @@ export const navClusters = [
   // 2. CRM & Network
   {
     id: "crm",
-    label: "CRM & Network",
+    label: "Clients & IB",
     icon: Users,
     children: [
       {
@@ -369,7 +370,7 @@ export const navClusters = [
   // 5. Finance & Payments
   {
     id: "finance",
-    label: "Finance & Cash Flow",
+    label: "Finance",
     icon: CreditCard,
     children: [
       {
@@ -482,7 +483,7 @@ export const navClusters = [
       {
         label: "WhatsApp",
         to: "/whatsapp/templates",
-        icon: MessageSquare,
+        hugeIcon: WhatsappIcon,
         permission: ["whatsapp.view", "whatsapp.create"],
         keywords: ["whatsapp", "templates", "chat", "messages", "meta"],
       },
@@ -570,6 +571,7 @@ export const navClusters = [
           "tracking",
           "enhanced",
         ],
+
       },
     ],
   },
@@ -577,7 +579,7 @@ export const navClusters = [
   // 8. Support & Engagement
   {
     id: "support",
-    label: "Support & Loyalty",
+    label: "Support",
     icon: Tickets,
     children: [
       {
@@ -618,6 +620,15 @@ export const navClusters = [
           "classification",
         ],
       },
+    ],
+  },
+
+  // 9. Programs
+  {
+    id: "programs",
+    label: "Programs",
+    icon: Award,
+    children: [
       {
         label: "Loyalty Program",
         to: "/loyalty-program",
@@ -633,10 +644,18 @@ export const navClusters = [
           "gamification",
         ],
       },
+      {
+        label: "Cashback Program",
+        to: "/cashback",
+        icon: DollarSign,
+        permission: ["cashback.view"],
+        keywords: ["cashback", "rebate", "usd", "earnings", "loyalty"],
+
+      },
     ],
   },
 
-  // 9. Administration & Security
+  // 10. Administration & Security
   {
     id: "administration",
     label: "Administration",

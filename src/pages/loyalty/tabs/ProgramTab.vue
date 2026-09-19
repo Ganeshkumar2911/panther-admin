@@ -649,6 +649,41 @@
               {{ program.allow_general_wallet_transfer ? 'Enabled' : 'Disabled' }}
             </span>
           </div>
+
+          <!-- Deposit Bonus (Promo Grant) Status -->
+          <div class="p-3 bg-background/40 border border-primary-border rounded-lg text-xs space-y-2">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1.5">
+                <Coins class="w-3.5 h-3.5 text-primary" />
+                <p class="font-medium text-primary-text">Deposit Bonus (Promo Grant)</p>
+              </div>
+              <span
+                class="px-2 py-0.5 rounded text-[10px] font-medium uppercase"
+                :class="program.deposit_bonus_enabled ? 'bg-primary-green/10 text-primary-green border border-primary-green/20' : 'bg-background text-secondary-text border border-primary-border'"
+              >
+                {{ program.deposit_bonus_enabled ? 'Enabled' : 'Disabled' }}
+              </span>
+            </div>
+            <p class="text-[10px] text-secondary-text">
+              Auto-grants points on PaymentRequest deposits (ADJUST lots).
+            </p>
+            <div v-if="program.deposit_bonus_enabled" class="grid grid-cols-3 gap-2 pt-1.5 border-t border-primary-border/40">
+              <div>
+                <span class="text-[9px] uppercase font-medium text-secondary-text block">Mode</span>
+                <span class="font-mono text-primary-text text-[11px] font-semibold uppercase">{{ program.deposit_bonus_mode || 'conversion' }}</span>
+              </div>
+              <div>
+                <span class="text-[9px] uppercase font-medium text-secondary-text block">Min Deposit</span>
+                <span class="font-mono text-primary-text text-[11px] font-semibold">${{ Number(program.deposit_bonus_min_usd || 0).toFixed(2) }}</span>
+              </div>
+              <div>
+                <span class="text-[9px] uppercase font-medium text-secondary-text block">{{ program.deposit_bonus_mode === 'fixed_first' ? 'Fixed Pts' : 'Rate / USD' }}</span>
+                <span class="font-mono text-primary-green text-[11px] font-semibold">
+                  {{ program.deposit_bonus_mode === 'fixed_first' ? `${Number(program.deposit_bonus_fixed_points || 0).toFixed(0)} pts` : `${Number(program.deposit_bonus_points_per_usd || 0).toFixed(2)} pts/$` }}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Card 2: Cycle Timelines & Lifecycle -->
@@ -934,6 +969,7 @@ import {
   LayoutList,
   LayoutPanelLeft,
   Layers,
+  Coins,
 } from "lucide-vue-next";
 import { useLoyaltyStore } from "@/stores/loyalty/loyalty";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";

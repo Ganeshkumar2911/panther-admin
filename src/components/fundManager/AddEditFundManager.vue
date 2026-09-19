@@ -4,7 +4,7 @@
     <Transition name="backdrop">
       <div
         v-if="open"
-        class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs transition-opacity cursor-pointer"
+        class="fixed inset-0 z-100 bg-black/60 backdrop-blur-xs transition-opacity cursor-pointer"
         @click="closeDialog"
       />
     </Transition>
@@ -13,7 +13,7 @@
     <Transition name="drawer">
       <div
         v-if="open"
-        class="fixed right-0 top-0 bottom-0 z-[101] w-full max-w-xl sm:max-w-2xl bg-card-background border-l border-primary-border flex flex-col shadow-2xl overflow-hidden"
+        class="fixed right-0 top-0 bottom-0 z-101 w-full max-w-xl sm:max-w-2xl bg-card-background border-l border-primary-border flex flex-col shadow-2xl overflow-hidden"
         role="dialog"
         aria-modal="true"
       >
@@ -244,7 +244,7 @@
                   >Account Status</label
                 >
                 <div
-                  class="flex items-center gap-4 bg-background border border-primary-border rounded-xl px-4 py-2.5 h-[38px]"
+                  class="flex items-center gap-4 bg-background border border-primary-border rounded-xl px-4 py-2.5 h-9.5"
                 >
                   <label
                     class="flex items-center gap-2 cursor-pointer text-xs font-medium text-primary-text"
