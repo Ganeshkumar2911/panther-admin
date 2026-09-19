@@ -137,6 +137,33 @@ export const useEnhancedAuditLogsStore = defineStore("enhancedAuditLogs", () => 
     });
   };
 
+  const fetchUserTimeline = (userId, page = 1, perPage = 20) => {
+    return new Promise((resolve, reject) => {
+      apiRequest(urls.KEYS.GET, urls.enhancedAuditLogs.userTimeline(userId), {
+        params: { page, per_page: perPage },
+        isTokenRequired: true,
+        onSuccess: (res) => resolve(res),
+        onFailure: (err) => reject(err),
+      });
+    });
+  };
+
+  const fetchStaffFlow = (sourceId, destinationId, page = 1, perPage = 20) => {
+    return new Promise((resolve, reject) => {
+      apiRequest(urls.KEYS.GET, urls.enhancedAuditLogs.staffFlow, {
+        params: cleanFilters({
+          source_id: sourceId,
+          destination_id: destinationId,
+          page,
+          per_page: perPage,
+        }),
+        isTokenRequired: true,
+        onSuccess: (res) => resolve(res),
+        onFailure: (err) => reject(err),
+      });
+    });
+  };
+
   const applyFilters = (nextFilters) => {
     if (nextFilters) {
       Object.assign(filters, nextFilters);
@@ -230,6 +257,8 @@ export const useEnhancedAuditLogsStore = defineStore("enhancedAuditLogs", () => 
     fetchAuditLogs,
     fetchFilters,
     fetchAuditDetails,
+    fetchUserTimeline,
+    fetchStaffFlow,
     applyFilters,
     resetFilters,
     searchClients,
