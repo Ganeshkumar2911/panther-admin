@@ -212,9 +212,9 @@
       </div>
 
       <!-- DETAILED SPECIFICATIONS GRID -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
         <!-- Left Column: Trading Account & Copy Rules -->
-        <div class="lg:col-span-2 space-y-4 flex flex-col justify-between">
+        <div class="lg:col-span-2 space-y-4">
           <!-- Trading Account Details Card -->
           <div class="bg-card-background border border-primary-border rounded-lg overflow-hidden shadow-2xs">
             <div class="flex items-center justify-between px-4 py-3 border-b border-primary-border bg-background/40">
@@ -339,7 +339,7 @@
         </div>
 
         <!-- Right Column: User Profile & Subscription Terms -->
-        <div class="space-y-4 flex flex-col justify-between">
+        <div class="space-y-4">
           <!-- Client Profile Information -->
           <div class="bg-card-background border border-primary-border rounded-lg overflow-hidden shadow-2xs">
             <div class="flex items-center justify-between px-4 py-3 border-b border-primary-border bg-background/40">
@@ -403,6 +403,14 @@
               <div class="flex items-center justify-between text-xs">
                 <span class="text-secondary-text">Performance Fee</span>
                 <span class="font-extrabold text-primary font-mono">{{ store.details.performance_fee ?? 0 }}%</span>
+              </div>
+              <div class="flex items-center justify-between  border-t border-primary-border/60 text-xs">
+                <span class="text-secondary-text">FM Share</span>
+                <span class="font-extrabold text-primary font-mono">{{ store.details.fm_share ?? 0 }}%</span>
+              </div>
+              <div class="flex items-center justify-between border-t border-primary-border/60 text-xs">
+                <span class="text-secondary-text">Broker Share</span>
+                <span class="font-extrabold text-primary font-mono">{{ store.details.broker_share ?? 0 }}%</span>
               </div>
               <div class="flex items-center justify-between text-xs pt-2 border-t border-primary-border/60">
                 <span class="text-secondary-text">Management Fee</span>

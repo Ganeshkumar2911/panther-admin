@@ -60,6 +60,15 @@ export const usePaymentMethodsStore = defineStore(
     })
 
     // ─────────────────────────────────────
+    // Filters
+    // ─────────────────────────────────────
+
+    const filters = reactive({
+      search: '',
+      method_type: '',
+    })
+
+    // ─────────────────────────────────────
     // Fetch Payment Methods
     // ─────────────────────────────────────
 
@@ -108,14 +117,23 @@ export const usePaymentMethodsStore = defineStore(
         )
       }
 
+      const queryParams = {
+        page: pagination.page,
+        per_page: pagination.per_page,
+      }
+
+      if (filters.search?.trim()) {
+        queryParams.search = filters.search.trim()
+      }
+      if (filters.method_type) {
+        queryParams.method_type = filters.method_type
+      }
+
       apiRequest(
         urls.KEYS.GET,
         urls.paymentMethods.list,
         {
-          params: {
-            page: pagination.page,
-            per_page: pagination.per_page,
-          },
+          params: queryParams,
 
           isTokenRequired: true,
 
@@ -306,6 +324,11 @@ export const usePaymentMethodsStore = defineStore(
         has_next: false,
         has_prev: false,
       })
+
+      Object.assign(filters, {
+        search: '',
+        method_type: '',
+      })
     }
 
     // ─────────────────────────────────────
@@ -333,6 +356,7 @@ export const usePaymentMethodsStore = defineStore(
 
       summary,
       pagination,
+      filters,
       perPageOptions,
 
       // methods
