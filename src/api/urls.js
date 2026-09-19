@@ -446,6 +446,18 @@ const urls = {
     transactions: "/cashback/transactions",
     redemptions: "/cashback/redemptions",
   },
+  pamm: {
+    list: "/admin/pamm",
+    detail: (id) => `/admin/pamm/${id}`,
+    pendingWithdrawals: (id) => `/admin/pamm/${id}/withdrawals/pending`,
+    approveWithdrawal: (opId) => `/admin/pamm/withdrawals/${opId}/approve`,
+    rejectWithdrawal: (opId) => `/admin/pamm/withdrawals/${opId}/reject`,
+    accountingEntries: (id) => `/admin/pamm/${id}/accounting-entries`,
+    trades: (id) => `/admin/pamm/${id}/trades`,
+    tradeAllocations: (pammId, tradeId) => `/admin/pamm/${pammId}/trades/${tradeId}/allocations`,
+    reconcile: (id) => `/admin/pamm/${id}/reconcile`,
+    settlements: (id) => `/admin/pamm/${id}/settlements`,
+  },
 };
 
 export default urls;

@@ -814,6 +814,27 @@ const routes = [
           description: "Manage Cashback Program rules, plans, enrollments, and ledger transactions.",
         },
       },
+      {
+        path: "/pamm",
+        name: "pamm-list",
+        component: () => import("@/pages/pamm/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "PAMM",
+          description: "Manage PAMM (Percentage Allocation Management Module) pools.",
+        },
+      },
+      {
+        path: "/pamm/:id",
+        name: "pamm-detail",
+        component: () => import("@/pages/pamm/_id.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "PAMM Details",
+          description: "View and manage PAMM details, participants, and ledger.",
+          showBackButton: true,
+        },
+      },
     ],
   },
 ];
