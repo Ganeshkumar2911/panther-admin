@@ -91,6 +91,13 @@ const urls = {
   auditLogs: {
     list: "/audit-logs",
   },
+  enhancedAuditLogs: {
+    list: "/enhanced-audit-logs",
+    details: (id) => `/audit-logs/${id}/details`,
+    userTimeline: (userId) => `/enhanced-audit-logs/user/${userId}`,
+    filters: "/enhanced-audit-logs/filters",
+    staffFlow: "/admin/audit-staff",
+  },
   fm: {
     list: "/fund_managers",
     create: "/fund_managers/create",
