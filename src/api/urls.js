@@ -435,6 +435,17 @@ const urls = {
     approvalEntries: "/ib-commission/commissions/approvals/entries",
     approveIbPeriod: "/ib-commission/commissions/approvals/approve-ib",
   },
+  cashback: {
+    programs: "/cashback/programs",
+    program: "/cashback/program",
+    updateProgram: (id) => `/cashback/program/${id}`,
+    plans: (id) => `/cashback/program/${id}/plans`,
+    updatePlan: (id) => `/cashback/plans/${id}`,
+    enrollments: "/cashback/enrollments",
+    unenroll: "/cashback/enrollments/unenroll",
+    transactions: "/cashback/transactions",
+    redemptions: "/cashback/redemptions",
+  },
 };
 
 export default urls;

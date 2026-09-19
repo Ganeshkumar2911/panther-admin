@@ -114,8 +114,14 @@
                 >Primary Trading Account</span
               >
               <h4 class="text-base font-bold text-primary-text font-mono">
-                Trading A/C #{{ detail.trading_account_id }}
+                {{ detail.account_number ? `Account #${detail.account_number}` : `Trading A/C #${detail.trading_account_id}` }}
               </h4>
+              <p
+                v-if="detail.account_number && detail.trading_account_id"
+                class="text-[11px] text-secondary-text font-mono"
+              >
+                A/C ID: #{{ detail.trading_account_id }}
+              </p>
               <p
                 v-if="detail.email"
                 class="text-xs font-semibold text-primary-text"
