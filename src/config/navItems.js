@@ -207,7 +207,11 @@ export const navClusters = [
         label: "Symbols Catalog",
         to: "/commission-engine/symbols",
         icon: Grid,
-        permission: ["ib_commission_symbols.view", "ib_commission.symbols.view", "ib_commission.view"],
+        permission: [
+          "ib_commission_symbols.view",
+          "ib_commission.symbols.view",
+          "ib_commission.view",
+        ],
         keywords: ["symbols", "catalog", "unmapped", "pairs", "mt5 symbols"],
       },
       {
@@ -554,6 +558,20 @@ export const navClusters = [
           "tracking",
         ],
       },
+      {
+        label: "Enhanced Audit Logs",
+        to: "/enhanced-audit-logs",
+        icon: ClipboardList,
+        permission: ["new_audit.view", "new_audit"],
+        keywords: [
+          "activity logs",
+          "history",
+          "security logs",
+          "events",
+          "tracking",
+          "enhanced",
+        ],
+      },
     ],
   },
 
@@ -631,6 +649,7 @@ export const navClusters = [
         icon: DollarSign,
         permission: ["cashback.view"],
         keywords: ["cashback", "rebate", "usd", "earnings", "loyalty"],
+
       },
     ],
   },

@@ -141,6 +141,17 @@ const routes = [
               description: "View client notifications and history.",
             },
           },
+          {
+            path: "audit-logs",
+            name: "client-details-audit-logs",
+            component: () => import("@/pages/client-details/auditLogs.vue"),
+            meta: {
+              showBackButton: true,
+              requiresAuth: true,
+              title: "Client Audit Logs",
+              description: "View client enhanced audit log events.",
+            },
+          },
         ],
       },
       {
@@ -648,6 +659,16 @@ const routes = [
           requiresAuth: true,
           title: "Audit Logs",
           description: "Track and view system modifications and events.",
+        },
+      },
+      {
+        path: "/enhanced-audit-logs",
+        name: "enhanced-audit-logs",
+        component: () => import("@/pages/enhanced-audit-logs/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Enhanced Audit Logs",
+          description: "Advanced tracking and detailed view of system modifications and events.",
         },
       },
       {
