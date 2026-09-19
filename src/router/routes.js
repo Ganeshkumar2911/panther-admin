@@ -141,6 +141,17 @@ const routes = [
               description: "View client notifications and history.",
             },
           },
+          {
+            path: "audit-logs",
+            name: "client-details-audit-logs",
+            component: () => import("@/pages/client-details/auditLogs.vue"),
+            meta: {
+              showBackButton: true,
+              requiresAuth: true,
+              title: "Client Audit Logs",
+              description: "View client enhanced audit log events.",
+            },
+          },
         ],
       },
       {

@@ -1,16 +1,17 @@
 <template>
   <div class="px-4 pb-8">
-    <!-- Filters Bar (Single Row) -->
-    <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3 mb-5">
-      <div class="flex w-full min-w-0 flex-col gap-2 rounded-xl border border-primary-border bg-card-background/40 p-2 sm:flex-row sm:items-center xl:flex-1 xl:flex-wrap">
-        
+    <!-- Filters Bar -->
+    <div class="mb-5">
+      <div
+        class="flex flex-wrap items-center gap-2.5 rounded-xl border border-primary-border bg-card-background/40 p-2.5"
+      >
         <!-- Module Filter -->
         <BaseSelect
           v-model="filters.module"
           :isLoading="store.filterLoading"
           :options="moduleOptions"
           placeholder="All Modules"
-          class="w-full sm:w-44 xl:w-44"
+          class="w-full sm:w-36 xl:w-40"
           @update:modelValue="onModuleChange"
         />
 
@@ -21,7 +22,7 @@
           :options="entityOptions"
           :disabled="!filters.module"
           placeholder="All Entities"
-          class="w-full sm:w-44 xl:w-44"
+          class="w-full sm:w-36 xl:w-40"
           @update:modelValue="onEntityChange"
         />
 
@@ -32,19 +33,31 @@
           :options="actionOptions"
           :disabled="!filters.entity_type"
           placeholder="All Actions"
-          class="w-full sm:w-48 xl:w-48"
+          class="w-full sm:w-40 xl:w-44"
           @update:modelValue="applyFilters"
         />
 
-        <!-- User Search (Actor) -->
+        <!-- Staff Filter (Source) -->
         <BaseSelect
-          v-model="filters.actor_id"
-          :options="userOptions"
-          :isLoading="isSearchingUsers"
-          placeholder="Search Actor..."
+          v-model="filters.source_id"
+          :options="staffOptions"
+          :isLoading="isSearchingStaff"
+          placeholder="All Staff"
           searchable
-          class="w-full sm:w-56 xl:w-56"
-          @search="onUserSearch"
+          class="w-full sm:w-40 xl:w-44"
+          @search="onStaffSearch"
+          @update:modelValue="applyFilters"
+        />
+
+        <!-- Client Filter (Destination) -->
+        <BaseSelect
+          v-model="filters.destination_id"
+          :options="clientOptions"
+          :isLoading="isSearchingClients"
+          placeholder="All Clients"
+          searchable
+          class="w-full sm:w-40 xl:w-44"
+          @search="onClientSearch"
           @update:modelValue="applyFilters"
         />
 
@@ -53,7 +66,7 @@
           v-model="dateRange"
           range
           placeholder="Select Dates"
-          class="w-full sm:w-64 xl:w-64"
+          class="w-full sm:w-56 xl:w-60"
           @update:modelValue="onDateChange"
         />
 
@@ -62,33 +75,34 @@
           v-model="store.pagination.per_page"
           :options="perPageOptions"
           placeholder="Per Page"
-          class="w-full sm:w-28 xl:w-28"
+          class="w-full sm:w-24 xl:w-24"
           @update:modelValue="handlePerPageChange"
         />
 
-        <!-- Clear Button -->
-        <button
-          v-if="hasActiveFilters"
-          type="button"
-          class="rounded-lg px-3 py-2 text-xs font-medium text-secondary-text hover:bg-background hover:text-primary-text transition-colors sm:flex-none cursor-pointer"
-          @click="resetFilters"
-        >
-          Clear
-        </button>
+        <!-- Action Buttons (Clear & Refresh) -->
+        <div class="flex items-center gap-1.5 shrink-0">
+          <button
+            v-if="hasActiveFilters"
+            type="button"
+            class="rounded-lg px-3 py-2 text-xs font-medium text-secondary-text hover:bg-background hover:text-primary-text transition-colors cursor-pointer"
+            @click="resetFilters"
+          >
+            Clear
+          </button>
 
-        <!-- Refresh Button -->
-        <button
-          type="button"
-          :disabled="store.loading"
-          class="inline-flex items-center justify-center rounded-lg border border-primary-border p-1.5 text-secondary-text transition-colors hover:text-primary-text hover:bg-background disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer sm:ml-auto"
-          title="Refresh"
-          @click="() => store.fetchAuditLogs(true)"
-        >
-          <RefreshCw
-            class="h-3.5 w-3.5"
-            :class="{ 'animate-spin': store.loading }"
-          />
-        </button>
+          <button
+            type="button"
+            :disabled="store.loading"
+            class="inline-flex items-center justify-center rounded-lg border border-primary-border p-2 text-secondary-text transition-colors hover:text-primary-text hover:bg-background disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+            title="Refresh logs"
+            @click="() => store.fetchAuditLogs(true)"
+          >
+            <RefreshCw
+              class="h-3.5 w-3.5"
+              :class="{ 'animate-spin': store.loading }"
+            />
+          </button>
+        </div>
       </div>
     </div>
 
@@ -286,6 +300,7 @@
 import { onMounted, ref, computed } from "vue";
 import { RefreshCw, BookOpen, Eye, Computer } from "lucide-vue-next";
 import { useEnhancedAuditLogsStore } from "@/stores/enhancedAuditLogs/enhancedAuditLogs";
+import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import DataTable from "@/components/common/DataTable/DataTable.vue";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import BaseDatePicker from "@/components/common/BaseDatePicker.vue";
@@ -293,19 +308,24 @@ import EnhancedAuditLogDetailDrawer from "./components/EnhancedAuditLogDetailDra
 import { formatDate } from "@/utils/timeFormatter";
 
 const store = useEnhancedAuditLogsStore();
+const { hasPermission } = usePermissionCheck();
 
 const filters = ref({
   entity_type: null,
   module: null,
   action: null,
-  actor_id: null,
+  source_id: null,
   destination_id: null,
 });
 const dateRange = ref(null);
 
-const userOptions = ref([]);
-const isSearchingUsers = ref(false);
-let userSearchTimer = null;
+const staffOptions = ref([]);
+const isSearchingStaff = ref(false);
+let staffSearchTimer = null;
+
+const clientOptions = ref([]);
+const isSearchingClients = ref(false);
+let clientSearchTimer = null;
 
 const detailOpen = ref(false);
 const selectedLog = ref(null);
@@ -354,35 +374,61 @@ const hasActiveFilters = computed(() => {
     filters.value.entity_type ||
     filters.value.module ||
     filters.value.action ||
-    filters.value.actor_id ||
+    filters.value.source_id ||
     filters.value.destination_id ||
     dateRange.value
   );
 });
 
 // Lifecycle
-onMounted(() => {
+onMounted(async () => {
+  if (!hasPermission(["new_audit.view", "new_audit"])) return;
+
   filters.value = { ...store.filters };
   store.fetchFilters(); // load modules
   store.fetchAuditLogs();
+
+  // Load default 10 options for both Staff & Client filters
+  try {
+    const [staffList, clientList] = await Promise.all([
+      store.searchStaff(""),
+      store.searchClients(""),
+    ]);
+    staffOptions.value = staffList;
+    clientOptions.value = clientList;
+  } catch (err) {
+    // Graceful fallback
+  }
 });
 
-// Search functionality
-const onUserSearch = (query) => {
-  if (!query.trim()) {
-    userOptions.value = [];
-    return;
-  }
-  clearTimeout(userSearchTimer);
-  isSearchingUsers.value = true;
-  userSearchTimer = setTimeout(async () => {
+// Staff Search functionality (Source)
+const onStaffSearch = (query = "") => {
+  clearTimeout(staffSearchTimer);
+  isSearchingStaff.value = true;
+  staffSearchTimer = setTimeout(async () => {
+    try {
+      const results = await store.searchStaff(query);
+      staffOptions.value = results;
+    } catch (e) {
+      staffOptions.value = [];
+    } finally {
+      isSearchingStaff.value = false;
+    }
+  }, 300);
+};
+
+// Client Search functionality (Destination)
+const onClientSearch = (query = "") => {
+  clearTimeout(clientSearchTimer);
+  isSearchingClients.value = true;
+  clientSearchTimer = setTimeout(async () => {
     try {
       const results = await store.searchClients(query);
-      userOptions.value = results;
+      clientOptions.value = results;
     } catch (e) {
-      userOptions.value = [];
+      clientOptions.value = [];
     } finally {
-      isSearchingUsers.value = false;
+      isSearchingClients.value = false;
     }
   }, 300);
 };
@@ -427,15 +473,16 @@ const resetFilters = () => {
     entity_type: null,
     module: null,
     action: null,
-    actor_id: null,
+    source_id: null,
     destination_id: null,
     start_date: null,
     end_date: null,
   };
   dateRange.value = null;
-  userOptions.value = [];
   store.resetFilters();
   store.fetchFilters(); // reset filters data
+  onStaffSearch("");
+  onClientSearch("");
 };
 
 const handlePerPageChange = (val) => {

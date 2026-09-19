@@ -28,7 +28,7 @@ export const useEnhancedAuditLogsStore = defineStore("enhancedAuditLogs", () => 
     entity_type: null,
     module: null,
     action: null,
-    actor_id: null,
+    source_id: null,
     destination_id: null,
     search: null,
     start_date: null,
@@ -71,7 +71,7 @@ export const useEnhancedAuditLogsStore = defineStore("enhancedAuditLogs", () => 
       entity_type: filters.entity_type,
       module: filters.module,
       action: filters.action,
-      actor_id: filters.actor_id,
+      source_id: filters.source_id,
       destination_id: filters.destination_id,
       search: filters.search,
       start_date: filters.start_date,
@@ -137,6 +137,34 @@ export const useEnhancedAuditLogsStore = defineStore("enhancedAuditLogs", () => 
     });
   };
 
+  const fetchUserAuditLogs = (userId, page = 1, perPage = 20, force = false) => {
+    if (!userId) return;
+    loading.value = true;
+    error.value = null;
+
+    const successHandler = (res) => {
+      data.value = res?.data || [];
+      if (res?.pagination) {
+        pagination.value = res.pagination;
+      }
+      loading.value = false;
+      isFetched.value = true;
+    };
+
+    const failureHandler = (err) => {
+      loading.value = false;
+      error.value = err;
+      snackbar.show(err?.message || "Failed to fetch client audit logs.", "error");
+    };
+
+    return apiRequest(urls.KEYS.GET, urls.enhancedAuditLogs.userTimeline(userId), {
+      params: { page, per_page: perPage },
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+    });
+  };
+
   const fetchUserTimeline = (userId, page = 1, perPage = 20) => {
     return new Promise((resolve, reject) => {
       apiRequest(urls.KEYS.GET, urls.enhancedAuditLogs.userTimeline(userId), {
@@ -178,7 +206,7 @@ export const useEnhancedAuditLogsStore = defineStore("enhancedAuditLogs", () => 
       entity_type: null,
       module: null,
       action: null,
-      actor_id: null,
+      source_id: null,
       destination_id: null,
       search: null,
       start_date: null,
@@ -190,13 +218,13 @@ export const useEnhancedAuditLogsStore = defineStore("enhancedAuditLogs", () => 
   const searchClients = (query = "") => {
     return new Promise((resolve, reject) => {
       apiRequest(urls.KEYS.GET, urls.clientLedger.allClients, {
-        params: query ? { find_all: true, search: query } : {},
+        params: query ? { find_all: true, search: query } : { page: 1, per_page: 10 },
         isTokenRequired: true,
         onSuccess: (res) => {
-          const list = (res?.data || []).map((c) => {
+          const list = (res?.data || []).slice(0, query ? undefined : 10).map((c) => {
             const name = c.name ? c.name.trim() : "";
             const email = c.email ? c.email.trim() : "";
-            const label = name && email ? `${name} (${email})` : name || email || `User ${c.id}`;
+            const label = name || email || `User ${c.id}`;
             return {
               label,
               value: c.id,
@@ -207,6 +235,36 @@ export const useEnhancedAuditLogsStore = defineStore("enhancedAuditLogs", () => 
         },
         onFailure: (err) => {
           snackbar.show(err?.message || "Failed to search users.", "error");
+          reject(err);
+        },
+      });
+    });
+  };
+
+  const searchStaff = (query = "") => {
+    return new Promise((resolve, reject) => {
+      apiRequest(urls.KEYS.GET, urls.rbac.staff.list, {
+        params: {
+          page: 1,
+          per_page: 10,
+          search: query ? query : undefined,
+        },
+        isTokenRequired: true,
+        onSuccess: (res) => {
+          const list = (res?.data || []).map((s) => {
+            const name = s.name ? s.name.trim() : "";
+            const email = s.email ? s.email.trim() : "";
+            const label = name || email || `Staff ${s.id}`;
+            return {
+              label,
+              value: s.id,
+              email: s.email,
+            };
+          });
+          resolve(list);
+        },
+        onFailure: (err) => {
+          snackbar.show(err?.message || "Failed to search staff.", "error");
           reject(err);
         },
       });
@@ -236,7 +294,7 @@ export const useEnhancedAuditLogsStore = defineStore("enhancedAuditLogs", () => 
       entity_type: null,
       module: null,
       action: null,
-      actor_id: null,
+      source_id: null,
       destination_id: null,
       search: null,
       start_date: null,
@@ -255,6 +313,7 @@ export const useEnhancedAuditLogsStore = defineStore("enhancedAuditLogs", () => 
     pagination,
     filters,
     fetchAuditLogs,
+    fetchUserAuditLogs,
     fetchFilters,
     fetchAuditDetails,
     fetchUserTimeline,
@@ -262,6 +321,7 @@ export const useEnhancedAuditLogsStore = defineStore("enhancedAuditLogs", () => 
     applyFilters,
     resetFilters,
     searchClients,
+    searchStaff,
     updatePerPage,
     reset,
   };

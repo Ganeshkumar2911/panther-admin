@@ -380,6 +380,7 @@ import UploadKycDocumentModal from "@/components/clientDetails/UploadKycDocument
 import ClientEmailTriggerPanel from "@/components/clientDetails/ClientEmailTriggerPanel.vue";
 import ClientWhatsAppChatDrawer from "@/components/clientDetails/ClientWhatsAppChatDrawer.vue";
 import { useClientDepthStore } from "@/stores/clientDepth/clientDepth";
+import { useEnhancedAuditLogsStore } from "@/stores/enhancedAuditLogs/enhancedAuditLogs";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import {
@@ -401,12 +402,14 @@ import {
   RefreshCw,
   Bell,
   Landmark,
+  ClipboardList,
 } from "lucide-vue-next";
 import { WhatsappIcon } from "@hugeicons/core-free-icons/index";
 const route = useRoute();
 const router = useRouter();
 const snackbar = useSnackbarStore();
 const clientDepthStore = useClientDepthStore();
+const enhancedAuditLogsStore = useEnhancedAuditLogsStore();
 const { hasPermission } = usePermissionCheck();
 
 // ─── Account Badges Styling & Navigation ───────────────────────────────────────
@@ -676,6 +679,7 @@ const currentActiveTab = computed(() => {
   if (currentPath.endsWith("/bank-details") || route.name === "client-details-bank-details") return "bank-details";
   if (currentPath.endsWith("/marketing") || route.name === "client-details-marketing") return "marketing";
   if (currentPath.endsWith("/notifications") || route.name === "client-details-notifications") return "notifications";
+  if (currentPath.endsWith("/audit-logs") || route.name === "client-details-audit-logs") return "audit-logs";
   if (currentPath.endsWith("/trading") || route.name === "client-details-trading") return "trading";
   if (currentPath.endsWith("/crm") || route.name === "client-details-crm") return "crm";
   return "overview";
@@ -697,6 +701,9 @@ const isGlobalRefreshing = computed(() => {
   }
   if (currentActiveTab.value === "notifications") {
     return clientDepthStore.clientNotificationsLoading;
+  }
+  if (currentActiveTab.value === "audit-logs") {
+    return enhancedAuditLogsStore.loading;
   }
   return false;
 });
@@ -730,6 +737,8 @@ const handleGlobalRefresh = async () => {
       ]);
     } else if (activeTab === "notifications") {
       await clientDepthStore.fetchClientNotifications(userId, {}, true);
+    } else if (activeTab === "audit-logs") {
+      await enhancedAuditLogsStore.fetchUserAuditLogs(userId, 1, enhancedAuditLogsStore.pagination.per_page, true);
     }
 
     const tabLabel = tabs.value.find((t) => t.key === activeTab)?.label || "Tab";
@@ -742,56 +751,69 @@ const handleGlobalRefresh = async () => {
 };
 
 // ─── Top Tabs ─────────────────────────────────────────────────────────────────
-const tabs = computed(() => [
-  {
-    key: "overview",
-    label: "Overview",
-    to: `/client/details/${route.params.id}`,
-    icon: Activity,
-  },
-  {
-    key: "profile",
-    label: "Profile & KYC",
-    to: `/client/details/${route.params.id}/profile`,
-    icon: FileCheck,
-  },
-  {
-    key: "financials",
-    label: "Financials",
-    to: `/client/details/${route.params.id}/financials`,
-    icon: CreditCard,
-  },
-  {
-    key: "bank-details",
-    label: "Bank Details",
-    to: `/client/details/${route.params.id}/bank-details`,
-    icon: Landmark,
-  },
-  // {
-  //   key: "trading",
-  //   label: "Trading",
-  //   to: `/client/details/${route.params.id}/trading`,
-  //   icon: BarChart2,
-  // },
-  // {
-  //   key: "crm",
-  //   label: "CRM & Support",
-  //   to: `/client/details/${route.params.id}/crm`,
-  //   icon: Headphones,
-  // },
-  {
-    key: "marketing",
-    label: "Marketing",
-    to: `/client/details/${route.params.id}/marketing`,
-    icon: Megaphone,
-  },
-  // {
-  //   key: "notifications",
-  //   label: "Notifications",
-  //   to: `/client/details/${route.params.id}/notifications`,
-  //   icon: Bell,
-  // },
-]);
+const tabs = computed(() => {
+  const list = [
+    {
+      key: "overview",
+      label: "Overview",
+      to: `/client/details/${route.params.id}`,
+      icon: Activity,
+    },
+    {
+      key: "profile",
+      label: "Profile & KYC",
+      to: `/client/details/${route.params.id}/profile`,
+      icon: FileCheck,
+    },
+    {
+      key: "financials",
+      label: "Financials",
+      to: `/client/details/${route.params.id}/financials`,
+      icon: CreditCard,
+    },
+    {
+      key: "bank-details",
+      label: "Bank Details",
+      to: `/client/details/${route.params.id}/bank-details`,
+      icon: Landmark,
+    },
+    // {
+    //   key: "trading",
+    //   label: "Trading",
+    //   to: `/client/details/${route.params.id}/trading`,
+    //   icon: BarChart2,
+    // },
+    // {
+    //   key: "crm",
+    //   label: "CRM & Support",
+    //   to: `/client/details/${route.params.id}/crm`,
+    //   icon: Headphones,
+    // },
+    {
+      key: "marketing",
+      label: "Marketing",
+      to: `/client/details/${route.params.id}/marketing`,
+      icon: Megaphone,
+    },
+    // {
+    //   key: "notifications",
+    //   label: "Notifications",
+    //   to: `/client/details/${route.params.id}/notifications`,
+    //   icon: Bell,
+    // },
+  ];
+
+  if (hasPermission(["new_audit.view", "new_audit"])) {
+    list.push({
+      key: "audit-logs",
+      label: "Audit Log",
+      to: `/client/details/${route.params.id}/audit-logs`,
+      icon: ClipboardList,
+    });
+  }
+
+  return list;
+});
 
 const isTabActive = (tab) => {
   const currentPath = route.path.replace(/\/$/, "");

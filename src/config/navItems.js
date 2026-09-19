@@ -562,7 +562,7 @@ export const navClusters = [
         label: "Enhanced Audit Logs",
         to: "/enhanced-audit-logs",
         icon: ClipboardList,
-
+        permission: ["new_audit.view", "new_audit"],
         keywords: [
           "activity logs",
           "history",
@@ -571,7 +571,6 @@ export const navClusters = [
           "tracking",
           "enhanced",
         ],
-
       },
     ],
   },
