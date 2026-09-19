@@ -1,3 +1,4 @@
+import { WhatsappIcon } from "@hugeicons/core-free-icons/index";
 import {
   LayoutDashboard,
   Users,
@@ -288,7 +289,7 @@ export const navClusters = [
       {
         label: "WhatsApp",
         to: "/whatsapp/templates",
-        icon: MessageSquare,
+        hugeIcon: WhatsappIcon,
         permission: ["whatsapp.view", "whatsapp.create"],
         keywords: ["whatsapp", "templates", "chat", "messages", "meta"],
       },

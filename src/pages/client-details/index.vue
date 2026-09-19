@@ -155,7 +155,8 @@
                 @click="handleQuickAction(action)"
                 class="cursor-pointer border border-primary-border p-2 rounded-lg text-secondary-text hover:bg-background hover:text-primary-text transition-colors"
               >
-                <component :is="action.icon" class="w-4 h-4" />
+                <HugeiconsIcon v-if="action.hugeIcon" :icon="action.hugeIcon" class="w-4 h-4" />
+                <component v-else :is="action.icon" class="w-4 h-4" />
               </button>
             </Tooltip>
           </div>
@@ -401,6 +402,7 @@ import {
   Bell,
   Landmark,
 } from "lucide-vue-next";
+import { WhatsappIcon } from "@hugeicons/core-free-icons/index";
 const route = useRoute();
 const router = useRouter();
 const snackbar = useSnackbarStore();
@@ -599,7 +601,7 @@ const whatsappDrawerOpen = ref(false);
 const quickActions = [
   { action: "call", label: "Call", icon: Phone },
   { action: "email", label: "Email", icon: Mail, permission: ["email.manage", "email.template_manual_trigger", "email.view"] },
-  { action: "message", label: "WhatsApp Chat", icon: MessageSquare, permission: ["whatsapp.send", "whatsapp.view"] },
+  { action: "message", label: "WhatsApp Chat", hugeIcon: WhatsappIcon, permission: ["whatsapp.send", "whatsapp.view"] },
   { action: "documents", label: "Documents", icon: FileText, permission: ["client.document_add", "client.document_view"] },
 ];
 
