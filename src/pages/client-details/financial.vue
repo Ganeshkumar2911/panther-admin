@@ -42,7 +42,7 @@
     </div>
 
     <!-- Live Content -->
-    <div v-else class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3.5">
+    <div v-else class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5">
       <!-- 1. Total Deposit -->
       <div
         class="bg-card-background/40 border border-primary-border rounded-xl p-4 sm:p-5 flex items-center justify-between gap-2.5"
@@ -130,7 +130,7 @@
       </div>
 
       <!-- 5. Total PnL -->
-      <div
+      <!-- <div
         class="bg-card-background/40 border border-primary-border rounded-xl p-4 sm:p-5 flex items-center justify-between gap-2.5"
       >
         <div class="min-w-0 flex-1">
@@ -153,7 +153,7 @@
         >
           <DollarSign class="w-4.5 h-4.5 sm:w-5 sm:h-5" />
         </div>
-      </div>
+      </div> -->
     </div>
 
     <!-- ─── 3. MIDDLE SECTION: PERFORMANCE TRENDS CHARTS ─────────── -->
