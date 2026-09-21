@@ -25,12 +25,14 @@
 
       <div class="bg-card-background border border-primary-border rounded-lg shadow-sm p-4 flex flex-col justify-center gap-2">
         <button 
+          v-if="hasPermission('pamm.reconcile')"
           @click="isReconcileModalOpen = true"
           class="w-full bg-card-background border border-primary-border hover:bg-gray-50 text-primary-text px-3 py-1.5 rounded text-sm font-medium transition-colors"
         >
           Reconcile Pool
         </button>
         <button 
+          v-if="hasPermission('pamm.manage')"
           @click="isSettlementModalOpen = true"
           class="w-full bg-primary hover:bg-primary-hover text-white px-3 py-1.5 rounded text-sm font-medium transition-colors"
         >
@@ -89,6 +91,7 @@
 import { ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { usePAMMStore } from '@/stores/pamm/pamm';
+import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import DataTable from '@/components/common/DataTable/DataTable.vue';
 import StatusBadge from '@/components/common/StatusBadge.vue';
 import ReconcileModal from '../components/ReconcileModal.vue';
@@ -97,6 +100,7 @@ import RunSettlementModal from '../components/RunSettlementModal.vue';
 const route = useRoute();
 const store = usePAMMStore();
 const pammId = route.params.id;
+const { hasPermission } = usePermissionCheck();
 
 const isReconcileModalOpen = ref(false);
 const isSettlementModalOpen = ref(false);

@@ -34,7 +34,7 @@
         </template>
 
         <template #cell-actions="{ row }">
-          <div class="flex gap-2" v-if="row.status === 'PENDING'">
+          <div class="flex gap-2" v-if="row.status === 'PENDING' && hasPermission('pamm.approve_withdrawal')">
             <button 
               class="text-xs text-primary-green hover:underline font-medium disabled:opacity-50"
               :disabled="store.actionLoading"
@@ -68,6 +68,7 @@
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { usePAMMStore } from '@/stores/pamm/pamm';
+import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import { useSnackbarStore } from '@/stores/snackbar/snackbar';
 import DataTable from '@/components/common/DataTable/DataTable.vue';
 import StatusBadge from '@/components/common/StatusBadge.vue';
@@ -77,6 +78,7 @@ const route = useRoute();
 const store = usePAMMStore();
 const snackbar = useSnackbarStore();
 const pammId = route.params.id;
+const { hasPermission } = usePermissionCheck();
 
 const rejectModalOpen = ref(false);
 const selectedOperationId = ref(null);
