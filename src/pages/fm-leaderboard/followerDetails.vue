@@ -113,7 +113,7 @@
 
                 <span v-if="store.details.created_at" class="flex items-center gap-1">
                   <Calendar class="w-3.5 h-3.5 opacity-60" />
-                  Joined {{ formatDate(store.details.created_at) }}
+                  Joined {{ store.details.created_at }}
                 </span>
               </div>
             </div>
