@@ -42,6 +42,7 @@ import CommissionsTab from "./tabs/CommissionsTab.vue";
 import SettingsTab from "./tabs/SettingsTab.vue";
 import DemoWalletsTab from "./tabs/DemoWalletsTab.vue";
 import ApprovalsTab from "./tabs/ApprovalsTab.vue";
+import EtlSettingsTab from "./tabs/EtlSettingsTab.vue";
 
 const route = useRoute();
 const { hasModulePermission, hasPermission } = usePermissionCheck();
@@ -63,6 +64,8 @@ const hasAccess = computed(() => {
     hasPermission("ib_commission.trades.view") ||
     hasPermission("ib_commission_settings.view") ||
     hasPermission("ib_commission.settings.view") ||
+    hasPermission("ib_commission_etl_settings.view") ||
+    hasPermission("ib_commission.etl_settings.view") ||
     hasPermission("ib_commission_demo_wallets.view") ||
     hasPermission("ib_commission.demo_wallets.view") ||
     hasPermission("ib_commission_approvals.view") ||
@@ -81,12 +84,14 @@ const validTabKeys = [
   "symbols",
   "sync",
   "settings",
+  "etl-settings",
   "demo-wallets",
 ];
 
 const activeTab = computed(() => {
   const path = route.path;
   if (path.endsWith("/approvals")) return "approvals";
+  if (path.endsWith("/etl-settings")) return "etl-settings";
   if (path.endsWith("/settings")) return "settings";
   if (path.endsWith("/demo-wallets")) return "demo-wallets";
   if (path.endsWith("/commissions")) return "commissions";
@@ -106,6 +111,8 @@ const activeComponent = computed(() => {
   switch (activeTab.value) {
     case "approvals":
       return ApprovalsTab;
+    case "etl-settings":
+      return EtlSettingsTab;
     case "settings":
       return SettingsTab;
     case "demo-wallets":

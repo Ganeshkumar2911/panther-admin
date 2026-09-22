@@ -267,6 +267,27 @@ export const navClusters = [
           "batches",
         ],
       },
+      {
+        label: "ETL Settings",
+        to: "/commission-engine/etl-settings",
+        icon: RefreshCcw,
+        permission: [
+          "ib_commission_settings.view",
+          "ib_commission.settings.view",
+          "ib_commission_etl_settings.view",
+          "ib_commission.etl_settings.view",
+          "ib_commission.view",
+        ],
+        keywords: [
+          "etl",
+          "recalc",
+          "revert",
+          "revert date",
+          "retroactive",
+          "daily run",
+          "settings",
+        ],
+      },
     ],
   },
 
