@@ -54,6 +54,15 @@
             </div>
           </div>
 
+          <button
+            v-if="hasPermission('fund_manager.approve')"
+            class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
+            @click="addFollowerDialogOpen = true"
+          >
+            <UserPlus class="w-3.5 h-3.5" />
+            <span>Add Follower</span>
+          </button>
+
           <Tooltip text="Refresh List">
             <button
               class="p-2 rounded-lg border border-primary-border text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer"
@@ -70,16 +79,27 @@
         <h2 class="text-base font-bold text-primary-text">
           Clients & Followers List <span class="text-xs text-secondary-text font-normal">(FM #{{ fmId }})</span>
         </h2>
-        <Tooltip text="Refresh List">
+        <div class="flex items-center gap-2">
           <button
-            class="p-2 rounded-lg border border-primary-border text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer"
-            @click="fetchFollowers(true, pagination.page)"
-            :disabled="loading"
-            title="Refresh List"
+            v-if="hasPermission('fund_manager.approve')"
+            class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
+            @click="addFollowerDialogOpen = true"
           >
-            <RotateCw class="w-3.5 h-3.5" :class="{ 'animate-spin': loading }" />
+            <UserPlus class="w-3.5 h-3.5" />
+            <span>Add Follower</span>
           </button>
-        </Tooltip>
+
+          <Tooltip text="Refresh List">
+            <button
+              class="p-2 rounded-lg border border-primary-border text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer"
+              @click="fetchFollowers(true, pagination.page)"
+              :disabled="loading"
+              title="Refresh List"
+            >
+              <RotateCw class="w-3.5 h-3.5" :class="{ 'animate-spin': loading }" />
+            </button>
+          </Tooltip>
+        </div>
       </div>
     </div>
 
@@ -434,6 +454,15 @@
       </div>
     </template>
 
+    <!-- ADD FOLLOWER DIALOG -->
+    <AddFollowerDialog
+      :open="addFollowerDialogOpen"
+      :fm-id="fmId"
+      :currency="activeCurrency"
+      @close="addFollowerDialogOpen = false"
+      @created="handleFollowerAdded"
+    />
+
     <!-- EDIT FOLLOWER DIALOG -->
     <EditFollowerDialog
       :open="editDialogOpen"
@@ -460,6 +489,7 @@ import {
   UserCheck,
   PauseCircle,
   History,
+  UserPlus,
 } from 'lucide-vue-next'
 import apiRequest from '@/api/request'
 import urls from '@/api/urls'
@@ -467,17 +497,25 @@ import Tooltip from '@/components/common/Tooltip.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import Pagination from '@/components/common/Pagination.vue'
 import EditFollowerDialog from '@/components/fmOffers/EditFollowerDialog.vue'
+import AddFollowerDialog from '@/components/fmOffers/AddFollowerDialog.vue'
 import { useSnackbarStore } from '@/stores/snackbar/snackbar'
+import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
 const route = useRoute()
 const router = useRouter()
 const snackbar = useSnackbarStore()
+const { hasPermission } = usePermissionCheck()
 
 const fmId = route.params.id
 const fmInfo = ref(null)
 const followers = ref([])
 const availableOffers = ref([])
 const loading = ref(false)
+const addFollowerDialogOpen = ref(false)
+
+const handleFollowerAdded = () => {
+  fetchFollowers(true, 1)
+}
 const searchQuery = ref('')
 const selectedOffer = ref('ALL')
 
