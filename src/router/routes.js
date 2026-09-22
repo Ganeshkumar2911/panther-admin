@@ -805,6 +805,17 @@ const routes = [
         },
       },
       {
+        path: "/commission-engine/etl-settings",
+        name: "commission-engine-etl-settings",
+        component: () => import("@/pages/commission-engine/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "IB Commission ETL Settings",
+          description:
+            "Configure recalculation revert dates (Next, Night, Weekend) and trigger on-demand recalculation runs.",
+        },
+      },
+      {
         path: "/commission-engine/demo-wallets",
         name: "commission-engine-demo-wallets",
         component: () => import("@/pages/commission-engine/index.vue"),
