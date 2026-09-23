@@ -859,18 +859,14 @@
                     <!-- Type -->
                     <div>
                       <label class="block text-[10px] font-semibold text-secondary-text mb-1">Input Type</label>
-                      <select
+                      <BaseSelect
                         v-model="field.type"
-                        class="w-full px-2.5 py-1.5 rounded-lg bg-background border border-primary-border text-xs text-primary-text outline-none focus:border-primary cursor-pointer"
-                        @change="onFieldTypeChange(field)"
-                      >
-                        <option value="text">Text Input</option>
-                        <option value="number">Number Input</option>
-                        <option value="select">Dropdown Select</option>
-                        <option value="email">Email</option>
-                        <option value="textarea">Textarea</option>
-                        <option value="file">File / Attachment (Image)</option>
-                      </select>
+                        :options="FIELD_TYPE_OPTIONS"
+                        placeholder="Select input type..."
+                        variant="surface"
+                        trigger-class="px-2.5 py-1.5 text-xs rounded-lg"
+                        @update:model-value="(val) => onFieldTypeChange(field, val)"
+                      />
                     </div>
 
                     <!-- Placeholder -->
@@ -1045,7 +1041,17 @@ import {
   Power,
   Globe,
 } from 'lucide-vue-next'
+import BaseSelect from '@/components/common/BaseSelect.vue'
 import { usePaymentMethodsStore } from '@/stores/paymentMethods/paymentMethods'
+
+const FIELD_TYPE_OPTIONS = [
+  { label: 'Text Input', value: 'text' },
+  { label: 'Number Input', value: 'number' },
+  { label: 'Dropdown Select', value: 'select' },
+  { label: 'Email', value: 'email' },
+  { label: 'Textarea', value: 'textarea' },
+  { label: 'File / Attachment (Image)', value: 'file' },
+]
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -1270,7 +1276,10 @@ const addStandardProofField = () => {
   }
 }
 
-const onFieldTypeChange = (field) => {
+const onFieldTypeChange = (field, newType) => {
+  if (newType !== undefined) {
+    field.type = newType
+  }
   if (field.type === 'file') {
     if (!field.key) field.key = 'proof'
     if (!field.label) field.label = 'Add attachment'
