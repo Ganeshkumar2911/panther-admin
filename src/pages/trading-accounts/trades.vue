@@ -220,6 +220,19 @@
           class="w-28 sm:w-32"
           @update:modelValue="store.updatePerPage"
         />
+        <Tooltip text="Refresh" position="top">
+          <button
+            type="button"
+            :disabled="store.loading"
+            class="flex items-center justify-center w-8 h-8 rounded-lg border border-primary-border bg-card-background text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer disabled:opacity-50"
+            @click="handleRefresh"
+          >
+            <RefreshCw
+              class="w-3.5 h-3.5"
+              :class="{ 'animate-spin': store.loading }"
+            />
+          </button>
+        </Tooltip>
       </div>
     </div>
 
@@ -228,12 +241,14 @@
       :data="store.data"
       :columns="tradeColumns"
       :pagination="store.pagination"
+      :per-page-options="store.perPageOptions"
       :loading="store.loading"
       row-key="trade_id"
       table-key="account-trades-table"
       empty-title="No trades found"
       empty-text="Trades will appear here once executed"
       @page-change="handlePageChange"
+      @per-page-change="handlePerPageChange"
     >
       <!-- Custom Cell: Trade ID -->
       <template #cell-trade_id="{ row }">
@@ -302,6 +317,12 @@
         </span>
       </template>
 
+      <!-- Custom Cell: Closed At -->
+      <template #cell-closed_at="{ row }">
+        <span class="text-xs text-secondary-text whitespace-nowrap font-mono">
+          {{ row.closed_at }}
+        </span>
+      </template>
       <!-- Custom Cell: Created At -->
       <template #cell-created_at="{ row }">
         <span class="text-xs text-secondary-text whitespace-nowrap font-mono">
@@ -315,10 +336,12 @@
 <script setup>
 import { onMounted, watch, ref, computed } from "vue";
 import { useRoute } from "vue-router";
+import { RefreshCw } from "lucide-vue-next";
 import { useAccountTradesStore } from "@/stores/tradingAccounts/accountsTrades";
 import DataTable from "@/components/common/DataTable/DataTable.vue";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import BaseDatePicker from "@/components/common/BaseDatePicker.vue";
+import Tooltip from "@/components/common/Tooltip.vue";
 import { livePNL } from "@/utils/livePNL";
 import { useTickerStore } from "@/stores/ws/ticker";
 import moment from "moment-timezone";
@@ -339,6 +362,7 @@ const tradeColumns = [
   { key: 'ltp', label: 'LTP' },
   { key: 'pnl', label: 'PnL' },
   { key: 'status', label: 'Status' },
+  { key: 'closed_at', label: 'Closed' },
   { key: 'created_at', label: 'Created', align: 'right' },
 ];
 
@@ -398,6 +422,15 @@ const lastTickerPriceText = (trade) => {
 
 const handlePageChange = (page) => {
   store.setPage(page);
+};
+
+const handlePerPageChange = (payload) => {
+  const perPage = typeof payload === "object" && payload !== null ? (payload.per_page ?? payload.value) : payload;
+  store.updatePerPage(perPage);
+};
+
+const handleRefresh = () => {
+  store.fetchTrades(accountId, store.side, store.from_date, store.to_date);
 };
 
 const handleSideChange = (side) => {

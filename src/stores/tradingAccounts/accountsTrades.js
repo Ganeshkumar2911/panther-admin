@@ -102,12 +102,13 @@ export const useAccountTradesStore = defineStore('accountTrades', () => {
 
   // ─── Pagination ────────────────────────────────────────
   const setPage = (page) => {
-    pagination.page = page
+    pagination.page = Number(page) || 1
     fetchTrades(accountId.value, side.value, from_date.value, to_date.value)
   }
 
   const updatePerPage = (newPerPage) => {
-    pagination.per_page = Number(newPerPage)
+    const val = typeof newPerPage === 'object' && newPerPage !== null ? (newPerPage.per_page ?? newPerPage.value) : newPerPage
+    pagination.per_page = Number(val) || 10
     pagination.page = 1
     fetchTrades(accountId.value, side.value, from_date.value, to_date.value)
   }
