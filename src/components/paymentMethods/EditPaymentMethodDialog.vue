@@ -757,6 +757,13 @@
                   </button>
                   <button
                     type="button"
+                    class="text-[10px] text-primary hover:underline font-medium cursor-pointer"
+                    @click="addStandardProofField"
+                  >
+                    + Add "Attachment (Proof)"
+                  </button>
+                  <button
+                    type="button"
                     class="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold transition cursor-pointer"
                     @click="addNewField"
                   >
@@ -775,14 +782,24 @@
                 <p class="text-[10px] text-secondary-text/80 max-w-xs mx-auto">
                   If left empty, client will only submit standard payment flow without extra customized form fields.
                 </p>
-                <button
-                  type="button"
-                  class="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-background border border-primary-border text-xs font-medium text-primary hover:border-primary transition cursor-pointer mt-1"
-                  @click="addNewField"
-                >
-                  <Plus class="w-3 h-3" />
-                  <span>Add First Field</span>
-                </button>
+                <div class="flex items-center justify-center gap-2 mt-1">
+                  <button
+                    type="button"
+                    class="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-background border border-primary-border text-xs font-medium text-primary hover:border-primary transition cursor-pointer"
+                    @click="addNewField"
+                  >
+                    <Plus class="w-3 h-3" />
+                    <span>Add First Field</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-primary/10 border border-primary/20 text-xs font-medium text-primary hover:bg-primary/20 transition cursor-pointer"
+                    @click="addStandardProofField"
+                  >
+                    <Plus class="w-3 h-3" />
+                    <span>Add Attachment</span>
+                  </button>
+                </div>
               </div>
 
               <!-- Field Items -->
@@ -845,12 +862,14 @@
                       <select
                         v-model="field.type"
                         class="w-full px-2.5 py-1.5 rounded-lg bg-background border border-primary-border text-xs text-primary-text outline-none focus:border-primary cursor-pointer"
+                        @change="onFieldTypeChange(field)"
                       >
                         <option value="text">Text Input</option>
                         <option value="number">Number Input</option>
                         <option value="select">Dropdown Select</option>
                         <option value="email">Email</option>
                         <option value="textarea">Textarea</option>
+                        <option value="file">File / Attachment (Image)</option>
                       </select>
                     </div>
 
@@ -860,7 +879,7 @@
                       <input
                         v-model="field.placeholder"
                         type="text"
-                        placeholder="e.g. 03001234567"
+                        :placeholder="field.type === 'file' ? 'e.g. Add attachments' : 'e.g. 03001234567'"
                         class="w-full px-2.5 py-1.5 rounded-lg bg-background border border-primary-border text-xs text-primary-text outline-none focus:border-primary"
                       />
                     </div>
@@ -1228,10 +1247,35 @@ const addStandardAmountField = () => {
     type: 'number',
     required: true,
     placeholder: 'Enter amount in USD or local currency',
+    options: [],
   }
   const list = metaActiveTab.value === 'deposit' ? form.value.meta_data.deposit_fields : form.value.meta_data.withdrawal_fields
   if (!list.some((f) => f.key === 'amount')) {
     list.unshift(amountField)
+  }
+}
+
+const addStandardProofField = () => {
+  const proofField = {
+    key: 'proof',
+    label: 'Add attachment',
+    options: [],
+    placeholder: 'Add attachments',
+    required: true,
+    type: 'file',
+  }
+  const list = metaActiveTab.value === 'deposit' ? form.value.meta_data.deposit_fields : form.value.meta_data.withdrawal_fields
+  if (!list.some((f) => f.key === 'proof')) {
+    list.push(proofField)
+  }
+}
+
+const onFieldTypeChange = (field) => {
+  if (field.type === 'file') {
+    if (!field.key) field.key = 'proof'
+    if (!field.label) field.label = 'Add attachment'
+    if (!field.placeholder) field.placeholder = 'Add attachments'
+    if (!Array.isArray(field.options)) field.options = []
   }
 }
 
@@ -1424,6 +1468,9 @@ const validate = () => {
 const sanitizeDynamicField = (field) => {
   const f = { ...field }
   delete f._raw_options_by
+  if (!Array.isArray(f.options)) {
+    f.options = []
+  }
   return f
 }
 
