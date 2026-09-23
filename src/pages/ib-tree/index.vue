@@ -240,8 +240,8 @@ const selectedClientForLogin = ref(null)
 
 const handleClientLogin = (node) => {
   if (!node) return
-  // An IB node usually has `lead_id` or `id` which corresponds to the client ID
-  const clientId = node.lead_id || node.ib_id || node.id
+  // An IB node usually has `user_id` which corresponds to the client ID
+  const clientId = node.user_id || node.lead_id || node.ib_id || node.id
   if (!clientId) return
   
   // Pass the node as the client object, ensuring it has an `id` field that matches the client ID
