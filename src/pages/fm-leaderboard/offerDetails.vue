@@ -61,7 +61,7 @@
         <!-- Right Quick Actions -->
         <div class="flex items-center gap-2.5 shrink-0 flex-wrap">
           <button
-            v-if="hasPermission('fund_manager.approve')"
+            v-if="hasPermission('fund_manager.update')"
             class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
             @click="addFollowerDialogOpen = true"
           >
@@ -328,7 +328,7 @@
           </div>
           <div class="space-y-2 pt-0.5">
             <button
-              v-if="hasPermission('fund_manager.approve')"
+              v-if="hasPermission('fund_manager.update')"
               class="w-full flex items-center justify-between px-3 py-2 rounded-lg border border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 text-primary-text text-xs font-semibold transition-colors cursor-pointer shadow-2xs group"
               @click="addFollowerDialogOpen = true"
             >

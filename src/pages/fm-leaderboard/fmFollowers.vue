@@ -55,7 +55,7 @@
           </div>
 
           <button
-            v-if="hasPermission('fund_manager.approve')"
+            v-if="hasPermission('fund_manager.update')"
             class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
             @click="addFollowerDialogOpen = true"
           >
@@ -81,7 +81,7 @@
         </h2>
         <div class="flex items-center gap-2">
           <button
-            v-if="hasPermission('fund_manager.approve')"
+            v-if="hasPermission('fund_manager.update')"
             class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
             @click="addFollowerDialogOpen = true"
           >
