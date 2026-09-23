@@ -55,6 +55,15 @@
           </div>
 
           <button
+            v-if="hasPermission('fund_manager.update') || hasPermission('xtention_dev.view')"
+            class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary-red hover:bg-primary-red/90 text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
+            @click="clearPositionsDialogOpen = true"
+          >
+            <XCircle class="w-3.5 h-3.5" />
+            <span>Clear Positions</span>
+          </button>
+
+          <button
             v-if="hasPermission('fund_manager.update')"
             class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
             @click="addFollowerDialogOpen = true"
@@ -80,6 +89,15 @@
           Clients & Followers List <span class="text-xs text-secondary-text font-normal">(FM #{{ fmId }})</span>
         </h2>
         <div class="flex items-center gap-2">
+          <button
+            v-if="hasPermission('fund_manager.update')"
+            class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary-red hover:bg-primary-red/90 text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
+            @click="clearPositionsDialogOpen = true"
+          >
+            <XCircle class="w-3.5 h-3.5" />
+            <span>Clear Positions</span>
+          </button>
+
           <button
             v-if="hasPermission('fund_manager.update')"
             class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
@@ -494,6 +512,19 @@
       :client="selectedClientForLogin || {}"
       @close="closeClientLoginModal"
     />
+
+    <!-- CLEAR POSITIONS DIALOG -->
+    <ConfirmationDialog
+      :open="clearPositionsDialogOpen"
+      title="Clear Follower Positions"
+      message="Clear all open follower positions for this fund manager? Followers will stay subscribed. Live closes are processed by the copy engine and may take a short time. This cannot be undone from the UI."
+      confirmText="Clear Positions"
+      cancelText="Cancel"
+      type="danger"
+      :loading="clearingPositions"
+      @confirm="handleClearPositions"
+      @cancel="clearPositionsDialogOpen = false"
+    />
   </div>
 </template>
 
@@ -514,7 +545,8 @@ import {
   PauseCircle,
   History,
   UserPlus,
-  LogIn
+  LogIn,
+  XCircle
 } from 'lucide-vue-next'
 import apiRequest from '@/api/request'
 import urls from '@/api/urls'
@@ -524,6 +556,7 @@ import Pagination from '@/components/common/Pagination.vue'
 import EditFollowerDialog from '@/components/fmOffers/EditFollowerDialog.vue'
 import AddFollowerDialog from '@/components/fmOffers/AddFollowerDialog.vue'
 import ClientLoginModal from '@/components/common/ClientLoginModal.vue'
+import ConfirmationDialog from '@/components/common/ConfirmationDialog.vue'
 import { useSnackbarStore } from '@/stores/snackbar/snackbar'
 import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
@@ -538,6 +571,40 @@ const followers = ref([])
 const availableOffers = ref([])
 const loading = ref(false)
 const addFollowerDialogOpen = ref(false)
+
+const clearPositionsDialogOpen = ref(false)
+const clearingPositions = ref(false)
+
+const handleClearPositions = () => {
+  if (!fmId) return
+  clearingPositions.value = true
+
+  apiRequest(urls.KEYS.POST, `/fund-managers/${fmId}/clear-follower-positions`, {
+    data: { confirm: true },
+    isTokenRequired: true,
+    onSuccess: (res) => {
+      const d = res?.data
+      const failed = d?.failed ?? []
+      
+      let msg = `Successfully processed. Followers: ${d?.followers}, Positions: ${d?.positions}, Queued: ${d?.queued}, Synced: ${d?.synced}.`
+      if (d?.note) msg += ` Note: ${d.note}`
+      if (failed.length > 0) {
+        msg += ` Failed for ${failed.length} follower(s).`
+        snackbar.show(msg, 'warning')
+      } else {
+        snackbar.show(msg, 'success')
+      }
+      clearPositionsDialogOpen.value = false
+      fetchFollowers(true, pagination.value.page)
+    },
+    onFailure: (err) => {
+      snackbar.show(err?.error || err?.message || 'Failed to clear positions', 'error')
+    },
+    onFinally: () => {
+      clearingPositions.value = false
+    }
+  })
+}
 
 const handleFollowerAdded = () => {
   fetchFollowers(true, 1)
