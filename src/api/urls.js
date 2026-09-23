@@ -443,6 +443,10 @@ const urls = {
     approvalsSummary: "/ib-commission/commissions/approvals",
     approvalEntries: "/ib-commission/commissions/approvals/entries",
     approveIbPeriod: "/ib-commission/commissions/approvals/approve-ib",
+    // Recalc Revert Date (ETL Settings)
+    recalcRevertMaster: "/ib-commission/settings/recalc-revert",
+    ibRecalcRevert: (ibId) => `/ib-commission/ibs/${ibId}/recalc-revert`,
+    runRecalcRevert: "/ib-commission/settings/recalc-revert/run",
   },
   cashback: {
     programs: "/cashback/programs",
