@@ -347,6 +347,15 @@
                     </button>
                   </Tooltip>
 
+                  <Tooltip v-if="hasPermission('xtention_dev.login_as_client')" text="Client Login" position="right">
+                    <button
+                      class="p-1.5 rounded-lg border border-primary-border hover:bg-background text-secondary-text hover:text-primary-text transition-colors cursor-pointer inline-flex items-center gap-1 text-xs font-semibold"
+                      @click="handleClientLogin(row)"
+                    >
+                      <LogIn class="w-3.5 h-3.5" />
+                    </button>
+                  </Tooltip>
+
                   <Tooltip v-if="!isPastFollower(row)" text="Edit Follower Settings" position="right">
                     <button
                       class="p-1.5 rounded-lg border border-primary-border hover:bg-background text-secondary-text hover:text-primary-text transition-colors cursor-pointer inline-flex items-center gap-1 text-xs font-semibold"
@@ -396,6 +405,14 @@
                 @click="goToTradeBook(row)"
               >
                 <BookOpen class="w-3.5 h-3.5" />
+              </button>
+              <button
+                v-if="hasPermission('xtention_dev.login_as_client')"
+                class="p-1 rounded-lg border border-primary-border text-secondary-text hover:text-primary-text"
+                title="Client Login"
+                @click="handleClientLogin(row)"
+              >
+                <LogIn class="w-3.5 h-3.5" />
               </button>
               <button
                 v-if="!isPastFollower(row)"
@@ -470,6 +487,13 @@
       @close="editDialogOpen = false"
       @updated="handleFollowerUpdated"
     />
+
+    <!-- CLIENT LOGIN MODAL -->
+    <ClientLoginModal
+      :open="clientLoginModalOpen"
+      :client="selectedClientForLogin || {}"
+      @close="closeClientLoginModal"
+    />
   </div>
 </template>
 
@@ -490,6 +514,7 @@ import {
   PauseCircle,
   History,
   UserPlus,
+  LogIn
 } from 'lucide-vue-next'
 import apiRequest from '@/api/request'
 import urls from '@/api/urls'
@@ -498,6 +523,7 @@ import BaseSelect from '@/components/common/BaseSelect.vue'
 import Pagination from '@/components/common/Pagination.vue'
 import EditFollowerDialog from '@/components/fmOffers/EditFollowerDialog.vue'
 import AddFollowerDialog from '@/components/fmOffers/AddFollowerDialog.vue'
+import ClientLoginModal from '@/components/common/ClientLoginModal.vue'
 import { useSnackbarStore } from '@/stores/snackbar/snackbar'
 import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
@@ -518,6 +544,23 @@ const handleFollowerAdded = () => {
 }
 const searchQuery = ref('')
 const selectedOffer = ref('ALL')
+
+const clientLoginModalOpen = ref(false)
+const selectedClientForLogin = ref(null)
+
+const handleClientLogin = (row) => {
+  if (!row) return
+  const clientId = row.user_id || row.client_id || row.lead_id || row.id
+  if (!clientId) return
+  
+  selectedClientForLogin.value = { ...row, id: clientId }
+  clientLoginModalOpen.value = true
+}
+
+const closeClientLoginModal = () => {
+  clientLoginModalOpen.value = false
+  selectedClientForLogin.value = null
+}
 
 const statusTabs = [
   { label: 'Active Followers', value: 'active', icon: UserCheck, dotClass: 'bg-emerald-500' },

@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { Pencil, Plus, ArrowLeftRight, Users, Link, X } from 'lucide-vue-next'
+import { Pencil, Plus, ArrowLeftRight, Users, Link, X, LogIn } from 'lucide-vue-next'
 import DropdownMenu from '@/components/common/DropdownMenu.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 
@@ -15,7 +15,7 @@ const props = defineProps({
   staffOptions: { type: Array, default: () => [] },
 })
 
-const emit = defineEmits(['add-sub', 'edit', 'transfer-parent', 'view-clients', 'assign-staff'])
+const emit = defineEmits(['add-sub', 'edit', 'transfer-parent', 'view-clients', 'assign-staff', 'client-login'])
 
 const editingStaffNodeId = ref(null)
 
@@ -69,6 +69,14 @@ const getActions = (node) => {
       label: 'Add Sub-IB',
       icon: Plus,
       handler: () => emit('add-sub', node.ib_id),
+    })
+  }
+
+  if (hasPermission('xtention_dev.login_as_client')) {
+    actions.push({
+      label: 'Client Login',
+      icon: LogIn,
+      handler: () => emit('client-login', node),
     })
   }
 

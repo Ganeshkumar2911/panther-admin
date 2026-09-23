@@ -26,6 +26,8 @@ export const usePaymentRequestsStore = defineStore("paymentRequests", () => {
 
   const rejectLoading = ref(false);
 
+  const cancelPaymaxisLoading = ref(false);
+
   const updateAmountLoading = ref(false);
 
   const error = ref(null);
@@ -238,6 +240,46 @@ export const usePaymentRequestsStore = defineStore("paymentRequests", () => {
   };
 
   // ─────────────────────────────────────
+  // Cancel Paymaxis Deposit
+  // ─────────────────────────────────────
+
+  const cancelPaymaxisDeposit = (id, payload = null) => {
+    cancelPaymaxisLoading.value = true;
+    error.value = null;
+
+    const successHandler = (res) => {
+      snackbar.show(
+        res?.message || "Paymaxis deposit cancelled successfully.",
+        "success",
+      );
+      fetchRequests(true);
+    };
+
+    const failureHandler = (err) => {
+      error.value = err;
+      snackbar.show(
+        err?.message || "Failed to cancel Paymaxis deposit.",
+        "error",
+      );
+    };
+
+    const options = {
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+      onFinally: () => {
+        cancelPaymaxisLoading.value = false;
+      },
+    };
+
+    if (payload) {
+      options.data = payload;
+    }
+
+    return apiRequest(urls.KEYS.POST, urls.paymentRequests.paymaxisCancel(id), options);
+  };
+
+  // ─────────────────────────────────────
   // Update Request Amount (Bank Transfer)
   // ─────────────────────────────────────
 
@@ -411,6 +453,8 @@ export const usePaymentRequestsStore = defineStore("paymentRequests", () => {
 
     rejectLoading.value = false;
 
+    cancelPaymaxisLoading.value = false;
+
     error.value = null;
 
     isFetched.value = false;
@@ -451,6 +495,7 @@ export const usePaymentRequestsStore = defineStore("paymentRequests", () => {
     loading,
     approveLoading,
     rejectLoading,
+    cancelPaymaxisLoading,
     updateAmountLoading,
 
     error,
@@ -466,6 +511,7 @@ export const usePaymentRequestsStore = defineStore("paymentRequests", () => {
 
     approveRequest,
     rejectRequest,
+    cancelPaymaxisDeposit,
     updateRequestAmount,
 
     applyFilters,

@@ -189,6 +189,7 @@ const urls = {
     approve: "/payment-requests/approve/",
     reject: "/payment-requests/reject/",
     updateAmount: (id) => `/payment-requests/${id}/amount`,
+    paymaxisCancel: (id) => `/payment-requests/paymaxis-cancel/${id}`,
   },
   paymentGatewayData: {
     list: "/payment-gateway-data",
