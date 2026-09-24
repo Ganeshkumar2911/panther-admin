@@ -187,15 +187,8 @@
             table-key="email_log_details"
             empty-title="No dispatch records found"
             :empty-text="store.hasActiveFilters ? 'Try adjusting your active search filters.' : 'No email dispatches recorded for this campaign.'"
+            :per-page-options="store.perPageOptions"
           >
-          <template #pagination="{ pagination, handlePageChange, handlePerPageChange }">
-            <DataTablePagination
-              :pagination="pagination"
-              :per-page-options="store.perPageOptions"
-              @page-change="handlePageChange"
-              @per-page-change="handlePerPageChange"
-            />
-          </template>
             <template #cell-created_at="{ row }">
               <span class="font-medium text-primary-text whitespace-nowrap">
                 {{ formatDate(row.created_at) }}
@@ -211,6 +204,15 @@
             <template #cell-subject="{ row }">
               <span class="text-primary-text max-w-[220px] truncate" :title="row.subject">
                 {{ row.subject || '—' }}
+              </span>
+            </template>
+
+            <template #cell-latest_event="{ row }">
+              <span
+                class="text-[11px] font-medium capitalize"
+                :class="getEventTextClass(row.latest_event)"
+              >
+                {{ row.latest_event || '—' }}
               </span>
             </template>
 
@@ -297,6 +299,7 @@ const tableColumns = [
   { key: 'created_at', label: 'Sent Date', sortable: false },
   { key: 'email', label: 'Recipient Email', sortable: false },
   { key: 'subject', label: 'Subject', sortable: false },
+  { key: 'latest_event', label: 'Latest Event', sortable: false },
   { key: 'sync_status', label: 'Sync Status', sortable: false },
 ];
 
@@ -329,6 +332,14 @@ const getSyncStatusClass = (status) => {
     return 'bg-red-500/10 text-red-500 border-red-500/20';
   }
   return 'bg-amber-500/10 text-amber-500 border-amber-500/20';
+};
+
+const getEventTextClass = (status) => {
+  const s = String(status || '').toLowerCase();
+  if (s.includes('delivered') || s.includes('success')) return 'text-green-500';
+  if (s.includes('bounce') || s.includes('error') || s.includes('fail') || s.includes('spam')) return 'text-red-500';
+  if (s.includes('open') || s.includes('click')) return 'text-blue-500';
+  return 'text-secondary-text';
 };
 
 const goBack = () => {

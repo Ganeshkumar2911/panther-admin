@@ -15,13 +15,12 @@
     <!-- ─── SKELETON LOADING STATE ─────────────────────────────────── -->
     <div v-if="isOverviewLoading" class="space-y-5 animate-pulse">
       <!-- Summary Cards Skeleton -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-3 xl:grid-cols-5 gap-4">
         <div
-          v-for="i in 7"
+          v-for="i in 5"
           :key="i"
           class="bg-card-background/40 border border-primary-border rounded-xl p-4 sm:p-5 flex items-center gap-4"
         >
-          <div class="w-11 h-11 rounded-xl bg-primary-border/50 shrink-0" />
           <div class="space-y-2 flex-1 min-w-0">
             <div class="h-3 w-20 bg-primary-border/50 rounded" />
             <div class="h-5 w-28 bg-primary-border/70 rounded" />
@@ -33,8 +32,7 @@
       <!-- Stat Strip Skeleton -->
       <div class="bg-card-background/40 border border-primary-border rounded-xl p-5 sm:p-6">
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 text-center divide-y sm:divide-y-0 sm:divide-x divide-primary-border/60">
-          <div v-for="i in 4" :key="i" class="flex flex-col items-center gap-2 pt-2 sm:pt-0">
-            <div class="w-9 h-9 rounded-xl bg-primary-border/40" />
+          <div v-for="i in 4" :key="i" class="flex flex-col items-center gap-1 pt-2 sm:pt-0">
             <div class="h-7 w-16 bg-primary-border/70 rounded" />
             <div class="h-3 w-24 bg-primary-border/40 rounded" />
           </div>
@@ -61,18 +59,12 @@
     <!-- ─── MAIN CONTENT ─────────────────────────────────────────── -->
     <template v-else>
       <!-- 1. Summary Cards Grid (Rendered dynamically from computed array) -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-3 xl:grid-cols-5 gap-4">
         <div
           v-for="card in summaryCards"
           :key="card.title"
           class="bg-card-background/40 border border-primary-border rounded-xl p-4 sm:p-5 flex items-center gap-4"
         >
-          <div
-            class="w-11 h-11 rounded-xl border flex items-center justify-center shrink-0"
-            :class="card.iconBoxClass"
-          >
-            <component :is="card.icon" class="w-5 h-5" />
-          </div>
           <div class="min-w-0 flex-1">
             <p class="text-[13px] text-primary-text font-bold">
               {{ card.title }}
@@ -96,10 +88,7 @@
       >
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 text-center divide-y sm:divide-y-0 sm:divide-x divide-primary-border/60">
           <!-- Days Active -->
-          <div class="flex flex-col items-center gap-2 pt-2 sm:pt-0">
-            <div class="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500">
-              <Calendar class="w-4 h-4" />
-            </div>
+          <div class="flex flex-col items-center gap-1 pt-2 sm:pt-0">
             <span class="text-2xl sm:text-3xl font-black text-primary-text tabular-nums">
               {{ daysActive }}
             </span>
@@ -109,10 +98,7 @@
           </div>
 
           <!-- Deposits Count -->
-          <div class="flex flex-col items-center gap-2 pt-2 sm:pt-0">
-            <div class="w-9 h-9 rounded-xl bg-primary-green/10 border border-primary-green/20 flex items-center justify-center text-primary-green">
-              <TrendingUp class="w-4 h-4" />
-            </div>
+          <div class="flex flex-col items-center gap-1 pt-2 sm:pt-0">
             <span class="text-2xl sm:text-3xl font-black text-primary-green tabular-nums">
               {{ depositsCount }}
             </span>
@@ -122,10 +108,7 @@
           </div>
 
           <!-- Withdrawals Count -->
-          <div class="flex flex-col items-center gap-2 pt-2 sm:pt-0">
-            <div class="w-9 h-9 rounded-xl bg-primary-red/10 border border-primary-red/20 flex items-center justify-center text-primary-red">
-              <TrendingDown class="w-4 h-4" />
-            </div>
+          <div class="flex flex-col items-center gap-1 pt-2 sm:pt-0">
             <span class="text-2xl sm:text-3xl font-black text-primary-text tabular-nums">
               {{ withdrawalsCount }}
             </span>
@@ -135,10 +118,7 @@
           </div>
 
           <!-- Configured Accounts -->
-          <div class="flex flex-col items-center gap-2 pt-2 sm:pt-0">
-            <div class="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-500">
-              <Wallet class="w-4 h-4" />
-            </div>
+          <div class="flex flex-col items-center gap-1 pt-2 sm:pt-0">
             <span class="text-2xl sm:text-3xl font-black text-primary-text tabular-nums">
               {{ accountsCount }}
             </span>
