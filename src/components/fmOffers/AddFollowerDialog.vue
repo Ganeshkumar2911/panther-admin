@@ -136,7 +136,7 @@
               <span class="text-primary-red">*</span>
             </span>
             <span class="text-[10px] text-secondary-text">
-              Default: Copy Trading
+              Default: Real
             </span>
           </label>
 
@@ -307,21 +307,20 @@
                 </div>
 
                 <div
+                  class="flex items-center justify-between text-[10px] text-secondary-text mt-0.5"
+                >
+                  <span>{{ acc.broker || "Broker" }}</span>
+                  <span class="font-mono capitalize">{{ acc.trading_type || form.mode }}</span>
+                  <span class="font-mono font-bold text-primary">Equity: {{ acc.equity != null ? formatCurrency(acc.equity, acc.broker_currency) : '-' }}</span>
+                </div>
+
+                <div
                   class="flex items-baseline justify-between mt-2 pt-1 border-t border-primary-border/40"
                 >
                   <span class="text-[10px] text-secondary-text">Balance</span>
                   <span class="font-mono font-extrabold text-xs text-primary">
                     {{ formatCurrency(acc.balance, acc.broker_currency) }}
                   </span>
-                </div>
-
-                <div
-                  class="flex items-center justify-between text-[10px] text-secondary-text mt-0.5"
-                >
-                  <span>{{ acc.broker || "Broker" }}</span>
-                  <span class="font-mono capitalize">{{
-                    acc.trading_type || form.mode
-                  }}</span>
                 </div>
               </div>
             </div>
@@ -595,7 +594,7 @@ const clientLedgerStore = useClientLedgerStore();
 // Form State
 const form = reactive({
   user_id: null,
-  mode: "copy_trading", // 'copy_trading' | 'real'
+  mode: "real", // 'copy_trading' | 'real'
   trading_account_id: null,
   offer_id: null,
   lot_type: null,
