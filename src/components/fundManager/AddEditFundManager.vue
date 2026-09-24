@@ -270,6 +270,41 @@
                   </label>
                 </div>
               </div>
+
+              <!-- Allow FM PF Share Mode -->
+              <div class="flex flex-col gap-1.5 sm:col-span-2">
+                <label class="text-xs font-semibold text-secondary-text"
+                  >Allow FM PF Share Mode</label
+                >
+                <div
+                  class="flex items-center justify-between bg-background border border-primary-border rounded-xl px-4 py-2.5"
+                >
+                  <p class="text-[11px] text-secondary-text leading-relaxed max-w-md">
+                    When enabled, this FM can create offers with FM-mode PF share distribution (broker cut + custom recipients). Disabling only blocks new FM-mode creates.
+                  </p>
+                  <label class="inline-flex items-center gap-2 cursor-pointer shrink-0 ml-4 select-none">
+                    <input
+                      type="checkbox"
+                      role="switch"
+                      v-model="form.allow_fm_pf_share_mode"
+                      class="peer sr-only"
+                    />
+                    <span
+                      class="relative block h-[22px] w-10 rounded-full bg-zinc-300 transition-colors duration-200 dark:bg-zinc-600 peer-checked:bg-emerald-500 peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500/40 peer-checked:[&>span]:translate-x-[18px]"
+                    >
+                      <span
+                        class="absolute left-[3px] top-[3px] h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200"
+                      ></span>
+                    </span>
+                    <span
+                      class="text-xs font-bold"
+                      :class="form.allow_fm_pf_share_mode ? 'text-emerald-500' : 'text-zinc-500'"
+                    >
+                      {{ form.allow_fm_pf_share_mode ? 'Enabled' : 'Disabled' }}
+                    </span>
+                  </label>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -1009,6 +1044,7 @@ const form = ref({
   follower_account_type: 1,
   follower_account_type_action: "keep",
   is_active: true,
+  allow_fm_pf_share_mode: false,
 
   // Broker / MT5
   broker_group: "",
@@ -1157,6 +1193,7 @@ const resetForm = () => {
       follower_account_type: initialFollowerType,
       follower_account_type_action: "keep",
       is_active: props.item.is_active ?? u.is_active ?? true,
+      allow_fm_pf_share_mode: props.item.allow_fm_pf_share_mode ?? false,
 
       broker_group:
         props.item.broker_group ??
@@ -1215,6 +1252,7 @@ const resetForm = () => {
       follower_account_type: 1,
       follower_account_type_action: "keep",
       is_active: true,
+      allow_fm_pf_share_mode: false,
 
       broker_group: "real\\FM",
       broker_currency: "USD",
@@ -1364,6 +1402,7 @@ const handleSubmit = async () => {
       visibility_type: form.value.visibility_type || "public",
       follower_account_type: Number(form.value.follower_account_type) || 1,
       is_active: Boolean(form.value.is_active),
+      allow_fm_pf_share_mode: Boolean(form.value.allow_fm_pf_share_mode),
 
       broker_group: form.value.broker_group.trim(),
       broker_currency: form.value.broker_currency || "USD",
@@ -1405,6 +1444,7 @@ const handleSubmit = async () => {
       const payload = {
         label_name: srcForm.label_name?.trim() || srcForm.name.trim(),
         is_active: Boolean(srcForm.is_active),
+        allow_fm_pf_share_mode: Boolean(srcForm.allow_fm_pf_share_mode),
         follower_account_type: Number(srcForm.follower_account_type) || 1,
         min_capital: Number(srcForm.min_capital) || 0,
         performance_fee: Number(srcForm.performance_fee) || 0,
