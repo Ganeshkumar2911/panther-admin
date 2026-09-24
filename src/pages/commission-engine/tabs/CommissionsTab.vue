@@ -907,7 +907,7 @@ const formatDate = (val) => {
             "
             class="text-primary-text font-semibold"
           >
-            ${{ Number(row.commission_per_pips || 0).toFixed(4) }}
+            ${{ Number(row.commission_per_pips || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 }) }}
           </span>
           <span v-else class="text-secondary-text">-</span>
         </div>
@@ -917,7 +917,7 @@ const formatDate = (val) => {
       <template #cell-total_commission="{ row }">
         <div class="text-right">
           <p class="font-mono text-sm font-bold text-primary-green">
-            ${{ Number(row.total_commission || 0).toFixed(4) }}
+            ${{ Number(row.total_commission || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 }) }}
           </p>
           <p class="text-[10px] text-secondary-text font-mono">
             {{ row.account_currency || "USD" }}

@@ -160,15 +160,15 @@
           </div>
         </div>
 
-        <!-- Rejection Reason Input -->
-        <div v-if="action === 'reject'" class="space-y-1.5">
+        <!-- Rejection / Cancellation Reason Input -->
+        <div v-if="action === 'reject' || action === 'cancelPaymaxis'" class="space-y-1.5">
           <label class="block text-xs font-semibold text-primary-text">
-            Rejection Reason <span class="text-primary-red">*</span>
+            {{ action === 'cancelPaymaxis' ? 'Reason (Optional)' : 'Rejection Reason' }} <span v-if="action === 'reject'" class="text-primary-red">*</span>
           </label>
           <textarea
             v-model="rejectionReason"
             rows="2"
-            placeholder="Enter reason for rejecting this payment request..."
+            :placeholder="action === 'cancelPaymaxis' ? 'Enter reason for cancelling this deposit...' : 'Enter reason for rejecting this payment request...'"
             class="w-full rounded-xl border border-primary-border bg-background p-3 text-xs text-primary-text outline-none focus:border-primary placeholder:text-secondary-text transition-colors"
           />
           <p v-if="reasonError" class="text-[11px] text-primary-red">
@@ -277,6 +277,19 @@ const actionMeta = {
     icon: AlertTriangle,
     confirmationText: 'This payment request will be rejected immediately. Please confirm that you want to continue.',
   },
+  cancelPaymaxis: {
+    title: 'Cancel Paymaxis Deposit',
+    subtitle: 'Cancel this deposit so the user can try again.',
+    confirmLabel: 'Cancel Deposit',
+    loadingLabel: 'Cancelling...',
+    button: 'bg-primary-red hover:bg-primary-red/90 text-white',
+    wrapper: 'border-primary-red/20 bg-primary-red/10',
+    iconClass: 'text-primary-red',
+    notice: 'border-primary-red/20 bg-primary-red/10',
+    text: 'text-primary-red',
+    icon: AlertTriangle,
+    confirmationText: 'This Paymaxis deposit will be cancelled so the user can try again. Please confirm that you want to continue.',
+  },
 }
 
 const dialogTone = computed(() => actionMeta[props.action] ?? actionMeta.approve)
@@ -344,6 +357,10 @@ const handleSubmit = () => {
     const formData = new FormData()
     formData.append('reason', rejectionReason.value.trim())
     emit('confirm', formData)
+  } else if (props.action === 'cancelPaymaxis') {
+    const reason = rejectionReason.value.trim()
+    const payload = reason ? { reason } : {}
+    emit('confirm', payload)
   } else {
     emit('confirm', null)
   }

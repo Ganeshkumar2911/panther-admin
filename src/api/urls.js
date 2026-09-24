@@ -114,6 +114,8 @@ const urls = {
     editFollower: "/fund_managers/followers/edit",
     offerJoinLinks: "/fund_managers/offers/join-links",
     offerAgents: "/fund_managers/offers/agents",
+    availableJoiners: "/fund_managers/followers/available-joiners",
+    addFollower: "/fund_managers/followers/add",
   },
   tradeBook: {
     filters: "/trade-book/filters",
@@ -187,6 +189,7 @@ const urls = {
     approve: "/payment-requests/approve/",
     reject: "/payment-requests/reject/",
     updateAmount: (id) => `/payment-requests/${id}/amount`,
+    paymaxisCancel: (id) => `/payment-requests/paymaxis-cancel/${id}`,
   },
   paymentGatewayData: {
     list: "/payment-gateway-data",

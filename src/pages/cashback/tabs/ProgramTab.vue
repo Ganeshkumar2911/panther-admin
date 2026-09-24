@@ -13,9 +13,6 @@
           <div class="space-y-3">
             <div class="flex items-center gap-3">
               <h2 class="text-xl font-semibold text-primary-text">{{ store.activeProgram.name }}</h2>
-              <span class="px-2 py-0.5 rounded-lg text-xs font-medium bg-background text-secondary-text border border-primary-border">
-                (Code: {{ store.activeProgram.code }})
-              </span>
               <StatusBadge :status="store.activeProgram.status" />
             </div>
             
@@ -34,10 +31,10 @@
                 <span>End Date: <span class="font-medium text-primary-text">{{ store.activeProgram.end_at ? formatDateTime(store.activeProgram.end_at) : 'None (Indefinite)' }}</span></span>
               </div>
               <div class="w-1 h-1 rounded-full bg-primary-border"></div>
-              <div class="flex items-center gap-1.5">
+              <!-- <div class="flex items-center gap-1.5">
                 <HugeIcon :icon="CheckmarkCircle01Icon" :size="14" />
                 <span>Terms Version: <span class="font-medium text-primary-text">v{{ store.activeProgram.terms_version }}</span></span>
-              </div>
+              </div> -->
               <div class="w-1 h-1 rounded-full bg-primary-border"></div>
               <div class="flex items-center gap-1.5">
                 <HugeIcon :icon="Dollar01Icon" :size="14" />
@@ -54,10 +51,6 @@
           </div>
           
           <div class="flex items-center gap-3 shrink-0">
-            <button class="px-4 py-2 bg-background border border-primary-border text-primary-text text-sm font-medium rounded-lg hover:bg-card-background transition-colors flex items-center gap-2 cursor-pointer">
-              <HugeIcon :icon="Download01Icon" :size="16" />
-              Export Spec
-            </button>
             <button class="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-hover transition-colors flex items-center gap-2 cursor-pointer" @click="isEditModalOpen = true">
               <HugeIcon :icon="PencilEdit01Icon" :size="16" />
               Edit Settings
