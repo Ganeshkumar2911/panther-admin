@@ -27,7 +27,7 @@
             v-if="store.logDetails?.records?.length !== undefined"
             class="px-2 py-0.5 rounded-md text-[11px] font-medium bg-background text-secondary-text border border-primary-border"
           >
-            {{ store.logDetails.records.length }} Records
+            {{ store.logDetails.pagination?.total_items || store.logDetails.records.length || 0 }} Records
           </span>
         </div>
       </div>
@@ -79,14 +79,7 @@
             @update:modelValue="store.applyFilters()"
           />
 
-          <!-- Per Page -->
-          <BaseSelect
-            :modelValue="store.pagination.per_page"
-            :options="perPageOptions"
-            placeholder="Per Page"
-            class="w-full sm:w-28"
-            @update:modelValue="store.updatePerPage"
-          />
+
 
           <!-- Action Buttons: Reset, Refresh, Sync -->
           <div class="flex items-center gap-1.5 h-9">
@@ -173,107 +166,74 @@
         <!-- Pane Header -->
         <div class="px-4 py-3 border-b border-primary-border flex items-center justify-between bg-background/50 shrink-0">
           <h3 class="text-xs font-bold text-primary-text">
-            Recipient Dispatch Records ({{ store.logDetails?.records?.length || 0 }})
+            Recipient Dispatch Records ({{ store.logDetails?.pagination?.total_items || store.logDetails?.records?.length || 0 }})
           </h3>
           <span class="text-[11px] text-secondary-text hidden sm:inline">
             Click eye icon for message timeline
           </span>
         </div>
 
-        <!-- Table Container (Horizontal Scroll for small screens) -->
-        <div class="flex-1 overflow-auto w-full">
-          <table class="w-full min-w-[580px] border-collapse text-left text-xs">
-            <thead class="sticky top-0 bg-background/90 backdrop-blur-xs z-10 border-b border-primary-border">
-              <tr class="text-secondary-text font-semibold">
-                <th class="p-3 pl-4">Sent Date</th>
-                <th class="p-3">Recipient Email</th>
-                <th class="p-3">Subject</th>
-                <th class="p-3">Sync Status</th>
-                <th class="p-3 text-right pr-4">Action</th>
-              </tr>
-            </thead>
-
-            <!-- Skeleton Rows -->
-            <tbody v-if="store.isLoadingEmailLogsDetails" class="divide-y divide-primary-border">
-              <tr v-for="n in 5" :key="n" class="animate-pulse">
-                <td class="p-3 pl-4"><div class="h-3.5 w-24 bg-background rounded" /></td>
-                <td class="p-3"><div class="h-3.5 w-32 bg-background rounded" /></td>
-                <td class="p-3"><div class="h-3.5 w-40 bg-background rounded" /></td>
-                <td class="p-3"><div class="h-3.5 w-20 bg-background rounded-full" /></td>
-                <td class="p-3 text-right pr-4"><div class="h-6 w-8 bg-background rounded ml-auto" /></td>
-              </tr>
-            </tbody>
-
-            <!-- Empty Records State -->
-            <tbody v-else-if="!store.logDetails.records || store.logDetails.records.length === 0">
-              <tr>
-                <td colspan="5" class="py-16 text-center">
-                  <div class="flex flex-col items-center gap-2 text-secondary-text">
-                    <Mail class="w-8 h-8 text-secondary-text/50" />
-                    <p class="text-xs font-semibold text-primary-text">No dispatch records found</p>
-                    <p class="text-[11px]">
-                      {{ store.hasActiveFilters ? 'Try adjusting your active search filters.' : 'No email dispatches recorded for this campaign.' }}
-                    </p>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-
-            <!-- Records Data Rows -->
-            <tbody v-else class="divide-y divide-primary-border">
-              <tr
-                v-for="log in store.logDetails.records"
-                :key="log.message_id || log.messageId"
-                class="hover:bg-background/40 transition-colors"
-              >
-                <td class="p-3 pl-4 font-medium text-primary-text whitespace-nowrap">
-                  {{ formatDate(log.created_at) }}
-                </td>
-
-                <td class="p-3 text-primary-text max-w-[200px] truncate font-mono text-[11px]" :title="log.email">
-                  {{ log.email }}
-                </td>
-
-                <td class="p-3 text-primary-text max-w-[220px] truncate" :title="log.subject">
-                  {{ log.subject || '—' }}
-                </td>
-
-                <td class="p-3 whitespace-nowrap">
-                  <span
-                    class="px-2 py-0.5 rounded-full text-[10px] font-semibold border capitalize"
-                    :class="getSyncStatusClass(log.sync_status)"
-                  >
-                    {{ log.sync_status || 'Pending' }}
-                  </span>
-                </td>
-
-                <td class="p-3 text-right pr-4">
-                  <Tooltip text="View Delivery Details" placement="top">
-                    <button
-                      @click="handleOpenDialog(log.message_id || log.messageId)"
-                      class="w-7 h-7 inline-flex items-center justify-center rounded-lg border border-primary-border bg-background hover:bg-card-background text-secondary-text hover:text-primary-text transition-colors cursor-pointer"
-                    >
-                      <Eye size="14" />
-                    </button>
-                  </Tooltip>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Table Footer Pagination -->
-        <div
-          v-if="store.pagination && store.pagination.total_pages > 1"
-          class="p-3 border-t border-primary-border flex items-center justify-between shrink-0 bg-background/50 flex-wrap gap-2"
-        >
-          <span class="text-[11px] text-secondary-text">
-            Page {{ store.pagination.page }} of {{ store.pagination.total_pages }}
-          </span>
-          <Pagination
+        <!-- Table Container -->
+        <div class="flex-1 overflow-hidden w-full flex flex-col">
+          <DataTable
+            class="!border-0 !rounded-none !shadow-none h-full flex-1"
+            :data="store.logDetails?.records || []"
+            :columns="tableColumns"
+            :loading="store.isLoadingEmailLogsDetails"
             :pagination="store.pagination"
+            :actions="[]"
             @page-change="store.changePage"
-          />
+            @per-page-change="store.updatePerPage"
+            table-key="email_log_details"
+            empty-title="No dispatch records found"
+            :empty-text="store.hasActiveFilters ? 'Try adjusting your active search filters.' : 'No email dispatches recorded for this campaign.'"
+          >
+          <template #pagination="{ pagination, handlePageChange, handlePerPageChange }">
+            <DataTablePagination
+              :pagination="pagination"
+              :per-page-options="store.perPageOptions"
+              @page-change="handlePageChange"
+              @per-page-change="handlePerPageChange"
+            />
+          </template>
+            <template #cell-created_at="{ row }">
+              <span class="font-medium text-primary-text whitespace-nowrap">
+                {{ formatDate(row.created_at) }}
+              </span>
+            </template>
+
+            <template #cell-email="{ row }">
+              <span class="text-primary-text max-w-[200px] truncate font-mono text-[11px]" :title="row.email">
+                {{ row.email }}
+              </span>
+            </template>
+
+            <template #cell-subject="{ row }">
+              <span class="text-primary-text max-w-[220px] truncate" :title="row.subject">
+                {{ row.subject || '—' }}
+              </span>
+            </template>
+
+            <template #cell-sync_status="{ row }">
+              <span
+                class="px-2 py-0.5 rounded-full text-[10px] font-semibold border capitalize"
+                :class="getSyncStatusClass(row.sync_status)"
+              >
+                {{ row.sync_status || 'Pending' }}
+              </span>
+            </template>
+
+            <template #actions="{ row }">
+              <Tooltip text="View Delivery Details" placement="top">
+                <button
+                  @click="handleOpenDialog(row.message_id || row.messageId)"
+                  class="w-7 h-7 inline-flex items-center justify-center rounded-lg border border-primary-border bg-background hover:bg-card-background text-secondary-text hover:text-primary-text transition-colors cursor-pointer"
+                >
+                  <Eye size="14" />
+                </button>
+              </Tooltip>
+            </template>
+          </DataTable>
         </div>
       </div>
     </div>
@@ -326,11 +286,19 @@ import RenderHTMLBody from "@/components/emails/RenderHTMLBody.vue";
 import EmailTemplatePreviewModal from "@/components/emails/EmailTemplatePreviewModal.vue";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import Pagination from "@/components/common/Pagination.vue";
+import DataTable from "@/components/common/DataTable/DataTable.vue";
 import Tooltip from "@/components/common/Tooltip.vue";
 import { formatDate } from "@/utils/timeFormatter";
 import { useRoute, useRouter } from "vue-router";
 import ViewEmailLogDetails from "@/pages/e-mails/ViewEmailLogDetails.vue";
 import ResendEmailPannel from "@/components/emails/ResendEmailPannel.vue";
+
+const tableColumns = [
+  { key: 'created_at', label: 'Sent Date', sortable: false },
+  { key: 'email', label: 'Recipient Email', sortable: false },
+  { key: 'subject', label: 'Subject', sortable: false },
+  { key: 'sync_status', label: 'Sync Status', sortable: false },
+];
 
 const route = useRoute();
 const router = useRouter();
@@ -346,12 +314,7 @@ const resendData = reactive({
   campegin_id: null,
 });
 
-const perPageOptions = [
-  { label: "10", value: 10 },
-  { label: "25", value: 25 },
-  { label: "50", value: 50 },
-  { label: "100", value: 100 },
-];
+
 
 const isButtonDisabled = computed(() => {
   return store.isSyncing;

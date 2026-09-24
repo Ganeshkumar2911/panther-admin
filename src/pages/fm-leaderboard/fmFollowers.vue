@@ -54,6 +54,24 @@
             </div>
           </div>
 
+          <button
+            v-if="hasPermission('fund_manager.update') || hasPermission('xtention_dev.view')"
+            class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary-red hover:bg-primary-red/90 text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
+            @click="clearPositionsDialogOpen = true"
+          >
+            <XCircle class="w-3.5 h-3.5" />
+            <span>Clear Positions</span>
+          </button>
+
+          <button
+            v-if="hasPermission('fund_manager.update')"
+            class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
+            @click="addFollowerDialogOpen = true"
+          >
+            <UserPlus class="w-3.5 h-3.5" />
+            <span>Add Follower</span>
+          </button>
+
           <Tooltip text="Refresh List">
             <button
               class="p-2 rounded-lg border border-primary-border text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer"
@@ -70,16 +88,36 @@
         <h2 class="text-base font-bold text-primary-text">
           Clients & Followers List <span class="text-xs text-secondary-text font-normal">(FM #{{ fmId }})</span>
         </h2>
-        <Tooltip text="Refresh List">
+        <div class="flex items-center gap-2">
           <button
-            class="p-2 rounded-lg border border-primary-border text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer"
-            @click="fetchFollowers(true, pagination.page)"
-            :disabled="loading"
-            title="Refresh List"
+            v-if="hasPermission('fund_manager.update')"
+            class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary-red hover:bg-primary-red/90 text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
+            @click="clearPositionsDialogOpen = true"
           >
-            <RotateCw class="w-3.5 h-3.5" :class="{ 'animate-spin': loading }" />
+            <XCircle class="w-3.5 h-3.5" />
+            <span>Clear Positions</span>
           </button>
-        </Tooltip>
+
+          <button
+            v-if="hasPermission('fund_manager.update')"
+            class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
+            @click="addFollowerDialogOpen = true"
+          >
+            <UserPlus class="w-3.5 h-3.5" />
+            <span>Add Follower</span>
+          </button>
+
+          <Tooltip text="Refresh List">
+            <button
+              class="p-2 rounded-lg border border-primary-border text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer"
+              @click="fetchFollowers(true, pagination.page)"
+              :disabled="loading"
+              title="Refresh List"
+            >
+              <RotateCw class="w-3.5 h-3.5" :class="{ 'animate-spin': loading }" />
+            </button>
+          </Tooltip>
+        </div>
       </div>
     </div>
 
@@ -327,6 +365,15 @@
                     </button>
                   </Tooltip>
 
+                  <Tooltip v-if="hasPermission('xtention_dev.login_as_client')" text="Client Login" position="right">
+                    <button
+                      class="p-1.5 rounded-lg border border-primary-border hover:bg-background text-secondary-text hover:text-primary-text transition-colors cursor-pointer inline-flex items-center gap-1 text-xs font-semibold"
+                      @click="handleClientLogin(row)"
+                    >
+                      <LogIn class="w-3.5 h-3.5" />
+                    </button>
+                  </Tooltip>
+
                   <Tooltip v-if="!isPastFollower(row)" text="Edit Follower Settings" position="right">
                     <button
                       class="p-1.5 rounded-lg border border-primary-border hover:bg-background text-secondary-text hover:text-primary-text transition-colors cursor-pointer inline-flex items-center gap-1 text-xs font-semibold"
@@ -376,6 +423,14 @@
                 @click="goToTradeBook(row)"
               >
                 <BookOpen class="w-3.5 h-3.5" />
+              </button>
+              <button
+                v-if="hasPermission('xtention_dev.login_as_client')"
+                class="p-1 rounded-lg border border-primary-border text-secondary-text hover:text-primary-text"
+                title="Client Login"
+                @click="handleClientLogin(row)"
+              >
+                <LogIn class="w-3.5 h-3.5" />
               </button>
               <button
                 v-if="!isPastFollower(row)"
@@ -434,12 +489,41 @@
       </div>
     </template>
 
+    <!-- ADD FOLLOWER DIALOG -->
+    <AddFollowerDialog
+      :open="addFollowerDialogOpen"
+      :fm-id="fmId"
+      :currency="activeCurrency"
+      @close="addFollowerDialogOpen = false"
+      @created="handleFollowerAdded"
+    />
+
     <!-- EDIT FOLLOWER DIALOG -->
     <EditFollowerDialog
       :open="editDialogOpen"
       :follower="editingFollower"
       @close="editDialogOpen = false"
       @updated="handleFollowerUpdated"
+    />
+
+    <!-- CLIENT LOGIN MODAL -->
+    <ClientLoginModal
+      :open="clientLoginModalOpen"
+      :client="selectedClientForLogin || {}"
+      @close="closeClientLoginModal"
+    />
+
+    <!-- CLEAR POSITIONS DIALOG -->
+    <ConfirmationDialog
+      :open="clearPositionsDialogOpen"
+      title="Clear Follower Positions"
+      message="Clear all open follower positions for this fund manager? Followers will stay subscribed. Live closes are processed by the copy engine and may take a short time. This cannot be undone from the UI."
+      confirmText="Clear Positions"
+      cancelText="Cancel"
+      type="danger"
+      :loading="clearingPositions"
+      @confirm="handleClearPositions"
+      @cancel="clearPositionsDialogOpen = false"
     />
   </div>
 </template>
@@ -460,6 +544,9 @@ import {
   UserCheck,
   PauseCircle,
   History,
+  UserPlus,
+  LogIn,
+  XCircle
 } from 'lucide-vue-next'
 import apiRequest from '@/api/request'
 import urls from '@/api/urls'
@@ -467,19 +554,80 @@ import Tooltip from '@/components/common/Tooltip.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import Pagination from '@/components/common/Pagination.vue'
 import EditFollowerDialog from '@/components/fmOffers/EditFollowerDialog.vue'
+import AddFollowerDialog from '@/components/fmOffers/AddFollowerDialog.vue'
+import ClientLoginModal from '@/components/common/ClientLoginModal.vue'
+import ConfirmationDialog from '@/components/common/ConfirmationDialog.vue'
 import { useSnackbarStore } from '@/stores/snackbar/snackbar'
+import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
 const route = useRoute()
 const router = useRouter()
 const snackbar = useSnackbarStore()
+const { hasPermission } = usePermissionCheck()
 
 const fmId = route.params.id
 const fmInfo = ref(null)
 const followers = ref([])
 const availableOffers = ref([])
 const loading = ref(false)
+const addFollowerDialogOpen = ref(false)
+
+const clearPositionsDialogOpen = ref(false)
+const clearingPositions = ref(false)
+
+const handleClearPositions = () => {
+  if (!fmId) return
+  clearingPositions.value = true
+
+  apiRequest(urls.KEYS.POST, `/fund-managers/${fmId}/clear-follower-positions`, {
+    data: { confirm: true },
+    isTokenRequired: true,
+    onSuccess: (res) => {
+      const d = res?.data
+      const failed = d?.failed ?? []
+      
+      let msg = `Successfully processed. Followers: ${d?.followers}, Positions: ${d?.positions}, Queued: ${d?.queued}, Synced: ${d?.synced}.`
+      if (d?.note) msg += ` Note: ${d.note}`
+      if (failed.length > 0) {
+        msg += ` Failed for ${failed.length} follower(s).`
+        snackbar.show(msg, 'warning')
+      } else {
+        snackbar.show(msg, 'success')
+      }
+      clearPositionsDialogOpen.value = false
+      fetchFollowers(true, pagination.value.page)
+    },
+    onFailure: (err) => {
+      snackbar.show(err?.error || err?.message || 'Failed to clear positions', 'error')
+    },
+    onFinally: () => {
+      clearingPositions.value = false
+    }
+  })
+}
+
+const handleFollowerAdded = () => {
+  fetchFollowers(true, 1)
+}
 const searchQuery = ref('')
 const selectedOffer = ref('ALL')
+
+const clientLoginModalOpen = ref(false)
+const selectedClientForLogin = ref(null)
+
+const handleClientLogin = (row) => {
+  if (!row) return
+  const clientId = row.user_id || row.client_id || row.lead_id || row.id
+  if (!clientId) return
+  
+  selectedClientForLogin.value = { ...row, id: clientId }
+  clientLoginModalOpen.value = true
+}
+
+const closeClientLoginModal = () => {
+  clientLoginModalOpen.value = false
+  selectedClientForLogin.value = null
+}
 
 const statusTabs = [
   { label: 'Active Followers', value: 'active', icon: UserCheck, dotClass: 'bg-emerald-500' },
