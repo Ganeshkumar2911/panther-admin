@@ -225,9 +225,9 @@
 
                   <div class="flex items-center gap-2">
                     <a
-                      v-if="item.action_url"
-                      :href="item.action_url"
-                      @click="handleNavigate(item.action_url, $event)"
+                      v-if="getActionUrl(item)"
+                      :href="getActionUrl(item)"
+                      @click="handleNavigate(getActionUrl(item), $event)"
                       class="flex items-center gap-1 text-[11px] text-primary hover:text-primary-hover transition-colors font-medium cursor-pointer"
                     >
                       Open <ExternalLink class="w-3 h-3" />
@@ -321,6 +321,14 @@ function openImageModal(notification) {
   selectedImageUrl.value = notification.image_url;
   selectedImageTitle.value = notification.title || "Notification Image";
   imageModalOpen.value = true;
+}
+
+function getActionUrl(item) {
+  if (item.action_url) return item.action_url;
+  if (item.type === 'PAYMENT' && item.metadata_json?.request_id) {
+    return `/payment-requests?id=${item.metadata_json.request_id}`;
+  }
+  return null;
 }
 
 function handleNavigate(url, event) {

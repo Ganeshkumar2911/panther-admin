@@ -116,7 +116,7 @@
       <div
         v-for="record in store.records"
         :key="record.id"
-        class="bg-card-background border border-primary-border rounded-2xl p-5 flex flex-col justify-between gap-4.5 transition-all duration-200 group relative shadow-2xs hover:shadow-md"
+        class="bg-card-background border border-primary-border rounded-2xl p-5 flex flex-col justify-between gap-4.5 transition-all duration-200 group relative"
       >
         <!-- Top accent gradient -->
         <div class="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-transparent via-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />

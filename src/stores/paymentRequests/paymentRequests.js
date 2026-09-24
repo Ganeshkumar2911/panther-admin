@@ -70,6 +70,7 @@ export const usePaymentRequestsStore = defineStore("paymentRequests", () => {
   // ─────────────────────────────────────
 
   const filters = reactive({
+    id: null,
     type: null,
     approval_status: null,
 
@@ -343,6 +344,7 @@ export const usePaymentRequestsStore = defineStore("paymentRequests", () => {
 
   const resetFilters = () => {
     Object.assign(filters, {
+      id: null,
       type: null,
       approval_status: null,
 
@@ -477,6 +479,7 @@ export const usePaymentRequestsStore = defineStore("paymentRequests", () => {
     });
 
     Object.assign(filters, {
+      id: null,
       type: null,
       approval_status: null,
 

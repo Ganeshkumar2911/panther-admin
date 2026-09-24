@@ -929,54 +929,204 @@
             </div>
           </div>
 
-          <!-- SECTION 6: Withdrawal Notification Emails -->
-          <div class="p-4 rounded-2xl bg-background/50 border border-primary-border space-y-3">
+          <!-- SECTION 6: Ops Notifications -->
+          <div class="p-4 rounded-2xl bg-background/50 border border-primary-border space-y-4">
             <div class="flex items-center justify-between pb-2 border-b border-primary-border/60">
               <span class="text-xs font-bold uppercase tracking-wider text-primary-text flex items-center gap-1.5">
                 <Mail class="w-3.5 h-3.5 text-primary" />
-                <span>6. Withdrawal Notification Emails</span>
+                <span>6. Ops Notifications</span>
               </span>
               <span class="text-[10px] text-secondary-text">Optional Alerts</span>
             </div>
 
-            <div class="space-y-2">
-              <div class="flex items-center gap-2">
-                <input
-                  v-model="newEmailInput"
-                  type="email"
-                  placeholder="Enter admin email address to notify..."
-                  class="flex-1 px-3 py-2 rounded-lg bg-card-background border border-primary-border text-xs text-primary-text outline-none focus:border-primary"
-                  @keydown.enter.prevent="addEmail"
-                />
-                <button
-                  type="button"
-                  class="px-3 py-2 rounded-lg bg-background border border-primary-border text-xs font-semibold text-primary hover:border-primary transition cursor-pointer"
-                  @click="addEmail"
-                >
-                  Add Email
-                </button>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              <!-- Deposit Alerts Card -->
+              <div class="rounded-xl bg-card-background border border-primary-border">
+                <!-- Header -->
+                <div class="px-4 py-3 bg-background/50 border-b border-primary-border flex items-center gap-2 rounded-t-xl">
+                  <div class="w-6 h-6 rounded bg-primary-blue/10 flex items-center justify-center">
+                    <ArrowDown class="w-3.5 h-3.5 text-primary-blue" />
+                  </div>
+                  <h4 class="text-xs font-bold text-primary-text uppercase tracking-wide">Deposit Alerts</h4>
+                </div>
+                
+                <div class="p-4 space-y-5">
+                  <!-- Deposit Emails -->
+                  <div class="space-y-2">
+                    <label class="block text-[11px] font-semibold text-secondary-text">Notify Emails</label>
+                    <div class="flex items-center gap-2">
+                      <input
+                        v-model="newDepositEmailInput"
+                        type="email"
+                        placeholder="Enter email..."
+                        class="flex-1 px-3 py-1.5 rounded-lg bg-background border border-primary-border text-xs text-primary-text outline-none focus:border-primary"
+                        @keydown.enter.prevent="addDepositEmail"
+                      />
+                      <button
+                        type="button"
+                        class="px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20 text-xs font-semibold text-primary hover:bg-primary/20 transition cursor-pointer"
+                        @click="addDepositEmail"
+                      >
+                        Add
+                      </button>
+                    </div>
+                    <div v-if="form.deposit_notification_emails?.length > 0" class="flex flex-wrap gap-1.5 pt-1">
+                      <span
+                        v-for="(email, idx) in form.deposit_notification_emails"
+                        :key="idx"
+                        class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-primary/10 border border-primary/20 text-[10px] text-primary font-mono"
+                      >
+                        <span class="truncate max-w-40">{{ email }}</span>
+                        <button type="button" @click="removeDepositEmail(idx)" class="w-3.5 h-3.5 flex items-center justify-center rounded-full hover:bg-primary-red/10 text-secondary-text hover:text-primary-red transition-colors shrink-0 cursor-pointer">
+                          <X class="w-2.5 h-2.5" />
+                        </button>
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Deposit Targets -->
+                  <div class="space-y-2">
+                    <label class="block text-[11px] font-semibold text-secondary-text">In-App Targets</label>
+                    <div class="p-2.5 bg-background border border-primary-border rounded-xl space-y-2.5">
+                      <div class="grid grid-cols-2 gap-2">
+                        <div>
+                          <label class="block text-[10px] text-secondary-text mb-1 pl-0.5">Target Type</label>
+                          <BaseSelect
+                            v-model="newDepositTargetType"
+                            :options="[{ label: 'Role', value: 'ROLE' }, { label: 'User ID', value: 'USER' }]"
+                            customClass="!py-1.5 !text-xs bg-card-background"
+                          />
+                        </div>
+                        <div>
+                          <label class="block text-[10px] text-secondary-text mb-1 pl-0.5">Value (Role / User ID)</label>
+                          <input
+                            v-model="newDepositTargetValue"
+                            type="text"
+                            placeholder="e.g. admin or 12"
+                            class="w-full px-3 py-1.5 rounded-lg bg-card-background border border-primary-border text-xs text-primary-text outline-none focus:border-primary"
+                            @keydown.enter.prevent="addDepositTarget"
+                          />
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        class="w-full py-1.5 rounded-lg bg-primary/10 border border-primary/20 text-xs font-semibold text-primary hover:bg-primary/20 transition cursor-pointer flex items-center justify-center gap-1.5"
+                        @click="addDepositTarget"
+                      >
+                        <Plus class="w-3.5 h-3.5" />
+                        <span>Add Target</span>
+                      </button>
+                    </div>
+                    <div v-if="form.deposit_notification_targets?.length > 0" class="flex flex-wrap gap-1.5 pt-1">
+                      <span
+                        v-for="(t, idx) in form.deposit_notification_targets"
+                        :key="idx"
+                        class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-primary/10 border border-primary/20 text-[10px] text-primary font-mono"
+                      >
+                        <span class="font-bold">{{ t.type }}:</span>
+                        <span class="truncate max-w-32">{{ t.id }}</span>
+                        <button type="button" @click="removeDepositTarget(idx)" class="w-3.5 h-3.5 flex items-center justify-center rounded-full hover:bg-primary-red/10 text-secondary-text hover:text-primary-red transition-colors shrink-0 cursor-pointer">
+                          <X class="w-2.5 h-2.5" />
+                        </button>
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <!-- Emails tags -->
-              <div v-if="form.withdraw_notification_emails && form.withdraw_notification_emails.length > 0" class="flex flex-wrap gap-1.5 pt-1">
-                <span
-                  v-for="(email, idx) in form.withdraw_notification_emails"
-                  :key="idx"
-                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/10 border border-primary/20 text-xs text-primary font-mono"
-                >
-                  <span class="truncate max-w-50">{{ email }}</span>
-                  <button
-                    type="button"
-                    @click="removeEmail(idx)"
-                    class="w-4 h-4 flex items-center justify-center rounded-full hover:bg-primary-red/10 text-secondary-text hover:text-primary-red transition-colors focus:outline-none shrink-0 cursor-pointer"
-                  >
-                    <X class="w-2.5 h-2.5" />
-                  </button>
-                </span>
+              <!-- Withdrawal Alerts Card -->
+              <div class="rounded-xl bg-card-background border border-primary-border">
+                <!-- Header -->
+                <div class="px-4 py-3 bg-background/50 border-b border-primary-border flex items-center gap-2 rounded-t-xl">
+                  <div class="w-6 h-6 rounded bg-primary-red/10 flex items-center justify-center">
+                    <ArrowUp class="w-3.5 h-3.5 text-primary-red" />
+                  </div>
+                  <h4 class="text-xs font-bold text-primary-text uppercase tracking-wide">Withdrawal Alerts</h4>
+                </div>
+                
+                <div class="p-4 space-y-5">
+                  <!-- Withdraw Emails -->
+                  <div class="space-y-2">
+                    <label class="block text-[11px] font-semibold text-secondary-text">Notify Emails</label>
+                    <div class="flex items-center gap-2">
+                      <input
+                        v-model="newWithdrawEmailInput"
+                        type="email"
+                        placeholder="Enter email..."
+                        class="flex-1 px-3 py-1.5 rounded-lg bg-background border border-primary-border text-xs text-primary-text outline-none focus:border-primary"
+                        @keydown.enter.prevent="addWithdrawEmail"
+                      />
+                      <button
+                        type="button"
+                        class="px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20 text-xs font-semibold text-primary hover:bg-primary/20 transition cursor-pointer"
+                        @click="addWithdrawEmail"
+                      >
+                        Add
+                      </button>
+                    </div>
+                    <div v-if="form.withdraw_notification_emails?.length > 0" class="flex flex-wrap gap-1.5 pt-1">
+                      <span
+                        v-for="(email, idx) in form.withdraw_notification_emails"
+                        :key="idx"
+                        class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-primary/10 border border-primary/20 text-[10px] text-primary font-mono"
+                      >
+                        <span class="truncate max-w-40">{{ email }}</span>
+                        <button type="button" @click="removeWithdrawEmail(idx)" class="w-3.5 h-3.5 flex items-center justify-center rounded-full hover:bg-primary-red/10 text-secondary-text hover:text-primary-red transition-colors shrink-0 cursor-pointer">
+                          <X class="w-2.5 h-2.5" />
+                        </button>
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Withdraw Targets -->
+                  <div class="space-y-2">
+                    <label class="block text-[11px] font-semibold text-secondary-text">In-App Targets</label>
+                    <div class="p-2.5 bg-background border border-primary-border rounded-xl space-y-2.5">
+                      <div class="grid grid-cols-2 gap-2">
+                        <div>
+                          <label class="block text-[10px] text-secondary-text mb-1 pl-0.5">Target Type</label>
+                          <BaseSelect
+                            v-model="newWithdrawTargetType"
+                            :options="[{ label: 'Role', value: 'ROLE' }, { label: 'User ID', value: 'USER' }]"
+                            customClass="!py-1.5 !text-xs bg-card-background"
+                          />
+                        </div>
+                        <div>
+                          <label class="block text-[10px] text-secondary-text mb-1 pl-0.5">Value (Role / User ID)</label>
+                          <input
+                            v-model="newWithdrawTargetValue"
+                            type="text"
+                            placeholder="e.g. admin or 12"
+                            class="w-full px-3 py-1.5 rounded-lg bg-card-background border border-primary-border text-xs text-primary-text outline-none focus:border-primary"
+                            @keydown.enter.prevent="addWithdrawTarget"
+                          />
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        class="w-full py-1.5 rounded-lg bg-primary/10 border border-primary/20 text-xs font-semibold text-primary hover:bg-primary/20 transition cursor-pointer flex items-center justify-center gap-1.5"
+                        @click="addWithdrawTarget"
+                      >
+                        <Plus class="w-3.5 h-3.5" />
+                        <span>Add Target</span>
+                      </button>
+                    </div>
+                    <div v-if="form.withdraw_notification_targets?.length > 0" class="flex flex-wrap gap-1.5 pt-1">
+                      <span
+                        v-for="(t, idx) in form.withdraw_notification_targets"
+                        :key="idx"
+                        class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-primary/10 border border-primary/20 text-[10px] text-primary font-mono"
+                      >
+                        <span class="font-bold">{{ t.type }}:</span>
+                        <span class="truncate max-w-32">{{ t.id }}</span>
+                        <button type="button" @click="removeWithdrawTarget(idx)" class="w-3.5 h-3.5 flex items-center justify-center rounded-full hover:bg-primary-red/10 text-secondary-text hover:text-primary-red transition-colors shrink-0 cursor-pointer">
+                          <X class="w-2.5 h-2.5" />
+                        </button>
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <p v-else class="text-[10px] text-secondary-text">
-                No notification emails added. Notifications will follow system default settings.
-              </p>
             </div>
           </div>
 
@@ -1040,6 +1190,8 @@ import {
   Star,
   Power,
   Globe,
+  ArrowDown,
+  ArrowUp,
 } from 'lucide-vue-next'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import { usePaymentMethodsStore } from '@/stores/paymentMethods/paymentMethods'
@@ -1068,7 +1220,12 @@ const submitting = ref(false)
 const validationErrors = ref([])
 const fieldErrors = ref({})
 const metaActiveTab = ref('deposit') // 'deposit' | 'withdrawal'
-const newEmailInput = ref('')
+const newDepositEmailInput = ref('')
+const newWithdrawEmailInput = ref('')
+const newDepositTargetType = ref('ROLE')
+const newDepositTargetValue = ref('')
+const newWithdrawTargetType = ref('ROLE')
+const newWithdrawTargetValue = ref('')
 
 // ── Form Model State ──
 const defaultFormData = () => ({
@@ -1113,7 +1270,10 @@ const defaultFormData = () => ({
     withdrawal_fields: [],
   },
 
+  deposit_notification_emails: [],
   withdraw_notification_emails: [],
+  deposit_notification_targets: [],
+  withdraw_notification_targets: [],
 })
 
 const form = ref(defaultFormData())
@@ -1134,7 +1294,12 @@ watch(
       validationErrors.value = []
       fieldErrors.value = {}
       metaActiveTab.value = 'deposit'
-      newEmailInput.value = ''
+      newDepositEmailInput.value = ''
+      newWithdrawEmailInput.value = ''
+      newDepositTargetType.value = 'ROLE'
+      newDepositTargetValue.value = ''
+      newWithdrawTargetType.value = 'ROLE'
+      newWithdrawTargetValue.value = ''
 
       if (props.paymentMethod) {
         // Edit Mode: copy data directly from the API response
@@ -1181,7 +1346,10 @@ watch(
             withdrawal_fields: Array.isArray(p.meta_data?.withdrawal_fields) ? JSON.parse(JSON.stringify(p.meta_data.withdrawal_fields)) : [],
           },
 
+          deposit_notification_emails: Array.isArray(p.deposit_notification_emails) ? [...p.deposit_notification_emails] : [],
           withdraw_notification_emails: Array.isArray(p.withdraw_notification_emails) ? [...p.withdraw_notification_emails] : [],
+          deposit_notification_targets: Array.isArray(p.deposit_notification_targets) ? JSON.parse(JSON.stringify(p.deposit_notification_targets)) : [],
+          withdraw_notification_targets: Array.isArray(p.withdraw_notification_targets) ? JSON.parse(JSON.stringify(p.withdraw_notification_targets)) : [],
         }
       } else {
         // Create Mode: start clean without any hardcoded templates
@@ -1360,9 +1528,28 @@ const updateOptionsByJson = (field, jsonStr) => {
   }
 }
 
-// ── Notification Email Methods ──
-const addEmail = () => {
-  const email = newEmailInput.value.trim()
+// ── Notification Ops Methods ──
+const addDepositEmail = () => {
+  const email = newDepositEmailInput.value.trim()
+  if (!email) return
+  if (!email.includes('@') || !email.includes('.')) {
+    validationErrors.value = ['Please enter a valid email address.']
+    return
+  }
+  if (!form.value.deposit_notification_emails) {
+    form.value.deposit_notification_emails = []
+  }
+  if (!form.value.deposit_notification_emails.includes(email)) {
+    form.value.deposit_notification_emails.push(email)
+  }
+  newDepositEmailInput.value = ''
+}
+const removeDepositEmail = (index) => {
+  form.value.deposit_notification_emails.splice(index, 1)
+}
+
+const addWithdrawEmail = () => {
+  const email = newWithdrawEmailInput.value.trim()
   if (!email) return
   if (!email.includes('@') || !email.includes('.')) {
     validationErrors.value = ['Please enter a valid email address.']
@@ -1374,11 +1561,56 @@ const addEmail = () => {
   if (!form.value.withdraw_notification_emails.includes(email)) {
     form.value.withdraw_notification_emails.push(email)
   }
-  newEmailInput.value = ''
+  newWithdrawEmailInput.value = ''
+}
+const removeWithdrawEmail = (index) => {
+  form.value.withdraw_notification_emails.splice(index, 1)
 }
 
-const removeEmail = (index) => {
-  form.value.withdraw_notification_emails.splice(index, 1)
+const addDepositTarget = () => {
+  let val = newDepositTargetValue.value.trim()
+  if (!val) return
+  if (newDepositTargetType.value === 'USER') {
+    val = Number(val)
+    if (isNaN(val)) {
+      validationErrors.value = ['User ID must be a number.']
+      return
+    }
+  }
+  if (!form.value.deposit_notification_targets) {
+    form.value.deposit_notification_targets = []
+  }
+  const exists = form.value.deposit_notification_targets.some(t => t.type === newDepositTargetType.value && t.id === val)
+  if (!exists) {
+    form.value.deposit_notification_targets.push({ type: newDepositTargetType.value, id: val })
+  }
+  newDepositTargetValue.value = ''
+}
+const removeDepositTarget = (index) => {
+  form.value.deposit_notification_targets.splice(index, 1)
+}
+
+const addWithdrawTarget = () => {
+  let val = newWithdrawTargetValue.value.trim()
+  if (!val) return
+  if (newWithdrawTargetType.value === 'USER') {
+    val = Number(val)
+    if (isNaN(val)) {
+      validationErrors.value = ['User ID must be a number.']
+      return
+    }
+  }
+  if (!form.value.withdraw_notification_targets) {
+    form.value.withdraw_notification_targets = []
+  }
+  const exists = form.value.withdraw_notification_targets.some(t => t.type === newWithdrawTargetType.value && t.id === val)
+  if (!exists) {
+    form.value.withdraw_notification_targets.push({ type: newWithdrawTargetType.value, id: val })
+  }
+  newWithdrawTargetValue.value = ''
+}
+const removeWithdrawTarget = (index) => {
+  form.value.withdraw_notification_targets.splice(index, 1)
 }
 
 // ── Close Handler ──
@@ -1527,7 +1759,10 @@ const submit = async () => {
         withdrawal_fields: (form.value.meta_data.withdrawal_fields || []).map(sanitizeDynamicField),
       },
 
+      deposit_notification_emails: form.value.deposit_notification_emails || [],
       withdraw_notification_emails: form.value.withdraw_notification_emails || [],
+      deposit_notification_targets: form.value.deposit_notification_targets || [],
+      withdraw_notification_targets: form.value.withdraw_notification_targets || [],
     }
 
     // Include optional credentials only if provided
