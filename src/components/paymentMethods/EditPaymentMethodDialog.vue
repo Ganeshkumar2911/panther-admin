@@ -989,22 +989,14 @@
                     <label class="block text-[11px] font-semibold text-secondary-text">In-App Targets</label>
                     <div class="p-2.5 bg-background border border-primary-border rounded-xl space-y-2.5">
                       <div class="grid grid-cols-2 gap-2">
-                        <div>
-                          <label class="block text-[10px] text-secondary-text mb-1 pl-0.5">Target Type</label>
+                        <div class="col-span-2">
+                          <label class="block text-[10px] text-secondary-text mb-1 pl-0.5">Role</label>
                           <BaseSelect
-                            v-model="newDepositTargetType"
-                            :options="[{ label: 'Role', value: 'ROLE' }, { label: 'User ID', value: 'USER' }]"
-                            customClass="!py-1.5 !text-xs bg-card-background"
-                          />
-                        </div>
-                        <div>
-                          <label class="block text-[10px] text-secondary-text mb-1 pl-0.5">Value (Role / User ID)</label>
-                          <input
                             v-model="newDepositTargetValue"
-                            type="text"
-                            placeholder="e.g. admin or 12"
-                            class="w-full px-3 py-1.5 rounded-lg bg-card-background border border-primary-border text-xs text-primary-text outline-none focus:border-primary"
-                            @keydown.enter.prevent="addDepositTarget"
+                            :options="roles"
+                            placeholder="Select Role"
+                            top
+                            customClass="!py-1.5 !text-xs bg-card-background"
                           />
                         </div>
                       </div>
@@ -1024,7 +1016,7 @@
                         class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-primary/10 border border-primary/20 text-[10px] text-primary font-mono"
                       >
                         <span class="font-bold">{{ t.type }}:</span>
-                        <span class="truncate max-w-32">{{ t.id }}</span>
+                        <span class="truncate max-w-32">{{ t.type === 'ROLE' ? getRoleName(t.id) : t.id }}</span>
                         <button type="button" @click="removeDepositTarget(idx)" class="w-3.5 h-3.5 flex items-center justify-center rounded-full hover:bg-primary-red/10 text-secondary-text hover:text-primary-red transition-colors shrink-0 cursor-pointer">
                           <X class="w-2.5 h-2.5" />
                         </button>
@@ -1083,22 +1075,14 @@
                     <label class="block text-[11px] font-semibold text-secondary-text">In-App Targets</label>
                     <div class="p-2.5 bg-background border border-primary-border rounded-xl space-y-2.5">
                       <div class="grid grid-cols-2 gap-2">
-                        <div>
-                          <label class="block text-[10px] text-secondary-text mb-1 pl-0.5">Target Type</label>
+                        <div class="col-span-2">
+                          <label class="block text-[10px] text-secondary-text mb-1 pl-0.5">Role</label>
                           <BaseSelect
-                            v-model="newWithdrawTargetType"
-                            :options="[{ label: 'Role', value: 'ROLE' }, { label: 'User ID', value: 'USER' }]"
-                            customClass="!py-1.5 !text-xs bg-card-background"
-                          />
-                        </div>
-                        <div>
-                          <label class="block text-[10px] text-secondary-text mb-1 pl-0.5">Value (Role / User ID)</label>
-                          <input
                             v-model="newWithdrawTargetValue"
-                            type="text"
-                            placeholder="e.g. admin or 12"
-                            class="w-full px-3 py-1.5 rounded-lg bg-card-background border border-primary-border text-xs text-primary-text outline-none focus:border-primary"
-                            @keydown.enter.prevent="addWithdrawTarget"
+                            :options="roles"
+                            placeholder="Select Role"
+                            top
+                            customClass="!py-1.5 !text-xs bg-card-background"
                           />
                         </div>
                       </div>
@@ -1118,7 +1102,7 @@
                         class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-primary/10 border border-primary/20 text-[10px] text-primary font-mono"
                       >
                         <span class="font-bold">{{ t.type }}:</span>
-                        <span class="truncate max-w-32">{{ t.id }}</span>
+                        <span class="truncate max-w-32">{{ t.type === 'ROLE' ? getRoleName(t.id) : t.id }}</span>
                         <button type="button" @click="removeWithdrawTarget(idx)" class="w-3.5 h-3.5 flex items-center justify-center rounded-full hover:bg-primary-red/10 text-secondary-text hover:text-primary-red transition-colors shrink-0 cursor-pointer">
                           <X class="w-2.5 h-2.5" />
                         </button>
@@ -1169,7 +1153,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import {
   Wallet,
   X,
@@ -1195,6 +1179,7 @@ import {
 } from 'lucide-vue-next'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import { usePaymentMethodsStore } from '@/stores/paymentMethods/paymentMethods'
+import apiRequest from '@/api/request'
 
 const FIELD_TYPE_OPTIONS = [
   { label: 'Text Input', value: 'text' },
@@ -1222,10 +1207,29 @@ const fieldErrors = ref({})
 const metaActiveTab = ref('deposit') // 'deposit' | 'withdrawal'
 const newDepositEmailInput = ref('')
 const newWithdrawEmailInput = ref('')
-const newDepositTargetType = ref('ROLE')
 const newDepositTargetValue = ref('')
-const newWithdrawTargetType = ref('ROLE')
 const newWithdrawTargetValue = ref('')
+
+const roles = ref([])
+const fetchRoles = async () => {
+  try {
+    const response = await apiRequest('get', '/rbac/roles')
+    if (response.status === 'success' && response.data) {
+      roles.value = response.data.map(r => ({ label: r.name, value: r.id }))
+    }
+  } catch (err) {
+    console.error('Failed to fetch roles:', err)
+  }
+}
+
+const getRoleName = (id) => {
+  const role = roles.value.find(r => r.value === id)
+  return role ? role.label : id
+}
+
+onMounted(() => {
+  fetchRoles()
+})
 
 // ── Form Model State ──
 const defaultFormData = () => ({
@@ -1296,9 +1300,7 @@ watch(
       metaActiveTab.value = 'deposit'
       newDepositEmailInput.value = ''
       newWithdrawEmailInput.value = ''
-      newDepositTargetType.value = 'ROLE'
       newDepositTargetValue.value = ''
-      newWithdrawTargetType.value = 'ROLE'
       newWithdrawTargetValue.value = ''
 
       if (props.paymentMethod) {
@@ -1568,21 +1570,14 @@ const removeWithdrawEmail = (index) => {
 }
 
 const addDepositTarget = () => {
-  let val = newDepositTargetValue.value.trim()
+  let val = newDepositTargetValue.value
   if (!val) return
-  if (newDepositTargetType.value === 'USER') {
-    val = Number(val)
-    if (isNaN(val)) {
-      validationErrors.value = ['User ID must be a number.']
-      return
-    }
-  }
   if (!form.value.deposit_notification_targets) {
     form.value.deposit_notification_targets = []
   }
-  const exists = form.value.deposit_notification_targets.some(t => t.type === newDepositTargetType.value && t.id === val)
+  const exists = form.value.deposit_notification_targets.some(t => t.type === 'ROLE' && t.id === val)
   if (!exists) {
-    form.value.deposit_notification_targets.push({ type: newDepositTargetType.value, id: val })
+    form.value.deposit_notification_targets.push({ type: 'ROLE', id: val })
   }
   newDepositTargetValue.value = ''
 }
@@ -1591,21 +1586,14 @@ const removeDepositTarget = (index) => {
 }
 
 const addWithdrawTarget = () => {
-  let val = newWithdrawTargetValue.value.trim()
+  let val = newWithdrawTargetValue.value
   if (!val) return
-  if (newWithdrawTargetType.value === 'USER') {
-    val = Number(val)
-    if (isNaN(val)) {
-      validationErrors.value = ['User ID must be a number.']
-      return
-    }
-  }
   if (!form.value.withdraw_notification_targets) {
     form.value.withdraw_notification_targets = []
   }
-  const exists = form.value.withdraw_notification_targets.some(t => t.type === newWithdrawTargetType.value && t.id === val)
+  const exists = form.value.withdraw_notification_targets.some(t => t.type === 'ROLE' && t.id === val)
   if (!exists) {
-    form.value.withdraw_notification_targets.push({ type: newWithdrawTargetType.value, id: val })
+    form.value.withdraw_notification_targets.push({ type: 'ROLE', id: val })
   }
   newWithdrawTargetValue.value = ''
 }
