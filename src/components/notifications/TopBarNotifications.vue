@@ -33,6 +33,14 @@ function openImageModal(notification) {
   imageModalOpen.value = true;
 }
 
+function getActionUrl(item) {
+  if (item.action_url) return item.action_url;
+  if (item.type === 'PAYMENT' && item.metadata_json?.request_id) {
+    return `/payment-requests?id=${item.metadata_json.request_id}`;
+  }
+  return null;
+}
+
 function handleNavigate(url, event) {
   if (!url) return;
   notifPopoverOpen.value = false;
@@ -311,9 +319,9 @@ function markAsRead(id) {
                     class="flex items-center gap-2.5 opacity-0 transition-opacity group-hover:opacity-100"
                   >
                     <a
-                      v-if="item.action_url"
-                      :href="item.action_url"
-                      @click="handleNavigate(item.action_url, $event)"
+                      v-if="getActionUrl(item)"
+                      :href="getActionUrl(item)"
+                      @click="handleNavigate(getActionUrl(item), $event)"
                       class="flex items-center gap-0.5 text-[10.5px] font-medium text-primary hover:underline cursor-pointer"
                     >
                       <span>Open</span>
