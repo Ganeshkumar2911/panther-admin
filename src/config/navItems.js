@@ -291,10 +291,10 @@ export const navClusters = [
     ],
   },
 
-  // 3. Fund Management
+  // 3. Fund Managers
   {
     id: "fund_management",
-    label: "Fund Management",
+    label: "Fund Managers",
     icon: Trophy,
     children: [
       {
@@ -323,6 +323,13 @@ export const navClusters = [
           "fm applications",
           "offers",
         ],
+      },
+      {
+        label: "Settlements",
+        to: "/settlements",
+        icon: RefreshCcw,
+        permission: ["settlement.view"],
+        keywords: ["reconciliation", "settle", "payout settlements", "batch"],
       },
     ],
   },
@@ -420,13 +427,6 @@ export const navClusters = [
           "pending approvals",
           "cashier",
         ],
-      },
-      {
-        label: "Settlements",
-        to: "/settlements",
-        icon: RefreshCcw,
-        permission: ["settlement.view"],
-        keywords: ["reconciliation", "settle", "payout settlements", "batch"],
       },
     ],
   },

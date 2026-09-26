@@ -100,6 +100,7 @@ const urls = {
   },
   fm: {
     list: "/fund_managers",
+    simpleList: "/fm-list",
     create: "/fund_managers/create",
     edit: "/fund_managers/edit",
     requestList: "/fm/requests",

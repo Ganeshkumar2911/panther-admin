@@ -1,12 +1,5 @@
 <template>
   <div class="px-4 pb-8 space-y-6">
-
-    <!-- Note Banner -->
-    <div v-if="store.note" class="bg-primary/5 border border-primary/20 rounded-xl p-3.5 flex items-start gap-2.5 text-xs text-secondary-text">
-      <Info class="w-4 h-4 text-primary shrink-0 mt-0.5" />
-      <span class="leading-relaxed">{{ store.note }}</span>
-    </div>
-
     <!-- Summary Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
       <template v-if="store.loading && !store.records?.length">
@@ -55,23 +48,20 @@
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-card-background border border-primary-border rounded-xl p-2.5">
       <div class="flex items-center gap-2 flex-wrap flex-1">
         <!-- FM ID Filter -->
-        <div class="relative w-full sm:w-44 h-9">
-          <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-secondary-text pointer-events-none" />
-          <input
-            v-model="fmIdInput"
-            type="number"
-            placeholder="Filter by FM ID..."
-            class="w-full h-full pl-8 pr-7 text-xs rounded-lg bg-background border border-primary-border text-primary-text outline-none focus:border-primary transition-colors placeholder:text-secondary-text"
-            @keyup.enter="handleApplyFmFilter"
-          />
-          <button
-            v-if="fmIdInput"
-            @click="clearFmFilter"
-            class="absolute right-2 top-1/2 -translate-y-1/2 text-secondary-text hover:text-primary-text cursor-pointer"
-          >
-            <X class="w-3.5 h-3.5" />
-          </button>
-        </div>
+        <BaseSelect
+          v-model="fmIdInput"
+          :options="fmOptions"
+          :isLoading="isFetchingFms"
+          searchable
+          clearable
+          allowAll
+          allLabel="All FMs"
+          :isShowMail="true"
+          placeholder="Filter by FM..."
+          class="w-full sm:w-44"
+          customClass="h-9"
+          @update:modelValue="handleApplyFmFilter"
+        />
 
         <!-- Apply FM button -->
         <button
@@ -102,7 +92,7 @@
           :modelValue="store.pagination.per_page"
           :options="store.perPageOptions"
           placeholder="Per page..."
-          class="w-28 sm:w-32"
+          class="w-20 sm:w-20"
           @update:modelValue="store.updatePerPage"
         />
 
@@ -346,12 +336,39 @@ import { useSettlementsStore } from '@/stores/settlements/settlements'
 import Pagination from '@/components/common/Pagination.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import { usePermissionCheck } from '@/composables/usePermissionCheck'
+import apiRequest from '@/api/request'
+import urls from '@/api/urls'
 
 const router = useRouter()
 const store = useSettlementsStore()
 const { hasPermission } = usePermissionCheck()
 
 const fmIdInput = ref('')
+const fmOptions = ref([])
+const isFetchingFms = ref(false)
+
+const fetchFms = async () => {
+  try {
+    isFetchingFms.value = true
+    const res = await apiRequest('get', urls.fm.simpleList, { params: { page: 1, per_page: 1000 } })
+    if (res?.data) {
+      fmOptions.value = res.data.map(fm => {
+        const labelName = fm.label_name || 'FM'
+        const name = fm.name || ''
+        const displayName = labelName === name || !name ? labelName : `${labelName} (${name})`
+        return {
+          label: `${displayName} (#${fm.id})`,
+          email: fm.email,
+          value: fm.id,
+        }
+      })
+    }
+  } catch (err) {
+    console.error(err)
+  } finally {
+    isFetchingFms.value = false
+  }
+}
 
 const handleApplyFmFilter = () => {
   store.filters.fm_id = fmIdInput.value ? Number(fmIdInput.value) : null
@@ -493,6 +510,7 @@ const goToTrade = (settlementId) => {
 
 onMounted(() => {
   store.fetchSettlements()
+  fetchFms()
 })
 </script>
 

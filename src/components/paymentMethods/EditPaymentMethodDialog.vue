@@ -1780,7 +1780,14 @@ const submit = async () => {
       const diffPayload = {}
       
       for (const key in payload) {
-        if (JSON.stringify(payload[key]) !== JSON.stringify(initialPayloadRaw[key])) {
+        let val1 = payload[key]
+        let val2 = initialPayloadRaw[key]
+
+        // Normalize null and empty string for comparison
+        if (val1 === null && val2 === '') val1 = ''
+        if (val2 === null && val1 === '') val2 = ''
+
+        if (JSON.stringify(val1) !== JSON.stringify(val2)) {
           diffPayload[key] = payload[key]
         }
       }

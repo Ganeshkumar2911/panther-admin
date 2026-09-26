@@ -30,6 +30,7 @@
           v-model="selectedVisibility"
           :options="visibilityOptions"
           placeholder="Visibility"
+          clearable
           class="w-full sm:w-36 xl:w-36"
         />
 
@@ -38,6 +39,7 @@
           v-model="selectedStatus"
           :options="statusOptions"
           placeholder="Status"
+          clearable
           class="w-full sm:w-32 xl:w-32"
         />
 
@@ -46,6 +48,7 @@
           v-model="selectedKyc"
           :options="kycOptions"
           placeholder="KYC Status"
+          clearable
           class="w-full sm:w-36 xl:w-36"
         />
 

@@ -381,31 +381,14 @@
     <!-- MAIN CONTENT -->
     <template v-else>
       <!-- Desktop Table View -->
-      <div
-        class="hidden md:block w-full border border-primary-border rounded-2xl overflow-x-auto bg-card-background/40 shadow-sm"
-      >
-        <table class="w-full border-collapse text-left text-xs">
-          <thead>
-            <tr
-              class="border-b border-primary-border bg-background/60 text-secondary-text font-bold uppercase tracking-wider text-[10px]"
-            >
-              <th class="py-3.5 px-4 whitespace-nowrap">Follower & Email</th>
-              <th class="py-3.5 px-4 whitespace-nowrap">Account & Server</th>
-              <th class="py-3.5 px-4 whitespace-nowrap">Equity & PnL</th>
-              <th class="py-3.5 px-4 whitespace-nowrap">Lot Setup & Trades</th>
-              <th class="py-3.5 px-4 whitespace-nowrap">Offer & IB Partner</th>
-              <th class="py-3.5 px-4 whitespace-nowrap">Status</th>
-              <th class="py-3.5 px-4 text-right whitespace-nowrap">Action</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-primary-border/60">
-            <tr
-              v-for="row in filteredFollowers"
-              :key="row.id || row.account_id"
-              class="hover:bg-background/50 transition-colors"
-            >
-              <!-- Name & Email -->
-              <td class="py-4 px-4">
+      <div class="hidden md:block w-full">
+        <DataTable
+          :columns="columns"
+          :data="filteredFollowers"
+          :actions-sticky="true"
+        >
+          <!-- Name & Email -->
+          <template #cell-follower_email="{ row }">
                 <div class="flex items-center gap-3">
                   <div
                     class="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 text-primary flex items-center justify-center font-bold text-xs shrink-0"
@@ -427,10 +410,10 @@
                     </p>
                   </div>
                 </div>
-              </td>
+          </template>
 
-              <!-- Account & Server -->
-              <td class="py-4 px-4 whitespace-nowrap">
+          <!-- Account & Server -->
+          <template #cell-account_server="{ row }">
                 <div class="space-y-0.5">
                   <p class="font-mono text-xs text-primary-text font-bold">
                     {{ row.account_number || `#${row.account_id}` }}
@@ -441,10 +424,10 @@
                     {{ row.broker_label || row.server || "COPY_TRADING" }}
                   </p>
                 </div>
-              </td>
+          </template>
 
-              <!-- Equity & PnL -->
-              <td class="py-4 px-4 whitespace-nowrap">
+          <!-- Equity & PnL -->
+          <template #cell-equity_pnl="{ row }">
                 <div class="space-y-0.5">
                   <p class="text-xs font-extrabold text-primary-text">
                     {{ formatCurrency(row.equity, getRowCurrency(row)) }}
@@ -466,10 +449,10 @@
                     }}
                   </p>
                 </div>
-              </td>
+          </template>
 
-              <!-- Lot Setup & Trades -->
-              <td class="py-4 px-4 whitespace-nowrap">
+          <!-- Lot Setup & Trades -->
+          <template #cell-lot_trades="{ row }">
                 <div class="space-y-0.5">
                   <p class="text-xs font-semibold text-primary-text capitalize">
                     {{ row.lot_type || "fixed" }}
@@ -502,10 +485,10 @@
                     }}</span>
                   </p>
                 </div>
-              </td>
+          </template>
 
-              <!-- Offer & IB Partner -->
-              <td class="py-4 px-4 whitespace-nowrap">
+          <!-- Offer & IB Partner -->
+          <template #cell-offer_ib="{ row }">
                 <div class="space-y-0.5">
                   <p
                     v-if="row.offer_name"
@@ -523,10 +506,10 @@
                     IB: {{ row.ib_name || row.ib_email }}
                   </p>
                 </div>
-              </td>
+          </template>
 
-              <!-- Status -->
-              <td class="py-4 px-4 text-left whitespace-nowrap">
+          <!-- Status -->
+          <template #cell-status="{ row }">
                 <span
                   class="text-[10px] font-bold tracking-wide uppercase px-2.5 py-0.5 rounded-full border inline-flex items-center gap-1.5 shadow-2xs"
                   :class="getStatusBadgeClass(row)"
@@ -546,10 +529,10 @@
                     formatDate(row.unfollowed_at || row.ended_at || row.left_at)
                   }}
                 </p>
-              </td>
+          </template>
 
-              <!-- Action -->
-              <td class="py-4 px-4 text-right whitespace-nowrap">
+          <!-- Action -->
+          <template #actions="{ row }">
                 <div class="flex items-center justify-end gap-1.5">
                   <Tooltip text="Trade Book" position="right">
                     <button
@@ -609,10 +592,8 @@
                     </button>
                   </Tooltip>
                 </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+          </template>
+        </DataTable>
       </div>
 
       <!-- Mobile Card View -->
@@ -842,6 +823,7 @@ import EditFollowerDialog from "@/components/fmOffers/EditFollowerDialog.vue";
 import AddFollowerDialog from "@/components/fmOffers/AddFollowerDialog.vue";
 import ClientLoginModal from "@/components/common/ClientLoginModal.vue";
 import ConfirmationDialog from "@/components/common/ConfirmationDialog.vue";
+import DataTable from "@/components/common/DataTable/DataTable.vue";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 
@@ -849,6 +831,15 @@ const route = useRoute();
 const router = useRouter();
 const snackbar = useSnackbarStore();
 const { hasPermission } = usePermissionCheck();
+
+const columns = [
+  { key: "follower_email", label: "Follower & Email" },
+  { key: "account_server", label: "Account & Server" },
+  { key: "equity_pnl", label: "Equity & PnL" },
+  { key: "lot_trades", label: "Lot Setup & Trades" },
+  { key: "offer_ib", label: "Offer & IB Partner" },
+  { key: "status", label: "Status" },
+];
 
 const fmId = route.params.id;
 const fmInfo = ref(null);
