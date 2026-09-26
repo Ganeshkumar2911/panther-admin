@@ -61,29 +61,24 @@
     <!-- ─── MAIN CONTENT ─────────────────────────────────────────── -->
     <template v-else>
       <!-- 1. Summary Cards Grid (Rendered dynamically from computed array) -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
         <div
           v-for="card in summaryCards"
           :key="card.title"
-          class="bg-card-background/40 border border-primary-border rounded-xl p-4 sm:p-5 flex flex-col items-center text-center gap-3"
+          class="bg-card-background/40 border border-primary-border rounded-xl p-3 flex flex-col items-center text-center gap-2"
         >
-          <div
-            class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-background/50 border border-primary-border/60 text-primary-text"
-          >
-            <span class="material-symbols-rounded text-[24px]">{{ card.icon }}</span>
+          <div class="flex items-center justify-center shrink-0" :class="card.iconClass || 'text-secondary-text'">
+            <span class="material-symbols-rounded text-[20px]">{{ card.icon }}</span>
           </div>
           <div class="min-w-0 w-full flex flex-col items-center">
-            <p class="text-[13px] text-primary-text font-bold">
+            <p class="text-[11px] text-secondary-text font-bold uppercase tracking-wide">
               {{ card.title }}
             </p>
             <p
-              class="text-lg font-bold truncate mt-0.5"
+              class="text-sm sm:text-base font-extrabold truncate mt-0.5"
               :class="card.valueClass || 'text-primary-text'"
             >
               {{ card.value }}
-            </p>
-            <p class="text-[10px] text-secondary-text truncate font-medium">
-              {{ card.subtext }}
             </p>
           </div>
         </div>
@@ -96,8 +91,8 @@
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 text-center divide-y sm:divide-y-0 sm:divide-x divide-primary-border/60">
           <!-- Days Active -->
           <div class="flex flex-col items-center gap-2 pt-2 sm:pt-0">
-            <div class="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500">
-              <Calendar class="w-4 h-4" />
+            <div class="w-9 h-9 rounded-xl bg-background/50 flex items-center justify-center text-blue-500/80">
+              <span class="material-symbols-rounded text-[18px]">calendar_month</span>
             </div>
             <span class="text-2xl sm:text-3xl font-black text-primary-text tabular-nums">
               {{ daysActive }}
@@ -109,10 +104,10 @@
 
           <!-- Deposits Count -->
           <div class="flex flex-col items-center gap-2 pt-2 sm:pt-0">
-            <div class="w-9 h-9 rounded-xl bg-primary-green/10 border border-primary-green/20 flex items-center justify-center text-primary-green">
-              <TrendingUp class="w-4 h-4" />
+            <div class="w-9 h-9 rounded-xl bg-background/50 flex items-center justify-center text-primary-green/80">
+              <span class="material-symbols-rounded text-[18px]">trending_up</span>
             </div>
-            <span class="text-2xl sm:text-3xl font-black text-primary-green tabular-nums">
+            <span class="text-2xl sm:text-3xl font-black text-primary-text tabular-nums">
               {{ depositsCount }}
             </span>
             <span class="text-[11px] sm:text-xs text-secondary-text font-semibold uppercase tracking-wider">
@@ -122,8 +117,8 @@
 
           <!-- Withdrawals Count -->
           <div class="flex flex-col items-center gap-2 pt-2 sm:pt-0">
-            <div class="w-9 h-9 rounded-xl bg-primary-red/10 border border-primary-red/20 flex items-center justify-center text-primary-red">
-              <TrendingDown class="w-4 h-4" />
+            <div class="w-9 h-9 rounded-xl bg-background/50 flex items-center justify-center text-primary-red/80">
+              <span class="material-symbols-rounded text-[18px]">trending_down</span>
             </div>
             <span class="text-2xl sm:text-3xl font-black text-primary-text tabular-nums">
               {{ withdrawalsCount }}
@@ -135,8 +130,8 @@
 
           <!-- Configured Accounts -->
           <div class="flex flex-col items-center gap-2 pt-2 sm:pt-0">
-            <div class="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-500">
-              <Wallet class="w-4 h-4" />
+            <div class="w-9 h-9 rounded-xl bg-background/50 flex items-center justify-center text-purple-500/80">
+              <span class="material-symbols-rounded text-[18px]">account_balance_wallet</span>
             </div>
             <span class="text-2xl sm:text-3xl font-black text-primary-text tabular-nums">
               {{ accountsCount }}
@@ -273,7 +268,7 @@
                     class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
                     :class="item.iconBgClass"
                   >
-                    <component :is="item.icon" class="w-4 h-4" :class="item.iconTextClass" />
+                    <span class="material-symbols-rounded text-[18px]" :class="item.iconTextClass">{{ item.icon }}</span>
                   </div>
                   <div class="min-w-0">
                     <p class="font-bold text-xs sm:text-sm text-primary-text truncate">
@@ -648,6 +643,7 @@ const summaryCards = computed(() => [
     valueClass: "text-primary-text",
     subtext: `${depositsCount.value} ${depositsCount.value === 1 ? 'deposit' : 'deposits'} · Total Inflow`,
     icon: "payments",
+    iconClass: "text-primary-green/80",
   },
   {
     title: "Total Equity",
@@ -655,6 +651,7 @@ const summaryCards = computed(() => [
     valueClass: "text-primary-text",
     subtext: `${accountsCount.value} ${accountsCount.value === 1 ? 'Account' : 'Accounts'} · Live balance`,
     icon: "account_balance",
+    iconClass: "text-blue-500/80",
   },
   {
     title: "Net P&L",
@@ -662,6 +659,7 @@ const summaryCards = computed(() => [
     valueClass: "text-primary-text",
     subtext: `${netPnl.value >= 0 ? '↑ Net Profit' : '↓ Net Loss'} · All-time trading`,
     icon: netPnl.value >= 0 ? "trending_up" : "trending_down",
+    iconClass: netPnl.value >= 0 ? "text-primary-green/80" : "text-primary-red/80",
   },
   {
     title: "Referral Earnings",
@@ -669,6 +667,7 @@ const summaryCards = computed(() => [
     valueClass: "text-primary-text",
     subtext: `${qualifiedReferrals.value} Qualified · Affiliate reward`,
     icon: "stars",
+    iconClass: "text-primary-yellow/80",
   },
   {
     title: "Total Withdrawals",
@@ -676,6 +675,7 @@ const summaryCards = computed(() => [
     valueClass: "text-primary-text",
     subtext: `${withdrawalsCount.value} ${withdrawalsCount.value === 1 ? 'withdrawal' : 'withdrawals'} · Total Outflow`,
     icon: "account_balance_wallet",
+    iconClass: "text-primary-red/80",
   },
   {
     title: "Engagement Rate",
@@ -683,6 +683,7 @@ const summaryCards = computed(() => [
     valueClass: "text-primary-text",
     subtext: "Weekly activity index",
     icon: "bolt",
+    iconClass: "text-purple-500/80",
   },
   {
     title: "Risk Level",
@@ -690,6 +691,7 @@ const summaryCards = computed(() => [
     valueClass: "text-primary-text",
     subtext: "Based on behavioral rating",
     icon: "shield",
+    iconClass: "text-indigo-500/80",
   },
 ]);
 
@@ -747,41 +749,41 @@ const toggleSubcategory = (key) => {
 const dimensionMeta = {
   account_utilization: {
     label: "Account Usage",
-    icon: Layers,
-    iconBgClass: "bg-primary-yellow/10 border border-primary-yellow/20",
-    iconTextClass: "text-primary-yellow",
+    icon: "layers",
+    iconBgClass: "bg-background/50",
+    iconTextClass: "text-primary-yellow/80",
     barColor: "bg-primary-yellow",
     badgeClass: "bg-primary-yellow/10 text-primary-yellow border-primary-yellow/20",
   },
   client_momentum: {
     label: "Client Momentum",
-    icon: Zap,
-    iconBgClass: "bg-purple-500/10 border border-purple-500/20",
-    iconTextClass: "text-purple-500",
+    icon: "bolt",
+    iconBgClass: "bg-background/50",
+    iconTextClass: "text-purple-500/80",
     barColor: "bg-purple-500",
     badgeClass: "bg-purple-500/10 text-purple-500 border border-purple-500/20",
   },
   funding_health: {
     label: "Deposit Activity",
-    icon: DollarSign,
-    iconBgClass: "bg-primary-blue/10 border border-primary-blue/20",
-    iconTextClass: "text-primary-blue",
+    icon: "attach_money",
+    iconBgClass: "bg-background/50",
+    iconTextClass: "text-primary-blue/80",
     barColor: "bg-primary-blue",
     badgeClass: "bg-primary-blue/10 text-primary-blue border-primary-blue/20",
   },
   platform_engagement: {
     label: "Engagement",
-    icon: Activity,
-    iconBgClass: "bg-primary-green/10 border border-primary-green/20",
-    iconTextClass: "text-primary-green",
+    icon: "monitoring",
+    iconBgClass: "bg-background/50",
+    iconTextClass: "text-primary-green/80",
     barColor: "bg-primary-green",
     badgeClass: "bg-primary-green/10 text-primary-green border-primary-green/20",
   },
   trading_activity: {
     label: "Trading Activity",
-    icon: TrendingUp,
-    iconBgClass: "bg-indigo-500/10 border border-indigo-500/20",
-    iconTextClass: "text-indigo-500",
+    icon: "trending_up",
+    iconBgClass: "bg-background/50",
+    iconTextClass: "text-indigo-500/80",
     barColor: "bg-indigo-500",
     badgeClass: "bg-indigo-500/10 text-indigo-500 border border-indigo-500/20",
   },
@@ -796,9 +798,9 @@ const breakdownItems = computed(() => {
     const item = rawBreakdown[key] || {};
     const meta = dimensionMeta[key] || {
       label: formatKeyLabel(key),
-      icon: Activity,
-      iconBgClass: "bg-primary/10 border border-primary/20",
-      iconTextClass: "text-primary",
+      icon: "monitoring",
+      iconBgClass: "bg-background/50",
+      iconTextClass: "text-primary/80",
       barColor: "bg-primary",
       badgeClass: "bg-primary/10 text-primary border-primary/20",
     };

@@ -550,7 +550,7 @@
                           </Tooltip>
 
                           <!-- Case C: Document is Pending Review & user has approve/reject permission -->
-                          <template v-else-if="canApproveKyc || canRejectKyc">
+                          <template v-else-if="(canApproveKyc || canRejectKyc) && !doc.isSumsub">
                             <!-- Approve Icon Button -->
                             <Tooltip v-if="canApproveKyc" text="Approve Document" position="top">
                               <button
@@ -575,7 +575,7 @@
                           </template>
 
                           <!-- 3. Edit / Replace Document Button -->
-                          <Tooltip v-if="canUpdateDoc" text="Edit / Replace Document" position="left">
+                          <Tooltip v-if="canUpdateDoc && !doc.isSumsub" text="Edit / Replace Document" position="left">
                             <button
                               type="button"
                               @click="openEditDoc(doc)"
@@ -637,9 +637,9 @@
       :open="viewDocModalOpen"
       :doc="selectedDoc"
       :status="kycStatus"
-      :canApprove="canApproveKyc"
-      :canReject="canRejectKyc"
-      :canEdit="canUpdateDoc"
+      :canApprove="canApproveKyc && !selectedDoc?.isSumsub"
+      :canReject="canRejectKyc && !selectedDoc?.isSumsub"
+      :canEdit="canUpdateDoc && !selectedDoc?.isSumsub"
       @close="closeViewDocModal"
       @edit="openEditDoc(selectedDoc)"
       @approve="openApprovalModal('approve')"
@@ -1005,21 +1005,56 @@ const documentChecklist = computed(() => {
   const status = k.kyc_status || (k.doc_approved ? "approved" : (isUploaded ? "unverified" : null));
   const remarks = k.kyc_reject_reason || (k.doc_approved ? "Approved" : (isUploaded ? "Waiting for verification" : "Required"));
 
-  return [
-    {
-      id: "identity",
-      type: "identity",
-      doc_type: docType,
-      title: "Proof of Identity",
-      subtitle: isUploaded ? formatDocType(docType) : "Passport, ID Card, or Driver's License",
-      uploaded: isUploaded,
-      verification_status: isUploaded ? status : null,
-      remarks: isUploaded ? remarks : "Waiting for verification",
-      front: frontUrl,
-      back: backUrl,
-      doc_path: docPath,
-    },
-  ];
+  const checklist = [];
+
+  const sumsubDocs = k.sumsub_documents || [];
+  if (sumsubDocs.length > 0) {
+    const groupedSumsubDocs = {};
+    sumsubDocs.forEach((doc) => {
+      const type = doc.idDocType || "IDENTITY";
+      if (!groupedSumsubDocs[type]) {
+        groupedSumsubDocs[type] = { front: null, back: null };
+      }
+      if (doc.idDocSubType === "BACK_SIDE") {
+        groupedSumsubDocs[type].back = doc.image;
+      } else {
+        groupedSumsubDocs[type].front = doc.image;
+      }
+    });
+
+    for (const [type, docs] of Object.entries(groupedSumsubDocs)) {
+      checklist.push({
+        id: `sumsub_${type}`,
+        type: "identity",
+        doc_type: type,
+        title: "Proof of Identity (Sumsub)",
+        subtitle: formatDocType(type),
+        uploaded: true,
+        verification_status: k.kyc_status,
+        remarks: k.kyc_reject_reason || "Sumsub Verification",
+        front: docs.front,
+        back: docs.back,
+        doc_path: { front: docs.front, back: docs.back },
+        isSumsub: true,
+      });
+    }
+  }
+
+  checklist.push({
+    id: "identity",
+    type: "identity",
+    doc_type: docType,
+    title: "Proof of Identity",
+    subtitle: isUploaded ? formatDocType(docType) : "Passport, ID Card, or Driver's License",
+    uploaded: isUploaded,
+    verification_status: isUploaded ? status : null,
+    remarks: isUploaded ? remarks : "Waiting for verification",
+    front: frontUrl,
+    back: backUrl,
+    doc_path: docPath,
+  });
+
+  return checklist;
 });
 
 // ─── Stepper Progress Logic ───────────────────────────────────────────────────
