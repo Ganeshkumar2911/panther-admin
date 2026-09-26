@@ -65,15 +65,14 @@
         <div
           v-for="card in summaryCards"
           :key="card.title"
-          class="bg-card-background/40 border border-primary-border rounded-xl p-4 sm:p-5 flex items-center gap-4"
+          class="bg-card-background/40 border border-primary-border rounded-xl p-4 sm:p-5 flex flex-col items-center text-center gap-3"
         >
           <div
-            class="w-11 h-11 rounded-xl border flex items-center justify-center shrink-0"
-            :class="card.iconBoxClass"
+            class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-background/50 border border-primary-border/60 text-primary-text"
           >
-            <component :is="card.icon" class="w-5 h-5" />
+            <span class="material-symbols-rounded text-[24px]">{{ card.icon }}</span>
           </div>
-          <div class="min-w-0 flex-1">
+          <div class="min-w-0 w-full flex flex-col items-center">
             <p class="text-[13px] text-primary-text font-bold">
               {{ card.title }}
             </p>
@@ -646,58 +645,51 @@ const summaryCards = computed(() => [
   {
     title: "Total Deposits",
     value: `$${formatCurrency(totalDeposits.value)}`,
-    valueClass: "text-primary-green",
+    valueClass: "text-primary-text",
     subtext: `${depositsCount.value} ${depositsCount.value === 1 ? 'deposit' : 'deposits'} · Total Inflow`,
-    icon: DollarSign,
-    iconBoxClass: "bg-primary-green/10 border-primary-green/20 text-primary-green",
+    icon: "payments",
   },
   {
     title: "Total Equity",
     value: `$${formatCurrency(totalEquity.value)}`,
     valueClass: "text-primary-text",
     subtext: `${accountsCount.value} ${accountsCount.value === 1 ? 'Account' : 'Accounts'} · Live balance`,
-    icon: Layers,
-    iconBoxClass: "bg-primary-blue/10 border-primary-blue/20 text-primary-blue",
+    icon: "account_balance",
   },
   {
     title: "Net P&L",
     value: `${netPnl.value >= 0 ? '+' : ''}$${formatCurrency(netPnl.value)}`,
-    valueClass: netPnl.value >= 0 ? "text-primary-green" : "text-primary-red",
+    valueClass: "text-primary-text",
     subtext: `${netPnl.value >= 0 ? '↑ Net Profit' : '↓ Net Loss'} · All-time trading`,
-    icon: netPnl.value >= 0 ? TrendingUp : TrendingDown,
-    iconBoxClass: netPnl.value >= 0 ? "bg-primary-green/10 border-primary-green/20 text-primary-green" : "bg-primary-red/10 border-primary-red/20 text-primary-red",
+    icon: netPnl.value >= 0 ? "trending_up" : "trending_down",
   },
   {
     title: "Referral Earnings",
     value: `$${formatCurrency(referralEarnings.value)}`,
-    valueClass: "text-primary-yellow",
+    valueClass: "text-primary-text",
     subtext: `${qualifiedReferrals.value} Qualified · Affiliate reward`,
-    icon: Sparkles,
-    iconBoxClass: "bg-primary-yellow/10 border-primary-yellow/20 text-primary-yellow",
+    icon: "stars",
   },
   {
     title: "Total Withdrawals",
     value: `$${formatCurrency(totalWithdrawals.value)}`,
     valueClass: "text-primary-text",
     subtext: `${withdrawalsCount.value} ${withdrawalsCount.value === 1 ? 'withdrawal' : 'withdrawals'} · Total Outflow`,
-    icon: Wallet,
-    iconBoxClass: "bg-primary-red/10 border-primary-red/20 text-primary-red",
+    icon: "account_balance_wallet",
   },
   {
     title: "Engagement Rate",
     value: engagementRate.value,
     valueClass: "text-primary-text",
     subtext: "Weekly activity index",
-    icon: Zap,
-    iconBoxClass: "bg-primary-blue/10 border-primary-blue/20 text-primary-blue",
+    icon: "bolt",
   },
   {
     title: "Risk Level",
     value: riskLevelLabel.value,
     valueClass: "text-primary-text",
     subtext: "Based on behavioral rating",
-    icon: Shield,
-    iconBoxClass: "bg-primary-yellow/10 border-primary-yellow/20 text-primary-yellow",
+    icon: "shield",
   },
 ]);
 
