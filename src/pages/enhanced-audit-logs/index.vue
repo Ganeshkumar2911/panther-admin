@@ -286,27 +286,21 @@
         </button>
       </div>
     </div>
-
-    <!-- Event Details Drawer -->
-    <EnhancedAuditLogDetailDrawer
-      :open="detailOpen"
-      :log="selectedLog || {}"
-      @close="closeDetails"
-    />
   </div>
 </template>
 
 <script setup>
 import { onMounted, ref, computed } from "vue";
+import { useRouter } from "vue-router";
 import { RefreshCw, BookOpen, Eye, Computer } from "lucide-vue-next";
 import { useEnhancedAuditLogsStore } from "@/stores/enhancedAuditLogs/enhancedAuditLogs";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import DataTable from "@/components/common/DataTable/DataTable.vue";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import BaseDatePicker from "@/components/common/BaseDatePicker.vue";
-import EnhancedAuditLogDetailDrawer from "./components/EnhancedAuditLogDetailDrawer.vue";
 import { formatDate } from "@/utils/timeFormatter";
 
+const router = useRouter();
 const store = useEnhancedAuditLogsStore();
 const { hasPermission } = usePermissionCheck();
 
@@ -326,9 +320,6 @@ let staffSearchTimer = null;
 const clientOptions = ref([]);
 const isSearchingClients = ref(false);
 let clientSearchTimer = null;
-
-const detailOpen = ref(false);
-const selectedLog = ref(null);
 
 const tableColumns = [
   { key: 'log_id', label: 'Log ID & Date' },
@@ -495,15 +486,10 @@ const handlePageChange = (page) => {
   store.fetchAuditLogs(true);
 };
 
-// Event Details Modal handlers
+// Event Details Page navigation
 const openDetails = (log) => {
-  selectedLog.value = log;
-  detailOpen.value = true;
-};
-
-const closeDetails = () => {
-  detailOpen.value = false;
-  selectedLog.value = null;
+  const id = log.audit_log_id || log.id;
+  router.push(`/enhanced-audit-logs/${id}`);
 };
 
 // Styling & Text Helpers
@@ -516,11 +502,11 @@ const formatActionName = (action) => {
 };
 
 const getActorName = (log) => {
-  return log.actor?.name || "System/Anonymous";
+  return log.source?.name || log.actor?.name || log.user?.name || log.name || "System/Anonymous";
 };
 
 const getActorEmail = (log) => {
-  return log.actor?.email || null;
+  return log.source?.email || log.actor?.email || log.user?.email || log.email || null;
 };
 
 const getStatusClass = (status) => {

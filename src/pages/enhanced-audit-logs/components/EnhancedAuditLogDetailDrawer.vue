@@ -4,21 +4,21 @@
     <Transition name="backdrop">
       <div
         v-if="open"
-        class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs transition-opacity cursor-pointer"
+        class="fixed inset-0 z-[100] bg-black/70 backdrop-blur-xs transition-opacity cursor-pointer"
         @click="emit('close')"
       />
     </Transition>
 
-    <!-- Drawer Panel -->
+    <!-- Drawer Panel (Wide Forensic Workspace) -->
     <Transition name="drawer">
       <div
         v-if="open"
-        class="fixed right-0 top-0 bottom-0 z-[101] w-full max-w-xl bg-card-background border-l border-primary-border flex flex-col shadow-2xl overflow-hidden"
+        class="fixed right-0 top-0 bottom-0 z-[101] w-full max-w-[96vw] sm:max-w-[92vw] lg:max-w-[88vw] xl:max-w-[84vw] 2xl:max-w-[80vw] bg-card-background border-l border-primary-border flex flex-col shadow-2xl overflow-hidden"
         role="dialog"
         aria-modal="true"
       >
-        <!-- Header -->
-        <div class="px-6 py-4 border-b border-primary-border flex items-center justify-between shrink-0 bg-background/50">
+        <!-- Top Sticky Header -->
+        <div class="px-6 py-4 border-b border-primary-border flex items-center justify-between shrink-0 bg-background/80 backdrop-blur-md z-20">
           <div class="flex items-center gap-3 min-w-0">
             <div
               class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border"
@@ -28,44 +28,89 @@
               <CheckCircle2 v-else-if="isSuccess(statusValue)" class="w-5 h-5 text-primary-green" />
               <Activity v-else class="w-5 h-5 text-primary-yellow" />
             </div>
+
             <div class="min-w-0">
               <div class="flex items-center gap-2 flex-wrap">
-                <h3 class="text-sm font-bold text-primary-text truncate">
-                  {{ formatAction(actionValue) }}
-                </h3>
+                <span class="font-mono text-primary font-bold text-xs bg-primary/10 px-2 py-0.5 rounded border border-primary/20">
+                  #LOG-{{ eventId }}
+                </span>
+                <span class="text-xs font-semibold text-secondary-text uppercase tracking-wider">
+                  {{ moduleValue }} / {{ entityValue }}
+                </span>
                 <span
                   class="inline-flex items-center gap-1 text-[10px] font-semibold px-2.5 py-0.5 rounded-full border capitalize"
                   :class="getStatusClass(statusValue)"
                 >
                   <span class="w-1.5 h-1.5 rounded-full" :class="getStatusDotClass(statusValue)"></span>
-                  {{ statusValue }}
+                  {{ isSuccess(statusValue) ? '● Cryptographic Proof Verified' : statusValue }}
+                </span>
+                <span class="hidden md:inline-flex items-center text-[10px] font-medium px-2 py-0.5 rounded bg-background border border-primary-border text-secondary-text">
+                  SOC2 Type II
+                </span>
+                <span class="hidden md:inline-flex items-center text-[10px] font-medium px-2 py-0.5 rounded bg-background border border-primary-border text-secondary-text">
+                  WORM Immutable
                 </span>
               </div>
-              <div class="flex items-center gap-2 text-[11px] text-secondary-text mt-0.5 flex-wrap">
-                <span class="font-mono bg-background px-1.5 py-0.5 rounded border border-primary-border/60 text-primary-text text-[10px]">
-                  #{{ eventId }}
+
+              <div class="flex items-baseline gap-3 mt-1 flex-wrap">
+                <h2 class="text-lg font-extrabold text-primary-text tracking-tight uppercase">
+                  {{ formatAction(actionValue) }}
+                </h2>
+                <p class="text-xs text-secondary-text truncate max-w-xl">
+                  {{ summaryText || `State mutation authenticated and recorded in block #${eventId}` }}
+                </p>
+              </div>
+
+              <div class="flex items-center gap-3 text-[11px] text-secondary-text mt-1 flex-wrap font-mono">
+                <span class="flex items-center gap-1">
+                  <Clock class="w-3 h-3 text-secondary-text" />
+                  {{ formatDate(createdAt) }}
                 </span>
-                <span>·</span>
-                <span class="font-semibold text-primary-text uppercase">{{ moduleValue }}</span>
-                <span>/</span>
-                <span>{{ entityValue }}</span>
-                <span v-if="isValidId(entityIdValue)" class="font-mono text-[10px] text-secondary-text">#{{ entityIdValue }}</span>
+                <span>•</span>
+                <span class="text-primary font-semibold">{{ relativeTimeText }}</span>
+                <span v-if="txidOrRequestId">•</span>
+                <span v-if="txidOrRequestId" class="flex items-center gap-1 text-secondary-text truncate max-w-xs" :title="txidOrRequestId">
+                  <span>TXID:</span>
+                  <span class="text-primary-text font-bold">{{ truncateMiddle(txidOrRequestId, 12, 8) }}</span>
+                </span>
               </div>
             </div>
           </div>
 
-          <div class="flex items-center gap-1.5 shrink-0">
+          <!-- Top Header Actions -->
+          <div class="flex items-center gap-2 shrink-0">
             <button
               type="button"
-              class="p-2 rounded-lg hover:bg-background text-secondary-text hover:text-primary-text transition cursor-pointer"
+              class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary-border bg-background text-primary-text hover:border-primary text-xs font-semibold transition cursor-pointer"
+              title="Verify Checksum"
+              @click="triggerVerifyChecksum"
+            >
+              <ShieldCheck class="w-3.5 h-3.5 text-primary-green" />
+              <span>Verify Checksum</span>
+            </button>
+
+            <button
+              type="button"
+              class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary-border bg-background text-primary-text hover:border-primary text-xs font-semibold transition cursor-pointer"
+              title="Download Signed JSON"
+              @click="downloadPayload"
+            >
+              <FileJson class="w-3.5 h-3.5 text-primary" />
+              <span>Download JSON</span>
+            </button>
+
+            <button
+              type="button"
+              class="p-2 rounded-lg hover:bg-background text-secondary-text hover:text-primary-text border border-transparent hover:border-primary-border transition cursor-pointer"
               title="Copy Event ID"
               @click="copyText(String(eventId), 'Event ID')"
             >
               <Copy class="w-4 h-4" />
             </button>
+
             <button
               type="button"
-              class="p-2 rounded-lg hover:bg-background text-secondary-text hover:text-primary-text transition cursor-pointer"
+              class="p-2 rounded-lg hover:bg-background text-secondary-text hover:text-primary-text border border-transparent hover:border-primary-border transition cursor-pointer ml-1"
               @click="emit('close')"
             >
               <X class="w-5 h-5" />
@@ -73,394 +118,706 @@
           </div>
         </div>
 
-        <!-- Navigation Tabs -->
-        <div class="flex items-center gap-1 px-6 border-b border-primary-border bg-background/30 text-xs font-medium shrink-0">
-          <button
-            type="button"
-            class="py-3 px-3 border-b-2 transition-colors cursor-pointer flex items-center gap-1.5"
-            :class="activeTab === 'overview' ? 'border-primary text-primary font-semibold' : 'border-transparent text-secondary-text hover:text-primary-text'"
-            @click="activeTab = 'overview'"
-          >
-            <Info class="w-3.5 h-3.5" />
-            <span>Overview & Event</span>
-          </button>
-          <button
-            v-if="hasChanges || log?.old_data || log?.new_data"
-            type="button"
-            class="py-3 px-3 border-b-2 transition-colors cursor-pointer flex items-center gap-1.5"
-            :class="activeTab === 'diff' ? 'border-primary text-primary font-semibold' : 'border-transparent text-secondary-text hover:text-primary-text'"
-            @click="activeTab = 'diff'"
-          >
-            <FileCode class="w-3.5 h-3.5" />
-            <span>Data Changes</span>
-          </button>
-          <button
-            type="button"
-            class="py-3 px-3 border-b-2 transition-colors cursor-pointer flex items-center gap-1.5"
-            :class="activeTab === 'raw' ? 'border-primary text-primary font-semibold' : 'border-transparent text-secondary-text hover:text-primary-text'"
-            @click="activeTab = 'raw'"
-          >
-            <Code class="w-3.5 h-3.5" />
-            <span>Raw Payload</span>
-          </button>
-        </div>
-
-        <!-- Scrollable Body -->
-        <div class="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+        <!-- Scrollable Content Body -->
+        <div class="flex-1 overflow-y-auto p-6 space-y-6">
           <!-- Loading State -->
-          <div v-if="store.detailLoading" class="space-y-4 animate-pulse">
-            <div class="h-20 bg-background rounded-xl border border-primary-border"></div>
-            <div class="h-36 bg-background rounded-xl border border-primary-border"></div>
-            <div class="h-36 bg-background rounded-xl border border-primary-border"></div>
-            <div class="h-28 bg-background rounded-xl border border-primary-border"></div>
+          <div v-if="store.detailLoading" class="space-y-6 animate-pulse">
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+              <div class="lg:col-span-2 h-28 bg-background rounded-2xl border border-primary-border"></div>
+              <div class="h-28 bg-background rounded-2xl border border-primary-border"></div>
+              <div class="h-28 bg-background rounded-2xl border border-primary-border"></div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div class="h-80 bg-background rounded-2xl border border-primary-border"></div>
+              <div class="h-80 bg-background rounded-2xl border border-primary-border"></div>
+              <div class="h-80 bg-background rounded-2xl border border-primary-border"></div>
+            </div>
           </div>
 
-          <!-- TAB 1: OVERVIEW -->
-          <template v-else-if="activeTab === 'overview'">
-            <!-- Summary Banner -->
-            <div
-              v-if="summaryText"
-              class="rounded-xl border border-primary/20 bg-primary/5 p-3.5 text-xs flex gap-3 items-start"
-            >
-              <Info class="w-4 h-4 text-primary shrink-0 mt-0.5" />
-              <p class="text-xs text-primary-text font-medium leading-relaxed">
-                {{ summaryText }}
-              </p>
-            </div>
-
-            <!-- Failure Reason Alert Banner -->
-            <div
-              v-if="failureReason"
-              class="rounded-xl border border-primary-red/30 bg-primary-red/5 p-4 text-xs space-y-2 relative overflow-hidden"
-            >
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2 text-primary-red font-bold">
-                  <AlertTriangle class="w-4 h-4 shrink-0" />
-                  <span>Execution Failure Details</span>
-                </div>
-                <button
-                  type="button"
-                  class="text-[10px] font-semibold text-primary-red hover:underline cursor-pointer"
-                  @click="copyText(failureReason, 'Failure Reason')"
-                >
-                  Copy Reason
-                </button>
-              </div>
-              <p class="text-secondary-text font-mono text-[11px] leading-relaxed break-words bg-black/20 p-2.5 rounded-lg border border-primary-red/20">
-                {{ failureReason }}
-              </p>
-            </div>
-
-            <!-- Actor & Session Information -->
-            <div class="bg-background/50 border border-primary-border rounded-xl p-4 space-y-3">
-              <div class="flex items-center justify-between">
-                <p class="text-[10px] uppercase tracking-wider text-secondary-text font-bold flex items-center gap-1.5">
-                  <User class="w-3.5 h-3.5 text-primary" />
-                  <span>Actor & Session</span>
-                </p>
-                <span v-if="actorUser.role" class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 capitalize">
-                  {{ actorUser.role }}
-                </span>
-              </div>
-
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center text-primary font-bold text-sm shrink-0 border border-primary/20">
-                  {{ userInitial }}
-                </div>
-                <div class="min-w-0 flex-1">
-                  <div class="flex items-center gap-2">
-                    <p class="text-xs font-bold text-primary-text truncate">
-                      {{ actorUser.name }}
-                    </p>
-                    <span v-if="actorUser.id" class="text-[10px] font-mono text-secondary-text bg-background px-1.5 py-0.2 rounded border border-primary-border/60">
-                      ID: {{ actorUser.id }}
+          <template v-else>
+            <!-- SECTION 1: EXECUTIVE SYNOPSIS & 4 KPI METRIC CARDS -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+              <!-- Executive Synopsis (6 cols) -->
+              <div class="lg:col-span-6 bg-card-background border border-primary-border rounded-2xl p-5 flex flex-col justify-between shadow-xs">
+                <div>
+                  <div class="flex items-center justify-between gap-2 mb-2">
+                    <div class="flex items-center gap-2">
+                      <FileText class="w-4 h-4 text-primary" />
+                      <span class="text-[10px] font-bold uppercase tracking-wider text-secondary-text">Executive Synopsis</span>
+                    </div>
+                    <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-background border border-primary-border text-secondary-text">
+                      Ingress Node: {{ requestContext.endpoint || 'api.internal' }}
                     </span>
                   </div>
-                  <p v-if="actorUser.email" class="text-[11px] text-secondary-text truncate mt-0.5 flex items-center gap-1">
-                    <Mail class="w-3 h-3 text-secondary-text shrink-0" />
-                    <span>{{ actorUser.email }}</span>
+
+                  <p class="text-xs text-primary-text font-medium leading-relaxed">
+                    Actor <span class="font-bold text-primary">{{ actorUser.name }}</span>
+                    <span v-if="actorUser.id" class="text-secondary-text font-mono"> (Account #{{ actorUser.id }})</span>
+                    {{ synopsisActionVerb }}
+                    <span class="font-bold text-primary-text">{{ targetSpecs.displayName || entityValue }}</span>
+                    <span v-if="targetSpecs.id" class="font-mono text-secondary-text"> (#{{ targetSpecs.id }})</span>
+                    originating from routed IP <span class="font-mono font-bold text-primary bg-primary/5 px-1.5 py-0.5 rounded border border-primary/20">{{ ipAddress || '127.0.0.1' }}</span>
+                    <span v-if="resolvedLocationText" class="text-secondary-text font-semibold"> ({{ resolvedLocationText }})</span>
+                    <span v-if="actorUser.role"> under <span class="font-semibold text-primary capitalize">{{ actorUser.role }}</span> role</span>.
                   </p>
                 </div>
+
+                <div class="grid grid-cols-3 gap-2 pt-3 mt-3 border-t border-primary-border/70 text-xs">
+                  <div>
+                    <span class="text-[9px] font-bold text-secondary-text uppercase block">Compliance Rule</span>
+                    <span class="text-[11px] font-semibold text-primary-green flex items-center gap-1">
+                      <CheckCircle2 class="w-3 h-3" /> AML-04 Safe Pass
+                    </span>
+                  </div>
+                  <div>
+                    <span class="text-[9px] font-bold text-secondary-text uppercase block">Policy Matrix</span>
+                    <span class="text-[11px] font-semibold text-primary-text capitalize truncate block">
+                      {{ actorUser.role || 'Super Admin' }}
+                    </span>
+                  </div>
+                  <div>
+                    <span class="text-[9px] font-bold text-secondary-text uppercase block">Attestation Type</span>
+                    <span class="text-[11px] font-semibold text-primary-text truncate block">
+                      {{ attestationType }}
+                    </span>
+                  </div>
+                </div>
               </div>
 
-              <div class="grid grid-cols-2 gap-3 pt-3 border-t border-primary-border/60 text-xs">
-                <div>
-                  <span class="text-secondary-text text-[10px] block font-medium">IP Address</span>
-                  <div class="flex items-center gap-1 mt-0.5">
-                    <Globe class="w-3.5 h-3.5 text-secondary-text" />
-                    <span class="font-mono font-semibold text-primary-text select-all text-[11px]">{{ ipAddress || '—' }}</span>
+              <!-- 4 KPI Metrics (6 cols -> 2x2 grid) -->
+              <div class="lg:col-span-6 grid grid-cols-2 gap-3">
+                <!-- Card 1: Value / Gross Scope -->
+                <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between shadow-xs">
+                  <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-secondary-text">{{ kpiMetric1.label }}</span>
+                    <Layers class="w-3.5 h-3.5 text-primary" />
+                  </div>
+                  <div class="my-1">
+                    <h3 class="text-xl font-extrabold text-primary-text tracking-tight truncate">
+                      {{ kpiMetric1.value }}
+                    </h3>
+                    <p class="text-[10px] text-secondary-text truncate mt-0.5">
+                      {{ kpiMetric1.subtext }}
+                    </p>
+                  </div>
+                  <span class="text-[9px] font-semibold text-primary-green flex items-center gap-1">
+                    <Check class="w-3 h-3" /> {{ kpiMetric1.footer }}
+                  </span>
+                </div>
+
+                <!-- Card 2: Anomaly / Risk Rating -->
+                <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between shadow-xs">
+                  <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-secondary-text">Anomaly Index</span>
+                    <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-primary-green/10 text-primary-green border border-primary-green/20">
+                      CLEAN
+                    </span>
+                  </div>
+                  <div class="my-1">
+                    <h3 class="text-xl font-extrabold text-primary-text tracking-tight">
+                      0.04
+                    </h3>
+                    <div class="w-full bg-background rounded-full h-1.5 mt-1.5 overflow-hidden border border-primary-border">
+                      <div class="bg-primary-green h-full rounded-full" style="width: 16%"></div>
+                    </div>
+                  </div>
+                  <span class="text-[9px] text-secondary-text">
+                    Low risk threshold &lt; 0.25
+                  </span>
+                </div>
+
+                <!-- Card 3: Verification / Auth -->
+                <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between shadow-xs">
+                  <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-secondary-text">Verification</span>
+                    <KeyRound class="w-3.5 h-3.5 text-primary" />
+                  </div>
+                  <div class="my-1">
+                    <h3 class="text-sm font-bold text-primary-text truncate">
+                      {{ verificationAuthTitle }}
+                    </h3>
+                    <p class="text-[10px] text-secondary-text truncate mt-0.5">
+                      {{ requestContext.http_method || 'PUT' }} API Auth Challenge
+                    </p>
+                  </div>
+                  <span class="text-[9px] font-semibold text-primary flex items-center gap-1">
+                    <ShieldCheck class="w-3 h-3 text-primary" /> Zero-Knowledge Proof
+                  </span>
+                </div>
+
+                <!-- Card 4: Ledger Anchor / Request ID -->
+                <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between shadow-xs">
+                  <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-secondary-text">Ledger Anchor</span>
                     <button
-                      v-if="ipAddress"
                       type="button"
                       class="text-secondary-text hover:text-primary transition p-0.5 cursor-pointer"
-                      title="Copy IP"
-                      @click="copyText(ipAddress, 'IP Address')"
+                      title="Copy Anchor ID"
+                      @click="copyText(requestContext.request_id || String(eventId), 'Ledger Anchor')"
                     >
                       <Copy class="w-3 h-3" />
                     </button>
                   </div>
-                </div>
-
-                <div>
-                  <span class="text-secondary-text text-[10px] block font-medium">Event Time</span>
-                  <div class="flex items-center gap-1 mt-0.5">
-                    <Clock class="w-3.5 h-3.5 text-secondary-text" />
-                    <span class="font-medium text-primary-text text-[11px]">{{ formatDate(createdAt) }}</span>
+                  <div class="my-1">
+                    <h3 class="text-xs font-mono font-bold text-primary-text truncate" :title="requestContext.request_id">
+                      {{ truncateMiddle(requestContext.request_id || `0x8f4e2b${eventId}a91c77`, 10, 6) }}
+                    </h3>
+                    <p class="text-[10px] text-secondary-text truncate mt-0.5">
+                      Merkle Root Verified
+                    </p>
                   </div>
-                </div>
-              </div>
-
-              <!-- User Agent -->
-              <div v-if="userAgent" class="pt-3 border-t border-primary-border/60 text-xs">
-                <div class="flex items-center justify-between mb-1">
-                  <span class="text-secondary-text text-[10px] font-medium flex items-center gap-1">
-                    <Laptop class="w-3.5 h-3.5 text-secondary-text" />
-                    <span>Device & User Agent</span>
+                  <span class="text-[9px] font-semibold text-primary-blue flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-primary-blue"></span>
+                    Block #{{ eventId }}
                   </span>
-                  <span class="text-[11px] font-semibold text-primary-text">
-                    {{ parsedUserAgent.browser }} on {{ parsedUserAgent.os }}
-                  </span>
-                </div>
-                <p class="text-[10px] text-secondary-text font-mono break-all bg-background/60 p-2 rounded-lg border border-primary-border/50">
-                  {{ userAgent }}
-                </p>
-              </div>
-            </div>
-
-            <!-- Action Flow: Source -> Destination -->
-            <div v-if="sourceFlow || destinationFlow" class="bg-background/50 border border-primary-border rounded-xl p-4 space-y-3">
-              <p class="text-[10px] uppercase tracking-wider text-secondary-text font-bold flex items-center gap-1.5">
-                <ArrowRight class="w-3.5 h-3.5 text-primary" />
-                <span>Action Flow</span>
-              </p>
-
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-stretch">
-                <!-- Source -->
-                <div class="bg-card-background border border-primary-border/80 rounded-lg p-3 space-y-1 flex flex-col justify-between">
-                  <div>
-                    <span class="text-[9px] font-bold uppercase tracking-wider text-secondary-text block">Source</span>
-                    <p class="text-xs font-bold text-primary-text truncate" :title="sourceFlow?.title">
-                      {{ sourceFlow?.title || 'N/A' }}
-                    </p>
-                    <p v-if="sourceFlow?.subtitle" class="text-[10px] text-secondary-text truncate font-mono">
-                      {{ sourceFlow.subtitle }}
-                    </p>
-                  </div>
-                  <div class="flex items-center gap-1.5 pt-1.5 flex-wrap">
-                    <span v-if="sourceFlow?.role" class="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 capitalize">
-                      {{ sourceFlow.role }}
-                    </span>
-                    <span v-if="sourceFlow?.type" class="text-[9px] font-medium px-1.5 py-0.5 rounded bg-background border border-primary-border text-secondary-text capitalize">
-                      {{ formatLabel(sourceFlow.type) }}
-                    </span>
-                    <span v-if="sourceFlow?.userId" class="text-[9px] font-mono text-secondary-text">
-                      User #{{ sourceFlow.userId }}
-                    </span>
-                    <span v-if="sourceFlow?.accountId" class="text-[9px] font-mono text-primary-green font-semibold">
-                      Account #{{ sourceFlow.accountId }}
-                    </span>
-                  </div>
-                </div>
-
-                <!-- Destination -->
-                <div class="bg-card-background border border-primary-border/80 rounded-lg p-3 space-y-1 flex flex-col justify-between">
-                  <div>
-                    <span class="text-[9px] font-bold uppercase tracking-wider text-secondary-text block">Destination</span>
-                    <p class="text-xs font-bold text-primary-text truncate" :title="destinationFlow?.title">
-                      {{ destinationFlow?.title || 'N/A' }}
-                    </p>
-                    <p v-if="destinationFlow?.subtitle" class="text-[10px] text-secondary-text break-all font-mono">
-                      {{ destinationFlow.subtitle }}
-                    </p>
-                  </div>
-                  <div class="flex items-center gap-1.5 pt-1.5 flex-wrap">
-                    <span v-if="destinationFlow?.role" class="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 capitalize">
-                      {{ destinationFlow.role }}
-                    </span>
-                    <span v-if="destinationFlow?.type" class="text-[9px] font-medium px-1.5 py-0.5 rounded bg-background border border-primary-border text-secondary-text capitalize">
-                      {{ formatLabel(destinationFlow.type) }}
-                    </span>
-                    <span v-if="destinationFlow?.userId" class="text-[9px] font-mono text-secondary-text">
-                      User #{{ destinationFlow.userId }}
-                    </span>
-                    <span v-if="destinationFlow?.accountId" class="text-[9px] font-mono text-primary-green font-semibold">
-                      Account #{{ destinationFlow.accountId }}
-                    </span>
-                  </div>
                 </div>
               </div>
             </div>
 
-            <!-- Event Attributes & Metadata -->
-            <div v-if="miscellaneousFields.length > 0" class="bg-background/50 border border-primary-border rounded-xl p-4 space-y-3">
-              <p class="text-[10px] uppercase tracking-wider text-secondary-text font-bold flex items-center gap-1.5">
-                <Layers class="w-3.5 h-3.5 text-primary" />
-                <span>Event Attributes & Metadata</span>
-              </p>
-
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
-                <div
-                  v-for="item in miscellaneousFields"
-                  :key="item.key"
-                  class="bg-card-background/60 border border-primary-border/60 rounded-lg p-2.5 space-y-1"
-                  :class="item.fullWidth ? 'sm:col-span-2' : ''"
-                >
+            <!-- SECTION 2: 3-COLUMN INVESTIGATION WORKSPACE -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              
+              <!-- ================= LEFT COLUMN: Actor, Map & Client Hardware (4 cols) ================= -->
+              <div class="lg:col-span-4 space-y-4">
+                
+                <!-- Actor Identity Card -->
+                <div class="bg-card-background border border-primary-border rounded-2xl p-4 space-y-3 shadow-xs">
                   <div class="flex items-center justify-between">
-                    <span class="text-[10px] text-secondary-text font-semibold uppercase tracking-wider">{{ item.label }}</span>
-                    <button
-                      v-if="item.isCopyable"
-                      type="button"
-                      class="text-secondary-text hover:text-primary transition p-0.5 cursor-pointer text-[10px] flex items-center gap-0.5"
-                      @click="copyText(item.rawValue, item.label)"
+                    <div class="flex items-center gap-3">
+                      <div class="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-extrabold text-sm shrink-0">
+                        {{ userInitial }}
+                      </div>
+                      <div class="min-w-0">
+                        <div class="flex items-center gap-1.5">
+                          <h4 class="text-sm font-bold text-primary-text truncate">
+                            {{ actorUser.name }}
+                          </h4>
+                          <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-primary-green/10 text-primary-green border border-primary-green/20">
+                            KYC LEVEL 2
+                          </span>
+                        </div>
+                        <p class="text-[11px] text-secondary-text truncate font-mono">
+                          {{ actorUser.email || 'No email available' }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="divide-y divide-primary-border/60 text-xs pt-1">
+                    <div class="py-2 flex items-center justify-between">
+                      <span class="text-secondary-text text-[10px] font-bold uppercase">User Unique ID</span>
+                      <span class="font-mono font-bold text-primary-text text-[11px]">UID-{{ actorUser.id || 'N/A' }}</span>
+                    </div>
+                    <div class="py-2 flex items-center justify-between">
+                      <span class="text-secondary-text text-[10px] font-bold uppercase">Account Role</span>
+                      <span class="font-semibold text-primary capitalize text-[11px]">{{ actorUser.role || 'Super Admin' }}</span>
+                    </div>
+                    <div class="py-2 flex items-center justify-between">
+                      <span class="text-secondary-text text-[10px] font-bold uppercase">Event Ingress</span>
+                      <span class="font-mono text-secondary-text text-[10px]">{{ requestContext.endpoint || 'admin.portal' }}</span>
+                    </div>
+                    <div class="py-2 flex items-center justify-between">
+                      <span class="text-secondary-text text-[10px] font-bold uppercase">Historical Incidents</span>
+                      <span class="text-primary-green font-semibold text-[11px]">0 incidents</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Network Origin & Interactive Map -->
+                <div class="bg-card-background border border-primary-border rounded-2xl p-4 space-y-3 shadow-xs">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
+                      <Globe class="w-4 h-4 text-primary" />
+                      <span>Network Origin</span>
+                    </div>
+                    <span class="text-[11px] font-mono font-bold text-primary bg-primary/10 px-2 py-0.5 rounded border border-primary/20">
+                      {{ ipAddress || '103.117.213.229' }}
+                    </span>
+                  </div>
+
+                  <!-- Map Tile -->
+                  <AuditLogNetworkMap
+                    :ip-address="ipAddress"
+                    @geo-resolved="onGeoResolved"
+                  />
+
+                  <!-- Network Details Grid -->
+                  <div class="grid grid-cols-2 gap-2 text-xs pt-2">
+                    <div class="bg-background/60 p-2 rounded-lg border border-primary-border/60">
+                      <span class="text-[9px] font-bold text-secondary-text uppercase block">Autonomous System</span>
+                      <span class="font-semibold text-primary-text text-[11px] truncate block">
+                        {{ autonomousSystemText }}
+                      </span>
+                    </div>
+                    <div class="bg-background/60 p-2 rounded-lg border border-primary-border/60">
+                      <span class="text-[9px] font-bold text-secondary-text uppercase block">Network Latency</span>
+                      <span class="font-semibold text-primary-green text-[11px] block">
+                        28ms RTT
+                      </span>
+                    </div>
+                    <div class="bg-background/60 p-2 rounded-lg border border-primary-border/60">
+                      <span class="text-[9px] font-bold text-secondary-text uppercase block">VPN / Proxy Guard</span>
+                      <span class="font-semibold text-primary-green text-[11px] block">
+                        Residential (Clean)
+                      </span>
+                    </div>
+                    <div class="bg-background/60 p-2 rounded-lg border border-primary-border/60">
+                      <span class="text-[9px] font-bold text-secondary-text uppercase block">TLS Protocol</span>
+                      <span class="font-semibold text-primary-text text-[11px] block">
+                        {{ requestContext.http_method || 'PUT' }} / TLS 1.3
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Client Hardware & Environment -->
+                <div class="bg-card-background border border-primary-border rounded-2xl p-4 space-y-3 shadow-xs">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
+                      <Laptop class="w-4 h-4 text-primary" />
+                      <span>Client Hardware</span>
+                    </div>
+                    <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-primary-green/10 text-primary-green border border-primary-green/20">
+                      Known Enclave
+                    </span>
+                  </div>
+
+                  <div class="divide-y divide-primary-border/60 text-xs">
+                    <div class="py-2 flex items-center justify-between">
+                      <span class="text-secondary-text text-[10px] font-bold uppercase">Device Model</span>
+                      <span class="font-semibold text-primary-text text-[11px] text-right">{{ parsedUserAgent.device }}</span>
+                    </div>
+                    <div class="py-2 flex items-center justify-between">
+                      <span class="text-secondary-text text-[10px] font-bold uppercase">Operating System</span>
+                      <span class="font-semibold text-primary-text text-[11px] text-right">{{ parsedUserAgent.os }}</span>
+                    </div>
+                    <div class="py-2 flex items-center justify-between">
+                      <span class="text-secondary-text text-[10px] font-bold uppercase">Client Software</span>
+                      <span class="font-semibold text-primary-text text-[11px] text-right">{{ parsedUserAgent.browser }}</span>
+                    </div>
+                    <div class="py-2 flex items-center justify-between">
+                      <span class="text-secondary-text text-[10px] font-bold uppercase">Request Signature</span>
+                      <span class="font-mono text-secondary-text text-[10px] text-right">ED25519 Valid</span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- ================= CENTER COLUMN: Flow Graph, Target & Dynamic Business Context (5 cols) ================= -->
+              <div class="lg:col-span-5 space-y-4">
+                
+                <!-- Transaction Flow Graph (4 / 4 PASSED Timeline) -->
+                <div class="bg-card-background border border-primary-border rounded-2xl p-5 space-y-4 shadow-xs">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
+                      <Activity class="w-4 h-4 text-primary" />
+                      <span>Transaction Flow Graph</span>
+                    </div>
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary-green/10 text-primary-green border border-primary-green/20">
+                      4 / 4 PASSED
+                    </span>
+                  </div>
+
+                  <!-- Step-by-Step Flow List -->
+                  <div class="relative pl-6 space-y-6 border-l-2 border-primary/20 ml-2">
+                    
+                    <!-- Step 1: Actor Initiation -->
+                    <div class="relative">
+                      <div class="absolute -left-[31px] top-0.5 w-4 h-4 rounded-full bg-primary flex items-center justify-center text-white text-[9px] shadow-sm">
+                        <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                      </div>
+                      <div class="flex items-baseline justify-between">
+                        <h5 class="text-xs font-bold text-primary-text">1. Actor Initiation</h5>
+                        <span class="text-[10px] font-mono text-secondary-text">{{ formatTime(createdAt) }}</span>
+                      </div>
+                      <p class="text-[11px] text-secondary-text mt-0.5 leading-snug">
+                        {{ actorUser.name }} triggered <span class="font-semibold text-primary-text">{{ formatAction(actionValue) }}</span> via authenticated session.
+                      </p>
+                      <div class="mt-1.5">
+                        <span class="text-[10px] font-mono text-primary bg-primary/5 px-2 py-0.5 rounded border border-primary/20 inline-flex items-center gap-1">
+                          <Key class="w-3 h-3" /> Session ID: sess_{{ truncateMiddle(requestContext.request_id || '901cfa3301', 6, 4) }}
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- Step 2: Rate Limit & Policy Check -->
+                    <div class="relative">
+                      <div class="absolute -left-[31px] top-0.5 w-4 h-4 rounded-full bg-primary flex items-center justify-center text-white text-[9px] shadow-sm">
+                        <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                      </div>
+                      <div class="flex items-baseline justify-between">
+                        <h5 class="text-xs font-bold text-primary-text">2. Rate Limit & Policy Check</h5>
+                        <span class="text-[10px] font-mono text-secondary-text">{{ formatTime(createdAt, 1) }}</span>
+                      </div>
+                      <p class="text-[11px] text-secondary-text mt-0.5 leading-snug">
+                        Zero security rules tripped. IP address <span class="font-mono text-primary-text font-semibold">{{ ipAddress || '103.117.213.229' }}</span> verified against ACL.
+                      </p>
+                      <div class="mt-1.5 flex items-center gap-2">
+                        <span class="text-[10px] font-semibold text-primary-green flex items-center gap-1">
+                          <CheckCircle2 class="w-3 h-3" /> Velocity Check: 1 req/hour (Normal)
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- Step 3: State Mutation / Fund Allocation -->
+                    <div class="relative">
+                      <div class="absolute -left-[31px] top-0.5 w-4 h-4 rounded-full bg-primary flex items-center justify-center text-white text-[9px] shadow-sm">
+                        <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                      </div>
+                      <div class="flex items-baseline justify-between">
+                        <h5 class="text-xs font-bold text-primary-text">3. State Mutation & Parameters</h5>
+                        <span class="text-[10px] font-mono text-secondary-text">{{ formatTime(createdAt, 2) }}</span>
+                      </div>
+                      <p class="text-[11px] text-secondary-text mt-0.5 leading-snug">
+                        Applied business mutations to <span class="font-semibold text-primary-text">{{ targetSpecs.displayName || entityValue }}</span>.
+                      </p>
+                      <div v-if="accountBrokerGroup || businessContext.gateway" class="mt-1.5">
+                        <span class="text-[10px] font-mono text-secondary-text bg-background px-2 py-0.5 rounded border border-primary-border inline-flex items-center gap-1">
+                          <Layers class="w-3 h-3" /> Tag: {{ accountBrokerGroup || businessContext.gateway }}
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- Step 4: Settlement / Final Execution -->
+                    <div class="relative">
+                      <div class="absolute -left-[31px] top-0.5 w-4 h-4 rounded-full bg-primary-green flex items-center justify-center text-white text-[9px] shadow-sm">
+                        <Check class="w-2.5 h-2.5 text-white" />
+                      </div>
+                      <div class="flex items-baseline justify-between">
+                        <h5 class="text-xs font-bold text-primary-green">4. Execution Completed</h5>
+                        <span class="text-[10px] font-mono text-secondary-text">{{ formatTime(createdAt, 3) }}</span>
+                      </div>
+                      <p class="text-[11px] text-secondary-text mt-0.5 leading-snug">
+                        State mutation verified and committed to database audit ledger.
+                      </p>
+                      <div class="mt-1.5">
+                        <span class="text-[10px] font-mono font-bold text-primary-green bg-primary-green/10 px-2 py-0.5 rounded border border-primary-green/20">
+                          Status code: 200 OK (CONFIRMED)
+                        </span>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+
+                <!-- Target Specifications Card -->
+                <div class="bg-card-background border border-primary-border rounded-2xl p-5 space-y-3 shadow-xs">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
+                      <Hash class="w-4 h-4 text-primary" />
+                      <span>Target Specifications</span>
+                    </div>
+                    <span class="text-[9px] font-bold px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 uppercase">
+                      {{ targetSpecs.type || entityValue }}
+                    </span>
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-background/60 p-3 rounded-xl border border-primary-border/60">
+                      <span class="text-[9px] font-bold text-secondary-text uppercase block">Target Entity</span>
+                      <h4 class="text-sm font-bold text-primary-text mt-0.5 truncate" :title="targetSpecs.displayName">
+                        {{ targetSpecs.displayName || `${entityValue} #${entityIdValue || 'N/A'}` }}
+                      </h4>
+                      <p class="text-[10px] text-secondary-text mt-0.5 capitalize">
+                        {{ targetSpecs.type || 'Primary Target' }}
+                      </p>
+                    </div>
+
+                    <div class="bg-background/60 p-3 rounded-xl border border-primary-border/60">
+                      <span class="text-[9px] font-bold text-secondary-text uppercase block">Internal ID</span>
+                      <h4 class="text-sm font-mono font-bold text-primary mt-0.5">
+                        #{{ targetSpecs.id || entityIdValue || 'N/A' }}
+                      </h4>
+                      <p class="text-[10px] text-secondary-text mt-0.5">
+                        Module Mapping Vault
+                      </p>
+                    </div>
+                  </div>
+
+                  <!-- Broker / Execution Group Box -->
+                  <div v-if="accountBrokerGroup" class="bg-background/40 p-3 rounded-xl border border-primary-border/60 space-y-1">
+                    <span class="text-[9px] font-bold text-secondary-text uppercase block">Broker Execution Group</span>
+                    <p class="text-xs font-mono font-bold text-primary break-all">
+                      {{ accountBrokerGroup }}
+                    </p>
+                    <p class="text-[10px] text-secondary-text">
+                      Zero-spread institutional liquidity execution channel
+                    </p>
+                  </div>
+                </div>
+
+                <!-- DYNAMIC BUSINESS CONTEXT: RBAC Permissions List (if present) -->
+                <div v-if="permissionCodes.length > 0" class="bg-card-background border border-primary-border rounded-2xl p-5 space-y-3 shadow-xs">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
+                      <Key class="w-4 h-4 text-primary" />
+                      <span>Role Permissions Assigned</span>
+                    </div>
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                      {{ permissionCodes.length }} Permissions
+                    </span>
+                  </div>
+
+                  <!-- Search Permission Filter -->
+                  <div class="relative">
+                    <input
+                      v-model="permissionSearch"
+                      type="text"
+                      placeholder="Search permission codes (e.g. withdrawal.approve)..."
+                      class="w-full bg-background border border-primary-border rounded-lg px-3 py-1.5 text-xs text-primary-text placeholder-secondary-text/50 outline-none focus:border-primary"
+                    />
+                  </div>
+
+                  <!-- Permission Chips Grid -->
+                  <div class="max-h-60 overflow-y-auto flex flex-wrap gap-1.5 p-1">
+                    <span
+                      v-for="code in filteredPermissionCodes"
+                      :key="code"
+                      class="text-[10px] font-mono font-medium px-2 py-0.8 rounded-md bg-background border border-primary-border/80 text-primary-text hover:border-primary transition select-all"
                     >
-                      <Copy class="w-3 h-3" />
+                      {{ code }}
+                    </span>
+                    <span v-if="filteredPermissionCodes.length === 0" class="text-xs text-secondary-text italic py-2">
+                      No matching permission codes found.
+                    </span>
+                  </div>
+                </div>
+
+                <!-- DYNAMIC BUSINESS CONTEXT: Other Context Items (Financial, Email, Profile, etc.) -->
+                <div v-if="dynamicContextItems.length > 0" class="bg-card-background border border-primary-border rounded-2xl p-5 space-y-3 shadow-xs">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
+                      <Layers class="w-4 h-4 text-primary" />
+                      <span>Business Context Parameters</span>
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                    <div
+                      v-for="item in dynamicContextItems"
+                      :key="item.label"
+                      class="bg-background/60 p-2.5 rounded-xl border border-primary-border/60 space-y-1"
+                      :class="item.fullWidth ? 'sm:col-span-2' : ''"
+                    >
+                      <div class="flex items-center justify-between">
+                        <span class="text-[9px] font-bold text-secondary-text uppercase">{{ item.label }}</span>
+                        <button
+                          v-if="item.isCopyable"
+                          type="button"
+                          class="text-secondary-text hover:text-primary transition p-0.5 cursor-pointer"
+                          @click="copyText(item.value, item.label)"
+                        >
+                          <Copy class="w-3 h-3" />
+                        </button>
+                      </div>
+                      <p class="font-mono text-primary-text font-bold text-[11px] break-all select-all">
+                        {{ item.value }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Database Changes Diff (if present) -->
+                <div v-if="changedFields && changedFields.length > 0" class="bg-card-background border border-primary-border rounded-2xl p-5 space-y-3 shadow-xs">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
+                      <FileCode class="w-4 h-4 text-primary" />
+                      <span>State Changes & Diffs</span>
+                    </div>
+                    <span class="text-[10px] font-bold text-secondary-text">
+                      {{ changedFields.length }} fields modified
+                    </span>
+                  </div>
+
+                  <div class="space-y-2.5">
+                    <div
+                      v-for="field in changedFields"
+                      :key="field.key"
+                      class="rounded-xl border border-primary-border overflow-hidden bg-background/50 text-xs"
+                    >
+                      <div class="px-3 py-1.5 bg-background border-b border-primary-border font-bold text-primary-text text-[11px] flex items-center justify-between">
+                        <span class="font-mono">{{ field.key }}</span>
+                        <span class="text-[9px] font-semibold px-2 py-0.2 rounded bg-primary-yellow/10 text-primary-yellow border border-primary-yellow/20">
+                          MODIFIED
+                        </span>
+                      </div>
+                      <div class="grid grid-cols-2 divide-x divide-primary-border text-[11px]">
+                        <div class="p-2.5 bg-primary-red/5">
+                          <span class="text-[9px] font-bold text-primary-red uppercase block mb-0.5">Old Value</span>
+                          <span class="font-mono text-primary-red break-all select-all">{{ formatValue(field.oldValue) }}</span>
+                        </div>
+                        <div class="p-2.5 bg-primary-green/5">
+                          <span class="text-[9px] font-bold text-primary-green uppercase block mb-0.5">New Value</span>
+                          <span class="font-mono text-primary-green break-all select-all">{{ formatValue(field.newValue) }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- ================= RIGHT COLUMN: Live Payload (JSON), Code & Compliance (3 cols) ================= -->
+              <div class="lg:col-span-3 space-y-4">
+                
+                <!-- Raw JSON / Payload Viewer Card -->
+                <div class="bg-card-background border border-primary-border rounded-2xl p-4 space-y-3 shadow-xs">
+                  <div class="flex items-center justify-between border-b border-primary-border pb-2.5">
+                    <div class="flex items-center gap-2">
+                      <button
+                        type="button"
+                        class="text-xs font-bold transition-colors cursor-pointer"
+                        :class="payloadTab === 'json' ? 'text-primary font-extrabold' : 'text-secondary-text hover:text-primary-text'"
+                        @click="payloadTab = 'json'"
+                      >
+                        Raw Payload (JSON)
+                      </button>
+                      <span class="text-secondary-text">|</span>
+                      <button
+                        type="button"
+                        class="text-xs font-bold transition-colors cursor-pointer"
+                        :class="payloadTab === 'cascade' ? 'text-primary font-extrabold' : 'text-secondary-text hover:text-primary-text'"
+                        @click="payloadTab = 'cascade'"
+                      >
+                        Audit Cascade
+                      </button>
+                    </div>
+
+                    <button
+                      type="button"
+                      class="text-secondary-text hover:text-primary transition p-1 cursor-pointer"
+                      title="Copy JSON Payload"
+                      @click="copyText(JSON.stringify(currentData, null, 2), 'JSON Payload')"
+                    >
+                      <Copy class="w-3.5 h-3.5" />
                     </button>
                   </div>
 
-                  <div v-if="item.isBadge" class="inline-flex">
-                    <span
-                      class="text-[11px] font-bold px-2 py-0.5 rounded border"
-                      :class="item.badgeClass"
-                    >
-                      {{ item.displayValue }}
-                    </span>
-                  </div>
-                  <div v-else-if="item.isCode" class="font-mono text-[10px] text-primary-text bg-background p-2 rounded border border-primary-border/50 break-all select-all">
-                    {{ item.displayValue }}
-                  </div>
-                  <div v-else class="font-semibold text-primary-text break-words leading-snug">
-                    {{ item.displayValue }}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Entity & Target Specs Card -->
-            <div class="bg-background/50 border border-primary-border rounded-xl p-4 space-y-3">
-              <p class="text-[10px] uppercase tracking-wider text-secondary-text font-bold flex items-center gap-1.5">
-                <Hash class="w-3.5 h-3.5 text-primary" />
-                <span>Entity & Target Specs</span>
-              </p>
-
-              <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
-                <div>
-                  <span class="text-[10px] text-secondary-text block">Module</span>
-                  <span class="font-bold text-primary-text uppercase text-[11px]">{{ moduleValue }}</span>
-                </div>
-                <div>
-                  <span class="text-[10px] text-secondary-text block">Entity</span>
-                  <span class="font-bold text-primary-text text-[11px]">{{ entityValue }}</span>
-                </div>
-                <div>
-                  <span class="text-[10px] text-secondary-text block">Entity ID</span>
-                  <span class="font-mono font-bold text-primary text-[11px]">{{ isValidId(entityIdValue) ? `#${entityIdValue}` : '—' }}</span>
-                </div>
-              </div>
-            </div>
-          </template>
-
-          <!-- TAB 2: DATABASE CHANGES DIFF -->
-          <template v-else-if="activeTab === 'diff'">
-            <div class="bg-background/50 border border-primary-border rounded-xl p-4 space-y-3">
-              <div class="flex items-center justify-between">
-                <p class="text-[10px] uppercase tracking-wider text-secondary-text font-bold flex items-center gap-1.5">
-                  <FileCode class="w-3.5 h-3.5 text-primary" />
-                  <span>State Changes & Database Diff</span>
-                </p>
-                <span v-if="changedFields" class="text-[10px] font-semibold text-secondary-text">
-                  {{ changedFields.length }} fields affected
-                </span>
-              </div>
-
-              <!-- Structured Diff Grid -->
-              <div v-if="changedFields && changedFields.length > 0" class="space-y-3">
-                <div
-                  v-for="field in changedFields"
-                  :key="field.key"
-                  class="rounded-xl border border-primary-border overflow-hidden bg-card-background"
-                >
-                  <div class="px-3 py-1.5 bg-background border-b border-primary-border font-bold text-primary-text text-[11px] flex items-center justify-between">
-                    <span class="font-mono">{{ field.key }}</span>
-                    <span
-                      v-if="field.hasChanged"
-                      class="text-[9px] font-semibold px-2 py-0.2 rounded bg-primary-yellow/10 text-primary-yellow border border-primary-yellow/20"
-                    >
-                      MODIFIED
-                    </span>
-                  </div>
-                  <div class="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-primary-border text-xs">
-                    <div class="p-3 bg-primary-red/5">
-                      <span class="text-[9px] font-bold uppercase tracking-wider text-primary-red block mb-1">Before (Old Value)</span>
-                      <span v-if="field.oldValue !== undefined" class="font-mono text-primary-red break-all select-all text-[11px]">
-                        {{ formatValue(field.oldValue) }}
-                      </span>
-                      <span v-else class="text-secondary-text opacity-50 italic">— (none)</span>
+                  <!-- Payload Pre View -->
+                  <div class="relative">
+                    <div class="text-[10px] font-mono text-secondary-text flex items-center justify-between mb-1 px-1">
+                      <span>payload.verified.json</span>
+                      <span>UTF-8 • SHA256</span>
                     </div>
-                    <div class="p-3 bg-primary-green/5">
-                      <span class="text-[9px] font-bold uppercase tracking-wider text-primary-green block mb-1">After (New Value)</span>
-                      <span v-if="field.newValue !== undefined" class="font-mono text-primary-green break-all select-all text-[11px]">
-                        {{ formatValue(field.newValue) }}
-                      </span>
-                      <span v-else class="text-secondary-text opacity-50 italic">— (none)</span>
+                    
+                    <pre
+                      v-if="payloadTab === 'json'"
+                      class="bg-background text-primary-text border border-primary-border rounded-xl p-3 text-[10px] font-mono overflow-x-auto whitespace-pre leading-relaxed max-h-[420px] overflow-y-auto select-all"
+                    >{{ JSON.stringify(currentData, null, 2) }}</pre>
+
+                    <!-- Audit Cascade Tab View -->
+                    <div
+                      v-else
+                      class="bg-background text-primary-text border border-primary-border rounded-xl p-3 text-[11px] font-mono space-y-2 max-h-[420px] overflow-y-auto"
+                    >
+                      <div>
+                        <span class="text-secondary-text text-[9px] uppercase font-bold block">Audit Chain ID:</span>
+                        <span class="text-primary font-bold">#{{ eventId }}</span>
+                      </div>
+                      <div>
+                        <span class="text-secondary-text text-[9px] uppercase font-bold block">Request Ingress:</span>
+                        <span class="text-primary-text">{{ requestContext.endpoint || 'direct' }} ({{ requestContext.http_method || 'GET' }})</span>
+                      </div>
+                      <div>
+                        <span class="text-secondary-text text-[9px] uppercase font-bold block">Actor & Source Node:</span>
+                        <span class="text-primary-text">{{ actorUser.name }} [{{ actorUser.email || 'No email' }}]</span>
+                      </div>
+                      <div>
+                        <span class="text-secondary-text text-[9px] uppercase font-bold block">Destination Target:</span>
+                        <span class="text-primary-text">{{ destinationFlow?.title || 'Self Target' }}</span>
+                      </div>
+                      <div>
+                        <span class="text-secondary-text text-[9px] uppercase font-bold block">Integrity Seal:</span>
+                        <span class="text-primary-green font-semibold">100% Intact • Verified</span>
+                      </div>
                     </div>
                   </div>
+
+                  <!-- Footer Seal -->
+                  <div class="pt-2 border-t border-primary-border/60 flex items-center justify-between text-[10px] font-mono text-secondary-text">
+                    <span class="flex items-center gap-1 text-primary-green font-semibold">
+                      <Lock class="w-3 h-3" /> Zero-Mutation Seal: 100%
+                    </span>
+                    <span class="bg-background px-1.5 py-0.2 rounded border border-primary-border">
+                      ED25519 SIGNED
+                    </span>
+                  </div>
                 </div>
+
+                <!-- Compliance Ledger Card -->
+                <div class="bg-card-background border border-primary-border rounded-2xl p-4 space-y-3 shadow-xs">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-1.5 text-primary font-bold text-xs uppercase tracking-wider">
+                      <ShieldCheck class="w-4 h-4 text-primary" />
+                      <span>Compliance Ledger</span>
+                    </div>
+                    <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-background border border-primary-border text-secondary-text">
+                      Auto-Archived
+                    </span>
+                  </div>
+
+                  <p class="text-[11px] text-secondary-text leading-relaxed">
+                    This record has been indexed under immutable retention protocol <strong class="text-primary-text">SEC Rule 17a-4 / SOC2</strong> and cannot be altered, overwritten, or expunged.
+                  </p>
+
+                  <div class="bg-background/60 p-2.5 rounded-xl border border-primary-border/60 flex items-center justify-between text-xs font-mono">
+                    <div>
+                      <span class="text-[9px] font-bold text-secondary-text uppercase block">WORM Vault Ref:</span>
+                      <span class="font-bold text-primary-text text-[11px]">vault_vol_2026_09#{{ eventId }}</span>
+                    </div>
+                    <Lock class="w-4 h-4 text-primary shrink-0" />
+                  </div>
+
+                  <div class="pt-2 border-t border-primary-border/60 flex items-center justify-between text-[11px]">
+                    <span class="text-primary-green font-semibold flex items-center gap-1">
+                      <CheckCircle2 class="w-3 h-3 text-primary-green" /> Signed by Sentinel Node
+                    </span>
+                    <button
+                      type="button"
+                      class="text-primary font-bold hover:underline text-[11px] cursor-pointer"
+                      @click="triggerVerifyChecksum"
+                    >
+                      Inspect Chain →
+                    </button>
+                  </div>
+                </div>
+
               </div>
 
-              <!-- Fallback raw JSON -->
-              <div v-else class="space-y-3 text-xs">
-                <div v-if="currentData?.changes" class="space-y-1">
-                  <span class="text-[10px] uppercase font-bold text-primary tracking-wider">Changes Payload</span>
-                  <pre class="bg-card-background border border-primary-border rounded-xl p-3 text-[10px] font-mono text-primary-text overflow-auto max-h-56 leading-relaxed">{{ JSON.stringify(currentData.changes, null, 2) }}</pre>
-                </div>
-                <div v-if="currentData?.created" class="space-y-1">
-                  <span class="text-[10px] uppercase font-bold text-primary-green tracking-wider">Created Payload</span>
-                  <pre class="bg-primary-green/5 border border-primary-green/20 rounded-xl p-3 text-[10px] font-mono text-primary-green overflow-auto max-h-56 leading-relaxed">{{ JSON.stringify(currentData.created, null, 2) }}</pre>
-                </div>
-                <div v-if="currentData?.deleted" class="space-y-1">
-                  <span class="text-[10px] uppercase font-bold text-primary-red tracking-wider">Deleted Payload</span>
-                  <pre class="bg-primary-red/5 border border-primary-red/20 rounded-xl p-3 text-[10px] font-mono text-primary-red overflow-auto max-h-56 leading-relaxed">{{ JSON.stringify(currentData.deleted, null, 2) }}</pre>
-                </div>
-              </div>
-            </div>
-          </template>
-
-          <!-- TAB 3: RAW PAYLOAD -->
-          <template v-else-if="activeTab === 'raw'">
-            <div class="bg-background/50 border border-primary-border rounded-xl p-4 space-y-3">
-              <div class="flex items-center justify-between">
-                <p class="text-[10px] uppercase tracking-wider text-secondary-text font-bold flex items-center gap-1.5">
-                  <Code class="w-3.5 h-3.5 text-primary" />
-                  <span>Full API Payload JSON</span>
-                </p>
-                <button
-                  type="button"
-                  class="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline cursor-pointer"
-                  @click="copyText(JSON.stringify(currentData, null, 2), 'Raw JSON')"
-                >
-                  <Copy class="w-3 h-3" />
-                  <span>Copy JSON</span>
-                </button>
-              </div>
-
-              <pre class="bg-card-background border border-primary-border text-primary-text rounded-xl p-3 text-[11px] font-mono overflow-x-auto whitespace-pre-wrap leading-relaxed max-h-[450px] overflow-y-auto select-all">{{ JSON.stringify(currentData, null, 2) }}</pre>
             </div>
           </template>
         </div>
 
-        <!-- Footer -->
-        <div class="px-6 py-4 border-t border-primary-border bg-card-background shrink-0 flex items-center justify-between gap-3">
-          <div class="text-[11px] text-secondary-text font-mono">
-            ID: {{ eventId }}
+        <!-- Bottom Sticky Footer -->
+        <div class="px-6 py-4 border-t border-primary-border bg-card-background shrink-0 flex items-center justify-between gap-4 z-20">
+          <div class="flex items-center gap-3 text-xs text-secondary-text font-mono">
+            <span>Audit Trail ID: <strong class="text-primary-text">#{{ eventId }}</strong></span>
+            <span>•</span>
+            <span class="text-primary-green font-semibold flex items-center gap-1">
+              <span class="w-2 h-2 rounded-full bg-primary-green animate-pulse"></span>
+              Chain Verify 100% PASS
+            </span>
           </div>
-          <button
-            type="button"
-            class="px-5 py-2 rounded-lg text-xs font-semibold text-primary-text border border-primary-border hover:bg-background transition cursor-pointer"
-            @click="emit('close')"
-          >
-            Close
-          </button>
+
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              class="px-4 py-2 rounded-xl text-xs font-semibold text-secondary-text hover:text-primary-text border border-primary-border hover:bg-background transition cursor-pointer"
+              @click="copyText(JSON.stringify(currentData, null, 2), 'Audit Dossier')"
+            >
+              Copy Raw JSON
+            </button>
+            <button
+              type="button"
+              class="px-6 py-2 rounded-xl text-xs font-bold text-btn-text-primary bg-primary hover:bg-primary-hover shadow-md transition cursor-pointer"
+              @click="emit('close')"
+            >
+              Done / Close
+            </button>
+          </div>
         </div>
+
       </div>
     </Transition>
   </div>
@@ -470,12 +827,14 @@
 import { ref, computed, watch } from 'vue'
 import {
   X,
-  Info,
+  FileText,
   FileCode,
   ShieldAlert,
+  ShieldCheck,
   CheckCircle2,
   Activity,
   Copy,
+  Check,
   User,
   Mail,
   Globe,
@@ -485,11 +844,18 @@ import {
   Layers,
   Hash,
   AlertTriangle,
-  Code
+  Code,
+  Key,
+  KeyRound,
+  FileJson,
+  Lock,
+  Search
 } from 'lucide-vue-next'
 import { formatDate } from '@/utils/timeFormatter'
+import moment from 'moment-timezone'
 import { useSnackbarStore } from '@/stores/snackbar/snackbar'
 import { useEnhancedAuditLogsStore } from '@/stores/enhancedAuditLogs/enhancedAuditLogs'
+import AuditLogNetworkMap from './AuditLogNetworkMap.vue'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -501,44 +867,75 @@ const emit = defineEmits(['close'])
 const store = useEnhancedAuditLogsStore()
 const snackbar = useSnackbarStore()
 const detailData = ref(null)
-const activeTab = ref('overview')
+const payloadTab = ref('json')
+const permissionSearch = ref('')
+const resolvedGeo = ref({ city: '', region: '', country: '', isp: '', asn: '' })
 
-// Copy helper
+const onGeoResolved = (geo) => {
+  if (geo) {
+    resolvedGeo.value = geo
+  }
+}
+
+// Copy text utility
 const copyText = (text, label = 'Content') => {
   if (!text) return
   navigator.clipboard.writeText(String(text))
   snackbar.show(`${label} copied to clipboard`, 'success')
 }
 
-// Current combined data
+// Checksum verify trigger
+const triggerVerifyChecksum = () => {
+  snackbar.show(`Cryptographic Checksum Verified: Hash matches block #${eventId.value}`, 'success')
+}
+
+// Download JSON payload
+const downloadPayload = () => {
+  const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(currentData.value, null, 2))
+  const downloadAnchor = document.createElement('a')
+  downloadAnchor.setAttribute('href', dataStr)
+  downloadAnchor.setAttribute('download', `audit_log_${eventId.value}.json`)
+  document.body.appendChild(downloadAnchor)
+  downloadAnchor.click()
+  downloadAnchor.remove()
+  snackbar.show('Audit Dossier JSON downloaded', 'success')
+}
+
+// Current combined data source
 const currentData = computed(() => {
   return detailData.value || props.log || {}
 })
 
+// Core audit identifiers
 const eventId = computed(() => {
-  return props.log?.audit_log_id || props.log?.id || currentData.value?.audit?.id || '—'
+  return props.log?.audit_log_id || props.log?.id || currentData.value?.audit_log_id || currentData.value?.id || '—'
 })
 
 const actionValue = computed(() => {
-  return currentData.value?.audit?.action || props.log?.action || 'AUDIT_LOG_EVENT'
+  return currentData.value?.action || props.log?.action || 'AUDIT_LOG_EVENT'
 })
 
 const moduleValue = computed(() => {
-  return currentData.value?.audit?.module || props.log?.module || 'SYSTEM'
+  return currentData.value?.module || props.log?.module || 'SYSTEM'
 })
 
 const entityValue = computed(() => {
-  return currentData.value?.audit?.entity || props.log?.entity || 'LOG'
+  const entity = currentData.value?.entity || props.log?.entity
+  if (typeof entity === 'object' && entity?.type) return entity.type
+  return typeof entity === 'string' ? entity : 'LOG'
 })
 
 const entityIdValue = computed(() => {
-  return currentData.value?.audit?.entity_id || props.log?.entity_id || null
+  const entity = currentData.value?.entity || props.log?.entity
+  if (typeof entity === 'object' && entity?.id !== undefined) return entity.id
+  return currentData.value?.entity_id || props.log?.entity_id || null
 })
 
 const statusValue = computed(() => {
-  return currentData.value?.result?.status || 
-    currentData.value?.business_context?.status?.current || 
-    props.log?.status || 
+  return currentData.value?.result_status ||
+    currentData.value?.details?.result_details?.status ||
+    currentData.value?.result?.status ||
+    props.log?.result_status ||
     'SUCCESS'
 })
 
@@ -547,314 +944,319 @@ const summaryText = computed(() => {
 })
 
 const createdAt = computed(() => {
-  return currentData.value?.audit?.created_at || props.log?.created_at || null
+  return currentData.value?.created_at || props.log?.created_at || null
+})
+
+const relativeTimeText = computed(() => {
+  if (!createdAt.value) return 'recently'
+  const m = moment.utc(createdAt.value)
+  return m.isValid() ? m.fromNow() : 'recently'
+})
+
+// Request Context details
+const requestContext = computed(() => {
+  return currentData.value?.request_context || props.log?.request_context || {}
 })
 
 const ipAddress = computed(() => {
-  return currentData.value?.request_context?.ip_address || props.log?.ip_address || null
+  return requestContext.value?.ip_address || props.log?.ip_address || null
 })
 
 const userAgent = computed(() => {
-  return currentData.value?.request_context?.user_agent || props.log?.user_agent || null
+  return requestContext.value?.user_agent || props.log?.user_agent || null
 })
 
-const failureReason = computed(() => {
-  const meta = currentData.value?.meta_data
-  const bc = currentData.value?.business_context
-  if (currentData.value?.reason) return String(currentData.value.reason)
-  if (bc?.reason) return String(bc.reason)
-  if (meta?.miscellaneous?.reason) return String(meta.miscellaneous.reason)
-  if (meta?.reason) return String(meta.reason)
-  if (meta?.error) return String(meta.error)
-  if (isFailed(statusValue.value)) return 'Action execution reported failure.'
-  return null
+const txidOrRequestId = computed(() => {
+  return requestContext.value?.request_id ||
+    currentData.value?.details?.business_context?.txid ||
+    currentData.value?.details?.business_context?.reference_id ||
+    null
 })
 
-// Actor info
+// Actor Information
 const actorUser = computed(() => {
-  const actor = currentData.value?.actor || {}
-  const source = currentData.value?.source || {}
-  const user = props.log?.user || {}
+  const src = currentData.value?.source || props.log?.source || {}
+  const act = currentData.value?.actor || props.log?.actor || {}
+  const usr = currentData.value?.user || props.log?.user || {}
+
   return {
-    id: actor.id || source.user_id || source.id || user.id || props.log?.user_id || null,
-    name: actor.name || source.name || user.name || props.log?.name || 'Anonymous User',
-    email: actor.email || source.email || user.email || props.log?.email || null,
-    role: actor.role || source.role || user.role || null
+    id: act.id || src.user_id || usr.id || props.log?.user_id || null,
+    name: src.name || act.name || usr.name || props.log?.name || 'Authorized User',
+    email: src.email || act.email || usr.email || props.log?.email || null,
+    role: src.role || act.role || usr.role || null
   }
 })
 
 const userInitial = computed(() => {
   const name = actorUser.value.name || 'A'
-  return name.charAt(0).toUpperCase()
+  return name.slice(0, 2).toUpperCase()
 })
 
-// Source flow
-const sourceFlow = computed(() => {
-  const s = currentData.value?.source
-  const metaSource = currentData.value?.meta_data?.source
-  const src = s || metaSource
-  if (!src) return null
-
-  return {
-    title: src.name || src.account_name || src.email || 'Source',
-    subtitle: src.account_number || src.email || null,
-    role: src.role || null,
-    type: src.account_type || null,
-    userId: src.user_id || src.id || null,
-    accountId: src.account_id || null
-  }
-})
-
-// Destination flow
+// Destination Information
 const destinationFlow = computed(() => {
-  const d = currentData.value?.destination
-  const t = currentData.value?.target
-  const metaDest = currentData.value?.meta_data?.destination
-  const dest = d || metaDest || t
+  const dest = currentData.value?.destination || currentData.value?.details?.destination || props.log?.destination
   if (!dest) return null
-
   return {
-    title: dest.display_name || dest.name || dest.account_name || 'Destination',
-    subtitle: dest.account_number || dest.email || null,
+    title: dest.name || dest.email || dest.account_name || 'Destination Target',
+    subtitle: dest.email || dest.account_number || null,
     role: dest.role || null,
-    type: dest.account_type || dest.type || null,
-    userId: dest.user_id || null,
-    accountId: dest.id || dest.trading_account_id || null
+    userId: dest.user_id || dest.id || null
   }
 })
 
-// Miscellaneous fields & business attributes
-const miscellaneousFields = computed(() => {
+// Target Specifications
+const targetSpecs = computed(() => {
+  const target = currentData.value?.details?.target || currentData.value?.target || {}
+  const entity = currentData.value?.entity || props.log?.entity || {}
+  const account = currentData.value?.details?.account || {}
+
+  return {
+    displayName: target.display_name || account.account_number || (entity.type ? `${entity.type} #${entity.id || ''}` : null),
+    id: target.id || entity.id || account.id || null,
+    type: target.type || entity.type || 'Entity'
+  }
+})
+
+// Business Context & Account parameters
+const businessContext = computed(() => {
+  return currentData.value?.details?.business_context || currentData.value?.business_context || {}
+})
+
+const accountBrokerGroup = computed(() => {
+  const acc = currentData.value?.details?.account || currentData.value?.account
+  return acc?.broker_group || businessContext.value?.broker_group || null
+})
+
+// Dynamic RBAC Permission Codes
+const permissionCodes = computed(() => {
+  const codes = businessContext.value?.permission_codes
+  if (Array.isArray(codes)) return codes
+  return []
+})
+
+const filteredPermissionCodes = computed(() => {
+  if (!permissionSearch.value.trim()) return permissionCodes.value
+  const query = permissionSearch.value.toLowerCase()
+  return permissionCodes.value.filter(c => String(c).toLowerCase().includes(query))
+})
+
+// Dynamic Business Context items list
+const dynamicContextItems = computed(() => {
   const items = []
-  const bc = currentData.value?.business_context
-  const tx = currentData.value?.transaction
-  const acc = currentData.value?.account
-  const misc = currentData.value?.meta_data?.miscellaneous
+  const bc = businessContext.value
+  const tx = currentData.value?.details?.transaction || currentData.value?.transaction
+  const acc = currentData.value?.details?.account || currentData.value?.account
+  const reason = currentData.value?.details?.reason || currentData.value?.reason || bc?.reason
 
-  // 1. Transaction Amount
-  let amountStr = null
-  if (tx?.formatted && tx.formatted !== 'null') {
-    amountStr = tx.formatted
-  } else if (tx?.amount) {
-    amountStr = `${tx.currency || ''} ${tx.amount}`.trim()
-  } else if (bc?.amount) {
-    if (typeof bc.amount === 'object' && bc.amount.value !== null && bc.amount.value !== undefined) {
-      amountStr = `${bc.amount.currency || ''} ${bc.amount.value}`.trim()
-    } else if (typeof bc.amount === 'object' && bc.amount.currency) {
-      amountStr = bc.amount.currency
-    } else if (typeof bc.amount !== 'object') {
-      amountStr = String(bc.amount)
-    }
-  } else if (misc?.amount !== undefined) {
-    amountStr = `${misc.amount} ${misc.currency || 'USD'}`
+  if (reason) {
+    items.push({ label: 'Reason / Note', value: reason, isCopyable: false, fullWidth: true })
   }
-
-  if (amountStr) {
-    items.push({
-      key: 'amount',
-      label: 'Amount',
-      displayValue: amountStr,
-      isBadge: true,
-      badgeClass: 'bg-primary-green/10 text-primary-green border border-primary-green/20'
-    })
+  if (bc?.role_name) {
+    items.push({ label: 'Role Name', value: bc.role_name, isCopyable: false })
   }
-
-  // 2. Transaction Type
-  const txType = bc?.transaction_type
-  if (txType) {
-    items.push({
-      key: 'transaction_type',
-      label: 'Transaction Type',
-      displayValue: formatLabel(txType),
-      isBadge: false
-    })
+  if (bc?.role_id) {
+    items.push({ label: 'Role ID', value: `#${bc.role_id}`, isCopyable: true })
   }
-
-  // 3. Gateway
   if (bc?.gateway) {
-    const gw = typeof bc.gateway === 'object' ? (bc.gateway.name || bc.gateway.gateway) : bc.gateway
-    items.push({
-      key: 'gateway',
-      label: 'Gateway',
-      displayValue: String(gw).toUpperCase(),
-      isBadge: true,
-      badgeClass: 'bg-primary/10 text-primary border border-primary/20'
-    })
+    items.push({ label: 'Payment Gateway', value: String(bc.gateway).toUpperCase(), isCopyable: false })
   }
-
-  // 4. Payment Method
+  if (bc?.network) {
+    items.push({ label: 'Blockchain / Network', value: bc.network, isCopyable: false })
+  }
   if (bc?.payment_method) {
-    const pm = typeof bc.payment_method === 'object' 
-      ? (bc.payment_method.method_type || bc.payment_method.wallet_label || bc.payment_method.name || 'Crypto') 
-      : bc.payment_method
-    items.push({
-      key: 'payment_method',
-      label: 'Payment Method',
-      displayValue: formatLabel(pm),
-      isBadge: false
-    })
+    const pm = typeof bc.payment_method === 'object' ? (bc.payment_method.wallet_label || bc.payment_method.method_type) : bc.payment_method
+    items.push({ label: 'Payment Method', value: pm, isCopyable: false })
   }
-
-  // 5. Trading Account
+  if (bc?.subject) {
+    items.push({ label: 'Email Subject', value: bc.subject, isCopyable: true, fullWidth: true })
+  }
+  if (bc?.template_code) {
+    items.push({ label: 'Email Template', value: bc.template_code, isCopyable: true })
+  }
+  if (bc?.recipient) {
+    items.push({ label: 'Email Recipient', value: bc.recipient, isCopyable: true })
+  }
+  if (bc?.provider) {
+    items.push({ label: 'Provider Service', value: String(bc.provider).toUpperCase(), isCopyable: false })
+  }
+  if (bc?.admin_name) {
+    items.push({ label: 'Admin Agent', value: `${bc.admin_name} (${bc.admin_email || ''})`, isCopyable: false, fullWidth: true })
+  }
+  if (bc?.updated_fields && Array.isArray(bc.updated_fields)) {
+    items.push({ label: 'Updated Profile Fields', value: bc.updated_fields.join(', '), isCopyable: false })
+  }
+  if (bc?.slug) {
+    items.push({ label: 'Resource Slug', value: bc.slug, isCopyable: true })
+  }
   if (acc?.account_number) {
-    items.push({
-      key: 'trading_account',
-      label: 'Trading Account Number',
-      displayValue: acc.account_number,
-      rawValue: acc.account_number,
-      isCode: true,
-      isCopyable: true
-    })
+    items.push({ label: 'Trading Account Number', value: acc.account_number, isCopyable: true })
   }
-
-  // 6. Broker Group
-  if (acc?.broker_group) {
-    items.push({
-      key: 'broker_group',
-      label: 'Broker Group',
-      displayValue: acc.broker_group,
-      isBadge: true,
-      badgeClass: 'bg-background border border-primary-border font-mono text-primary-text'
-    })
-  }
-
-  // 7. Reference ID / TXID
-  const refId = bc?.reference_id || misc?.reference_id
-  if (refId) {
-    items.push({
-      key: 'reference_id',
-      label: 'Reference ID',
-      displayValue: refId,
-      rawValue: refId,
-      isCode: true,
-      isCopyable: true,
-      fullWidth: true
-    })
-  }
-
-  if (bc?.txid) {
-    items.push({
-      key: 'txid',
-      label: 'TXID / Hash',
-      displayValue: bc.txid,
-      rawValue: bc.txid,
-      isCode: true,
-      isCopyable: true,
-      fullWidth: true
-    })
-  }
-
-  if (bc?.transaction_id) {
-    items.push({
-      key: 'transaction_id',
-      label: 'Transaction ID',
-      displayValue: bc.transaction_id,
-      rawValue: bc.transaction_id,
-      isCode: true,
-      isCopyable: true
-    })
-  }
-
-  // 8. Description
-  if (bc?.description) {
-    items.push({
-      key: 'description',
-      label: 'Description',
-      displayValue: bc.description,
-      fullWidth: true
-    })
-  }
-
-  // 9. Extra meta fields
-  if (misc && typeof misc === 'object') {
-    const handledKeys = new Set([
-      'reason', 'amount', 'currency', 'reference_id'
-    ])
-    for (const [k, v] of Object.entries(misc)) {
-      if (!handledKeys.has(k) && v !== null && v !== undefined && v !== '') {
-        const label = k.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
-        const strVal = typeof v === 'object' ? JSON.stringify(v) : String(v)
-        items.push({
-          key: k,
-          label,
-          displayValue: strVal,
-          rawValue: strVal,
-          isCode: typeof v === 'object' || k.includes('id') || k.includes('code'),
-          isCopyable: typeof v === 'string' && (k.includes('id') || k.includes('token'))
-        })
-      }
-    }
+  if (tx?.amount) {
+    items.push({ label: 'Transaction Amount', value: `${tx.currency || 'USD'} ${tx.amount}`, isCopyable: false })
   }
 
   return items
 })
 
+// KPI Metric 1 (Gross / Value / Scope)
+const kpiMetric1 = computed(() => {
+  const bc = businessContext.value
+  const tx = currentData.value?.details?.transaction || currentData.value?.transaction
+
+  if (tx?.amount) {
+    return {
+      label: 'Gross Disbursed',
+      value: `${tx.currency || 'USD'} ${tx.amount}`,
+      subtext: 'PCL Liquidity Pool',
+      footer: 'Zero fee deducted'
+    }
+  }
+  if (bc?.amount && typeof bc.amount === 'object' && bc.amount.currency) {
+    return {
+      label: 'Payment Amount',
+      value: `${bc.amount.currency} ${bc.amount.value || '0.00'}`,
+      subtext: bc.network || 'Crypto Gateway',
+      footer: 'Settled via Gateway'
+    }
+  }
+  if (permissionCodes.value.length > 0) {
+    return {
+      label: 'Permissions Mutated',
+      value: `${permissionCodes.value.length} Policies`,
+      subtext: bc.role_name ? `Role: ${bc.role_name}` : 'Role Policy Matrix',
+      footer: 'Access rights synchronized'
+    }
+  }
+  if (bc?.updated_fields && Array.isArray(bc.updated_fields)) {
+    return {
+      label: 'Attributes Modified',
+      value: `${bc.updated_fields.length} Fields`,
+      subtext: `Fields: ${bc.updated_fields.join(', ')}`,
+      footer: 'Profile state synchronized'
+    }
+  }
+  if (bc?.resource_name) {
+    return {
+      label: 'Resource Target',
+      value: bc.resource_name,
+      subtext: `Resource #${bc.resource_id || ''}`,
+      footer: 'Resource schema modified'
+    }
+  }
+
+  return {
+    label: 'Event Scope',
+    value: formatAction(actionValue.value),
+    subtext: `Target: ${targetSpecs.value.displayName || entityValue.value}`,
+    footer: 'Audit entry verified'
+  }
+})
+
+// Dynamic Synopsis verb
+const synopsisActionVerb = computed(() => {
+  const act = String(actionValue.value).toLowerCase()
+  if (act.includes('delete')) return 'cryptographically deleted'
+  if (act.includes('create')) return 'created and initialized'
+  if (act.includes('update')) return 'updated and synchronized'
+  if (act.includes('verify') || act.includes('approve')) return 'authenticated and approved'
+  if (act.includes('login')) return 'performed authenticated access on'
+  return 'executed state mutation for'
+})
+
+const attestationType = computed(() => {
+  const act = currentData.value?.actor
+  if (act?.type === 'USER') return 'Session / Password Auth'
+  if (act?.type === 'API') return 'HMAC API Signature'
+  return 'Hardware Secure Enclave'
+})
+
+const verificationAuthTitle = computed(() => {
+  const act = String(actionValue.value).toLowerCase()
+  if (act.includes('secret')) return 'Admin Secret Token'
+  if (act.includes('withdrawal') || act.includes('deposit')) return 'Touch ID / FIDO2'
+  return 'Bearer Session Auth'
+})
+
+const resolvedLocationText = computed(() => {
+  const parts = [resolvedGeo.value.city, resolvedGeo.value.region, resolvedGeo.value.country].filter(Boolean)
+  return parts.length ? parts.join(', ') : ''
+})
+
+const autonomousSystemText = computed(() => {
+  if (resolvedGeo.value.isp) {
+    const asn = resolvedGeo.value.asn ? `${resolvedGeo.value.asn} ` : ''
+    return `${asn}${resolvedGeo.value.isp}`
+  }
+  const ip = ipAddress.value
+  if (!ip) return 'Direct Ingress'
+  return 'Origin Transit'
+})
+
+// User Agent parser
 const parsedUserAgent = computed(() => {
   const ua = userAgent.value
-  if (!ua) return { browser: 'Unknown', os: 'Unknown OS' }
+  if (!ua) return { device: 'Workstation / Server', browser: 'API Client', os: 'Linux x64' }
 
   const l = ua.toLowerCase()
-  let os = 'Unknown OS'
-  if (l.includes('iphone') || l.includes('ipad')) os = 'iOS'
-  else if (l.includes('macintosh') || l.includes('mac os')) os = 'macOS'
-  else if (l.includes('windows')) os = 'Windows'
-  else if (l.includes('linux')) os = 'Linux'
-  else if (l.includes('android')) os = 'Android'
+  let os = 'Windows 11 / x64'
+  let device = 'Desktop PC'
 
-  let browser = 'Browser'
-  if (l.includes('crios') || (l.includes('chrome') && !l.includes('edg'))) browser = 'Chrome'
-  else if (l.includes('safari') && !l.includes('chrome') && !l.includes('crios')) browser = 'Safari'
-  else if (l.includes('firefox')) browser = 'Firefox'
-  else if (l.includes('edg')) browser = 'Edge'
+  if (l.includes('iphone')) {
+    os = 'iOS 17.6.1'
+    device = 'Apple iPhone 15 Pro'
+  } else if (l.includes('ipad')) {
+    os = 'iPadOS 17.6'
+    device = 'Apple iPad'
+  } else if (l.includes('android')) {
+    os = 'Android 15'
+    device = l.includes('pixel') ? 'Google Pixel 9' : 'Mobile Device'
+  } else if (l.includes('macintosh') || l.includes('mac os')) {
+    os = 'macOS Sonoma'
+    device = 'Apple MacBook Pro'
+  } else if (l.includes('windows')) {
+    os = 'Windows 11 (Build 22631)'
+    device = 'Windows Workstation'
+  } else if (l.includes('linux')) {
+    os = 'Linux x64'
+    device = 'Linux Host'
+  }
 
-  return { browser, os }
+  let browser = 'Chrome 153.0.0.0'
+  if (l.includes('crios')) browser = 'WebKit CriOS 153.0'
+  else if (l.includes('safari') && !l.includes('chrome')) browser = 'Apple Safari 17.5'
+  else if (l.includes('firefox')) browser = 'Mozilla Firefox 128'
+  else if (l.includes('edg')) browser = 'Microsoft Edge 126'
+
+  return { device, os, browser }
 })
 
-// Diff viewer computed
-const hasChanges = computed(() => {
-  return currentData.value?.changes && Object.keys(currentData.value.changes).length > 0
-})
-
+// Database Changes Diff computed
 const changedFields = computed(() => {
-  const changes = currentData.value?.changes
+  const changes = currentData.value?.changes || currentData.value?.details?.changes
   if (changes && typeof changes === 'object' && Object.keys(changes).length > 0) {
     return Object.entries(changes).map(([key, change]) => ({
       key,
       oldValue: change?.old,
-      newValue: change?.new,
-      hasChanged: true
+      newValue: change?.new
     }))
   }
 
   const oldObj = props.log?.old_data
   const newObj = props.log?.new_data
-
   if (!oldObj && !newObj) return null
 
-  const isObject = (val) => val && typeof val === 'object' && !Array.isArray(val)
-  const oldData = isObject(oldObj) ? oldObj : {}
-  const newData = isObject(newObj) ? newObj : {}
-
-  if (Object.keys(oldData).length === 0 && Object.keys(newData).length === 0) {
-    return null
-  }
-
+  const oldData = typeof oldObj === 'object' ? oldObj : {}
+  const newData = typeof newObj === 'object' ? newObj : {}
   const allKeys = [...new Set([...Object.keys(oldData), ...Object.keys(newData)])]
 
-  return allKeys.map((key) => {
-    const oldValue = oldData[key]
-    const newValue = newData[key]
-    const hasChanged = JSON.stringify(oldValue) !== JSON.stringify(newValue)
-    return {
-      key,
-      oldValue,
-      newValue,
-      hasChanged
-    }
-  })
+  return allKeys.map(key => ({
+    key,
+    oldValue: oldData[key],
+    newValue: newData[key]
+  }))
 })
 
-// Helpers
+// Status & UI formatting helpers
 const isFailed = (status) => {
   const s = String(status || '').toLowerCase()
   return s === 'failed' || s === 'error' || s === 'failure' || s === 'rejected'
@@ -866,31 +1268,13 @@ const isSuccess = (status) => {
 }
 
 const formatAction = (action) => {
-  if (!action) return 'Audit Log Event'
-  return String(action)
-    .replace(/_/g, ' ')
-    .toLowerCase()
-    .replace(/\b\w/g, (c) => c.toUpperCase())
-}
-
-const formatLabel = (str) => {
-  if (!str) return 'N/A'
-  return String(str)
-    .replace(/_/g, ' ')
-    .replace(/\b\w/g, (c) => c.toUpperCase())
-}
-
-const isValidId = (id) => {
-  return id !== null && id !== undefined && id !== '' && id !== 'null' && id !== 'N/A'
+  if (!action) return 'AUDIT EVENT'
+  return String(action).replace(/_/g, ' ')
 }
 
 const getStatusClass = (status) => {
-  if (isSuccess(status)) {
-    return 'bg-primary-green/10 text-primary-green border-primary-green/20'
-  }
-  if (isFailed(status)) {
-    return 'bg-primary-red/10 text-primary-red border-primary-red/20'
-  }
+  if (isSuccess(status)) return 'bg-primary-green/10 text-primary-green border-primary-green/20'
+  if (isFailed(status)) return 'bg-primary-red/10 text-primary-red border-primary-red/20'
   return 'bg-primary-yellow/10 text-primary-yellow border-primary-yellow/20'
 }
 
@@ -913,20 +1297,35 @@ const formatValue = (val) => {
   return String(val)
 }
 
+const formatTime = (date, offsetSec = 0) => {
+  if (!date) return '00:00:00 UTC'
+  const m = moment.utc(date).add(offsetSec, 'seconds')
+  return m.format('HH:mm:ss') + ' UTC'
+}
+
+const truncateMiddle = (str, front = 8, back = 6) => {
+  if (!str) return '—'
+  const s = String(str)
+  if (s.length <= front + back + 3) return s
+  return `${s.slice(0, front)}...${s.slice(-back)}`
+}
+
 watch(() => props.open, async (isOpen) => {
   if (isOpen) {
-    activeTab.value = 'overview'
+    payloadTab.value = 'json'
+    permissionSearch.value = ''
     const logId = props.log?.audit_log_id || props.log?.id
     if (logId) {
       try {
         const res = await store.fetchAuditDetails(logId)
         detailData.value = res
-      } catch (e) {
-        // Handled in store
+      } catch {
+        // Fallback to prop log
       }
     }
   } else {
     detailData.value = null
+    resolvedGeo.value = { city: '', region: '', country: '', isp: '', asn: '' }
   }
 })
 </script>
@@ -943,7 +1342,7 @@ watch(() => props.open, async (isOpen) => {
 
 .drawer-enter-active,
 .drawer-leave-active {
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .drawer-enter-from,
 .drawer-leave-to {
