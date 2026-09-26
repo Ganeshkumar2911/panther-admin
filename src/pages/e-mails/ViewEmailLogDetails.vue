@@ -45,7 +45,7 @@
         </div>
 
         <!-- Toolbar View Switcher -->
-        <!-- <div
+        <div
           class="px-6 py-2.5 border-b border-primary-border flex items-center justify-between gap-3 bg-background/50 shrink-0"
         >
           <div class="flex items-center gap-1 bg-card-background border border-primary-border rounded-lg p-1">
@@ -87,7 +87,7 @@
               <span>Copy Message ID</span>
             </button>
           </div>
-        </div> -->
+        </div>
 
        
         <div class="flex-1 overflow-y-auto p-6 bg-card-background">
@@ -221,7 +221,7 @@
 
             <!-- TAB 2: EMAIL HTML BODY PREVIEW -->
             <template v-else-if="activeTab === 'preview'">
-              <div class="border border-primary-border rounded-2xl overflow-hidden bg-white shadow-lg h-[550px] flex flex-col">
+              <div class="border border-primary-border rounded-2xl overflow-hidden bg-white shadow-lg h-[750px] flex flex-col">
                 <div class="bg-slate-900 text-slate-300 text-xs px-4 py-2 border-b border-slate-800 flex items-center justify-between font-mono shrink-0">
                   <span class="truncate">To: {{ store.viewLogsDetaisl.email }}</span>
                   <span class="text-[10px] text-slate-400">Sandboxed Email Viewer</span>
