@@ -1138,7 +1138,7 @@
             <button
               type="button"
               class="flex items-center justify-center gap-2 px-5 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition active:scale-95 cursor-pointer disabled:opacity-60 shadow-xs"
-              :disabled="submitting"
+              :disabled="submitting || !hasChanges"
               @click="submit"
             >
               <Loader2 v-if="submitting" class="w-3.5 h-3.5 animate-spin" />
@@ -1202,6 +1202,11 @@ const store = usePaymentMethodsStore()
 const isEdit = computed(() => !!props.paymentMethod)
 const formBodyRef = ref(null)
 const submitting = ref(false)
+const initialFormState = ref(null)
+const hasChanges = computed(() => {
+  if (!isEdit.value) return true
+  return JSON.stringify(form.value) !== initialFormState.value
+})
 const validationErrors = ref([])
 const fieldErrors = ref({})
 const metaActiveTab = ref('deposit') // 'deposit' | 'withdrawal'
@@ -1356,6 +1361,12 @@ watch(
       } else {
         // Create Mode: start clean without any hardcoded templates
         form.value = defaultFormData()
+      }
+
+      if (props.paymentMethod) {
+        initialFormState.value = JSON.stringify(form.value)
+      } else {
+        initialFormState.value = null
       }
     }
   },
@@ -1753,19 +1764,30 @@ const submit = async () => {
       withdraw_notification_targets: form.value.withdraw_notification_targets || [],
     }
 
-    // Include optional credentials only if provided
-    if (form.value.upi_id) payload.upi_id = form.value.upi_id.trim()
-    if (form.value.bank_name) payload.bank_name = form.value.bank_name.trim()
-    if (form.value.account_name) payload.account_name = form.value.account_name.trim()
-    if (form.value.account_number) payload.account_number = form.value.account_number.trim()
-    if (form.value.ifsc_code) payload.ifsc_code = form.value.ifsc_code.trim()
-    if (form.value.branch_name) payload.branch_name = form.value.branch_name.trim()
-    if (form.value.swift_code) payload.swift_code = form.value.swift_code.trim()
-    if (form.value.wallet_id) payload.wallet_id = form.value.wallet_id.trim()
-    if (form.value.wallet_address) payload.wallet_address = form.value.wallet_address.trim()
+    // Include optional credentials, allowing clearance by setting to null if empty
+    payload.upi_id = form.value.upi_id ? form.value.upi_id.trim() : null
+    payload.bank_name = form.value.bank_name ? form.value.bank_name.trim() : null
+    payload.account_name = form.value.account_name ? form.value.account_name.trim() : null
+    payload.account_number = form.value.account_number ? form.value.account_number.trim() : null
+    payload.ifsc_code = form.value.ifsc_code ? form.value.ifsc_code.trim() : null
+    payload.branch_name = form.value.branch_name ? form.value.branch_name.trim() : null
+    payload.swift_code = form.value.swift_code ? form.value.swift_code.trim() : null
+    payload.wallet_id = form.value.wallet_id ? form.value.wallet_id.trim() : null
+    payload.wallet_address = form.value.wallet_address ? form.value.wallet_address.trim() : null
 
     if (isEdit.value) {
-      await store.updatePaymentMethod(props.paymentMethod.id, payload)
+      const initialPayloadRaw = JSON.parse(initialFormState.value)
+      const diffPayload = {}
+      
+      for (const key in payload) {
+        if (JSON.stringify(payload[key]) !== JSON.stringify(initialPayloadRaw[key])) {
+          diffPayload[key] = payload[key]
+        }
+      }
+      
+      if (Object.keys(diffPayload).length > 0) {
+        await store.updatePaymentMethod(props.paymentMethod.id, diffPayload)
+      }
     } else {
       await store.createPaymentMethod(payload)
     }

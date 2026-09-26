@@ -220,7 +220,7 @@ export const usePaymentMethodsStore = defineStore(
         }
 
         apiRequest(
-          urls.KEYS.PUT,
+          urls.KEYS.PATCH,
           urls.paymentMethods.update,
           {
             look_up_key: id,
