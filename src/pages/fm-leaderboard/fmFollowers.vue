@@ -1,35 +1,59 @@
 <template>
   <div class="space-y-6 py-2">
     <!-- Top Header / FM Basic Info Banner -->
-    <div class="bg-card-background border border-primary-border rounded-2xl p-4 sm:p-5 shadow-2xs">
-      <div v-if="fmInfo" class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div
+      class="bg-card-background border border-primary-border rounded-2xl p-4 sm:p-5 shadow-2xs"
+    >
+      <div
+        v-if="fmInfo"
+        class="flex flex-col md:flex-row md:items-center justify-between gap-4"
+      >
         <div class="flex items-center gap-3.5 min-w-0">
-          <div class="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 text-primary font-bold text-sm flex items-center justify-center shrink-0">
-            {{ (fmInfo.label_name || 'FM')[0].toUpperCase() }}
+          <div
+            class="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 text-primary font-bold text-sm flex items-center justify-center shrink-0"
+          >
+            {{ (fmInfo.label_name || "FM")[0].toUpperCase() }}
           </div>
           <div class="min-w-0">
             <div class="flex items-center gap-2 flex-wrap">
               <h2 class="text-base font-bold text-primary-text truncate">
-                {{ fmInfo.label_name || 'Fund Manager Followers' }}
+                {{ fmInfo.label_name || "Fund Manager Followers" }}
               </h2>
               <span
                 class="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border inline-flex items-center gap-1"
-                :class="fmInfo.is_active ? 'bg-primary-green/10 text-primary-green border border-primary-green/20' : 'bg-background text-secondary-text border border-primary-border'"
+                :class="
+                  fmInfo.is_active
+                    ? 'bg-primary-green/10 text-primary-green border border-primary-green/20'
+                    : 'bg-background text-secondary-text border border-primary-border'
+                "
               >
-                <span class="w-1.5 h-1.5 rounded-full" :class="fmInfo.is_active ? 'bg-primary-green' : 'bg-zinc-400'" />
-                {{ fmInfo.is_active ? 'Active' : 'Inactive' }}
+                <span
+                  class="w-1.5 h-1.5 rounded-full"
+                  :class="fmInfo.is_active ? 'bg-primary-green' : 'bg-zinc-400'"
+                />
+                {{ fmInfo.is_active ? "Active" : "Inactive" }}
               </span>
-              <span class="text-[9px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-md border text-secondary-text bg-background/80 border-primary-border">
-                {{ fmInfo.visibility_type || 'public' }}
+              <span
+                class="text-[9px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-md border text-secondary-text bg-background/80 border-primary-border"
+              >
+                {{ fmInfo.visibility_type || "public" }}
               </span>
             </div>
-            <div class="flex items-center gap-3 text-xs text-secondary-text mt-1 flex-wrap font-medium">
-              <span v-if="fmInfo.user?.email" class="flex items-center gap-1 font-mono text-primary-text select-all">
+            <div
+              class="flex items-center gap-3 text-xs text-secondary-text mt-1 flex-wrap font-medium"
+            >
+              <span
+                v-if="fmInfo.user?.email"
+                class="flex items-center gap-1 font-mono text-primary-text select-all"
+              >
                 <Mail class="w-3.5 h-3.5 text-primary shrink-0" />
                 {{ fmInfo.user.email }}
               </span>
               <span v-if="fmInfo.user?.name" class="text-secondary-text">
-                Owner: <strong class="text-primary-text">{{ fmInfo.user.name }}</strong>
+                Owner:
+                <strong class="text-primary-text">{{
+                  fmInfo.user.name
+                }}</strong>
               </span>
             </div>
           </div>
@@ -37,25 +61,60 @@
 
         <!-- Summary Specs & Refresh Button -->
         <div class="flex items-center gap-3 shrink-0 flex-wrap">
-          <div class="flex items-center gap-3 text-xs bg-background/60 border border-primary-border/60 rounded-xl px-3.5 py-2 shrink-0 flex-wrap">
+          <div
+            class="flex items-center gap-3 text-xs bg-background/60 border border-primary-border/60 rounded-xl px-3.5 py-2 shrink-0 flex-wrap"
+          >
             <div>
-              <span class="text-[9px] uppercase text-secondary-text block font-semibold">Master Account</span>
-              <span class="font-bold text-primary-text font-mono text-xs">{{ fmInfo.master_account?.account_number || `#${fmInfo.master_account_id}` }}</span>
+              <span
+                class="text-[9px] uppercase text-secondary-text block font-semibold"
+                >Master Account</span
+              >
+              <span class="font-bold text-primary-text font-mono text-xs">{{
+                fmInfo.master_account?.account_number ||
+                `#${fmInfo.master_account_id}`
+              }}</span>
             </div>
             <div class="h-6 w-px bg-primary-border/60" />
             <div>
-              <span class="text-[9px] uppercase text-secondary-text block font-semibold">Coverage Account</span>
-              <span class="font-bold text-primary-text font-mono text-xs">{{ fmInfo.coverage_account?.account_number || `#${fmInfo.coverage_account_id}` }}</span>
+              <span
+                class="text-[9px] uppercase text-secondary-text block font-semibold"
+                >Coverage Account</span
+              >
+              <span class="font-bold text-primary-text font-mono text-xs">{{
+                fmInfo.coverage_account?.account_number ||
+                `#${fmInfo.coverage_account_id}`
+              }}</span>
             </div>
             <div class="h-6 w-px bg-primary-border/60" />
             <div>
-              <span class="text-[9px] uppercase text-secondary-text block font-semibold">Perf Fee / Min Cap</span>
-              <span class="font-bold text-primary text-xs">{{ fmInfo.performance_fee }}% · {{ formatCurrency(fmInfo.min_capital, activeCurrency) }}</span>
+              <span
+                class="text-[9px] uppercase text-secondary-text block font-semibold"
+                >Perf Fee / Min Cap</span
+              >
+              <span class="font-bold text-primary text-xs"
+                >{{ fmInfo.performance_fee }}% ·
+                {{ formatCurrency(fmInfo.min_capital, activeCurrency) }}</span
+              >
             </div>
           </div>
 
           <button
-            v-if="hasPermission('fund_manager.update') || hasPermission('xtention_dev.view')"
+            class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
+            @click="fetchOpenPositions"
+            :disabled="loadingOpenPositions"
+          >
+            <Activity
+              class="w-3.5 h-3.5"
+              :class="{ 'animate-pulse': loadingOpenPositions }"
+            />
+            <span>Check Open Pos</span>
+          </button>
+
+          <button
+            v-if="
+              hasPermission('fund_manager.update') ||
+              hasPermission('xtention_dev.view')
+            "
             class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary-red hover:bg-primary-red/90 text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
             @click="clearPositionsDialogOpen = true"
           >
@@ -79,16 +138,34 @@
               :disabled="loading"
               title="Refresh List"
             >
-              <RotateCw class="w-3.5 h-3.5" :class="{ 'animate-spin': loading }" />
+              <RotateCw
+                class="w-3.5 h-3.5"
+                :class="{ 'animate-spin': loading }"
+              />
             </button>
           </Tooltip>
         </div>
       </div>
       <div v-else class="flex items-center justify-between gap-3">
         <h2 class="text-base font-bold text-primary-text">
-          Clients & Followers List <span class="text-xs text-secondary-text font-normal">(FM #{{ fmId }})</span>
+          Clients & Followers List
+          <span class="text-xs text-secondary-text font-normal"
+            >(FM #{{ fmId }})</span
+          >
         </h2>
         <div class="flex items-center gap-2">
+          <button
+            class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
+            @click="fetchOpenPositions"
+            :disabled="loadingOpenPositions"
+          >
+            <Activity
+              class="w-3.5 h-3.5"
+              :class="{ 'animate-pulse': loadingOpenPositions }"
+            />
+            <span>Check Open Pos</span>
+          </button>
+
           <button
             v-if="hasPermission('fund_manager.update')"
             class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary-red hover:bg-primary-red/90 text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
@@ -114,7 +191,10 @@
               :disabled="loading"
               title="Refresh List"
             >
-              <RotateCw class="w-3.5 h-3.5" :class="{ 'animate-spin': loading }" />
+              <RotateCw
+                class="w-3.5 h-3.5"
+                :class="{ 'animate-spin': loading }"
+              />
             </button>
           </Tooltip>
         </div>
@@ -122,8 +202,12 @@
     </div>
 
     <!-- Status Navigation Tabs -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-      <div class="flex items-center gap-1 bg-card-background border border-primary-border rounded-xl p-1 shadow-2xs overflow-x-auto max-w-full">
+    <div
+      class="flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+    >
+      <div
+        class="flex items-center gap-1 bg-card-background border border-primary-border rounded-xl p-1 shadow-2xs overflow-x-auto max-w-full"
+      >
         <button
           v-for="tab in statusTabs"
           :key="tab.value"
@@ -142,9 +226,16 @@
           />
           {{ tab.label }}
           <span
-            v-if="selectedStatus === tab.value && pagination.total_items !== undefined"
+            v-if="
+              selectedStatus === tab.value &&
+              pagination.total_items !== undefined
+            "
             class="px-1.5 py-0.2 rounded-full text-[10px] font-mono leading-none"
-            :class="selectedStatus === tab.value ? 'bg-white/20 text-white' : 'bg-background text-secondary-text border border-primary-border'"
+            :class="
+              selectedStatus === tab.value
+                ? 'bg-white/20 text-white'
+                : 'bg-background text-secondary-text border border-primary-border'
+            "
           >
             {{ pagination.total_items }}
           </span>
@@ -152,18 +243,32 @@
       </div>
 
       <!-- Quick status indicator -->
-      <div class="text-xs text-secondary-text font-medium hidden sm:flex items-center gap-2">
-        <span class="inline-block w-2 h-2 rounded-full" :class="currentStatusDotClass" />
-        <span>View: <strong class="text-primary-text">{{ currentStatusTitle }}</strong></span>
+      <div
+        class="text-xs text-secondary-text font-medium hidden sm:flex items-center gap-2"
+      >
+        <span
+          class="inline-block w-2 h-2 rounded-full"
+          :class="currentStatusDotClass"
+        />
+        <span
+          >View:
+          <strong class="text-primary-text">{{
+            currentStatusTitle
+          }}</strong></span
+        >
       </div>
     </div>
 
     <!-- Filters Bar -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-card-background/40 border border-primary-border rounded-xl p-2.5">
+    <div
+      class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-card-background/40 border border-primary-border rounded-xl p-2.5"
+    >
       <div class="flex items-center gap-2 flex-1 min-w-0">
         <!-- Search Input -->
         <div class="relative w-full sm:w-64">
-          <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-secondary-text pointer-events-none" />
+          <Search
+            class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-secondary-text pointer-events-none"
+          />
           <input
             v-model="searchQuery"
             type="text"
@@ -203,7 +308,9 @@
 
     <!-- SKELETON LOADING STATE -->
     <template v-if="loading">
-      <div class="hidden md:block w-full border border-primary-border rounded-2xl overflow-hidden bg-card-background/40">
+      <div
+        class="hidden md:block w-full border border-primary-border rounded-2xl overflow-hidden bg-card-background/40"
+      >
         <table class="w-full border-collapse">
           <thead>
             <tr class="border-b border-primary-border bg-card-background/50">
@@ -213,22 +320,37 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="n in 5" :key="n" class="border-b border-primary-border/60 last:border-none">
+            <tr
+              v-for="n in 5"
+              :key="n"
+              class="border-b border-primary-border/60 last:border-none"
+            >
               <td v-for="i in 8" :key="i" class="px-4 py-4">
-                <div class="h-4 bg-background rounded animate-pulse" :class="i === 1 ? 'w-32' : 'w-16'" />
+                <div
+                  class="h-4 bg-background rounded animate-pulse"
+                  :class="i === 1 ? 'w-32' : 'w-16'"
+                />
               </td>
             </tr>
           </tbody>
         </table>
       </div>
       <div class="md:hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div v-for="n in 3" :key="n" class="bg-card-background border border-primary-border rounded-2xl p-5 animate-pulse space-y-4">
+        <div
+          v-for="n in 3"
+          :key="n"
+          class="bg-card-background border border-primary-border rounded-2xl p-5 animate-pulse space-y-4"
+        >
           <div class="flex items-center justify-between">
             <div class="h-4 w-32 bg-background rounded" />
             <div class="h-5 w-14 bg-background rounded-full" />
           </div>
           <div class="grid grid-cols-2 gap-2">
-            <div v-for="m in 4" :key="m" class="h-10 bg-background rounded-xl" />
+            <div
+              v-for="m in 4"
+              :key="m"
+              class="h-10 bg-background rounded-xl"
+            />
           </div>
         </div>
       </div>
@@ -239,24 +361,34 @@
       v-else-if="filteredFollowers.length === 0"
       class="flex flex-col items-center justify-center rounded-2xl border border-dashed border-primary-border bg-card-background/30 py-20 px-4 text-center"
     >
-      <div class="w-16 h-16 rounded-2xl bg-background border border-primary-border flex items-center justify-center mb-4 shadow-xs">
+      <div
+        class="w-16 h-16 rounded-2xl bg-background border border-primary-border flex items-center justify-center mb-4 shadow-xs"
+      >
         <Users class="w-7 h-7 text-secondary-text" />
       </div>
       <p class="text-base font-semibold text-primary-text mb-1">
-        {{ hasActiveFilters ? 'No matching followers found' : emptyStateTitle }}
+        {{ hasActiveFilters ? "No matching followers found" : emptyStateTitle }}
       </p>
       <p class="text-xs text-secondary-text max-w-sm">
-        {{ hasActiveFilters ? 'Try adjusting your search criteria or resetting filters.' : emptyStateDescription }}
+        {{
+          hasActiveFilters
+            ? "Try adjusting your search criteria or resetting filters."
+            : emptyStateDescription
+        }}
       </p>
     </div>
 
     <!-- MAIN CONTENT -->
     <template v-else>
       <!-- Desktop Table View -->
-      <div class="hidden md:block w-full border border-primary-border rounded-2xl overflow-x-auto bg-card-background/40 shadow-sm">
+      <div
+        class="hidden md:block w-full border border-primary-border rounded-2xl overflow-x-auto bg-card-background/40 shadow-sm"
+      >
         <table class="w-full border-collapse text-left text-xs">
           <thead>
-            <tr class="border-b border-primary-border bg-background/60 text-secondary-text font-bold uppercase tracking-wider text-[10px]">
+            <tr
+              class="border-b border-primary-border bg-background/60 text-secondary-text font-bold uppercase tracking-wider text-[10px]"
+            >
               <th class="py-3.5 px-4 whitespace-nowrap">Follower & Email</th>
               <th class="py-3.5 px-4 whitespace-nowrap">Account & Server</th>
               <th class="py-3.5 px-4 whitespace-nowrap">Equity & PnL</th>
@@ -275,15 +407,23 @@
               <!-- Name & Email -->
               <td class="py-4 px-4">
                 <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 text-primary flex items-center justify-center font-bold text-xs shrink-0">
-                    {{ (row.name || 'F')[0].toUpperCase() }}
+                  <div
+                    class="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 text-primary flex items-center justify-center font-bold text-xs shrink-0"
+                  >
+                    {{ (row.name || "F")[0].toUpperCase() }}
                   </div>
                   <div class="min-w-0">
-                    <p class="font-bold text-primary-text text-xs truncate" :title="row.name">
-                      {{ row.name || 'Unnamed Follower' }}
+                    <p
+                      class="font-bold text-primary-text text-xs truncate"
+                      :title="row.name"
+                    >
+                      {{ row.name || "Unnamed Follower" }}
                     </p>
-                    <p class="text-[11px] font-semibold text-primary font-mono select-all truncate max-w-50" :title="row.email">
-                      {{ row.email || 'No email' }}
+                    <p
+                      class="text-[11px] font-semibold text-primary font-mono select-all truncate max-w-50"
+                      :title="row.email"
+                    >
+                      {{ row.email || "No email" }}
                     </p>
                   </div>
                 </div>
@@ -295,8 +435,10 @@
                   <p class="font-mono text-xs text-primary-text font-bold">
                     {{ row.account_number || `#${row.account_id}` }}
                   </p>
-                  <p class="text-[10px] text-secondary-text uppercase font-semibold">
-                    {{ row.broker_label || row.server || 'COPY_TRADING' }}
+                  <p
+                    class="text-[10px] text-secondary-text uppercase font-semibold"
+                  >
+                    {{ row.broker_label || row.server || "COPY_TRADING" }}
                   </p>
                 </div>
               </td>
@@ -304,12 +446,24 @@
               <!-- Equity & PnL -->
               <td class="py-4 px-4 whitespace-nowrap">
                 <div class="space-y-0.5">
-                  <p class="text-xs font-extrabold text-primary-text">{{ formatCurrency(row.equity, getRowCurrency(row)) }}</p>
+                  <p class="text-xs font-extrabold text-primary-text">
+                    {{ formatCurrency(row.equity, getRowCurrency(row)) }}
+                  </p>
                   <p
                     class="text-[10px] font-bold"
-                    :class="Number(row.net_profit || row.gross_pnl || 0) >= 0 ? 'text-emerald-500' : 'text-rose-500'"
+                    :class="
+                      Number(row.net_profit || row.gross_pnl || 0) >= 0
+                        ? 'text-emerald-500'
+                        : 'text-rose-500'
+                    "
                   >
-                    PnL: {{ formatPnl(row.net_profit || row.gross_pnl, getRowCurrency(row)) }}
+                    PnL:
+                    {{
+                      formatPnl(
+                        row.net_profit || row.gross_pnl,
+                        getRowCurrency(row),
+                      )
+                    }}
                   </p>
                 </div>
               </td>
@@ -318,10 +472,34 @@
               <td class="py-4 px-4 whitespace-nowrap">
                 <div class="space-y-0.5">
                   <p class="text-xs font-semibold text-primary-text capitalize">
-                    {{ row.lot_type || 'fixed' }} <span class="text-secondary-text text-[10px] font-normal">({{ row.lot_value ?? '0' }})</span>
+                    {{ row.lot_type || "fixed" }}
+                    <span class="text-secondary-text text-[10px] font-normal"
+                      >({{ row.lot_value ?? "0" }})</span
+                    >
                   </p>
                   <p class="text-[10px] text-secondary-text">
-                    Trades: <span class="font-bold text-primary-text">{{ row.total_trades ?? 0 }}</span> · Fees: <span class="font-bold text-primary-text">{{ formatCurrency(row.total_fees, getRowCurrency(row)) }}</span>
+                    Trades:
+                    <span class="font-bold text-primary-text">{{
+                      row.total_trades ?? 0
+                    }}</span
+                    ><span v-if="row.open_position_count !== undefined">
+                      · Open Pos:
+                      <span
+                        class="font-bold"
+                        :class="
+                          row.open_position_count > 0
+                            ? 'text-amber-500'
+                            : 'text-primary-text'
+                        "
+                        >{{ row.open_position_count }}</span
+                      ></span
+                    >
+                  </p>
+                  <p class="text-[10px] text-secondary-text">
+                    Fees:
+                    <span class="font-bold text-primary-text">{{
+                      formatCurrency(row.total_fees, getRowCurrency(row))
+                    }}</span>
                   </p>
                 </div>
               </td>
@@ -329,11 +507,19 @@
               <!-- Offer & IB Partner -->
               <td class="py-4 px-4 whitespace-nowrap">
                 <div class="space-y-0.5">
-                  <p v-if="row.offer_name" class="text-xs font-semibold text-primary-text truncate max-w-42.5" :title="row.offer_name">
+                  <p
+                    v-if="row.offer_name"
+                    class="text-xs font-semibold text-primary-text truncate max-w-42.5"
+                    :title="row.offer_name"
+                  >
                     {{ row.offer_name }}
                   </p>
                   <p v-else class="text-xs text-secondary-text">—</p>
-                  <p v-if="row.ib_name || row.ib_email" class="text-[10px] text-secondary-text truncate max-w-42.5" :title="row.ib_email">
+                  <p
+                    v-if="row.ib_name || row.ib_email"
+                    class="text-[10px] text-secondary-text truncate max-w-42.5"
+                    :title="row.ib_email"
+                  >
                     IB: {{ row.ib_name || row.ib_email }}
                   </p>
                 </div>
@@ -345,11 +531,20 @@
                   class="text-[10px] font-bold tracking-wide uppercase px-2.5 py-0.5 rounded-full border inline-flex items-center gap-1.5 shadow-2xs"
                   :class="getStatusBadgeClass(row)"
                 >
-                  <span class="w-1.5 h-1.5 rounded-full" :class="getStatusDotClass(row)" />
+                  <span
+                    class="w-1.5 h-1.5 rounded-full"
+                    :class="getStatusDotClass(row)"
+                  />
                   {{ getStatusLabel(row) }}
                 </span>
-                <p v-if="row.unfollowed_at || row.ended_at || row.left_at" class="text-[10px] text-secondary-text mt-1 font-mono">
-                  Ended: {{ formatDate(row.unfollowed_at || row.ended_at || row.left_at) }}
+                <p
+                  v-if="row.unfollowed_at || row.ended_at || row.left_at"
+                  class="text-[10px] text-secondary-text mt-1 font-mono"
+                >
+                  Ended:
+                  {{
+                    formatDate(row.unfollowed_at || row.ended_at || row.left_at)
+                  }}
                 </p>
               </td>
 
@@ -365,7 +560,11 @@
                     </button>
                   </Tooltip>
 
-                  <Tooltip v-if="hasPermission('xtention_dev.login_as_client')" text="Client Login" position="right">
+                  <Tooltip
+                    v-if="hasPermission('xtention_dev.login_as_client')"
+                    text="Client Login"
+                    position="right"
+                  >
                     <button
                       class="p-1.5 rounded-lg border border-primary-border hover:bg-background text-secondary-text hover:text-primary-text transition-colors cursor-pointer inline-flex items-center gap-1 text-xs font-semibold"
                       @click="handleClientLogin(row)"
@@ -374,10 +573,28 @@
                     </button>
                   </Tooltip>
 
-                  <Tooltip v-if="!isPastFollower(row)" text="Edit Follower Settings" position="right">
+                  <Tooltip
+                    v-if="!isPastFollower(row)"
+                    :text="
+                      row.open_position_count > 0
+                        ? 'Cannot edit with open positions'
+                        : 'Edit Follower Settings'
+                    "
+                    position="right"
+                  >
                     <button
-                      class="p-1.5 rounded-lg border border-primary-border hover:bg-background text-secondary-text hover:text-primary-text transition-colors cursor-pointer inline-flex items-center gap-1 text-xs font-semibold"
-                      @click="openEditFollowerDialog(row)"
+                      class="p-1.5 rounded-lg border border-primary-border transition-colors inline-flex items-center gap-1 text-xs font-semibold"
+                      :class="
+                        row.open_position_count > 0
+                          ? 'bg-background/50 text-secondary-text/50 cursor-not-allowed'
+                          : 'hover:bg-background text-secondary-text hover:text-primary-text cursor-pointer'
+                      "
+                      :disabled="row.open_position_count > 0"
+                      @click="
+                        row.open_position_count > 0
+                          ? null
+                          : openEditFollowerDialog(row)
+                      "
                     >
                       <Pencil class="w-3.5 h-3.5" />
                     </button>
@@ -407,8 +624,12 @@
         >
           <div class="flex items-center justify-between gap-2">
             <div class="min-w-0">
-              <p class="text-xs font-bold text-primary-text truncate">{{ row.name || 'Unnamed Follower' }}</p>
-              <p class="text-[11px] text-primary font-semibold truncate">{{ row.email }}</p>
+              <p class="text-xs font-bold text-primary-text truncate">
+                {{ row.name || "Unnamed Follower" }}
+              </p>
+              <p class="text-[11px] text-primary font-semibold truncate">
+                {{ row.email }}
+              </p>
             </div>
             <div class="flex items-center gap-1.5 shrink-0">
               <span
@@ -434,9 +655,23 @@
               </button>
               <button
                 v-if="!isPastFollower(row)"
-                class="p-1 rounded-lg border border-primary-border text-secondary-text hover:text-primary-text"
-                title="Edit Follower Settings"
-                @click="openEditFollowerDialog(row)"
+                class="p-1 rounded-lg border border-primary-border transition-colors"
+                :class="
+                  row.open_position_count > 0
+                    ? 'bg-background/50 text-secondary-text/50 cursor-not-allowed'
+                    : 'text-secondary-text hover:text-primary-text cursor-pointer'
+                "
+                :title="
+                  row.open_position_count > 0
+                    ? 'Cannot edit with open positions'
+                    : 'Edit Follower Settings'
+                "
+                :disabled="row.open_position_count > 0"
+                @click="
+                  row.open_position_count > 0
+                    ? null
+                    : openEditFollowerDialog(row)
+                "
               >
                 <Pencil class="w-3.5 h-3.5" />
               </button>
@@ -450,31 +685,83 @@
             </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-2 text-xs bg-background/60 border border-primary-border/60 rounded-xl p-2.5">
+          <div
+            class="grid grid-cols-2 gap-2 text-xs bg-background/60 border border-primary-border/60 rounded-xl p-2.5"
+          >
             <div>
-              <span class="text-[9px] text-secondary-text block uppercase font-semibold">Account</span>
-              <span class="font-bold text-primary-text font-mono">{{ row.account_number || `#${row.account_id}` }}</span>
+              <span
+                class="text-[9px] text-secondary-text block uppercase font-semibold"
+                >Account</span
+              >
+              <span class="font-bold text-primary-text font-mono">{{
+                row.account_number || `#${row.account_id}`
+              }}</span>
             </div>
             <div>
-              <span class="text-[9px] text-secondary-text block uppercase font-semibold">Equity</span>
-              <span class="font-bold text-primary-text">{{ formatCurrency(row.equity, getRowCurrency(row)) }}</span>
+              <span
+                class="text-[9px] text-secondary-text block uppercase font-semibold"
+                >Equity</span
+              >
+              <span class="font-bold text-primary-text">{{
+                formatCurrency(row.equity, getRowCurrency(row))
+              }}</span>
             </div>
             <div>
-              <span class="text-[9px] text-secondary-text block uppercase font-semibold">Net PnL</span>
+              <span
+                class="text-[9px] text-secondary-text block uppercase font-semibold"
+                >Net PnL</span
+              >
               <span
                 class="font-bold"
-                :class="Number(row.net_profit || row.gross_pnl || 0) >= 0 ? 'text-emerald-500' : 'text-rose-500'"
+                :class="
+                  Number(row.net_profit || row.gross_pnl || 0) >= 0
+                    ? 'text-emerald-500'
+                    : 'text-rose-500'
+                "
               >
-                {{ formatPnl(row.net_profit || row.gross_pnl, getRowCurrency(row)) }}
+                {{
+                  formatPnl(
+                    row.net_profit || row.gross_pnl,
+                    getRowCurrency(row),
+                  )
+                }}
               </span>
             </div>
             <div>
-              <span class="text-[9px] text-secondary-text block uppercase font-semibold">Trades</span>
-              <span class="font-bold text-primary-text">{{ row.total_trades ?? 0 }}</span>
+              <span
+                class="text-[9px] text-secondary-text block uppercase font-semibold"
+                >Trades</span
+              >
+              <span class="font-bold text-primary-text">{{
+                row.total_trades ?? 0
+              }}</span>
             </div>
-            <div v-if="row.unfollowed_at || row.ended_at || row.left_at" class="col-span-2">
-              <span class="text-[9px] text-secondary-text block uppercase font-semibold">Ended Date</span>
-              <span class="font-bold text-secondary-text font-mono">{{ formatDate(row.unfollowed_at || row.ended_at || row.left_at) }}</span>
+            <div v-if="row.open_position_count !== undefined">
+              <span
+                class="text-[9px] text-secondary-text block uppercase font-semibold"
+                >Open Pos</span
+              >
+              <span
+                class="font-bold"
+                :class="
+                  row.open_position_count > 0
+                    ? 'text-amber-500'
+                    : 'text-primary-text'
+                "
+                >{{ row.open_position_count }}</span
+              >
+            </div>
+            <div
+              v-if="row.unfollowed_at || row.ended_at || row.left_at"
+              class="col-span-2"
+            >
+              <span
+                class="text-[9px] text-secondary-text block uppercase font-semibold"
+                >Ended Date</span
+              >
+              <span class="font-bold text-secondary-text font-mono">{{
+                formatDate(row.unfollowed_at || row.ended_at || row.left_at)
+              }}</span>
             </div>
           </div>
         </div>
@@ -482,10 +769,7 @@
 
       <!-- PAGINATION -->
       <div v-if="pagination.total_items > pagination.per_page" class="mt-4">
-        <Pagination
-          :pagination="pagination"
-          @page-change="handlePageChange"
-        />
+        <Pagination :pagination="pagination" @page-change="handlePageChange" />
       </div>
     </template>
 
@@ -529,8 +813,8 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { ref, computed, watch, onMounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import {
   RotateCw,
   RotateCcw,
@@ -546,170 +830,196 @@ import {
   History,
   UserPlus,
   LogIn,
-  XCircle
-} from 'lucide-vue-next'
-import apiRequest from '@/api/request'
-import urls from '@/api/urls'
-import Tooltip from '@/components/common/Tooltip.vue'
-import BaseSelect from '@/components/common/BaseSelect.vue'
-import Pagination from '@/components/common/Pagination.vue'
-import EditFollowerDialog from '@/components/fmOffers/EditFollowerDialog.vue'
-import AddFollowerDialog from '@/components/fmOffers/AddFollowerDialog.vue'
-import ClientLoginModal from '@/components/common/ClientLoginModal.vue'
-import ConfirmationDialog from '@/components/common/ConfirmationDialog.vue'
-import { useSnackbarStore } from '@/stores/snackbar/snackbar'
-import { usePermissionCheck } from '@/composables/usePermissionCheck'
+  XCircle,
+  Activity,
+} from "lucide-vue-next";
+import apiRequest from "@/api/request";
+import urls from "@/api/urls";
+import Tooltip from "@/components/common/Tooltip.vue";
+import BaseSelect from "@/components/common/BaseSelect.vue";
+import Pagination from "@/components/common/Pagination.vue";
+import EditFollowerDialog from "@/components/fmOffers/EditFollowerDialog.vue";
+import AddFollowerDialog from "@/components/fmOffers/AddFollowerDialog.vue";
+import ClientLoginModal from "@/components/common/ClientLoginModal.vue";
+import ConfirmationDialog from "@/components/common/ConfirmationDialog.vue";
+import { useSnackbarStore } from "@/stores/snackbar/snackbar";
+import { usePermissionCheck } from "@/composables/usePermissionCheck";
 
-const route = useRoute()
-const router = useRouter()
-const snackbar = useSnackbarStore()
-const { hasPermission } = usePermissionCheck()
+const route = useRoute();
+const router = useRouter();
+const snackbar = useSnackbarStore();
+const { hasPermission } = usePermissionCheck();
 
-const fmId = route.params.id
-const fmInfo = ref(null)
-const followers = ref([])
-const availableOffers = ref([])
-const loading = ref(false)
-const addFollowerDialogOpen = ref(false)
+const fmId = route.params.id;
+const fmInfo = ref(null);
+const followers = ref([]);
+const availableOffers = ref([]);
+const loading = ref(false);
+const loadingOpenPositions = ref(false);
+const addFollowerDialogOpen = ref(false);
 
-const clearPositionsDialogOpen = ref(false)
-const clearingPositions = ref(false)
+const clearPositionsDialogOpen = ref(false);
+const clearingPositions = ref(false);
 
 const handleClearPositions = () => {
-  if (!fmId) return
-  clearingPositions.value = true
+  if (!fmId) return;
+  clearingPositions.value = true;
 
-  apiRequest(urls.KEYS.POST, `/fund-managers/${fmId}/clear-follower-positions`, {
-    data: { confirm: true },
-    isTokenRequired: true,
-    onSuccess: (res) => {
-      const d = res?.data
-      const failed = d?.failed ?? []
-      
-      let msg = `Successfully processed. Followers: ${d?.followers}, Positions: ${d?.positions}, Queued: ${d?.queued}, Synced: ${d?.synced}.`
-      if (d?.note) msg += ` Note: ${d.note}`
-      if (failed.length > 0) {
-        msg += ` Failed for ${failed.length} follower(s).`
-        snackbar.show(msg, 'warning')
-      } else {
-        snackbar.show(msg, 'success')
-      }
-      clearPositionsDialogOpen.value = false
-      fetchFollowers(true, pagination.value.page)
+  apiRequest(
+    urls.KEYS.POST,
+    `/fund-managers/${fmId}/clear-follower-positions`,
+    {
+      data: { confirm: true },
+      isTokenRequired: true,
+      onSuccess: (res) => {
+        const d = res?.data;
+        const failed = d?.failed ?? [];
+
+        let msg = `Successfully processed. Followers: ${d?.followers}, Positions: ${d?.positions}, Queued: ${d?.queued}, Synced: ${d?.synced}.`;
+        if (d?.note) msg += ` Note: ${d.note}`;
+        if (failed.length > 0) {
+          msg += ` Failed for ${failed.length} follower(s).`;
+          snackbar.show(msg, "warning");
+        } else {
+          snackbar.show(msg, "success");
+        }
+        clearPositionsDialogOpen.value = false;
+        fetchFollowers(true, pagination.value.page);
+      },
+      onFailure: (err) => {
+        snackbar.show(
+          err?.error || err?.message || "Failed to clear positions",
+          "error",
+        );
+      },
+      onFinally: () => {
+        clearingPositions.value = false;
+      },
     },
-    onFailure: (err) => {
-      snackbar.show(err?.error || err?.message || 'Failed to clear positions', 'error')
-    },
-    onFinally: () => {
-      clearingPositions.value = false
-    }
-  })
-}
+  );
+};
 
 const handleFollowerAdded = () => {
-  fetchFollowers(true, 1)
-}
-const searchQuery = ref('')
-const selectedOffer = ref('ALL')
+  fetchFollowers(true, 1);
+};
+const searchQuery = ref("");
+const selectedOffer = ref("ALL");
 
-const clientLoginModalOpen = ref(false)
-const selectedClientForLogin = ref(null)
+const clientLoginModalOpen = ref(false);
+const selectedClientForLogin = ref(null);
 
 const handleClientLogin = (row) => {
-  if (!row) return
-  const clientId = row.user_id || row.client_id || row.lead_id || row.id
-  if (!clientId) return
-  
-  selectedClientForLogin.value = { ...row, id: clientId }
-  clientLoginModalOpen.value = true
-}
+  if (!row) return;
+  const clientId = row.user_id || row.client_id || row.lead_id || row.id;
+  if (!clientId) return;
+
+  selectedClientForLogin.value = { ...row, id: clientId };
+  clientLoginModalOpen.value = true;
+};
 
 const closeClientLoginModal = () => {
-  clientLoginModalOpen.value = false
-  selectedClientForLogin.value = null
-}
+  clientLoginModalOpen.value = false;
+  selectedClientForLogin.value = null;
+};
 
 const statusTabs = [
-  { label: 'Active Followers', value: 'active', icon: UserCheck, dotClass: 'bg-emerald-500' },
-  { label: 'Paused', value: 'paused', icon: PauseCircle, dotClass: 'bg-amber-500' },
-  { label: 'Past History', value: 'past', icon: History, dotClass: 'bg-zinc-400' },
-  { label: 'All Followers', value: 'all', icon: Users, dotClass: 'bg-primary' },
-]
+  {
+    label: "Active Followers",
+    value: "active",
+    icon: UserCheck,
+    dotClass: "bg-emerald-500",
+  },
+  {
+    label: "Paused",
+    value: "paused",
+    icon: PauseCircle,
+    dotClass: "bg-amber-500",
+  },
+  {
+    label: "Past History",
+    value: "past",
+    icon: History,
+    dotClass: "bg-zinc-400",
+  },
+  { label: "All Followers", value: "all", icon: Users, dotClass: "bg-primary" },
+];
 
 const normalizeStatus = (status) => {
-  const s = String(status || '').toLowerCase().trim()
-  if (s === 'history' || s === 'past') return 'past'
-  if (s === 'paused') return 'paused'
-  if (s === 'all') return 'all'
-  return 'active'
-}
+  const s = String(status || "")
+    .toLowerCase()
+    .trim();
+  if (s === "history" || s === "past") return "past";
+  if (s === "paused") return "paused";
+  if (s === "all") return "all";
+  return "active";
+};
 
 const selectedStatus = ref(
-  route.query.status ? normalizeStatus(route.query.status) : 'active'
-)
+  route.query.status ? normalizeStatus(route.query.status) : "active",
+);
 
 const currentStatusTitle = computed(() => {
-  const current = statusTabs.find((t) => t.value === selectedStatus.value)
-  return current?.label || selectedStatus.value
-})
+  const current = statusTabs.find((t) => t.value === selectedStatus.value);
+  return current?.label || selectedStatus.value;
+});
 
 const currentStatusDotClass = computed(() => {
-  const current = statusTabs.find((t) => t.value === selectedStatus.value)
-  return current?.dotClass || 'bg-primary'
-})
+  const current = statusTabs.find((t) => t.value === selectedStatus.value);
+  return current?.dotClass || "bg-primary";
+});
 
 const emptyStateTitle = computed(() => {
-  if (selectedStatus.value === 'active') return 'No Active Followers'
-  if (selectedStatus.value === 'paused') return 'No Paused Followers'
-  if (selectedStatus.value === 'past') return 'No Past Followers History'
-  return 'No Followers Assigned Yet'
-})
+  if (selectedStatus.value === "active") return "No Active Followers";
+  if (selectedStatus.value === "paused") return "No Paused Followers";
+  if (selectedStatus.value === "past") return "No Past Followers History";
+  return "No Followers Assigned Yet";
+});
 
 const emptyStateDescription = computed(() => {
-  if (selectedStatus.value === 'active') {
-    return 'No active client accounts are currently subscribed to this Fund Manager.'
+  if (selectedStatus.value === "active") {
+    return "No active client accounts are currently subscribed to this Fund Manager.";
   }
-  if (selectedStatus.value === 'paused') {
-    return 'No follower accounts are currently paused for this Fund Manager.'
+  if (selectedStatus.value === "paused") {
+    return "No follower accounts are currently paused for this Fund Manager.";
   }
-  if (selectedStatus.value === 'past') {
-    return 'No unfollowed or historical follower accounts found for this Fund Manager.'
+  if (selectedStatus.value === "past") {
+    return "No unfollowed or historical follower accounts found for this Fund Manager.";
   }
-  return 'No client accounts have subscribed to this Fund Manager yet.'
-})
+  return "No client accounts have subscribed to this Fund Manager yet.";
+});
 
 const selectStatus = (status) => {
-  if (selectedStatus.value === status) return
-  selectedStatus.value = status
-  pagination.value.page = 1
+  if (selectedStatus.value === status) return;
+  selectedStatus.value = status;
+  pagination.value.page = 1;
   router.replace({
     query: {
       ...route.query,
       status,
     },
-  })
-  fetchFollowers(true, 1)
-}
+  });
+  fetchFollowers(true, 1);
+};
 
 watch(
   () => route.query.status,
   (newStatus) => {
     if (newStatus) {
-      const normalized = normalizeStatus(newStatus)
+      const normalized = normalizeStatus(newStatus);
       if (selectedStatus.value !== normalized) {
-        selectedStatus.value = normalized
-        pagination.value.page = 1
-        fetchFollowers(true, 1)
+        selectedStatus.value = normalized;
+        pagination.value.page = 1;
+        fetchFollowers(true, 1);
       }
     }
-  }
-)
+  },
+);
 
-const editDialogOpen = ref(false)
-const editingFollower = ref(null)
+const editDialogOpen = ref(false);
+const editingFollower = ref(null);
 
 const goToTradeBook = (row) => {
-  const followerId = row.id || row.account_id
+  const followerId = row.id || row.account_id;
   router.push({
     path: `/follower/trade-book/${followerId}`,
     query: {
@@ -722,77 +1032,80 @@ const goToTradeBook = (row) => {
       copy_ratio: row.copy_ratio,
       is_active: row.is_active,
     },
-  })
-}
+  });
+};
 
 const goToFollowerDetails = (row) => {
-  const followerId = row.id || row.account_id
+  const followerId = row.id || row.account_id;
   router.push({
     path: `/follower-info/${followerId}`,
     query: {
       fm_id: fmId,
       status: selectedStatus.value,
     },
-  })
-}
+  });
+};
 
 const openEditFollowerDialog = (row) => {
-  editingFollower.value = row
-  editDialogOpen.value = true
-}
+  editingFollower.value = row;
+  editDialogOpen.value = true;
+};
 
 const handleFollowerUpdated = () => {
-  fetchFollowers(true, pagination.value.page)
-}
+  fetchFollowers(true, pagination.value.page);
+};
 
 const pagination = ref({
   page: 1,
   per_page: 10,
   total_items: 0,
   total_pages: 0,
-})
+});
 
 const loadFmInfo = () => {
   try {
-    const raw = localStorage.getItem('active_fm')
+    const raw = localStorage.getItem("active_fm");
     if (raw) {
-      const parsed = JSON.parse(raw)
+      const parsed = JSON.parse(raw);
       if (String(parsed?.id) === String(fmId)) {
-        fmInfo.value = parsed
+        fmInfo.value = parsed;
       }
     }
   } catch (e) {
-    console.error('Failed to load active FM from localStorage:', e)
+    console.error("Failed to load active FM from localStorage:", e);
   }
-}
+};
 
 const offerOptions = computed(() => {
-  const options = [{ label: 'All Offers', value: 'ALL' }]
+  const options = [{ label: "All Offers", value: "ALL" }];
   if (Array.isArray(availableOffers.value)) {
     availableOffers.value.forEach((off) => {
       options.push({
         label: off.name || off.offer_code || `Offer #${off.id}`,
         value: String(off.id),
-      })
-    })
+      });
+    });
   }
-  return options
-})
+  return options;
+});
 
 const hasActiveFilters = computed(() => {
-  return Boolean(searchQuery.value.trim()) || selectedOffer.value !== 'ALL'
-})
+  return Boolean(searchQuery.value.trim()) || selectedOffer.value !== "ALL";
+});
 
 const resetFilters = () => {
-  searchQuery.value = ''
-  selectedOffer.value = 'ALL'
-}
+  searchQuery.value = "";
+  selectedOffer.value = "ALL";
+};
 
 const fmt = (val) => {
-  const num = Number(val ?? 0)
-  if (isNaN(num)) return '0.00'
-  return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-}
+  const num = Number(val ?? 0);
+  if (isNaN(num)) return "0.00";
+  return num.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+};
 
 const activeCurrency = computed(() => {
   return (
@@ -801,9 +1114,9 @@ const activeCurrency = computed(() => {
     fmInfo.value?.currency ||
     fmInfo.value?.coverage_account?.broker_currency ||
     fmInfo.value?.master_account?.broker_currency ||
-    'USD'
-  )
-})
+    "USD"
+  );
+});
 
 const getRowCurrency = (row) => {
   return (
@@ -812,143 +1125,191 @@ const getRowCurrency = (row) => {
     row?.trading_account?.broker_currency ||
     row?.account?.broker_currency ||
     activeCurrency.value ||
-    'USD'
-  )
-}
+    "USD"
+  );
+};
 
 const getCurrencySymbol = (currency) => {
-  const c = String(currency || '').trim().toUpperCase()
-  if (c === 'USC' || c === 'CENT') return 'C'
-  if (c === 'CAD') return 'C$'
-  if (c === 'EUR') return '€'
-  if (c === 'GBP') return '£'
-  if (c === 'INR') return '₹'
-  if (c === 'JPY') return '¥'
-  if (c === 'USD') return '$'
-  return c ? `${c} ` : '$'
-}
+  const c = String(currency || "")
+    .trim()
+    .toUpperCase();
+  if (c === "USC" || c === "CENT") return "C";
+  if (c === "CAD") return "C$";
+  if (c === "EUR") return "€";
+  if (c === "GBP") return "£";
+  if (c === "INR") return "₹";
+  if (c === "JPY") return "¥";
+  if (c === "USD") return "$";
+  return c ? `${c} ` : "$";
+};
 
 const formatCurrency = (val, currency = null) => {
-  if (val === null || val === undefined || isNaN(val)) return '—'
-  const num = Number(val)
-  if (isNaN(num)) return '—'
-  const sym = getCurrencySymbol(currency || activeCurrency.value)
-  return `${sym}${fmt(num)}`
-}
+  if (val === null || val === undefined || isNaN(val)) return "—";
+  const num = Number(val);
+  if (isNaN(num)) return "—";
+  const sym = getCurrencySymbol(currency || activeCurrency.value);
+  return `${sym}${fmt(num)}`;
+};
 
 const formatPnl = (val, currency = null) => {
-  if (val === null || val === undefined || isNaN(val)) return '—'
-  const num = Number(val)
-  if (isNaN(num)) return '—'
-  const sym = getCurrencySymbol(currency || activeCurrency.value)
-  const prefix = num >= 0 ? `+${sym}` : `-${sym}`
-  return `${prefix}${fmt(Math.abs(num))}`
-}
+  if (val === null || val === undefined || isNaN(val)) return "—";
+  const num = Number(val);
+  if (isNaN(num)) return "—";
+  const sym = getCurrencySymbol(currency || activeCurrency.value);
+  const prefix = num >= 0 ? `+${sym}` : `-${sym}`;
+  return `${prefix}${fmt(Math.abs(num))}`;
+};
 
 const formatDate = (v) =>
-  v ? new Date(v).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
+  v
+    ? new Date(v).toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
+    : "—";
 
 const isPastFollower = (row) => {
-  const s = String(row?.status || '').toLowerCase()
-  return s === 'past' || s === 'history' || s === 'unfollowed'
-}
+  const s = String(row?.status || "").toLowerCase();
+  return s === "past" || s === "history" || s === "unfollowed";
+};
 
 const getStatusBadgeClass = (row) => {
-  const s = String(row?.status || (row?.is_active ? 'active' : 'inactive')).toLowerCase()
-  if (s === 'active') {
-    return 'bg-primary-green/10 text-primary-green border border-primary-green/20'
+  const s = String(
+    row?.status || (row?.is_active ? "active" : "inactive"),
+  ).toLowerCase();
+  if (s === "active") {
+    return "bg-primary-green/10 text-primary-green border border-primary-green/20";
   }
-  if (s === 'paused') {
-    return 'bg-primary-yellow/10 text-primary-yellow border border-primary-yellow/20'
+  if (s === "paused") {
+    return "bg-primary-yellow/10 text-primary-yellow border border-primary-yellow/20";
   }
-  if (s === 'past' || s === 'history' || s === 'unfollowed') {
-    return 'bg-background text-secondary-text border border-primary-border'
+  if (s === "past" || s === "history" || s === "unfollowed") {
+    return "bg-background text-secondary-text border border-primary-border";
   }
-  return 'bg-background text-secondary-text border border-primary-border'
-}
+  return "bg-background text-secondary-text border border-primary-border";
+};
 
 const getStatusDotClass = (row) => {
-  const s = String(row?.status || (row?.is_active ? 'active' : 'inactive')).toLowerCase()
-  if (s === 'active') return 'bg-primary-green animate-pulse'
-  if (s === 'paused') return 'bg-primary-yellow'
-  if (s === 'past' || s === 'history' || s === 'unfollowed') return 'bg-zinc-400'
-  return 'bg-zinc-400'
-}
+  const s = String(
+    row?.status || (row?.is_active ? "active" : "inactive"),
+  ).toLowerCase();
+  if (s === "active") return "bg-primary-green animate-pulse";
+  if (s === "paused") return "bg-primary-yellow";
+  if (s === "past" || s === "history" || s === "unfollowed")
+    return "bg-zinc-400";
+  return "bg-zinc-400";
+};
 
 const getStatusLabel = (row) => {
   if (row?.status) {
-    if (row.status === 'past') return 'Past (Unfollowed)'
-    return row.status.charAt(0).toUpperCase() + row.status.slice(1)
+    if (row.status === "past") return "Past (Unfollowed)";
+    return row.status.charAt(0).toUpperCase() + row.status.slice(1);
   }
-  return row?.is_active ? 'Active' : 'Inactive'
-}
+  return row?.is_active ? "Active" : "Inactive";
+};
 
 const filteredFollowers = computed(() => {
-  if (!Array.isArray(followers.value)) return []
+  if (!Array.isArray(followers.value)) return [];
   return followers.value.filter((row) => {
     if (searchQuery.value.trim()) {
-      const q = searchQuery.value.trim().toLowerCase()
-      const matchName = row.name?.toLowerCase().includes(q)
-      const matchEmail = row.email?.toLowerCase().includes(q)
-      const matchAcc = row.account_number?.toLowerCase().includes(q) || String(row.account_id ?? '').includes(q)
-      const matchOffer = row.offer_name?.toLowerCase().includes(q)
-      if (!matchName && !matchEmail && !matchAcc && !matchOffer) return false
+      const q = searchQuery.value.trim().toLowerCase();
+      const matchName = row.name?.toLowerCase().includes(q);
+      const matchEmail = row.email?.toLowerCase().includes(q);
+      const matchAcc =
+        row.account_number?.toLowerCase().includes(q) ||
+        String(row.account_id ?? "").includes(q);
+      const matchOffer = row.offer_name?.toLowerCase().includes(q);
+      if (!matchName && !matchEmail && !matchAcc && !matchOffer) return false;
     }
-    if (selectedOffer.value !== 'ALL') {
-      if (String(row.offer_id) !== String(selectedOffer.value)) return false
+    if (selectedOffer.value !== "ALL") {
+      if (String(row.offer_id) !== String(selectedOffer.value)) return false;
     }
-    return true
-  })
-})
+    return true;
+  });
+});
 
 const fetchFollowers = (force = false, page = 1) => {
-  if (!fmId) return
-  loading.value = true
+  if (!fmId) return;
+  loading.value = true;
 
-  const isHistory = selectedStatus.value === 'past'
+  const isHistory = selectedStatus.value === "past";
   const endpoint = isHistory
     ? urls.fm.followersHistory(fmId)
-    : urls.fm.followers(fmId)
+    : urls.fm.followers(fmId);
 
   const params = {
     page,
     per_page: pagination.value.per_page,
-  }
+  };
 
   // Regular followers endpoint only accepts: active / paused / all
   if (!isHistory) {
-    params.status = selectedStatus.value
+    params.status = selectedStatus.value;
   }
 
   const successHandler = (res) => {
-    followers.value = res?.data || []
-    availableOffers.value = res?.filters?.offers || []
+    followers.value = res?.data || [];
+    availableOffers.value = res?.filters?.offers || [];
     if (res?.pagination) {
-      pagination.value = res.pagination
+      pagination.value = res.pagination;
     }
-    loading.value = false
-  }
+    loading.value = false;
+  };
 
   const failureHandler = (err) => {
-    loading.value = false
-    snackbar.show(err?.error || err?.message || 'Failed to load followers.', 'error')
-  }
+    loading.value = false;
+    snackbar.show(
+      err?.error || err?.message || "Failed to load followers.",
+      "error",
+    );
+  };
 
   apiRequest(urls.KEYS.GET, endpoint, {
     params,
     isTokenRequired: true,
     onSuccess: successHandler,
     onFailure: failureHandler,
-  })
-}
+  });
+};
+
+const fetchOpenPositions = () => {
+  const fols = followers.value;
+  if (!fols.length || !fmId) return;
+
+  loadingOpenPositions.value = true;
+  const ids = fols.map((f) => f.id).slice(0, 500);
+
+  const countsSuccessHandler = (countRes) => {
+    const cMap = countRes?.c || {};
+    followers.value = fols.map((f) => ({
+      ...f,
+      open_position_count: Number(cMap[String(f.id)] ?? 0),
+    }));
+    loadingOpenPositions.value = false;
+  };
+
+  const countsFailureHandler = (err) => {
+    console.error("Failed to fetch open positions:", err);
+    followers.value = fols.map((f) => ({ ...f, open_position_count: 0 }));
+    loadingOpenPositions.value = false;
+  };
+
+  apiRequest(urls.KEYS.POST, urls.fm.openPositionCounts, {
+    data: { fm_id: Number(fmId), follower: ids },
+    isTokenRequired: true,
+    onSuccess: countsSuccessHandler,
+    onFailure: countsFailureHandler,
+  });
+};
 
 const handlePageChange = (page) => {
-  pagination.value.page = page
-  fetchFollowers(true, page)
-}
+  pagination.value.page = page;
+  fetchFollowers(true, page);
+};
 
 onMounted(() => {
-  loadFmInfo()
-  fetchFollowers()
-})
+  loadFmInfo();
+  fetchFollowers();
+});
 </script>
