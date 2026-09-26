@@ -671,6 +671,7 @@ onMounted(() => {
           :isLoading="store.searchLoading"
           placeholder="Search IB..."
           searchable
+          clearable
           class="w-full sm:w-52 xl:w-52"
           @search="onIbSearch"
           @update:modelValue="store.applyFilters()"
@@ -681,6 +682,7 @@ onMounted(() => {
           v-model="store.filters.tag_ids"
           :options="tagOptions"
           placeholder="All Tags..."
+          clearable
           class="w-full sm:w-56 xl:w-56"
           @update:modelValue="store.applyFilters()"
         />
@@ -690,6 +692,7 @@ onMounted(() => {
           v-model="store.filters.eligible_for_auto_withdrawal"
           :options="autoWithdrawalOptions"
           placeholder="Auto Withdrawal..."
+          clearable
           class="w-full sm:w-56 xl:w-56"
           @update:modelValue="store.applyFilters()"
         />

@@ -11,6 +11,7 @@
           :isLoading="store.filterLoading"
           :options="moduleOptions"
           placeholder="All Modules"
+          clearable
           class="w-full sm:w-36 xl:w-40"
           @update:modelValue="onModuleChange"
         />
@@ -22,6 +23,7 @@
           :options="entityOptions"
           :disabled="!filters.module"
           placeholder="All Entities"
+          clearable
           class="w-full sm:w-36 xl:w-40"
           @update:modelValue="onEntityChange"
         />
@@ -33,6 +35,7 @@
           :options="actionOptions"
           :disabled="!filters.entity_type"
           placeholder="All Actions"
+          clearable
           class="w-full sm:w-40 xl:w-44"
           @update:modelValue="applyFilters"
         />
@@ -44,6 +47,7 @@
           :isLoading="isSearchingStaff"
           placeholder="All Staff"
           searchable
+          clearable
           class="w-full sm:w-40 xl:w-44"
           @search="onStaffSearch"
           @update:modelValue="applyFilters"
@@ -56,6 +60,7 @@
           :isLoading="isSearchingClients"
           placeholder="All Clients"
           searchable
+          clearable
           class="w-full sm:w-40 xl:w-44"
           @search="onClientSearch"
           @update:modelValue="applyFilters"

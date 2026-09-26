@@ -59,6 +59,14 @@
               </span>
 
               <span
+                v-if="coverageAccountNumber && !isFollowerMode"
+                class="flex items-center gap-1 font-mono font-semibold text-primary-text"
+              >
+                <span class="text-secondary-text">Coverage:</span>
+                #{{ coverageAccountNumber }}
+              </span>
+
+              <span
                 v-if="brokerGroup"
                 class="flex items-center gap-1 font-mono text-secondary-text"
               >
@@ -741,6 +749,7 @@
             :modelValue="store.filters[enumFilter.key]"
             :options="enumFilter.options"
             :placeholder="enumFilter.label"
+            clearable
             @update:modelValue="(val) => store.setDynamicFilter(enumFilter.key, val)"
           />
         </div>
@@ -1072,6 +1081,16 @@ const accountNumber = computed(() => {
     store.accountInfo?.account_number ||
     store.accountInfo?.master_account?.account_number ||
     route.query.account_number ||
+    ""
+  );
+});
+
+const coverageAccountNumber = computed(() => {
+  return (
+    store.accountInfo?.coverage_account?.account_number ||
+    store.accountInfo?.coverage_account_id ||
+    route.query.coverage_account_number ||
+    route.query.coverage_account_id ||
     ""
   );
 });

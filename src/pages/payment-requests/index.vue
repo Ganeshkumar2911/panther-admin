@@ -41,6 +41,7 @@
           :options="clientOptions"
           placeholder="All Clients"
           searchable
+          clearable
           class="w-full sm:w-40 xl:w-40"
           @search="onClientSearch"
           @update:modelValue="store.applyFilters()"
@@ -52,6 +53,7 @@
           :options="accountOptions"
           placeholder="All Accounts"
           searchable
+          clearable
           class="w-full sm:w-44 xl:w-44"
           @search="onAccountSearch"
           @update:modelValue="store.applyFilters()"
@@ -62,8 +64,7 @@
           v-model="store.filters.type"
           :options="typeOptions"
           placeholder="All Types"
-          :allow-all="true"
-          all-label="All Types"
+          clearable
           class="w-full sm:w-36 xl:w-36"
           @update:modelValue="store.applyFilters()"
         />
@@ -73,8 +74,7 @@
           v-model="store.filters.approval_status"
           :options="statusOptions"
           placeholder="All Statuses"
-          :allow-all="true"
-          all-label="All Statuses"
+          clearable
           class="w-full sm:w-36 xl:w-36"
           @update:modelValue="store.applyFilters()"
         />
@@ -91,7 +91,7 @@
           :modelValue="store.pagination.per_page"
           :options="store.perPageOptions"
           placeholder="Per page..."
-          class="w-full sm:w-32 xl:w-32"
+          class="sm:w-2 xl:w-20"
           @update:modelValue="store.updatePerPage"
         />
 
