@@ -91,6 +91,13 @@ const urls = {
   auditLogs: {
     list: "/audit-logs",
   },
+  enhancedAuditLogs: {
+    list: "/enhanced-audit-logs",
+    details: (id) => `/audit-logs/${id}/details`,
+    userTimeline: (userId) => `/enhanced-audit-logs/user/${userId}`,
+    filters: "/enhanced-audit-logs/filters",
+    staffFlow: "/admin/audit-staff",
+  },
   fm: {
     list: "/fund_managers",
     create: "/fund_managers/create",
@@ -107,6 +114,8 @@ const urls = {
     editFollower: "/fund_managers/followers/edit",
     offerJoinLinks: "/fund_managers/offers/join-links",
     offerAgents: "/fund_managers/offers/agents",
+    availableJoiners: "/fund_managers/followers/available-joiners",
+    addFollower: "/fund_managers/followers/add",
   },
   tradeBook: {
     filters: "/trade-book/filters",
@@ -180,6 +189,7 @@ const urls = {
     approve: "/payment-requests/approve/",
     reject: "/payment-requests/reject/",
     updateAmount: (id) => `/payment-requests/${id}/amount`,
+    paymaxisCancel: (id) => `/payment-requests/paymaxis-cancel/${id}`,
   },
   paymentGatewayData: {
     list: "/payment-gateway-data",
@@ -434,6 +444,10 @@ const urls = {
     approvalsSummary: "/ib-commission/commissions/approvals",
     approvalEntries: "/ib-commission/commissions/approvals/entries",
     approveIbPeriod: "/ib-commission/commissions/approvals/approve-ib",
+    // Recalc Revert Date (ETL Settings)
+    recalcRevertMaster: "/ib-commission/settings/recalc-revert",
+    ibRecalcRevert: (ibId) => `/ib-commission/ibs/${ibId}/recalc-revert`,
+    runRecalcRevert: "/ib-commission/settings/recalc-revert/run",
   },
   cashback: {
     programs: "/cashback/programs",

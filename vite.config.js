@@ -17,6 +17,10 @@ export default defineConfig(({ mode }) => {
       },
     },
 
+    optimizeDeps: {
+      include: ["leaflet"],
+    },
+
     server: {
       host: "0.0.0.0",
       port: port,

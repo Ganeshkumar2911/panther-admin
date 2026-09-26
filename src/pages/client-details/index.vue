@@ -127,11 +127,43 @@
                   'fi',
                   `fi-${getFlagCode(user.country)}`,
                   'fis',
-                  'w-4 h-3 flex-shrink-0',
+                  'w-4 h-3 shrink-0',
                 ]"
               ></span>
               <span>{{ cleanCountryLabel(user.country) || "—" }}</span>
             </p>
+          </div>
+        </div>
+
+        <div class="border-l border-primary-border h-20 hidden md:block"></div>
+
+        <div class="hidden md:flex flex-col gap-2 justify-center">
+          <div>
+            <p class="text-[11px] text-secondary-text uppercase tracking-widest mb-1.5">
+              Auto Withdrawal
+            </p>
+            <label class="inline-flex items-center gap-2 cursor-pointer shrink-0 select-none" @click.prevent="handleToggleClick">
+              <input
+                type="checkbox"
+                role="switch"
+                :checked="user.eligible_for_auto_withdrawal"
+                class="peer sr-only"
+              />
+              <span
+                class="relative block h-5.5 w-10 rounded-full bg-zinc-300 transition-colors duration-200 dark:bg-zinc-600 peer-checked:bg-emerald-500 peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500/40 peer-checked:[&>span]:translate-x-4.5"
+                :class="{'opacity-50 pointer-events-none': isUpdatingAutoWithdrawal}"
+              >
+                <span
+                  class="absolute left-0.75 top-0.75 h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200"
+                ></span>
+              </span>
+              <span
+                class="text-xs font-bold"
+                :class="user.eligible_for_auto_withdrawal ? 'text-emerald-500' : 'text-zinc-500'"
+              >
+                {{ user.eligible_for_auto_withdrawal ? 'Enabled' : 'Disabled' }}
+              </span>
+            </label>
           </div>
         </div>
 
@@ -274,7 +306,7 @@
                       'fi',
                       `fi-${getFlagCode(item.value())}`,
                       'fis',
-                      'w-4 h-3 flex-shrink-0',
+                      'w-4 h-3 shrink-0',
                     ]"
                   ></span>
                   <span>{{
@@ -368,6 +400,18 @@
       :client="user"
       @close="whatsappDrawerOpen = false"
     />
+
+    <!-- Auto Withdrawal Confirmation Modal -->
+    <ConfirmationDialog
+      :open="autoWithdrawalConfirmOpen"
+      title="Confirm Auto Withdrawal Change"
+      :message="`Are you sure you want to ${pendingAutoWithdrawalState ? 'enable' : 'disable'} auto withdrawal for this client?`"
+      :confirmText="pendingAutoWithdrawalState ? 'Enable' : 'Disable'"
+      :type="pendingAutoWithdrawalState ? 'success' : 'danger'"
+      :loading="isUpdatingAutoWithdrawal"
+      @confirm="confirmAutoWithdrawalToggle"
+      @cancel="autoWithdrawalConfirmOpen = false"
+    />
   </div>
 </template>
 
@@ -376,10 +420,14 @@ import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { getFlagCode, cleanCountryLabel } from "@/utils/countries";
 import Tooltip from "@/components/common/Tooltip.vue";
+import ConfirmationDialog from "@/components/common/ConfirmationDialog.vue";
+import apiRequest from "@/api/request";
+import urls from "@/api/urls";
 import UploadKycDocumentModal from "@/components/clientDetails/UploadKycDocumentModal.vue";
 import ClientEmailTriggerPanel from "@/components/clientDetails/ClientEmailTriggerPanel.vue";
 import ClientWhatsAppChatDrawer from "@/components/clientDetails/ClientWhatsAppChatDrawer.vue";
 import { useClientDepthStore } from "@/stores/clientDepth/clientDepth";
+import { useEnhancedAuditLogsStore } from "@/stores/enhancedAuditLogs/enhancedAuditLogs";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import {
@@ -401,12 +449,14 @@ import {
   RefreshCw,
   Bell,
   Landmark,
+  ClipboardList,
 } from "lucide-vue-next";
 import { WhatsappIcon } from "@hugeicons/core-free-icons/index";
 const route = useRoute();
 const router = useRouter();
 const snackbar = useSnackbarStore();
 const clientDepthStore = useClientDepthStore();
+const enhancedAuditLogsStore = useEnhancedAuditLogsStore();
 const { hasPermission } = usePermissionCheck();
 
 // ─── Account Badges Styling & Navigation ───────────────────────────────────────
@@ -593,6 +643,65 @@ const kycClass = computed(() => {
   return "bg-secondary-text/10 text-secondary-text border border-primary-border";
 });
 
+const autoWithdrawalConfirmOpen = ref(false);
+const pendingAutoWithdrawalState = ref(false);
+const isUpdatingAutoWithdrawal = ref(false);
+
+const handleToggleClick = () => {
+  if (isUpdatingAutoWithdrawal.value) return;
+  pendingAutoWithdrawalState.value = !user.value.eligible_for_auto_withdrawal;
+  autoWithdrawalConfirmOpen.value = true;
+};
+
+const confirmAutoWithdrawalToggle = () => {
+  toggleAutoWithdrawal(pendingAutoWithdrawalState.value);
+};
+
+const toggleAutoWithdrawal = (newVal) => {
+  if (!user.value?.id) return;
+  isUpdatingAutoWithdrawal.value = true;
+  apiRequest(urls.KEYS.PATCH, urls.clientList.update, {
+    look_up_key: user.value.id,
+    data: { eligible_for_auto_withdrawal: newVal },
+    isTokenRequired: true,
+    onSuccess: (res) => {
+      snackbar.show("Auto withdrawal status updated successfully", "success");
+      
+      const raw = localStorage.getItem("active_client");
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (String(parsed.id) === String(user.value.id)) {
+            parsed.eligible_for_auto_withdrawal = newVal;
+            localStorage.setItem("active_client", JSON.stringify(parsed));
+          }
+        } catch(e) {}
+      }
+      
+      window.dispatchEvent(
+        new CustomEvent("client-profile-updated", {
+          detail: { eligible_for_auto_withdrawal: newVal },
+        })
+      );
+      
+      clientDepthStore.fetchClientOverview(user.value.id, true);
+      autoWithdrawalConfirmOpen.value = false;
+    },
+    onFailure: (err) => {
+      snackbar.show(err?.message || "Failed to update auto withdrawal status", "error");
+      autoWithdrawalConfirmOpen.value = false;
+      window.dispatchEvent(
+        new CustomEvent("client-profile-updated", {
+          detail: { eligible_for_auto_withdrawal: !newVal },
+        })
+      );
+    },
+    onFinally: () => {
+      isUpdatingAutoWithdrawal.value = false;
+    }
+  });
+};
+
 // ─── Quick Actions ────────────────────────────────────────────────────────────
 const uploadDocModalOpen = ref(false);
 const emailTriggerPanelOpen = ref(false);
@@ -676,6 +785,7 @@ const currentActiveTab = computed(() => {
   if (currentPath.endsWith("/bank-details") || route.name === "client-details-bank-details") return "bank-details";
   if (currentPath.endsWith("/marketing") || route.name === "client-details-marketing") return "marketing";
   if (currentPath.endsWith("/notifications") || route.name === "client-details-notifications") return "notifications";
+  if (currentPath.includes("/audit-logs") || route.name === "client-details-audit-logs" || route.name === "client-details-audit-log-detail") return "audit-logs";
   if (currentPath.endsWith("/trading") || route.name === "client-details-trading") return "trading";
   if (currentPath.endsWith("/crm") || route.name === "client-details-crm") return "crm";
   return "overview";
@@ -697,6 +807,9 @@ const isGlobalRefreshing = computed(() => {
   }
   if (currentActiveTab.value === "notifications") {
     return clientDepthStore.clientNotificationsLoading;
+  }
+  if (currentActiveTab.value === "audit-logs") {
+    return enhancedAuditLogsStore.loading;
   }
   return false;
 });
@@ -730,6 +843,8 @@ const handleGlobalRefresh = async () => {
       ]);
     } else if (activeTab === "notifications") {
       await clientDepthStore.fetchClientNotifications(userId, {}, true);
+    } else if (activeTab === "audit-logs") {
+      await enhancedAuditLogsStore.fetchUserAuditLogs(userId, 1, enhancedAuditLogsStore.pagination.per_page, true);
     }
 
     const tabLabel = tabs.value.find((t) => t.key === activeTab)?.label || "Tab";
@@ -742,56 +857,69 @@ const handleGlobalRefresh = async () => {
 };
 
 // ─── Top Tabs ─────────────────────────────────────────────────────────────────
-const tabs = computed(() => [
-  {
-    key: "overview",
-    label: "Overview",
-    to: `/client/details/${route.params.id}`,
-    icon: Activity,
-  },
-  {
-    key: "profile",
-    label: "Profile & KYC",
-    to: `/client/details/${route.params.id}/profile`,
-    icon: FileCheck,
-  },
-  {
-    key: "financials",
-    label: "Financials",
-    to: `/client/details/${route.params.id}/financials`,
-    icon: CreditCard,
-  },
-  {
-    key: "bank-details",
-    label: "Bank Details",
-    to: `/client/details/${route.params.id}/bank-details`,
-    icon: Landmark,
-  },
-  // {
-  //   key: "trading",
-  //   label: "Trading",
-  //   to: `/client/details/${route.params.id}/trading`,
-  //   icon: BarChart2,
-  // },
-  // {
-  //   key: "crm",
-  //   label: "CRM & Support",
-  //   to: `/client/details/${route.params.id}/crm`,
-  //   icon: Headphones,
-  // },
-  {
-    key: "marketing",
-    label: "Marketing",
-    to: `/client/details/${route.params.id}/marketing`,
-    icon: Megaphone,
-  },
-  // {
-  //   key: "notifications",
-  //   label: "Notifications",
-  //   to: `/client/details/${route.params.id}/notifications`,
-  //   icon: Bell,
-  // },
-]);
+const tabs = computed(() => {
+  const list = [
+    {
+      key: "overview",
+      label: "Overview",
+      to: `/client/details/${route.params.id}`,
+      icon: Activity,
+    },
+    {
+      key: "profile",
+      label: "Profile & KYC",
+      to: `/client/details/${route.params.id}/profile`,
+      icon: FileCheck,
+    },
+    {
+      key: "financials",
+      label: "Financials",
+      to: `/client/details/${route.params.id}/financials`,
+      icon: CreditCard,
+    },
+    {
+      key: "bank-details",
+      label: "Bank Details",
+      to: `/client/details/${route.params.id}/bank-details`,
+      icon: Landmark,
+    },
+    // {
+    //   key: "trading",
+    //   label: "Trading",
+    //   to: `/client/details/${route.params.id}/trading`,
+    //   icon: BarChart2,
+    // },
+    // {
+    //   key: "crm",
+    //   label: "CRM & Support",
+    //   to: `/client/details/${route.params.id}/crm`,
+    //   icon: Headphones,
+    // },
+    {
+      key: "marketing",
+      label: "Marketing",
+      to: `/client/details/${route.params.id}/marketing`,
+      icon: Megaphone,
+    },
+    // {
+    //   key: "notifications",
+    //   label: "Notifications",
+    //   to: `/client/details/${route.params.id}/notifications`,
+    //   icon: Bell,
+    // },
+  ];
+
+  if (hasPermission(["new_audit.view", "new_audit"])) {
+    list.push({
+      key: "audit-logs",
+      label: "Audit Log",
+      to: `/client/details/${route.params.id}/audit-logs`,
+      icon: ClipboardList,
+    });
+  }
+
+  return list;
+});
 
 const isTabActive = (tab) => {
   const currentPath = route.path.replace(/\/$/, "");

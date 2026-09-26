@@ -141,6 +141,28 @@ const routes = [
               description: "View client notifications and history.",
             },
           },
+          {
+            path: "audit-logs",
+            name: "client-details-audit-logs",
+            component: () => import("@/pages/client-details/auditLogs.vue"),
+            meta: {
+              showBackButton: true,
+              requiresAuth: true,
+              title: "Client Audit Logs",
+              description: "View client enhanced audit log events.",
+            },
+          },
+          {
+            path: "audit-logs/:logId",
+            name: "client-details-audit-log-detail",
+            component: () => import("@/pages/enhanced-audit-logs/details.vue"),
+            meta: {
+              showBackButton: true,
+              requiresAuth: true,
+              title: "Client Audit Log Details",
+              description: "View client audit log event details.",
+            },
+          },
         ],
       },
       {
@@ -651,6 +673,27 @@ const routes = [
         },
       },
       {
+        path: "/enhanced-audit-logs",
+        name: "enhanced-audit-logs",
+        component: () => import("@/pages/enhanced-audit-logs/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Enhanced Audit Logs",
+          description: "Advanced tracking and detailed view of system modifications and events.",
+        },
+      },
+      {
+        path: "/enhanced-audit-logs/:id",
+        name: "enhanced-audit-log-details",
+        component: () => import("@/pages/enhanced-audit-logs/details.vue"),
+        meta: {
+          requiresAuth: true,
+          showBackButton: true,
+          title: "Event Forensics",
+          description: "Advanced forensic audit event details.",
+        },
+      },
+      {
         path: "/rbac",
         name: "rbac",
         component: () => import("@/pages/rbac/index.vue"),
@@ -781,6 +824,17 @@ const routes = [
           requiresAuth: true,
           title: "IB Commission Settings",
           description: "Configure per-IB payout mode, auto settlement schedule, and manage settlement batches.",
+        },
+      },
+      {
+        path: "/commission-engine/etl-settings",
+        name: "commission-engine-etl-settings",
+        component: () => import("@/pages/commission-engine/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "IB Commission ETL Settings",
+          description:
+            "Configure recalculation revert dates (Next, Night, Weekend) and trigger on-demand recalculation runs.",
         },
       },
       {

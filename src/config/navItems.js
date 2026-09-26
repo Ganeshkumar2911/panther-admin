@@ -208,7 +208,11 @@ export const navClusters = [
         label: "Symbols Catalog",
         to: "/commission-engine/symbols",
         icon: Grid,
-        permission: ["ib_commission_symbols.view", "ib_commission.symbols.view", "ib_commission.view"],
+        permission: [
+          "ib_commission_symbols.view",
+          "ib_commission.symbols.view",
+          "ib_commission.view",
+        ],
         keywords: ["symbols", "catalog", "unmapped", "pairs", "mt5 symbols"],
       },
       {
@@ -262,6 +266,27 @@ export const navClusters = [
           "auto settlement",
           "schedule",
           "batches",
+        ],
+      },
+      {
+        label: "ETL Settings",
+        to: "/commission-engine/etl-settings",
+        icon: RefreshCcw,
+        permission: [
+          "ib_commission_settings.view",
+          "ib_commission.settings.view",
+          "ib_commission_etl_settings.view",
+          "ib_commission.etl_settings.view",
+          "ib_commission.view",
+        ],
+        keywords: [
+          "etl",
+          "recalc",
+          "revert",
+          "revert date",
+          "retroactive",
+          "daily run",
+          "settings",
         ],
       },
     ],
@@ -555,6 +580,20 @@ export const navClusters = [
           "tracking",
         ],
       },
+      {
+        label: "Enhanced Audit Logs",
+        to: "/enhanced-audit-logs",
+        icon: ClipboardList,
+        permission: ["new_audit.view", "new_audit"],
+        keywords: [
+          "activity logs",
+          "history",
+          "security logs",
+          "events",
+          "tracking",
+          "enhanced",
+        ],
+      },
     ],
   },
 
@@ -632,6 +671,7 @@ export const navClusters = [
         icon: DollarSign,
         permission: ["cashback.view"],
         keywords: ["cashback", "rebate", "usd", "earnings", "loyalty"],
+
       },
       {
         label: "PAMM Pools",

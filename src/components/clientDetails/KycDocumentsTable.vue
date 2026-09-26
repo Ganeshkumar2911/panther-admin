@@ -1,6 +1,6 @@
 <template>
   <div
-    class="bg-card-background/40 border border-primary-border rounded-xl p-5 sm:p-6 flex flex-col justify-between min-h-[360px] flex-1"
+    class="bg-card-background/40 border border-primary-border rounded-lg p-5 sm:p-6 flex flex-col justify-between min-h-[360px] flex-1"
   >
     <!-- ─── HEADER ────────────────────────────────────────────────── -->
     <div
@@ -35,7 +35,7 @@
         <button
           type="button"
           @click="openAddDrawer('document')"
-          class="bg-primary hover:bg-primary-hover text-white rounded-xl px-3.5 py-1.5 text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-2xs transition-all"
+          class="bg-primary hover:bg-primary-hover text-white rounded-lg px-3.5 py-1.5 text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-2xs transition-all"
         >
           <Upload class="w-3.5 h-3.5" />
           Upload Document
@@ -53,7 +53,7 @@
         <div
           v-for="i in 3"
           :key="i"
-          class="h-14 rounded-xl bg-card-background/60 border border-primary-border/60 animate-pulse flex items-center justify-between px-4"
+          class="h-14 rounded-lg bg-card-background/60 border border-primary-border/60 animate-pulse flex items-center justify-between px-4"
         >
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded-lg bg-primary-border/40 shrink-0" />
@@ -87,7 +87,7 @@
           <button
             type="button"
             @click="openAddDrawer('document')"
-            class="border border-primary text-primary hover:bg-primary/10 rounded-xl px-4 py-1.5 text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5"
+            class="border border-primary text-primary hover:bg-primary/10 rounded-lg px-4 py-1.5 text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5"
           >
             <Upload class="w-3.5 h-3.5" />
             Upload Document
@@ -95,7 +95,7 @@
           <button
             type="button"
             @click="openAddDrawer('image')"
-            class="border border-primary-border text-primary-text hover:bg-background rounded-xl px-4 py-1.5 text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5"
+            class="border border-primary-border text-primary-text hover:bg-background rounded-lg px-4 py-1.5 text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5"
           >
             <ImageIcon class="w-3.5 h-3.5 text-secondary-text" />
             Upload Image
@@ -106,7 +106,7 @@
       <!-- Table of Documents & Images (Scrollable with sticky header) -->
       <div
         v-else
-        class="flex flex-col min-h-0 border border-primary-border rounded-xl overflow-x-auto overflow-y-auto max-h-[360px] flex-1 no-scrollbar"
+        class="flex flex-col min-h-0 border border-primary-border rounded-lg overflow-x-auto overflow-y-auto max-h-[360px] flex-1 no-scrollbar"
       >
         <table class="w-full text-left text-xs border-collapse">
           <thead
@@ -240,7 +240,7 @@
           >
             <div class="flex items-center gap-3">
               <div
-                class="w-10 h-10 rounded-xl bg-primary-red/10 border border-primary-red/20 text-primary-red flex items-center justify-center shrink-0"
+                class="w-10 h-10 rounded-lg bg-primary-red/10 border border-primary-red/20 text-primary-red flex items-center justify-center shrink-0"
               >
                 <AlertTriangle class="w-5 h-5" />
               </div>
@@ -255,7 +255,7 @@
             </div>
 
             <div
-              class="p-3 rounded-xl bg-background border border-primary-border text-xs text-primary-text font-medium"
+              class="p-3 rounded-lg bg-background border border-primary-border text-xs text-primary-text font-medium"
             >
               <p class="font-bold">
                 {{ itemToDelete?.file_name || itemToDelete?.title || "Selected Document" }}
@@ -271,7 +271,7 @@
               <button
                 type="button"
                 @click="closeDeleteModal"
-                class="px-4 py-2 text-xs font-semibold text-secondary-text hover:bg-background rounded-xl border border-primary-border transition-colors cursor-pointer"
+                class="px-4 py-2 text-xs font-semibold text-secondary-text hover:bg-background rounded-lg border border-primary-border transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -279,7 +279,7 @@
                 type="button"
                 @click="confirmDelete"
                 :disabled="clientDepthStore.isDeletingReference"
-                class="px-4 py-2 text-xs font-semibold text-white bg-primary-red hover:bg-primary-red/90 rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                class="px-4 py-2 text-xs font-semibold text-white bg-primary-red hover:bg-primary-red/90 rounded-lg shadow-xs transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
               >
                 <Loader2
                   v-if="clientDepthStore.isDeletingReference"

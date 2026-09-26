@@ -55,6 +55,8 @@ export const useEmailLogsStore = defineStore("emailLogs", () => {
   const pagination = reactive({
     page: 1,
     per_page: 10,
+    total_items: 0,
+    total_pages: 1,
     hasNext: false,
     hasPrev: false,
   });
@@ -362,6 +364,14 @@ export const useEmailLogsStore = defineStore("emailLogs", () => {
 
     const successHandler = (res) => {
       logDetails.value = res;
+      if (res?.pagination) {
+        Object.assign(pagination, {
+          total_items: res.pagination.total_items || res.records?.length || 0,
+          total_pages: res.pagination.total_pages || 1,
+          page: res.pagination.page || pagination.page,
+          per_page: res.pagination.per_page || pagination.per_page,
+        });
+      }
       isLoadingEmailLogsDetails.value = false;
     };
 
@@ -375,6 +385,8 @@ export const useEmailLogsStore = defineStore("emailLogs", () => {
 
     const params = {
       campaign_id: id,
+      page: pagination.page,
+      per_page: pagination.per_page,
       ...cleanFilters(),
     };
 
@@ -520,7 +532,12 @@ export const useEmailLogsStore = defineStore("emailLogs", () => {
     pagination.per_page = Number(newPerPage);
     pagination.page = 1;
     isFetched.value = false;
-    fetchLogs(true);
+    
+    if (typeof activeFetcher.value === "function") {
+      activeFetcher.value();
+    } else {
+      fetchLogsList(true);
+    }
   };
 
   // ─────────────────────────────────────
