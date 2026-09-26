@@ -127,11 +127,43 @@
                   'fi',
                   `fi-${getFlagCode(user.country)}`,
                   'fis',
-                  'w-4 h-3 flex-shrink-0',
+                  'w-4 h-3 shrink-0',
                 ]"
               ></span>
               <span>{{ cleanCountryLabel(user.country) || "—" }}</span>
             </p>
+          </div>
+        </div>
+
+        <div class="border-l border-primary-border h-20 hidden md:block"></div>
+
+        <div class="hidden md:flex flex-col gap-2 justify-center">
+          <div>
+            <p class="text-[11px] text-secondary-text uppercase tracking-widest mb-1.5">
+              Auto Withdrawal
+            </p>
+            <label class="inline-flex items-center gap-2 cursor-pointer shrink-0 select-none" @click.prevent="handleToggleClick">
+              <input
+                type="checkbox"
+                role="switch"
+                :checked="user.eligible_for_auto_withdrawal"
+                class="peer sr-only"
+              />
+              <span
+                class="relative block h-5.5 w-10 rounded-full bg-zinc-300 transition-colors duration-200 dark:bg-zinc-600 peer-checked:bg-emerald-500 peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500/40 peer-checked:[&>span]:translate-x-4.5"
+                :class="{'opacity-50 pointer-events-none': isUpdatingAutoWithdrawal}"
+              >
+                <span
+                  class="absolute left-0.75 top-0.75 h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200"
+                ></span>
+              </span>
+              <span
+                class="text-xs font-bold"
+                :class="user.eligible_for_auto_withdrawal ? 'text-emerald-500' : 'text-zinc-500'"
+              >
+                {{ user.eligible_for_auto_withdrawal ? 'Enabled' : 'Disabled' }}
+              </span>
+            </label>
           </div>
         </div>
 
@@ -274,7 +306,7 @@
                       'fi',
                       `fi-${getFlagCode(item.value())}`,
                       'fis',
-                      'w-4 h-3 flex-shrink-0',
+                      'w-4 h-3 shrink-0',
                     ]"
                   ></span>
                   <span>{{
@@ -368,6 +400,18 @@
       :client="user"
       @close="whatsappDrawerOpen = false"
     />
+
+    <!-- Auto Withdrawal Confirmation Modal -->
+    <ConfirmationDialog
+      :open="autoWithdrawalConfirmOpen"
+      title="Confirm Auto Withdrawal Change"
+      :message="`Are you sure you want to ${pendingAutoWithdrawalState ? 'enable' : 'disable'} auto withdrawal for this client?`"
+      :confirmText="pendingAutoWithdrawalState ? 'Enable' : 'Disable'"
+      :type="pendingAutoWithdrawalState ? 'success' : 'danger'"
+      :loading="isUpdatingAutoWithdrawal"
+      @confirm="confirmAutoWithdrawalToggle"
+      @cancel="autoWithdrawalConfirmOpen = false"
+    />
   </div>
 </template>
 
@@ -376,6 +420,9 @@ import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { getFlagCode, cleanCountryLabel } from "@/utils/countries";
 import Tooltip from "@/components/common/Tooltip.vue";
+import ConfirmationDialog from "@/components/common/ConfirmationDialog.vue";
+import apiRequest from "@/api/request";
+import urls from "@/api/urls";
 import UploadKycDocumentModal from "@/components/clientDetails/UploadKycDocumentModal.vue";
 import ClientEmailTriggerPanel from "@/components/clientDetails/ClientEmailTriggerPanel.vue";
 import ClientWhatsAppChatDrawer from "@/components/clientDetails/ClientWhatsAppChatDrawer.vue";
@@ -595,6 +642,65 @@ const kycClass = computed(() => {
     return "bg-primary-red/10 text-primary-red border border-primary-red/20";
   return "bg-secondary-text/10 text-secondary-text border border-primary-border";
 });
+
+const autoWithdrawalConfirmOpen = ref(false);
+const pendingAutoWithdrawalState = ref(false);
+const isUpdatingAutoWithdrawal = ref(false);
+
+const handleToggleClick = () => {
+  if (isUpdatingAutoWithdrawal.value) return;
+  pendingAutoWithdrawalState.value = !user.value.eligible_for_auto_withdrawal;
+  autoWithdrawalConfirmOpen.value = true;
+};
+
+const confirmAutoWithdrawalToggle = () => {
+  toggleAutoWithdrawal(pendingAutoWithdrawalState.value);
+};
+
+const toggleAutoWithdrawal = (newVal) => {
+  if (!user.value?.id) return;
+  isUpdatingAutoWithdrawal.value = true;
+  apiRequest(urls.KEYS.PATCH, urls.clientList.update, {
+    look_up_key: user.value.id,
+    data: { eligible_for_auto_withdrawal: newVal },
+    isTokenRequired: true,
+    onSuccess: (res) => {
+      snackbar.show("Auto withdrawal status updated successfully", "success");
+      
+      const raw = localStorage.getItem("active_client");
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (String(parsed.id) === String(user.value.id)) {
+            parsed.eligible_for_auto_withdrawal = newVal;
+            localStorage.setItem("active_client", JSON.stringify(parsed));
+          }
+        } catch(e) {}
+      }
+      
+      window.dispatchEvent(
+        new CustomEvent("client-profile-updated", {
+          detail: { eligible_for_auto_withdrawal: newVal },
+        })
+      );
+      
+      clientDepthStore.fetchClientOverview(user.value.id, true);
+      autoWithdrawalConfirmOpen.value = false;
+    },
+    onFailure: (err) => {
+      snackbar.show(err?.message || "Failed to update auto withdrawal status", "error");
+      autoWithdrawalConfirmOpen.value = false;
+      window.dispatchEvent(
+        new CustomEvent("client-profile-updated", {
+          detail: { eligible_for_auto_withdrawal: !newVal },
+        })
+      );
+    },
+    onFinally: () => {
+      isUpdatingAutoWithdrawal.value = false;
+    }
+  });
+};
 
 // ─── Quick Actions ────────────────────────────────────────────────────────────
 const uploadDocModalOpen = ref(false);

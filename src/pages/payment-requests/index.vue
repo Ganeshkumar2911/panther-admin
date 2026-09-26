@@ -721,7 +721,7 @@
 
 <script setup>
 import { onMounted, computed, ref, watch } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { Receipt, Check, X, RefreshCw, Copy, FileText, AlertCircle, Pencil, Landmark } from "lucide-vue-next";
 import { usePaymentRequestsStore } from "@/stores/paymentRequests/paymentRequests";
 import { useProfileStore } from "@/stores/profile/profile";
@@ -1210,5 +1210,12 @@ const handlePageChange = (page) => {
   store.fetchRequests(true);
 };
 
-onMounted(() => store.fetchRequests());
+const route = useRoute();
+
+onMounted(() => {
+  if (route.query.id) {
+    store.filters.id = route.query.id;
+  }
+  store.fetchRequests();
+});
 </script>

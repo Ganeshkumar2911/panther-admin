@@ -504,122 +504,193 @@
                 >
               </div>
 
-              <!-- Broker Share (%) (Required) -->
-              <div class="flex flex-col gap-1.5">
-                <label class="text-xs font-semibold text-secondary-text">
-                  Broker Share (%) <span class="text-primary-red">*</span>
-                </label>
-                <input
-                  v-model="form.broker_share"
-                  type="number"
-                  min="0"
-                  max="100"
-                  placeholder="e.g. 30"
-                  class="bg-background border rounded-xl px-3.5 py-2.5 text-xs text-primary-text font-mono outline-none transition-colors"
-                  :class="
-                    errors.broker_share
-                      ? 'border-primary-red'
-                      : 'border-primary-border focus:border-primary'
-                  "
-                  @input="onBrokerShareInput"
-                />
-                <span
-                  v-if="errors.broker_share"
-                  class="text-xs text-primary-red"
-                  >{{ errors.broker_share }}</span
-                >
+              <!-- Performance Fee Share Mode Toggle -->
+              <div v-if="form.allow_fm_pf_share_mode" class="flex flex-col gap-1.5 sm:col-span-2">
+                <label class="text-xs font-semibold text-secondary-text">Performance Fee Share Mode</label>
+                <div class="flex items-center gap-4 bg-background border border-primary-border rounded-xl px-4 py-2.5 h-9.5">
+                  <label class="flex items-center gap-2 cursor-pointer text-xs font-medium text-primary-text" :class="{ 'opacity-50 cursor-not-allowed': mode === 'edit' }">
+                    <input type="radio" value="broker" v-model="form.pf_share_mode" class="text-primary focus:ring-primary h-4 w-4" :disabled="mode === 'edit'" />
+                    <span>Broker Mode</span>
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer text-xs font-medium text-primary-text" :class="{ 'opacity-50 cursor-not-allowed': mode === 'edit' }">
+                    <input type="radio" value="fm" v-model="form.pf_share_mode" class="text-primary focus:ring-primary h-4 w-4" :disabled="mode === 'edit'" />
+                    <span>FM Mode</span>
+                  </label>
+                </div>
               </div>
 
-              <!-- FM Share (%) (Required) -->
-              <div class="flex flex-col gap-1.5">
-                <label class="text-xs font-semibold text-secondary-text">
-                  FM Share (%) <span class="text-primary-red">*</span>
-                </label>
-                <input
-                  v-model="form.fm_share"
-                  type="number"
-                  min="0"
-                  max="100"
-                  placeholder="e.g. 70"
-                  class="bg-background border rounded-xl px-3.5 py-2.5 text-xs text-primary-text font-mono outline-none transition-colors"
-                  :class="
+              <!-- Broker Mode Fields (Existing) -->
+              <template v-if="form.pf_share_mode === 'broker'">
+                <!-- Broker Share (%) (Required) -->
+                <div class="flex flex-col gap-1.5">
+                  <label class="text-xs font-semibold text-secondary-text">
+                    Broker Share (%) <span class="text-primary-red">*</span>
+                  </label>
+                  <input
+                    v-model="form.broker_share"
+                    type="number"
+                    min="0"
+                    max="100"
+                    placeholder="e.g. 30"
+                    class="bg-background border rounded-xl px-3.5 py-2.5 text-xs text-primary-text font-mono outline-none transition-colors"
+                    :class="
+                      errors.broker_share
+                        ? 'border-primary-red'
+                        : 'border-primary-border focus:border-primary'
+                    "
+                    @input="onBrokerShareInput"
+                  />
+                  <span
+                    v-if="errors.broker_share"
+                    class="text-xs text-primary-red"
+                    >{{ errors.broker_share }}</span
+                  >
+                </div>
+
+                <!-- FM Share (%) (Required) -->
+                <div class="flex flex-col gap-1.5">
+                  <label class="text-xs font-semibold text-secondary-text">
+                    FM Share (%) <span class="text-primary-red">*</span>
+                  </label>
+                  <input
+                    v-model="form.fm_share"
+                    type="number"
+                    min="0"
+                    max="100"
+                    placeholder="e.g. 70"
+                    class="bg-background border rounded-xl px-3.5 py-2.5 text-xs text-primary-text font-mono outline-none transition-colors"
+                    :class="
+                      errors.fm_share
+                        ? 'border-primary-red'
+                        : 'border-primary-border focus:border-primary'
+                    "
+                    @input="onFmShareInput"
+                  />
+                  <span v-if="errors.fm_share" class="text-xs text-primary-red">{{
                     errors.fm_share
-                      ? 'border-primary-red'
-                      : 'border-primary-border focus:border-primary'
-                  "
-                  @input="onFmShareInput"
-                />
-                <span v-if="errors.fm_share" class="text-xs text-primary-red">{{
-                  errors.fm_share
-                }}</span>
-              </div>
+                  }}</span>
+                </div>
 
-              <!-- Share Distribution Live Sum Hint -->
-              <div
-                class="sm:col-span-2 bg-background border border-primary-border/60 rounded-xl p-2.5 flex items-center justify-between text-xs"
-              >
-                <span class="text-secondary-text font-medium"
-                  >FM Share + Broker Share (Must sum to 100%):</span
+                <!-- Share Distribution Live Sum Hint -->
+                <div
+                  class="sm:col-span-2 bg-background border border-primary-border/60 rounded-xl p-2.5 flex items-center justify-between text-xs"
                 >
-                <span
-                  class="font-mono font-bold"
-                  :class="
-                    Math.abs(
-                      (parseFloat(form.fm_share) || 0) +
-                        (parseFloat(form.broker_share) || 0) -
-                        100,
-                    ) <= 0.01
-                      ? 'text-emerald-500'
-                      : 'text-rose-500'
-                  "
-                >
-                  {{
-                    (
-                      (parseFloat(form.fm_share) || 0) +
-                        (parseFloat(form.broker_share) || 0)
-                    ).toFixed(1)
-                  }}% / 100%
-                </span>
-              </div>
-              <span
-                v-if="errors.share_distribution"
-                class="text-xs text-primary-red sm:col-span-2"
-                >{{ errors.share_distribution }}</span
-              >
-
-              <!-- IB Pool Percentage (Required, Max 100) -->
-              <div class="flex flex-col gap-1.5">
-                <label
-                  class="text-xs font-semibold text-secondary-text flex items-center justify-between"
-                >
-                  <span
-                    >IB Pool Percentage (%)
-                    <span class="text-primary-red">*</span></span
+                  <span class="text-secondary-text font-medium"
+                    >FM Share + Broker Share (Must sum to 100%):</span
                   >
                   <span
-                    class="text-[10px] text-secondary-text font-bold uppercase"
-                    >Max 100%</span
+                    class="font-mono font-bold"
+                    :class="
+                      Math.abs(
+                        (parseFloat(form.fm_share) || 0) +
+                          (parseFloat(form.broker_share) || 0) -
+                          100,
+                      ) <= 0.01
+                        ? 'text-emerald-500'
+                        : 'text-rose-500'
+                    "
                   >
-                </label>
-                <input
-                  v-model="form.ib_pool_percentage"
-                  type="number"
-                  min="0"
-                  max="100"
-                  placeholder="e.g. 10"
-                  class="bg-background border rounded-xl px-3.5 py-2.5 text-xs text-primary-text font-mono outline-none transition-colors"
-                  :class="
-                    errors.ib_pool_percentage
-                      ? 'border-primary-red'
-                      : 'border-primary-border focus:border-primary'
-                  "
-                />
+                    {{
+                      (
+                        (parseFloat(form.fm_share) || 0) +
+                          (parseFloat(form.broker_share) || 0)
+                      ).toFixed(1)
+                    }}% / 100%
+                  </span>
+                </div>
                 <span
-                  v-if="errors.ib_pool_percentage"
-                  class="text-xs text-primary-red"
-                  >{{ errors.ib_pool_percentage }}</span
+                  v-if="errors.share_distribution"
+                  class="text-xs text-primary-red sm:col-span-2"
+                  >{{ errors.share_distribution }}</span
                 >
-              </div>
+
+                <!-- IB Pool Percentage (Required, Max 100) -->
+                <div class="flex flex-col gap-1.5">
+                  <label
+                    class="text-xs font-semibold text-secondary-text flex items-center justify-between"
+                  >
+                    <span
+                      >IB Pool Percentage (%)
+                      <span class="text-primary-red">*</span></span
+                    >
+                    <span
+                      class="text-[10px] text-secondary-text font-bold uppercase"
+                      >Max 100%</span
+                    >
+                  </label>
+                  <input
+                    v-model="form.ib_pool_percentage"
+                    type="number"
+                    min="0"
+                    max="100"
+                    placeholder="e.g. 10"
+                    class="bg-background border rounded-xl px-3.5 py-2.5 text-xs text-primary-text font-mono outline-none transition-colors"
+                    :class="
+                      errors.ib_pool_percentage
+                        ? 'border-primary-red'
+                        : 'border-primary-border focus:border-primary'
+                    "
+                  />
+                  <span
+                    v-if="errors.ib_pool_percentage"
+                    class="text-xs text-primary-red"
+                    >{{ errors.ib_pool_percentage }}</span
+                  >
+                </div>
+              </template>
+
+              <!-- FM Mode Fields -->
+              <template v-else>
+                <div class="sm:col-span-2 flex flex-col gap-3 p-4 bg-background border border-primary-border rounded-xl">
+                  <div class="flex items-center justify-between border-b border-primary-border/60 pb-2">
+                    <h4 class="text-xs font-bold text-primary-text">FM Mode Share Distribution</h4>
+                    <button type="button" @click="addRecipient" class="text-[11px] font-bold text-primary hover:text-primary-hover flex items-center gap-1 bg-primary/10 px-2 py-1 rounded">
+                      <Plus class="w-3 h-3" /> Add Recipient
+                    </button>
+                  </div>
+                  
+                  <!-- Distribution Header -->
+                  <div class="grid grid-cols-[1fr_1fr_80px_32px] gap-2 px-2 text-[10px] font-bold text-secondary-text uppercase tracking-wider">
+                    <div>Destination</div>
+                    <div>Target</div>
+                    <div>% of Total PF</div>
+                    <div></div>
+                  </div>
+
+                  <!-- Broker Row (Static) -->
+                  <div class="grid grid-cols-[1fr_1fr_80px_32px] gap-2 items-center">
+                    <input disabled value="Broker" class="bg-background/50 border border-primary-border rounded-lg px-2.5 py-2 text-xs text-secondary-text outline-none" />
+                    <input disabled value="Platform" class="bg-background/50 border border-primary-border rounded-lg px-2.5 py-2 text-xs text-secondary-text outline-none" />
+                    <input v-model="form.pf_broker_share" type="number" min="0" max="100" class="bg-card-background border border-primary-border focus:border-primary rounded-lg px-2.5 py-2 text-xs text-primary-text outline-none font-mono" />
+                    <div class="w-8"></div>
+                  </div>
+
+                  <!-- Dynamic Recipients -->
+                  <div v-for="(rec, idx) in form.pf_share_recipients" :key="idx" class="grid grid-cols-[1fr_1fr_80px_32px] gap-2 items-start">
+                    <select v-model="rec.destination_type" class="bg-card-background border border-primary-border focus:border-primary rounded-lg px-2.5 py-2 text-xs text-primary-text outline-none appearance-none">
+                      <option value="wallet">Wallet</option>
+                      <option value="trading_account">Trading Account</option>
+                    </select>
+                    <div>
+                      <input v-model="rec.target" :placeholder="rec.destination_type === 'wallet' ? 'Wallet ID' : 'Account Number'" class="w-full bg-card-background border border-primary-border focus:border-primary rounded-lg px-2.5 py-2 text-xs text-primary-text outline-none font-mono" />
+                      <span v-if="errors[`recipient_target_${idx}`]" class="text-[10px] text-primary-red mt-0.5 block">{{ errors[`recipient_target_${idx}`] }}</span>
+                    </div>
+                    <div>
+                      <input v-model="rec.share_percentage" type="number" min="0" max="100" class="w-full bg-card-background border border-primary-border focus:border-primary rounded-lg px-2.5 py-2 text-xs text-primary-text outline-none font-mono" />
+                      <span v-if="errors[`recipient_share_${idx}`]" class="text-[10px] text-primary-red mt-0.5 block">{{ errors[`recipient_share_${idx}`] }}</span>
+                    </div>
+                    <button type="button" @click="removeRecipient(idx)" class="w-8 h-[34px] flex items-center justify-center text-secondary-text hover:text-primary-red hover:bg-rose-500/10 rounded-lg transition-colors">
+                      <X class="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <!-- Totals Footer -->
+                  <div class="mt-2 pt-3 border-t border-primary-border/60 flex items-center justify-between text-xs">
+                    <span class="text-secondary-text font-medium">Allocated: <span class="font-bold text-primary-text">{{ totalAllocated }}%</span> &middot; To FM Wallet: <span class="font-bold text-primary-text">{{ Math.max(0, 100 - totalAllocated) }}%</span></span>
+                    <span v-if="errors.share_distribution" class="text-primary-red font-semibold">{{ errors.share_distribution }}</span>
+                  </div>
+                </div>
+              </template>
 
               <!-- Registration Fee -->
               <div class="flex flex-col gap-1.5">
@@ -1058,6 +1129,9 @@ const form = ref({
   fm_share: 70,
   broker_share: 30,
   ib_pool_percentage: 10,
+  pf_share_mode: "broker",
+  pf_broker_share: 0,
+  pf_share_recipients: [],
   settlement_type: "monthly",
   settlement_time: "00:00",
   management_fee: 2,
@@ -1103,6 +1177,23 @@ const onBrokerShareInput = () => {
     form.value.fm_share = Math.max(0, 100 - b);
   }
 };
+
+
+const addRecipient = () => {
+  form.value.pf_share_recipients.push({ destination_type: 'wallet', target: '', share_percentage: 0 });
+};
+
+const removeRecipient = (index) => {
+  form.value.pf_share_recipients.splice(index, 1);
+};
+
+const totalAllocated = computed(() => {
+  let total = parseFloat(form.value.pf_broker_share) || 0;
+  form.value.pf_share_recipients.forEach(r => {
+    total += parseFloat(r.share_percentage) || 0;
+  });
+  return total;
+});
 
 const onFmShareInput = () => {
   const fm = parseFloat(form.value.fm_share);
@@ -1217,6 +1308,13 @@ const resetForm = () => {
       fm_share: props.item.fm_share ?? 70,
       broker_share: props.item.broker_share ?? 30,
       ib_pool_percentage: props.item.ib_pool_percentage ?? 10,
+      pf_share_mode: props.item.pf_share_mode || "broker",
+      pf_broker_share: props.item.pf_broker_share ?? 0,
+      pf_share_recipients: Array.isArray(props.item.pf_share_recipients) ? props.item.pf_share_recipients.map(r => ({
+        destination_type: r.destination_type,
+        target: r.destination_type === 'wallet' ? r.wallet_id : r.account_number,
+        share_percentage: r.share_percentage
+      })) : [],
       settlement_type:
         props.item.settlement_type ?? props.item.settlement ?? "monthly",
       settlement_time: props.item.settlement_time ?? "00:00",
@@ -1264,6 +1362,9 @@ const resetForm = () => {
       fm_share: 70,
       broker_share: 30,
       ib_pool_percentage: 10,
+  pf_share_mode: "broker",
+  pf_broker_share: 0,
+  pf_share_recipients: [],
       settlement_type: "monthly",
       settlement_time: "00:00",
       management_fee: 2,
@@ -1356,28 +1457,39 @@ const validateForm = () => {
     }
   }
 
-  // Broker Share & FM Share (Required, Must sum to 100)
-  if (form.value.broker_share === "" || form.value.broker_share == null) {
-    newErrors.broker_share = "Broker share is required";
-  }
-  if (form.value.fm_share === "" || form.value.fm_share == null) {
-    newErrors.fm_share = "FM share is required";
-  }
-  const fm = parseFloat(form.value.fm_share) || 0;
-  const broker = parseFloat(form.value.broker_share) || 0;
-  if (Math.abs(fm + broker - 100) > 0.01) {
-    newErrors.share_distribution =
-      "FM Share and Broker Share must sum to exactly 100%";
-  }
+  if (form.value.pf_share_mode === 'broker') {
+    // Broker Share & FM Share (Required, Must sum to 100)
+    if (form.value.broker_share === "" || form.value.broker_share == null) {
+      newErrors.broker_share = "Broker share is required";
+    }
+    if (form.value.fm_share === "" || form.value.fm_share == null) {
+      newErrors.fm_share = "FM share is required";
+    }
+    const fm = parseFloat(form.value.fm_share) || 0;
+    const broker = parseFloat(form.value.broker_share) || 0;
+    if (Math.abs(fm + broker - 100) > 0.01) {
+      newErrors.share_distribution =
+        "FM Share and Broker Share must sum to exactly 100%";
+    }
 
-  // IB Pool Percentage (Required, Max 100)
-  if (
-    form.value.ib_pool_percentage === "" ||
-    form.value.ib_pool_percentage == null
-  ) {
-    newErrors.ib_pool_percentage = "IB pool percentage is required";
-  } else if (parseFloat(form.value.ib_pool_percentage) > 100) {
-    newErrors.ib_pool_percentage = "Max 100%";
+    // IB Pool Percentage (Required, Max 100)
+    if (
+      form.value.ib_pool_percentage === "" ||
+      form.value.ib_pool_percentage == null
+    ) {
+      newErrors.ib_pool_percentage = "IB pool percentage is required";
+    } else if (parseFloat(form.value.ib_pool_percentage) > 100) {
+      newErrors.ib_pool_percentage = "Max 100%";
+    }
+  } else {
+    // FM mode
+    if (totalAllocated.value > 100) {
+      newErrors.share_distribution = "Total allocated share cannot exceed 100%";
+    }
+    form.value.pf_share_recipients.forEach((rec, idx) => {
+      if (!rec.target) newErrors[`recipient_target_${idx}`] = "Target required";
+      if (rec.share_percentage <= 0) newErrors[`recipient_share_${idx}`] = "Share must be > 0";
+    });
   }
 
   // Settlement
@@ -1413,6 +1525,14 @@ const handleSubmit = async () => {
       fm_share: Number(form.value.fm_share) || 0,
       broker_share: Number(form.value.broker_share) || 0,
       ib_pool_percentage: Number(form.value.ib_pool_percentage) || 0,
+      
+      pf_share_mode: form.value.pf_share_mode,
+      pf_broker_share: form.value.pf_share_mode === 'fm' ? (Number(form.value.pf_broker_share) || 0) : 0,
+      pf_share_recipients: form.value.pf_share_mode === 'fm' ? form.value.pf_share_recipients.map(r => ({
+        destination_type: r.destination_type,
+        [r.destination_type === 'wallet' ? 'wallet_id' : 'account_number']: r.destination_type === 'wallet' ? Number(r.target) : r.target,
+        share_percentage: Number(r.share_percentage) || 0
+      })) : [],
       settlement_type: form.value.settlement_type || "monthly",
       settlement_time: form.value.settlement_time || "00:00",
       management_fee: Number(form.value.management_fee) || 0,
@@ -1451,6 +1571,13 @@ const handleSubmit = async () => {
         fm_share: Number(srcForm.fm_share) || 0,
         broker_share: Number(srcForm.broker_share) || 0,
         ib_pool_percentage: Number(srcForm.ib_pool_percentage) || 0,
+        
+        pf_broker_share: srcForm.pf_share_mode === 'fm' ? (Number(srcForm.pf_broker_share) || 0) : 0,
+        pf_share_recipients: srcForm.pf_share_mode === 'fm' ? srcForm.pf_share_recipients.map(r => ({
+          destination_type: r.destination_type,
+          [r.destination_type === 'wallet' ? 'wallet_id' : 'account_number']: r.destination_type === 'wallet' ? Number(r.target) : r.target,
+          share_percentage: Number(r.share_percentage) || 0
+        })) : [],
         settlement_type: srcForm.settlement_type || "monthly",
         settlement_time: srcForm.settlement_time || "00:00",
         management_fee: Number(srcForm.management_fee) || 0,
