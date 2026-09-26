@@ -147,6 +147,12 @@ const handleTagModalUpdated = () => {
   store.fetchClients(store.pagination.page);
 };
 
+const autoWithdrawalOptions = [
+  { label: 'All Auto Withdrawal Status', value: '' },
+  { label: 'Eligible', value: 'true' },
+  { label: 'Not Eligible', value: 'false' },
+]
+
 const tagOptions = computed(() => {
   const options = [{ label: "All Tags", value: "" }];
   (tagsStore.tags || []).forEach((t) => {
@@ -675,6 +681,15 @@ onMounted(() => {
           v-model="store.filters.tag_ids"
           :options="tagOptions"
           placeholder="All Tags..."
+          class="w-full sm:w-56 xl:w-56"
+          @update:modelValue="store.applyFilters()"
+        />
+
+        <!-- Auto Withdrawal Filter -->
+        <BaseSelect
+          v-model="store.filters.eligible_for_auto_withdrawal"
+          :options="autoWithdrawalOptions"
+          placeholder="Auto Withdrawal..."
           class="w-full sm:w-56 xl:w-56"
           @update:modelValue="store.applyFilters()"
         />
