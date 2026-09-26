@@ -514,7 +514,6 @@ const toggleActive = async (record) => {
 
 const handlePageChange = (page) => {
   store.setPage(page)
-  store.fetchPaymentMethods(true)
 }
 
 // ── Helpers ──
