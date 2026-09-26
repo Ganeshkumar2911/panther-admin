@@ -43,12 +43,12 @@
 
       <!-- Health Score Section Skeleton -->
       <div class="grid grid-cols-1 xl:grid-cols-12 gap-5 items-stretch">
-        <div class="xl:col-span-5 bg-card-background/40 border border-primary-border rounded-xl p-6 min-h-[360px] flex flex-col justify-between">
+        <div class="xl:col-span-5 bg-card-background/40 border border-primary-border rounded-xl p-6 min-h-90 flex flex-col justify-between">
           <div class="h-4 w-40 bg-primary-border/70 rounded" />
           <div class="w-36 h-36 rounded-full border-8 border-primary-border/40 self-center my-6" />
           <div class="h-4 w-32 bg-primary-border/50 rounded self-center" />
         </div>
-        <div class="xl:col-span-7 bg-card-background/40 border border-primary-border rounded-xl p-6 min-h-[360px] space-y-4">
+        <div class="xl:col-span-7 bg-card-background/40 border border-primary-border rounded-xl p-6 min-h-90 space-y-4">
           <div class="h-4 w-48 bg-primary-border/70 rounded mb-4" />
           <div v-for="b in 5" :key="b" class="space-y-2 p-3 bg-background/50 rounded-xl">
             <div class="h-3.5 w-32 bg-primary-border/60 rounded" />

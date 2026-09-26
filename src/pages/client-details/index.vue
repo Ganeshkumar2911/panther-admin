@@ -127,7 +127,7 @@
                   'fi',
                   `fi-${getFlagCode(user.country)}`,
                   'fis',
-                  'w-4 h-3 flex-shrink-0',
+                  'w-4 h-3 shrink-0',
                 ]"
               ></span>
               <span>{{ cleanCountryLabel(user.country) || "—" }}</span>
@@ -150,11 +150,11 @@
                 class="peer sr-only"
               />
               <span
-                class="relative block h-[22px] w-10 rounded-full bg-zinc-300 transition-colors duration-200 dark:bg-zinc-600 peer-checked:bg-emerald-500 peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500/40 peer-checked:[&>span]:translate-x-[18px]"
+                class="relative block h-5.5 w-10 rounded-full bg-zinc-300 transition-colors duration-200 dark:bg-zinc-600 peer-checked:bg-emerald-500 peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500/40 peer-checked:[&>span]:translate-x-4.5"
                 :class="{'opacity-50 pointer-events-none': isUpdatingAutoWithdrawal}"
               >
                 <span
-                  class="absolute left-[3px] top-[3px] h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200"
+                  class="absolute left-0.75 top-0.75 h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200"
                 ></span>
               </span>
               <span
@@ -306,7 +306,7 @@
                       'fi',
                       `fi-${getFlagCode(item.value())}`,
                       'fis',
-                      'w-4 h-3 flex-shrink-0',
+                      'w-4 h-3 shrink-0',
                     ]"
                   ></span>
                   <span>{{
