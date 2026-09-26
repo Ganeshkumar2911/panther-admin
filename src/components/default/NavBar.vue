@@ -272,9 +272,9 @@ const handleSearchKeydown = (e) => {
   }
 };
 
-// Global Cmd+K / Ctrl+K listener
+// Global Cmd+K / Ctrl+K / Cmd+S / Ctrl+S listener
 const handleGlobalKeydown = (e) => {
-  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+  if ((e.metaKey || e.ctrlKey) && (e.key.toLowerCase() === "k" || e.key.toLowerCase() === "s")) {
     e.preventDefault();
     if (props.isCollapsed) {
       emit("toggle-collapse");
