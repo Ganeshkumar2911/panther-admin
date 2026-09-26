@@ -2,70 +2,8 @@
   <div class="space-y-6 pb-12">
     <!-- Breadcrumb & Top Action Header -->
     <div class="bg-card-background rounded-lg p-6 space-y-4">
-      <div class="flex items-center justify-between flex-wrap gap-3">
-        <!-- Breadcrumb / Route Trail -->
-        <div class="flex items-center gap-2 text-xs font-semibold text-secondary-text flex-wrap">
-          <button
-            type="button"
-            class="inline-flex items-center gap-1 text-primary hover:underline cursor-pointer"
-            @click="handleBack"
-          >
-            <ChevronLeft class="w-4 h-4" />
-            <span>{{ backButtonLabel }}</span>
-          </button>
-          <span>/</span>
-          <span class="text-primary-text font-bold">Event Details #{{ eventId }}</span>
-          <span class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 uppercase">
-            <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
-            {{ moduleValue }}
-          </span>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="flex items-center gap-2 shrink-0">
-          <!-- <button
-            type="button"
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary-border bg-background text-primary-text hover:border-primary text-xs font-semibold transition cursor-pointer"
-            title="Copy Event ID"
-            @click="copyText(eventId, 'Event ID')"
-          >
-            <Copy class="w-3.5 h-3.5 text-primary" />
-            <span>Copy Event ID</span>
-          </button> -->
-
-          <!-- <button
-            type="button"
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary-border bg-background text-primary-text hover:border-primary text-xs font-semibold transition cursor-pointer"
-            title="Download JSON Payload"
-            @click="downloadPayload"
-          >
-            <FileJson class="w-3.5 h-3.5 text-primary" />
-            <span>Download JSON</span>
-          </button> -->
-
-          <button
-            type="button"
-            class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-primary text-btn-text-primary hover:bg-primary-hover text-xs font-bold transition cursor-pointer shadow-sm"
-            title="Export Summary"
-            @click="triggerExportDossier"
-          >
-            <Download class="w-3.5 h-3.5" />
-            <span>Export Summary</span>
-          </button>
-
-          <!-- <button
-            type="button"
-            class="p-2 rounded-lg border border-primary-border bg-background text-secondary-text hover:text-primary-text transition cursor-pointer"
-            title="Flag Event"
-            @click="triggerFlag"
-          >
-            <Flag class="w-4 h-4" />
-          </button> -->
-        </div>
-      </div>
-
       <!-- Main Event Title & Dynamic Badges Bar -->
-      <div class="pt-2 border-t border-primary-border/60">
+      <div class="">
         <div class="flex items-center gap-2 flex-wrap mb-2">
           <span class="font-mono text-primary font-bold text-xs bg-primary/10 px-2 py-0.5 rounded border border-primary/20">
             #LOG-{{ eventId }}
@@ -883,13 +821,6 @@
             @click="copyText(JSON.stringify(currentData, null, 2), 'Audit Record')"
           >
             Copy Raw JSON
-          </button>
-          <button
-            type="button"
-            class="px-5 py-2 rounded-lg text-xs font-bold text-btn-text-primary bg-primary hover:bg-primary-hover shadow-sm transition cursor-pointer"
-            @click="handleBack"
-          >
-            {{ isClientDepth ? 'Back to Client Audit Logs' : 'Back to Audit Logs' }}
           </button>
         </div>
       </div>

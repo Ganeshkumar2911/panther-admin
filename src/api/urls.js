@@ -116,6 +116,7 @@ const urls = {
     offerAgents: "/fund_managers/offers/agents",
     availableJoiners: "/fund_managers/followers/available-joiners",
     addFollower: "/fund_managers/followers/add",
+    openPositionCounts: "/fund_managers/followers/open-position-counts",
   },
   tradeBook: {
     filters: "/trade-book/filters",
