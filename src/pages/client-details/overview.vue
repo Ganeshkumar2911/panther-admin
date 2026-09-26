@@ -15,13 +15,12 @@
     <!-- ─── SKELETON LOADING STATE ─────────────────────────────────── -->
     <div v-if="isOverviewLoading" class="space-y-5 animate-pulse">
       <!-- Summary Cards Skeleton -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-3 xl:grid-cols-5 gap-4">
         <div
-          v-for="i in 7"
+          v-for="i in 5"
           :key="i"
           class="bg-card-background/40 border border-primary-border rounded-xl p-4 sm:p-5 flex items-center gap-4"
         >
-          <div class="w-11 h-11 rounded-xl bg-primary-border/50 shrink-0" />
           <div class="space-y-2 flex-1 min-w-0">
             <div class="h-3 w-20 bg-primary-border/50 rounded" />
             <div class="h-5 w-28 bg-primary-border/70 rounded" />
@@ -33,8 +32,7 @@
       <!-- Stat Strip Skeleton -->
       <div class="bg-card-background/40 border border-primary-border rounded-xl p-5 sm:p-6">
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 text-center divide-y sm:divide-y-0 sm:divide-x divide-primary-border/60">
-          <div v-for="i in 4" :key="i" class="flex flex-col items-center gap-2 pt-2 sm:pt-0">
-            <div class="w-9 h-9 rounded-xl bg-primary-border/40" />
+          <div v-for="i in 4" :key="i" class="flex flex-col items-center gap-1 pt-2 sm:pt-0">
             <div class="h-7 w-16 bg-primary-border/70 rounded" />
             <div class="h-3 w-24 bg-primary-border/40 rounded" />
           </div>

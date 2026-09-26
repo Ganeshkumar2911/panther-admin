@@ -88,8 +88,10 @@ body {
 
 .input-field:focus {
   outline: none;
-  box-shadow: none; /* remove glow */
-  border-color: var(--color-primary); /* optional */
+  box-shadow: none;
+  /* remove glow */
+  border-color: var(--color-primary);
+  /* optional */
 }
 
 /* Glass-morphism card */
@@ -150,12 +152,15 @@ input[type="number"] {
 }
 
 .no-scrollbar::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Edge */
+  display: none;
+  /* Chrome, Safari, Edge */
 }
 
 .no-scrollbar {
-  -ms-overflow-style: none; /* IE & old Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  /* IE & old Edge */
+  scrollbar-width: none;
+  /* Firefox */
 }
 
 /* Child row styling for tree hierarchy visualization */

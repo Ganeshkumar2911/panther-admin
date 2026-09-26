@@ -785,7 +785,7 @@ const currentActiveTab = computed(() => {
   if (currentPath.endsWith("/bank-details") || route.name === "client-details-bank-details") return "bank-details";
   if (currentPath.endsWith("/marketing") || route.name === "client-details-marketing") return "marketing";
   if (currentPath.endsWith("/notifications") || route.name === "client-details-notifications") return "notifications";
-  if (currentPath.endsWith("/audit-logs") || route.name === "client-details-audit-logs") return "audit-logs";
+  if (currentPath.includes("/audit-logs") || route.name === "client-details-audit-logs" || route.name === "client-details-audit-log-detail") return "audit-logs";
   if (currentPath.endsWith("/trading") || route.name === "client-details-trading") return "trading";
   if (currentPath.endsWith("/crm") || route.name === "client-details-crm") return "crm";
   return "overview";

@@ -343,6 +343,25 @@ const columns = [
     sortable: true,
   },
   { key: "timeline", label: "Timeline & Audit", width: "170px" },
+  { key: "wallet_target", label: "Wallet Target", align: "center", width: "120px" },
+  { key: "group_name", label: "IB Group", width: "140px" },
+  { key: "symbol_group", label: "Symbol & Config Grp", width: "150px" },
+  { key: "mt5_group", label: "MT5 Group", width: "160px" },
+  { key: "position_id", label: "Position ID", width: "120px" },
+  { key: "trade_status", label: "Trade Status", align: "center", width: "110px" },
+  { key: "deals", label: "Deals (Open/Close)", width: "150px" },
+  { key: "trade_prices", label: "Trade Open/Close Price", align: "right", width: "170px" },
+  { key: "open_market", label: "Open Market (Ask/Bid)", align: "right", width: "160px" },
+  { key: "open_volume", label: "Open Volume", align: "right", width: "140px" },
+  { key: "volume_entry_exit", label: "Entry/Exit Lots", align: "right", width: "135px" },
+  { key: "trade_profit", label: "Trade Profit", align: "right", width: "120px", sortable: true },
+  { key: "trade_timing", label: "Trade Open/Close Time", width: "180px" },
+  { key: "spread_allotted", label: "Spread Allotted", align: "right", width: "145px" },
+  { key: "pip_value", label: "Pip Value & One Pip", align: "right", width: "140px" },
+  { key: "calculation_bases", label: "Calc Bases (M/Pips)", align: "right", width: "150px" },
+  { key: "quote_fx", label: "Quote & FX Rate", align: "right", width: "135px" },
+  { key: "fx_details", label: "FX Mode & Source", width: "140px" },
+  { key: "settlement_batch", label: "Settlement Batch", width: "130px" },
   {
     key: "actions",
     label: "Actions",
@@ -941,6 +960,247 @@ const formatDate = (val) => {
             </span>
           </p>
         </div>
+      </template>
+
+      <!-- Cell: Wallet Target -->
+      <template #cell-wallet_target="{ row }">
+        <span
+          class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border"
+          :class="
+            row.wallet_target === 'demo'
+              ? 'bg-primary-blue/10 text-primary-blue border-primary-blue/20'
+              : 'bg-primary-green/10 text-primary-green border-primary-green/20'
+          "
+        >
+          <span
+            class="w-1.5 h-1.5 rounded-full"
+            :class="row.wallet_target === 'demo' ? 'bg-primary-blue' : 'bg-primary-green'"
+          />
+          {{ row.wallet_target || 'main' }}
+        </span>
+      </template>
+
+      <!-- Cell: Group Name -->
+      <template #cell-group_name="{ row }">
+        <div class="space-y-0.5 text-xs">
+          <p class="font-medium text-primary-text">
+            {{ row.group_name || "-" }}
+          </p>
+          <p v-if="row.group_id" class="text-[10px] font-mono text-secondary-text">
+            Group #{{ row.group_id }}
+          </p>
+        </div>
+      </template>
+
+      <!-- Cell: Symbol Group & Config -->
+      <template #cell-symbol_group="{ row }">
+        <div class="space-y-0.5 text-xs font-mono">
+          <p class="text-primary-text">
+            Sym Grp: <span class="text-secondary-text">#{{ row.symbol_group_id || row.trade?.symbol_group_id || '-' }}</span>
+          </p>
+          <p class="text-primary-text">
+            Config: <span class="text-secondary-text">#{{ row.broker_group_config_id || row.trade?.broker_group_config_id || '-' }}</span>
+          </p>
+        </div>
+      </template>
+
+      <!-- Cell: MT5 Group -->
+      <template #cell-mt5_group="{ row }">
+        <span
+          class="text-xs font-mono text-secondary-text truncate block max-w-[150px]"
+          :title="row.trade?.mt5_group"
+        >
+          {{ row.trade?.mt5_group || "-" }}
+        </span>
+      </template>
+
+      <!-- Cell: Position ID -->
+      <template #cell-position_id="{ row }">
+        <span class="font-mono text-xs text-primary-text font-semibold">
+          {{ row.trade?.position_id ? `#${row.trade.position_id}` : '-' }}
+        </span>
+      </template>
+
+      <!-- Cell: Trade Status -->
+      <template #cell-trade_status="{ row }">
+        <span
+          class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border"
+          :class="
+            (row.trade?.trade_status || 'closed') === 'closed'
+              ? 'bg-primary-green/10 text-primary-green border-primary-green/20'
+              : 'bg-primary-yellow/10 text-primary-yellow border-primary-yellow/20'
+          "
+        >
+          {{ row.trade?.trade_status || 'closed' }}
+        </span>
+      </template>
+
+      <!-- Cell: Deals (Open / Close) -->
+      <template #cell-deals="{ row }">
+        <div class="text-[10px] font-mono space-y-0.5">
+          <p class="text-primary-text">
+            Open: <span class="text-secondary-text">#{{ row.trade?.open_deal || "-" }}</span>
+          </p>
+          <p class="text-primary-text">
+            Close: <span class="text-secondary-text">#{{ row.trade?.close_deal || "-" }}</span>
+          </p>
+        </div>
+      </template>
+
+      <!-- Cell: Trade Prices (Open & Close) -->
+      <template #cell-trade_prices="{ row }">
+        <div class="text-right font-mono text-xs space-y-0.5">
+          <p class="text-primary-text">
+            Open: <span class="font-semibold">{{ row.trade?.open_price != null ? row.trade.open_price : "-" }}</span>
+          </p>
+          <p class="text-primary-text">
+            Close: <span class="font-semibold">{{ row.trade?.close_price != null ? row.trade.close_price : "-" }}</span>
+          </p>
+        </div>
+      </template>
+
+      <!-- Cell: Open Market (Ask / Bid / Spread) -->
+      <template #cell-open_market="{ row }">
+        <div class="text-right font-mono text-xs space-y-0.5">
+          <p v-if="row.trade?.open_market_ask != null" class="text-primary-text">
+            Ask: <span class="font-semibold">{{ row.trade.open_market_ask }}</span>
+          </p>
+          <p v-if="row.trade?.open_market_bid != null" class="text-primary-text">
+            Bid: <span class="font-semibold">{{ row.trade.open_market_bid }}</span>
+          </p>
+          <p v-if="row.trade?.open_spread != null" class="text-[10px] text-secondary-text">
+            Spread: {{ row.trade.open_spread }} pts
+          </p>
+          <span v-if="row.trade?.open_market_ask == null && row.trade?.open_market_bid == null">-</span>
+        </div>
+      </template>
+
+      <!-- Cell: Open Volume -->
+      <template #cell-open_volume="{ row }">
+        <div class="text-right font-mono text-xs space-y-0.5">
+          <p v-if="row.trade?.open_volume != null" class="text-primary-text font-semibold">
+            {{ Number(row.trade.open_volume).toLocaleString('en-US', { maximumFractionDigits: 4 }) }}
+          </p>
+          <p v-if="row.trade?.open_volume_lots != null" class="text-[10px] text-secondary-text">
+            {{ row.trade.open_volume_lots }} lots
+          </p>
+          <span v-if="row.trade?.open_volume == null">-</span>
+        </div>
+      </template>
+
+      <!-- Cell: Entry / Exit Lots -->
+      <template #cell-volume_entry_exit="{ row }">
+        <div class="text-right font-mono text-xs space-y-0.5">
+          <p class="text-primary-text">
+            Entry: <span class="font-semibold">{{ row.trade?.volume_entry_lots ?? '-' }} L</span>
+          </p>
+          <p class="text-primary-text">
+            Exit: <span class="font-semibold">{{ row.trade?.volume_exit_lots ?? '-' }} L</span>
+          </p>
+        </div>
+      </template>
+
+      <!-- Cell: Trade Profit / Loss -->
+      <template #cell-trade_profit="{ row }">
+        <div class="text-right font-mono text-xs">
+          <span
+            v-if="row.trade?.profit !== null && row.trade?.profit !== undefined"
+            class="font-bold"
+            :class="(row.trade.profit ?? 0) >= 0 ? 'text-primary-green' : 'text-primary-red'"
+          >
+            {{ (row.trade.profit ?? 0) > 0 ? '+' : '' }}${{ Number(row.trade.profit).toFixed(2) }}
+          </span>
+          <span v-else class="text-secondary-text">-</span>
+        </div>
+      </template>
+
+      <!-- Cell: Trade Execution Time -->
+      <template #cell-trade_timing="{ row }">
+        <div class="text-[10px] font-mono text-secondary-text space-y-0.5">
+          <p v-if="row.trade?.open_time">
+            Open: <span class="text-primary-text">{{ formatDate(row.trade.open_time) }}</span>
+          </p>
+          <p v-if="row.trade?.close_time">
+            Close: <span class="text-primary-text">{{ formatDate(row.trade.close_time) }}</span>
+          </p>
+          <span v-if="!row.trade?.open_time && !row.trade?.close_time">-</span>
+        </div>
+      </template>
+
+      <!-- Cell: Spread Allotted -->
+      <template #cell-spread_allotted="{ row }">
+        <div class="text-right font-mono text-xs">
+          <span
+            v-if="row.calculation?.spread_allotted != null"
+            class="text-primary font-semibold"
+          >
+            {{ row.calculation.spread_allotted }} pts
+            <span v-if="row.calculation?.spread_allotted_pips != null" class="text-[10px] text-secondary-text block">
+              ({{ row.calculation.spread_allotted_pips }} pips)
+            </span>
+          </span>
+          <span v-else class="text-secondary-text">-</span>
+        </div>
+      </template>
+
+      <!-- Cell: Pip Value & One Pip -->
+      <template #cell-pip_value="{ row }">
+        <div class="text-right font-mono text-xs space-y-0.5">
+          <p v-if="row.calculation?.pip_value != null || row.pip_value != null" class="text-primary-text font-semibold">
+            Pip: {{ row.calculation?.pip_value ?? row.pip_value }}
+          </p>
+          <p v-if="row.calculation?.one_pip != null || row.one_pip != null" class="text-[10px] text-secondary-text">
+            1Pip: {{ row.calculation?.one_pip ?? row.one_pip }}
+          </p>
+          <span v-if="row.calculation?.pip_value == null && row.pip_value == null">-</span>
+        </div>
+      </template>
+
+      <!-- Cell: Calculation Bases -->
+      <template #cell-calculation_bases="{ row }">
+        <div class="text-right font-mono text-xs space-y-0.5">
+          <p v-if="row.calculation?.millions_base != null" class="text-primary-text">
+            M.Base: <span class="font-semibold">{{ row.calculation.millions_base }}</span>
+          </p>
+          <p v-if="row.calculation?.pips_base != null" class="text-primary-text">
+            Pips Base: <span class="font-semibold">{{ row.calculation.pips_base }}</span>
+          </p>
+          <span v-if="row.calculation?.millions_base == null && row.calculation?.pips_base == null">-</span>
+        </div>
+      </template>
+
+      <!-- Cell: Quote & FX Rate -->
+      <template #cell-quote_fx="{ row }">
+        <div class="text-right font-mono text-xs">
+          <p class="text-primary-text font-semibold">
+            {{ row.calculation?.quote_currency || row.quote_currency || "USD" }}
+          </p>
+          <p class="text-[10px] text-secondary-text font-mono">
+            @ {{ row.calculation?.quote_to_usd_rate || row.quote_to_usd_rate || 1.0 }}
+          </p>
+        </div>
+      </template>
+
+      <!-- Cell: FX Details -->
+      <template #cell-fx_details="{ row }">
+        <div class="text-xs font-mono space-y-0.5">
+          <p class="text-primary-text">
+            Mode: <span class="text-secondary-text">{{ row.calculation?.fx_mode || row.trade?.fx_mode || row.fx_mode || '-' }}</span>
+          </p>
+          <p v-if="row.trade?.fx_source" class="text-[10px] text-secondary-text">
+            Src: {{ row.trade.fx_source }}
+          </p>
+          <p v-if="row.trade?.fx_symbol || row.fx_symbol" class="text-[10px] text-primary">
+            Sym: {{ row.trade?.fx_symbol || row.fx_symbol }}
+          </p>
+        </div>
+      </template>
+
+      <!-- Cell: Settlement Batch -->
+      <template #cell-settlement_batch="{ row }">
+        <span class="font-mono text-xs text-secondary-text">
+          {{ row.settlement_batch_id ? `#${row.settlement_batch_id}` : '-' }}
+        </span>
       </template>
 
       <!-- Cell: Actions -->

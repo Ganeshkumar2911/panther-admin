@@ -168,32 +168,22 @@
         </div>
       </div>
     </div>
-
-    <!-- ─── ENHANCED AUDIT LOG DETAIL DRAWER ─────────────────────── -->
-    <EnhancedAuditLogDetailDrawer
-      :open="detailOpen"
-      :log="selectedLog"
-      @close="detailOpen = false"
-    />
   </div>
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onUnmounted } from "vue";
-import { useRoute } from "vue-router";
+import { watch, onMounted, onUnmounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { useEnhancedAuditLogsStore } from "@/stores/enhancedAuditLogs/enhancedAuditLogs";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import DataTable from "@/components/common/DataTable/DataTable.vue";
-import EnhancedAuditLogDetailDrawer from "@/pages/enhanced-audit-logs/components/EnhancedAuditLogDetailDrawer.vue";
 import { formatDate } from "@/utils/timeFormatter";
 import { Eye, Computer, BookOpen } from "lucide-vue-next";
 
 const route = useRoute();
+const router = useRouter();
 const store = useEnhancedAuditLogsStore();
 const { hasPermission } = usePermissionCheck();
-
-const detailOpen = ref(false);
-const selectedLog = ref(null);
 
 const tableColumns = [
   { key: "log_id", label: "Log ID & Date", width: 170, minWidth: 150 },
@@ -228,8 +218,13 @@ const handlePerPageChange = (perPage) => {
 };
 
 const openDetails = (log) => {
-  selectedLog.value = log;
-  detailOpen.value = true;
+  const logId = log.audit_log_id || log.id;
+  const clientId = route.params.id;
+  if (logId && clientId) {
+    router.push(`/client/details/${clientId}/audit-logs/${logId}`);
+  } else if (logId) {
+    router.push(`/enhanced-audit-logs/${logId}`);
+  }
 };
 
 // ─── Formatters & Helpers ───────────────────────────────────────────────────
