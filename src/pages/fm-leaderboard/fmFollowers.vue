@@ -69,10 +69,12 @@
                 class="text-[9px] uppercase text-secondary-text block font-semibold"
                 >Master Account</span
               >
-              <span class="font-bold text-primary-text font-mono text-xs">{{
-                fmInfo.master_account?.account_number ||
-                `#${fmInfo.master_account_id}`
-              }}</span>
+              <span
+                class="font-bold text-primary-text font-mono text-xs cursor-pointer hover:text-primary hover:underline transition-colors"
+                @click="goToTradingAccount(fmInfo.master_account?.account_number || fmInfo.master_account_id)"
+              >
+                {{ fmInfo.master_account?.account_number || `#${fmInfo.master_account_id}` }}
+              </span>
             </div>
             <div class="h-6 w-px bg-primary-border/60" />
             <div>
@@ -80,10 +82,14 @@
                 class="text-[9px] uppercase text-secondary-text block font-semibold"
                 >Coverage Account</span
               >
-              <span class="font-bold text-primary-text font-mono text-xs">{{
-                fmInfo.coverage_account?.account_number ||
-                `#${fmInfo.coverage_account_id}`
-              }}</span>
+              <span
+                v-if="fmInfo.coverage_account?.account_number || fmInfo.coverage_account_id"
+                class="font-bold text-primary-text font-mono text-xs cursor-pointer hover:text-primary hover:underline transition-colors"
+                @click="goToTradingAccount(fmInfo.coverage_account?.account_number || fmInfo.coverage_account_id)"
+              >
+                {{ fmInfo.coverage_account?.account_number || `#${fmInfo.coverage_account_id}` }}
+              </span>
+              <span v-else class="text-xs text-secondary-text">—</span>
             </div>
             <div class="h-6 w-px bg-primary-border/60" />
             <div>
@@ -415,7 +421,10 @@
           <!-- Account & Server -->
           <template #cell-account_server="{ row }">
                 <div class="space-y-0.5">
-                  <p class="font-mono text-xs text-primary-text font-bold">
+                  <p 
+                    class="font-mono text-xs text-primary-text font-bold cursor-pointer hover:text-primary hover:underline transition-colors w-fit"
+                    @click.stop="goToTradingAccount(row.account_number || row.account_id)"
+                  >
                     {{ row.account_number || `#${row.account_id}` }}
                   </p>
                   <p
@@ -532,7 +541,7 @@
           </template>
 
           <!-- Action -->
-          <template #actions="{ row }">
+          <template #cell-actions="{ row }">
                 <div class="flex items-center justify-end gap-1.5">
                   <Tooltip text="Trade Book" position="right">
                     <button
@@ -832,6 +841,12 @@ const router = useRouter();
 const snackbar = useSnackbarStore();
 const { hasPermission } = usePermissionCheck();
 
+const goToTradingAccount = (accountNumber) => {
+  if (!accountNumber) return;
+  const accStr = String(accountNumber).replace('#', '');
+  router.push({ path: '/trading-accounts', query: { search: accStr } });
+};
+
 const columns = [
   { key: "follower_email", label: "Follower & Email" },
   { key: "account_server", label: "Account & Server" },
@@ -839,6 +854,7 @@ const columns = [
   { key: "lot_trades", label: "Lot Setup & Trades" },
   { key: "offer_ib", label: "Offer & IB Partner" },
   { key: "status", label: "Status" },
+  { key: "actions", label: "Action", align: "right" },
 ];
 
 const fmId = route.params.id;
@@ -858,7 +874,7 @@ const handleClearPositions = () => {
 
   apiRequest(
     urls.KEYS.POST,
-    `/fund-managers/${fmId}/clear-follower-positions`,
+    urls.fm.clearFollowerPositions(fmId),
     {
       data: { confirm: true },
       isTokenRequired: true,

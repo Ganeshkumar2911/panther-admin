@@ -118,6 +118,7 @@ const urls = {
     availableJoiners: "/fund_managers/followers/available-joiners",
     addFollower: "/fund_managers/followers/add",
     openPositionCounts: "/fund_managers/followers/open-position-counts",
+    clearFollowerPositions: (fmId) => `/fund-managers/${fmId}/clear-follower-positions`,
   },
   tradeBook: {
     filters: "/trade-book/filters",
