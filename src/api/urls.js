@@ -462,6 +462,7 @@ const urls = {
     unenroll: "/cashback/enrollments/unenroll",
     transactions: "/cashback/transactions",
     redemptions: "/cashback/redemptions",
+    userSearch: "/cashback/user-search",
   },
 };
 

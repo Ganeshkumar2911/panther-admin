@@ -88,8 +88,9 @@ const bgClass = {
       </div>
 
       <!-- Message -->
-      <div class="px-6 py-4">
-        <p class="text-sm text-secondary-text leading-relaxed">{{ message }}</p>
+      <div class="px-6 py-4 space-y-4">
+        <p v-if="message" class="text-sm text-secondary-text leading-relaxed">{{ message }}</p>
+        <slot />
       </div>
 
       <!-- Footer -->

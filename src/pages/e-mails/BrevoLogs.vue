@@ -66,15 +66,6 @@
             @update:modelValue="store.applyFilters()"
           />
 
-          <!-- Per Page Select -->
-          <BaseSelect
-            :modelValue="store.pagination.per_page"
-            :options="perPageOptions"
-            placeholder="Per Page"
-            class="w-full sm:w-24"
-            @update:modelValue="store.updatePerPage"
-          />
-
           <!-- Refresh & Reset Action Buttons -->
           <div class="flex items-center gap-1.5 h-9">
             <Tooltip text="Refresh Logs" placement="top">
@@ -148,180 +139,90 @@
     </div>
 
     <!-- Logs Table -->
-    <div class="w-full border border-primary-border rounded-xl overflow-x-auto bg-card-background">
-      <table class="w-full border-collapse">
-        <thead>
-          <tr class="border-b border-primary-border bg-background/50">
-            <th class="p-3 text-xs font-semibold text-primary-text text-start">
-              Date & Time
-            </th>
-            <th class="p-3 text-xs font-semibold text-primary-text text-start">
-              Event Status
-            </th>
-            <th class="p-3 text-xs font-semibold text-primary-text text-start">
-              Subject
-            </th>
-            <th class="p-3 text-xs font-semibold text-primary-text text-start">
-              Sender
-            </th>
-            <th class="p-3 text-xs font-semibold text-primary-text text-start">
-              Recipient Email
-            </th>
-            <th class="p-3 text-xs font-semibold text-primary-text text-start">
-              Tag / Campaign
-            </th>
-            <th class="p-3 text-xs font-semibold text-primary-text text-start">
-              Action
-            </th>
-          </tr>
-        </thead>
-
-        <!-- Skeleton Loading State -->
-        <tbody v-if="store.loading">
-          <tr
-            v-for="n in 6"
-            :key="n"
-            class="border-b border-primary-border animate-pulse"
-          >
-            <td class="p-3">
-              <div class="h-3.5 w-28 bg-primary-border/40 rounded" />
-            </td>
-            <td class="p-3">
-              <div class="h-5 w-20 bg-primary-border/40 rounded-full" />
-            </td>
-            <td class="p-3">
-              <div class="h-3.5 w-44 bg-primary-border/40 rounded" />
-            </td>
-            <td class="p-3">
-              <div class="h-3.5 w-32 bg-primary-border/40 rounded" />
-            </td>
-            <td class="p-3">
-              <div class="h-3.5 w-36 bg-primary-border/40 rounded" />
-            </td>
-            <td class="p-3">
-              <div class="h-3.5 w-20 bg-primary-border/40 rounded" />
-            </td>
-            <td class="p-3">
-              <div class="h-7 w-8 bg-primary-border/40 rounded-lg" />
-            </td>
-          </tr>
-        </tbody>
-
-        <!-- Empty State -->
-        <tbody v-else-if="store.logs.length === 0">
-          <tr>
-            <td colspan="7" class="py-16 text-center">
-              <div class="flex flex-col items-center gap-3">
-                <div
-                  class="w-12 h-12 rounded-full bg-background border border-primary-border flex items-center justify-center text-secondary-text"
-                >
-                  <Mail class="w-6 h-6" />
-                </div>
-                <p class="text-sm font-semibold text-primary-text">
-                  No Brevo email logs found
-                </p>
-                <p class="text-xs text-secondary-text max-w-sm">
-                  {{
-                    store.hasActiveFilters
-                      ? "No records matched your current filter criteria. Try adjusting or clearing your filters."
-                      : "Logs from Brevo dispatch will appear here."
-                  }}
-                </p>
-                <button
-                  v-if="store.hasActiveFilters"
-                  @click="store.resetFilters()"
-                  class="mt-1 px-3 py-1.5 text-xs font-semibold text-primary border border-primary/30 hover:bg-primary/10 rounded-lg transition-colors cursor-pointer"
-                >
-                  Reset Filters
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-
-        <!-- Data Rows -->
-        <tbody v-else>
-          <tr
-            v-for="(log, idx) in store.logs"
-            :key="log.messageId || log.id || idx"
-            class="border-b border-primary-border last:border-none hover:bg-background/50 transition-colors"
-          >
-            <td
-              class="p-3 text-xs font-medium text-primary-text whitespace-nowrap"
-            >
-              {{ formatDate(log.date || log.created_at || log.timestamp) }}
-            </td>
-            <td class="p-3 text-xs">
-              <span
-                class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border capitalize"
-                :class="eventClass(log.event)"
-              >
-                {{ formatEventName(log.event) }}
-              </span>
-            </td>
-            <td
-              class="p-3 text-xs text-primary-text max-w-[220px] truncate"
-              :title="log.subject || '—'"
-            >
-              {{ log.subject || "—" }}
-            </td>
-            <td
-              class="p-3 text-xs text-secondary-text max-w-[180px] truncate"
-              :title="log.from || log.sender || '—'"
-            >
-              {{ log.from || log.sender || "—" }}
-            </td>
-            <td
-              class="p-3 text-xs text-primary-text font-mono max-w-[200px] truncate"
-              :title="log.email || log.recipient || '—'"
-            >
-              {{ log.email || log.recipient || "—" }}
-            </td>
-            <td class="p-3 text-xs text-secondary-text">
-              <span
-                v-if="log.tag || log.tags"
-                class="px-2 py-0.5 rounded text-[11px] font-mono bg-background border border-primary-border text-secondary-text"
-              >
-                {{ log.tag || log.tags }}
-              </span>
-              <span v-else class="text-secondary-text/60">—</span>
-            </td>
-            <td class="p-3 text-xs text-secondary-text">
-              <Tooltip text="View Details" placement="top">
-                <button
-                  @click="handleViewLog(log.messageId || log.id)"
-                  class="cursor-pointer flex items-center justify-center w-8 h-8 rounded-lg border border-primary-border bg-background hover:bg-card-background text-secondary-text hover:text-primary-text transition-colors"
-                >
-                  <Eye class="w-4 h-4" />
-                </button>
-              </Tooltip>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Pagination Footer -->
-    <div
-      v-if="store.pagination && (store.pagination.hasNext || store.pagination.hasPrev || store.pagination.total_pages > 1)"
-      class="pt-3 border-t border-primary-border flex items-center justify-between flex-wrap gap-3 mt-auto"
+    <DataTable
+      :columns="columns"
+      :data="store.logs"
+      :loading="store.loading"
+      :pagination="store.pagination"
+      :per-page-options="[10, 25, 50, 100]"
+      empty-title="No Brevo email logs found"
+      :empty-text="store.hasActiveFilters ? 'No records matched your current filter criteria. Try adjusting or clearing your filters.' : 'Logs from Brevo dispatch will appear here.'"
+      @page-change="store.changePage"
+      @per-page-change="(payload) => store.updatePerPage(payload.per_page)"
     >
-      <p class="text-xs text-secondary-text">
-        Showing Page <strong class="text-primary-text">{{ store.pagination.page }}</strong>
-        <template v-if="store.pagination.total_pages">
-          of <strong class="text-primary-text">{{ store.pagination.total_pages }}</strong>
-        </template>
-        <template v-if="store.pagination.total_items">
-          (<strong class="text-primary-text">{{ store.pagination.total_items }}</strong> total logs)
-        </template>
-      </p>
+      <template #empty v-if="store.hasActiveFilters">
+        <div class="flex flex-col items-center justify-center gap-3 py-8">
+          <div class="w-12 h-12 rounded-full bg-background border border-primary-border flex items-center justify-center text-secondary-text shadow-xs">
+            <Mail class="w-6 h-6 stroke-[1.5]" />
+          </div>
+          <p class="text-sm font-semibold text-primary-text">No Brevo email logs found</p>
+          <p class="text-xs text-secondary-text max-w-sm text-center">
+            No records matched your current filter criteria. Try adjusting or clearing your filters.
+          </p>
+          <button
+            @click="store.resetFilters()"
+            class="mt-1 px-3 py-1.5 text-xs font-semibold text-primary border border-primary/30 hover:bg-primary/10 rounded-lg transition-colors cursor-pointer"
+          >
+            Reset Filters
+          </button>
+        </div>
+      </template>
 
-      <SimplePagination
-        v-if="store.pagination.hasNext || store.pagination.hasPrev"
-        :pagination="store.pagination"
-        @page-change="store.changePage"
-      />
-    </div>
+      <!-- Cell Slots -->
+      <template #cell-date="{ row }">
+        <span class="font-medium whitespace-nowrap">
+          {{ formatDate(row.date || row.created_at || row.timestamp) }}
+        </span>
+      </template>
+
+      <template #cell-event="{ row }">
+        <span
+          class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border capitalize"
+          :class="eventClass(row.event)"
+        >
+          {{ formatEventName(row.event) }}
+        </span>
+      </template>
+
+      <template #cell-subject="{ row }">
+        <div class="max-w-[220px] truncate" :title="row.subject || '—'">
+          {{ row.subject || "—" }}
+        </div>
+      </template>
+
+      <template #cell-sender="{ row }">
+        <div class="max-w-[180px] truncate text-secondary-text" :title="row.from || row.sender || '—'">
+          {{ row.from || row.sender || "—" }}
+        </div>
+      </template>
+
+      <template #cell-recipient="{ row }">
+        <div class="font-mono max-w-[200px] truncate" :title="row.email || row.recipient || '—'">
+          {{ row.email || row.recipient || "—" }}
+        </div>
+      </template>
+
+      <template #cell-tag="{ row }">
+        <span
+          v-if="row.tag || row.tags"
+          class="px-2 py-0.5 rounded text-[11px] font-mono bg-background border border-primary-border text-secondary-text"
+        >
+          {{ row.tag || row.tags }}
+        </span>
+        <span v-else class="text-secondary-text/60">—</span>
+      </template>
+
+      <template #cell-actions="{ row }">
+        <Tooltip text="View Details" placement="top">
+          <button
+            @click="handleViewLog(row.messageId || row.id)"
+            class="cursor-pointer flex items-center justify-center w-8 h-8 rounded-lg border border-primary-border bg-background hover:bg-card-background text-secondary-text hover:text-primary-text transition-colors"
+          >
+            <Eye class="w-4 h-4" />
+          </button>
+        </Tooltip>
+      </template>
+    </DataTable>
 
     <!-- Log Details Slide-over Modal -->
     <ViewEmailLogDetails
@@ -347,7 +248,7 @@ import {
 import { useEmailLogsStore } from "@/stores/emails/emailLogs";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import BaseDatePicker from "@/components/common/BaseDatePicker.vue";
-import SimplePagination from "@/components/common/SimplePagination.vue";
+import DataTable from "@/components/common/DataTable/DataTable.vue";
 import Tooltip from "@/components/common/Tooltip.vue";
 import ViewEmailLogDetails from "@/pages/e-mails/ViewEmailLogDetails.vue";
 
@@ -387,11 +288,14 @@ const sortOptions = [
   { label: "Oldest First", value: "asc" },
 ];
 
-const perPageOptions = [
-  { label: "10", value: 10 },
-  { label: "25", value: 25 },
-  { label: "50", value: 50 },
-  { label: "100", value: 100 },
+const columns = [
+  { key: "date", label: "Date & Time", width: "160px" },
+  { key: "event", label: "Event Status", width: "140px" },
+  { key: "subject", label: "Subject", minWidth: "200px" },
+  { key: "sender", label: "Sender", width: "160px" },
+  { key: "recipient", label: "Recipient Email", width: "180px" },
+  { key: "tag", label: "Tag / Campaign", width: "140px" },
+  { key: "actions", label: "Action", width: "80px", sortable: false, align: "center" },
 ];
 
 const debounceSearch = () => {

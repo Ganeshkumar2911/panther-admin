@@ -36,8 +36,8 @@
         <template #cell-actions="{ row }">
           <button
             v-if="row.status === 'active'"
-            class="text-xs text-primary-red hover:underline font-medium cursor-pointer"
-            @click="handleUnenroll(row)"
+            class="px-2.5 py-1 text-xs font-semibold bg-primary-red/10 hover:bg-primary-red/20 text-primary-red rounded-lg transition-colors cursor-pointer"
+            @click="openUnenrollConfirm(row)"
           >
             Unenroll
           </button>
@@ -50,6 +50,32 @@
       v-if="isEnrollModalOpen"
       @close="isEnrollModalOpen = false"
     />
+
+    <ConfirmationDialog
+      :open="isUnenrollConfirmOpen"
+      title="Unenroll Account"
+      :message="`Are you sure you want to unenroll account ${selectedAccountForUnenroll?.trading_account_id}?`"
+      confirm-text="Unenroll"
+      type="danger"
+      :loading="isUnenrolling"
+      @confirm="confirmUnenroll"
+      @cancel="closeUnenrollConfirm"
+    >
+      <div class="flex items-center justify-between p-3 bg-background rounded-lg border border-primary-border">
+        <label for="clear-plan-lock" class="flex items-center gap-2 cursor-pointer">
+          <input 
+            type="checkbox" 
+            id="clear-plan-lock"
+            v-model="clearPlanLock"
+            class="w-4 h-4 text-primary bg-card-background border-primary-border rounded focus:ring-primary focus:ring-2 cursor-pointer"
+          >
+          <span class="text-sm text-primary-text font-medium">Clear plan lock</span>
+        </label>
+        <span class="text-xs text-secondary-text">
+          {{ clearPlanLock ? 'Can enroll immediately' : 'Keep existing lock' }}
+        </span>
+      </div>
+    </ConfirmationDialog>
   </div>
 </template>
 
@@ -59,11 +85,17 @@ import { useCashbackStore } from "@/stores/cashback/cashback";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
 import DataTable from "@/components/common/DataTable/DataTable.vue";
 import StatusBadge from "@/components/common/StatusBadge.vue";
+import ConfirmationDialog from "@/components/common/ConfirmationDialog.vue";
 import CreateEnrollmentModal from "../components/CreateEnrollmentModal.vue";
 
 const store = useCashbackStore();
 const snackbar = useSnackbarStore();
 const isEnrollModalOpen = ref(false);
+
+const isUnenrollConfirmOpen = ref(false);
+const selectedAccountForUnenroll = ref(null);
+const isUnenrolling = ref(false);
+const clearPlanLock = ref(true);
 
 const columns = [
   { key: "id", label: "ID", sortable: false },
@@ -83,12 +115,32 @@ const handlePageChange = (page) => {
   });
 };
 
-const handleUnenroll = async (row) => {
-  if (confirm(`Are you sure you want to unenroll account ${row.trading_account_id}?`)) {
+const openUnenrollConfirm = (row) => {
+  selectedAccountForUnenroll.value = row;
+  isUnenrollConfirmOpen.value = true;
+};
+
+const closeUnenrollConfirm = () => {
+  isUnenrollConfirmOpen.value = false;
+  selectedAccountForUnenroll.value = null;
+  clearPlanLock.value = true;
+};
+
+const confirmUnenroll = async () => {
+  if (!selectedAccountForUnenroll.value) return;
+  
+  try {
+    isUnenrolling.value = true;
     await store.unenrollAccount({
-      user_id: row.user_id,
-      trading_account_id: row.trading_account_id,
+      user_id: selectedAccountForUnenroll.value.user_id,
+      trading_account_id: selectedAccountForUnenroll.value.trading_account_id,
+      clear_plan_lock: clearPlanLock.value,
     });
+    closeUnenrollConfirm();
+  } catch (error) {
+    console.error("Failed to unenroll:", error);
+  } finally {
+    isUnenrolling.value = false;
   }
 };
 
