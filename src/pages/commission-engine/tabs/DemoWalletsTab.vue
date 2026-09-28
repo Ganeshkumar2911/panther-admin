@@ -290,21 +290,21 @@
       <!-- Cell: Balance -->
       <template #cell-balance="{ row }">
         <span class="font-mono text-xs font-semibold text-primary-text tabular-nums">
-          ${{ Number(row.balance || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 }) }}
+          ${{ formatNum(row.balance) }}
         </span>
       </template>
 
       <!-- Cell: Locked -->
       <template #cell-locked="{ row }">
         <span class="font-mono text-xs text-secondary-text tabular-nums">
-          ${{ Number(row.locked_balance || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 }) }}
+          ${{ formatNum(row.locked_balance) }}
         </span>
       </template>
 
       <!-- Cell: Available Balance -->
       <template #cell-available="{ row }">
         <span class="font-mono text-xs font-bold text-primary-green tabular-nums">
-          ${{ Number(row.available_balance != null ? row.available_balance : (row.balance - (row.locked_balance || 0))).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 }) }}
+          ${{ formatNum(row.available_balance != null ? row.available_balance : (row.balance - (row.locked_balance || 0))) }}
         </span>
       </template>
 
@@ -505,16 +505,16 @@
         <!-- Cell: Amount -->
         <template #cell-amount="{ row }">
           <span class="font-mono text-xs font-bold text-primary-green tabular-nums">
-            +${{ Number(row.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 }) }}
+            +${{ formatNum(row.amount) }}
           </span>
         </template>
 
         <!-- Cell: Balance Shift -->
         <template #cell-balance_shift="{ row }">
           <div class="flex items-center gap-1.5 font-mono text-xs tabular-nums text-secondary-text">
-            <span>${{ Number(row.balance_before || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 }) }}</span>
+            <span>${{ formatNum(row.balance_before) }}</span>
             <HugeIcon :icon="ArrowRight01Icon" :size="11" class="text-secondary-text" />
-            <span class="font-semibold text-primary-text">${{ Number(row.balance_after || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 }) }}</span>
+            <span class="font-semibold text-primary-text">${{ formatNum(row.balance_after) }}</span>
           </div>
         </template>
 
@@ -888,7 +888,7 @@ const formatNum = (val) => {
   if (val == null || isNaN(Number(val))) return "0.00";
   return Number(val).toLocaleString("en-US", {
     minimumFractionDigits: 2,
-    maximumFractionDigits: 6,
+    maximumFractionDigits: 2,
   });
 };
 
