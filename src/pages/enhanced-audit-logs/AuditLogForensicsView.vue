@@ -153,9 +153,9 @@
       <!-- RAW PAYLOAD SKELETON -->
       <div class="bg-card-background rounded-xl p-5 border border-primary-border space-y-3.5">
         <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
-            <div :class="iconTile"><Code class="w-4 h-4 text-primary" /></div>
-            <span>Raw Payload (JSON)</span>
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-lg bg-primary/10 border border-primary/20"></div>
+            <div class="h-4 w-36 bg-background rounded"></div>
           </div>
           <div class="h-6 w-32 bg-background rounded-lg"></div>
         </div>
@@ -279,7 +279,7 @@
             {{ actorInitials }}
           </div>
           <div class="min-w-0">
-            <span class="text-[10px] font-bold uppercase text-secondary-text tracking-wider block">Actor</span>
+            <span class="text-[10px] font-bold uppercase text-secondary-text tracking-wider block">Source</span>
             <h4 class="text-xs font-bold text-primary-text truncate mt-0.5" :title="actorInfo.name">{{ actorInfo.name }}</h4>
             <span v-if="actorInfo.role" class="inline-block mt-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 capitalize">
               {{ actorInfo.role }}
