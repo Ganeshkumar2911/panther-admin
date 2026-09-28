@@ -365,16 +365,22 @@ const copyRemarks = () => {
 
 const formatDocType = (type) => {
   if (!type) return "National ID Card";
+  const key = String(type).toLowerCase();
   const map = {
     aadhaar: "Aadhaar Card",
     pan: "PAN Card",
     passport: "Passport",
-    driving_license: "Driving License",
+    driving_license: "Driver's License",
+    drivers: "Driver's License",
+    driver_license: "Driver's License",
     voter_id: "Voter ID Card",
     national_id: "National Identity Card",
+    address_proof: "Address Proof",
+    selfie: "Selfie Photo",
+    direct_verification: "Direct Verification",
     other: "Official Identity Document",
   };
-  return map[type] || type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  return map[key] || String(type).replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 };
 
 const formatDate = (val) => {
