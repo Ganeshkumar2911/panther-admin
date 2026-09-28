@@ -1,7 +1,7 @@
 <template>
-  <div class="relative w-full h-52 rounded-xl overflow-hidden border border-primary-border bg-background shadow-inner select-none">
+  <div class="relative w-full h-full min-h-[300px] lg:min-h-[360px] rounded-xl overflow-hidden border border-primary-border bg-background shadow-inner select-none flex flex-col">
     <!-- Leaflet Map Container -->
-    <div ref="mapContainer" class="w-full h-full z-0"></div>
+    <div ref="mapContainer" class="w-full flex-1 h-full min-h-[280px] z-0"></div>
 
     <!-- Loading State Overlay -->
     <div
@@ -14,25 +14,40 @@
       </div>
     </div>
 
-    <!-- Location & Coordinates Overlay Badge (Exact Match with Reference UI) -->
+    <!-- Recenter / Focus Location Button (Top-Right) -->
+    <button
+      type="button"
+      class="absolute top-2.5 right-2.5 z-20 bg-card-background/95 hover:bg-card-background backdrop-blur-md px-3 py-1.5 rounded-lg border border-primary-border shadow-md text-xs font-semibold text-primary flex items-center gap-1.5 transition-all hover:border-primary active:scale-95 cursor-pointer"
+      title="Recenter Map to Location Pointer"
+      @click="recenterMap"
+    >
+      <MapPin class="w-3.5 h-3.5 text-primary animate-bounce" />
+      <span class="text-[11px] font-bold">Recenter Location</span>
+    </button>
+
+    <!-- Location & Coordinates Overlay Badge (Bottom-Left - Clickable to Recenter) -->
     <div
-      class="absolute bottom-2.5 left-2.5 z-20 bg-card-background/95 dark:bg-slate-900/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-primary-border shadow-md flex items-center gap-2 max-w-[90%]"
+      class="absolute bottom-2.5 left-2.5 z-20 bg-card-background/95 backdrop-blur-md px-3 py-1.5 rounded-xl border border-primary-border shadow-md flex items-center gap-2 max-w-[90%] cursor-pointer hover:border-primary transition-all group"
+      title="Click to center on this location"
+      @click="recenterMap"
     >
       <span class="text-sm">🇮🇳</span>
       <div class="min-w-0">
-        <p class="text-[11px] font-bold text-primary-text truncate leading-tight">
+        <p class="text-[11px] font-bold text-primary-text truncate leading-tight group-hover:text-primary transition-colors">
           {{ locationText }}
         </p>
         <p class="text-[9px] font-mono text-secondary-text truncate mt-0.5">
           {{ coordinatesText }}
         </p>
       </div>
+      <RotateCcw class="w-3 h-3 text-secondary-text group-hover:text-primary transition-colors ml-0.5 shrink-0" />
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
+import { MapPin, RotateCcw } from 'lucide-vue-next'
 
 const props = defineProps({
   ipAddress: {
@@ -127,24 +142,42 @@ const ensureLeafletLoaded = async () => {
   })
 }
 
-// Custom Leaflet Pin Marker Icon with City Label (Exact Match with Screenshot)
+// Custom Leaflet Pin Marker Icon with City Label
 const createPinIcon = (city = 'Raipur') => {
   if (!L) return null
   return L.divIcon({
     className: 'custom-pin-container',
     html: `
       <div class="flex flex-col items-center pointer-events-none -translate-x-1/2 -translate-y-full">
-        <div class="w-6 h-6 rounded-full bg-[#1D4ED8] flex items-center justify-center text-white shadow-md border-2 border-white">
-          <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+        <div class="w-7 h-7 rounded-full bg-[var(--color-primary)] flex items-center justify-center text-white shadow-lg border-2 border-white ring-2 ring-[var(--color-primary)]/20 animate-pulse">
+          <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
             <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
           </svg>
         </div>
-        <span class="mt-0.5 px-2 py-0.2 rounded-md bg-white text-slate-800 font-bold text-[10px] shadow border border-slate-200">${city}</span>
+        <span class="mt-1 px-2.5 py-0.5 rounded-md bg-card-background text-primary-text font-bold text-[11px] shadow-md border border-primary-border tracking-tight">${city}</span>
       </div>
     `,
     iconSize: [0, 0],
     iconAnchor: [0, 0]
   })
+}
+
+// Recenter Map on the pin location
+const recenterMap = () => {
+  if (!mapInstance) return
+  const lat = geoData.value.lat || 21.2333
+  const lon = geoData.value.lon || 81.6333
+
+  if (mapInstance.flyTo) {
+    mapInstance.flyTo([lat, lon], 12, { duration: 1.0 })
+  } else {
+    mapInstance.setView([lat, lon], 12, { animate: true })
+  }
+
+  if (markerInstance && L) {
+    markerInstance.setLatLng([lat, lon])
+    markerInstance.setIcon(createPinIcon(geoData.value.city || 'Raipur'))
+  }
 }
 
 // Initialize Leaflet Map

@@ -685,7 +685,7 @@ const routes = [
       {
         path: "/enhanced-audit-logs/:id",
         name: "enhanced-audit-log-details",
-        component: () => import("@/pages/enhanced-audit-logs/details.vue"),
+        component: () => import("@/pages/enhanced-audit-logs/AuditLogForensicsView.vue"),
         meta: {
           requiresAuth: true,
           showBackButton: true,
