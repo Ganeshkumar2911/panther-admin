@@ -60,7 +60,7 @@
     <!-- ─── MAIN CONTENT ─────────────────────────────────────────── -->
     <template v-else>
       <!-- 1. Summary Cards Grid (Rendered dynamically from computed array) -->
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
+       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
         <div
           v-for="card in summaryCards"
           :key="card.title"
@@ -633,22 +633,22 @@ const summaryCards = computed(() => [
     icon: "payments",
     iconClass: "text-primary-green/80",
   },
-  {
-    title: "Total Equity",
-    value: `$${formatCurrency(totalEquity.value)}`,
-    valueClass: "text-primary-text",
-    subtext: `${accountsCount.value} ${accountsCount.value === 1 ? 'Account' : 'Accounts'} · Live balance`,
-    icon: "account_balance",
-    iconClass: "text-blue-500/80",
-  },
-  {
-    title: "Net P&L",
-    value: `${netPnl.value >= 0 ? '+' : ''}$${formatCurrency(netPnl.value)}`,
-    valueClass: "text-primary-text",
-    subtext: `${netPnl.value >= 0 ? '↑ Net Profit' : '↓ Net Loss'} · All-time trading`,
-    icon: netPnl.value >= 0 ? "trending_up" : "trending_down",
-    iconClass: netPnl.value >= 0 ? "text-primary-green/80" : "text-primary-red/80",
-  },
+  // {
+  //   title: "Total Equity",
+  //   value: `$${formatCurrency(totalEquity.value)}`,
+  //   valueClass: "text-primary-text",
+  //   subtext: `${accountsCount.value} ${accountsCount.value === 1 ? 'Account' : 'Accounts'} · Live balance`,
+  //   icon: "account_balance",
+  //   iconClass: "text-blue-500/80",
+  // },
+  // {
+  //   title: "Net P&L",
+  //   value: `${netPnl.value >= 0 ? '+' : ''}$${formatCurrency(netPnl.value)}`,
+  //   valueClass: "text-primary-text",
+  //   subtext: `${netPnl.value >= 0 ? '↑ Net Profit' : '↓ Net Loss'} · All-time trading`,
+  //   icon: netPnl.value >= 0 ? "trending_up" : "trending_down",
+  //   iconClass: netPnl.value >= 0 ? "text-primary-green/80" : "text-primary-red/80",
+  // },
   {
     title: "Referral Earnings",
     value: `$${formatCurrency(referralEarnings.value)}`,
