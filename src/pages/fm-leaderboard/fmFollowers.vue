@@ -60,9 +60,9 @@
         </div>
 
         <!-- Summary Specs & Refresh Button -->
-        <div class="flex items-center gap-3 shrink-0 flex-wrap">
+        <div class="flex flex-col lg:flex-row lg:items-center gap-3 shrink-0 w-full xl:w-auto mt-2 md:mt-0">
           <div
-            class="flex items-center gap-3 text-xs bg-background/60 border border-primary-border/60 rounded-xl px-3.5 py-2 shrink-0 flex-wrap"
+            class="grid grid-cols-2 sm:flex sm:items-center gap-3 text-xs bg-background/60 border border-primary-border/60 rounded-xl px-3.5 py-2 w-full lg:w-auto"
           >
             <div>
               <span
@@ -70,13 +70,13 @@
                 >Master Account</span
               >
               <span
-                class="font-bold text-primary-text font-mono text-xs cursor-pointer hover:text-primary hover:underline transition-colors"
+                class="font-bold text-primary-text font-mono text-xs cursor-pointer hover:text-primary hover:underline transition-colors break-all"
                 @click="goToTradingAccount(fmInfo.master_account?.account_number || fmInfo.master_account_id)"
               >
                 {{ fmInfo.master_account?.account_number || `#${fmInfo.master_account_id}` }}
               </span>
             </div>
-            <div class="h-6 w-px bg-primary-border/60" />
+            <div class="hidden sm:block h-6 w-px bg-primary-border/60" />
             <div>
               <span
                 class="text-[9px] uppercase text-secondary-text block font-semibold"
@@ -84,15 +84,15 @@
               >
               <span
                 v-if="fmInfo.coverage_account?.account_number || fmInfo.coverage_account_id"
-                class="font-bold text-primary-text font-mono text-xs cursor-pointer hover:text-primary hover:underline transition-colors"
+                class="font-bold text-primary-text font-mono text-xs cursor-pointer hover:text-primary hover:underline transition-colors break-all"
                 @click="goToTradingAccount(fmInfo.coverage_account?.account_number || fmInfo.coverage_account_id)"
               >
                 {{ fmInfo.coverage_account?.account_number || `#${fmInfo.coverage_account_id}` }}
               </span>
               <span v-else class="text-xs text-secondary-text">—</span>
             </div>
-            <div class="h-6 w-px bg-primary-border/60" />
-            <div>
+            <div class="hidden sm:block h-6 w-px bg-primary-border/60" />
+            <div class="col-span-2 sm:col-span-1">
               <span
                 class="text-[9px] uppercase text-secondary-text block font-semibold"
                 >Perf Fee / Min Cap</span
@@ -104,64 +104,66 @@
             </div>
           </div>
 
-          <button
-            class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
-            @click="fetchOpenPositions"
-            :disabled="loadingOpenPositions"
-          >
-            <Activity
-              class="w-3.5 h-3.5"
-              :class="{ 'animate-pulse': loadingOpenPositions }"
-            />
-            <span>Check Open Pos</span>
-          </button>
-
-          <button
-            v-if="
-              hasPermission('fund_manager.update') ||
-              hasPermission('xtention_dev.view')
-            "
-            class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary-red hover:bg-primary-red/90 text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
-            @click="clearPositionsDialogOpen = true"
-          >
-            <XCircle class="w-3.5 h-3.5" />
-            <span>Clear Positions</span>
-          </button>
-
-          <button
-            v-if="hasPermission('fund_manager.update')"
-            class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
-            @click="addFollowerDialogOpen = true"
-          >
-            <UserPlus class="w-3.5 h-3.5" />
-            <span>Add Follower</span>
-          </button>
-
-          <Tooltip text="Refresh List">
+          <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto">
             <button
-              class="p-2 rounded-lg border border-primary-border text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer"
-              @click="fetchFollowers(true, pagination.page)"
-              :disabled="loading"
-              title="Refresh List"
+              class="flex-1 sm:flex-none inline-flex justify-center items-center gap-1.5 px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
+              @click="fetchOpenPositions"
+              :disabled="loadingOpenPositions"
             >
-              <RotateCw
+              <Activity
                 class="w-3.5 h-3.5"
-                :class="{ 'animate-spin': loading }"
+                :class="{ 'animate-pulse': loadingOpenPositions }"
               />
+              <span class="whitespace-nowrap">Check Open Pos</span>
             </button>
-          </Tooltip>
+
+            <button
+              v-if="
+                hasPermission('fund_manager.update') ||
+                hasPermission('xtention_dev.view')
+              "
+              class="flex-1 sm:flex-none inline-flex justify-center items-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary-red hover:bg-primary-red/90 text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
+              @click="clearPositionsDialogOpen = true"
+            >
+              <XCircle class="w-3.5 h-3.5" />
+              <span class="whitespace-nowrap">Clear Positions</span>
+            </button>
+
+            <button
+              v-if="hasPermission('fund_manager.update')"
+              class="flex-1 sm:flex-none inline-flex justify-center items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
+              @click="addFollowerDialogOpen = true"
+            >
+              <UserPlus class="w-3.5 h-3.5" />
+              <span class="whitespace-nowrap">Add Follower</span>
+            </button>
+
+            <Tooltip text="Refresh List">
+              <button
+                class="flex-none p-2 rounded-lg border border-primary-border text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer"
+                @click="fetchFollowers(true, pagination.page)"
+                :disabled="loading"
+                title="Refresh List"
+              >
+                <RotateCw
+                  class="w-3.5 h-3.5"
+                  :class="{ 'animate-spin': loading }"
+                />
+              </button>
+            </Tooltip>
+          </div>
         </div>
       </div>
-      <div v-else class="flex items-center justify-between gap-3">
+      <div v-else class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h2 class="text-base font-bold text-primary-text">
           Clients & Followers List
-          <span class="text-xs text-secondary-text font-normal"
+          <span class="text-xs text-secondary-text font-normal block sm:inline-block sm:ml-1 mt-0.5 sm:mt-0"
             >(FM #{{ fmId }})</span
           >
         </h2>
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           <button
-            class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
+            class="flex-1 sm:flex-none inline-flex justify-center items-center gap-1.5 px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
             @click="fetchOpenPositions"
             :disabled="loadingOpenPositions"
           >
@@ -169,30 +171,30 @@
               class="w-3.5 h-3.5"
               :class="{ 'animate-pulse': loadingOpenPositions }"
             />
-            <span>Check Open Pos</span>
+            <span class="whitespace-nowrap">Check Open Pos</span>
           </button>
 
           <button
             v-if="hasPermission('fund_manager.update')"
-            class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary-red hover:bg-primary-red/90 text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
+            class="flex-1 sm:flex-none inline-flex justify-center items-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary-red hover:bg-primary-red/90 text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
             @click="clearPositionsDialogOpen = true"
           >
             <XCircle class="w-3.5 h-3.5" />
-            <span>Clear Positions</span>
+            <span class="whitespace-nowrap">Clear Positions</span>
           </button>
 
           <button
             v-if="hasPermission('fund_manager.update')"
-            class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
+            class="flex-1 sm:flex-none inline-flex justify-center items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
             @click="addFollowerDialogOpen = true"
           >
             <UserPlus class="w-3.5 h-3.5" />
-            <span>Add Follower</span>
+            <span class="whitespace-nowrap">Add Follower</span>
           </button>
 
           <Tooltip text="Refresh List">
             <button
-              class="p-2 rounded-lg border border-primary-border text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer"
+              class="flex-none p-2 rounded-lg border border-primary-border text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer"
               @click="fetchFollowers(true, pagination.page)"
               :disabled="loading"
               title="Refresh List"
@@ -392,6 +394,9 @@
           :columns="columns"
           :data="filteredFollowers"
           :actions-sticky="true"
+          :pagination="pagination"
+          @page-change="handlePageChange"
+          @per-page-change="handlePerPageChange"
         >
           <!-- Name & Email -->
           <template #cell-follower_email="{ row }">
@@ -515,6 +520,13 @@
                     IB: {{ row.ib_name || row.ib_email }}
                   </p>
                 </div>
+          </template>
+
+          <!-- Joined At -->
+          <template #cell-joined_at="{ row }">
+            <span class="text-[10px] text-secondary-text font-mono">
+              {{ row.joined_at ? formatDate(row.joined_at) : '—' }}
+            </span>
           </template>
 
           <!-- Status -->
@@ -741,6 +753,15 @@
                 >{{ row.open_position_count }}</span
               >
             </div>
+            <div class="col-span-2">
+              <span
+                class="text-[9px] text-secondary-text block uppercase font-semibold"
+                >Joined At</span
+              >
+              <span class="font-bold text-secondary-text font-mono">{{
+                row.joined_at ? formatDate(row.joined_at) : "—"
+              }}</span>
+            </div>
             <div
               v-if="row.unfollowed_at || row.ended_at || row.left_at"
               class="col-span-2"
@@ -757,9 +778,13 @@
         </div>
       </div>
 
-      <!-- PAGINATION -->
-      <div v-if="pagination.total_items > pagination.per_page" class="mt-4">
-        <Pagination :pagination="pagination" @page-change="handlePageChange" />
+      <!-- Mobile Pagination -->
+      <div class="md:hidden mt-4" v-if="pagination && pagination.total_items > pagination.per_page">
+        <DataTablePagination
+          :pagination="pagination"
+          @page-change="handlePageChange"
+          @per-page-change="handlePerPageChange"
+        />
       </div>
     </template>
 
@@ -827,7 +852,8 @@ import apiRequest from "@/api/request";
 import urls from "@/api/urls";
 import Tooltip from "@/components/common/Tooltip.vue";
 import BaseSelect from "@/components/common/BaseSelect.vue";
-import Pagination from "@/components/common/Pagination.vue";
+import DataTablePagination from "@/components/common/DataTable/DataTablePagination.vue";
+
 import EditFollowerDialog from "@/components/fmOffers/EditFollowerDialog.vue";
 import AddFollowerDialog from "@/components/fmOffers/AddFollowerDialog.vue";
 import ClientLoginModal from "@/components/common/ClientLoginModal.vue";
@@ -853,6 +879,7 @@ const columns = [
   { key: "equity_pnl", label: "Equity & PnL" },
   { key: "lot_trades", label: "Lot Setup & Trades" },
   { key: "offer_ib", label: "Offer & IB Partner" },
+  { key: "joined_at", label: "Joined At" },
   { key: "status", label: "Status" },
   { key: "actions", label: "Action", align: "right" },
 ];
@@ -1313,6 +1340,13 @@ const fetchOpenPositions = () => {
 const handlePageChange = (page) => {
   pagination.value.page = page;
   fetchFollowers(true, page);
+};
+
+const handlePerPageChange = (payload) => {
+  const perPage = payload?.per_page ?? payload;
+  pagination.value.per_page = perPage;
+  pagination.value.page = 1;
+  fetchFollowers(true, 1);
 };
 
 onMounted(() => {
