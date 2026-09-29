@@ -24,6 +24,7 @@ import ToggleTradingDialog from "@/components/trading-accounts/ToggleTradingDial
 import ChangeTradingGroupDrawer from "@/components/trading-accounts/ChangeTradingGroupDrawer.vue";
 import ManageTransactionsDialog from "@/components/common/ManageTransactionsDialog.vue";
 import { useAccountsStore } from "@/stores/tradingAccounts/tradingAccounts";
+import { useClientListStore } from "@/stores/clientList/clientList";
 import { useProfileStore } from "@/stores/profile/profile";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 
@@ -32,6 +33,16 @@ const profile = useProfileStore();
 const router = useRouter();
 const route = useRoute();
 const { hasPermission } = usePermissionCheck();
+
+const goToClientSearch = (row) => {
+  const searchTerm = row.user?.email || row.client_name;
+  if (searchTerm) {
+    const clientStore = useClientListStore();
+    clientStore.filters.search = searchTerm;
+    clientStore.applyFilters();
+    router.push('/clients');
+  }
+};
 
 const tabs = [
   { label: "All", value: "all" },
@@ -707,12 +718,14 @@ onBeforeUnmount(() => clearTimeout(searchTimer));
 
       <!-- Custom Cell: Client -->
       <template #cell-client="{ row }">
-        <p class="text-xs font-medium text-primary-text whitespace-nowrap">
-          {{ row.client_name ?? row.user?.name ?? "—" }}
-        </p>
-        <p class="mt-1 text-[11px] text-secondary-text whitespace-nowrap">
-          {{ row.user?.email ?? "—" }}
-        </p>
+        <div class="cursor-pointer group" @click="goToClientSearch(row)">
+          <p class="text-xs font-medium text-primary-text group-hover:text-primary group-hover:underline whitespace-nowrap transition-colors">
+            {{ row.client_name ?? row.user?.name ?? "—" }}
+          </p>
+          <p class="mt-1 text-[11px] text-secondary-text group-hover:text-primary/80 whitespace-nowrap transition-colors">
+            {{ row.user?.email ?? "—" }}
+          </p>
+        </div>
       </template>
 
       <!-- Custom Cell: Entity -->

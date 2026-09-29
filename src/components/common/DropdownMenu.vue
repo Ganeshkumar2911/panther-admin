@@ -5,7 +5,7 @@
       type="button"
       ref="triggerRef"
       @click.stop="toggle"
-      class="p-2 rounded-lg text-secondary-text hover:bg-background hover:text-primary-text transition"
+      class="p-2 rounded-lg text-secondary-text hover:bg-background hover:text-primary-text transition cursor-pointer"
       :class="{ 'bg-background text-primary-text': open }"
     >
       <slot name="trigger">
@@ -30,7 +30,7 @@
               type="button"
               :disabled="item.disabled"
               @click="handleSelect(item)"
-              class="w-full flex items-center gap-2.5 px-3.5 py-2 text-sm text-left transition disabled:opacity-40 disabled:cursor-not-allowed"
+              class="w-full flex items-center gap-2.5 px-3.5 py-2 text-sm text-left transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
               :class="item.danger
                 ? 'text-red-600 hover:bg-red-500/10'
                 : item.success
