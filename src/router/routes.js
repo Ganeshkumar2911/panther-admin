@@ -610,13 +610,21 @@ const routes = [
         },
       },
       {
+        path: "/whatsapp",
+        redirect: "/whatsapp/templates",
+      },
+      {
+        path: "/whatsapp/flows",
+        redirect: "/whatsapp/templates?tab=flows",
+      },
+      {
         path: "/whatsapp/templates",
         name: "whatsapp-templates",
         component: () => import("@/pages/whatsapp/index.vue"),
         meta: {
           requiresAuth: true,
-          title: "WhatsApp Templates",
-          description: "Manage WhatsApp message templates and campaigns",
+          title: "WhatsApp Management",
+          description: "Manage WhatsApp message templates and automated journey flows",
         },
       },
       {

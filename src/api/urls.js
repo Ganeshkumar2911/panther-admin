@@ -352,12 +352,19 @@ const urls = {
   whatsapp: {
     templates: "/whatsapp/templates",
     createTemplate: "/whatsapp/create-template",
-    getById: `/whatsapp/templates`,
-    updateTemplate: `/whatsapp/templates`,
-    deleteTemplate: `/whatsapp/templates`,
+    getById: "/whatsapp/templates",
+    updateTemplate: "/whatsapp/templates",
+    deleteTemplate: "/whatsapp/templates",
     chatOpen: "/whatsapp/chat/open",
     sendMessage: "/whatsapp/send/chat",
     sendTemplate: "/whatsapp/send/template",
+    // Template Flows API endpoints
+    templateFlows: "/whatsapp/template-flows",
+    templateFlow: (id) => `/whatsapp/template-flows/${id}`,
+    createTemplateFlow: "/whatsapp/template-flows",
+    updateTemplateFlow: (id) => `/whatsapp/template-flows/${id}`,
+    reorderTemplateFlows: "/whatsapp/template-flows/reorder",
+    deleteTemplateFlow: (id) => `/whatsapp/template-flows/${id}`,
   },
   blogs: {
     list: "/blogs",
