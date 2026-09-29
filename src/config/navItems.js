@@ -428,6 +428,18 @@ export const navClusters = [
           "cashier",
         ],
       },
+      {
+        label: "Vendor Panel",
+        to: "/vendor-transfers",
+        icon: Handshake,
+        permission: "vendor.view",
+        keywords: [
+          "vendor",
+          "transfers",
+          "work queue",
+          "vendor panel",
+        ],
+      },
     ],
   },
 

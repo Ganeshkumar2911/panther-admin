@@ -240,6 +240,16 @@ const routes = [
         },
       },
       {
+        path: "/vendor-transfers",
+        name: "vendor-transfers",
+        component: () => import("@/pages/vendor-transfers/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Vendor Transfers",
+          description: "Manage and view vendor transfer queue.",
+        },
+      },
+      {
         path: "/payment-requests/logs",
         name: "payment-gateway-logs",
         component: () => import("@/pages/payment-requests/logs.vue"),
