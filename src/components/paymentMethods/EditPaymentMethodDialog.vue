@@ -168,6 +168,23 @@
                   Internal description or currency notes.
                 </p>
               </div>
+
+              <!-- Connected Vendor Staff -->
+              <div v-if="form.gateway === 'bank_transfer' || form.method_type === 'bank_transfer'" class="sm:col-span-2">
+                <label class="block text-xs font-semibold text-primary-text mb-1">
+                  Connected vendor staff
+                </label>
+                <BaseSelect
+                  v-model="form.vendor_user_id"
+                  :options="staffOptions"
+                  placeholder="None (admin first-approve / admin-only deposits)"
+                  clearable
+                  customClass="w-full"
+                />
+                <p class="text-[10px] text-secondary-text mt-1">
+                  This staff will see bank-transfer deposits and withdrawals for this method in the Vendor Portal.
+                </p>
+              </div>
             </div>
           </div>
 
@@ -1216,6 +1233,8 @@ const newDepositTargetValue = ref('')
 const newWithdrawTargetValue = ref('')
 
 const roles = ref([])
+const staffOptions = ref([])
+
 const fetchRoles = async () => {
   try {
     const response = await apiRequest('get', '/rbac/roles')
@@ -1227,6 +1246,17 @@ const fetchRoles = async () => {
   }
 }
 
+const fetchStaffList = async () => {
+  try {
+    const response = await apiRequest('get', '/rbac/users', { params: { page: 1, per_page: 100 } })
+    if (response.status === 'success' && response.data) {
+      staffOptions.value = response.data.map(u => ({ label: `${u.name} (${u.email})`, value: u.id }))
+    }
+  } catch (err) {
+    console.error('Failed to fetch staff:', err)
+  }
+}
+
 const getRoleName = (id) => {
   const role = roles.value.find(r => r.value === id)
   return role ? role.label : id
@@ -1234,6 +1264,7 @@ const getRoleName = (id) => {
 
 onMounted(() => {
   fetchRoles()
+  fetchStaffList()
 })
 
 // ── Form Model State ──
@@ -1243,6 +1274,7 @@ const defaultFormData = () => ({
   method_type: '',
   payment_method_code: '',
   remarks: '',
+  vendor_user_id: null,
   is_active: false,
   is_default_deposit: false,
   is_default_withdrawal: false,
@@ -1318,6 +1350,7 @@ watch(
           method_type: p.method_type || '',
           payment_method_code: p.payment_method_code || '',
           remarks: p.remarks || '',
+          vendor_user_id: p.vendor_user_id ?? null,
           is_active: Boolean(p.is_active ?? false),
           enable_deposit: Boolean(p.enable_deposit ?? false),
           enable_withdrawal: Boolean(p.enable_withdrawal ?? false),
@@ -1731,6 +1764,7 @@ const submit = async () => {
       method_type: form.value.method_type.trim(),
       payment_method_code: form.value.payment_method_code ? form.value.payment_method_code.trim() : null,
       remarks: form.value.remarks ? form.value.remarks.trim() : null,
+      vendor_user_id: form.value.vendor_user_id || null,
       is_active: Boolean(form.value.is_active),
       enable_deposit: Boolean(form.value.enable_deposit),
       enable_withdrawal: Boolean(form.value.enable_withdrawal),

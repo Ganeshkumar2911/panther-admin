@@ -465,7 +465,7 @@ const urls = {
     userSearch: "/cashback/user-search",
   },
   vendor: {
-    transfers: "/admin/vendor/transfers",
+    transfers: "/vendor/transfers",
   },
 };
 
