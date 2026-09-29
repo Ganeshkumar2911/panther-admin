@@ -525,7 +525,7 @@
           <!-- Joined At -->
           <template #cell-joined_at="{ row }">
             <span class="text-[10px] text-secondary-text font-mono">
-              {{ row.joined_at ? formatDate(row.joined_at) : '—' }}
+              {{ row.joined_at ? formatDateTime(row.joined_at) : '—' }}
             </span>
           </template>
 
@@ -850,6 +850,7 @@ import {
 } from "lucide-vue-next";
 import apiRequest from "@/api/request";
 import urls from "@/api/urls";
+import { formatDate as formatDateTime } from "@/utils/timeFormatter";
 import Tooltip from "@/components/common/Tooltip.vue";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import DataTablePagination from "@/components/common/DataTable/DataTablePagination.vue";

@@ -109,7 +109,8 @@ const urls = {
     settlementPreview: "/settlement/preview",
     settlementRun: "/settlement/run",
     offers: "/fund_managers/offers",
-    followers: (fmId) => (fmId ? `/fund_managers/followers/${fmId}` : "/fund_managers/followers"),
+    followers: (fmId) =>
+      fmId ? `/fund_managers/followers/${fmId}` : "/fund_managers/followers",
     followersHistory: (fmId) => `/fund_managers/followers/${fmId}/history`,
     followersDetails: "fund_managers/followers/info/",
     editFollower: "/fund_managers/followers/edit",
@@ -118,7 +119,8 @@ const urls = {
     availableJoiners: "/fund_managers/followers/available-joiners",
     addFollower: "/fund_managers/followers/add",
     openPositionCounts: "/fund_managers/followers/open-position-counts",
-    clearFollowerPositions: (fmId) => `/fund-managers/${fmId}/clear-follower-positions`,
+    clearFollowerPositions: (fmId) =>
+      `/fund-managers/${fmId}/clear-follower-positions`,
   },
   tradeBook: {
     filters: "/trade-book/filters",
@@ -401,9 +403,12 @@ const urls = {
     enrollmentDetail: (enrollmentId) => `/loyalty/enrollments/${enrollmentId}`,
     updateEnrollment: (enrollmentId) => `/loyalty/enrollments/${enrollmentId}`,
     deenroll: "/loyalty/enrollments/deenroll",
-    deenrollById: (enrollmentId) => `/loyalty/enrollments/${enrollmentId}/deenroll`,
-    attachEnrollmentAccount: (enrollmentId) => `/loyalty/enrollments/${enrollmentId}/accounts`,
-    detachEnrollmentAccount: (enrollmentId, accountId) => `/loyalty/enrollments/${enrollmentId}/accounts/${accountId}`,
+    deenrollById: (enrollmentId) =>
+      `/loyalty/enrollments/${enrollmentId}/deenroll`,
+    attachEnrollmentAccount: (enrollmentId) =>
+      `/loyalty/enrollments/${enrollmentId}/accounts`,
+    detachEnrollmentAccount: (enrollmentId, accountId) =>
+      `/loyalty/enrollments/${enrollmentId}/accounts/${accountId}`,
     creditWallet: "/loyalty/wallets/credit",
     // Deals & Backfill
     deals: "/loyalty/deals",
@@ -440,7 +445,8 @@ const urls = {
     // Demo Wallets
     demoWallets: "/ib-commission/demo-wallets",
     demoWalletByIb: (ibId) => `/ib-commission/demo-wallets/by-ib/${ibId}`,
-    demoWalletByUser: (userId) => `/ib-commission/demo-wallets/by-user/${userId}`,
+    demoWalletByUser: (userId) =>
+      `/ib-commission/demo-wallets/by-user/${userId}`,
     demoWalletTransactions: "/ib-commission/demo-wallets/transactions",
     // Approvals / Draft Commission Workflow
     approvalPeriods: "/ib-commission/commissions/approvals/periods",
@@ -467,7 +473,10 @@ const urls = {
   vendor: {
     transfers: "/vendor/transfers",
   },
+  twoFactor: {
+    settings: "/2fa-settings",
+    reset: (userId) => `/users/${userId}/2fa/reset`,
+  },
 };
 
 export default urls;
-

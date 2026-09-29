@@ -13,14 +13,18 @@
         :class="[
           modelValue === tab.value
             ? 'bg-primary text-white shadow-xs'
-            : 'text-secondary-text hover:text-primary-text hover:bg-background/60'
+            : 'text-secondary-text hover:text-primary-text hover:bg-background/60',
         ]"
       >
         <!-- Icon -->
         <component
           :is="tab.icon"
           class="w-4 h-4 transition-transform duration-200 group-hover:scale-110 shrink-0"
-          :class="modelValue === tab.value ? 'text-white' : 'text-secondary-text group-hover:text-primary-text'"
+          :class="
+            modelValue === tab.value
+              ? 'text-white'
+              : 'text-secondary-text group-hover:text-primary-text'
+          "
         />
 
         <!-- Label -->
@@ -51,7 +55,7 @@
 
 <script setup>
 import { computed, watch } from "vue";
-import { SlidersHorizontal } from "lucide-vue-next";
+import { SlidersHorizontal, ShieldCheck } from "lucide-vue-next";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 
 const props = defineProps({
@@ -65,7 +69,11 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["update:modelValue", "tab-change", "visible-tabs-change"]);
+const emit = defineEmits([
+  "update:modelValue",
+  "tab-change",
+  "visible-tabs-change",
+]);
 
 const { hasPermission } = usePermissionCheck();
 
@@ -81,6 +89,13 @@ const defaultSettingsTabs = [
       "system_setting.view",
       "xtention_dev.view",
     ],
+  },
+  {
+    label: "Two-Factor Auth (2FA)",
+    value: "2fa-settings",
+    icon: ShieldCheck,
+    description: "Manage global Google Authenticator rules",
+    permission: ["two_factor.view"],
   },
 ];
 
@@ -104,10 +119,13 @@ watch(
   visibleTabs,
   (newTabs) => {
     emit("visible-tabs-change", newTabs);
-    if (newTabs.length > 0 && !newTabs.some((t) => t.value === props.modelValue)) {
+    if (
+      newTabs.length > 0 &&
+      !newTabs.some((t) => t.value === props.modelValue)
+    ) {
       emit("update:modelValue", newTabs[0].value);
     }
   },
-  { immediate: true }
+  { immediate: true },
 );
 </script>
