@@ -213,7 +213,7 @@ function handleImportCSV() {
         <button
           v-if="hasPermission('lead_management.view')"
           @click="openModal('add')"
-          class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-btn-text-primary text-xs font-semibold shadow-primary/20 hover:shadow-primary/30 transition-all duration-200 cursor-pointer"
+          class="btn-primary"
         >
           <Plus class="w-4 h-4" />
           <span>Add Lead</span>

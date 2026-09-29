@@ -583,7 +583,7 @@ export const navClusters = [
         label: "Enhanced Audit Logs",
         to: "/enhanced-audit-logs",
         icon: ClipboardList,
-        permission: ["new_audit.view", "new_audit"],
+        permission: "audit.view",
         keywords: [
           "activity logs",
           "history",
@@ -670,7 +670,6 @@ export const navClusters = [
         icon: DollarSign,
         permission: ["cashback.view"],
         keywords: ["cashback", "rebate", "usd", "earnings", "loyalty"],
-
       },
     ],
   },

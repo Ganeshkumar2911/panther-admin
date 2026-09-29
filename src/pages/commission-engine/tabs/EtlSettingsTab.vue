@@ -608,7 +608,7 @@ const handleRunGlobalClick = async () => {
 
             <button
               type="button"
-              class="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-primary text-white hover:bg-primary-hover transition-colors cursor-pointer disabled:opacity-50"
+              class="btn-primary disabled:opacity-50"
               :disabled="store.runRecalcLoading"
               @click="handleRunGlobalClick"
             >

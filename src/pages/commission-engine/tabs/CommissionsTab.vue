@@ -524,7 +524,7 @@ const formatDate = (val) => {
                 v-if="canSync"
                 type="button"
                 :disabled="store.actionLoading"
-                class="flex items-center gap-1.5 px-3.5 py-1.5 bg-primary hover:bg-primary-hover text-white text-xs font-semibold rounded-lg transition-all cursor-pointer shadow-xs disabled:opacity-50"
+                class="btn-primary disabled:opacity-50"
                 @click="isCalculateModalOpen = true"
               >
                 <HugeIcon :icon="Coins01Icon" :size="14" />

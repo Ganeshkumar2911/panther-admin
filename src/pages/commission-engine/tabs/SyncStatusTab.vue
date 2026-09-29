@@ -133,7 +133,7 @@ const formatTimestamp = (val) => {
           v-if="canSync"
           type="button"
           :disabled="store.actionLoading || !isConfigured"
-          class="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary-hover text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          class="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
           @click="handleSyncDeals"
         >
           <HugeIcon

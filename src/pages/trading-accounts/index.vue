@@ -511,7 +511,7 @@ onBeforeUnmount(() => clearTimeout(searchTimer));
     <div class="flex flex-wrap items-start justify-end gap-3 mb-6">
       <button
         v-if="hasPermission('trading_account.create')"
-        class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all active:scale-95 cursor-pointer"
+        class="btn-primary"
         @click="openAddAccount"
       >
         <Plus class="w-3.5 h-3.5" />

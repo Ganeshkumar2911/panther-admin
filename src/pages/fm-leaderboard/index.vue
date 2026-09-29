@@ -125,7 +125,7 @@
         <!-- Add Fund Manager Button -->
         <button
           v-if="hasPermission('fund_manager.create')"
-          class="flex items-center gap-1.5 px-3.5 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-sm hover:shadow h-9"
+          class="btn-primary h-9"
           @click="handleAdd"
         >
           <Plus class="w-4 h-4" />
