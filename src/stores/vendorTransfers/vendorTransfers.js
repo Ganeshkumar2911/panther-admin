@@ -43,8 +43,8 @@ export const useVendorTransfersStore = defineStore("vendorTransfers", () => {
       Object.assign(pagination, {
         page: res?.pagination?.page || 1,
         per_page: res?.pagination?.per_page || 20,
-        total_items: res?.pagination?.total_items || 0,
-        total_pages: res?.pagination?.total_pages || 1,
+        total_items: res?.pagination?.total || res?.pagination?.total_items || 0,
+        total_pages: res?.pagination?.total_pages || (res?.pagination?.total ? Math.ceil(res.pagination.total / (res.pagination.per_page || 20)) : 1),
       });
       isFetched.value = true;
       loading.value = false;
@@ -69,9 +69,14 @@ export const useVendorTransfersStore = defineStore("vendorTransfers", () => {
     });
   };
 
-  const updatePerPage = (newPerPage) => {
-    pagination.per_page = Number(newPerPage);
-    pagination.page = 1;
+  const updatePerPage = (payload) => {
+    if (typeof payload === 'object' && payload !== null && 'per_page' in payload) {
+      pagination.per_page = Number(payload.per_page);
+      pagination.page = payload.page || 1;
+    } else {
+      pagination.per_page = Number(payload);
+      pagination.page = 1;
+    }
     fetchTransfers(true);
   };
 
