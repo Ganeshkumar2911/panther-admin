@@ -900,7 +900,7 @@
             </Tooltip>
             <span
               v-else-if="String(order.state_name || '').toUpperCase() === 'FILLED' || order.state === 4"
-              class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide border bg-primary-green/10 text-primary-green border border-primary-green/20"
+              class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide border bg-primary-green/10 text-primary-green border-primary-green/20"
             >
               {{ order.state_name || "FILLED" }}
             </span>

@@ -256,7 +256,7 @@ const formatTimestamp = (val) => {
               />
               <span>{{ cursor.last_status === 'ok' ? 'Operational' : (cursor.last_status || 'Idle') }}</span>
             </div>
-            <p class="text-[10px] text-secondary-text font-mono truncate max-w-[150px]">
+            <p class="text-[10px] text-secondary-text font-mono truncate max-w-37.5">
               {{ cursor.last_run_at ? formatTimestamp(cursor.last_run_at) : 'No runs recorded' }}
             </p>
           </div>

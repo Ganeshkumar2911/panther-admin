@@ -185,19 +185,19 @@
       </template>
 
       <template #cell-subject="{ row }">
-        <div class="max-w-[220px] truncate" :title="row.subject || '—'">
+        <div class="max-w-55 truncate" :title="row.subject || '—'">
           {{ row.subject || "—" }}
         </div>
       </template>
 
       <template #cell-sender="{ row }">
-        <div class="max-w-[180px] truncate text-secondary-text" :title="row.from || row.sender || '—'">
+        <div class="max-w-45 truncate text-secondary-text" :title="row.from || row.sender || '—'">
           {{ row.from || row.sender || "—" }}
         </div>
       </template>
 
       <template #cell-recipient="{ row }">
-        <div class="font-mono max-w-[200px] truncate" :title="row.email || row.recipient || '—'">
+        <div class="font-mono max-w-50 truncate" :title="row.email || row.recipient || '—'">
           {{ row.email || row.recipient || "—" }}
         </div>
       </template>

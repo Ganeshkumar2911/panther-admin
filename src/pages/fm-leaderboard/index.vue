@@ -366,7 +366,7 @@
               <div class="flex items-center justify-between">
                 <span class="text-secondary-text text-[11px]">Broker Group</span>
                 <Tooltip v-if="item.broker_group" :text="item.broker_group" placement="left">
-                  <span class="font-medium text-primary-text max-w-[140px] truncate block text-[11px] font-mono">
+                  <span class="font-medium text-primary-text max-w-35 truncate block text-[11px] font-mono">
                     {{ item.broker_group }}
                   </span>
                 </Tooltip>
@@ -420,17 +420,17 @@
         <div
           class="hidden md:block w-full border border-primary-border rounded-2xl overflow-x-auto bg-card-background/40 shadow-sm"
         >
-          <table class="w-full min-w-[980px] border-collapse text-left text-xs">
+          <table class="w-full min-w-245 border-collapse text-left text-xs">
             <thead>
               <tr
                 class="border-b border-primary-border bg-background/60 text-secondary-text font-bold uppercase tracking-wider text-[10px]"
               >
-                <th class="py-3 px-4 w-[260px]">Fund Manager & Email</th>
-                <th class="py-3 px-3 w-[220px]">Master / Coverage Accounts</th>
-                <th class="py-3 px-3 w-[180px]">Capital & Fees</th>
-                <th class="py-3 px-3 w-[170px]">Share Split</th>
-                <th class="py-3 px-3 w-[150px]">Status & Settlement</th>
-                <th class="py-3 px-4 text-right w-[160px]">Actions</th>
+                <th class="py-3 px-4 w-65">Fund Manager & Email</th>
+                <th class="py-3 px-3 w-55">Master / Coverage Accounts</th>
+                <th class="py-3 px-3 w-45">Capital & Fees</th>
+                <th class="py-3 px-3 w-42.5">Share Split</th>
+                <th class="py-3 px-3 w-37.5">Status & Settlement</th>
+                <th class="py-3 px-4 text-right w-40">Actions</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-primary-border/60">
@@ -451,7 +451,7 @@
                       <p class="font-bold text-primary-text text-xs truncate" :title="item.label_name">
                         {{ item.label_name || 'Unnamed FM' }}
                       </p>
-                      <p class="text-[11px] font-semibold text-primary select-all truncate max-w-[210px]" :title="item.user?.email">
+                      <p class="text-[11px] font-semibold text-primary select-all truncate max-w-52.5" :title="item.user?.email">
                         {{ item.user?.email || 'No email' }}
                       </p>
                       <p v-if="item.user?.name" class="text-[10px] text-secondary-text truncate">
@@ -480,7 +480,7 @@
                     </div>
                     <div class="flex items-center gap-1.5 text-[11px]">
                       <Tooltip v-if="item.broker_group" :text="item.broker_group" placement="left">
-                        <span class="truncate max-w-[130px] font-mono text-secondary-text block">
+                        <span class="truncate max-w-32.5 font-mono text-secondary-text block">
                           {{ item.broker_group }}
                         </span>
                       </Tooltip>

@@ -69,7 +69,7 @@ const bgClass = {
     >
       <!-- Header with Icon -->
       <div class="px-6 py-5 border-b border-primary-border flex items-start gap-3">
-        <div :class="`flex-shrink-0 p-2 rounded-lg ${bgClass[type]}`">
+        <div :class="`shrink-0 p-2 rounded-lg ${bgClass[type]}`">
           <AlertCircle v-if="type === 'warning'" :class="`w-5 h-5 ${iconClass[type]}`" />
           <AlertCircle v-else-if="type === 'danger'" :class="`w-5 h-5 ${iconClass[type]}`" />
           <CheckCircle2 v-else-if="type === 'success'" :class="`w-5 h-5 ${iconClass[type]}`" />
@@ -80,7 +80,7 @@ const bgClass = {
         </div>
         <button
           @click="emit('cancel')"
-          class="flex-shrink-0 text-secondary-text hover:text-primary-text transition p-1"
+          class="shrink-0 text-secondary-text hover:text-primary-text transition p-1"
           aria-label="Close"
         >
           <X class="w-5 h-5" />

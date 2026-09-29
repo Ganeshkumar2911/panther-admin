@@ -953,7 +953,7 @@ const formatDate = (val) => {
             }}</span>
             <span
               v-if="row.reject_reason"
-              class="block text-[10px] text-primary-red truncate max-w-[150px]"
+              class="block text-[10px] text-primary-red truncate max-w-37.5"
               :title="row.reject_reason"
             >
               "{{ row.reject_reason }}"
@@ -1007,7 +1007,7 @@ const formatDate = (val) => {
       <!-- Cell: MT5 Group -->
       <template #cell-mt5_group="{ row }">
         <span
-          class="text-xs font-mono text-secondary-text truncate block max-w-[150px]"
+          class="text-xs font-mono text-secondary-text truncate block max-w-37.5"
           :title="row.trade?.mt5_group"
         >
           {{ row.trade?.mt5_group || "-" }}

@@ -596,7 +596,7 @@ onBeforeUnmount(() => {
             'fi',
             `fi-${selectedFlagCode}`,
             'fis',
-            'w-4 h-3 flex-shrink-0',
+            'w-4 h-3 shrink-0',
           ]"
         ></span>
         <span>{{ displayLabel }}</span>
@@ -691,7 +691,7 @@ onBeforeUnmount(() => {
                     'fi',
                     `fi-${getOptionFlagCode(option)}`,
                     'fis',
-                    'w-4 h-3 flex-shrink-0',
+                    'w-4 h-3 shrink-0',
                   ]"
                 ></span>
                 <span v-if="option?.optinalLableName"
@@ -717,7 +717,7 @@ onBeforeUnmount(() => {
               <Check
                 v-if="isSelected(option) && !option.disabled"
                 :size="14"
-                class="text-primary flex-shrink-0"
+                class="text-primary shrink-0"
               />
             </li>
           </ul>

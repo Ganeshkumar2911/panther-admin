@@ -626,7 +626,7 @@ onBeforeUnmount(() => clearTimeout(searchTimer));
 
       <!-- Controls Container (Unclipped, so BaseSelect dropdown displays properly) -->
       <div class="flex items-center gap-3 flex-wrap">
-        <div class="relative min-w-[200px] flex-1 sm:flex-none">
+        <div class="relative min-w-50 flex-1 sm:flex-none">
           <Search
             class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-secondary-text"
           />
@@ -844,7 +844,7 @@ onBeforeUnmount(() => clearTimeout(searchTimer));
           type="button"
           class="text-[11px] font-medium px-2.5 py-1 rounded-full capitalize whitespace-nowrap text-white transition-all flex items-center gap-1 mx-auto"
           :class="[
-            row.is_active ? 'bg-primary-green/100' : 'bg-primary-red/100',
+            row.is_active ? 'bg-primary-green' : 'bg-primary-red',
             hasPermission('trading_account.update') &&
             row.account_type !== 'copy_trading' &&
             row.trading_type !== 'copy_trading'
