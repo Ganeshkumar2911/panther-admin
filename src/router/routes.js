@@ -685,12 +685,12 @@ const routes = [
       {
         path: "/enhanced-audit-logs/:id",
         name: "enhanced-audit-log-details",
-        component: () => import("@/pages/enhanced-audit-logs/details.vue"),
+        component: () => import("@/pages/enhanced-audit-logs/AuditLogForensicsView.vue"),
         meta: {
           requiresAuth: true,
           showBackButton: true,
           title: "Event Forensics",
-          description: "Advanced forensic audit event details.",
+          description: "Detailed view of audit event with complete context and changes.",
         },
       },
       {
