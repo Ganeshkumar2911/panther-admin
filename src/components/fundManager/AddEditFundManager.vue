@@ -1428,15 +1428,15 @@ const validateForm = () => {
   }
 
   // Broker Group (Required)
-  if (!form.value.broker_group?.trim()) {
+  if (props.mode === "add" && !form.value.broker_group?.trim()) {
     newErrors.broker_group = "Broker group is required for MT5 account";
   }
 
   // Broker Currency & Leverage
-  if (!form.value.broker_currency) {
+  if (props.mode === "add" && !form.value.broker_currency) {
     newErrors.broker_currency = "Currency is required";
   }
-  if (!form.value.broker_leverage) {
+  if (props.mode === "add" && !form.value.broker_leverage) {
     newErrors.broker_leverage = "Leverage is required";
   }
 
@@ -1468,8 +1468,10 @@ const validateForm = () => {
     const fm = parseFloat(form.value.fm_share) || 0;
     const broker = parseFloat(form.value.broker_share) || 0;
     if (Math.abs(fm + broker - 100) > 0.01) {
-      newErrors.share_distribution =
-        "FM Share and Broker Share must sum to exactly 100%";
+      if (props.mode === "add" || fm !== (parseFloat(originalForm.value?.fm_share) || 0) || broker !== (parseFloat(originalForm.value?.broker_share) || 0)) {
+        newErrors.share_distribution =
+          "FM Share and Broker Share must sum to exactly 100%";
+      }
     }
 
     // IB Pool Percentage (Required, Max 100)
@@ -1503,7 +1505,12 @@ const validateForm = () => {
 };
 
 const handleSubmit = async () => {
-  if (!validateForm()) return;
+  if (!validateForm()) {
+    console.log("Validation Failed:", errors.value);
+    const useSnackbarStore = (await import("@/stores/snackbar/snackbar")).useSnackbarStore;
+    useSnackbarStore().show("Validation failed. Check the form for errors.", "error");
+    return;
+  }
 
   if (props.mode === "add") {
     const createPayload = {
@@ -1557,7 +1564,11 @@ const handleSubmit = async () => {
     if (form.value.zip_code?.trim())
       createPayload.zip_code = form.value.zip_code.trim();
 
-    await store.createFundManager(createPayload);
+    const success = await store.createFundManager(createPayload);
+    if (success) {
+      closeDialog();
+      emit("success");
+    }
   } else {
     // Edit Mode Payload
     const buildEditPayload = (srcForm) => {
@@ -1572,6 +1583,7 @@ const handleSubmit = async () => {
         broker_share: Number(srcForm.broker_share) || 0,
         ib_pool_percentage: Number(srcForm.ib_pool_percentage) || 0,
         
+        pf_share_mode: srcForm.pf_share_mode,
         pf_broker_share: srcForm.pf_share_mode === 'fm' ? (Number(srcForm.pf_broker_share) || 0) : 0,
         pf_share_recipients: srcForm.pf_share_mode === 'fm' ? srcForm.pf_share_recipients.map(r => ({
           destination_type: r.destination_type,
@@ -1640,12 +1652,19 @@ const handleSubmit = async () => {
       }
     }
 
-    await store.editFundManager(props.item.id, editPayload);
-  }
+    if (Object.keys(editPayload).length === 0) {
+      console.log("No changes detected. editPayload is empty.");
+      const useSnackbarStore = (await import("@/stores/snackbar/snackbar")).useSnackbarStore;
+      useSnackbarStore().show("No fields were changed.", "info");
+      closeDialog();
+      return;
+    }
 
-  if (!store.error) {
-    closeDialog();
-    emit("success");
+    const success = await store.editFundManager(props.item.id, editPayload);
+    if (success) {
+      closeDialog();
+      emit("success");
+    }
   }
 };
 

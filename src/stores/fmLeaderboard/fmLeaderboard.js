@@ -65,12 +65,13 @@ export const useFmLeaderboardStore = defineStore("fmLeaderboard", () => {
         isSubmitting.value = false;
         isFetched.value = false;
         fetchFmLeaderboard(true);
-        resolve();
+        resolve(true);
       };
 
       const failureHandler = (err) => {
         isSubmitting.value = false;
-        snackbar.show(err?.error || "Something went wrong.", "error");
+        snackbar.show(err?.error || err?.message || "Something went wrong.", "error");
+        resolve(false);
       };
 
       apiRequest(urls.KEYS.POST, urls.fm.create, {
@@ -91,15 +92,16 @@ export const useFmLeaderboardStore = defineStore("fmLeaderboard", () => {
         isSubmitting.value = false;
         isFetched.value = false;
         fetchFmLeaderboard(true);
-        resolve();
+        resolve(true);
       };
 
       const failureHandler = (err) => {
         isSubmitting.value = false;
         snackbar.show(
-          err?.message || "Failed to update fund manager.",
+          err?.message || err?.error || "Failed to update fund manager.",
           "error",
         );
+        resolve(false);
       };
 
       apiRequest(urls.KEYS.PATCH, urls.fm.edit, {

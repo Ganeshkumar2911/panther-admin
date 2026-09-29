@@ -197,7 +197,7 @@ const tableColumns = [
 
 const fetchClientAuditLogs = (force = false) => {
   const userId = route.params.id;
-  if (!userId || !hasPermission(["new_audit.view", "new_audit"])) return;
+  if (!userId || !hasPermission(["audit.view", "audit"])) return;
 
   store.fetchUserAuditLogs(userId, store.pagination.page, store.pagination.per_page, force);
 };

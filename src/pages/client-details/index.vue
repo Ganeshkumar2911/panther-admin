@@ -909,7 +909,7 @@ const tabs = computed(() => {
     // },
   ];
 
-  if (hasPermission(["new_audit.view", "new_audit"])) {
+  if (hasPermission(["audit.view", "audit"])) {
     list.push({
       key: "audit-logs",
       label: "Audit Log",
