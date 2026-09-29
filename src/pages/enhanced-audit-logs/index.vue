@@ -378,7 +378,7 @@ const hasActiveFilters = computed(() => {
 
 // Lifecycle
 onMounted(async () => {
-  if (!hasPermission(["new_audit.view", "new_audit"])) return;
+  if (!hasPermission(["audit.view", "audit"])) return;
 
   filters.value = { ...store.filters };
   store.fetchFilters(); // load modules
