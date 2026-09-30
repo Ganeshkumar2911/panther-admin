@@ -730,9 +730,9 @@ const { goToTradingAccount } = useGoToTradingAccount()
 
 const layoutMode = ref('grid')
 const searchQuery = ref('')
-const selectedVisibility = ref('ALL')
-const selectedStatus = ref('ALL')
-const selectedKyc = ref('ALL')
+const selectedVisibility = ref(null)
+const selectedStatus = ref(null)
+const selectedKyc = ref(null)
 
 const dialogOpen = ref(false)
 const dialogMode = ref('add')
@@ -745,19 +745,16 @@ const fmLoginModalOpen = ref(false)
 const selectedFmForLogin = ref(null)
 
 const visibilityOptions = [
-  { label: 'All Visibility', value: 'ALL' },
   { label: 'Public', value: 'public' },
   { label: 'Private', value: 'private' },
 ]
 
 const statusOptions = [
-  { label: 'All Status', value: 'ALL' },
   { label: 'Active', value: 'active' },
   { label: 'Inactive', value: 'inactive' },
 ]
 
 const kycOptions = [
-  { label: 'All KYC Status', value: 'ALL' },
   { label: 'Approved', value: 'approved' },
   { label: 'Pending', value: 'pending' },
   { label: 'Rejected', value: 'rejected' },
@@ -766,17 +763,17 @@ const kycOptions = [
 const hasActiveFilters = computed(() => {
   return (
     Boolean(searchQuery.value.trim()) ||
-    selectedVisibility.value !== 'ALL' ||
-    selectedStatus.value !== 'ALL' ||
-    selectedKyc.value !== 'ALL'
+    selectedVisibility.value !== null ||
+    selectedStatus.value !== null ||
+    selectedKyc.value !== null
   )
 })
 
 const resetFilters = () => {
   searchQuery.value = ''
-  selectedVisibility.value = 'ALL'
-  selectedStatus.value = 'ALL'
-  selectedKyc.value = 'ALL'
+  selectedVisibility.value = null
+  selectedStatus.value = null
+  selectedKyc.value = null
 }
 
 const filteredData = computed(() => {
@@ -799,16 +796,16 @@ const filteredData = computed(() => {
       }
     }
     // Visibility filter
-    if (selectedVisibility.value !== 'ALL') {
+    if (selectedVisibility.value !== null) {
       if (item.visibility_type !== selectedVisibility.value) return false
     }
     // Status filter
-    if (selectedStatus.value !== 'ALL') {
+    if (selectedStatus.value !== null) {
       const isActive = selectedStatus.value === 'active'
       if (item.is_active !== isActive) return false
     }
     // KYC filter
-    if (selectedKyc.value !== 'ALL') {
+    if (selectedKyc.value !== null) {
       if (item.user?.kyc_status !== selectedKyc.value) return false
     }
     return true

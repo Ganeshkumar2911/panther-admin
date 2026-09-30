@@ -222,13 +222,11 @@ const getStaffActions = (staff) => {
     },
   ]
 
-  if (hasPermission('xtention_dev.manage_role')) {
-    actions.push({
-      action: 'changePassword',
-      label: 'Change Password',
-      icon: KeyRound,
-    })
-  }
+  actions.push({
+    action: 'changePassword',
+    label: 'Change Password',
+    icon: KeyRound,
+  })
 
   actions.push(
     { divider: true },
