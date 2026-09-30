@@ -3,7 +3,7 @@
     <!-- Backdrop Overlay -->
     <Transition name="backdrop">
       <div
-        class="fixed inset-0 z-[100] bg-black/50 backdrop-blur-xs cursor-pointer"
+        class="fixed inset-0 z-100 bg-black/50 backdrop-blur-xs cursor-pointer"
         @click="$emit('close')"
       />
     </Transition>
@@ -11,7 +11,7 @@
     <!-- Drawer Panel -->
     <Transition name="drawer">
       <div
-        class="fixed right-0 top-0 bottom-0 z-[101] w-full max-w-lg bg-card-background border-l border-primary-border flex flex-col shadow-2xl overflow-hidden"
+        class="fixed right-0 top-0 bottom-0 z-101 w-full max-w-lg bg-card-background border-l border-primary-border flex flex-col shadow-2xl overflow-hidden"
         role="dialog"
         aria-modal="true"
       >

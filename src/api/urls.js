@@ -121,6 +121,7 @@ const urls = {
     openPositionCounts: "/fund_managers/followers/open-position-counts",
     clearFollowerPositions: (fmId) =>
       `/fund-managers/${fmId}/clear-follower-positions`,
+    dealsByComment: (fmId) => `/fund_managers/${fmId}/deals/by-comment`,
   },
   tradeBook: {
     filters: "/trade-book/filters",
