@@ -17,6 +17,15 @@
         :pagination="store.enrollmentsPagination"
         @page-change="handlePageChange"
       >
+        <template #cell-user="{ row }">
+          <div class="flex flex-col">
+            <span class="text-sm font-medium text-primary-text">{{ row.user_name || '-' }}</span>
+            <span class="text-xs text-secondary-text">{{ row.user_email || '-' }}</span>
+          </div>
+        </template>
+        <template #cell-account="{ row }">
+          <span class="font-medium text-primary-text">{{ row.account_number || '-' }}</span>
+        </template>
         <template #cell-plan="{ row }">
           <span class="font-medium text-primary-text">{{ row.plan?.name || '-' }}</span>
         </template>
@@ -99,8 +108,8 @@ const clearPlanLock = ref(true);
 
 const columns = [
   { key: "id", label: "ID", sortable: false },
-  { key: "user_id", label: "User ID", sortable: false },
-  { key: "trading_account_id", label: "Account ID", sortable: false },
+  { key: "user", label: "User", sortable: false },
+  { key: "account", label: "Account", sortable: false },
   { key: "plan", label: "Active Plan", sortable: false },
   { key: "status", label: "Status", sortable: false },
   { key: "pending_plan", label: "Pending Switch", sortable: false },

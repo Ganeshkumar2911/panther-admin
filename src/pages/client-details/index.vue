@@ -412,6 +412,18 @@
       @confirm="confirmAutoWithdrawalToggle"
       @cancel="autoWithdrawalConfirmOpen = false"
     />
+
+    <!-- Reset 2FA Confirmation Modal -->
+    <ConfirmationDialog
+      :open="reset2faConfirmOpen"
+      title="Reset 2FA"
+      message="This removes their authenticator and backup codes. They can set 2FA up again after login."
+      confirmText="Reset 2FA"
+      type="danger"
+      :loading="isResetting2fa"
+      @confirm="confirmReset2fa"
+      @cancel="reset2faConfirmOpen = false"
+    />
   </div>
 </template>
 
@@ -450,6 +462,7 @@ import {
   Bell,
   Landmark,
   ClipboardList,
+  ShieldOff,
 } from "lucide-vue-next";
 import { WhatsappIcon } from "@hugeicons/core-free-icons/index";
 const route = useRoute();
@@ -712,6 +725,7 @@ const quickActions = [
   { action: "email", label: "Email", icon: Mail, permission: ["email.manage", "email.template_manual_trigger", "email.view"] },
   { action: "message", label: "WhatsApp Chat", hugeIcon: WhatsappIcon, permission: ["whatsapp.send", "whatsapp.view"] },
   { action: "documents", label: "Documents", icon: FileText, permission: ["client.document_add", "client.document_view"] },
+  { action: "reset2fa", label: "Reset 2FA", icon: ShieldOff, permission: ["two_factor.reset"] },
 ];
 
 const visibleQuickActions = computed(() => {
@@ -761,6 +775,14 @@ const handleQuickAction = (action) => {
     }
     return;
   }
+  if (actionType === "reset2fa") {
+    if (action.permission && !hasPermission(action.permission)) {
+      snackbar.show("You do not have permission to reset 2FA.", "error");
+      return;
+    }
+    reset2faConfirmOpen.value = true;
+    return;
+  }
   if (actionType === "more") {
     snackbar.show("Additional quick actions coming soon.", "info");
     return;
@@ -775,6 +797,37 @@ const handleUploadDocSuccess = () => {
     clientDepthStore.fetchClientOverview(userId, true);
     clientDepthStore.fetchUserReferences(userId, true);
   }
+};
+
+const reset2faConfirmOpen = ref(false);
+const isResetting2fa = ref(false);
+
+const confirmReset2fa = () => {
+  const userId = route.params.id || user.value?.id;
+  if (!userId) return;
+  isResetting2fa.value = true;
+  apiRequest(urls.KEYS.POST, urls.twoFactor.reset(userId), {
+    isTokenRequired: true,
+    onSuccess: (res) => {
+      snackbar.show(res?.message || "User 2FA has been reset.", "success");
+      reset2faConfirmOpen.value = false;
+      // Optional: Dispatch event if user object has totp_enabled flag in future
+      window.dispatchEvent(
+        new CustomEvent("client-profile-updated", {
+          detail: { totp_enabled: false },
+        })
+      );
+    },
+    onFailure: (err) => {
+      snackbar.show(
+        err?.response?.data?.message || err?.message || "Failed to reset 2FA",
+        "error"
+      );
+    },
+    onFinally: () => {
+      isResetting2fa.value = false;
+    },
+  });
 };
 
 // ─── Current Active Tab Resolver ──────────────────────────────────────────────

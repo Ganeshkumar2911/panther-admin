@@ -39,6 +39,7 @@ import SettingsNavbar from "@/components/default/SettingsNavbar.vue";
 
 // Submodule Tab Components
 import TransactionSettingsTab from "./tabs/TransactionSettingsTab.vue";
+import TwoFactorSettingsTab from "./tabs/TwoFactorSettingsTab.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -91,6 +92,7 @@ watch(
 const tabComponentsMap = {
   "transaction-settings": TransactionSettingsTab,
   "payment-settings": TransactionSettingsTab,
+  "2fa-settings": TwoFactorSettingsTab,
 };
 
 const activeComponent = computed(() => {
