@@ -398,6 +398,47 @@
             </div>
           </div>
 
+          <!-- SEO Meta Fields -->
+          <!-- Meta Title -->
+          <div class="space-y-1.5">
+            <label class="text-xs font-semibold text-primary-text">
+              Meta Title <span class="text-[11px] text-secondary-text font-normal">(SEO)</span>
+            </label>
+            <input
+              v-model="form.meta_title"
+              type="text"
+              placeholder="e.g. Market Trends: Q3 2026 Crypto & Forex Outlook"
+              class="w-full bg-background border border-primary-border rounded-xl px-3.5 py-2 text-xs text-primary-text placeholder-secondary-text/50 focus:outline-none focus:border-primary"
+            />
+          </div>
+
+          <!-- Meta Description & Meta Keywords -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="space-y-1.5">
+              <label class="text-xs font-semibold text-primary-text">
+                Meta Description <span class="text-[11px] text-secondary-text font-normal">(SEO)</span>
+              </label>
+              <textarea
+                v-model="form.meta_description"
+                rows="2"
+                placeholder="SEO meta description for search engines..."
+                class="w-full bg-background border border-primary-border rounded-xl px-3.5 py-2 text-xs text-primary-text placeholder-secondary-text/50 focus:outline-none focus:border-primary"
+              />
+            </div>
+
+            <div class="space-y-1.5">
+              <label class="text-xs font-semibold text-primary-text">
+                Meta Keywords <span class="text-[11px] text-secondary-text font-normal">(SEO)</span>
+              </label>
+              <textarea
+                v-model="form.meta_keywords"
+                rows="2"
+                placeholder="e.g. crypto, forex, market analysis, trading"
+                class="w-full bg-background border border-primary-border rounded-xl px-3.5 py-2 text-xs text-primary-text placeholder-secondary-text/50 focus:outline-none focus:border-primary"
+              />
+            </div>
+          </div>
+
           <!-- Rich Text Content Editor -->
           <div class="space-y-1.5">
             <label class="text-xs font-semibold text-primary-text">
@@ -472,6 +513,25 @@
               class="w-full h-full object-cover"
               @error="(e) => (e.target.style.display = 'none')"
             />
+          </div>
+
+          <!-- SEO Meta Preview -->
+          <div
+            v-if="selectedBlog.meta_title || selectedBlog.meta_description || selectedBlog.meta_keywords"
+            class="p-3.5 bg-background border border-primary-border rounded-xl space-y-2 text-xs"
+          >
+            <p class="font-bold text-[11px] uppercase tracking-wider text-secondary-text">
+              SEO Information
+            </p>
+            <p v-if="selectedBlog.meta_title" class="text-secondary-text">
+              <span class="font-semibold text-primary-text">Meta Title:</span> {{ selectedBlog.meta_title }}
+            </p>
+            <p v-if="selectedBlog.meta_description" class="text-secondary-text">
+              <span class="font-semibold text-primary-text">Meta Description:</span> {{ selectedBlog.meta_description }}
+            </p>
+            <p v-if="selectedBlog.meta_keywords" class="text-secondary-text">
+              <span class="font-semibold text-primary-text">Meta Keywords:</span> {{ selectedBlog.meta_keywords }}
+            </p>
           </div>
 
           <div
@@ -622,6 +682,9 @@ const form = ref({
   title: "",
   description: "",
   category: "",
+  meta_title: "",
+  meta_description: "",
+  meta_keywords: "",
   content: "",
   status: "Published",
 });
@@ -671,6 +734,9 @@ const filteredBlogs = computed(() => {
         b.title?.toLowerCase().includes(q) ||
         b.description?.toLowerCase().includes(q) ||
         b.category?.toLowerCase().includes(q) ||
+        b.meta_title?.toLowerCase().includes(q) ||
+        b.meta_description?.toLowerCase().includes(q) ||
+        b.meta_keywords?.toLowerCase().includes(q) ||
         b.content?.toLowerCase().includes(q)
     );
   }
@@ -687,6 +753,9 @@ const openCreateModal = () => {
     title: "",
     description: "",
     category: "",
+    meta_title: "",
+    meta_description: "",
+    meta_keywords: "",
     content: "",
     status: "Published",
   };
@@ -702,6 +771,9 @@ const openEditModal = (blog) => {
     title: blog.title || "",
     description: blog.description || "",
     category: blog.category || "",
+    meta_title: blog.meta_title || "",
+    meta_description: blog.meta_description || "",
+    meta_keywords: blog.meta_keywords || "",
     content: blog.content || "",
     status: blog.status || "Published",
   };
@@ -726,6 +798,10 @@ const handleSaveBlog = () => {
   formData.append("description", form.value.description.trim());
   formData.append("content", form.value.content);
   formData.append("status", form.value.status || "Published");
+
+  formData.append("meta_title", form.value.meta_title ? form.value.meta_title.trim() : "");
+  formData.append("meta_description", form.value.meta_description ? form.value.meta_description.trim() : "");
+  formData.append("meta_keywords", form.value.meta_keywords ? form.value.meta_keywords.trim() : "");
 
   if (selectedImage.value) {
     formData.append("image", selectedImage.value);
