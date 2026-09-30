@@ -2,12 +2,12 @@
   <Teleport to="body">
     <!-- Backdrop Overlay -->
     <Transition name="backdrop">
-      <div v-if="open" class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs transition-opacity cursor-pointer" @click="$emit('close')" />
+      <div v-if="open" class="fixed inset-0 z-100 bg-black/60 backdrop-blur-xs transition-opacity cursor-pointer" @click="$emit('close')" />
     </Transition>
 
     <!-- Drawer Panel -->
     <Transition name="drawer">
-      <div v-if="open" class="fixed right-0 top-0 bottom-0 z-[101] w-full max-w-5xl bg-card-background border-l border-primary-border flex flex-col shadow-2xl overflow-hidden" role="dialog" aria-modal="true">
+      <div v-if="open" class="fixed right-0 top-0 bottom-0 z-101 w-full max-w-5xl bg-card-background border-l border-primary-border flex flex-col shadow-2xl overflow-hidden" role="dialog" aria-modal="true">
       <!-- Header -->
       <div class="flex items-center justify-between p-4 border-b border-primary-border shrink-0">
         <div>
@@ -119,7 +119,7 @@
                     <div class="font-mono font-bold">{{ row.account_number }}</div>
                     <div class="text-[10px] uppercase font-semibold text-secondary-text mt-0.5">
                       {{ row.broker_currency || 'USD' }} 
-                      <span v-if="row.is_cent" class="bg-primary/10 text-primary px-1.5 py-0.5 rounded-sm ml-1 border border-primary/20">CENT</span>
+                      <!-- <span v-if="row.is_cent" class="bg-primary/10 text-primary px-1.5 py-0.5 rounded-sm ml-1 border border-primary/20">CENT</span> -->
                     </div>
                   </td>
                   <td class="px-4 py-3 font-medium">{{ row.offer_name || '—' }}</td>
