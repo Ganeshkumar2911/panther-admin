@@ -43,6 +43,117 @@ const inputMessage = ref('')
 const isRefreshing = ref(false)
 const isTemplateSheetOpen = ref(false)
 
+// ─── Real-Time Session Expiry Countdown (UTC) ──────────────────
+const now = ref(Date.now())
+let countdownInterval = null
+
+const startCountdown = () => {
+  stopCountdown()
+  now.value = Date.now()
+  countdownInterval = setInterval(() => {
+    now.value = Date.now()
+  }, 1000)
+}
+
+const stopCountdown = () => {
+  if (countdownInterval) {
+    clearInterval(countdownInterval)
+    countdownInterval = null
+  }
+}
+
+// Parse UTC sessionExpiresAt string to epoch ms
+const sessionExpiryTimestamp = computed(() => {
+  const raw = chatStore.sessionExpiresAt
+  if (!raw) return null
+
+  if (typeof raw === 'number') {
+    return raw > 0 ? raw : null
+  }
+  let str = String(raw).trim()
+  if (!str) return null
+
+  if (/^\d+$/.test(str)) {
+    const n = Number(str)
+    return n > 0 ? n : null
+  }
+  // Standardize ISO format: replace space with T
+  str = str.replace(' ', 'T')
+  // If no timezone offset (Z, +HH:MM, -HH:MM) is attached, treat as UTC by appending 'Z'
+  if (!str.endsWith('Z') && !/[+-]\d{2}(:\d{2})?$/.test(str)) {
+    str = `${str}Z`
+  }
+  const parsed = Date.parse(str)
+  return isNaN(parsed) || parsed <= 0 ? null : parsed
+})
+
+// Remaining seconds in active session window (null if sessionExpiresAt is null)
+const remainingSeconds = computed(() => {
+  if (!sessionExpiryTimestamp.value) return null
+  const diffMs = sessionExpiryTimestamp.value - now.value
+  return Math.max(0, Math.floor(diffMs / 1000))
+})
+
+// Active session flag (respects isOpen flag and remaining countdown)
+const isSessionActive = computed(() => {
+  if (!chatStore.isSessionOpen) return false
+  if (remainingSeconds.value !== null) {
+    return remainingSeconds.value > 0
+  }
+  return true
+})
+
+// Formatted HH:MM:SS Countdown (returns null when sessionExpiresAt is null)
+const formattedCountdown = computed(() => {
+  if (remainingSeconds.value === null) {
+    return null
+  }
+  const totalSec = remainingSeconds.value
+  if (totalSec <= 0) {
+    return '00:00:00'
+  }
+  const hours = Math.floor(totalSec / 3600)
+  const minutes = Math.floor((totalSec % 3600) / 60)
+  const seconds = totalSec % 60
+
+  const hh = String(hours).padStart(2, '0')
+  const mm = String(minutes).padStart(2, '0')
+  const ss = String(seconds).padStart(2, '0')
+
+  return `${hh}:${mm}:${ss}`
+})
+
+// Urgency status badge styling based on remaining time
+const sessionExpiryStatus = computed(() => {
+  if (!isSessionActive.value) {
+    return {
+      status: 'expired',
+      text: '24h window closed. Send a template to chat.',
+      colorClass: 'text-primary-yellow',
+      bgClass: 'bg-primary-yellow/10 border-primary-yellow/20',
+      dotClass: 'bg-primary-yellow',
+    }
+  }
+
+  if (remainingSeconds.value !== null && remainingSeconds.value < 1800) {
+    // Under 30 minutes remaining: Amber urgency
+    return {
+      status: 'expiring_soon',
+      colorClass: 'text-amber-500',
+      bgClass: 'bg-amber-500/10 border-amber-500/20',
+      dotClass: 'bg-amber-500',
+    }
+  }
+
+  // Healthy active window: Green
+  return {
+    status: 'active',
+    colorClass: 'text-primary-green',
+    bgClass: 'bg-primary-green/10 border-primary-green/20',
+    dotClass: 'bg-primary-green',
+  }
+})
+
 // Extract clean phone number
 const clientPhone = computed(() => {
   return (
@@ -107,6 +218,7 @@ watch(
   () => props.open,
   async (isOpen) => {
     if (isOpen) {
+      startCountdown()
       if (cleanPhone.value) {
         try {
           await chatStore.fetchChat(cleanPhone.value)
@@ -116,9 +228,12 @@ watch(
         }
       }
       nextTick(() => {
-        inputMessageRef.value?.focus()
+        if (isSessionActive.value) {
+          inputMessageRef.value?.focus()
+        }
       })
     } else {
+      stopCountdown()
       leaveActiveChatRoom()
       inputMessage.value = ''
     }
@@ -146,6 +261,7 @@ watch(
 )
 
 onBeforeUnmount(() => {
+  stopCountdown()
   leaveActiveChatRoom()
 })
 
@@ -164,7 +280,7 @@ const handleRefresh = async () => {
 }
 
 const handleSendMessage = async () => {
-  if (!canSend.value || !chatStore.isSessionOpen || !inputMessage.value?.trim() || chatStore.sending || !cleanPhone.value) return
+  if (!canSend.value || !isSessionActive.value || !inputMessage.value?.trim() || chatStore.sending || !cleanPhone.value) return
   const textToSend = inputMessage.value.trim()
   inputMessage.value = ''
   scrollToBottom(true)
@@ -180,7 +296,7 @@ const handleSendMessage = async () => {
 const handleKeydown = (e) => {
   if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault()
-    if (!chatStore.isSessionOpen) return
+    if (!isSessionActive.value) return
     handleSendMessage()
   }
 }
@@ -188,7 +304,7 @@ const handleKeydown = (e) => {
 const handleTemplateSent = () => {
   scrollToBottom(true)
   nextTick(() => {
-    if (chatStore.isSessionOpen) {
+    if (isSessionActive.value) {
       inputMessageRef.value?.focus()
     }
   })
@@ -283,9 +399,23 @@ const renderMarkdown = (text, isIncoming = false) => {
                     {{ clientPhone || 'No Phone' }}
                   </span>
                   <span>•</span>
-                  <span class="text-[10.5px] text-primary-green flex items-center gap-1 font-medium">
-                    <span class="w-1.5 h-1.5 rounded-full bg-primary-green animate-pulse" />
-                    Live WhatsApp
+                  <span
+                    class="text-[10.5px] flex items-center gap-1 font-medium transition-colors"
+                    :class="isSessionActive ? sessionExpiryStatus.colorClass : 'text-secondary-text'"
+                  >
+                    <span
+                      class="w-1.5 h-1.5 rounded-full"
+                      :class="isSessionActive ? `${sessionExpiryStatus.dotClass} animate-pulse` : 'bg-secondary-text'"
+                    />
+                    <span>
+                      {{
+                        !isSessionActive
+                          ? 'Session Closed'
+                          : formattedCountdown
+                            ? `Live WhatsApp (${formattedCountdown})`
+                            : 'Live WhatsApp'
+                      }}
+                    </span>
                   </span>
                 </div>
               </div>
@@ -486,10 +616,37 @@ const renderMarkdown = (text, isIncoming = false) => {
               <Lock class="w-3.5 h-3.5 shrink-0" />
               <span class="truncate text-[11px] font-medium">Read-only mode (Send permission required)</span>
             </div>
-            <div v-else-if="!chatStore.isSessionOpen" class="flex items-center gap-2 text-primary-yellow min-w-0">
-              <Clock class="w-3.5 h-3.5 shrink-0" />
+            
+            <!-- Expired / Closed Session -->
+            <div v-else-if="!isSessionActive" class="flex items-center gap-2 text-primary-yellow min-w-0">
+              <Clock class="w-3.5 h-3.5 shrink-0 text-primary-yellow" />
               <span class="truncate text-[11px] font-medium">24h window closed. Send a template to chat.</span>
             </div>
+            
+            <!-- Active Session with Live Countdown (when sessionExpiresAt is present) -->
+            <div v-else-if="formattedCountdown" class="flex items-center gap-2 min-w-0">
+              <span
+                class="w-2 h-2 rounded-full shrink-0 animate-pulse"
+                :class="sessionExpiryStatus.dotClass"
+              />
+              <div class="flex items-center gap-1.5 min-w-0">
+                <Clock
+                  class="w-3.5 h-3.5 shrink-0"
+                  :class="sessionExpiryStatus.colorClass"
+                />
+                <span class="text-[11px] font-medium truncate" :class="sessionExpiryStatus.colorClass">
+                  Session expires in:
+                </span>
+                <span
+                  class="font-mono text-[11px] font-bold px-2 py-0.5 rounded tracking-wider border shrink-0 transition-colors"
+                  :class="[sessionExpiryStatus.bgClass, sessionExpiryStatus.colorClass]"
+                >
+                  {{ formattedCountdown }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Active Session Fallback (when sessionExpiresAt is null) -->
             <div v-else class="flex items-center gap-2 text-primary-green min-w-0">
               <span class="w-2 h-2 rounded-full bg-primary-green animate-pulse shrink-0" />
               <span class="truncate text-[11px] font-medium">24-hour conversation window active</span>
@@ -502,7 +659,7 @@ const renderMarkdown = (text, isIncoming = false) => {
               @click="isTemplateSheetOpen = true"
               class="px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shrink-0 active:scale-95 shadow-xs"
               :class="[
-                !chatStore.isSessionOpen
+                !isSessionActive
                   ? 'bg-primary hover:bg-primary-hover text-btn-text-primary'
                   : 'bg-primary/10 hover:bg-primary/20 border border-primary/20 text-primary',
               ]"
@@ -519,14 +676,14 @@ const renderMarkdown = (text, isIncoming = false) => {
             <!-- Input Bar -->
             <div
               class="flex-1 bg-background rounded-2xl px-3.5 py-2 flex items-center gap-2 border border-primary-border focus-within:border-primary transition-colors shadow-2xs"
-              :class="{ 'opacity-60 cursor-not-allowed': !canSend || !chatStore.isSessionOpen }"
+              :class="{ 'opacity-60 cursor-not-allowed': !canSend || !isSessionActive }"
             >
               <textarea
                 ref="inputMessageRef"
                 v-model="inputMessage"
-                :disabled="!canSend || !chatStore.isSessionOpen || chatStore.loading"
+                :disabled="!canSend || !isSessionActive || chatStore.loading"
                 rows="1"
-                :placeholder="!canSend ? 'You do not have permission to send WhatsApp messages' : (chatStore.isSessionOpen ? 'Type a message (Press Enter to send)...' : 'Chat disabled — Send template above to start conversation')"
+                :placeholder="!canSend ? 'You do not have permission to send WhatsApp messages' : (isSessionActive ? 'Type a message (Press Enter to send)...' : 'Chat disabled — Send template above to start conversation')"
                 @keydown="handleKeydown"
                 class="flex-1 bg-transparent text-xs text-primary-text placeholder:text-secondary-text outline-none resize-none max-h-24 leading-relaxed font-sans disabled:cursor-not-allowed"
               />
@@ -536,7 +693,7 @@ const renderMarkdown = (text, isIncoming = false) => {
             <button
               type="button"
               @click="handleSendMessage"
-              :disabled="!canSend || !chatStore.isSessionOpen || !inputMessage.trim() || chatStore.sending"
+              :disabled="!canSend || !isSessionActive || !inputMessage.trim() || chatStore.sending"
               class="w-10 h-10 rounded-full bg-primary hover:bg-primary-hover disabled:opacity-30 disabled:hover:bg-primary disabled:cursor-not-allowed text-btn-text-primary flex items-center justify-center shadow-xs transition-all duration-150 cursor-pointer active:scale-95 shrink-0"
             >
               <span

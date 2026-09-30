@@ -71,41 +71,34 @@ const activeComponent = computed(() => {
 </script>
 
 <template>
-  <div class="px-4 pb-8 space-y-4">
-    <!-- Top WhatsApp Module Tab Navigation -->
-    <div v-if="canViewWhatsApp" class="w-full">
-      <div class="border-b border-primary-border w-full relative">
-        <nav
-          class="flex items-center gap-1 w-full overflow-x-auto no-scrollbar -mb-px"
-          aria-label="WhatsApp Tabs"
-        >
-          <button
-            v-for="tab in tabs"
-            :key="tab.key"
-            type="button"
-            class="flex items-center gap-2 py-3 px-4 sm:px-5 text-xs font-semibold whitespace-nowrap transition-all border-b-2 cursor-pointer select-none text-center shrink-0"
-            :class="[
-              activeTab === tab.key
-                ? 'border-primary text-primary font-bold bg-primary/5 rounded-t-lg'
-                : 'border-transparent text-secondary-text hover:text-primary-text hover:border-primary-border/60'
-            ]"
-            @click="activeTab = tab.key"
-          >
-            <component
-              :is="tab.icon"
-              class="w-4 h-4 shrink-0 transition-colors"
-              :class="activeTab === tab.key ? 'text-primary' : 'text-secondary-text'"
-            />
-            <div class="flex flex-col text-left">
-              <span class="leading-none">{{ tab.label }}</span>
-            </div>
-          </button>
-        </nav>
-      </div>
+  <div class="h-[calc(100vh-115px)] flex flex-col overflow-hidden space-y-3">
+    <!-- Tabs (Fixed at Top) -->
+    <div
+      v-if="canViewWhatsApp"
+      class="shrink-0 flex items-center gap-1 bg-card-background border border-primary-border rounded-lg p-1 w-fit z-20"
+    >
+      <button
+        v-for="tab in tabs"
+        :key="tab.key"
+        type="button"
+        class="cursor-pointer px-4 py-2 rounded-md text-xs font-medium transition-colors flex items-center gap-2 select-none"
+        :class="
+          activeTab === tab.key
+            ? 'bg-primary text-white'
+            : 'text-secondary-text hover:text-primary-text'
+        "
+        @click="activeTab = tab.key"
+      >
+        <component
+          :is="tab.icon"
+          class="w-3.5 h-3.5 shrink-0"
+        />
+        <span>{{ tab.label }}</span>
+      </button>
     </div>
 
-    <!-- Active Tab Component Display -->
-    <div v-if="canViewWhatsApp" class="min-h-[calc(100vh-160px)]">
+    <!-- Active Tab Component Display (Fills remaining height) -->
+    <div v-if="canViewWhatsApp" class="flex-1 min-h-0 flex flex-col overflow-hidden">
       <Transition name="tab-fade" mode="out-in">
         <component :is="activeComponent" :key="activeTab" />
       </Transition>

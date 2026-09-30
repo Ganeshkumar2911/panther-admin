@@ -273,6 +273,7 @@ export const useWhatsAppChatStore = defineStore('whatsappChat', () => {
   const messages = ref([])
   const dtCustomerId = ref(null)
   const isSessionOpen = ref(false)
+  const sessionExpiresAt = ref(null)
   const currentPhoneNumber = ref('')
   const loading = ref(false)
   const sending = ref(false)
@@ -327,6 +328,7 @@ export const useWhatsAppChatStore = defineStore('whatsappChat', () => {
           rawData.value = res
           dtCustomerId.value = res?.dtCustomerId || null
           isSessionOpen.value = !!res?.isOpen
+          sessionExpiresAt.value = res?.sessionExpiresAt || null
 
           const rawList = Array.isArray(res?.messages) ? res.messages : []
           messages.value = rawList.map((m) => normalizeMessage(m, dtCustomerId.value, currentPhoneNumber.value)).filter(Boolean)
@@ -511,6 +513,14 @@ export const useWhatsAppChatStore = defineStore('whatsappChat', () => {
     // If an incoming message from the client is received, the 24-hour chat window opens
     if (normalized.isIncoming) {
       isSessionOpen.value = true
+      if (payload?.sessionExpiresAt || payload?.session_expires_at) {
+        sessionExpiresAt.value = payload.sessionExpiresAt || payload.session_expires_at
+      } else {
+        const expireDate = new Date(Date.now() + 24 * 60 * 60 * 1000)
+        sessionExpiresAt.value = expireDate.toISOString()
+      }
+    } else if (payload?.sessionExpiresAt || payload?.session_expires_at) {
+      sessionExpiresAt.value = payload.sessionExpiresAt || payload.session_expires_at
     }
 
     // Check if message already exists by id OR matches an optimistic temp message with same text
@@ -538,6 +548,7 @@ export const useWhatsAppChatStore = defineStore('whatsappChat', () => {
     messages.value = []
     dtCustomerId.value = null
     isSessionOpen.value = false
+    sessionExpiresAt.value = null
     currentPhoneNumber.value = ''
     loading.value = false
     sending.value = false
@@ -552,6 +563,7 @@ export const useWhatsAppChatStore = defineStore('whatsappChat', () => {
     dtCustomerId,
     isSessionOpen,
     isOpen: isSessionOpen,
+    sessionExpiresAt,
     currentPhoneNumber,
     loading,
     sending,

@@ -87,9 +87,9 @@
       <div
         class="bg-card-background/40 border border-primary-border rounded-xl p-5 sm:p-6"
       >
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 text-center divide-y sm:divide-y-0 sm:divide-x divide-primary-border/60">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-6 text-center divide-y sm:divide-y-0 sm:divide-x divide-primary-border/60">
           <!-- Days Active -->
-          <div class="flex flex-col items-center gap-2 pt-2 sm:pt-0">
+          <!-- <div class="flex flex-col items-center gap-2 pt-2 sm:pt-0">
             <div class="w-9 h-9 rounded-xl bg-background/50 flex items-center justify-center text-blue-500/80">
               <span class="material-symbols-rounded text-[18px]">calendar_month</span>
             </div>
@@ -99,7 +99,7 @@
             <span class="text-[11px] sm:text-xs text-secondary-text font-semibold uppercase tracking-wider">
               Days Active
             </span>
-          </div>
+          </div> -->
 
           <!-- Deposits Count -->
           <div class="flex flex-col items-center gap-2 pt-2 sm:pt-0">
@@ -809,11 +809,11 @@ const breakdownItems = computed(() => {
   });
 });
 
-// ─── Stat Strip ─────────────────────────────────────────────────────────────
-const daysActive = computed(() => {
-  const activeDays = healthScoreObj.value?.breakdown?.platform_engagement?.subcategories?.active_days?.score;
-  return activeDays ? 16 : 16;
-});
+// // ─── Stat Strip ─────────────────────────────────────────────────────────────
+// const daysActive = computed(() => {
+//   const activeDays = healthScoreObj.value?.breakdown?.platform_engagement?.subcategories?.active_days?.score;
+//   return activeDays ? activeDays : 0;
+// });
 
 // ─── Format Utilities ───────────────────────────────────────────────────────
 function formatCurrency(val) {

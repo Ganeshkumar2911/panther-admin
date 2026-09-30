@@ -114,7 +114,7 @@ const formatBodyWithVariables = (text) => {
     .replace(/'/g, '&#039;')
 
   return escaped.replace(/\{\{([a-zA-Z0-9_-]+)\}\}/g, (match, v) => {
-    return `<span class="inline-flex items-center px-1.5 py-0.5 mx-0.5 rounded-md bg-primary/10 text-primary font-mono text-[11px] font-bold border border-primary/20 shadow-2xs">\{\{${v}\}\}</span>`
+    return `<span class="inline-flex items-center px-1.5 py-0.5 mx-0.5 rounded-md bg-primary/10 text-primary font-mono text-[11px] font-bold border border-primary/20">\{\{${v}\}\}</span>`
   })
 }
 
@@ -135,9 +135,9 @@ const getCategoryBadgeClass = (category) => {
 </script>
 
 <template>
-  <div class="space-y-3 py-1 min-h-[calc(100vh-140px)] flex flex-col">
-    <!-- Filter & Layout Toolbar Section (Category, Status, Refresh, Reset, New Template, Layout) -->
-    <div class="relative z-10">
+  <div class="h-full flex flex-col overflow-hidden space-y-3">
+    <!-- Filter & Layout Toolbar Section (Fixed at Top) -->
+    <div class="shrink-0 relative z-10">
       <div
         class="flex w-full min-w-0 flex-col gap-2.5 rounded-xl border border-primary-border bg-card-background/50 p-2.5 sm:flex-row sm:items-center justify-between overflow-visible"
       >
@@ -191,7 +191,7 @@ const getCategoryBadgeClass = (category) => {
           <button
             v-if="canCreateTemplate"
             @click="navigateToCreate"
-            class="h-9 inline-flex items-center justify-center gap-1.5 px-3.5 rounded-lg bg-primary hover:bg-primary-hover text-btn-text-primary text-xs font-semibold shadow-xs transition-all duration-200 cursor-pointer active:scale-95 shrink-0"
+            class="h-9 inline-flex items-center justify-center gap-1.5 px-3.5 rounded-lg bg-primary hover:bg-primary-hover text-btn-text-primary text-xs font-semibold transition-all duration-200 cursor-pointer active:scale-95 shrink-0"
           >
             <Plus class="w-3.5 h-3.5 stroke-[2.5]" />
             <span>New Template</span>
@@ -233,8 +233,8 @@ const getCategoryBadgeClass = (category) => {
       </div>
     </div>
 
-    <!-- Main Content Area -->
-    <div class="flex-1 flex flex-col min-h-0">
+    <!-- Main Content Area (Scrollable Cards/Table Container) -->
+    <div class="flex-1 min-h-0 overflow-y-auto no-scrollbar pr-1 pb-4">
       <!-- Loading Skeleton State -->
       <div
         v-if="store.loading"
@@ -287,7 +287,7 @@ const getCategoryBadgeClass = (category) => {
         <button
           v-else-if="canCreateTemplate"
           @click="navigateToCreate"
-          class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-btn-text-primary text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+          class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-btn-text-primary text-xs font-semibold transition-colors cursor-pointer"
         >
           <Plus class="w-4 h-4" />
           <span>New Template</span>
@@ -302,7 +302,7 @@ const getCategoryBadgeClass = (category) => {
         <div
           v-for="tpl in store.filteredTemplates"
           :key="tpl.id"
-          class="group bg-card-background border border-primary-border hover:border-primary/40 rounded-2xl p-4 flex flex-col justify-between transition-all duration-200 hover:shadow-md relative overflow-hidden"
+          class="group bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between transition-colors relative"
         >
           <!-- Card Header Section -->
           <div class="space-y-2 mb-3">
@@ -383,12 +383,12 @@ const getCategoryBadgeClass = (category) => {
 
           <!-- WhatsApp Message Preview Container (Properly themed with bg-background and bg-card-background) -->
           <div
-            class="relative w-full min-h-[175px] max-h-[210px] rounded-xl border border-primary-border bg-background p-2.5 flex flex-col justify-between overflow-hidden group/preview cursor-pointer transition-all duration-200 hover:border-primary/50"
+            class="relative w-full min-h-[175px] max-h-[210px] rounded-xl border border-primary-border bg-background p-2.5 flex flex-col justify-between overflow-hidden group/preview cursor-pointer transition-colors"
             @click="openPreviewModal(tpl)"
           >
             <!-- WhatsApp Chat Bubble (White in Light mode, Dark Slate in Dark mode) -->
             <div
-              class="w-full bg-card-background border border-primary-border/70 rounded-xl p-3 shadow-2xs space-y-2 relative overflow-hidden max-h-full flex flex-col"
+              class="w-full bg-card-background border border-primary-border/70 rounded-xl p-3 space-y-2 relative overflow-hidden max-h-full flex flex-col"
             >
               <!-- Optional Header Text -->
               <div
@@ -482,7 +482,7 @@ const getCategoryBadgeClass = (category) => {
       <!-- 2. TABLE LIST VIEW MODE (Alternative Toggle) -->
       <div
         v-else-if="layoutMode === 'list'"
-        class="bg-card-background border border-primary-border rounded-2xl overflow-hidden shadow-xs"
+        class="bg-card-background border border-primary-border rounded-2xl overflow-hidden"
       >
         <div class="overflow-x-auto">
           <table class="w-full border-collapse text-left text-xs">

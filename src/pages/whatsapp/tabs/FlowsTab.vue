@@ -9,25 +9,27 @@ import {
   Edit2,
   Trash2,
   ArrowUpDown,
-  MoveUp,
-  MoveDown,
   Clock,
   Layers,
   Sparkles,
   FileText,
   CheckCircle2,
+  CheckCheck,
+  Smartphone,
   XCircle,
   AlertCircle,
   LayoutGrid,
   List,
   GitFork,
   ArrowRight,
+  ArrowDown,
   ShieldCheck,
   Wallet,
   TrendingUp,
   Award,
   Zap,
   Check,
+  MessageSquare,
 } from 'lucide-vue-next'
 import { useWhatsAppFlowsStore } from '@/stores/whatsapp/flows'
 import { useWhatsAppTemplatesStore } from '@/stores/whatsapp/templates'
@@ -60,21 +62,19 @@ const selectedFlowForDelete = ref(null)
 const selectedTemplateForPreview = ref(null)
 const defaultStageForCreate = ref('KYC')
 
-// Stage filter options for BaseSelect
-const stageFilterOptions = [
-  { label: 'All Stages', value: '' },
-  { label: 'KYC Onboarding', value: 'KYC' },
-  { label: 'Deposit Activation', value: 'DEPOSIT' },
-  { label: 'Trading Activity', value: 'TRADING' },
-  { label: 'Completed / Retention', value: 'COMPLETED' },
-]
+// Dynamic Stage Filter Options based on flows present
+const stageFilterOptions = computed(() => {
+  const defaultStages = ['KYC', 'ONBOARDING', 'DEPOSIT', 'TRADING', 'WITHDRAWAL', 'COMPLETED', 'RETENTION']
+  const existingStages = (flowsStore.flows || [])
+    .map((f) => (f.stage || '').toUpperCase().trim())
+    .filter(Boolean)
+  const allStages = Array.from(new Set([...defaultStages, ...existingStages]))
 
-// Status filter options
-const statusFilterOptions = [
-  { label: 'All Statuses', value: null },
-  { label: 'Active Only', value: true },
-  { label: 'Inactive Only', value: false },
-]
+  return [
+    { label: 'All Stages', value: '' },
+    ...allStages.map((s) => ({ label: s, value: s })),
+  ]
+})
 
 onMounted(() => {
   flowsStore.fetchFlows()
@@ -106,15 +106,18 @@ const confirmDelete = async () => {
   selectedFlowForDelete.value = null
 }
 
+const getTemplateData = (templateName) => {
+  if (!templateName) return null
+  return (templatesStore.templates || []).find(
+    (t) => (t.name || '').toLowerCase() === templateName.toLowerCase()
+  ) || null
+}
+
 const openPreviewForFlow = (flow) => {
-  // Find template matching flow.template_name in templatesStore
-  const found = (templatesStore.templates || []).find(
-    (t) => (t.name || '').toLowerCase() === (flow.template_name || '').toLowerCase()
-  )
+  const found = getTemplateData(flow.template_name)
   if (found) {
     selectedTemplateForPreview.value = found
   } else {
-    // Generate synthetic template preview object
     selectedTemplateForPreview.value = {
       id: flow.id,
       name: flow.template_name,
@@ -127,48 +130,16 @@ const openPreviewForFlow = (flow) => {
   isPreviewModalOpen.value = true
 }
 
-// Quick inline toggle active
-const handleToggleActive = async (flow) => {
-  await flowsStore.toggleFlowActive(flow)
-}
-
-// Quick move up / down
-const handleMoveStep = async (flow, direction) => {
-  const currentFlows = [...flowsStore.flows].sort(
-    (a, b) => (Number(a.execution_order) || 0) - (Number(b.execution_order) || 0)
-  )
-  const idx = currentFlows.findIndex((f) => f.id === flow.id)
-  if (idx === -1) return
-
-  if (direction === 'up' && idx > 0) {
-    const temp = currentFlows[idx]
-    currentFlows[idx] = currentFlows[idx - 1]
-    currentFlows[idx - 1] = temp
-  } else if (direction === 'down' && idx < currentFlows.length - 1) {
-    const temp = currentFlows[idx]
-    currentFlows[idx] = currentFlows[idx + 1]
-    currentFlows[idx + 1] = temp
-  } else {
-    return
-  }
-
-  const orders = currentFlows.map((item, index) => ({
-    id: item.id,
-    execution_order: index + 1,
-    interval_hours: Number(item.interval_hours) || 24,
-    stage: item.stage,
-  }))
-
-  await flowsStore.reorderFlows(orders)
-}
-
-// Helpers for visual badges
+// Stage badge styling
 const getStageBadgeClass = (stage) => {
-  const s = (stage || '').toUpperCase()
+  const s = (stage || '').toUpperCase().trim()
   if (s === 'KYC') return 'bg-amber-500/10 text-amber-500 border-amber-500/20'
   if (s === 'DEPOSIT') return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
   if (s === 'TRADING') return 'bg-sky-500/10 text-sky-500 border-sky-500/20'
-  return 'bg-purple-500/10 text-purple-500 border-purple-500/20'
+  if (s === 'COMPLETED' || s === 'RETENTION') return 'bg-purple-500/10 text-purple-500 border-purple-500/20'
+  if (s === 'WITHDRAWAL') return 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20'
+  if (s === 'ONBOARDING') return 'bg-teal-500/10 text-teal-500 border-teal-500/20'
+  return 'bg-blue-500/10 text-blue-500 border-blue-500/20'
 }
 
 const formatIntervalHours = (hours) => {
@@ -181,27 +152,51 @@ const formatIntervalHours = (hours) => {
   return `After ${h} Hours`
 }
 
-// Get template body snippet from templates store
-const getTemplateSnippet = (templateName) => {
-  if (!templateName) return ''
-  const tpl = (templatesStore.templates || []).find(
-    (t) => (t.name || '').toLowerCase() === templateName.toLowerCase()
-  )
-  return tpl?.body_text || ''
+// Helper to escape and highlight {{variable}} tags in WhatsApp message body
+const formatBodyWithVariables = (text) => {
+  if (!text) return ''
+  const escaped = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+
+  return escaped.replace(/\{\{([a-zA-Z0-9_-]+)\}\}/g, (match, v) => {
+    return `<span class="inline-flex items-center px-1.5 py-0.5 mx-0.5 rounded-md bg-primary/10 text-primary font-mono text-[11px] font-bold border border-primary/20">\{\{${v}\}\}</span>`
+  })
+}
+
+const formatTime = (dateStr) => {
+  if (!dateStr || dateStr === '-') {
+    const now = new Date()
+    return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
+  }
+  try {
+    const d = new Date(dateStr)
+    if (isNaN(d.getTime())) {
+      const now = new Date()
+      return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
+    }
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
+  } catch (_) {
+    const now = new Date()
+    return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
+  }
 }
 </script>
 
 <template>
-  <div class="space-y-3 py-1 min-h-[calc(100vh-140px)] flex flex-col">
-    <!-- Filter Toolbar Section (Search, Stage, Status, Refresh, Reset, Reorder, New Step, Layout) -->
-    <div class="relative z-10">
+  <div class="h-full flex flex-col overflow-hidden space-y-3">
+    <!-- Filter Toolbar Section (Fixed at Top) -->
+    <div class="shrink-0 relative z-10">
       <div
         class="flex w-full min-w-0 flex-col gap-2.5 rounded-xl border border-primary-border bg-card-background/50 p-2.5 sm:flex-row sm:items-center justify-between overflow-visible"
       >
         <!-- Left: Search & Filter Controls -->
         <div class="flex flex-wrap items-center gap-2 flex-1 min-w-0">
           <!-- Search input -->
-          <div class="relative w-full sm:w-56">
+          <div class="relative w-full sm:w-60">
             <Search class="w-3.5 h-3.5 text-secondary-text absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               v-model="flowsStore.filters.search"
@@ -217,16 +212,7 @@ const getTemplateSnippet = (templateName) => {
             v-model="flowsStore.filters.stage"
             :options="stageFilterOptions"
             placeholder="All Stages"
-            class="w-full sm:w-44"
-            @change="flowsStore.fetchFlows({}, true)"
-          />
-
-          <!-- Status Filter -->
-          <BaseSelect
-            v-model="flowsStore.filters.is_active"
-            :options="statusFilterOptions"
-            placeholder="Status"
-            class="w-full sm:w-36"
+            class="w-full sm:w-48"
             @change="flowsStore.fetchFlows({}, true)"
           />
 
@@ -247,7 +233,7 @@ const getTemplateSnippet = (templateName) => {
             </Tooltip>
 
             <button
-              v-if="flowsStore.filters.stage || flowsStore.filters.is_active !== null || flowsStore.filters.search"
+              v-if="flowsStore.filters.stage || flowsStore.filters.search"
               @click="flowsStore.resetFilters"
               class="h-9 px-3 text-xs font-semibold text-secondary-text hover:text-primary-text bg-card-background hover:bg-background rounded-lg border border-primary-border transition-colors whitespace-nowrap cursor-pointer flex items-center gap-1.5"
             >
@@ -263,7 +249,7 @@ const getTemplateSnippet = (templateName) => {
           <button
             v-if="canManageFlows && flowsStore.flows.length > 1"
             @click="isReorderModalOpen = true"
-            class="h-9 inline-flex items-center gap-1.5 px-3 rounded-lg border border-primary-border bg-card-background hover:bg-background text-secondary-text hover:text-primary-text text-xs font-semibold transition-all cursor-pointer shadow-2xs"
+            class="h-9 inline-flex items-center gap-1.5 px-3 rounded-lg border border-primary-border bg-card-background hover:bg-background text-secondary-text hover:text-primary-text text-xs font-semibold transition-all cursor-pointer"
           >
             <ArrowUpDown class="w-3.5 h-3.5 text-primary" />
             <span>Reorder Sequence</span>
@@ -273,7 +259,7 @@ const getTemplateSnippet = (templateName) => {
           <button
             v-if="canManageFlows"
             @click="openCreateModal(flowsStore.filters.stage || 'KYC')"
-            class="h-9 inline-flex items-center justify-center gap-1.5 px-3.5 rounded-lg bg-primary hover:bg-primary-hover text-btn-text-primary text-xs font-semibold shadow-xs transition-all duration-200 cursor-pointer active:scale-95 shrink-0"
+            class="h-9 inline-flex items-center justify-center gap-1.5 px-3.5 rounded-lg bg-primary hover:bg-primary-hover text-btn-text-primary text-xs font-semibold transition-all duration-200 cursor-pointer active:scale-95 shrink-0"
           >
             <Plus class="w-3.5 h-3.5 stroke-[2.5]" />
             <span>New Flow Step</span>
@@ -313,12 +299,12 @@ const getTemplateSnippet = (templateName) => {
       </div>
     </div>
 
-    <!-- Main Content Area -->
-    <div class="flex-1 flex flex-col min-h-0">
+    <!-- Main Content Area (Scrollable Cards/Table Container) -->
+    <div class="flex-1 min-h-0 overflow-y-auto no-scrollbar pr-1 pb-4">
       <!-- Loading Skeleton State -->
       <div
-        v-if="flowsStore.loading"
-        class="space-y-4"
+        v-if="flowsStore.loading && flowsStore.flows.length === 0"
+        class="space-y-4 max-w-2xl mx-auto w-full"
       >
         <div
           v-for="n in 3"
@@ -329,7 +315,7 @@ const getTemplateSnippet = (templateName) => {
             <div class="h-4 w-40 bg-background rounded-md" />
             <div class="h-5 w-20 bg-background rounded-full" />
           </div>
-          <div class="h-16 w-full bg-background rounded-xl" />
+          <div class="h-32 w-full bg-background rounded-xl" />
         </div>
       </div>
 
@@ -345,14 +331,14 @@ const getTemplateSnippet = (templateName) => {
           <h3 class="text-base font-bold text-primary-text">No template flows configured</h3>
           <p class="text-xs text-secondary-text mt-1">
             {{
-              flowsStore.filters.stage || flowsStore.filters.search || flowsStore.filters.is_active !== null
+              flowsStore.filters.stage || flowsStore.filters.search
                 ? "No flow steps match your active filters."
                 : "Create automated drip message steps triggered sequentially based on customer lifecycle stages."
             }}
           </p>
         </div>
         <button
-          v-if="flowsStore.filters.stage || flowsStore.filters.search || flowsStore.filters.is_active !== null"
+          v-if="flowsStore.filters.stage || flowsStore.filters.search"
           @click="flowsStore.resetFilters"
           class="px-4 py-2 text-xs font-semibold bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors cursor-pointer"
         >
@@ -361,185 +347,118 @@ const getTemplateSnippet = (templateName) => {
         <button
           v-else-if="canManageFlows"
           @click="openCreateModal(flowsStore.filters.stage || 'KYC')"
-          class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-btn-text-primary text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+          class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-btn-text-primary text-xs font-semibold transition-colors cursor-pointer"
         >
           <Plus class="w-4 h-4" />
           <span>Create First Step</span>
         </button>
       </div>
 
-      <!-- 1. VISUAL JOURNEY TIMELINE VIEW -->
+      <!-- 1. PROFESSIONAL VISUAL JOURNEY TIMELINE VIEW -->
       <div
         v-else-if="viewMode === 'journey'"
-        class="space-y-4"
+        class="space-y-0 max-w-2xl mx-auto w-full py-2"
       >
         <div
           v-for="(flow, idx) in flowsStore.flows"
           :key="flow.id"
-          class="relative flex flex-col items-stretch group"
+          class="relative flex flex-col items-stretch"
         >
-          <!-- Step Card -->
+          <!-- Clean Flow Step Card -->
           <div
-            class="bg-card-background border border-primary-border hover:border-primary/40 rounded-2xl p-4.5 transition-all duration-200 hover:shadow-md relative overflow-hidden flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-            :class="{ 'opacity-70 bg-card-background/60': !flow.is_active }"
+            class="group bg-card-background border border-primary-border rounded-2xl p-4 sm:p-4.5 flex items-center justify-between gap-4 transition-colors relative"
           >
-            <!-- Left: Step Sequence Number & Info -->
-            <div class="flex items-start sm:items-center gap-3.5 min-w-0 flex-1">
-              <!-- Step Order Pill -->
-              <div class="flex flex-col items-center gap-1 shrink-0">
+            <!-- Left: Badges & Template Name Heading -->
+            <div class="space-y-1.5 min-w-0 flex-1">
+              <!-- Top Row Badges -->
+              <div class="flex items-center gap-2 flex-wrap">
+                <!-- Stage Badge -->
                 <span
-                  class="w-10 h-10 rounded-xl bg-primary/10 text-primary border border-primary/20 font-mono font-bold text-sm flex items-center justify-center shadow-2xs"
+                  class="text-[11px] font-bold px-2.5 py-0.5 rounded-md border tracking-wide uppercase"
+                  :class="getStageBadgeClass(flow.stage)"
                 >
-                  #{{ flow.execution_order || idx + 1 }}
+                  {{ flow.stage }}
                 </span>
-                <span class="text-[9px] font-bold text-secondary-text uppercase">Step</span>
+
+                <!-- Step Number Badge -->
+                <span
+                  class="text-[11px] text-secondary-text font-semibold px-2 py-0.5 bg-background rounded-md border border-primary-border shrink-0 font-mono"
+                >
+                  #Step {{ flow.execution_order || idx + 1 }}
+                </span>
+
+                <!-- Interval Delay Badge -->
+                <span
+                  class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-primary-green/10 text-primary-green border border-primary-green/20"
+                >
+                  <Clock class="w-3 h-3" />
+                  <span>{{ formatIntervalHours(flow.interval_hours) }}</span>
+                </span>
               </div>
 
-              <!-- Details & Message Snippet -->
-              <div class="space-y-1.5 min-w-0 flex-1">
-                <div class="flex flex-wrap items-center gap-2">
-                  <!-- Stage Badge -->
-                  <span
-                    class="text-[10px] font-bold px-2 py-0.5 rounded-md border tracking-wide uppercase"
-                    :class="getStageBadgeClass(flow.stage)"
-                  >
-                    {{ flow.stage }}
-                  </span>
-
-                  <!-- Template Name -->
-                  <h3
-                    class="font-mono text-xs sm:text-sm font-bold text-primary-text truncate"
-                    :title="flow.template_name"
-                  >
-                    {{ flow.template_name }}
-                  </h3>
-
-                  <!-- ID Badge -->
-                  <span class="text-[10px] text-secondary-text font-semibold px-1.5 py-0.2 bg-background rounded border border-primary-border shrink-0">
-                    ID: {{ flow.id }}
-                  </span>
-                </div>
-
-                <!-- Template Snippet / Text preview -->
-                <p
-                  v-if="getTemplateSnippet(flow.template_name)"
-                  class="text-xs text-secondary-text line-clamp-1 italic max-w-xl font-sans"
+              <!-- Template Heading -->
+              <div class="flex items-center gap-2 min-w-0 pt-0.5">
+                <MessageSquare class="w-4 h-4 text-primary-green shrink-0" />
+                <h2
+                  class="font-mono text-base font-bold text-primary-text truncate"
+                  :title="flow.template_name"
                 >
-                  "{{ getTemplateSnippet(flow.template_name) }}"
-                </p>
-
-                <!-- Trigger Delay & Metadata -->
-                <div class="flex flex-wrap items-center gap-3 text-[11px] text-secondary-text pt-0.5">
-                  <span class="flex items-center gap-1 font-semibold text-primary">
-                    <Clock class="w-3.5 h-3.5" />
-                    <span>{{ formatIntervalHours(flow.interval_hours) }}</span>
-                  </span>
-
-                  <span v-if="flow.created_at">
-                    Created {{ formatDate(flow.created_at) }}
-                  </span>
-                </div>
+                  {{ flow.template_name }}
+                </h2>
               </div>
             </div>
 
-            <!-- Right: Status Toggle & Action Buttons -->
-            <div class="flex items-center justify-between sm:justify-end gap-3 pt-3 sm:pt-0 border-t sm:border-t-0 border-primary-border/60 shrink-0">
-              <!-- Active Toggle Switch -->
-              <div class="flex items-center gap-2">
-                <span
-                  class="text-[11px] font-semibold"
-                  :class="flow.is_active ? 'text-primary-green' : 'text-secondary-text'"
+            <!-- Right: Action Buttons -->
+            <div class="flex items-center gap-1.5 shrink-0">
+              <Tooltip text="Preview WhatsApp Template" placement="top">
+                <button
+                  @click="openPreviewForFlow(flow)"
+                  class="w-8 h-8 flex items-center justify-center rounded-lg border border-primary-border bg-background hover:bg-card-background text-secondary-text hover:text-primary transition-colors cursor-pointer"
                 >
-                  {{ flow.is_active ? 'Active' : 'Paused' }}
-                </span>
-                <label class="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    :checked="flow.is_active"
-                    class="sr-only peer"
-                    @change="handleToggleActive(flow)"
-                  />
-                  <div
-                    class="w-9 h-5 bg-gray-300 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"
-                  ></div>
-                </label>
-              </div>
+                  <Eye class="w-4 h-4" />
+                </button>
+              </Tooltip>
 
-              <!-- Move Up / Down Buttons -->
-              <div class="flex items-center gap-1 border-l border-primary-border pl-2">
-                <Tooltip text="Move Step Up" placement="top">
-                  <button
-                    :disabled="idx === 0"
-                    class="w-7 h-7 flex items-center justify-center rounded-lg border border-primary-border bg-background hover:bg-card-background text-secondary-text hover:text-primary transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-                    @click="handleMoveStep(flow, 'up')"
-                  >
-                    <MoveUp class="w-3.5 h-3.5" />
-                  </button>
-                </Tooltip>
+              <Tooltip text="Edit Step" placement="top">
+                <button
+                  @click="openEditModal(flow)"
+                  class="w-8 h-8 flex items-center justify-center rounded-lg border border-primary-border bg-background hover:bg-card-background text-secondary-text hover:text-primary transition-colors cursor-pointer"
+                >
+                  <Edit2 class="w-4 h-4" />
+                </button>
+              </Tooltip>
 
-                <Tooltip text="Move Step Down" placement="top">
-                  <button
-                    :disabled="idx === flowsStore.flows.length - 1"
-                    class="w-7 h-7 flex items-center justify-center rounded-lg border border-primary-border bg-background hover:bg-card-background text-secondary-text hover:text-primary transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-                    @click="handleMoveStep(flow, 'down')"
-                  >
-                    <MoveDown class="w-3.5 h-3.5" />
-                  </button>
-                </Tooltip>
-              </div>
-
-              <!-- Action Menu: Preview, Edit, Delete -->
-              <div class="flex items-center gap-1.5 border-l border-primary-border pl-2">
-                <!-- Preview WhatsApp Mobile Modal -->
-                <Tooltip text="Preview WhatsApp Mobile View" placement="top">
-                  <button
-                    class="w-7 h-7 flex items-center justify-center rounded-lg border border-primary-border bg-background hover:bg-card-background text-secondary-text hover:text-primary transition-colors cursor-pointer"
-                    @click="openPreviewForFlow(flow)"
-                  >
-                    <Eye class="w-3.5 h-3.5" />
-                  </button>
-                </Tooltip>
-
-                <!-- Edit Step -->
-                <Tooltip text="Edit Step Configuration" placement="top">
-                  <button
-                    class="w-7 h-7 flex items-center justify-center rounded-lg border border-primary-border bg-background hover:bg-card-background text-secondary-text hover:text-primary transition-colors cursor-pointer"
-                    @click="openEditModal(flow)"
-                  >
-                    <Edit2 class="w-3.5 h-3.5" />
-                  </button>
-                </Tooltip>
-
-                <!-- Delete Step -->
-                <Tooltip text="Delete Step" placement="top">
-                  <button
-                    class="w-7 h-7 flex items-center justify-center rounded-lg border border-primary-border bg-background hover:bg-card-background text-secondary-text hover:text-primary-red transition-colors cursor-pointer"
-                    @click="openDeleteDialog(flow)"
-                  >
-                    <Trash2 class="w-3.5 h-3.5" />
-                  </button>
-                </Tooltip>
-              </div>
+              <Tooltip text="Delete Step" placement="top">
+                <button
+                  @click="openDeleteDialog(flow)"
+                  class="w-8 h-8 flex items-center justify-center rounded-lg border border-primary-border bg-background hover:bg-card-background text-secondary-text hover:text-primary-red transition-colors cursor-pointer"
+                >
+                  <Trash2 class="w-4 h-4" />
+                </button>
+              </Tooltip>
             </div>
           </div>
 
-          <!-- Visual Connecting Arrow between steps -->
+          <!-- Flow Downward Connecting Arrow Between Steps -->
           <div
             v-if="idx < flowsStore.flows.length - 1"
-            class="flex items-center justify-center py-2 relative"
+            class="flex items-center justify-center py-2 select-none"
           >
-            <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-background border border-primary-border text-[11px] font-semibold text-secondary-text shadow-2xs">
-              <Clock class="w-3 h-3 text-primary" />
-              <span>Delay interval: <strong>{{ flowsStore.flows[idx + 1]?.interval_hours || 24 }} hours</strong> before Step #{{ idx + 2 }}</span>
+            <div class="flex flex-col items-center">
+              <div class="w-0.5 h-3 bg-gradient-to-b from-primary/50 to-primary"></div>
+              <div class="w-6 h-6 rounded-full bg-card-background border border-primary/40 text-primary flex items-center justify-center my-0.5">
+                <ArrowDown class="w-3.5 h-3.5 stroke-[2.5]" />
+              </div>
+              <div class="w-0.5 h-3 bg-gradient-to-b from-primary to-primary/50"></div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- 2. TABLE DATA VIEW -->
+      <!-- 2. TABLE DATA VIEW (NO ACTIVE TOGGLE) -->
       <div
         v-else-if="viewMode === 'table'"
-        class="bg-card-background border border-primary-border rounded-2xl overflow-hidden shadow-xs"
+        class="bg-card-background border border-primary-border rounded-2xl overflow-hidden"
       >
         <div class="overflow-x-auto">
           <table class="w-full border-collapse text-left text-xs">
@@ -547,9 +466,8 @@ const getTemplateSnippet = (templateName) => {
               <tr class="border-b border-primary-border bg-background/50 text-secondary-text font-semibold uppercase text-[11px]">
                 <th class="p-3.5 pl-5">Step #</th>
                 <th class="p-3.5">Stage</th>
-                <th class="p-3.5 min-w-[220px]">WhatsApp Template</th>
+                <th class="p-3.5 min-w-[240px]">WhatsApp Template</th>
                 <th class="p-3.5">Interval Delay</th>
-                <th class="p-3.5">Status</th>
                 <th class="p-3.5">Created Date</th>
                 <th class="p-3.5 text-right pr-5">Actions</th>
               </tr>
@@ -578,7 +496,7 @@ const getTemplateSnippet = (templateName) => {
                 <!-- Template Name -->
                 <td class="p-3.5">
                   <div class="space-y-0.5">
-                    <span class="font-mono text-xs font-bold text-primary-text block truncate max-w-[240px]">
+                    <span class="font-mono text-xs font-bold text-primary-text block truncate max-w-[260px]">
                       {{ flow.template_name }}
                     </span>
                     <span class="text-[10px] text-secondary-text font-mono">
@@ -593,21 +511,6 @@ const getTemplateSnippet = (templateName) => {
                     <Clock class="w-3 h-3" />
                     <span>{{ formatIntervalHours(flow.interval_hours) }}</span>
                   </span>
-                </td>
-
-                <!-- Status -->
-                <td class="p-3.5">
-                  <label class="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      :checked="flow.is_active"
-                      class="sr-only peer"
-                      @change="handleToggleActive(flow)"
-                    />
-                    <div
-                      class="w-9 h-5 bg-gray-300 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"
-                    ></div>
-                  </label>
                 </td>
 
                 <!-- Created Date -->

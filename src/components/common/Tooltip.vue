@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 
 const props = defineProps({
   text: {
@@ -74,20 +74,22 @@ const getTooltipStyle = () => {
   if (!wrapperRef.value) return {};
   const rect = wrapperRef.value.getBoundingClientRect();
   const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+  const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
 
   let pos = props.position;
-  if (pos === "top") pos = "center";
   if (props.placement) {
-    if (props.placement === "top") pos = "center";
-    else pos = props.placement;
+    pos = props.placement;
   }
+  if (pos === "top") pos = "center";
 
-  // If target position is 'right' but wrapper is too close to right viewport boundary (< 240px space), flip to 'left'
-  if (pos === "right" && viewportWidth - rect.right < 240) {
+  // Flip if out of viewport bounds:
+  if (["center", "start", "end", "top"].includes(pos) && rect.top < 40) {
+    pos = "bottom";
+  } else if (pos === "bottom" && viewportHeight - rect.bottom < 40) {
+    pos = "center";
+  } else if (pos === "right" && viewportWidth - rect.right < 200) {
     pos = "left";
-  }
-  // If target position is 'left' but wrapper is too close to left viewport boundary (< 240px space), flip to 'right'
-  else if (pos === "left" && rect.left < 240) {
+  } else if (pos === "left" && rect.left < 200) {
     pos = "right";
   }
 
@@ -99,50 +101,64 @@ const getTooltipStyle = () => {
       left: `${rect.right + 8}px`,
       top: `${rect.top + rect.height / 2}px`,
       transform: "translateY(-50%)",
-      bottom: "auto",
-      right: "auto",
-      zIndex: "9999",
+      zIndex: "99999",
+      pointerEvents: "none",
     };
   }
+
   if (pos === "left") {
     return {
       position: "fixed",
       left: `${Math.max(12, rect.left - 8)}px`,
       top: `${rect.top + rect.height / 2}px`,
       transform: "translate(-100%, -50%)",
-      bottom: "auto",
-      right: "auto",
-      zIndex: "9999",
+      zIndex: "99999",
+      pointerEvents: "none",
     };
   }
 
-  const positionMap = {
-    start: {
-      left: "0",
-      transform: "translateX(0)",
-      bottom: "calc(100% + 8px)",
-      top: "auto",
-    },
-    center: {
-      left: "50%",
+  if (pos === "bottom") {
+    return {
+      position: "fixed",
+      left: `${Math.max(12, Math.min(viewportWidth - 12, rect.left + rect.width / 2))}px`,
+      top: `${rect.bottom + 8}px`,
       transform: "translateX(-50%)",
-      bottom: "calc(100% + 8px)",
-      top: "auto",
-    },
-    end: {
-      left: "100%",
-      transform: "translateX(-100%)",
-      bottom: "calc(100% + 8px)",
-      top: "auto",
-    },
-    bottom: {
-      left: "50%",
-      transform: "translateX(-50%)",
-      top: "calc(100% + 8px)",
-      bottom: "auto",
-    },
+      zIndex: "99999",
+      pointerEvents: "none",
+    };
+  }
+
+  if (pos === "start") {
+    return {
+      position: "fixed",
+      left: `${Math.max(12, rect.left)}px`,
+      top: `${rect.top - 8}px`,
+      transform: "translateY(-100%)",
+      zIndex: "99999",
+      pointerEvents: "none",
+    };
+  }
+
+  if (pos === "end") {
+    return {
+      position: "fixed",
+      left: `${Math.min(viewportWidth - 12, rect.right)}px`,
+      top: `${rect.top - 8}px`,
+      transform: "translate(-100%, -100%)",
+      zIndex: "99999",
+      pointerEvents: "none",
+    };
+  }
+
+  // Default: center (Top centered)
+  return {
+    position: "fixed",
+    left: `${Math.max(12, Math.min(viewportWidth - 12, rect.left + rect.width / 2))}px`,
+    top: `${rect.top - 8}px`,
+    transform: "translate(-50%, -100%)",
+    zIndex: "99999",
+    pointerEvents: "none",
   };
-  return positionMap[pos] || positionMap.center;
 };
 
 const tooltipStyle = ref({});
@@ -156,6 +172,20 @@ const handleMouseEnter = () => {
 const handleMouseLeave = () => {
   showTooltip.value = false;
 };
+
+const handleScroll = () => {
+  if (showTooltip.value) {
+    showTooltip.value = false;
+  }
+};
+
+onMounted(() => {
+  window.addEventListener("scroll", handleScroll, { passive: true, capture: true });
+});
+
+onUnmounted(() => {
+  window.removeEventListener("scroll", handleScroll, { capture: true });
+});
 </script>
 
 <template>
@@ -168,20 +198,22 @@ const handleMouseLeave = () => {
   >
     <slot />
 
-    <div
-      v-show="showTooltip"
-      class="tooltip-popup"
-      :class="[`position-${actualPosition}`, computedMaxWidthClass]"
-      :style="[tooltipStyle, computedMaxWidthStyle]"
-    >
+    <Teleport to="body">
       <div
-        class="tooltip-content"
-        :class="computedTextSizeClass"
-        :style="computedFontSizeStyle"
+        v-if="showTooltip"
+        class="tooltip-popup is-visible"
+        :class="[`position-${actualPosition}`, computedMaxWidthClass]"
+        :style="[tooltipStyle, computedMaxWidthStyle]"
       >
-        <slot name="content">{{ text }}</slot>
+        <div
+          class="tooltip-content"
+          :class="computedTextSizeClass"
+          :style="computedFontSizeStyle"
+        >
+          <slot name="content">{{ text }}</slot>
+        </div>
       </div>
-    </div>
+    </Teleport>
   </div>
 </template>
 
@@ -197,15 +229,15 @@ const handleMouseLeave = () => {
 }
 
 .tooltip-popup {
-  position: absolute;
-  z-index: 9999;
+  position: fixed;
+  z-index: 99999;
   width: max-content;
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.15s ease;
 }
 
-.tooltip-popup[style] {
+.tooltip-popup.is-visible {
   opacity: 1;
 }
 
@@ -214,28 +246,37 @@ const handleMouseLeave = () => {
   background: var(--color-card-background);
   color: var(--color-primary-text);
   border: 1px solid var(--color-primary-border);
-  padding: 8px 12px;
+  padding: 6px 10px;
   border-radius: 8px;
   font-size: 12px;
   font-weight: 500;
   line-height: 1.4;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
   white-space: normal;
   word-break: break-word;
   text-align: left;
 }
 
-/* Default arrow (center) */
+/* Arrow common */
 .tooltip-content::after {
   content: "";
   position: absolute;
   width: 8px;
   height: 8px;
   background: var(--color-card-background);
-  border-right: 1px solid var(--color-primary-border);
-  border-bottom: 1px solid var(--color-primary-border);
+}
+
+/* TOP / CENTER */
+.tooltip-popup.position-center .tooltip-content::after,
+.tooltip-popup.position-top .tooltip-content::after {
   left: 50%;
   bottom: -5px;
+  top: auto;
+  right: auto;
+  border-right: 1px solid var(--color-primary-border);
+  border-bottom: 1px solid var(--color-primary-border);
+  border-left: none;
+  border-top: none;
   transform: translateX(-50%) rotate(45deg);
 }
 
@@ -243,44 +284,51 @@ const handleMouseLeave = () => {
 .tooltip-popup.position-start .tooltip-content::after {
   left: 16px;
   bottom: -5px;
+  top: auto;
+  right: auto;
+  border-right: 1px solid var(--color-primary-border);
+  border-bottom: 1px solid var(--color-primary-border);
+  border-left: none;
+  border-top: none;
   transform: rotate(45deg);
-}
-
-/* CENTER */
-.tooltip-popup.position-center .tooltip-content::after {
-  left: 50%;
-  bottom: -5px;
-  transform: translateX(-50%) rotate(45deg);
 }
 
 /* END */
 .tooltip-popup.position-end .tooltip-content::after {
-  left: auto;
   right: 16px;
+  left: auto;
   bottom: -5px;
+  top: auto;
+  border-right: 1px solid var(--color-primary-border);
+  border-bottom: 1px solid var(--color-primary-border);
+  border-left: none;
+  border-top: none;
   transform: rotate(45deg);
 }
 
 /* RIGHT */
 .tooltip-popup.position-right .tooltip-content::after {
   left: -5px;
+  right: auto;
   top: 50%;
   bottom: auto;
-  border-right: none;
   border-bottom: 1px solid var(--color-primary-border);
   border-left: 1px solid var(--color-primary-border);
+  border-right: none;
+  border-top: none;
   transform: translateY(-50%) rotate(45deg);
 }
 
 /* LEFT */
 .tooltip-popup.position-left .tooltip-content::after {
-  left: auto;
   right: -5px;
+  left: auto;
   top: 50%;
   bottom: auto;
-  border-bottom: none;
-  border-right: 1px solid var(--color-primary-border);
   border-top: 1px solid var(--color-primary-border);
+  border-right: 1px solid var(--color-primary-border);
+  border-left: none;
+  border-bottom: none;
   transform: translateY(-50%) rotate(45deg);
 }
 
@@ -289,29 +337,18 @@ const handleMouseLeave = () => {
   left: 50%;
   top: -5px;
   bottom: auto;
-  border-right: none;
-  border-bottom: none;
+  right: auto;
   border-top: 1px solid var(--color-primary-border);
   border-left: 1px solid var(--color-primary-border);
+  border-right: none;
+  border-bottom: none;
   transform: translateX(-50%) rotate(45deg);
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 @media (max-width: 768px) {
   .tooltip-content {
     font-size: 11px;
-    padding: 5px 10px;
+    padding: 5px 8px;
   }
 }
 </style>

@@ -205,7 +205,7 @@ const handleSave = async () => {
         <div class="px-6 py-4 border-t border-primary-border bg-background/50 flex items-center justify-between shrink-0">
           <button
             type="button"
-            class="px-4 py-2 rounded-xl text-xs font-medium text-secondary-text border border-primary-border hover:bg-background hover:text-primary-text transition-colors cursor-pointer"
+            class="px-4 py-2 rounded-lg text-xs font-medium text-secondary-text border border-primary-border hover:bg-background hover:text-primary-text transition-colors cursor-pointer"
             :disabled="flowsStore.actionLoading"
             @click="emit('close')"
           >
@@ -214,7 +214,7 @@ const handleSave = async () => {
 
           <button
             type="button"
-            class="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-primary hover:bg-primary-hover text-btn-text-primary text-xs font-semibold shadow-xs transition-all duration-150 cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            class="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-primary hover:bg-primary-hover text-btn-text-primary text-xs font-semibold transition-all duration-150 cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
             :disabled="flowsStore.actionLoading || localList.length === 0"
             @click="handleSave"
           >
