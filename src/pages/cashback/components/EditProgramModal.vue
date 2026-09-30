@@ -62,10 +62,6 @@
             <label class="block text-sm font-medium text-secondary-text mb-1">Currency</label>
             <input v-model="formData.currency" type="text" class="input-field px-3 py-2 text-sm w-full uppercase" />
           </div>
-          <div>
-            <label class="block text-sm font-medium text-secondary-text mb-1">Terms Version</label>
-            <input v-model="formData.terms_version" type="text" class="input-field px-3 py-2 text-sm w-full" />
-          </div>
         </div>
 
         <!-- Eligibility Rules -->
@@ -107,6 +103,63 @@
             <div>
               <label class="block text-xs font-medium text-secondary-text mb-1">Allowed Group Codes (leave empty for all)</label>
               <input v-model="formData.eligibility_rules.allowed_group_codes" type="text" placeholder="e.g. GROUP_A, GROUP_B" class="input-field px-3 py-1.5 text-sm w-full" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Instrument Rules -->
+        <div class="pt-4 border-t border-primary-border">
+          <div class="flex justify-between items-center mb-3">
+            <h4 class="text-sm font-semibold text-primary-text">Instrument Rules</h4>
+            <button type="button" @click="addInstrumentRule" class="text-xs text-primary hover:underline font-medium cursor-pointer">
+              + Add Rule
+            </button>
+          </div>
+          
+          <label class="flex items-center gap-2 text-sm text-secondary-text mb-4">
+            <input type="checkbox" v-model="formData.instrument_rules.normalize_suffixes" class="rounded border-primary-border bg-background text-primary" />
+            Normalize Suffixes
+          </label>
+
+          <div v-if="formData.instrument_rules.rules.length === 0" class="text-xs text-secondary-text italic mb-2">
+            No rules defined. All symbols are eligible by default.
+          </div>
+
+          <div class="space-y-3">
+            <div v-for="(rule, index) in formData.instrument_rules.rules" :key="index" class="p-3 bg-background border border-primary-border rounded-lg relative">
+              <button type="button" @click="removeInstrumentRule(index)" class="absolute top-2 right-2 text-secondary-text hover:text-primary-red cursor-pointer">
+                <HugeIcon :icon="Cancel01Icon" :size="14" />
+              </button>
+              
+              <div class="grid grid-cols-2 gap-3 mb-3 pr-6">
+                <div>
+                  <label class="block text-xs font-medium text-secondary-text mb-1">Match Type</label>
+                  <BaseSelect
+                    v-model="rule.match"
+                    :options="[{ label: 'Exact', value: 'exact' }, { label: 'Prefix', value: 'prefix' }]"
+                  />
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-secondary-text mb-1">Priority</label>
+                  <input v-model="rule.priority" type="number" step="1" class="input-field px-3 py-1.5 text-sm w-full" />
+                </div>
+              </div>
+              
+              <div class="mb-3">
+                <label class="flex items-center gap-2 text-sm text-secondary-text">
+                  <input type="checkbox" v-model="rule.eligible" class="rounded border-primary-border bg-background text-primary" />
+                  Eligible for Cashback
+                </label>
+              </div>
+
+              <div v-if="rule.match === 'exact'">
+                <label class="block text-xs font-medium text-secondary-text mb-1">Symbols (comma separated)</label>
+                <input v-model="rule._symbolsStr" type="text" placeholder="e.g. XAUUSD, EURUSD" class="input-field px-3 py-1.5 text-sm w-full uppercase" />
+              </div>
+              <div v-if="rule.match === 'prefix'">
+                <label class="block text-xs font-medium text-secondary-text mb-1">Prefix Pattern</label>
+                <input v-model="rule.pattern" type="text" placeholder="e.g. XAU" class="input-field px-3 py-1.5 text-sm w-full uppercase" />
+              </div>
             </div>
           </div>
         </div>
@@ -167,9 +220,15 @@ const formData = ref({
   name: props.program.name,
   description: props.program.description,
   min_redemption_amount: props.program.min_redemption_amount,
-  terms_version: props.program.terms_version,
   plan_lock_days: props.program.plan_lock_days ?? 30,
   currency: props.program.currency ?? 'USD',
+  instrument_rules: {
+    normalize_suffixes: props.program.instrument_rules?.normalize_suffixes ?? true,
+    rules: (props.program.instrument_rules?.rules || []).map(r => ({
+      ...r,
+      _symbolsStr: r.symbols ? r.symbols.join(", ") : ""
+    }))
+  },
   eligibility_rules: {
     require_kyc: props.program.eligibility_rules?.require_kyc ?? false,
     require_live: props.program.eligibility_rules?.require_live ?? true,
@@ -182,6 +241,20 @@ const formData = ref({
   }
 });
 
+const addInstrumentRule = () => {
+  formData.value.instrument_rules.rules.push({
+    match: "exact",
+    eligible: true,
+    priority: formData.value.instrument_rules.rules.length + 1,
+    _symbolsStr: "",
+    pattern: "",
+  });
+};
+
+const removeInstrumentRule = (index) => {
+  formData.value.instrument_rules.rules.splice(index, 1);
+};
+
 const handleSubmit = async () => {
   const payload = {};
 
@@ -189,9 +262,26 @@ const handleSubmit = async () => {
   if (formData.value.name !== props.program.name) payload.name = formData.value.name;
   if (formData.value.description !== props.program.description) payload.description = formData.value.description;
   if (formData.value.min_redemption_amount !== props.program.min_redemption_amount) payload.min_redemption_amount = formData.value.min_redemption_amount;
-  if (formData.value.terms_version !== props.program.terms_version) payload.terms_version = formData.value.terms_version;
   if (formData.value.plan_lock_days !== (props.program.plan_lock_days ?? 30)) payload.plan_lock_days = formData.value.plan_lock_days;
   if (formData.value.currency !== (props.program.currency ?? 'USD')) payload.currency = formData.value.currency;
+
+  const newInstrumentRules = {
+    normalize_suffixes: formData.value.instrument_rules.normalize_suffixes,
+    rules: formData.value.instrument_rules.rules.map(r => {
+      const rule = { match: r.match, eligible: r.eligible, priority: r.priority };
+      if (r.match === 'exact') {
+        rule.symbols = parseArray(r._symbolsStr) || [];
+      } else {
+        rule.pattern = r.pattern;
+      }
+      return rule;
+    })
+  };
+
+  const oldInstrumentRules = props.program.instrument_rules || { normalize_suffixes: true, rules: [] };
+  if (JSON.stringify(newInstrumentRules) !== JSON.stringify(oldInstrumentRules)) {
+    payload.instrument_rules = newInstrumentRules;
+  }
 
   const newEligibility = {
     ...formData.value.eligibility_rules,

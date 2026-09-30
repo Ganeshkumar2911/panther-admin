@@ -33,6 +33,7 @@ import {
   FolderTree,
   Database,
   Grid,
+  Building2,
 } from "lucide-vue-next";
 
 export const navClusters = [
@@ -426,6 +427,21 @@ export const navClusters = [
           "transactions",
           "pending approvals",
           "cashier",
+        ],
+      },
+      {
+        label: "Bank Requests",
+        to: "/bank-requests",
+        icon: Building2,
+        permission: ["user_bank_account.view"],
+        keywords: [
+          "bank",
+          "bank accounts",
+          "bank requests",
+          "approvals",
+          "saved bank",
+          "ifsc",
+          "payout destination",
         ],
       },
       {
