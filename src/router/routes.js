@@ -240,6 +240,16 @@ const routes = [
         },
       },
       {
+        path: "/bank-requests",
+        name: "bank-requests",
+        component: () => import("@/pages/bankrequest/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Bank Requests",
+          description: "Review and approve client, IB, and FM saved bank account requests.",
+        },
+      },
+      {
         path: "/vendor-transfers",
         name: "vendor-transfers",
         component: () => import("@/pages/vendor-transfers/index.vue"),

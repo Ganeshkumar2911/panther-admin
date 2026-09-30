@@ -477,6 +477,13 @@ const urls = {
     settings: "/2fa-settings",
     reset: (userId) => `/users/${userId}/2fa/reset`,
   },
+  bankRequests: {
+    list: "/bank-accounts",
+    userAccounts: (userId) => `/users/bank-accounts/${userId}`,
+    approve: (id) => `/bank-accounts/${id}/approve`,
+    reject: (id) => `/bank-accounts/${id}/reject`,
+    enableEdit: (userId, id) => `/users/bank-accounts/${userId}/${id}/enable-edit`,
+  },
 };
 
 export default urls;
