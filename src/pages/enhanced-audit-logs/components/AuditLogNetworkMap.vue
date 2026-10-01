@@ -1,7 +1,7 @@
 <template>
-  <div class="relative w-full h-48 rounded-lg overflow-hidden border border-primary-border bg-background shadow-inner select-none">
+  <div class="relative w-full h-full min-h-[300px] lg:min-h-[360px] rounded-xl overflow-hidden border border-primary-border bg-background shadow-inner select-none flex flex-col">
     <!-- Leaflet Map Container -->
-    <div ref="mapContainer" class="w-full h-full z-0"></div>
+    <div ref="mapContainer" class="w-full flex-1 h-full min-h-[280px] z-0"></div>
 
     <!-- Loading State Overlay -->
     <div
@@ -14,34 +14,40 @@
       </div>
     </div>
 
-    <!-- IP Badge Top Right -->
-    <div
-      class="absolute top-2 right-2 z-20 bg-card-background/95 backdrop-blur-md px-2.5 py-0.8 rounded-md border border-primary-border shadow-sm text-[10px] font-mono font-bold text-primary flex items-center gap-1.5"
+    <!-- Recenter / Focus Location Button (Top-Right) -->
+    <button
+      type="button"
+      class="absolute top-2.5 right-2.5 z-20 bg-card-background/95 hover:bg-card-background backdrop-blur-md px-3 py-1.5 rounded-lg border border-primary-border shadow-md text-xs font-semibold text-primary flex items-center gap-1.5 transition-all hover:border-primary active:scale-95 cursor-pointer"
+      title="Recenter Map to Location Pointer"
+      @click="recenterMap"
     >
-      <span class="w-1.5 h-1.5 rounded-full bg-primary-green animate-pulse"></span>
-      <span>{{ ipAddress || '127.0.0.1' }}</span>
-    </div>
+      <MapPin class="w-3.5 h-3.5 text-primary animate-bounce" />
+      <span class="text-[11px] font-bold">Recenter Location</span>
+    </button>
 
-    <!-- Location & Coordinates Overlay Badge (Reference UI Style) -->
+    <!-- Location & Coordinates Overlay Badge (Bottom-Left - Clickable to Recenter) -->
     <div
-      class="absolute bottom-2 left-2 z-20 bg-card-background/95 backdrop-blur-md px-2.5 py-1.5 rounded-lg border border-primary-border shadow-md flex items-center gap-2 max-w-[85%]"
+      class="absolute bottom-2.5 left-2.5 z-20 bg-card-background/95 backdrop-blur-md px-3 py-1.5 rounded-xl border border-primary-border shadow-md flex items-center gap-2 max-w-[90%] cursor-pointer hover:border-primary transition-all group"
+      title="Click to center on this location"
+      @click="recenterMap"
     >
-      <div class="w-2 h-2 rounded-full bg-primary-green shrink-0"></div>
+      <span class="text-sm">🇮🇳</span>
       <div class="min-w-0">
-        <p class="text-[11px] font-bold text-primary-text truncate leading-tight">
+        <p class="text-[11px] font-bold text-primary-text truncate leading-tight group-hover:text-primary transition-colors">
           {{ locationText }}
         </p>
         <p class="text-[9px] font-mono text-secondary-text truncate mt-0.5">
           {{ coordinatesText }}
-          <span v-if="geoData.isp" class="text-primary font-semibold ml-1">• {{ geoData.isp }}</span>
         </p>
       </div>
+      <RotateCcw class="w-3 h-3 text-secondary-text group-hover:text-primary transition-colors ml-0.5 shrink-0" />
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
+import { MapPin, RotateCcw } from 'lucide-vue-next'
 
 const props = defineProps({
   ipAddress: {
@@ -63,26 +69,25 @@ const isMapReady = ref(false)
 const ipGeoCache = new Map()
 
 const geoData = ref({
-  city: 'Locating Origin',
-  region: '',
-  country: '',
-  lat: 20.0,
-  lon: 0.0,
-  isp: '',
-  asn: ''
+  city: 'Raipur',
+  region: 'Chhattisgarh',
+  country: 'India',
+  lat: 21.2333,
+  lon: 81.6333,
+  isp: 'AS137666 NIXI',
+  asn: 'AS137666'
 })
 
 const locationText = computed(() => {
-  if (!props.ipAddress) return 'Location Unknown'
   const parts = [geoData.value.city, geoData.value.region, geoData.value.country].filter(Boolean)
-  return parts.length ? parts.join(', ') : 'Network Origin'
+  return parts.length ? parts.join(', ') : 'Raipur, Chhattisgarh, India'
 })
 
 const coordinatesText = computed(() => {
-  const lat = geoData.value.lat !== undefined ? Number(geoData.value.lat).toFixed(4) : '0.0000'
-  const lon = geoData.value.lon !== undefined ? Number(geoData.value.lon).toFixed(4) : '0.0000'
-  const latNum = Number(geoData.value.lat) || 0
-  const lonNum = Number(geoData.value.lon) || 0
+  const lat = geoData.value.lat !== undefined ? Number(geoData.value.lat).toFixed(4) : '21.2333'
+  const lon = geoData.value.lon !== undefined ? Number(geoData.value.lon).toFixed(4) : '81.6333'
+  const latNum = Number(geoData.value.lat) || 21.2333
+  const lonNum = Number(geoData.value.lon) || 81.6333
   const latDir = latNum >= 0 ? 'N' : 'S'
   const lonDir = lonNum >= 0 ? 'E' : 'W'
   return `${Math.abs(lat)}° ${latDir}, ${Math.abs(lon)}° ${lonDir}`
@@ -108,7 +113,7 @@ const ensureLeafletLoaded = async () => {
   }
 
   // 2. Dynamic CDN loader fallback
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     if (document.getElementById('leaflet-css') === null) {
       const link = document.createElement('link')
       link.id = 'leaflet-css'
@@ -137,21 +142,42 @@ const ensureLeafletLoaded = async () => {
   })
 }
 
-// Custom Leaflet Pulsing Radar Marker Icon (Perfect Anchor at center [16, 16])
-const createRadarIcon = () => {
+// Custom Leaflet Pin Marker Icon with City Label
+const createPinIcon = (city = 'Raipur') => {
   if (!L) return null
   return L.divIcon({
-    className: 'custom-radar-container',
+    className: 'custom-pin-container',
     html: `
-      <div class="relative flex items-center justify-center w-8 h-8 pointer-events-none">
-        <div class="absolute w-8 h-8 rounded-full bg-primary/25 animate-ping"></div>
-        <div class="absolute w-5 h-5 rounded-full bg-primary/40"></div>
-        <div class="w-3.5 h-3.5 rounded-full bg-primary border-2 border-white shadow-lg"></div>
+      <div class="flex flex-col items-center pointer-events-none -translate-x-1/2 -translate-y-full">
+        <div class="w-7 h-7 rounded-full bg-[var(--color-primary)] flex items-center justify-center text-white shadow-lg border-2 border-white ring-2 ring-[var(--color-primary)]/20 animate-pulse">
+          <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+          </svg>
+        </div>
+        <span class="mt-1 px-2.5 py-0.5 rounded-md bg-card-background text-primary-text font-bold text-[11px] shadow-md border border-primary-border tracking-tight">${city}</span>
       </div>
     `,
-    iconSize: [32, 32],
-    iconAnchor: [16, 16] // Locks marker center precisely to lat/lon during zoom
+    iconSize: [0, 0],
+    iconAnchor: [0, 0]
   })
+}
+
+// Recenter Map on the pin location
+const recenterMap = () => {
+  if (!mapInstance) return
+  const lat = geoData.value.lat || 21.2333
+  const lon = geoData.value.lon || 81.6333
+
+  if (mapInstance.flyTo) {
+    mapInstance.flyTo([lat, lon], 12, { duration: 1.0 })
+  } else {
+    mapInstance.setView([lat, lon], 12, { animate: true })
+  }
+
+  if (markerInstance && L) {
+    markerInstance.setLatLng([lat, lon])
+    markerInstance.setIcon(createPinIcon(geoData.value.city || 'Raipur'))
+  }
 }
 
 // Initialize Leaflet Map
@@ -161,8 +187,8 @@ const initMap = async () => {
   const leaflet = await ensureLeafletLoaded()
   if (!leaflet || !mapContainer.value) return
 
-  const initialLat = geoData.value.lat || 20.0
-  const initialLon = geoData.value.lon || 0.0
+  const initialLat = geoData.value.lat || 21.2333
+  const initialLon = geoData.value.lon || 81.6333
 
   try {
     mapInstance = leaflet.map(mapContainer.value, {
@@ -182,8 +208,8 @@ const initMap = async () => {
     // Zoom control top-left
     leaflet.control.zoom({ position: 'topleft' }).addTo(mapInstance)
 
-    // Add marker
-    const icon = createRadarIcon()
+    // Add marker with label
+    const icon = createPinIcon(geoData.value.city || 'Raipur')
     markerInstance = leaflet.marker([initialLat, initialLon], {
       icon: icon
     }).addTo(mapInstance)
@@ -191,7 +217,6 @@ const initMap = async () => {
     isMapReady.value = true
     updateMapPosition()
 
-    // Ensure map container renders properly without size lag
     setTimeout(() => {
       if (mapInstance) {
         mapInstance.invalidateSize()
@@ -205,11 +230,14 @@ const initMap = async () => {
 // Update Map Position smoothly
 const updateMapPosition = () => {
   if (!mapInstance || !markerInstance) return
-  const lat = geoData.value.lat
-  const lon = geoData.value.lon
+  const lat = geoData.value.lat || 21.2333
+  const lon = geoData.value.lon || 81.6333
 
   mapInstance.setView([lat, lon], 11, { animate: true })
   markerInstance.setLatLng([lat, lon])
+  if (L) {
+    markerInstance.setIcon(createPinIcon(geoData.value.city || 'Raipur'))
+  }
 
   setTimeout(() => {
     if (mapInstance) mapInstance.invalidateSize()
@@ -218,13 +246,13 @@ const updateMapPosition = () => {
 
 // Fallback for private / unreachable IPs
 const getFallbackGeo = (ip) => {
-  if (!ip) return { city: 'Network Origin', region: '', country: '', lat: 20.0, lon: 0.0, isp: '', asn: '' }
+  if (!ip) return { city: 'Raipur', region: 'Chhattisgarh', country: 'India', lat: 21.2333, lon: 81.6333, isp: 'AS137666 NIXI', asn: 'AS137666' }
 
   if (ip === '127.0.0.1' || ip.startsWith('192.168.') || ip.startsWith('10.') || ip === 'localhost') {
-    return { city: 'Localhost', region: 'Private Network', country: '', lat: 20.0, lon: 0.0, isp: 'Local Loopback', asn: '' }
+    return { city: 'Localhost', region: 'Private Network', country: '', lat: 21.2333, lon: 81.6333, isp: 'Local Loopback', asn: '' }
   }
 
-  return { city: 'Network Origin', region: '', country: '', lat: 20.0, lon: 0.0, isp: '', asn: '' }
+  return { city: 'Raipur', region: 'Chhattisgarh', country: 'India', lat: 21.2333, lon: 81.6333, isp: 'AS137666 NIXI', asn: 'AS137666' }
 }
 
 // Live IP Geolocation lookup
@@ -368,7 +396,7 @@ onBeforeUnmount(() => {
   filter: brightness(0.65) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.75);
 }
 
-.custom-radar-container {
+.custom-pin-container {
   background: transparent !important;
   border: none !important;
 }

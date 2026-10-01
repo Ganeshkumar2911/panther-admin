@@ -19,7 +19,12 @@
           </span>
         </template>
         <template #cell-status="{ row }">
-          <StatusBadge :status="row.status" />
+          <div class="flex flex-col gap-1">
+            <StatusBadge :status="row.status" />
+            <span v-if="row.status === 'SKIPPED' && (row.skip_reason || row.metadata?.skip_reason)" class="text-[10px] font-medium text-primary-red uppercase leading-tight tracking-wider">
+              {{ (row.skip_reason || row.metadata?.skip_reason).replace(/_/g, ' ') }}
+            </span>
+          </div>
         </template>
         <template #cell-created_at="{ row }">
           <span class="text-secondary-text">{{ formatDateTime(row.created_at) }}</span>

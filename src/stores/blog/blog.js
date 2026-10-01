@@ -63,6 +63,9 @@ export const useBlogStore = defineStore("blog", () => {
    * - content: string (Required)
    * - status: string (Optional, default: "Published")
    * - image: File (Optional)
+   * - meta_title: string (Optional)
+   * - meta_description: string (Optional)
+   * - meta_keywords: string (Optional)
    * ------------------------------------------ */
   const createBlog = (payload, onSuccess) => {
     actionLoading.value = true;

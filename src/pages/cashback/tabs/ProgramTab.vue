@@ -31,10 +31,6 @@
                 <span>End Date: <span class="font-medium text-primary-text">{{ store.activeProgram.end_at ? formatDateTime(store.activeProgram.end_at) : 'None (Indefinite)' }}</span></span>
               </div>
               <div class="w-1 h-1 rounded-full bg-primary-border"></div>
-              <!-- <div class="flex items-center gap-1.5">
-                <HugeIcon :icon="CheckmarkCircle01Icon" :size="14" />
-                <span>Terms Version: <span class="font-medium text-primary-text">v{{ store.activeProgram.terms_version }}</span></span>
-              </div> -->
               <div class="w-1 h-1 rounded-full bg-primary-border"></div>
               <div class="flex items-center gap-1.5">
                 <HugeIcon :icon="Dollar01Icon" :size="14" />
@@ -88,9 +84,9 @@
               </span>
             </div>
             <div class="flex justify-between items-center">
-              <span class="text-xs font-semibold text-secondary-text tracking-wide">TERMS & CONDITIONS</span>
-              <span class="text-sm font-medium text-primary cursor-pointer flex items-center gap-1">
-                Version {{ store.activeProgram.terms_version }}
+              <span class="text-xs font-semibold text-secondary-text tracking-wide">PLAN LOCK DAYS</span>
+              <span class="text-sm font-medium text-primary-text">
+                {{ store.activeProgram.plan_lock_days ?? 30 }} Days
               </span>
             </div>
             <div v-if="store.activeProgram.updated_at" class="flex justify-between items-center">
@@ -202,6 +198,24 @@
                 <span v-for="g in store.activeProgram.eligibility_rules.allowed_group_codes" :key="g" class="px-2 py-0.5 bg-background border border-primary-border rounded-lg text-xs font-medium text-primary-text">
                   {{ g }}
                 </span>
+              </div>
+            </div>
+
+            <div class="flex justify-between items-start mt-2 border-t border-primary-border pt-4">
+              <span class="text-xs font-semibold text-secondary-text tracking-wide mt-1 w-24 leading-tight">ELIGIBLE SYMBOLS</span>
+              <span v-if="!store.activeProgram.instrument_rules?.rules?.length" class="text-sm font-medium text-primary-text text-right max-w-30 leading-tight">All Symbols</span>
+              <div v-else class="flex flex-col items-end gap-1">
+                <span class="text-[10px] text-secondary-text mb-1">
+                  Normalize Suffixes: {{ store.activeProgram.instrument_rules.normalize_suffixes ? 'Yes' : 'No' }}
+                </span>
+                <div v-for="(rule, idx) in store.activeProgram.instrument_rules.rules" :key="idx" class="flex flex-col items-end bg-background border border-primary-border rounded-lg p-2 text-xs">
+                  <span class="font-medium text-primary-text">
+                    {{ rule.match === 'exact' ? rule.symbols?.join(', ') : `Prefix: ${rule.pattern}` }}
+                  </span>
+                  <span :class="rule.eligible ? 'text-primary-green' : 'text-primary-red'" class="font-semibold">
+                    {{ rule.eligible ? 'Eligible' : 'Ineligible' }} (Pri: {{ rule.priority }})
+                  </span>
+                </div>
               </div>
             </div>
           </div>

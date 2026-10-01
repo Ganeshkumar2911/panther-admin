@@ -24,6 +24,7 @@ import ToggleTradingDialog from "@/components/trading-accounts/ToggleTradingDial
 import ChangeTradingGroupDrawer from "@/components/trading-accounts/ChangeTradingGroupDrawer.vue";
 import ManageTransactionsDialog from "@/components/common/ManageTransactionsDialog.vue";
 import { useAccountsStore } from "@/stores/tradingAccounts/tradingAccounts";
+import { useClientListStore } from "@/stores/clientList/clientList";
 import { useProfileStore } from "@/stores/profile/profile";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 
@@ -32,6 +33,16 @@ const profile = useProfileStore();
 const router = useRouter();
 const route = useRoute();
 const { hasPermission } = usePermissionCheck();
+
+const goToClientSearch = (row) => {
+  const searchTerm = row.user?.email || row.client_name;
+  if (searchTerm) {
+    const clientStore = useClientListStore();
+    clientStore.filters.search = searchTerm;
+    clientStore.applyFilters();
+    router.push('/clients');
+  }
+};
 
 const tabs = [
   { label: "All", value: "all" },
@@ -500,7 +511,7 @@ onBeforeUnmount(() => clearTimeout(searchTimer));
     <div class="flex flex-wrap items-start justify-end gap-3 mb-6">
       <button
         v-if="hasPermission('trading_account.create')"
-        class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all active:scale-95 cursor-pointer"
+        class="btn-primary"
         @click="openAddAccount"
       >
         <Plus class="w-3.5 h-3.5" />
@@ -615,7 +626,7 @@ onBeforeUnmount(() => clearTimeout(searchTimer));
 
       <!-- Controls Container (Unclipped, so BaseSelect dropdown displays properly) -->
       <div class="flex items-center gap-3 flex-wrap">
-        <div class="relative min-w-[200px] flex-1 sm:flex-none">
+        <div class="relative min-w-50 flex-1 sm:flex-none">
           <Search
             class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-secondary-text"
           />
@@ -707,12 +718,14 @@ onBeforeUnmount(() => clearTimeout(searchTimer));
 
       <!-- Custom Cell: Client -->
       <template #cell-client="{ row }">
-        <p class="text-xs font-medium text-primary-text whitespace-nowrap">
-          {{ row.client_name ?? row.user?.name ?? "—" }}
-        </p>
-        <p class="mt-1 text-[11px] text-secondary-text whitespace-nowrap">
-          {{ row.user?.email ?? "—" }}
-        </p>
+        <div class="cursor-pointer group" @click="goToClientSearch(row)">
+          <p class="text-xs font-medium text-primary-text group-hover:text-primary group-hover:underline whitespace-nowrap transition-colors">
+            {{ row.client_name ?? row.user?.name ?? "—" }}
+          </p>
+          <p class="mt-1 text-[11px] text-secondary-text group-hover:text-primary/80 whitespace-nowrap transition-colors">
+            {{ row.user?.email ?? "—" }}
+          </p>
+        </div>
       </template>
 
       <!-- Custom Cell: Entity -->
@@ -831,7 +844,7 @@ onBeforeUnmount(() => clearTimeout(searchTimer));
           type="button"
           class="text-[11px] font-medium px-2.5 py-1 rounded-full capitalize whitespace-nowrap text-white transition-all flex items-center gap-1 mx-auto"
           :class="[
-            row.is_active ? 'bg-primary-green/100' : 'bg-primary-red/100',
+            row.is_active ? 'bg-primary-green' : 'bg-primary-red',
             hasPermission('trading_account.update') &&
             row.account_type !== 'copy_trading' &&
             row.trading_type !== 'copy_trading'

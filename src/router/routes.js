@@ -240,6 +240,26 @@ const routes = [
         },
       },
       {
+        path: "/bank-requests",
+        name: "bank-requests",
+        component: () => import("@/pages/bankrequest/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Bank Requests",
+          description: "Review and approve client, IB, and FM saved bank account requests.",
+        },
+      },
+      {
+        path: "/vendor-transfers",
+        name: "vendor-transfers",
+        component: () => import("@/pages/vendor-transfers/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Vendor Transfers",
+          description: "Manage and view vendor transfer queue.",
+        },
+      },
+      {
         path: "/payment-requests/logs",
         name: "payment-gateway-logs",
         component: () => import("@/pages/payment-requests/logs.vue"),
@@ -685,12 +705,12 @@ const routes = [
       {
         path: "/enhanced-audit-logs/:id",
         name: "enhanced-audit-log-details",
-        component: () => import("@/pages/enhanced-audit-logs/details.vue"),
+        component: () => import("@/pages/enhanced-audit-logs/AuditLogForensicsView.vue"),
         meta: {
           requiresAuth: true,
           showBackButton: true,
           title: "Event Forensics",
-          description: "Advanced forensic audit event details.",
+          description: "Detailed view of audit event with complete context and changes.",
         },
       },
       {

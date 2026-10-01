@@ -32,8 +32,8 @@ import {
   FileSpreadsheet,
   FolderTree,
   Database,
-  Grid,
   Briefcase,
+  Building2,
 } from "lucide-vue-next";
 
 export const navClusters = [
@@ -292,10 +292,10 @@ export const navClusters = [
     ],
   },
 
-  // 3. Fund Management
+  // 3. Fund Managers
   {
     id: "fund_management",
-    label: "Fund Management",
+    label: "Fund Managers",
     icon: Trophy,
     children: [
       {
@@ -324,6 +324,13 @@ export const navClusters = [
           "fm applications",
           "offers",
         ],
+      },
+      {
+        label: "Settlements",
+        to: "/settlements",
+        icon: RefreshCcw,
+        permission: ["settlement.view"],
+        keywords: ["reconciliation", "settle", "payout settlements", "batch"],
       },
     ],
   },
@@ -423,11 +430,31 @@ export const navClusters = [
         ],
       },
       {
-        label: "Settlements",
-        to: "/settlements",
-        icon: RefreshCcw,
-        permission: ["settlement.view"],
-        keywords: ["reconciliation", "settle", "payout settlements", "batch"],
+        label: "Bank Requests",
+        to: "/bank-requests",
+        icon: Building2,
+        permission: ["user_bank_account.view"],
+        keywords: [
+          "bank",
+          "bank accounts",
+          "bank requests",
+          "approvals",
+          "saved bank",
+          "ifsc",
+          "payout destination",
+        ],
+      },
+      {
+        label: "Vendor Panel",
+        to: "/vendor-transfers",
+        icon: Handshake,
+        permission: "vendor.view",
+        keywords: [
+          "vendor",
+          "transfers",
+          "work queue",
+          "vendor panel",
+        ],
       },
     ],
   },
@@ -584,7 +611,7 @@ export const navClusters = [
         label: "Enhanced Audit Logs",
         to: "/enhanced-audit-logs",
         icon: ClipboardList,
-        permission: ["new_audit.view", "new_audit"],
+        permission: "audit.view",
         keywords: [
           "activity logs",
           "history",
@@ -671,7 +698,6 @@ export const navClusters = [
         icon: DollarSign,
         permission: ["cashback.view"],
         keywords: ["cashback", "rebate", "usd", "earnings", "loyalty"],
-
       },
       {
         label: "PAMM Pools",

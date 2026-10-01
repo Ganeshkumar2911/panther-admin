@@ -59,6 +59,14 @@
               </span>
 
               <span
+                v-if="coverageAccountNumber && !isFollowerMode"
+                class="flex items-center gap-1 font-mono font-semibold text-primary-text"
+              >
+                <span class="text-secondary-text">Coverage:</span>
+                #{{ coverageAccountNumber }}
+              </span>
+
+              <span
                 v-if="brokerGroup"
                 class="flex items-center gap-1 font-mono text-secondary-text"
               >
@@ -741,6 +749,7 @@
             :modelValue="store.filters[enumFilter.key]"
             :options="enumFilter.options"
             :placeholder="enumFilter.label"
+            clearable
             @update:modelValue="(val) => store.setDynamicFilter(enumFilter.key, val)"
           />
         </div>
@@ -891,7 +900,7 @@
             </Tooltip>
             <span
               v-else-if="String(order.state_name || '').toUpperCase() === 'FILLED' || order.state === 4"
-              class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide border bg-primary-green/10 text-primary-green border border-primary-green/20"
+              class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide border bg-primary-green/10 text-primary-green border-primary-green/20"
             >
               {{ order.state_name || "FILLED" }}
             </span>
@@ -1072,6 +1081,16 @@ const accountNumber = computed(() => {
     store.accountInfo?.account_number ||
     store.accountInfo?.master_account?.account_number ||
     route.query.account_number ||
+    ""
+  );
+});
+
+const coverageAccountNumber = computed(() => {
+  return (
+    store.accountInfo?.coverage_account?.account_number ||
+    store.accountInfo?.coverage_account_id ||
+    route.query.coverage_account_number ||
+    route.query.coverage_account_id ||
     ""
   );
 });

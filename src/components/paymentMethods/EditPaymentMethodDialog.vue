@@ -168,6 +168,23 @@
                   Internal description or currency notes.
                 </p>
               </div>
+
+              <!-- Connected Vendor Staff -->
+              <div v-if="form.gateway === 'bank_transfer' || form.method_type === 'bank_transfer'" class="sm:col-span-2">
+                <label class="block text-xs font-semibold text-primary-text mb-1">
+                  Connected vendor staff
+                </label>
+                <BaseSelect
+                  v-model="form.vendor_user_id"
+                  :options="staffOptions"
+                  placeholder="None (admin first-approve / admin-only deposits)"
+                  clearable
+                  customClass="w-full"
+                />
+                <p class="text-[10px] text-secondary-text mt-1">
+                  This staff will see bank-transfer deposits and withdrawals for this method in the Vendor Portal.
+                </p>
+              </div>
             </div>
           </div>
 
@@ -1138,7 +1155,7 @@
             <button
               type="button"
               class="flex items-center justify-center gap-2 px-5 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition active:scale-95 cursor-pointer disabled:opacity-60 shadow-xs"
-              :disabled="submitting"
+              :disabled="submitting || !hasChanges"
               @click="submit"
             >
               <Loader2 v-if="submitting" class="w-3.5 h-3.5 animate-spin" />
@@ -1202,6 +1219,11 @@ const store = usePaymentMethodsStore()
 const isEdit = computed(() => !!props.paymentMethod)
 const formBodyRef = ref(null)
 const submitting = ref(false)
+const initialFormState = ref(null)
+const hasChanges = computed(() => {
+  if (!isEdit.value) return true
+  return JSON.stringify(form.value) !== initialFormState.value
+})
 const validationErrors = ref([])
 const fieldErrors = ref({})
 const metaActiveTab = ref('deposit') // 'deposit' | 'withdrawal'
@@ -1211,6 +1233,8 @@ const newDepositTargetValue = ref('')
 const newWithdrawTargetValue = ref('')
 
 const roles = ref([])
+const staffOptions = ref([])
+
 const fetchRoles = async () => {
   try {
     const response = await apiRequest('get', '/rbac/roles')
@@ -1222,6 +1246,17 @@ const fetchRoles = async () => {
   }
 }
 
+const fetchStaffList = async () => {
+  try {
+    const response = await apiRequest('get', '/rbac/users', { params: { page: 1, per_page: 100 } })
+    if (response.status === 'success' && response.data) {
+      staffOptions.value = response.data.map(u => ({ label: `${u.name} (${u.email})`, value: u.id }))
+    }
+  } catch (err) {
+    console.error('Failed to fetch staff:', err)
+  }
+}
+
 const getRoleName = (id) => {
   const role = roles.value.find(r => r.value === id)
   return role ? role.label : id
@@ -1229,6 +1264,7 @@ const getRoleName = (id) => {
 
 onMounted(() => {
   fetchRoles()
+  fetchStaffList()
 })
 
 // ── Form Model State ──
@@ -1238,6 +1274,7 @@ const defaultFormData = () => ({
   method_type: '',
   payment_method_code: '',
   remarks: '',
+  vendor_user_id: null,
   is_active: false,
   is_default_deposit: false,
   is_default_withdrawal: false,
@@ -1313,6 +1350,7 @@ watch(
           method_type: p.method_type || '',
           payment_method_code: p.payment_method_code || '',
           remarks: p.remarks || '',
+          vendor_user_id: p.vendor_user_id ?? null,
           is_active: Boolean(p.is_active ?? false),
           enable_deposit: Boolean(p.enable_deposit ?? false),
           enable_withdrawal: Boolean(p.enable_withdrawal ?? false),
@@ -1356,6 +1394,12 @@ watch(
       } else {
         // Create Mode: start clean without any hardcoded templates
         form.value = defaultFormData()
+      }
+
+      if (props.paymentMethod) {
+        initialFormState.value = JSON.stringify(form.value)
+      } else {
+        initialFormState.value = null
       }
     }
   },
@@ -1720,6 +1764,7 @@ const submit = async () => {
       method_type: form.value.method_type.trim(),
       payment_method_code: form.value.payment_method_code ? form.value.payment_method_code.trim() : null,
       remarks: form.value.remarks ? form.value.remarks.trim() : null,
+      vendor_user_id: form.value.vendor_user_id || null,
       is_active: Boolean(form.value.is_active),
       enable_deposit: Boolean(form.value.enable_deposit),
       enable_withdrawal: Boolean(form.value.enable_withdrawal),
@@ -1753,19 +1798,37 @@ const submit = async () => {
       withdraw_notification_targets: form.value.withdraw_notification_targets || [],
     }
 
-    // Include optional credentials only if provided
-    if (form.value.upi_id) payload.upi_id = form.value.upi_id.trim()
-    if (form.value.bank_name) payload.bank_name = form.value.bank_name.trim()
-    if (form.value.account_name) payload.account_name = form.value.account_name.trim()
-    if (form.value.account_number) payload.account_number = form.value.account_number.trim()
-    if (form.value.ifsc_code) payload.ifsc_code = form.value.ifsc_code.trim()
-    if (form.value.branch_name) payload.branch_name = form.value.branch_name.trim()
-    if (form.value.swift_code) payload.swift_code = form.value.swift_code.trim()
-    if (form.value.wallet_id) payload.wallet_id = form.value.wallet_id.trim()
-    if (form.value.wallet_address) payload.wallet_address = form.value.wallet_address.trim()
+    // Include optional credentials, allowing clearance by setting to null if empty
+    payload.upi_id = form.value.upi_id ? form.value.upi_id.trim() : null
+    payload.bank_name = form.value.bank_name ? form.value.bank_name.trim() : null
+    payload.account_name = form.value.account_name ? form.value.account_name.trim() : null
+    payload.account_number = form.value.account_number ? form.value.account_number.trim() : null
+    payload.ifsc_code = form.value.ifsc_code ? form.value.ifsc_code.trim() : null
+    payload.branch_name = form.value.branch_name ? form.value.branch_name.trim() : null
+    payload.swift_code = form.value.swift_code ? form.value.swift_code.trim() : null
+    payload.wallet_id = form.value.wallet_id ? form.value.wallet_id.trim() : null
+    payload.wallet_address = form.value.wallet_address ? form.value.wallet_address.trim() : null
 
     if (isEdit.value) {
-      await store.updatePaymentMethod(props.paymentMethod.id, payload)
+      const initialPayloadRaw = JSON.parse(initialFormState.value)
+      const diffPayload = {}
+      
+      for (const key in payload) {
+        let val1 = payload[key]
+        let val2 = initialPayloadRaw[key]
+
+        // Normalize null and empty string for comparison
+        if (val1 === null && val2 === '') val1 = ''
+        if (val2 === null && val1 === '') val2 = ''
+
+        if (JSON.stringify(val1) !== JSON.stringify(val2)) {
+          diffPayload[key] = payload[key]
+        }
+      }
+      
+      if (Object.keys(diffPayload).length > 0) {
+        await store.updatePaymentMethod(props.paymentMethod.id, diffPayload)
+      }
     } else {
       await store.createPaymentMethod(payload)
     }

@@ -524,7 +524,7 @@ const formatDate = (val) => {
                 v-if="canSync"
                 type="button"
                 :disabled="store.actionLoading"
-                class="flex items-center gap-1.5 px-3.5 py-1.5 bg-primary hover:bg-primary-hover text-white text-xs font-semibold rounded-lg transition-all cursor-pointer shadow-xs disabled:opacity-50"
+                class="btn-primary disabled:opacity-50"
                 @click="isCalculateModalOpen = true"
               >
                 <HugeIcon :icon="Coins01Icon" :size="14" />
@@ -953,7 +953,7 @@ const formatDate = (val) => {
             }}</span>
             <span
               v-if="row.reject_reason"
-              class="block text-[10px] text-primary-red truncate max-w-[150px]"
+              class="block text-[10px] text-primary-red truncate max-w-37.5"
               :title="row.reject_reason"
             >
               "{{ row.reject_reason }}"
@@ -1007,7 +1007,7 @@ const formatDate = (val) => {
       <!-- Cell: MT5 Group -->
       <template #cell-mt5_group="{ row }">
         <span
-          class="text-xs font-mono text-secondary-text truncate block max-w-[150px]"
+          class="text-xs font-mono text-secondary-text truncate block max-w-37.5"
           :title="row.trade?.mt5_group"
         >
           {{ row.trade?.mt5_group || "-" }}

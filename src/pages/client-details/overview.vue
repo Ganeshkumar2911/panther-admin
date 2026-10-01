@@ -15,16 +15,16 @@
     <!-- ─── SKELETON LOADING STATE ─────────────────────────────────── -->
     <div v-if="isOverviewLoading" class="space-y-5 animate-pulse">
       <!-- Summary Cards Skeleton -->
-      <div class="grid grid-cols-1 sm:grid-cols-3 xl:grid-cols-5 gap-4">
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
         <div
-          v-for="i in 5"
+          v-for="i in 7"
           :key="i"
-          class="bg-card-background/40 border border-primary-border rounded-xl p-4 sm:p-5 flex items-center gap-4"
+          class="bg-card-background/40 border border-primary-border rounded-xl p-3 flex flex-col items-center text-center gap-2"
         >
-          <div class="space-y-2 flex-1 min-w-0">
-            <div class="h-3 w-20 bg-primary-border/50 rounded" />
-            <div class="h-5 w-28 bg-primary-border/70 rounded" />
-            <div class="h-2.5 w-16 bg-primary-border/40 rounded" />
+          <div class="w-6 h-6 rounded-full bg-primary-border/50 shrink-0" />
+          <div class="space-y-1.5 w-full flex flex-col items-center">
+            <div class="h-2.5 w-16 bg-primary-border/50 rounded" />
+            <div class="h-4 w-20 bg-primary-border/70 rounded" />
           </div>
         </div>
       </div>
@@ -32,7 +32,8 @@
       <!-- Stat Strip Skeleton -->
       <div class="bg-card-background/40 border border-primary-border rounded-xl p-5 sm:p-6">
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 text-center divide-y sm:divide-y-0 sm:divide-x divide-primary-border/60">
-          <div v-for="i in 4" :key="i" class="flex flex-col items-center gap-1 pt-2 sm:pt-0">
+          <div v-for="i in 4" :key="i" class="flex flex-col items-center gap-2 pt-2 sm:pt-0">
+            <div class="w-9 h-9 rounded-xl bg-primary-border/40" />
             <div class="h-7 w-16 bg-primary-border/70 rounded" />
             <div class="h-3 w-24 bg-primary-border/40 rounded" />
           </div>
@@ -59,7 +60,7 @@
     <!-- ─── MAIN CONTENT ─────────────────────────────────────────── -->
     <template v-else>
       <!-- 1. Summary Cards Grid (Rendered dynamically from computed array) -->
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
+       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
         <div
           v-for="card in summaryCards"
           :key="card.title"
@@ -351,18 +352,7 @@ import { useClientDepthStore } from "@/stores/clientDepth/clientDepth";
 import {
   Heart,
   Star,
-  DollarSign,
-  Calendar,
-  TrendingUp,
-  TrendingDown,
-  Wallet,
   ChevronDown,
-  Layers,
-  Sparkles,
-  Activity,
-  Zap,
-  Shield,
-  RefreshCw,
 } from "lucide-vue-next";
 
 const route = useRoute();
@@ -643,22 +633,22 @@ const summaryCards = computed(() => [
     icon: "payments",
     iconClass: "text-primary-green/80",
   },
-  {
-    title: "Total Equity",
-    value: `$${formatCurrency(totalEquity.value)}`,
-    valueClass: "text-primary-text",
-    subtext: `${accountsCount.value} ${accountsCount.value === 1 ? 'Account' : 'Accounts'} · Live balance`,
-    icon: "account_balance",
-    iconClass: "text-blue-500/80",
-  },
-  {
-    title: "Net P&L",
-    value: `${netPnl.value >= 0 ? '+' : ''}$${formatCurrency(netPnl.value)}`,
-    valueClass: "text-primary-text",
-    subtext: `${netPnl.value >= 0 ? '↑ Net Profit' : '↓ Net Loss'} · All-time trading`,
-    icon: netPnl.value >= 0 ? "trending_up" : "trending_down",
-    iconClass: netPnl.value >= 0 ? "text-primary-green/80" : "text-primary-red/80",
-  },
+  // {
+  //   title: "Total Equity",
+  //   value: `$${formatCurrency(totalEquity.value)}`,
+  //   valueClass: "text-primary-text",
+  //   subtext: `${accountsCount.value} ${accountsCount.value === 1 ? 'Account' : 'Accounts'} · Live balance`,
+  //   icon: "account_balance",
+  //   iconClass: "text-blue-500/80",
+  // },
+  // {
+  //   title: "Net P&L",
+  //   value: `${netPnl.value >= 0 ? '+' : ''}$${formatCurrency(netPnl.value)}`,
+  //   valueClass: "text-primary-text",
+  //   subtext: `${netPnl.value >= 0 ? '↑ Net Profit' : '↓ Net Loss'} · All-time trading`,
+  //   icon: netPnl.value >= 0 ? "trending_up" : "trending_down",
+  //   iconClass: netPnl.value >= 0 ? "text-primary-green/80" : "text-primary-red/80",
+  // },
   {
     title: "Referral Earnings",
     value: `$${formatCurrency(referralEarnings.value)}`,

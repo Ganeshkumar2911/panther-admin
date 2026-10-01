@@ -19,6 +19,7 @@ export const useClientListStore = defineStore('clientList', () => {
     search: '',
     ib_id: '',
     tag_ids: '',
+    eligible_for_auto_withdrawal: '',
   })
 
   const perPageOptions = [
@@ -53,6 +54,10 @@ export const useClientListStore = defineStore('clientList', () => {
 
     if (filters.tag_ids) {
       params.tag_ids = filters.tag_ids
+    }
+
+    if (filters.eligible_for_auto_withdrawal !== '') {
+      params.eligible_for_auto_withdrawal = filters.eligible_for_auto_withdrawal
     }
 
     return params
@@ -165,6 +170,7 @@ export const useClientListStore = defineStore('clientList', () => {
     filters.search = ''
     filters.ib_id = ''
     filters.tag_ids = ''
+    filters.eligible_for_auto_withdrawal = ''
 
     ibOptions.value = []
 
@@ -185,6 +191,7 @@ export const useClientListStore = defineStore('clientList', () => {
     filters.search = ''
     filters.ib_id = ''
     filters.tag_ids = ''
+    filters.eligible_for_auto_withdrawal = ''
 
     ibOptions.value = []
 

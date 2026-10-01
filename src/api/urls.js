@@ -100,6 +100,7 @@ const urls = {
   },
   fm: {
     list: "/fund_managers",
+    simpleList: "/fm-list",
     create: "/fund_managers/create",
     edit: "/fund_managers/edit",
     requestList: "/fm/requests",
@@ -108,7 +109,8 @@ const urls = {
     settlementPreview: "/settlement/preview",
     settlementRun: "/settlement/run",
     offers: "/fund_managers/offers",
-    followers: (fmId) => (fmId ? `/fund_managers/followers/${fmId}` : "/fund_managers/followers"),
+    followers: (fmId) =>
+      fmId ? `/fund_managers/followers/${fmId}` : "/fund_managers/followers",
     followersHistory: (fmId) => `/fund_managers/followers/${fmId}/history`,
     followersDetails: "fund_managers/followers/info/",
     editFollower: "/fund_managers/followers/edit",
@@ -116,6 +118,10 @@ const urls = {
     offerAgents: "/fund_managers/offers/agents",
     availableJoiners: "/fund_managers/followers/available-joiners",
     addFollower: "/fund_managers/followers/add",
+    openPositionCounts: "/fund_managers/followers/open-position-counts",
+    clearFollowerPositions: (fmId) =>
+      `/fund-managers/${fmId}/clear-follower-positions`,
+    dealsByComment: (fmId) => `/fund_managers/${fmId}/deals/by-comment`,
   },
   tradeBook: {
     filters: "/trade-book/filters",
@@ -398,9 +404,12 @@ const urls = {
     enrollmentDetail: (enrollmentId) => `/loyalty/enrollments/${enrollmentId}`,
     updateEnrollment: (enrollmentId) => `/loyalty/enrollments/${enrollmentId}`,
     deenroll: "/loyalty/enrollments/deenroll",
-    deenrollById: (enrollmentId) => `/loyalty/enrollments/${enrollmentId}/deenroll`,
-    attachEnrollmentAccount: (enrollmentId) => `/loyalty/enrollments/${enrollmentId}/accounts`,
-    detachEnrollmentAccount: (enrollmentId, accountId) => `/loyalty/enrollments/${enrollmentId}/accounts/${accountId}`,
+    deenrollById: (enrollmentId) =>
+      `/loyalty/enrollments/${enrollmentId}/deenroll`,
+    attachEnrollmentAccount: (enrollmentId) =>
+      `/loyalty/enrollments/${enrollmentId}/accounts`,
+    detachEnrollmentAccount: (enrollmentId, accountId) =>
+      `/loyalty/enrollments/${enrollmentId}/accounts/${accountId}`,
     creditWallet: "/loyalty/wallets/credit",
     // Deals & Backfill
     deals: "/loyalty/deals",
@@ -437,7 +446,8 @@ const urls = {
     // Demo Wallets
     demoWallets: "/ib-commission/demo-wallets",
     demoWalletByIb: (ibId) => `/ib-commission/demo-wallets/by-ib/${ibId}`,
-    demoWalletByUser: (userId) => `/ib-commission/demo-wallets/by-user/${userId}`,
+    demoWalletByUser: (userId) =>
+      `/ib-commission/demo-wallets/by-user/${userId}`,
     demoWalletTransactions: "/ib-commission/demo-wallets/transactions",
     // Approvals / Draft Commission Workflow
     approvalPeriods: "/ib-commission/commissions/approvals/periods",
@@ -459,6 +469,21 @@ const urls = {
     unenroll: "/cashback/enrollments/unenroll",
     transactions: "/cashback/transactions",
     redemptions: "/cashback/redemptions",
+    userSearch: "/cashback/user-search",
+  },
+  vendor: {
+    transfers: "/vendor/transfers",
+  },
+  twoFactor: {
+    settings: "/2fa-settings",
+    reset: (userId) => `/users/${userId}/2fa/reset`,
+  },
+  bankRequests: {
+    list: "/bank-accounts",
+    userAccounts: (userId) => `/users/bank-accounts/${userId}`,
+    approve: (id) => `/bank-accounts/${id}/approve`,
+    reject: (id) => `/bank-accounts/${id}/reject`,
+    enableEdit: (userId, id) => `/users/bank-accounts/${userId}/${id}/enable-edit`,
   },
   pamm: {
     list: "/pamm",
@@ -475,4 +500,3 @@ const urls = {
 };
 
 export default urls;
-

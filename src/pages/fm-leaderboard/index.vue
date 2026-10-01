@@ -30,6 +30,7 @@
           v-model="selectedVisibility"
           :options="visibilityOptions"
           placeholder="Visibility"
+          clearable
           class="w-full sm:w-36 xl:w-36"
         />
 
@@ -38,6 +39,7 @@
           v-model="selectedStatus"
           :options="statusOptions"
           placeholder="Status"
+          clearable
           class="w-full sm:w-32 xl:w-32"
         />
 
@@ -46,6 +48,7 @@
           v-model="selectedKyc"
           :options="kycOptions"
           placeholder="KYC Status"
+          clearable
           class="w-full sm:w-36 xl:w-36"
         />
 
@@ -122,7 +125,7 @@
         <!-- Add Fund Manager Button -->
         <button
           v-if="hasPermission('fund_manager.create')"
-          class="flex items-center gap-1.5 px-3.5 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-sm hover:shadow h-9"
+          class="btn-primary h-9"
           @click="handleAdd"
         >
           <Plus class="w-4 h-4" />
@@ -363,7 +366,7 @@
               <div class="flex items-center justify-between">
                 <span class="text-secondary-text text-[11px]">Broker Group</span>
                 <Tooltip v-if="item.broker_group" :text="item.broker_group" placement="left">
-                  <span class="font-medium text-primary-text max-w-[140px] truncate block text-[11px] font-mono">
+                  <span class="font-medium text-primary-text max-w-35 truncate block text-[11px] font-mono">
                     {{ item.broker_group }}
                   </span>
                 </Tooltip>
@@ -417,17 +420,17 @@
         <div
           class="hidden md:block w-full border border-primary-border rounded-2xl overflow-x-auto bg-card-background/40 shadow-sm"
         >
-          <table class="w-full min-w-[980px] border-collapse text-left text-xs">
+          <table class="w-full min-w-245 border-collapse text-left text-xs">
             <thead>
               <tr
                 class="border-b border-primary-border bg-background/60 text-secondary-text font-bold uppercase tracking-wider text-[10px]"
               >
-                <th class="py-3 px-4 w-[260px]">Fund Manager & Email</th>
-                <th class="py-3 px-3 w-[220px]">Master / Coverage Accounts</th>
-                <th class="py-3 px-3 w-[180px]">Capital & Fees</th>
-                <th class="py-3 px-3 w-[170px]">Share Split</th>
-                <th class="py-3 px-3 w-[150px]">Status & Settlement</th>
-                <th class="py-3 px-4 text-right w-[160px]">Actions</th>
+                <th class="py-3 px-4 w-65">Fund Manager & Email</th>
+                <th class="py-3 px-3 w-55">Master / Coverage Accounts</th>
+                <th class="py-3 px-3 w-45">Capital & Fees</th>
+                <th class="py-3 px-3 w-42.5">Share Split</th>
+                <th class="py-3 px-3 w-37.5">Status & Settlement</th>
+                <th class="py-3 px-4 text-right w-40">Actions</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-primary-border/60">
@@ -448,7 +451,7 @@
                       <p class="font-bold text-primary-text text-xs truncate" :title="item.label_name">
                         {{ item.label_name || 'Unnamed FM' }}
                       </p>
-                      <p class="text-[11px] font-semibold text-primary select-all truncate max-w-[210px]" :title="item.user?.email">
+                      <p class="text-[11px] font-semibold text-primary select-all truncate max-w-52.5" :title="item.user?.email">
                         {{ item.user?.email || 'No email' }}
                       </p>
                       <p v-if="item.user?.name" class="text-[10px] text-secondary-text truncate">
@@ -477,7 +480,7 @@
                     </div>
                     <div class="flex items-center gap-1.5 text-[11px]">
                       <Tooltip v-if="item.broker_group" :text="item.broker_group" placement="left">
-                        <span class="truncate max-w-[130px] font-mono text-secondary-text block">
+                        <span class="truncate max-w-32.5 font-mono text-secondary-text block">
                           {{ item.broker_group }}
                         </span>
                       </Tooltip>
@@ -727,9 +730,9 @@ const { goToTradingAccount } = useGoToTradingAccount()
 
 const layoutMode = ref('grid')
 const searchQuery = ref('')
-const selectedVisibility = ref('ALL')
-const selectedStatus = ref('ALL')
-const selectedKyc = ref('ALL')
+const selectedVisibility = ref(null)
+const selectedStatus = ref(null)
+const selectedKyc = ref(null)
 
 const dialogOpen = ref(false)
 const dialogMode = ref('add')
@@ -742,19 +745,16 @@ const fmLoginModalOpen = ref(false)
 const selectedFmForLogin = ref(null)
 
 const visibilityOptions = [
-  { label: 'All Visibility', value: 'ALL' },
   { label: 'Public', value: 'public' },
   { label: 'Private', value: 'private' },
 ]
 
 const statusOptions = [
-  { label: 'All Status', value: 'ALL' },
   { label: 'Active', value: 'active' },
   { label: 'Inactive', value: 'inactive' },
 ]
 
 const kycOptions = [
-  { label: 'All KYC Status', value: 'ALL' },
   { label: 'Approved', value: 'approved' },
   { label: 'Pending', value: 'pending' },
   { label: 'Rejected', value: 'rejected' },
@@ -763,17 +763,17 @@ const kycOptions = [
 const hasActiveFilters = computed(() => {
   return (
     Boolean(searchQuery.value.trim()) ||
-    selectedVisibility.value !== 'ALL' ||
-    selectedStatus.value !== 'ALL' ||
-    selectedKyc.value !== 'ALL'
+    selectedVisibility.value !== null ||
+    selectedStatus.value !== null ||
+    selectedKyc.value !== null
   )
 })
 
 const resetFilters = () => {
   searchQuery.value = ''
-  selectedVisibility.value = 'ALL'
-  selectedStatus.value = 'ALL'
-  selectedKyc.value = 'ALL'
+  selectedVisibility.value = null
+  selectedStatus.value = null
+  selectedKyc.value = null
 }
 
 const filteredData = computed(() => {
@@ -796,16 +796,16 @@ const filteredData = computed(() => {
       }
     }
     // Visibility filter
-    if (selectedVisibility.value !== 'ALL') {
+    if (selectedVisibility.value !== null) {
       if (item.visibility_type !== selectedVisibility.value) return false
     }
     // Status filter
-    if (selectedStatus.value !== 'ALL') {
+    if (selectedStatus.value !== null) {
       const isActive = selectedStatus.value === 'active'
       if (item.is_active !== isActive) return false
     }
     // KYC filter
-    if (selectedKyc.value !== 'ALL') {
+    if (selectedKyc.value !== null) {
       if (item.user?.kyc_status !== selectedKyc.value) return false
     }
     return true

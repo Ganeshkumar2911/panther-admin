@@ -79,7 +79,7 @@
         <template #cell-device="{ row: log }">
           <div class="flex items-center gap-1.5 text-xs text-primary-text">
             <Computer class="w-3.5 h-3.5 shrink-0 text-secondary-text" />
-            <p class="truncate text-[11px] max-w-[140px]" :title="log.request_context?.user_agent || log.user_agent">
+            <p class="truncate text-[11px] max-w-35" :title="log.request_context?.user_agent || log.user_agent">
               {{ parseUserAgent(log.request_context?.user_agent || log.user_agent) }}
             </p>
           </div>
@@ -197,7 +197,7 @@ const tableColumns = [
 
 const fetchClientAuditLogs = (force = false) => {
   const userId = route.params.id;
-  if (!userId || !hasPermission(["new_audit.view", "new_audit"])) return;
+  if (!userId || !hasPermission(["audit.view", "audit"])) return;
 
   store.fetchUserAuditLogs(userId, store.pagination.page, store.pagination.per_page, force);
 };
