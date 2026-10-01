@@ -135,9 +135,9 @@
     </div>
 
     <!-- SKELETON LOADING STATE -->
-    <div v-if="store.isLoading">
+    <div v-if="store.isLoading && layoutMode === 'grid'">
       <!-- Grid Skeleton -->
-      <div v-if="layoutMode === 'grid'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         <div
           v-for="n in 6"
           :key="n"
@@ -160,20 +160,13 @@
           <div class="h-10 bg-background rounded-xl" />
         </div>
       </div>
-
-      <!-- List Skeleton -->
-      <div v-else class="border border-primary-border rounded-2xl overflow-hidden bg-card-background/40">
-        <div class="p-4 space-y-3">
-          <div v-for="n in 5" :key="n" class="h-10 bg-background rounded animate-pulse w-full" />
-        </div>
-      </div>
     </div>
 
     <!-- MAIN DATA DISPLAY -->
     <div v-else>
       <!-- EMPTY STATE -->
       <div
-        v-if="filteredData.length === 0"
+        v-if="!store.isLoading && filteredData.length === 0"
         class="flex flex-col items-center justify-center rounded-2xl border border-dashed border-primary-border bg-card-background/30 py-16 px-4 text-center"
       >
         <div
@@ -416,181 +409,101 @@
 
       <!-- TABLE LIST VIEW -->
       <div v-else-if="layoutMode === 'list'" class="space-y-3">
-        <!-- Desktop Table (md and up) -->
-        <div
-          class="hidden md:block w-full border border-primary-border rounded-2xl overflow-x-auto bg-card-background/40 shadow-sm"
+        <DataTable
+          table-key="fm-leaderboard-table"
+          :data="filteredData"
+          :columns="tableColumns"
+          :loading="store.isLoading"
+          :has-actions="true"
+          :actions="getRowActions"
+          @action="({ item, row }) => onMenuSelect(item, row)"
+          :pagination="store.pagination"
+          @page-change="handlePageChange"
+          @per-page-change="handlePerPageChange"
         >
-          <table class="w-full min-w-245 border-collapse text-left text-xs">
-            <thead>
-              <tr
-                class="border-b border-primary-border bg-background/60 text-secondary-text font-bold uppercase tracking-wider text-[10px]"
+          <!-- Cell: Fund Manager & Email -->
+          <template #cell-fund_manager="{ row: item }">
+            <div class="flex items-center gap-3">
+              <div
+                class="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0"
               >
-                <th class="py-3 px-4 w-65">Fund Manager & Email</th>
-                <th class="py-3 px-3 w-55">Master / Coverage Accounts</th>
-                <th class="py-3 px-3 w-45">Capital & Fees</th>
-                <th class="py-3 px-3 w-42.5">Share Split</th>
-                <th class="py-3 px-3 w-37.5">Status & Settlement</th>
-                <th class="py-3 px-4 text-right w-40">Actions</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-primary-border/60">
-              <tr
-                v-for="item in filteredData"
-                :key="item.id"
-                class="hover:bg-background/50 transition-colors"
-              >
-                <!-- Fund Manager & Email -->
-                <td class="py-3.5 px-4">
-                  <div class="flex items-center gap-3">
-                    <div
-                      class="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 text-primary flex items-center justify-center text-xs font-bold shrink-0"
-                    >
-                      #{{ item.id }}
-                    </div>
-                    <div class="min-w-0">
-                      <p class="font-bold text-primary-text text-xs truncate" :title="item.label_name">
-                        {{ item.label_name || 'Unnamed FM' }}
-                      </p>
-                      <p class="text-[11px] font-semibold text-primary select-all truncate max-w-52.5" :title="item.user?.email">
-                        {{ item.user?.email || 'No email' }}
-                      </p>
-                      <p v-if="item.user?.name" class="text-[10px] text-secondary-text truncate">
-                        {{ item.user.name }}
-                      </p>
-                    </div>
-                  </div>
-                </td>
-
-                <!-- Accounts & Group -->
-                <td class="py-3.5 px-3">
-                  <div class="space-y-0.5">
-                    <div class="font-mono text-[11px] text-primary-text font-semibold">
-                      Master: <span 
-                        class="font-bold text-primary"
-                        :class="{ 'cursor-pointer hover:underline': item.master_account }"
-                        @click.stop="item.master_account && goToTradingAccount(item.master_account?.account_number)"
-                      >{{ item.master_account?.account_number || `#${item.master_account_id}` }}</span>
-                    </div>
-                    <div class="font-mono text-[11px] text-secondary-text">
-                      Coverage: <span 
-                        class="font-semibold text-primary-text"
-                        :class="{ 'cursor-pointer hover:underline': item.coverage_account }"
-                        @click.stop="item.coverage_account && goToTradingAccount(item.coverage_account?.account_number)"
-                      >{{ item.coverage_account?.account_number || `#${item.coverage_account_id}` }}</span>
-                    </div>
-                    <div class="flex items-center gap-1.5 text-[11px]">
-                      <Tooltip v-if="item.broker_group" :text="item.broker_group" placement="left">
-                        <span class="truncate max-w-32.5 font-mono text-secondary-text block">
-                          {{ item.broker_group }}
-                        </span>
-                      </Tooltip>
-                      <span class="text-primary font-bold text-[10px]">1:{{ item.broker_leverage }} {{ item.broker_currency || 'USD' }}</span>
-                    </div>
-                  </div>
-                </td>
-
-                <!-- Capital & Fees -->
-                <td class="py-3.5 px-3 whitespace-nowrap">
-                  <p class="font-extrabold text-primary-text text-xs">
-                    {{ formatMoney(item.min_capital, item.broker_currency) }}
-                  </p>
-                  <p class="text-[10px] text-secondary-text">
-                    Perf: <span class="font-semibold text-primary-text">{{ formatPercent(item.performance_fee) }}</span> · Mgmt: <span class="font-semibold text-primary-text">{{ formatPercent(item.management_fee) }}</span>
-                  </p>
-                </td>
-
-                <!-- Share Split -->
-                <td class="py-3.5 px-3 whitespace-nowrap text-[11px]">
-                  <p class="text-primary-text font-semibold">
-                    Broker {{ formatPercent(item.broker_share) }} · FM {{ formatPercent(item.fm_share) }}
-                  </p>
-                  <p class="text-[10px] text-secondary-text">
-                    IB Pool: {{ formatPercent(item.ib_pool_percentage) }}
-                  </p>
-                </td>
-
-                <!-- Status & Settlement -->
-                <td class="py-3.5 px-3 whitespace-nowrap">
-                  <div class="space-y-1">
-                    <div class="flex items-center gap-1.5 flex-wrap">
-                      <span
-                        class="text-[10px] font-bold tracking-wide uppercase px-2 py-0.5 rounded-full border inline-flex items-center gap-1"
-                        :class="
-                          item.is_active
-                            ? 'bg-primary-green/10 text-primary-green border border-primary-green/20'
-                            : 'bg-background text-secondary-text border border-primary-border'
-                        "
-                      >
-                        <span class="w-1.5 h-1.5 rounded-full" :class="item.is_active ? 'bg-primary-green' : 'bg-zinc-400'" />
-                        {{ item.is_active ? 'Active' : 'Inactive' }}
-                      </span>
-                      <span
-                        class="text-[9px] uppercase tracking-widest font-bold px-1.5 py-0.5 rounded-md border text-secondary-text bg-background/80 border-primary-border"
-                      >
-                        {{ item.visibility_type || 'public' }}
-                      </span>
-                      <span
-                        v-if="item.user?.kyc_status"
-                        class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border"
-                        :class="getKycBadgeClass(item.user.kyc_status)"
-                      >
-                        {{ item.user.kyc_status }}
-                      </span>
-                    </div>
-                    <p class="text-[10px] text-secondary-text capitalize">
-                      {{ item.settlement || item.settlement_type }} ({{ item.settlement_time }})
-                    </p>
-                    <span
-                      class="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-md border inline-block mt-0.5"
-                      :class="{
-                        'bg-primary/10 text-primary border-primary/20': Number(item.follower_account_type) === 1,
-                        'bg-indigo-500/10 text-indigo-500 border-indigo-500/20': Number(item.follower_account_type) === 2,
-                        'bg-primary-green/10 text-primary-green border border-primary-green/20': Number(item.follower_account_type) === 3,
-                      }"
-                    >
-                      {{ getFollowerAccountTypeLabel(item.follower_account_type) }}
-                    </span>
-                  </div>
-                </td>
-
-                <!-- Actions -->
-                <td class="py-3.5 px-4 text-right whitespace-nowrap">
-                  <DropdownMenu
-                    :items="getRowActions(item)"
-                    @select="(menuItem) => onMenuSelect(menuItem, item)"
-                  />
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Mobile / Tablet List View (< md screens) -->
-        <div class="block md:hidden space-y-3">
-          <div
-            v-for="item in filteredData"
-            :key="item.id"
-            class="bg-card-background border border-primary-border rounded-xl p-4 space-y-3 shadow-2xs"
-          >
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2.5 min-w-0">
-                <div class="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 text-primary font-bold text-xs flex items-center justify-center shrink-0">
-                  #{{ item.id }}
-                </div>
-                <div class="min-w-0">
-                  <p class="font-bold text-primary-text text-sm truncate">{{ item.label_name || 'Unnamed FM' }}</p>
-                  <p class="text-[11px] font-semibold text-primary truncate select-all">{{ item.user?.email || 'No email' }}</p>
-                </div>
+                #{{ item.id }}
               </div>
-              <div class="flex flex-col items-end gap-1 shrink-0">
+              <div class="min-w-0">
+                <p class="font-bold text-primary-text text-xs truncate" :title="item.label_name">
+                  {{ item.label_name || 'Unnamed FM' }}
+                </p>
+                <p class="text-[11px] font-semibold text-primary select-all truncate max-w-52.5" :title="item.user?.email">
+                  {{ item.user?.email || 'No email' }}
+                </p>
+                <p v-if="item.user?.name" class="text-[10px] text-secondary-text truncate">
+                  {{ item.user.name }}
+                </p>
+              </div>
+            </div>
+          </template>
+
+          <!-- Cell: Master / Coverage Accounts -->
+          <template #cell-accounts="{ row: item }">
+            <div class="space-y-0.5">
+              <div class="font-mono text-[11px] text-primary-text font-semibold">
+                Master: <span 
+                  class="font-bold text-primary"
+                  :class="{ 'cursor-pointer hover:underline': item.master_account }"
+                  @click.stop="item.master_account && goToTradingAccount(item.master_account?.account_number)"
+                >{{ item.master_account?.account_number || `#${item.master_account_id}` }}</span>
+              </div>
+              <div class="font-mono text-[11px] text-secondary-text">
+                Coverage: <span 
+                  class="font-semibold text-primary-text"
+                  :class="{ 'cursor-pointer hover:underline': item.coverage_account }"
+                  @click.stop="item.coverage_account && goToTradingAccount(item.coverage_account?.account_number)"
+                >{{ item.coverage_account?.account_number || `#${item.coverage_account_id}` }}</span>
+              </div>
+              <div class="flex items-center gap-1.5 text-[11px]">
+                <Tooltip v-if="item.broker_group" :text="item.broker_group" placement="left">
+                  <span class="truncate max-w-32.5 font-mono text-secondary-text block">
+                    {{ item.broker_group }}
+                  </span>
+                </Tooltip>
+                <span class="text-primary font-bold text-[10px]">1:{{ item.broker_leverage }} {{ item.broker_currency || 'USD' }}</span>
+              </div>
+            </div>
+          </template>
+
+          <!-- Cell: Capital & Fees -->
+          <template #cell-capital_fees="{ row: item }">
+            <p class="font-extrabold text-primary-text text-xs">
+              {{ formatMoney(item.min_capital, item.broker_currency) }}
+            </p>
+            <p class="text-[10px] text-secondary-text">
+              Perf: <span class="font-semibold text-primary-text">{{ formatPercent(item.performance_fee) }}</span> · Mgmt: <span class="font-semibold text-primary-text">{{ formatPercent(item.management_fee) }}</span>
+            </p>
+          </template>
+
+          <!-- Cell: Share Split -->
+          <template #cell-share_split="{ row: item }">
+            <p class="text-primary-text font-semibold text-[11px]">
+              Broker {{ formatPercent(item.broker_share) }} · FM {{ formatPercent(item.fm_share) }}
+            </p>
+            <p class="text-[10px] text-secondary-text">
+              IB Pool: {{ formatPercent(item.ib_pool_percentage) }}
+            </p>
+          </template>
+
+          <!-- Cell: Status & Settlement -->
+          <template #cell-status_settlement="{ row: item }">
+            <div class="space-y-1">
+              <div class="flex items-center gap-1.5 flex-wrap">
                 <span
-                  class="text-[10px] font-bold tracking-wide uppercase px-2 py-0.5 rounded-full border"
+                  class="text-[10px] font-bold tracking-wide uppercase px-2 py-0.5 rounded-full border inline-flex items-center gap-1"
                   :class="
                     item.is_active
                       ? 'bg-primary-green/10 text-primary-green border border-primary-green/20'
                       : 'bg-background text-secondary-text border border-primary-border'
                   "
                 >
+                  <span class="w-1.5 h-1.5 rounded-full" :class="item.is_active ? 'bg-primary-green' : 'bg-zinc-400'" />
                   {{ item.is_active ? 'Active' : 'Inactive' }}
                 </span>
                 <span
@@ -598,63 +511,35 @@
                 >
                   {{ item.visibility_type || 'public' }}
                 </span>
+                <span
+                  v-if="item.user?.kyc_status"
+                  class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border"
+                  :class="getKycBadgeClass(item.user.kyc_status)"
+                >
+                  {{ item.user.kyc_status }}
+                </span>
               </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-2 text-xs bg-background/50 border border-primary-border/60 rounded-lg p-2.5">
-              <div>
-                <span class="text-[10px] text-secondary-text block uppercase">Min Capital</span>
-                <span class="font-bold text-primary-text">{{ formatMoney(item.min_capital, item.broker_currency) }}</span>
-              </div>
-              <div>
-                <span class="text-[10px] text-secondary-text block uppercase">Perf Fee</span>
-                <span class="font-bold text-primary">{{ formatPercent(item.performance_fee) }}</span>
-              </div>
-              <div>
-                <span class="text-[10px] text-secondary-text block uppercase">Master Account</span>
-                <span 
-                  class="font-mono text-primary-text font-bold"
-                  :class="{ 'cursor-pointer hover:underline text-primary': item.master_account }"
-                  @click.stop="item.master_account && goToTradingAccount(item.master_account?.account_number)"
-                >{{ item.master_account?.account_number || `#${item.master_account_id}` }}</span>
-              </div>
-              <div>
-                <span class="text-[10px] text-secondary-text block uppercase">Coverage Account</span>
-                <span 
-                  class="font-mono text-primary-text font-bold"
-                  :class="{ 'cursor-pointer hover:underline text-primary': item.coverage_account }"
-                  @click.stop="item.coverage_account && goToTradingAccount(item.coverage_account?.account_number)"
-                >{{ item.coverage_account?.account_number || `#${item.coverage_account_id}` }}</span>
-              </div>
-              <div>
-                <span class="text-[10px] text-secondary-text block uppercase">Follower Type</span>
-                <span class="font-bold text-primary-text">{{ getFollowerAccountTypeLabel(item.follower_account_type) }}</span>
-              </div>
-              <div>
-                <span class="text-[10px] text-secondary-text block uppercase">Settlement Time</span>
-                <span class="font-mono text-primary-text font-bold">{{ item.settlement_time || '—' }}</span>
-              </div>
-            </div>
-
-            <div class="flex items-center justify-between pt-1">
-              <button
-                class="px-2.5 py-1.5 rounded-lg border border-primary-border text-xs font-semibold text-primary-text flex items-center gap-1 cursor-pointer"
-                @click="openDetailsDrawer(item)"
+              <p class="text-[10px] text-secondary-text capitalize">
+                {{ item.settlement || item.settlement_type }} ({{ item.settlement_time }})
+              </p>
+              <span
+                class="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-md border inline-block mt-0.5"
+                :class="{
+                  'bg-primary/10 text-primary border-primary/20': Number(item.follower_account_type) === 1,
+                  'bg-indigo-500/10 text-indigo-500 border-indigo-500/20': Number(item.follower_account_type) === 2,
+                  'bg-primary-green/10 text-primary-green border border-primary-green/20': Number(item.follower_account_type) === 3,
+                }"
               >
-                <Eye class="w-3.5 h-3.5 text-primary" /> Details
-              </button>
-              <DropdownMenu
-                :items="getRowActions(item)"
-                @select="(menuItem) => onMenuSelect(menuItem, item)"
-              />
+                {{ getFollowerAccountTypeLabel(item.follower_account_type) }}
+              </span>
             </div>
-          </div>
-        </div>
+          </template>
+        </DataTable>
       </div>
     </div>
 
     <!-- PAGINATION -->
-    <div class="mt-4">
+    <div class="mt-4" v-if="layoutMode === 'grid'">
       <Pagination
         v-if="store.pagination.total_items > store.pagination.per_page"
         :pagination="store.pagination"
@@ -720,6 +605,7 @@ import FMLoginModal from '@/components/common/FMLoginModal.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import Tooltip from '@/components/common/Tooltip.vue'
 import DropdownMenu from '@/components/common/DropdownMenu.vue'
+import DataTable from '@/components/common/DataTable/DataTable.vue'
 import { usePermissionCheck } from '@/composables/usePermissionCheck'
 import { perPageOptions } from '@/constants/pagination'
 
@@ -743,6 +629,14 @@ const selectedDetailsItem = ref(null)
 
 const fmLoginModalOpen = ref(false)
 const selectedFmForLogin = ref(null)
+
+const tableColumns = [
+  { key: 'fund_manager', title: 'Fund Manager & Email', sortable: false, minWidth: '260px' },
+  { key: 'accounts', title: 'Master / Coverage Accounts', sortable: false, minWidth: '220px' },
+  { key: 'capital_fees', title: 'Capital & Fees', sortable: true, sortKey: 'min_capital', minWidth: '180px' },
+  { key: 'share_split', title: 'Share Split', sortable: false, minWidth: '170px' },
+  { key: 'status_settlement', title: 'Status & Settlement', sortable: false, minWidth: '150px' },
+]
 
 const visibilityOptions = [
   { label: 'Public', value: 'public' },
