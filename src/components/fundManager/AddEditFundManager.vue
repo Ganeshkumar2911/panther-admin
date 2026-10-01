@@ -160,80 +160,23 @@
                 />
               </div>
 
-              <!-- Follower Account Type -->
-              <div class="flex flex-col gap-1.5">
+              <!-- Allowed Trading Modes -->
+              <div class="flex flex-col gap-1.5 sm:col-span-2">
                 <label class="text-xs font-semibold text-secondary-text"
-                  >Follower Account Type</label
+                  >Trading Capabilities</label
                 >
-                <BaseSelect
-                  :modelValue="form.follower_account_type"
-                  :options="followerAccountTypeOptions"
-                  placeholder="Select follower account type"
-                  @update:modelValue="form.follower_account_type = Number($event)"
-                />
-              </div>
-
-              <!-- Follower Account Type Action (Only when changed in Edit mode) -->
-              <div
-                v-if="props.mode === 'edit' && isFollowerAccountTypeChanged"
-                class="flex flex-col gap-2 sm:col-span-2 p-3.5 bg-amber-500/10 border border-amber-500/20 rounded-xl"
-              >
-                <div class="flex items-center gap-1.5">
-                  <AlertTriangle class="w-4 h-4 text-amber-500 shrink-0" />
-                  <label class="text-xs font-bold text-primary-text"
-                    >Follower Account Type Action</label
-                  >
-                </div>
-                <p class="text-[11px] text-secondary-text leading-relaxed">
-                  You changed the follower account type. Choose how to handle existing followers:
-                </p>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-0.5">
-                  <label
-                    class="flex items-start gap-2.5 p-2.5 rounded-lg border cursor-pointer transition-colors"
-                    :class="
-                      form.follower_account_type_action === 'keep'
-                        ? 'bg-primary/10 border-primary text-primary-text'
-                        : 'bg-background border-primary-border text-secondary-text'
-                    "
-                  >
-                    <input
-                      type="radio"
-                      value="keep"
-                      v-model="form.follower_account_type_action"
-                      class="mt-0.5 text-primary focus:ring-primary h-4 w-4"
-                    />
-                    <div>
-                      <span class="text-xs font-semibold block text-primary-text"
-                        >Keep</span
-                      >
-                      <span class="text-[11px] block text-secondary-text"
-                        >Update type only</span
-                      >
-                    </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 bg-background border border-primary-border rounded-xl px-4 py-3">
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" v-model="form.allow_copy_trading" class="text-primary focus:ring-primary h-4 w-4 rounded border-primary-border" />
+                    <span class="text-xs font-medium text-primary-text">Copy Trading</span>
                   </label>
-
-                  <label
-                    class="flex items-start gap-2.5 p-2.5 rounded-lg border cursor-pointer transition-colors"
-                    :class="
-                      form.follower_account_type_action === 'unfollow_and_settle'
-                        ? 'bg-rose-500/10 border-rose-500 text-primary-text'
-                        : 'bg-background border-primary-border text-secondary-text'
-                    "
-                  >
-                    <input
-                      type="radio"
-                      value="unfollow_and_settle"
-                      v-model="form.follower_account_type_action"
-                      class="mt-0.5 text-rose-500 focus:ring-rose-500 h-4 w-4"
-                    />
-                    <div>
-                      <span class="text-xs font-semibold block text-primary-text"
-                        >Unfollow &amp; Settle</span
-                      >
-                      <span class="text-[11px] block text-secondary-text"
-                        >Same client unfollow per affected account, then update type</span
-                      >
-                    </div>
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" v-model="form.allow_pamm" class="text-primary focus:ring-primary h-4 w-4 rounded border-primary-border" />
+                    <span class="text-xs font-medium text-primary-text">PAMM</span>
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" v-model="form.allow_real_trading" class="text-primary focus:ring-primary h-4 w-4 rounded border-primary-border" />
+                    <span class="text-xs font-medium text-primary-text">Real Trading</span>
                   </label>
                 </div>
               </div>
@@ -301,6 +244,41 @@
                       :class="form.allow_fm_pf_share_mode ? 'text-emerald-500' : 'text-zinc-500'"
                     >
                       {{ form.allow_fm_pf_share_mode ? 'Enabled' : 'Disabled' }}
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Allow FM Remove Follower -->
+              <div class="flex flex-col gap-1.5 sm:col-span-2">
+                <label class="text-xs font-semibold text-secondary-text"
+                  >Allow FM Remove Follower</label
+                >
+                <div
+                  class="flex items-center justify-between bg-background border border-primary-border rounded-xl px-4 py-2.5"
+                >
+                  <p class="text-[11px] text-secondary-text leading-relaxed max-w-md">
+                    When enabled, this FM has the permission to remove active followers from their PAMM/Copy trading master accounts.
+                  </p>
+                  <label class="inline-flex items-center gap-2 cursor-pointer shrink-0 ml-4 select-none">
+                    <input
+                      type="checkbox"
+                      role="switch"
+                      v-model="form.allow_fm_remove_follower"
+                      class="peer sr-only"
+                    />
+                    <span
+                      class="relative block h-[22px] w-10 rounded-full bg-zinc-300 transition-colors duration-200 dark:bg-zinc-600 peer-checked:bg-emerald-500 peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500/40 peer-checked:[&>span]:translate-x-[18px]"
+                    >
+                      <span
+                        class="absolute left-[3px] top-[3px] h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200"
+                      ></span>
+                    </span>
+                    <span
+                      class="text-xs font-bold"
+                      :class="form.allow_fm_remove_follower ? 'text-emerald-500' : 'text-zinc-500'"
+                    >
+                      {{ form.allow_fm_remove_follower ? 'Enabled' : 'Disabled' }}
                     </span>
                   </label>
                 </div>
@@ -1048,12 +1026,6 @@ const visibilityOptions = [
   { label: "Private", value: "private" },
 ];
 
-const followerAccountTypeOptions = [
-  { label: "Copy trading only (default)", value: 1 },
-  { label: "Real account only", value: 2 },
-  { label: "Both options", value: 3 },
-];
-
 const currencyOptions = [
   { label: "USD", value: "USD" },
   { label: "USC", value: "USC" },
@@ -1112,8 +1084,10 @@ const form = ref({
   password: "",
   label_name: "",
   visibility_type: "public",
-  follower_account_type: 1,
-  follower_account_type_action: "keep",
+  allow_copy_trading: false,
+  allow_pamm: true,
+  allow_real_trading: false,
+  allow_fm_remove_follower: false,
   is_active: true,
   allow_fm_pf_share_mode: false,
 
@@ -1255,25 +1229,10 @@ const onGroupPresetSelect = (groupValue) => {
 };
 
 // Reset & Auto-fill form fields when drawer opens
-const originalFollowerAccountType = ref(null);
-
-const isFollowerAccountTypeChanged = computed(() => {
-  if (props.mode !== "edit" || originalFollowerAccountType.value == null) return false;
-  return (
-    Number(form.value.follower_account_type) === 2 &&
-    Number(originalFollowerAccountType.value) !== 2
-  );
-});
 
 const resetForm = () => {
   selectedGroupValue.value = "";
   if (props.mode === "edit" && props.item) {
-    const initialFollowerType =
-      props.item.follower_account_type != null
-        ? Number(props.item.follower_account_type)
-        : 1;
-    originalFollowerAccountType.value = initialFollowerType;
-
     const u = props.item.user || {};
     form.value = {
       email: u.email ?? props.item.email ?? "",
@@ -1281,8 +1240,10 @@ const resetForm = () => {
       password: "",
       label_name: props.item.label_name ?? u.name ?? props.item.name ?? "",
       visibility_type: props.item.visibility_type ?? "public",
-      follower_account_type: initialFollowerType,
-      follower_account_type_action: "keep",
+      allow_copy_trading: props.item.allow_copy_trading ?? false,
+      allow_pamm: props.item.allow_pamm ?? true,
+      allow_real_trading: props.item.allow_real_trading ?? false,
+      allow_fm_remove_follower: props.item.allow_fm_remove_follower ?? false,
       is_active: props.item.is_active ?? u.is_active ?? true,
       allow_fm_pf_share_mode: props.item.allow_fm_pf_share_mode ?? false,
 
@@ -1339,7 +1300,6 @@ const resetForm = () => {
         u.kyc_reject_reason ?? props.item.kyc_reject_reason ?? "",
     };
   } else {
-    originalFollowerAccountType.value = null;
     // Add mode initial defaults matching new payload schema
     form.value = {
       email: "",
@@ -1347,8 +1307,10 @@ const resetForm = () => {
       password: "",
       label_name: "",
       visibility_type: "public",
-      follower_account_type: 1,
-      follower_account_type_action: "keep",
+      allow_copy_trading: false,
+      allow_pamm: true,
+      allow_real_trading: false,
+      allow_fm_remove_follower: false,
       is_active: true,
       allow_fm_pf_share_mode: false,
 
@@ -1519,7 +1481,10 @@ const handleSubmit = async () => {
       password: form.value.password,
       label_name: form.value.label_name?.trim() || form.value.name.trim(),
       visibility_type: form.value.visibility_type || "public",
-      follower_account_type: Number(form.value.follower_account_type) || 1,
+      allow_copy_trading: Boolean(form.value.allow_copy_trading),
+      allow_pamm: Boolean(form.value.allow_pamm),
+      allow_real_trading: Boolean(form.value.allow_real_trading),
+      allow_fm_remove_follower: Boolean(form.value.allow_fm_remove_follower),
       is_active: Boolean(form.value.is_active),
       allow_fm_pf_share_mode: Boolean(form.value.allow_fm_pf_share_mode),
 
@@ -1576,7 +1541,10 @@ const handleSubmit = async () => {
         label_name: srcForm.label_name?.trim() || srcForm.name.trim(),
         is_active: Boolean(srcForm.is_active),
         allow_fm_pf_share_mode: Boolean(srcForm.allow_fm_pf_share_mode),
-        follower_account_type: Number(srcForm.follower_account_type) || 1,
+        allow_copy_trading: Boolean(srcForm.allow_copy_trading),
+        allow_pamm: Boolean(srcForm.allow_pamm),
+        allow_real_trading: Boolean(srcForm.allow_real_trading),
+        allow_fm_remove_follower: Boolean(srcForm.allow_fm_remove_follower),
         min_capital: Number(srcForm.min_capital) || 0,
         performance_fee: Number(srcForm.performance_fee) || 0,
         fm_share: Number(srcForm.fm_share) || 0,
@@ -1632,11 +1600,6 @@ const handleSubmit = async () => {
 
       if (srcForm.password && srcForm.password.trim() !== "") {
         payload.password = srcForm.password.trim();
-      }
-
-      if (isFollowerAccountTypeChanged.value) {
-        payload.follower_account_type_action =
-          srcForm.follower_account_type_action || "keep";
       }
 
       return payload;

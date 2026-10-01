@@ -32,6 +32,7 @@ import {
   FileSpreadsheet,
   FolderTree,
   Database,
+  Grid,
   Briefcase,
   Building2,
 } from "lucide-vue-next";
