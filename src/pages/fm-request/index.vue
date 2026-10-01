@@ -7,10 +7,22 @@ import BaseSelect from "@/components/common/BaseSelect.vue";
 import Tooltip from "@/components/common/Tooltip.vue";
 import FmRequestActionDialog from "@/components/fmRequest/FmRequestActionDialog.vue";
 import AddEditFundManager from "@/components/fundManager/AddEditFundManager.vue";
+import DataTable from "@/components/common/DataTable/DataTable.vue";
 import { RefreshCw } from "lucide-vue-next";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 
 const store = useFmRequestStore();
+const tableColumns = [
+  { key: 'user', title: 'User', minWidth: '150px' },
+  { key: 'broker', title: 'Broker', minWidth: '150px' },
+  { key: 'min_capital', title: 'Min Capital', minWidth: '120px' },
+  { key: 'settlement', title: 'Settlement', minWidth: '120px' },
+  { key: 'broker_share', title: 'Broker Share', minWidth: '110px' },
+  { key: 'fm_share', title: 'FM Share', minWidth: '110px' },
+  { key: 'ib_pool', title: 'IB Pool', minWidth: '110px' },
+  { key: 'perf_fee', title: 'Perf. Fee', minWidth: '110px' },
+  { key: 'status', title: 'Status', minWidth: '110px' }
+];
 const { hasPermission } = usePermissionCheck();
 const activeStatus = ref(null);
 
@@ -35,6 +47,11 @@ const onSearch = (val) => {
 const handlePageChange = (page) => {
   store.pagination.page = page;
   store.fetchFmRequests(true, page, activeStatus.value, store.search);
+};
+
+const handlePerPageChange = (val) => {
+  const newPerPage = (val && typeof val === 'object' && val.per_page) ? val.per_page : val;
+  store.updatePerPage(newPerPage, activeStatus.value);
 };
 
 const handleAccept = (item) => {
@@ -118,13 +135,6 @@ onMounted(() => {
           @filter="onFilter"
           @search="onSearch"
         />
-        <BaseSelect
-          :modelValue="store.pagination.per_page"
-          :options="store.perPageOptions"
-          placeholder="Per page..."
-          class="w-28 sm:w-32"
-          @update:modelValue="(val) => store.updatePerPage(val, activeStatus)"
-        />
         <Tooltip text="Refresh" position="right">
           <button
             type="button"
@@ -148,250 +158,121 @@ onMounted(() => {
       </button> -->
     </div>
 
-    <div class="w-full overflow-x-auto">
-      <table class="w-full border-collapse">
-        <thead>
-          <tr class="border-b border-primary-border">
-            <th
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest pb-3 px-3"
-            >
-              User
-            </th>
-            <th
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest pb-3 px-3"
-            >
-              Broker
-            </th>
-            <th
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest pb-3 px-3"
-            >
-              Min Capital
-            </th>
-            <th
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest pb-3 px-3"
-            >
-              Settlement
-            </th>
-            <th
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest pb-3 px-3"
-            >
-              Broker Share
-            </th>
-            <th
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest pb-3 px-3"
-            >
-              FM Share
-            </th>
-            <th
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest pb-3 px-3"
-            >
-              IB Pool
-            </th>
-            <th
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest pb-3 px-3"
-            >
-              Perf. Fee
-            </th>
-            <th
-              class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest pb-3 px-3"
-            >
-              Status
-            </th>
-            <th
-              class="text-center text-[11px] font-medium text-secondary-text uppercase tracking-widest pb-3 px-3"
-            >
-              Actions
-            </th>
-          </tr>
-        </thead>
-
-        <tbody v-if="store.isLoading">
-          <tr
-            v-for="n in 6"
-            :key="n"
-            class="border-b border-primary-border animate-pulse"
-          >
-            <td class="px-3 py-3.5">
-              <div class="space-y-1.5">
-                <div class="h-3 w-28 bg-card-background rounded" />
-                <div class="h-2.5 w-16 bg-card-background rounded" />
-              </div>
-            </td>
-            <td class="px-3 py-3.5">
-              <div class="space-y-1.5">
-                <div class="h-3 w-28 bg-card-background rounded" />
-                <div class="h-2.5 w-20 bg-card-background rounded" />
-              </div>
-            </td>
-            <td class="px-3 py-3.5">
-              <div class="h-3 w-20 bg-card-background rounded" />
-            </td>
-            <td class="px-3 py-3.5">
-              <div class="h-3 w-20 bg-card-background rounded" />
-            </td>
-            <td class="px-3 py-3.5">
-              <div class="h-3 w-10 bg-card-background rounded" />
-            </td>
-            <td class="px-3 py-3.5">
-              <div class="h-3 w-10 bg-card-background rounded" />
-            </td>
-            <td class="px-3 py-3.5">
-              <div class="h-3 w-10 bg-card-background rounded" />
-            </td>
-            <td class="px-3 py-3.5">
-              <div class="h-3 w-10 bg-card-background rounded" />
-            </td>
-            <td class="px-3 py-3.5">
-              <div class="flex justify-end">
-                <div class="h-5 w-16 bg-card-background rounded-full" />
-              </div>
-            </td>
-            <td class="px-3 py-3.5">
-              <div class="flex justify-center gap-2">
-                <div class="h-8 w-8 bg-card-background rounded" />
-                <div class="h-8 w-8 bg-card-background rounded" />
-              </div>
-            </td>
-          </tr>
-        </tbody>
-
-        <tbody v-else>
-          <tr
-            v-for="item in store.data"
-            :key="item.request_id"
-            class="border-b border-primary-border last:border-none hover:bg-card-background transition-colors"
-          >
-            <td class="px-3 py-3.5">
-              <p class="text-xs font-medium text-primary-text">
-                {{ item.user_email }}
-              </p>
-              <p class="text-[11px] text-secondary-text mt-0.5">
-                ID {{ item.user_id }}
-              </p>
-              <p class="text-[11px] text-secondary-text mt-0.5">
-                {{ item.created_at }}
-              </p>
-            </td>
-            <td class="px-3 py-3.5">
-              <p class="text-xs font-medium text-primary-text">
-                {{ item.broker_currency }}
-              </p>
-              <p class="text-[11px] text-secondary-text mt-0.5 break-all">
-                {{ item.broker_group }}
-              </p>
-              <p class="text-[11px] text-secondary-text mt-0.5">
-                Leverage: {{ item.broker_leverage }}
-              </p>
-              <p class="text-[11px] text-secondary-text mt-0.5">
-                Category: {{ item.broker_category }}
-              </p>
-            </td>
-            <td class="px-3 py-3.5 text-xs text-primary-text">
-              {{ formatMoney(item.min_capital, item.broker_currency) }}
-            </td>
-            <td class="px-3 py-3.5">
-              <p class="text-xs text-primary-text capitalize">
-                {{ item.settlement_type }}
-              </p>
-              <p class="text-[11px] text-secondary-text mt-0.5">
-                {{ item.settlement_time }}
-              </p>
-            </td>
-            <td class="px-3 py-3.5 text-xs text-primary-text">
-              {{ item.broker_share }}%
-            </td>
-            <td class="px-3 py-3.5 text-xs text-primary-text">
-              {{ item.fm_share }}%
-            </td>
-            <td class="px-3 py-3.5 text-xs text-primary-text">
-              {{ item.ib_pool_percentage }}%
-            </td>
-            <td class="px-3 py-3.5 text-xs text-primary-text">
-              {{ item.performance_fee }}%
-            </td>
-            <td class="px-3 py-3.5 text-xs text-primary-text">
-              <span
-                class="text-[11px] font-medium px-2.5 py-1 rounded-full border"
-                :class="{
-                  'bg-primary-green/50 border-green-200':
-                    item.status === 'approved',
-                  'bg-yellow-50 text-yellow-800 border-yellow-200':
-                    item.status === 'pending',
-                  'bg-primary-red/50 border-red-200':
-                    item.status === 'rejected',
-                }"
-              >
-                {{ item.status }}
-              </span>
-            </td>
-            <td class="px-3 py-3.5">
-              <div
-                v-if="
-                  item.status === 'pending' &&
-                  (hasPermission('fm_request.approve') ||
-                    hasPermission('fm_request.reject'))
-                "
-                class="flex justify-center gap-2"
-              >
-                <Tooltip
-                  v-if="hasPermission('fm_request.approve')"
-                  text="Accept"
-                >
-                  <button
-                    class="inline-flex items-center justify-center w-8 h-8 border border-gray-300 rounded bg-gray-100 text-green-500 cursor-pointer transition-all duration-200 hover:bg-primary-green/50 hover:border-green-500"
-                    @click="handleAccept(item)"
-                  >
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    >
-                      <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                  </button>
-                </Tooltip>
-                <Tooltip
-                  v-if="hasPermission('fm_request.reject')"
-                  text="Reject"
-                >
-                  <button
-                    class="inline-flex items-center justify-center w-8 h-8 border border-gray-300 rounded bg-gray-100 text-red-500 cursor-pointer transition-all duration-200 hover:bg-primary-red/50 hover:border-red-500"
-                    @click="handleReject(item)"
-                  >
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    >
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                  </button>
-                </Tooltip>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="mt-4">
-      <Pagination
-        v-if="store.pagination.total_items > store.pagination.per_page"
+    <div class="w-full overflow-hidden mt-4">
+      <DataTable
+        table-key="fm-request-table"
+        :data="store.data"
+        :columns="tableColumns"
+        :loading="store.isLoading"
         :pagination="store.pagination"
+        :actions="[]"
         @page-change="handlePageChange"
-      />
+        @per-page-change="handlePerPageChange"
+      >
+        <template #cell-user="{ row: item }">
+          <p class="text-xs font-medium text-primary-text">{{ item.user_email }}</p>
+          <p class="text-[11px] text-secondary-text mt-0.5">ID {{ item.user_id }}</p>
+          <p class="text-[11px] text-secondary-text mt-0.5">{{ item.created_at }}</p>
+        </template>
+
+        <template #cell-broker="{ row: item }">
+          <p class="text-xs font-medium text-primary-text">{{ item.broker_currency }}</p>
+          <p class="text-[11px] text-secondary-text mt-0.5 break-all">{{ item.broker_group }}</p>
+          <p class="text-[11px] text-secondary-text mt-0.5">Leverage: {{ item.broker_leverage }}</p>
+          <p class="text-[11px] text-secondary-text mt-0.5">Category: {{ item.broker_category }}</p>
+        </template>
+
+        <template #cell-min_capital="{ row: item }">
+          <span class="text-xs text-primary-text">{{ formatMoney(item.min_capital, item.broker_currency) }}</span>
+        </template>
+
+        <template #cell-settlement="{ row: item }">
+          <p class="text-xs text-primary-text capitalize">{{ item.settlement_type }}</p>
+          <p class="text-[11px] text-secondary-text mt-0.5">{{ item.settlement_time }}</p>
+        </template>
+
+        <template #cell-broker_share="{ row: item }">
+          <span class="text-xs text-primary-text">{{ item.broker_share }}%</span>
+        </template>
+
+        <template #cell-fm_share="{ row: item }">
+          <span class="text-xs text-primary-text">{{ item.fm_share }}%</span>
+        </template>
+
+        <template #cell-ib_pool="{ row: item }">
+          <span class="text-xs text-primary-text">{{ item.ib_pool_percentage }}%</span>
+        </template>
+
+        <template #cell-perf_fee="{ row: item }">
+          <span class="text-xs text-primary-text">{{ item.performance_fee }}%</span>
+        </template>
+
+        <template #cell-status="{ row: item }">
+          <span
+            class="text-[11px] font-medium px-2.5 py-1 rounded-full border"
+            :class="{
+              'bg-primary-green/50 border-green-200': item.status === 'approved',
+              'bg-yellow-50 text-yellow-800 border-yellow-200': item.status === 'pending',
+              'bg-primary-red/50 border-red-200': item.status === 'rejected',
+            }"
+          >
+            {{ item.status }}
+          </span>
+        </template>
+
+        <template #actions="{ row: item }">
+          <div
+            v-if="
+              item.status === 'pending' &&
+              (hasPermission('fm_request.approve') || hasPermission('fm_request.reject'))
+            "
+            class="flex justify-center gap-2"
+          >
+            <Tooltip v-if="hasPermission('fm_request.approve')" text="Accept">
+              <button
+                class="inline-flex items-center justify-center w-8 h-8 border border-gray-300 rounded bg-gray-100 text-green-500 cursor-pointer transition-all duration-200 hover:bg-primary-green/50 hover:border-green-500"
+                @click="handleAccept(item)"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </button>
+            </Tooltip>
+            <Tooltip v-if="hasPermission('fm_request.reject')" text="Reject">
+              <button
+                class="inline-flex items-center justify-center w-8 h-8 border border-gray-300 rounded bg-gray-100 text-red-500 cursor-pointer transition-all duration-200 hover:bg-primary-red/50 hover:border-red-500"
+                @click="handleReject(item)"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </Tooltip>
+          </div>
+        </template>
+      </DataTable>
     </div>
+
+
     <FmRequestActionDialog
       :open="dialogOpen"
       :item="selectedItem"

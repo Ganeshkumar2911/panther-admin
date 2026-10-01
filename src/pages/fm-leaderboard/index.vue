@@ -782,7 +782,8 @@ const handlePageChange = (page) => {
 }
 
 const handlePerPageChange = (val) => {
-  store.updatePerPage(val)
+  const newPerPage = (val && typeof val === 'object' && val.per_page) ? val.per_page : val
+  store.updatePerPage(newPerPage)
 }
 
 const handleSettlement = (item) => {
