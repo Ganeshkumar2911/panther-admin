@@ -439,6 +439,7 @@ const urls = {
     rejectCommission: (id) => `/ib-commission/commissions/${id}/reject`,
     bulkApproveCommissions: "/ib-commission/commissions/approve-bulk",
     // Payout Settings & Settlement Batches
+    eligibilitySettings: "/ib-commission/settings/eligibility",
     payoutAllSettings: "/ib-commission/settings/payout-all",
     ibPayoutSettings: (ibId) => `/ib-commission/ibs/${ibId}/payout-settings`,
     settlements: "/ib-commission/settlements",
