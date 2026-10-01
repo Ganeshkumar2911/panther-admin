@@ -120,7 +120,9 @@ const formatMoney = (value, currency = "USD") => {
 };
 
 onMounted(() => {
-  store.fetchFmRequests();
+  if (!store.isFetched) {
+    store.fetchFmRequests();
+  }
 });
 </script>
 

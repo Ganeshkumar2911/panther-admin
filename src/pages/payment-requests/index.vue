@@ -1215,7 +1215,12 @@ const route = useRoute();
 onMounted(() => {
   if (route.query.id) {
     store.filters.id = route.query.id;
+    if (route.query.detail === 'true') {
+      store.filters.detailMode = true;
+    }
+    store.applyFilters();
+  } else if (!store.isFetched) {
+    store.fetchRequests();
   }
-  store.fetchRequests();
 });
 </script>

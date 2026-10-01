@@ -502,15 +502,23 @@
             <div class="grid grid-cols-2 gap-3 text-xs">
               <div>
                 <span class="text-secondary-text block text-[11px] mb-0.5">Assigned To Admin</span>
-                <span class="font-mono font-medium text-primary-text">
-                  {{ transfer?.assigned_to ? `#${transfer.assigned_to}` : 'Unassigned' }}
+                <span class="font-medium text-primary-text block truncate" :title="transfer?.assigned_to_email">
+                  {{ transfer?.assigned_to_name || (transfer?.assigned_to ? 'Admin' : 'Unassigned') }}
+                  <span v-if="transfer?.assigned_to" class="font-mono text-primary-text/80 ml-1">#{{ transfer.assigned_to }}</span>
+                </span>
+                <span v-if="transfer?.assigned_to_email" class="text-[10px] text-secondary-text truncate block mt-0.5" :title="transfer.assigned_to_email">
+                  {{ transfer.assigned_to_email }}
                 </span>
               </div>
 
               <div>
                 <span class="text-secondary-text block text-[11px] mb-0.5">Submitted By Admin</span>
-                <span class="font-mono font-medium text-primary-text">
-                  {{ transfer?.submitted_by ? `#${transfer.submitted_by}` : '—' }}
+                <span class="font-medium text-primary-text block truncate" :title="transfer?.submitted_by_email">
+                  {{ transfer?.submitted_by_name || (transfer?.submitted_by ? 'Admin' : '—') }}
+                  <span v-if="transfer?.submitted_by" class="font-mono text-primary-text/80 ml-1">#{{ transfer.submitted_by }}</span>
+                </span>
+                <span v-if="transfer?.submitted_by_email" class="text-[10px] text-secondary-text truncate block mt-0.5" :title="transfer.submitted_by_email">
+                  {{ transfer.submitted_by_email }}
                 </span>
               </div>
 
