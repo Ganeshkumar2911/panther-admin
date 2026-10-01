@@ -80,7 +80,7 @@
           type="button"
           @click="handleClose"
           :disabled="loading"
-          class="px-4 py-2 rounded-xl text-xs font-semibold text-secondary-text hover:text-primary-text border border-primary-border hover:bg-background transition-colors cursor-pointer disabled:opacity-50"
+          class="btn-secondary"
         >
           Cancel
         </button>
@@ -89,7 +89,7 @@
           type="button"
           @click="handleSubmit"
           :disabled="loading || !reason.trim()"
-          class="flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-bold bg-primary-red hover:bg-primary-red/90 text-white transition-all shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          class="btn-danger px-5 py-2"
         >
           <HugeIcon v-if="loading" :icon="Loading03Icon" :size="14" class="animate-spin" />
           <span>{{ loading ? 'Rejecting...' : 'Reject Account' }}</span>

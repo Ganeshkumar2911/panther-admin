@@ -218,7 +218,7 @@
             <button
               type="button"
               @click="openProofModal(row)"
-              class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-background border border-primary-border text-secondary-text hover:text-primary-text hover:border-primary/40 transition-colors cursor-pointer shadow-2xs"
+              class="btn-secondary px-2.5 py-1 text-xs"
             >
               <HugeIcon :icon="FileAttachmentIcon" :size="13" class="text-primary" />
               <span>Verify Proof</span>
@@ -254,8 +254,7 @@
               type="button"
               @click="toggleEditLock(row)"
               :disabled="store.actionLoading"
-              class="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition-colors cursor-pointer shadow-2xs disabled:opacity-50"
-              :class="row.flag_enable_edit ? 'bg-primary-yellow/10 border-primary-yellow/30 text-primary-yellow hover:bg-primary-yellow/20' : 'bg-background border-primary-border text-secondary-text hover:text-primary-text'"
+              :class="row.flag_enable_edit ? 'btn-warning px-2.5 py-1 text-[11px]' : 'btn-secondary px-2.5 py-1 text-[11px]'"
               :title="row.flag_enable_edit ? 'Edit unlocked by user. Click to lock.' : 'Edit locked. Click to allow client editing.'"
             >
               <HugeIcon :icon="row.flag_enable_edit ? PencilEdit01Icon : LockPasswordIcon" :size="12" />
@@ -287,7 +286,7 @@
               type="button"
               @click="openApproveConfirm(row)"
               :disabled="store.actionLoading"
-              class="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-primary-green/10 text-primary-green border border-primary-green/20 hover:bg-primary-green hover:text-white transition-colors cursor-pointer disabled:opacity-50 shadow-2xs"
+              class="btn-success px-2.5 py-1"
               title="Approve Bank Account"
             >
               <HugeIcon :icon="CheckmarkCircle02Icon" :size="13" />
@@ -300,7 +299,7 @@
               type="button"
               @click="openRejectModal(row)"
               :disabled="store.actionLoading"
-              class="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-primary-red/10 text-primary-red border border-primary-red/20 hover:bg-primary-red hover:text-white transition-colors cursor-pointer disabled:opacity-50 shadow-2xs"
+              class="btn-danger px-2.5 py-1"
               title="Reject Bank Account"
             >
               <HugeIcon :icon="Cancel01Icon" :size="13" />
@@ -311,7 +310,7 @@
             <button
               type="button"
               @click="openUserAccountsDrawer(row.user_id)"
-              class="p-1.5 rounded-lg bg-background border border-primary-border text-secondary-text hover:text-primary-text hover:border-primary/40 transition-colors cursor-pointer shadow-2xs"
+              class="btn-icon p-1.5"
               title="View all bank accounts for this user"
             >
               <HugeIcon :icon="Building02Icon" :size="14" />

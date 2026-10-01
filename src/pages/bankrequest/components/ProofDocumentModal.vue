@@ -30,7 +30,7 @@
             :href="documentUrl"
             target="_blank"
             rel="noopener noreferrer"
-            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-background border border-primary-border text-secondary-text hover:text-primary-text hover:border-primary/40 transition-colors"
+            class="btn-secondary px-3 py-1.5"
             title="Open in new tab"
           >
             <HugeIcon :icon="LinkSquare01Icon" :size="14" />
@@ -51,7 +51,7 @@
           <button
             type="button"
             @click="handleClose"
-            class="text-secondary-text hover:text-primary-text p-1.5 rounded-lg transition-colors cursor-pointer"
+            class="btn-icon p-1.5"
           >
             <HugeIcon :icon="Cancel01Icon" :size="18" />
           </button>
@@ -133,7 +133,7 @@
         <button
           type="button"
           @click="handleClose"
-          class="px-4 py-1.5 rounded-xl text-xs font-semibold text-secondary-text hover:text-primary-text border border-primary-border hover:bg-background transition-colors cursor-pointer"
+          class="btn-secondary"
         >
           Close Preview
         </button>

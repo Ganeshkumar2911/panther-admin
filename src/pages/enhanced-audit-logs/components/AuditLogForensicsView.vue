@@ -3,7 +3,7 @@
     <!-- ══════════════════════════════════════════════════════════════ -->
     <!-- 0. LOADING SKELETON (Renders smoothly during API call)        -->
     <!-- ══════════════════════════════════════════════════════════════ -->
-    <div v-if="isInitialLoading || store.detailLoading" class="space-y-4 pb-12 font-sans animate-pulse select-none">
+    <div v-if="isInitialLoading || store.detailLoading" class="space-y-4 pt-4 pb-12 font-sans animate-pulse select-none">
       <!-- HERO CARD SKELETON -->
       <div class="bg-card-background rounded-xl p-5 border border-primary-border space-y-4">
         <!-- Title row skeleton -->
@@ -196,11 +196,11 @@
     <!-- ══════════════════════════════════════════════════════════════ -->
     <!-- ACTIVE DYNAMIC CONTENT (100% Dynamic - Zero Hardcoding)        -->
     <!-- ══════════════════════════════════════════════════════════════ -->
-    <div v-else class="space-y-4 pb-12 font-sans text-primary-text">
+    <div v-else class="space-y-4 pt-4 pb-12 font-sans text-primary-text">
       <!-- ══════════════════════════════════════════════════════════════ -->
       <!-- 1. HERO CARD                                                  -->
       <!-- ══════════════════════════════════════════════════════════════ -->
-      <div class="relative bg-card-background rounded-xl p-5 border border-primary-border space-y-4 overflow-hidden">
+      <div class="relative bg-card-background rounded-xl p-5 border border-primary-border space-y-4 overflow-hidden isolate">
         <!-- Dynamic primary gradient aura/wave (top-right) -->
         <div class="absolute right-0 top-0 bottom-0 w-2/3 pointer-events-none overflow-hidden select-none">
           <svg class="absolute right-0 top-0 h-full w-full" viewBox="0 0 600 220" fill="none" preserveAspectRatio="none">
@@ -456,7 +456,7 @@
         </div>
 
         <!-- RIGHT : Location & Network -->
-        <div class="bg-card-background rounded-xl p-5 border border-primary-border flex flex-col justify-between space-y-4 h-full">
+        <div class="bg-card-background rounded-xl p-5 border border-primary-border flex flex-col justify-between space-y-4 h-full isolate relative z-0">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
               <ShieldCheck class="w-4 h-4" />
@@ -739,8 +739,17 @@ const reqLabel = 'text-secondary-text text-[11px] font-normal'
 
 const handleBack = () => {
   emit('back')
-  if (route?.name === 'enhanced-audit-log-details' || route?.path?.includes('/enhanced-audit-logs/')) {
+  if (route?.name === 'client-details-audit-log-detail' || route?.path?.includes('/client/details/')) {
+    const clientId = route.params.id
+    if (clientId) {
+      router.push(`/client/details/${clientId}?tab=audit-logs`)
+    } else {
+      router.back()
+    }
+  } else if (route?.name === 'enhanced-audit-log-details' || route?.path?.includes('/enhanced-audit-logs/')) {
     router.push('/enhanced-audit-logs')
+  } else {
+    router.back()
   }
 }
 
@@ -793,6 +802,7 @@ const unwrapRecord = (val) => {
 
 const computedEventId = computed(() => {
   if (props.eventId && props.eventId !== '—') return props.eventId
+  if (route?.params?.logId) return route.params.logId
   if (route?.params?.id) return route.params.id
   const r = rawRecord.value
   return r.audit?.id || r.audit_log_id || r.id || r.reference_id || '—'
@@ -865,7 +875,7 @@ onMounted(async () => {
 })
 
 watch(
-  () => route?.params?.id,
+  () => [route?.params?.logId, route?.params?.id],
   () => {
     loadRecordDetails()
   }

@@ -1,50 +1,61 @@
 <template>
-  <div
-    v-if="open"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto"
-    @click.self="handleClose"
-  >
-    <div
-      class="bg-card-background border border-primary-border rounded-2xl w-full max-w-2xl flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150 my-auto max-h-[92vh]"
-    >
-      <!-- Dialog Header -->
+  <Teleport to="body">
+    <!-- Backdrop Overlay -->
+    <Transition name="backdrop">
       <div
-        class="flex items-center justify-between px-6 py-4 border-b border-primary-border shrink-0 bg-background/50"
-      >
-        <div class="flex items-center gap-3 min-w-0">
-          <div
-            class="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0"
-          >
-            <UserPlus class="w-5 h-5" />
-          </div>
-          <div class="min-w-0">
-            <div class="flex items-center gap-2 flex-wrap">
-              <h3 class="text-base font-bold text-primary-text truncate">
-                Add Follower to Fund Manager
-              </h3>
-              <span
-                v-if="resolvedFmId"
-                class="text-xs font-mono font-bold px-2 py-0.5 rounded-md border border-primary/20 bg-primary/10 text-primary"
-              >
-                FM #{{ resolvedFmId }}
-              </span>
-            </div>
-            <p class="text-xs text-secondary-text truncate mt-0.5">
-              Subscribe a client trading account to this Fund Manager strategy
-            </p>
-          </div>
-        </div>
-        <button
-          type="button"
-          class="p-1.5 rounded-lg text-secondary-text hover:text-primary-text hover:bg-background transition cursor-pointer"
-          @click="handleClose"
-        >
-          <X class="w-5 h-5" />
-        </button>
-      </div>
+        v-if="open"
+        class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs transition-opacity cursor-pointer"
+        @click="handleClose"
+      />
+    </Transition>
 
-      <!-- Scrollable Form Content -->
-      <div class="p-6 space-y-5 text-xs overflow-y-auto flex-1">
+    <!-- Side Panel Drawer -->
+    <Transition name="drawer">
+      <div
+        v-if="open"
+        class="fixed right-0 top-0 bottom-0 z-[101] w-full max-w-xl sm:max-w-2xl bg-card-background border-l border-primary-border flex flex-col shadow-2xl overflow-hidden"
+        role="dialog"
+        aria-modal="true"
+        @click.stop
+      >
+        <!-- Dialog Header -->
+        <div
+          class="flex items-center justify-between px-6 py-4 border-b border-primary-border shrink-0 bg-background/50"
+        >
+          <div class="flex items-center gap-3 min-w-0">
+            <div
+              class="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0"
+            >
+              <UserPlus class="w-5 h-5" />
+            </div>
+            <div class="min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                <h3 class="text-base font-bold text-primary-text truncate">
+                  Add Follower to Fund Manager
+                </h3>
+                <span
+                  v-if="resolvedFmId"
+                  class="text-xs font-mono font-bold px-2 py-0.5 rounded-md border border-primary/20 bg-primary/10 text-primary"
+                >
+                  FM #{{ resolvedFmId }}
+                </span>
+              </div>
+              <p class="text-xs text-secondary-text truncate mt-0.5">
+                Subscribe a client trading account to this Fund Manager strategy
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            class="btn-icon p-1.5"
+            @click="handleClose"
+          >
+            <X class="w-5 h-5" />
+          </button>
+        </div>
+
+        <!-- Scrollable Form Content -->
+        <div class="p-6 space-y-5 text-xs overflow-y-auto flex-1 no-scrollbar">
         <!-- Error Banner -->
         <div
           v-if="errorMessage"
@@ -538,7 +549,7 @@
       >
         <button
           type="button"
-          class="px-4 py-2 rounded-lg border border-primary-border text-secondary-text hover:text-primary-text hover:bg-background transition cursor-pointer text-xs font-semibold"
+          class="btn-secondary"
           :disabled="isSubmitting"
           @click="handleClose"
         >
@@ -548,7 +559,7 @@
         <button
           type="button"
           :disabled="isSubmitDisabled"
-          class="flex items-center gap-2 px-5 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-xs"
+          class="btn-primary"
           @click="handleSubmit"
         >
           <Loader2 v-if="isSubmitting" class="w-3.5 h-3.5 animate-spin" />
@@ -558,7 +569,8 @@
         </button>
       </div>
     </div>
-  </div>
+    </Transition>
+  </Teleport>
 </template>
 
 <script setup>
@@ -964,3 +976,23 @@ const handleSubmit = () => {
   });
 };
 </script>
+
+<style scoped>
+.backdrop-enter-active,
+.backdrop-leave-active {
+  transition: opacity 0.25s ease-out;
+}
+.backdrop-enter-from,
+.backdrop-leave-to {
+  opacity: 0;
+}
+
+.drawer-enter-active,
+.drawer-leave-active {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.drawer-enter-from,
+.drawer-leave-to {
+  transform: translateX(100%);
+}
+</style>

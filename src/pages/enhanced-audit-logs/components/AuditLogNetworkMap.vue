@@ -1,12 +1,12 @@
 <template>
-  <div class="relative w-full h-full min-h-[300px] lg:min-h-[360px] rounded-xl overflow-hidden border border-primary-border bg-background shadow-inner select-none flex flex-col">
+  <div class="isolate relative z-0 w-full h-full min-h-[300px] lg:min-h-[360px] rounded-xl overflow-hidden border border-primary-border bg-background shadow-inner select-none flex flex-col">
     <!-- Leaflet Map Container -->
     <div ref="mapContainer" class="w-full flex-1 h-full min-h-[280px] z-0"></div>
 
     <!-- Loading State Overlay -->
     <div
       v-if="isLoading"
-      class="absolute inset-0 bg-background/50 backdrop-blur-xs flex items-center justify-center z-20 transition-opacity"
+      class="absolute inset-0 bg-background/50 backdrop-blur-xs flex items-center justify-center z-10 transition-opacity"
     >
       <div class="flex items-center gap-2 bg-card-background/90 px-3 py-1.5 rounded-lg border border-primary-border shadow-sm text-[11px] text-primary-text font-semibold">
         <div class="w-3 h-3 rounded-full border-2 border-primary border-t-transparent animate-spin"></div>
@@ -17,7 +17,7 @@
     <!-- Recenter / Focus Location Button (Top-Right) -->
     <button
       type="button"
-      class="absolute top-2.5 right-2.5 z-20 bg-card-background/95 hover:bg-card-background backdrop-blur-md px-3 py-1.5 rounded-lg border border-primary-border shadow-md text-xs font-semibold text-primary flex items-center gap-1.5 transition-all hover:border-primary active:scale-95 cursor-pointer"
+      class="absolute top-2.5 right-2.5 z-10 bg-card-background/95 hover:bg-card-background backdrop-blur-md px-3 py-1.5 rounded-lg border border-primary-border shadow-md text-xs font-semibold text-primary flex items-center gap-1.5 transition-all hover:border-primary active:scale-95 cursor-pointer"
       title="Recenter Map to Location Pointer"
       @click="recenterMap"
     >
@@ -27,7 +27,7 @@
 
     <!-- Location & Coordinates Overlay Badge (Bottom-Left - Clickable to Recenter) -->
     <div
-      class="absolute bottom-2.5 left-2.5 z-20 bg-card-background/95 backdrop-blur-md px-3 py-1.5 rounded-xl border border-primary-border shadow-md flex items-center gap-2 max-w-[90%] cursor-pointer hover:border-primary transition-all group"
+      class="absolute bottom-2.5 left-2.5 z-10 bg-card-background/95 backdrop-blur-md px-3 py-1.5 rounded-xl border border-primary-border shadow-md flex items-center gap-2 max-w-[90%] cursor-pointer hover:border-primary transition-all group"
       title="Click to center on this location"
       @click="recenterMap"
     >
@@ -390,6 +390,8 @@ onBeforeUnmount(() => {
   background: var(--color-background) !important;
   width: 100%;
   height: 100%;
+  isolation: isolate !important;
+  z-index: 1 !important;
 }
 
 .dark .leaflet-tile {
