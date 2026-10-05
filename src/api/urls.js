@@ -66,6 +66,7 @@ const urls = {
   fmLedger: {
     list: "/ledger/fms",
     allFundManagers: "/search/fm",
+    update: "/ledger/fm/update",
   },
   ibLedger: {
     list: "/ledger/ib",
