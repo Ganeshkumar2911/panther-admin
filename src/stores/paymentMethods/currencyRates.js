@@ -71,7 +71,8 @@ export const useCurrencyRatesStore = defineStore('currencyRates', () => {
     // Format payload cleanly for the API
     const formattedPayload = {
       currency: (payload.currency || '').trim().toUpperCase(),
-      units_per_usd: Number(payload.units_per_usd),
+      deposit_units_per_usd: Number(payload.deposit_units_per_usd),
+      withdrawal_units_per_usd: payload.withdrawal_units_per_usd ? Number(payload.withdrawal_units_per_usd) : Number(payload.deposit_units_per_usd),
       label: (payload.label || '').trim(),
       description: (payload.description || '').trim(),
       is_active: Boolean(payload.is_active ?? true),
@@ -109,7 +110,8 @@ export const useCurrencyRatesStore = defineStore('currencyRates', () => {
 
     const formattedPayload = {}
     if (payload.currency !== undefined) formattedPayload.currency = (payload.currency || '').trim().toUpperCase()
-    if (payload.units_per_usd !== undefined) formattedPayload.units_per_usd = Number(payload.units_per_usd)
+    if (payload.deposit_units_per_usd !== undefined) formattedPayload.deposit_units_per_usd = Number(payload.deposit_units_per_usd)
+    if (payload.withdrawal_units_per_usd !== undefined) formattedPayload.withdrawal_units_per_usd = Number(payload.withdrawal_units_per_usd)
     if (payload.label !== undefined) formattedPayload.label = (payload.label || '').trim()
     if (payload.description !== undefined) formattedPayload.description = (payload.description || '').trim()
     if (payload.is_active !== undefined) formattedPayload.is_active = Boolean(payload.is_active)

@@ -1,98 +1,13 @@
 <template>
   <div class="space-y-6 pb-12 max-w-[1600px] mx-auto">
-    <!-- ─── TOP ACTION & HEADER BAR ──────────────────────────────── -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-      <div>
-        <h1 class="title-text text-primary-text tracking-tight flex items-center gap-2.5">
-          <HugeIcon :icon="Building02Icon" :size="24" class="text-primary" />
-          <span>Bank Account Requests</span>
-        </h1>
-        <p class="sub-text text-secondary-text mt-1">
-          Review, verify document proofs, and approve or reject saved bank accounts for clients, IBs, and Fund Managers.
-        </p>
-      </div>
-
-      <div class="flex items-center gap-3">
-        <button
-          type="button"
-          class="btn-primary"
-          :disabled="store.loading"
-          @click="handleRefresh"
-          title="Refresh bank requests"
-        >
-          <HugeIcon :icon="RefreshCwIcon" :size="14" :class="{ 'animate-spin': store.loading }" />
-          <span>Refresh</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- ─── 4 SUMMARY METRIC CARDS ──────────────────────────────── -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <!-- Total Accounts -->
-      <div class="bg-card-background border border-primary-border rounded-2xl p-5 shadow-xs transition-all hover:border-primary/40 flex items-center justify-between">
-        <div>
-          <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text">
-            Total Requests
-          </p>
-          <p class="text-2xl sm:text-3xl font-extrabold text-primary-text mt-1">
-            {{ totalCount }}
-          </p>
-        </div>
-        <div class="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
-          <HugeIcon :icon="Building02Icon" :size="22" />
-        </div>
-      </div>
-
-      <!-- Pending Approval -->
-      <div class="bg-card-background border border-primary-border rounded-2xl p-5 shadow-xs transition-all hover:border-primary-yellow/40 flex items-center justify-between">
-        <div>
-          <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text">
-            Pending Review
-          </p>
-          <p class="text-2xl sm:text-3xl font-extrabold text-primary-yellow mt-1">
-            {{ pendingCount }}
-          </p>
-        </div>
-        <div class="w-11 h-11 rounded-xl bg-primary-yellow/10 border border-primary-yellow/20 flex items-center justify-center text-primary-yellow shrink-0">
-          <HugeIcon :icon="Time02Icon" :size="22" />
-        </div>
-      </div>
-
-      <!-- Approved -->
-      <div class="bg-card-background border border-primary-border rounded-2xl p-5 shadow-xs transition-all hover:border-primary-green/40 flex items-center justify-between">
-        <div>
-          <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text">
-            Approved Accounts
-          </p>
-          <p class="text-2xl sm:text-3xl font-extrabold text-primary-green mt-1">
-            {{ approvedCount }}
-          </p>
-        </div>
-        <div class="w-11 h-11 rounded-xl bg-primary-green/10 border border-primary-green/20 flex items-center justify-center text-primary-green shrink-0">
-          <HugeIcon :icon="CheckmarkCircle02Icon" :size="22" />
-        </div>
-      </div>
-
-      <!-- Rejected -->
-      <div class="bg-card-background border border-primary-border rounded-2xl p-5 shadow-xs transition-all hover:border-primary-red/40 flex items-center justify-between">
-        <div>
-          <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text">
-            Rejected Accounts
-          </p>
-          <p class="text-2xl sm:text-3xl font-extrabold text-primary-red mt-1">
-            {{ rejectedCount }}
-          </p>
-        </div>
-        <div class="w-11 h-11 rounded-xl bg-primary-red/10 border border-primary-red/20 flex items-center justify-center text-primary-red shrink-0">
-          <HugeIcon :icon="Alert02Icon" :size="22" />
-        </div>
-      </div>
-    </div>
-
     <!-- ─── CONTROLS & FILTER BAR ────────────────────────────────── -->
-    <div class="bg-card-background border border-primary-border rounded-2xl p-4 shadow-xs flex flex-col md:flex-row gap-3 items-center justify-between">
+    <div
+      class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col md:flex-row gap-3 items-center justify-between"
+    >
       <!-- Status Tabs / Pills -->
-      <div class="flex items-center gap-1.5 p-1 bg-background rounded-xl border border-primary-border w-full md:w-auto overflow-x-auto no-scrollbar">
+      <div
+        class="flex items-center gap-1.5 p-1 bg-background rounded-xl border border-primary-border w-full md:w-auto overflow-x-auto no-scrollbar"
+      >
         <button
           v-for="tab in statusTabs"
           :key="tab.value"
@@ -101,46 +16,54 @@
           class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap"
           :class="
             store.filters.approval_status === tab.value
-              ? 'bg-card-background text-primary shadow-2xs border border-primary-border font-bold'
-              : 'text-secondary-text hover:text-primary-text'
+              ? 'bg-primary text-white font-bold'
+              : 'text-secondary-text hover:bg-card-background hover:text-primary-text'
           "
         >
           <span>{{ tab.label }}</span>
-          <span
+          <!-- <span
             v-if="tab.count !== undefined"
             class="text-[10px] px-1.5 py-0.2 rounded-full font-bold"
             :class="
               store.filters.approval_status === tab.value
-                ? 'bg-primary/10 text-primary'
+                ? 'bg-white/20 text-white'
                 : 'bg-primary-border/40 text-secondary-text'
             "
           >
             {{ tab.count }}
-          </span>
+          </span> -->
         </button>
       </div>
 
       <!-- Filters & Search -->
-      <div class="flex items-center gap-2.5 w-full md:w-auto flex-wrap sm:flex-nowrap">
+      <div
+        class="flex items-center gap-2.5 w-full md:w-auto flex-wrap sm:flex-nowrap"
+      >
         <!-- Search Input -->
         <div class="relative w-full sm:w-64">
-          <HugeIcon :icon="Search01Icon" :size="15" class="absolute left-3 top-2.5 text-secondary-text" />
+          <HugeIcon
+            :icon="Search01Icon"
+            :size="15"
+            class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary-text pointer-events-none"
+          />
           <input
             v-model="searchQuery"
             type="text"
             placeholder="Search bank, IFSC, name..."
-            class="input-field pl-9 pr-3 py-2 text-xs"
+            class="w-full bg-background border border-primary-border rounded-xl pl-9 pr-3 py-2 text-xs text-primary-text placeholder-secondary-text focus:outline-none focus:border-primary/50 transition-colors"
           />
         </div>
 
         <!-- User ID Filter -->
-        <div class="relative w-full sm:w-36">
-          <input
+        <div class="w-full sm:w-56">
+          <BaseSelect
             v-model="userIdFilter"
-            type="number"
-            placeholder="User ID..."
-            class="input-field px-3 py-2 text-xs"
-            @keyup.enter="handleApplyFilters"
+            :options="userOptions"
+            :isLoading="isSearchingUsers"
+            placeholder="Search User..."
+            searchable
+            @search="onUserSearch"
+            @update:modelValue="handleApplyFilters"
           />
         </div>
 
@@ -156,7 +79,9 @@
     </div>
 
     <!-- ─── DATA TABLE ───────────────────────────────────────────── -->
-    <div class="bg-card-background border border-primary-border rounded-2xl overflow-hidden shadow-xs">
+    <div
+      class="bg-card-background border border-primary-border rounded-2xl overflow-hidden"
+    >
       <DataTable
         :columns="tableColumns"
         :data="filteredBankAccounts"
@@ -166,12 +91,15 @@
       >
         <!-- User / Owner Column -->
         <template #cell-user="{ row }">
-          <div class="flex flex-col min-w-[150px]">
+          <div class="flex flex-col min-w-37.5">
             <div class="flex items-center gap-2">
               <span class="font-bold text-primary-text text-xs sm:text-sm">
-                {{ row.account_name || 'Account Holder' }}
+                {{ row.account_name || "Account Holder" }}
               </span>
-              <span v-if="row.label" class="text-[10px] bg-primary/10 text-primary px-1.5 py-0.2 rounded font-semibold border border-primary/20">
+              <span
+                v-if="row.label"
+                class="text-[10px] bg-primary/10 text-primary px-1.5 py-0.2 rounded font-semibold border border-primary/20"
+              >
                 {{ row.label }}
               </span>
             </div>
@@ -184,7 +112,10 @@
               >
                 User #{{ row.user_id }}
               </button>
-              <span v-if="row.is_default" class="text-[9px] bg-primary-green/10 text-primary-green border border-primary-green/20 px-1.5 py-0.2 rounded font-bold">
+              <span
+                v-if="row.is_default"
+                class="text-[9px] bg-primary-green/10 text-primary-green border border-primary-green/20 px-1.5 py-0.2 rounded font-bold"
+              >
                 Default
               </span>
             </div>
@@ -193,10 +124,16 @@
 
         <!-- Bank & Branch Column -->
         <template #cell-bank="{ row }">
-          <div class="flex flex-col min-w-[140px]">
-            <span class="font-bold text-primary-text text-xs">{{ row.bank }}</span>
-            <div class="flex items-center gap-1.5 text-[11px] text-secondary-text mt-0.5">
-              <span class="uppercase font-medium">{{ row.account_type || 'Savings' }}</span>
+          <div class="flex flex-col min-w-35">
+            <span class="font-bold text-primary-text text-xs">{{
+              row.bank
+            }}</span>
+            <div
+              class="flex items-center gap-1.5 text-[11px] text-secondary-text mt-0.5"
+            >
+              <span class="uppercase font-medium">{{
+                row.account_type || "Savings"
+              }}</span>
               <span v-if="row.bank_branch">• {{ row.bank_branch }}</span>
             </div>
           </div>
@@ -204,27 +141,37 @@
 
         <!-- Account Number & IFSC -->
         <template #cell-account_number="{ row }">
-          <div class="flex flex-col min-w-[130px]">
-            <span class="font-mono font-bold text-primary-text text-xs">{{ row.account_number }}</span>
+          <div class="flex flex-col min-w-32.5">
+            <span class="font-mono font-bold text-primary-text text-xs">{{
+              row.account_number
+            }}</span>
             <span class="text-[11px] text-secondary-text font-medium mt-0.5">
-              IFSC: {{ row.bank_branch_code || '—' }}
+              IFSC: {{ row.bank_branch_code || "—" }}
             </span>
           </div>
         </template>
 
         <!-- Document Proof Column -->
         <template #cell-document_proof="{ row }">
-          <div v-if="row.document_proof_url || row.document_proof" class="flex items-center gap-2">
+          <div
+            v-if="row.document_proof_url || row.document_proof"
+            class="flex items-center gap-2"
+          >
             <button
               type="button"
               @click="openProofModal(row)"
-              class="btn-secondary px-2.5 py-1 text-xs"
+              class="p-1.5 rounded-lg bg-background border border-primary-border text-primary hover:bg-primary/5 transition-colors cursor-pointer"
+              title="Verify Proof"
             >
-              <HugeIcon :icon="FileAttachmentIcon" :size="13" class="text-primary" />
-              <span>Verify Proof</span>
+              <HugeIcon
+                :icon="FileAttachmentIcon"
+                :size="16"
+              />
             </button>
           </div>
-          <span v-else class="text-xs text-secondary-text italic">No document</span>
+          <span v-else class="text-xs text-secondary-text italic"
+            >No document</span
+          >
         </template>
 
         <!-- Approval Status Column -->
@@ -238,7 +185,7 @@
             </span>
             <p
               v-if="row.approval_status === 'rejected' && row.rejection_reason"
-              class="text-[10px] text-primary-red truncate max-w-[180px]"
+              class="text-[10px] text-primary-red truncate max-w-45"
               :title="row.rejection_reason"
             >
               {{ row.rejection_reason }}
@@ -254,25 +201,44 @@
               type="button"
               @click="toggleEditLock(row)"
               :disabled="store.actionLoading"
-              :class="row.flag_enable_edit ? 'btn-warning px-2.5 py-1 text-[11px]' : 'btn-secondary px-2.5 py-1 text-[11px]'"
-              :title="row.flag_enable_edit ? 'Edit unlocked by user. Click to lock.' : 'Edit locked. Click to allow client editing.'"
+              class="p-1.5 rounded-lg border transition-colors cursor-pointer disabled:opacity-50"
+              :class="
+                row.flag_enable_edit
+                  ? 'bg-primary-yellow/10 border-primary-yellow/30 text-primary-yellow hover:bg-primary-yellow/20'
+                  : 'bg-background border-primary-border text-secondary-text hover:text-primary-text'
+              "
+              :title="
+                row.flag_enable_edit
+                  ? 'Edit unlocked by user. Click to lock.'
+                  : 'Edit locked. Click to allow client editing.'
+              "
             >
-              <HugeIcon :icon="row.flag_enable_edit ? PencilEdit01Icon : LockPasswordIcon" :size="12" />
-              <span>{{ row.flag_enable_edit ? 'Unlocked' : 'Locked' }}</span>
+              <HugeIcon
+                :icon="
+                  row.flag_enable_edit ? PencilEdit01Icon : LockPasswordIcon
+                "
+                :size="16"
+              />
             </button>
             <span
               v-else
               class="text-[11px] font-medium"
-              :class="row.flag_enable_edit ? 'text-primary-yellow' : 'text-secondary-text'"
+              :class="
+                row.flag_enable_edit
+                  ? 'text-primary-yellow'
+                  : 'text-secondary-text'
+              "
             >
-              {{ row.flag_enable_edit ? 'Unlocked' : 'Locked' }}
+              {{ row.flag_enable_edit ? "Unlocked" : "Locked" }}
             </span>
           </div>
         </template>
 
         <!-- Date Column -->
         <template #cell-created_at="{ row }">
-          <span class="text-xs text-secondary-text font-medium whitespace-nowrap">
+          <span
+            class="text-xs text-secondary-text font-medium whitespace-nowrap"
+          >
             {{ formatDate(row.created_at) }}
           </span>
         </template>
@@ -282,38 +248,42 @@
           <div class="flex items-center justify-end gap-1.5 whitespace-nowrap">
             <!-- Approve Button (If pending) -->
             <button
-              v-if="row.approval_status === 'pending' && hasPermission('user_bank_account.approve')"
+              v-if="
+                row.approval_status === 'pending' &&
+                hasPermission('user_bank_account.approve')
+              "
               type="button"
               @click="openApproveConfirm(row)"
               :disabled="store.actionLoading"
-              class="btn-success px-2.5 py-1"
+              class="p-1.5 rounded-lg text-xs font-bold bg-primary-green/10 text-primary-green border border-primary-green/20 hover:bg-primary-green/20 transition-colors cursor-pointer disabled:opacity-50"
               title="Approve Bank Account"
             >
-              <HugeIcon :icon="CheckmarkCircle02Icon" :size="13" />
-              <span>Approve</span>
+              <HugeIcon :icon="CheckmarkCircle02Icon" :size="16" />
             </button>
 
             <!-- Reject Button (If pending) -->
             <button
-              v-if="row.approval_status === 'pending' && hasPermission('user_bank_account.reject')"
+              v-if="
+                row.approval_status === 'pending' &&
+                hasPermission('user_bank_account.reject')
+              "
               type="button"
               @click="openRejectModal(row)"
               :disabled="store.actionLoading"
-              class="btn-danger px-2.5 py-1"
+              class="p-1.5 rounded-lg text-xs font-bold bg-primary-red/10 text-primary-red border border-primary-red/20 hover:bg-primary-red/20 transition-colors cursor-pointer disabled:opacity-50"
               title="Reject Bank Account"
             >
-              <HugeIcon :icon="Cancel01Icon" :size="13" />
-              <span>Reject</span>
+              <HugeIcon :icon="Cancel01Icon" :size="16" />
             </button>
 
             <!-- View User Accounts Button -->
             <button
               type="button"
               @click="openUserAccountsDrawer(row.user_id)"
-              class="btn-icon p-1.5"
+              class="p-1.5 rounded-lg bg-background border border-primary-border text-secondary-text hover:text-primary-text transition-colors cursor-pointer"
               title="View all bank accounts for this user"
             >
-              <HugeIcon :icon="Building02Icon" :size="14" />
+              <HugeIcon :icon="Building02Icon" :size="16" />
             </button>
           </div>
         </template>
@@ -357,6 +327,18 @@
       @confirm="handleConfirmApprove"
       @cancel="showApproveDialog = false"
     />
+
+    <!-- ─── EDIT LOCK CONFIRMATION DIALOG ────────────────────────── -->
+    <ConfirmationDialog
+      :open="showEditLockDialog"
+      :title="selectedAccount?.flag_enable_edit ? 'Lock Account Edit' : 'Unlock Account Edit'"
+      :message="`Are you sure you want to ${selectedAccount?.flag_enable_edit ? 'lock' : 'unlock'} editing for bank account ${selectedAccount?.bank} (${selectedAccount?.account_number})?`"
+      :confirm-text="selectedAccount?.flag_enable_edit ? 'Lock Edit' : 'Unlock Edit'"
+      :type="selectedAccount?.flag_enable_edit ? 'warning' : 'success'"
+      :loading="store.actionLoading"
+      @confirm="handleConfirmEditLock"
+      @cancel="showEditLockDialog = false"
+    />
   </div>
 </template>
 
@@ -383,6 +365,9 @@ import ConfirmationDialog from "@/components/common/ConfirmationDialog.vue";
 import RejectReasonModal from "./components/RejectReasonModal.vue";
 import ProofDocumentModal from "./components/ProofDocumentModal.vue";
 import UserBankAccountsDrawer from "./components/UserBankAccountsDrawer.vue";
+import BaseSelect from "@/components/common/BaseSelect.vue";
+import apiRequest from "@/api/request";
+import urls from "@/api/urls";
 
 const store = useBankRequestStore();
 const { hasPermission } = usePermissionCheck();
@@ -390,11 +375,49 @@ const { hasPermission } = usePermissionCheck();
 const searchQuery = ref("");
 const userIdFilter = ref("");
 
+const userOptions = ref([]);
+const isSearchingUsers = ref(false);
+let userSearchTimer = null;
+
+const onUserSearch = (query) => {
+  if (!query?.trim()) {
+    userOptions.value = [];
+    return;
+  }
+  clearTimeout(userSearchTimer);
+  isSearchingUsers.value = true;
+  userSearchTimer = setTimeout(() => {
+    apiRequest(urls.KEYS.GET, urls.clientLedger.allClients, {
+      params: { find_all: true, search: query },
+      isTokenRequired: true,
+      onSuccess: (res) => {
+        const list = (res?.data || []).map((c) => {
+          const name = c.name ? c.name.trim() : "";
+          const email = c.email ? c.email.trim() : "";
+          const label = name && email ? `${name} (${email})` : name || email || `User ${c.id}`;
+          return {
+            label,
+            value: c.id,
+            email: c.email,
+          };
+        });
+        userOptions.value = list;
+        isSearchingUsers.value = false;
+      },
+      onFailure: () => {
+        userOptions.value = [];
+        isSearchingUsers.value = false;
+      },
+    });
+  }, 300);
+};
+
 // Modals & Drawers state
 const showRejectModal = ref(false);
 const showProofModal = ref(false);
 const showUserDrawer = ref(false);
 const showApproveDialog = ref(false);
+const showEditLockDialog = ref(false);
 const selectedAccount = ref(null);
 const selectedUserId = ref(null);
 
@@ -418,9 +441,18 @@ const bankAccounts = computed(() => store.bankAccounts || []);
 
 // Summary counts
 const totalCount = computed(() => bankAccounts.value.length);
-const pendingCount = computed(() => bankAccounts.value.filter((a) => a.approval_status === "pending").length);
-const approvedCount = computed(() => bankAccounts.value.filter((a) => a.approval_status === "approved").length);
-const rejectedCount = computed(() => bankAccounts.value.filter((a) => a.approval_status === "rejected").length);
+const pendingCount = computed(
+  () =>
+    bankAccounts.value.filter((a) => a.approval_status === "pending").length,
+);
+const approvedCount = computed(
+  () =>
+    bankAccounts.value.filter((a) => a.approval_status === "approved").length,
+);
+const rejectedCount = computed(
+  () =>
+    bankAccounts.value.filter((a) => a.approval_status === "rejected").length,
+);
 
 const statusTabs = computed(() => [
   { label: "Pending", value: "pending", count: pendingCount.value },
@@ -441,13 +473,20 @@ const filteredBankAccounts = computed(() => {
   let list = bankAccounts.value;
 
   // Filter by approval status
-  if (store.filters.approval_status && store.filters.approval_status !== "all") {
-    list = list.filter((a) => a.approval_status === store.filters.approval_status);
+  if (
+    store.filters.approval_status &&
+    store.filters.approval_status !== "all"
+  ) {
+    list = list.filter(
+      (a) => a.approval_status === store.filters.approval_status,
+    );
   }
 
   // Filter by user ID
   if (userIdFilter.value) {
-    list = list.filter((a) => String(a.user_id) === String(userIdFilter.value).trim());
+    list = list.filter(
+      (a) => String(a.user_id) === String(userIdFilter.value).trim(),
+    );
   }
 
   // Filter by search query
@@ -460,7 +499,7 @@ const filteredBankAccounts = computed(() => {
         a.account_number?.toLowerCase().includes(q) ||
         a.bank_branch_code?.toLowerCase().includes(q) ||
         a.bank_branch?.toLowerCase().includes(q) ||
-        a.label?.toLowerCase().includes(q)
+        a.label?.toLowerCase().includes(q),
     );
   }
 
@@ -469,18 +508,24 @@ const filteredBankAccounts = computed(() => {
 
 const setStatusFilter = (status) => {
   store.filters.approval_status = status;
-  store.fetchBankAccounts({
-    ...store.filters,
-    approval_status: status,
-    user_id: userIdFilter.value || undefined,
-  }, true);
+  store.fetchBankAccounts(
+    {
+      ...store.filters,
+      approval_status: status,
+      user_id: userIdFilter.value || undefined,
+    },
+    true,
+  );
 };
 
 const handleApplyFilters = () => {
-  store.fetchBankAccounts({
-    ...store.filters,
-    user_id: userIdFilter.value || undefined,
-  }, true);
+  store.fetchBankAccounts(
+    {
+      ...store.filters,
+      user_id: userIdFilter.value || undefined,
+    },
+    true,
+  );
 };
 
 const clearFilters = () => {
@@ -535,7 +580,20 @@ const handleRejectSubmit = (reason) => {
 };
 
 const toggleEditLock = (account) => {
-  store.toggleEnableEdit(account.user_id, account.id, !account.flag_enable_edit);
+  selectedAccount.value = account;
+  showEditLockDialog.value = true;
+};
+
+const handleConfirmEditLock = () => {
+  if (!selectedAccount.value) return;
+  store.toggleEnableEdit(
+    selectedAccount.value.user_id,
+    selectedAccount.value.id,
+    !selectedAccount.value.flag_enable_edit,
+    () => {
+      showEditLockDialog.value = false;
+    }
+  );
 };
 
 const getStatusClass = (status) => {
