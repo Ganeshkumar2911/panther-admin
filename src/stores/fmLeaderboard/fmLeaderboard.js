@@ -20,7 +20,13 @@ export const useFmLeaderboardStore = defineStore("fmLeaderboard", () => {
 
   const snackbar = useSnackbarStore();
 
-  const fetchFmLeaderboard = (force = false, page = 1) => {
+  const sortBy = ref(null);
+
+  const fetchFmLeaderboard = (force = false, page = 1, sort = undefined) => {
+    if (sort !== undefined) {
+      sortBy.value = sort || null;
+    }
+
     if (isFetched.value && !force) return;
 
     isLoading.value = true;
@@ -38,15 +44,29 @@ export const useFmLeaderboardStore = defineStore("fmLeaderboard", () => {
       snackbar.show(err?.error || "Something went wrong.", "error");
     };
 
+    const params = {
+      page,
+      per_page: pagination.value.per_page,
+    };
+
+    if (sortBy.value) {
+      params.sort_by = sortBy.value;
+    }
+
     apiRequest(urls.KEYS.GET, urls.fm.list, {
-      params: {
-        page,
-        per_page: pagination.value.per_page,
-      },
+      params,
       isTokenRequired: true,
       onSuccess: successHandler,
       onFailure: failureHandler,
     });
+  };
+
+  const updateSortBy = (val) => {
+    const newSortBy = val && typeof val === "object" && val.value ? val.value : val;
+    sortBy.value = newSortBy || null;
+    pagination.value.page = 1;
+    isFetched.value = false;
+    fetchFmLeaderboard(true, 1);
   };
 
   const updatePerPage = (newPerPage) => {
@@ -120,6 +140,7 @@ export const useFmLeaderboardStore = defineStore("fmLeaderboard", () => {
     error.value = null;
     isFetched.value = false;
     isSubmitting.value = false;
+    sortBy.value = null;
     pagination.value = {
       page: 1,
       per_page: 10,
@@ -136,6 +157,8 @@ export const useFmLeaderboardStore = defineStore("fmLeaderboard", () => {
     isSubmitting,
     pagination,
     perPageOptions,
+    sortBy,
+    updateSortBy,
     fetchFmLeaderboard,
     updatePerPage,
     createFundManager,

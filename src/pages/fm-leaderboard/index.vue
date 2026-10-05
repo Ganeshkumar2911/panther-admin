@@ -3,7 +3,7 @@
     <!-- Toolbar Header: Search, Filters, View Switcher & Actions -->
     <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3">
       <div
-        class="flex w-full min-w-0 flex-col gap-2 rounded-xl border border-primary-border bg-card-background/40 p-2.5 sm:flex-row sm:items-center xl:flex-1 xl:flex-nowrap"
+        class="flex w-full min-w-0 flex-col gap-2 rounded-xl border border-primary-border bg-card-background/40 p-2.5 sm:flex-row sm:items-center sm:flex-wrap xl:flex-1"
       >
         <!-- Search Input -->
         <div class="relative w-full sm:w-56 xl:w-64 h-9">
@@ -24,6 +24,16 @@
             <X class="w-3.5 h-3.5" />
           </button>
         </div>
+
+        <!-- Sort By Filter -->
+        <BaseSelect
+          v-model="selectedSort"
+          :options="sortOptions"
+          placeholder="Sort By"
+          clearable
+          class="w-full sm:w-36 xl:w-40"
+          @update:modelValue="handleSortChange"
+        />
 
         <!-- Visibility Filter -->
         <BaseSelect
@@ -573,7 +583,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref, computed } from 'vue'
+import { onMounted, ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGoToTradingAccount } from '@/composables/useGoToTradingAccount'
 import {
@@ -616,6 +626,7 @@ const { goToTradingAccount } = useGoToTradingAccount()
 
 const layoutMode = ref('grid')
 const searchQuery = ref('')
+const selectedSort = ref(store.sortBy || null)
 const selectedVisibility = ref(null)
 const selectedStatus = ref(null)
 const selectedKyc = ref(null)
@@ -638,6 +649,12 @@ const tableColumns = [
   { key: 'status_settlement', title: 'Status & Settlement', sortable: false, minWidth: '150px' },
 ]
 
+const sortOptions = [
+  { label: 'Win Rate', value: 'win_rate' },
+  { label: 'Joined At', value: 'created_at' },
+  { label: 'Total Return', value: 'total_return' },
+]
+
 const visibilityOptions = [
   { label: 'Public', value: 'public' },
   { label: 'Private', value: 'private' },
@@ -654,9 +671,24 @@ const kycOptions = [
   { label: 'Rejected', value: 'rejected' },
 ]
 
+const handleSortChange = (val) => {
+  selectedSort.value = val || null
+  store.updateSortBy(val)
+}
+
+watch(
+  () => store.sortBy,
+  (newVal) => {
+    if (selectedSort.value !== newVal) {
+      selectedSort.value = newVal || null
+    }
+  }
+)
+
 const hasActiveFilters = computed(() => {
   return (
     Boolean(searchQuery.value.trim()) ||
+    selectedSort.value !== null ||
     selectedVisibility.value !== null ||
     selectedStatus.value !== null ||
     selectedKyc.value !== null
@@ -668,6 +700,10 @@ const resetFilters = () => {
   selectedVisibility.value = null
   selectedStatus.value = null
   selectedKyc.value = null
+  if (selectedSort.value !== null) {
+    selectedSort.value = null
+    store.updateSortBy(null)
+  }
 }
 
 const filteredData = computed(() => {
