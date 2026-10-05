@@ -155,7 +155,7 @@ const routes = [
           {
             path: "audit-logs/:logId",
             name: "client-details-audit-log-detail",
-            component: () => import("@/pages/enhanced-audit-logs/details.vue"),
+            component: () => import("@/pages/enhanced-audit-logs/AuditLogForensicsView.vue"),
             meta: {
               showBackButton: true,
               requiresAuth: true,

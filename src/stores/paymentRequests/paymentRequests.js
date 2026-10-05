@@ -71,6 +71,7 @@ export const usePaymentRequestsStore = defineStore("paymentRequests", () => {
 
   const filters = reactive({
     id: null,
+    detailMode: false,
     type: null,
     approval_status: null,
 
@@ -88,7 +89,7 @@ export const usePaymentRequestsStore = defineStore("paymentRequests", () => {
   const cleanFilters = () =>
     Object.fromEntries(
       Object.entries(filters).filter(
-        ([, value]) => value !== null && value !== "" && value !== undefined,
+        ([key, value]) => value !== null && value !== "" && value !== undefined && key !== 'detailMode'
       ),
     );
 
@@ -104,31 +105,34 @@ export const usePaymentRequestsStore = defineStore("paymentRequests", () => {
     error.value = null;
 
     const successHandler = (res) => {
-      records.value = res?.data || [];
+      if (filters.detailMode && res?.data && !Array.isArray(res?.data)) {
+        records.value = [res.data];
+        Object.assign(pagination, {
+          page: 1,
+          per_page: 20,
+          total_items: 1,
+          total_pages: 1,
+        });
+      } else {
+        records.value = res?.data || [];
+        Object.assign(pagination, {
+          page: res?.pagination?.page || 1,
+          per_page: res?.pagination?.per_page || 20,
+          total_items: res?.pagination?.total_items || 0,
+          total_pages: res?.pagination?.total_pages || 1,
+        });
+      }
 
       Object.assign(summary, {
         pending_deposits: res?.summary?.pending_deposits || 0,
-
         approved_deposits: res?.summary?.approved_deposits || 0,
-
         rejected_deposits: res?.summary?.rejected_deposits || 0,
-
         pending_withdrawals: res?.summary?.pending_withdrawals || 0,
-
         approved_withdrawals: res?.summary?.approved_withdrawals || 0,
-
         rejected_withdrawals: res?.summary?.rejected_withdrawals || 0,
       });
 
-      Object.assign(pagination, {
-        page: res?.pagination?.page || 1,
-        per_page: res?.pagination?.per_page || 20,
-        total_items: res?.pagination?.total_items || 0,
-        total_pages: res?.pagination?.total_pages || 1,
-      });
-
       isFetched.value = true;
-
       loading.value = false;
     };
 
@@ -143,19 +147,28 @@ export const usePaymentRequestsStore = defineStore("paymentRequests", () => {
       );
     };
 
-    apiRequest(urls.KEYS.GET, urls.paymentRequests.list, {
+    let method = urls.KEYS.GET;
+    let url = urls.paymentRequests.list;
+    let options = {
       params: {
         page: pagination.page,
         per_page: pagination.per_page,
-
         ...cleanFilters(),
       },
       cancelPrevious: true,
       isTokenRequired: true,
-
       onSuccess: successHandler,
       onFailure: failureHandler,
-    });
+    };
+
+    if (filters.detailMode && filters.id) {
+      url = `${urls.paymentRequests.list}/${filters.id}`;
+      delete options.params.id;
+      delete options.params.page;
+      delete options.params.per_page;
+    }
+
+    apiRequest(method, url, options);
   };
 
   // ─────────────────────────────────────
@@ -345,6 +358,7 @@ export const usePaymentRequestsStore = defineStore("paymentRequests", () => {
   const resetFilters = () => {
     Object.assign(filters, {
       id: null,
+      detailMode: false,
       type: null,
       approval_status: null,
 
@@ -480,6 +494,7 @@ export const usePaymentRequestsStore = defineStore("paymentRequests", () => {
 
     Object.assign(filters, {
       id: null,
+      detailMode: false,
       type: null,
       approval_status: null,
 

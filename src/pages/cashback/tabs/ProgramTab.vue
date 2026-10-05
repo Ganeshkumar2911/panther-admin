@@ -31,10 +31,14 @@
                 <span>End Date: <span class="font-medium text-primary-text">{{ store.activeProgram.end_at ? formatDateTime(store.activeProgram.end_at) : 'None (Indefinite)' }}</span></span>
               </div>
               <div class="w-1 h-1 rounded-full bg-primary-border"></div>
-              <div class="w-1 h-1 rounded-full bg-primary-border"></div>
               <div class="flex items-center gap-1.5">
                 <HugeIcon :icon="Dollar01Icon" :size="14" />
                 <span>Base Currency: <span class="font-medium text-primary-text">{{ store.activeProgram.currency }} ($)</span></span>
+              </div>
+              <div class="w-1 h-1 rounded-full bg-primary-border"></div>
+              <div class="flex items-center gap-1.5">
+                <HugeIcon :icon="Clock01Icon" :size="14" />
+                <span>Min Hold Time: <span class="font-medium text-primary-text">{{ (store.activeProgram.min_trade_duration_seconds ?? 120) > 0 ? `${store.activeProgram.min_trade_duration_seconds ?? 120}s` : 'Disabled' }}</span></span>
               </div>
               <template v-if="store.activeProgram.updated_at">
                 <div class="w-1 h-1 rounded-full bg-primary-border"></div>
@@ -87,6 +91,12 @@
               <span class="text-xs font-semibold text-secondary-text tracking-wide">PLAN LOCK DAYS</span>
               <span class="text-sm font-medium text-primary-text">
                 {{ store.activeProgram.plan_lock_days ?? 30 }} Days
+              </span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-xs font-semibold text-secondary-text tracking-wide">MIN TRADE DURATION</span>
+              <span class="text-sm font-medium text-primary-text">
+                {{ (store.activeProgram.min_trade_duration_seconds ?? 120) > 0 ? `${store.activeProgram.min_trade_duration_seconds ?? 120}s` : 'Disabled (0s)' }}
               </span>
             </div>
             <div v-if="store.activeProgram.updated_at" class="flex justify-between items-center">

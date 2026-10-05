@@ -175,14 +175,14 @@
       </template>
 
       <!-- Custom Cell: Balance Before -->
-      <template #cell-balance_before="{ row }">
+      <!-- <template #cell-balance_before="{ row }">
         <span class="text-xs text-secondary-text tabular-nums">{{ formatMoney(row.balance_before) }}</span>
-      </template>
+      </template> -->
 
       <!-- Custom Cell: Balance After -->
-      <template #cell-balance_after="{ row }">
+      <!-- <template #cell-balance_after="{ row }">
         <span class="text-xs text-primary-text tabular-nums">{{ formatMoney(row.balance_after) }}</span>
-      </template>
+      </template> -->
 
       <!-- Custom Cell: Reference -->
       <template #cell-reference_id="{ row }">
@@ -218,8 +218,8 @@ const txColumns = [
   { key: 'type', label: 'Type' },
   { key: 'direction', label: 'Direction' },
   { key: 'amount', label: 'Amount' },
-  { key: 'balance_before', label: 'Bal. Before' },
-  { key: 'balance_after', label: 'Bal. After' },
+ // { key: 'balance_before', label: 'Bal. Before' },
+ // { key: 'balance_after', label: 'Bal. After' },
   { key: 'reference_id', label: 'Reference' },
   { key: 'created_at', label: 'Date', align: 'right' },
 ]

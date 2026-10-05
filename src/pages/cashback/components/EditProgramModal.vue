@@ -47,20 +47,27 @@
           <textarea v-model="formData.description" rows="3" class="input-field px-3 py-2 text-sm w-full"></textarea>
         </div>
 
-        <div>
-          <label class="block text-sm font-medium text-secondary-text mb-1">Min Redemption Amount</label>
-          <input v-model="formData.min_redemption_amount" type="number" step="0.01" class="input-field px-3 py-2 text-sm w-full" />
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-secondary-text mb-1">Plan Lock Days</label>
-          <input v-model="formData.plan_lock_days" type="number" step="1" class="input-field px-3 py-2 text-sm w-full" />
-        </div>
-
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-medium text-secondary-text mb-1">Currency</label>
             <input v-model="formData.currency" type="text" class="input-field px-3 py-2 text-sm w-full uppercase" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-secondary-text mb-1">Min Redemption Amount</label>
+            <input v-model="formData.min_redemption_amount" type="number" step="0.01" class="input-field px-3 py-2 text-sm w-full" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-secondary-text mb-1">Plan Lock Days</label>
+            <input v-model="formData.plan_lock_days" type="number" min="0" step="1" class="input-field px-3 py-2 text-sm w-full" />
+            <p class="text-[11px] text-secondary-text mt-0.5">0 = no lock (default 30)</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-secondary-text mb-1">Min Trade Duration (sec)</label>
+            <input v-model="formData.min_trade_duration_seconds" type="number" min="0" step="1" class="input-field px-3 py-2 text-sm w-full" />
+            <p class="text-[11px] text-secondary-text mt-0.5">Hold time strictly required to earn (0 = disabled, default 120s)</p>
           </div>
         </div>
 
@@ -221,6 +228,7 @@ const formData = ref({
   description: props.program.description,
   min_redemption_amount: props.program.min_redemption_amount,
   plan_lock_days: props.program.plan_lock_days ?? 30,
+  min_trade_duration_seconds: props.program.min_trade_duration_seconds ?? 120,
   currency: props.program.currency ?? 'USD',
   instrument_rules: {
     normalize_suffixes: props.program.instrument_rules?.normalize_suffixes ?? true,
@@ -262,7 +270,12 @@ const handleSubmit = async () => {
   if (formData.value.name !== props.program.name) payload.name = formData.value.name;
   if (formData.value.description !== props.program.description) payload.description = formData.value.description;
   if (formData.value.min_redemption_amount !== props.program.min_redemption_amount) payload.min_redemption_amount = formData.value.min_redemption_amount;
-  if (formData.value.plan_lock_days !== (props.program.plan_lock_days ?? 30)) payload.plan_lock_days = formData.value.plan_lock_days;
+  if (formData.value.plan_lock_days !== '' && Number(formData.value.plan_lock_days) !== Number(props.program.plan_lock_days ?? 30)) {
+    payload.plan_lock_days = Math.max(0, parseInt(formData.value.plan_lock_days, 10) || 0);
+  }
+  if (formData.value.min_trade_duration_seconds !== '' && Number(formData.value.min_trade_duration_seconds) !== Number(props.program.min_trade_duration_seconds ?? 120)) {
+    payload.min_trade_duration_seconds = Math.max(0, parseInt(formData.value.min_trade_duration_seconds, 10) || 0);
+  }
   if (formData.value.currency !== (props.program.currency ?? 'USD')) payload.currency = formData.value.currency;
 
   const newInstrumentRules = {

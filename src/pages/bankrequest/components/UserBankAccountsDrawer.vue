@@ -29,7 +29,7 @@
             type="button"
             @click="refresh"
             :disabled="store.userAccountsLoading"
-            class="p-2 rounded-xl bg-background border border-primary-border text-secondary-text hover:text-primary-text transition-colors cursor-pointer disabled:opacity-50"
+            class="btn-icon p-2"
             title="Refresh user accounts"
           >
             <HugeIcon :icon="RefreshCwIcon" :size="16" :class="{ 'animate-spin': store.userAccountsLoading }" />
@@ -38,7 +38,7 @@
           <button
             type="button"
             @click="handleClose"
-            class="p-2 rounded-xl text-secondary-text hover:text-primary-text transition-colors cursor-pointer"
+            class="btn-icon p-2"
           >
             <HugeIcon :icon="Cancel01Icon" :size="18" />
           </button>
@@ -134,9 +134,9 @@
                   v-if="acc.document_proof_url || acc.document_proof"
                   type="button"
                   @click="emit('preview-proof', acc)"
-                  class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-card-background border border-primary-border text-secondary-text hover:text-primary-text hover:border-primary/40 transition-colors cursor-pointer shadow-2xs"
+                  class="btn-secondary px-3 py-1.5"
                 >
-                  <HugeIcon :icon="FileAttachmentIcon" :size="13" />
+                  <HugeIcon :icon="FileAttachmentIcon" :size="13" class="text-primary" />
                   <span>View Proof</span>
                 </button>
 
@@ -146,8 +146,7 @@
                   type="button"
                   @click="handleToggleEdit(acc)"
                   :disabled="store.actionLoading"
-                  class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors cursor-pointer shadow-2xs disabled:opacity-50"
-                  :class="acc.flag_enable_edit ? 'bg-primary-yellow/10 border-primary-yellow/30 text-primary-yellow hover:bg-primary-yellow/20' : 'bg-card-background border-primary-border text-secondary-text hover:text-primary-text hover:border-primary/40'"
+                  :class="acc.flag_enable_edit ? 'btn-warning px-3 py-1.5' : 'btn-secondary px-3 py-1.5'"
                   :title="acc.flag_enable_edit ? 'Click to disable editing' : 'Click to allow client editing'"
                 >
                   <HugeIcon :icon="acc.flag_enable_edit ? PencilEdit01Icon : LockPasswordIcon" :size="13" />
@@ -161,7 +160,7 @@
                   v-if="hasPermission('user_bank_account.reject')"
                   type="button"
                   @click="emit('reject', acc)"
-                  class="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold bg-primary-red/10 border border-primary-red/20 text-primary-red hover:bg-primary-red hover:text-white transition-colors cursor-pointer"
+                  class="btn-danger px-3 py-1.5"
                 >
                   <HugeIcon :icon="Cancel01Icon" :size="13" />
                   <span>Reject</span>
@@ -171,7 +170,7 @@
                   v-if="hasPermission('user_bank_account.approve')"
                   type="button"
                   @click="emit('approve', acc)"
-                  class="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold bg-primary-green/10 border border-primary-green/20 text-primary-green hover:bg-primary-green hover:text-white transition-colors cursor-pointer"
+                  class="btn-success px-3 py-1.5"
                 >
                   <HugeIcon :icon="CheckmarkCircle02Icon" :size="13" />
                   <span>Approve</span>
@@ -187,7 +186,7 @@
         <button
           type="button"
           @click="handleClose"
-          class="px-4 py-2 rounded-xl text-xs font-semibold text-secondary-text hover:text-primary-text border border-primary-border hover:bg-background transition-colors cursor-pointer"
+          class="btn-secondary"
         >
           Close Drawer
         </button>

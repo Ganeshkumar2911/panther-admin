@@ -340,7 +340,7 @@
       <!-- MAIN CONTENT (router-view) -->
       <main class="flex-1 overflow-y-auto no-scrollbar px-5 pb-5">
         <div
-          class="flex items-center justify-between gap-3 overflow-x-auto sticky top-0 z-20 bg-background border-b border-primary-border py-3"
+          class="flex items-center justify-between gap-3 overflow-x-auto sticky top-0 z-30 bg-background border-b border-primary-border py-3"
         >
           <div class="flex items-center gap-1 overflow-x-auto no-scrollbar">
             <RouterLink

@@ -144,9 +144,9 @@
               #{{ row.payment_request.user_id }}
             </span>
           </div>
-          <p class="text-[11px] text-secondary-text truncate font-mono" :title="row.payment_request?.user_email">
+          <!-- <p class="text-[11px] text-secondary-text truncate font-mono" :title="row.payment_request?.user_email">
             {{ row.payment_request?.user_email || '—' }}
-          </p>
+          </p> -->
         </div>
       </template>
 
@@ -339,10 +339,14 @@
 
           <div class="text-[10px] text-secondary-text space-y-0.5">
             <p v-if="row.assigned_to">
-              Assigned: <span class="font-mono font-medium text-primary-text/80">#{{ row.assigned_to }}</span>
+              Assigned:
+              <span class="font-medium text-primary-text" :title="row.assigned_to_email">{{ row.assigned_to_name || 'Vendor' }}</span>
+              <span class="font-mono font-medium text-primary-text/80 ml-1">#{{ row.assigned_to }}</span>
             </p>
             <p v-if="row.submitted_by">
-              Submitted: <span class="font-mono font-medium text-primary-text/80">#{{ row.submitted_by }}</span>
+              Submitted:
+              <span class="font-medium text-primary-text" :title="row.submitted_by_email">{{ row.submitted_by_name || 'Admin' }}</span>
+              <span class="font-mono font-medium text-primary-text/80 ml-1">#{{ row.submitted_by }}</span>
             </p>
           </div>
         </div>
@@ -362,7 +366,7 @@
           <button
             type="button"
             class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg border border-primary-border bg-card-background hover:bg-primary/10 hover:border-primary/30 text-primary transition cursor-pointer"
-            @click.stop="openDetailDrawer(row)"
+            @click.stop="handleViewClick(row)"
           >
             <Eye class="w-3.5 h-3.5" />
             <span>View</span>
@@ -391,6 +395,7 @@
 
 <script setup>
 import { onMounted, computed, onUnmounted, ref } from "vue";
+import { useRouter } from "vue-router";
 import {
   RefreshCw,
   Copy,
@@ -410,6 +415,7 @@ import { formatDate } from "@/utils/timeFormatter";
 
 const store = useVendorTransfersStore();
 const snackbar = useSnackbarStore();
+const router = useRouter();
 
 // Modal & Drawer State
 const previewModalOpen = ref(false);
@@ -431,7 +437,19 @@ const openDetailDrawer = (transfer) => {
 };
 
 const handleRowClick = ({ row }) => {
-  openDetailDrawer(row);
+  if (row?.payment_request?.id) {
+    router.push({ path: '/payment-requests', query: { id: row.payment_request.id, detail: 'true' } });
+  } else {
+    openDetailDrawer(row);
+  }
+};
+
+const handleViewClick = (row) => {
+  if (row?.payment_request?.id) {
+    router.push({ path: '/payment-requests', query: { id: row.payment_request.id, detail: 'true' } });
+  } else {
+    openDetailDrawer(row);
+  }
 };
 
 const copyText = (text, label = "Item") => {
@@ -502,10 +520,8 @@ const handlePageChange = (page) => {
 };
 
 onMounted(() => {
-  store.fetchTransfers();
-});
-
-onUnmounted(() => {
-  store.reset();
+  if (!store.isFetched) {
+    store.fetchTransfers();
+  }
 });
 </script>
