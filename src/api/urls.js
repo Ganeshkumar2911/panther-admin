@@ -498,6 +498,7 @@ const urls = {
     tradeAllocations: (pammId, tradeId) => `/pamm/${pammId}/trades/${tradeId}/allocations`,
     reconcile: (id) => `/pamm/${id}/reconcile`,
     settlements: (id) => `/pamm/${id}/settlements`,
+    enrollFundManager: (fmId) => `/pamm/fund-managers/${fmId}/enroll`,
   },
 };
 

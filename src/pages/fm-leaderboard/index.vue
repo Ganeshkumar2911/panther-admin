@@ -586,9 +586,11 @@ import {
   Tag,
   Users,
   BookOpen,
-  LogIn
+  LogIn,
+  Briefcase,
 } from 'lucide-vue-next'
 import { useFmLeaderboardStore } from '@/stores/fmLeaderboard/fmLeaderboard'
+import { usePAMMStore } from '@/stores/pamm/pamm'
 import Pagination from '@/components/common/Pagination.vue'
 import AddEditFundManager from '@/components/fundManager/AddEditFundManager.vue'
 import FmDetailsDrawer from '@/components/fundManager/FmDetailsDrawer.vue'
@@ -601,6 +603,7 @@ import { usePermissionCheck } from '@/composables/usePermissionCheck'
 import { perPageOptions } from '@/constants/pagination'
 
 const store = useFmLeaderboardStore()
+const pammStore = usePAMMStore()
 const { hasPermission } = usePermissionCheck()
 const router = useRouter()
 const { goToTradingAccount } = useGoToTradingAccount()
@@ -837,7 +840,37 @@ const getRowActions = (item) => {
     })
   }
 
+  if (hasPermission('pamm.manage') || hasPermission('pamm.view')) {
+    actions.push({
+      action: 'enroll-pamm',
+      label: 'Enroll in PAMM',
+      icon: Briefcase,
+    })
+  }
+
   return actions
+}
+
+const handleEnrollPamm = async (item) => {
+  if (!item || !item.id) return
+
+  if (!item.allow_pamm) {
+    const proceed = confirm(
+      `Notice: PAMM capability (allow_pamm) is currently disabled on ${item.label_name || 'this Fund Manager'}. The pool will be created in draft status, but the FM will not be able to activate it from the FM portal until PAMM is enabled in their profile.\n\nDo you want to proceed with enrollment?`
+    )
+    if (!proceed) return
+  } else {
+    const proceed = confirm(
+      `Enroll Fund Manager "${item.label_name || item.user?.name || item.id}" (Master MT5: #${item.master_account?.account_number || item.master_account_id}) into PAMM?`
+    )
+    if (!proceed) return
+  }
+
+  try {
+    await pammStore.enrollFundManager(item.id)
+  } catch (err) {
+    // handled by store
+  }
 }
 
 const onMenuSelect = (menuItem, item) => {
@@ -869,6 +902,8 @@ const onMenuSelect = (menuItem, item) => {
       return handleSettlement(item)
     case 'edit':
       return handleEdit(item)
+    case 'enroll-pamm':
+      return handleEnrollPamm(item)
   }
 }
 

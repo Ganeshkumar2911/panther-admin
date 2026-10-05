@@ -363,6 +363,31 @@ export const usePAMMStore = defineStore("pamm", () => {
     });
   };
 
+  const enrollFundManager = (fmId, data = {}) => {
+    actionLoading.value = true;
+
+    const successHandler = (res) => {
+      snackbar.show(res?.message || "Fund Manager enrolled into PAMM successfully", "success");
+      fetchPAMMs({}, true);
+    };
+
+    const failureHandler = (err) => {
+      snackbar.show(err?.message || "Failed to enroll Fund Manager into PAMM", "error");
+    };
+
+    const finallyHandler = () => {
+      actionLoading.value = false;
+    };
+
+    return apiRequest(urls.KEYS.POST, urls.pamm.enrollFundManager(fmId), {
+      data,
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+      onFinally: finallyHandler,
+    });
+  };
+
   return {
     // State
     pamms,
@@ -391,5 +416,7 @@ export const usePAMMStore = defineStore("pamm", () => {
     rejectWithdrawal,
     reconcilePAMM,
     runSettlement,
+    enrollFundManager,
   };
 });
+

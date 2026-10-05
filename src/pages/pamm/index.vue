@@ -2,8 +2,25 @@
   <div class="p-6" v-if="hasAccess">
     <div class="mb-6 flex justify-between items-center">
       <div>
-        <button class="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded text-sm font-medium transition-colors" @click="fetchData(true)">
+        <h1 class="text-xl font-bold text-primary-text">PAMM Pools</h1>
+        <p class="text-xs text-secondary-text mt-0.5">
+          Percentage Allocation Management Module pools
+        </p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button
+          class="bg-card-background border border-primary-border hover:bg-gray-50 dark:hover:bg-slate-800 text-primary-text px-4 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+          @click="fetchData(true)"
+        >
           Refresh
+        </button>
+        <button
+          v-if="hasPermission('pamm.manage')"
+          class="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg text-xs font-semibold transition-colors flex items-center gap-2 cursor-pointer shadow-sm"
+          @click="isEnrollModalOpen = true"
+        >
+          <Plus class="w-4 h-4" />
+          <span>Enroll Fund Manager</span>
         </button>
       </div>
     </div>
@@ -20,6 +37,9 @@
         <template #cell-name="{ row }">
           <div class="font-medium text-primary-text">{{ row.name }}</div>
           <div class="text-xs text-secondary-text">{{ row.description || 'No description' }}</div>
+          <div class="text-[11px] text-primary font-mono mt-0.5" v-if="row.fund_manager_id">
+            FM #{{ row.fund_manager_id }} · Master MT5: #{{ row.master_trading_account_id }}
+          </div>
         </template>
         
         <template #cell-status="{ row }">
@@ -56,6 +76,13 @@
         </template>
       </DataTable>
     </div>
+
+    <!-- Enroll Fund Manager Modal -->
+    <EnrollFundManagerModal
+      v-if="isEnrollModalOpen"
+      @close="isEnrollModalOpen = false"
+      @enrolled="fetchData(true)"
+    />
   </div>
   <div v-else class="p-6">
     <div class="bg-card-background border border-primary-border rounded-lg shadow-sm p-8 text-center">
@@ -77,18 +104,21 @@
 </template>
 
 <script setup>
-import { onMounted, computed } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
+import { Plus } from 'lucide-vue-next';
 import { usePAMMStore } from '@/stores/pamm/pamm';
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import DataTable from '@/components/common/DataTable/DataTable.vue';
 import StatusBadge from '@/components/common/StatusBadge.vue';
+import EnrollFundManagerModal from './components/EnrollFundManagerModal.vue';
 
 const router = useRouter();
 const store = usePAMMStore();
 const { hasPermission } = usePermissionCheck();
 
 const hasAccess = computed(() => hasPermission("pamm.view"));
+const isEnrollModalOpen = ref(false);
 
 const fetchData = (force = false) => {
   store.fetchPAMMs({
