@@ -112,7 +112,7 @@ const handleAddSymbols = async () => {
   if (!newSymbolInput.value.trim() || !props.group?.id) return;
   const rawSymbols = newSymbolInput.value
     .split(/[\s,]+/)
-    .map((s) => s.trim().toUpperCase())
+    .map((s) => s.trim())
     .filter(Boolean);
 
   if (rawSymbols.length === 0) return;
@@ -219,7 +219,7 @@ const handleBulkRemove = async () => {
                 v-model="newSymbolInput"
                 type="text"
                 placeholder="e.g. XAUUSD, EURUSD, BTCUSD"
-                class="input-field flex-1 px-3 py-2 text-xs font-mono uppercase"
+                class="input-field flex-1 px-3 py-2 text-xs font-mono"
                 @keydown.enter.prevent="handleAddSymbols"
               />
               <button
@@ -273,7 +273,7 @@ const handleBulkRemove = async () => {
                       v-model="searchQuery"
                       type="text"
                       placeholder="Search member symbol..."
-                      class="input-field w-full pl-7 pr-3 py-1 text-xs font-mono uppercase"
+                      class="input-field w-full pl-7 pr-3 py-1 text-xs font-mono"
                       @input="page = 1"
                     />
                   </div>
