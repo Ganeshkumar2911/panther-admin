@@ -477,8 +477,21 @@ const urls = {
     transfers: "/vendor/transfers",
   },
   twoFactor: {
+    // Platform-wide settings
     settings: "/2fa-settings",
     reset: (userId) => `/users/${userId}/2fa/reset`,
+
+    // Staff self-service (Logged-in Admin/Staff)
+    status: "/2fa/status",
+    setup: "/2fa/setup",
+    confirm: "/2fa/confirm",
+    disable: "/2fa/disable",
+    regenerateBackupCodes: "/2fa/backup-codes/regenerate",
+    verifyLogin2fa: "/login/verify-2fa",
+
+    // Staff list (Superadmin managing staff 2FA)
+    staffStatus: (userId) => `/rbac/users/${userId}/2fa`,
+    staffReset: (userId) => `/users/${userId}/2fa/reset`,
   },
   bankRequests: {
     list: "/bank-accounts",

@@ -318,6 +318,45 @@
                   </p>
                 </div>
               </div>
+
+              <!-- Row 5: Two-Factor Authentication (2FA) Status & Reset -->
+              <div
+                v-if="hasPermission(['two_factor.view', 'two_factor.reset'])"
+                class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-4 border-t border-primary-border/60"
+              >
+                <div>
+                  <p class="text-[11px] sm:text-xs text-secondary-text font-medium mb-1">
+                    Two-Factor Authentication (2FA)
+                  </p>
+                  <div class="flex items-center gap-2">
+                    <span
+                      class="text-[11px] font-bold px-2.5 py-0.5 rounded-full border inline-flex items-center gap-1.5"
+                      :class="
+                        user.totp_enabled || user.is_2fa_enabled
+                          ? 'bg-primary-green/10 text-primary-green border-primary-green/20'
+                          : 'bg-secondary-text/10 text-secondary-text border-primary-border'
+                      "
+                    >
+                      <span
+                        class="w-1.5 h-1.5 rounded-full"
+                        :class="user.totp_enabled || user.is_2fa_enabled ? 'bg-primary-green' : 'bg-secondary-text'"
+                      />
+                      {{ (user.totp_enabled || user.is_2fa_enabled) ? 'Enabled' : 'Disabled' }}
+                    </span>
+                  </div>
+                </div>
+
+                <div v-if="canResetUser2fa && (user.totp_enabled || user.is_2fa_enabled)">
+                  <button
+                    type="button"
+                    class="btn-danger text-xs px-3 py-1.5"
+                    @click="reset2FaModalOpen = true"
+                  >
+                    <RefreshCw class="w-3.5 h-3.5" />
+                    <span>Reset 2FA</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -666,6 +705,15 @@
       @close="approveRejectModalOpen = false"
       @success="handleApprovalSuccess"
     />
+
+    <!-- 5. Reset User 2FA Confirmation Modal -->
+    <Reset2FaConfirmDialog
+      :open="reset2FaModalOpen"
+      :target-name="user.name || user.email || 'this client'"
+      :loading="twoFactorStore.actionLoading"
+      @close="reset2FaModalOpen = false"
+      @confirm="handleResetUser2fa"
+    />
   </div>
 </template>
 
@@ -674,11 +722,13 @@ import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useClientDepthStore } from "@/stores/clientDepth/clientDepth";
 import { useProfileStore } from "@/stores/profile/profile";
+import { useTwoFactorStore } from "@/stores/twoFactor/twoFactor";
 import { useMyPermissionsStore } from "@/stores/rbac/myPermissions";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import { getFlagCode, cleanCountryLabel } from "@/utils/countries";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
 import Tooltip from "@/components/common/Tooltip.vue";
+import Reset2FaConfirmDialog from "@/components/common/Reset2FaConfirmDialog.vue";
 import EditClientProfileDrawer from "@/components/clientDetails/EditClientProfileDrawer.vue";
 import UploadKycVerificationModal from "@/components/clientDetails/UploadKycVerificationModal.vue";
 import ViewKycDocumentModal from "@/components/clientDetails/ViewKycDocumentModal.vue";
@@ -708,8 +758,31 @@ const route = useRoute();
 const snackbar = useSnackbarStore();
 const clientDepthStore = useClientDepthStore();
 const profileStore = useProfileStore();
+const twoFactorStore = useTwoFactorStore();
 const permissionsStore = useMyPermissionsStore();
 const { hasPermission } = usePermissionCheck();
+
+// 2FA Reset State
+const reset2FaModalOpen = ref(false);
+
+const canResetUser2fa = computed(() => {
+  return hasPermission(["two_factor.reset"]);
+});
+
+const handleResetUser2fa = async () => {
+  const userId = clientForEdit.value.id;
+  if (!userId) return;
+  try {
+    await twoFactorStore.resetUser2fa(userId);
+    reset2FaModalOpen.value = false;
+    // Refresh client overview to update 2FA status
+    if (clientDepthStore.fetchOverview) {
+      clientDepthStore.fetchOverview(userId);
+    }
+  } catch (_) {
+    // snackbar is handled in store
+  }
+};
 
 // ─── Permission & Access Checks ──────────────────────────────────────────────
 // Pure RBAC permission checks from backend 'client' module:

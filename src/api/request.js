@@ -108,13 +108,22 @@ axiosInstance.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // ── 401: مباشرة logout (no refresh)
+    // ── 401: logout (bypass for 2FA setup/confirm/verify/login endpoints)
     if (error.response?.status === 401) {
-      authToken.removeToken();
-      localStorage.removeItem("role");
-      localStorage.removeItem("lastActivityTimestamp");
-      localStorage.removeItem("custom_base_url");
-      router.push({ name: "login" });
+      const url = String(originalRequest?.url || "");
+      const is2faAuthUrl =
+        url.includes("/2fa/") ||
+        url.includes("/login/verify-2fa") ||
+        url.includes("/login");
+      const skipAuthRedirect = originalRequest?.skipAuthRedirect || is2faAuthUrl;
+
+      if (!skipAuthRedirect) {
+        authToken.removeToken();
+        localStorage.removeItem("role");
+        localStorage.removeItem("lastActivityTimestamp");
+        localStorage.removeItem("custom_base_url");
+        router.push({ name: "login" });
+      }
       return Promise.reject(error);
     }
 
@@ -200,6 +209,7 @@ const apiRequest = (
     onDownloadProgress = null,
     isTokenRequired = true,
     skipAdminPrefix = false,
+    skipAuthRedirect = false,
     signal = null, // ← use AbortController.signal per-request
     timeout = null,
     cancelPrevious = false,
@@ -236,6 +246,7 @@ const apiRequest = (
     onDownloadProgress,
     isTokenRequired,
     skipAdminPrefix,
+    skipAuthRedirect,
     ...(signal && { signal }),
     signal: abortController?.signal || signal,
     ...(timeout != null && { timeout }),
