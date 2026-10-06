@@ -16,6 +16,11 @@ const routes = [
         name: "dev-login",
         component: () => import("@/pages/auth/dev-login.vue"),
       },
+      {
+        path: "/2fa",
+        name: "two-factor",
+        component: () => import("@/pages/auth/two-factor.vue"),
+      },
     ],
   },
   {

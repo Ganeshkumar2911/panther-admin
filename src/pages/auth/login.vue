@@ -67,19 +67,75 @@ const handleLogin = () => {
   loading.value = true
 
   const successHandler = async (res) => {
-    authToken.setToken(res.access_token)
-    const myPermissionsStore = useMyPermissionsStore()
+    // ── Detect role from response body or JWT token payload ──
+    let userRole = res?.role || res?.data?.role;
+    const accessToken = res?.access_token || res?.data?.access_token;
+    const tempToken = res?.temp_token || res?.data?.temp_token || res?.token || res?.data?.token;
+
+    if (!userRole) {
+      const tokenToInspect = accessToken || tempToken;
+      if (tokenToInspect) {
+        try {
+          const parts = tokenToInspect.split('.');
+          if (parts.length === 3) {
+            const payload = JSON.parse(atob(parts[1]));
+            userRole = payload?.role;
+          }
+        } catch (_) {}
+      }
+    }
+
+    const isSuperAdminOrAdmin = userRole === 'superadmin' || userRole === 'admin';
+
+    // ── Check if 2FA authentication or forced setup is required (Bypassed for superadmin/admin) ──
+    const is2FaRequired = !isSuperAdminOrAdmin && Boolean(
+      res?.requires_2fa === true ||
+      res?.data?.requires_2fa === true ||
+      res?.is_2fa_enabled === true ||
+      res?.data?.is_2fa_enabled === true ||
+      res?.requires_2fa_setup === true ||
+      res?.data?.requires_2fa_setup === true
+    );
+
+    if (is2FaRequired || (!isSuperAdminOrAdmin && tempToken && !accessToken)) {
+      const isSetup = Boolean(res?.requires_2fa_setup || res?.data?.requires_2fa_setup);
+      if (tempToken) {
+        sessionStorage.setItem("2fa_temp_token", tempToken);
+      }
+      sessionStorage.setItem("2fa_email", form.email.trim());
+      if (userRole) {
+        sessionStorage.setItem("2fa_role", userRole);
+      }
+      if (isSetup) {
+        sessionStorage.setItem("2fa_is_setup", "true");
+      } else {
+        sessionStorage.removeItem("2fa_is_setup");
+      }
+      loading.value = false;
+      router.push({
+        path: "/2fa",
+        query: {
+          ...(isSetup ? { setup: "true" } : {}),
+        },
+      });
+      return;
+    }
+
+    if (accessToken) {
+      authToken.setToken(accessToken, userRole);
+    }
+    const myPermissionsStore = useMyPermissionsStore();
     try {
-      await myPermissionsStore.fetchMyPermissions(true)
+      await myPermissionsStore.fetchMyPermissions(true);
     } catch (_) {
       // ignore
     }
-    loading.value = false
-    const targetPath = myPermissionsStore.firstAllowedPath || '/dashboard'
+    loading.value = false;
+    const targetPath = myPermissionsStore.firstAllowedPath || "/dashboard";
     router.push(targetPath).catch(() => {
-      window.location.href = targetPath
-    })
-  }
+      window.location.href = targetPath;
+    });
+  };
 
   const failureHandler = (err) => {
     loading.value = false

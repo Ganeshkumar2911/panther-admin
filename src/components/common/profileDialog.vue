@@ -337,6 +337,11 @@
                 </div>
               </div>
 
+              <!-- ── Two-Factor Authentication Section (Only for Staff) ── -->
+              <div v-if="isStaff" class="pt-2">
+                <TwoFactorAuthCard />
+              </div>
+
               <!-- ── FM Section ── -->
               <template v-if="isFm">
                 <div class="pt-4 border-t border-primary-border space-y-3">
@@ -434,6 +439,8 @@ import { useAuthStore } from '@/stores/auth'
 import { useMyPermissionsStore } from '@/stores/rbac/myPermissions'
 import { countries, getFlagCode, cleanCountryLabel } from '@/utils/countries'
 import BaseSelect from '@/components/common/BaseSelect.vue'
+import TwoFactorAuthCard from '@/components/profile/TwoFactorAuthCard.vue'
+import authToken from '@/common/authToken'
 
 const props = defineProps({
   open: {
@@ -504,12 +511,22 @@ function getCountryLabel(val) {
 }
 
 // ─── Role Detection ─────────────────────────────────
+const rawRole = computed(() => {
+  return authToken.getRole() || localStorage.getItem('role') || profileStore.user?.role || null;
+})
+
+const isStaff = computed(() => {
+  return rawRole.value === 'staff';
+})
+
 const role = computed(() => {
-  let r = null;
-  try {
-    r = JSON.parse(localStorage.getItem('user') || '{}')?.role || profileStore.user?.role || null;
-  } catch {
-    r = profileStore.user?.role || null;
+  let r = rawRole.value;
+  if (!r) {
+    try {
+      r = JSON.parse(localStorage.getItem('user') || '{}')?.role || null;
+    } catch {
+      r = null;
+    }
   }
   return r === 'staff' ? 'admin' : r;
 })

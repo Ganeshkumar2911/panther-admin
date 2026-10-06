@@ -13,7 +13,7 @@ router.beforeEach(async (to, from) => {
   const token = authToken.getToken().accessToken;
   const isAuthenticated = Boolean(token);
 
-  const publicRoutes = ["login", "register", "dev-login"];
+  const publicRoutes = ["login", "register", "dev-login", "two-factor"];
   const isPublicRoute = publicRoutes.includes(to.name);
 
   // 🔹 If not logged in → block protected routes
