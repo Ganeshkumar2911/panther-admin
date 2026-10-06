@@ -351,63 +351,142 @@
               </div>
 
               <p class="text-[10px] text-secondary-text">
-                Grant wallet points on PaymentRequest-backed deposits. Ledger entries are recorded as ADJUST lots.
+                Awards points on every qualifying deposit based on threshold brackets. Formula: <span class="font-mono text-primary-text font-semibold">points = base_points × ceil(usd / bracket_usd)</span>, capped at max points if set.
               </p>
 
               <div v-if="form.deposit_bonus_enabled" class="space-y-3 pt-2 border-t border-primary-border/60">
-                <div class="space-y-1">
-                  <label class="font-semibold text-primary-text">Bonus Grant Mode</label>
-                  <BaseSelect
-                    v-model="form.deposit_bonus_mode"
-                    :options="depositBonusModeOptions"
-                    placeholder="Select mode..."
-                  />
-                  <p class="text-[10px] text-secondary-text">
-                    {{
-                      form.deposit_bonus_mode === 'conversion'
-                        ? 'Awards points = deposited USD × conversion rate on every qualifying deposit.'
-                        : form.deposit_bonus_mode === 'fixed_first'
-                          ? 'Awards a fixed point bonus on the first qualifying deposit only.'
-                          : 'Awards fixed points on the first deposit, then conversion rate on all later deposits.'
-                    }}
-                  </p>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <!-- Points per Bracket -->
+                  <div class="space-y-1">
+                    <label class="font-semibold text-primary-text text-xs flex items-center justify-between">
+                      <span>Points per Bracket</span>
+                      <span class="text-[10px] text-primary font-mono font-medium">pts</span>
+                    </label>
+                    <input
+                      v-model.number="form.deposit_bonus_base_points"
+                      type="number"
+                      step="any"
+                      min="0.01"
+                      required
+                      placeholder="10.00"
+                      class="w-full px-3 py-2 bg-card-background border rounded-lg text-primary-text outline-none transition font-mono text-xs"
+                      :class="depositBonusErrors.base ? 'border-primary-red focus:border-primary-red' : 'border-primary-border focus:border-primary'"
+                    />
+                    <p v-if="depositBonusErrors.base" class="text-[9px] text-primary-red">{{ depositBonusErrors.base }}</p>
+                    <p v-else class="text-[9px] text-secondary-text">Points awarded per bracket level</p>
+                  </div>
+
+                  <!-- Bracket Size (USD) -->
+                  <div class="space-y-1">
+                    <label class="font-semibold text-primary-text text-xs flex items-center justify-between">
+                      <span>Bracket Size (USD)</span>
+                      <span class="text-[10px] text-primary font-mono font-medium">USD</span>
+                    </label>
+                    <input
+                      v-model.number="form.deposit_bonus_band_usd"
+                      type="number"
+                      step="any"
+                      min="0.01"
+                      required
+                      placeholder="200.00"
+                      class="w-full px-3 py-2 bg-card-background border rounded-lg text-primary-text outline-none transition font-mono text-xs"
+                      :class="depositBonusErrors.band ? 'border-primary-red focus:border-primary-red' : 'border-primary-border focus:border-primary'"
+                    />
+                    <p v-if="depositBonusErrors.band" class="text-[9px] text-primary-red">{{ depositBonusErrors.band }}</p>
+                    <p v-else class="text-[9px] text-secondary-text">Deposit threshold increment (USD)</p>
+                  </div>
+
+                  <!-- Max points (optional) -->
+                  <div class="space-y-1">
+                    <div class="flex items-center justify-between">
+                      <label class="font-semibold text-primary-text text-xs">Max points (optional)</label>
+                      <button
+                        v-if="form.deposit_bonus_max_points !== null && form.deposit_bonus_max_points !== ''"
+                        type="button"
+                        class="text-[10px] text-primary hover:underline cursor-pointer"
+                        @click="form.deposit_bonus_max_points = null"
+                      >
+                        Clear Cap
+                      </button>
+                    </div>
+                    <input
+                      v-model.number="form.deposit_bonus_max_points"
+                      type="number"
+                      step="any"
+                      min="0"
+                      placeholder="Leave blank for no cap"
+                      class="w-full px-3 py-2 bg-card-background border rounded-lg text-primary-text outline-none transition font-mono text-xs"
+                      :class="depositBonusErrors.max ? 'border-primary-red focus:border-primary-red' : 'border-primary-border focus:border-primary'"
+                    />
+                    <p v-if="depositBonusErrors.max" class="text-[9px] text-primary-red">{{ depositBonusErrors.max }}</p>
+                    <p v-else class="text-[9px] text-secondary-text">Cap per deposit (null = unlimited)</p>
+                  </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3">
-                  <div class="space-y-1">
-                    <label class="font-semibold text-primary-text">Min Deposit (USD)</label>
-                    <input
-                      v-model.number="form.deposit_bonus_min_usd"
-                      type="number"
-                      step="any"
-                      placeholder="0.00"
-                      class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono"
-                    />
-                    <p class="text-[9px] text-secondary-text">Min funded USD to qualify</p>
+                <!-- Dynamic 3-Level Preview & Calculator -->
+                <div class="p-3 bg-card-background/70 border border-primary-border/80 rounded-lg space-y-2.5 text-xs">
+                  <div class="flex items-center justify-between">
+                    <span class="text-[11px] font-semibold text-primary-text flex items-center gap-1.5">
+                      <Calculator class="w-3.5 h-3.5 text-primary" />
+                      Dynamic Level Breakdown
+                    </span>
+                    <span class="text-[10px] text-secondary-text">
+                      Formula: <span class="font-mono text-primary-text font-semibold">pts = base × ceil(usd / bracket)</span>
+                    </span>
                   </div>
 
-                  <div v-if="form.deposit_bonus_mode === 'conversion' || form.deposit_bonus_mode === 'both'" class="space-y-1">
-                    <label class="font-semibold text-primary-text">Points Per USD Rate</label>
-                    <input
-                      v-model.number="form.deposit_bonus_points_per_usd"
-                      type="number"
-                      step="any"
-                      placeholder="1.0000"
-                      class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono"
-                    />
-                    <p class="text-[9px] text-secondary-text">e.g. 1.00 = 1 pt per $1</p>
+                  <!-- 3 Dynamic Levels Display -->
+                  <div v-if="dynamicPreviewLevels.length > 0" class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-0.5">
+                    <div
+                      v-for="lvl in dynamicPreviewLevels"
+                      :key="lvl.level"
+                      class="p-2.5 rounded-lg bg-background/80 border border-primary-border flex flex-col justify-between"
+                    >
+                      <div class="flex items-center justify-between">
+                        <span class="text-[10px] uppercase font-bold text-secondary-text tracking-wider">Level {{ lvl.level }}</span>
+                        <span v-if="lvl.isCapped" class="text-[9px] px-1.5 py-0.2 rounded bg-primary-yellow/10 text-primary-yellow font-medium">Capped</span>
+                      </div>
+                      <span class="font-mono text-xs font-semibold text-primary-text mt-1">{{ lvl.range }}</span>
+                      <div class="flex items-center justify-between mt-1.5 pt-1.5 border-t border-primary-border/60">
+                        <span class="text-[10px] text-secondary-text">Awards</span>
+                        <span class="font-mono text-xs font-bold text-primary-green">{{ lvl.points }} pts</span>
+                      </div>
+                    </div>
                   </div>
 
-                  <div v-if="form.deposit_bonus_mode === 'fixed_first' || form.deposit_bonus_mode === 'both'" class="space-y-1">
-                    <label class="font-semibold text-primary-text">Fixed Bonus Points</label>
-                    <input
-                      v-model.number="form.deposit_bonus_fixed_points"
-                      type="number"
-                      step="any"
-                      placeholder="100.00"
-                      class="w-full px-3 py-2 bg-card-background border border-primary-border rounded-lg text-primary-text outline-none focus:border-primary transition font-mono"
-                    />
-                    <p class="text-[9px] text-secondary-text">Fixed grant for first deposit</p>
+                  <div v-else class="p-2.5 text-center text-secondary-text text-[11px] bg-background/50 rounded-lg border border-dashed border-primary-border">
+                    Enter positive points and bracket size to view level breakdown.
+                  </div>
+
+                  <!-- Custom Amount Interactive Test -->
+                  <div class="pt-2 border-t border-primary-border/60">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-background/60 p-2.5 rounded-lg border border-primary-border/70">
+                      <div class="flex items-center gap-2">
+                        <span class="text-[10px] text-secondary-text font-medium shrink-0">Test Any Deposit:</span>
+                        <div class="relative w-32">
+                          <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-[11px] text-secondary-text font-mono">$</span>
+                          <input
+                            v-model.number="previewDepositAmount"
+                            type="number"
+                            step="any"
+                            min="0"
+                            placeholder="750"
+                            class="w-full pl-6 pr-2 py-1 bg-card-background border border-primary-border rounded text-primary-text outline-none focus:border-primary font-mono text-xs"
+                          />
+                        </div>
+                      </div>
+
+                      <div class="flex items-center gap-2 font-mono text-xs shrink-0">
+                        <span class="text-[10px] font-sans text-secondary-text">Payout:</span>
+                        <span class="font-bold text-primary-green">{{ previewBonusResult.points }} pts</span>
+                        <span class="text-[10px] font-sans text-secondary-text">({{ previewBonusResult.levelLabel }})</span>
+                      </div>
+                    </div>
+
+                    <p class="text-[10px] text-secondary-text flex items-center gap-1 mt-1.5">
+                      <Info class="w-3 h-3 text-secondary-text shrink-0" />
+                      <span>{{ previewBonusResult.description }}</span>
+                    </p>
                   </div>
                 </div>
               </div>
@@ -618,7 +697,7 @@
           <button
             type="submit"
             form="edit-program-form"
-            :disabled="store.actionLoading"
+            :disabled="store.actionLoading || (form.deposit_bonus_enabled && depositBonusErrors.hasError)"
             class="flex-1 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white font-semibold transition cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2 text-xs shadow-xs"
           >
             <Loader2 v-if="store.actionLoading" class="w-4 h-4 animate-spin" />
@@ -645,8 +724,12 @@ import {
   Plus,
   Trash2,
   Image as ImageIcon,
+  Coins,
+  Calculator,
+  Info,
 } from "lucide-vue-next";
 import { useLoyaltyStore } from "@/stores/loyalty/loyalty";
+import { useSnackbarStore } from "@/stores/snackbar/snackbar";
 import BaseDatePicker from "@/components/common/BaseDatePicker.vue";
 
 const props = defineProps({
@@ -657,6 +740,7 @@ const props = defineProps({
 
 const emit = defineEmits(["close", "saved"]);
 const store = useLoyaltyStore();
+const snackbar = useSnackbarStore();
 
 const activeSection = ref(props.initialSection || "all");
 
@@ -738,11 +822,7 @@ const scopeOptions = [
   { label: "All Eligible Accounts", value: "all_eligible_accounts" },
 ];
 
-const depositBonusModeOptions = [
-  { label: "Conversion Rate (Every qualifying deposit)", value: "conversion" },
-  { label: "Fixed First (First deposit only)", value: "fixed_first" },
-  { label: "Both (Fixed on first, conversion on subsequent)", value: "both" },
-];
+
 
 const matchTypeOptions = [
   { label: "Exact Match", value: "exact" },
@@ -798,10 +878,9 @@ const form = reactive({
   carry_over_enrollments: false,
   allow_general_wallet_transfer: false,
   deposit_bonus_enabled: false,
-  deposit_bonus_mode: "conversion",
-  deposit_bonus_min_usd: 0,
-  deposit_bonus_points_per_usd: 0,
-  deposit_bonus_fixed_points: 0,
+  deposit_bonus_base_points: 10,
+  deposit_bonus_band_usd: 500,
+  deposit_bonus_max_points: null,
   eligibility_rules: {
     require_kyc: false,
     require_live: true,
@@ -876,10 +955,9 @@ watch(
       form.carry_over_enrollments = Boolean(p.carry_over_enrollments);
       form.allow_general_wallet_transfer = Boolean(p.allow_general_wallet_transfer);
       form.deposit_bonus_enabled = Boolean(p.deposit_bonus_enabled);
-      form.deposit_bonus_mode = p.deposit_bonus_mode || "conversion";
-      form.deposit_bonus_min_usd = p.deposit_bonus_min_usd !== undefined ? Number(p.deposit_bonus_min_usd) : 0;
-      form.deposit_bonus_points_per_usd = p.deposit_bonus_points_per_usd !== undefined ? Number(p.deposit_bonus_points_per_usd) : 0;
-      form.deposit_bonus_fixed_points = p.deposit_bonus_fixed_points !== undefined ? Number(p.deposit_bonus_fixed_points) : 0;
+      form.deposit_bonus_base_points = p.deposit_bonus_base_points != null ? Number(p.deposit_bonus_base_points) : 10;
+      form.deposit_bonus_band_usd = p.deposit_bonus_band_usd != null ? Number(p.deposit_bonus_band_usd) : 500;
+      form.deposit_bonus_max_points = p.deposit_bonus_max_points != null ? Number(p.deposit_bonus_max_points) : null;
 
       // Images
       if (Array.isArray(p.image_urls) && p.image_urls.length > 0) {
@@ -922,8 +1000,122 @@ watch(
   { immediate: true },
 );
 
+const previewDepositAmount = ref(750);
+
+const dynamicPreviewLevels = computed(() => {
+  const step = Number(form.deposit_bonus_band_usd || 0);
+  const pts = Number(form.deposit_bonus_base_points || 0);
+  const max =
+    form.deposit_bonus_max_points !== null &&
+    form.deposit_bonus_max_points !== "" &&
+    form.deposit_bonus_max_points !== undefined
+      ? Number(form.deposit_bonus_max_points)
+      : null;
+
+  if (step <= 0 || pts <= 0) {
+    return [];
+  }
+
+  return [1, 2, 3].map((lvl) => {
+    const fromUsd = (lvl - 1) * step;
+    const toUsd = lvl * step;
+    const rawPts = pts * lvl;
+    const isCapped = max !== null && rawPts > max;
+    const finalPts = isCapped ? max : rawPts;
+    return {
+      level: lvl,
+      range: `$${fromUsd.toLocaleString()} – $${toUsd.toLocaleString()}`,
+      points: finalPts,
+      isCapped,
+    };
+  });
+});
+
+const previewBonusResult = computed(() => {
+  const base = Number(form.deposit_bonus_base_points || 0);
+  const step = Number(form.deposit_bonus_band_usd || 0);
+  const deposit = Number(previewDepositAmount.value || 0);
+  const max =
+    form.deposit_bonus_max_points !== null &&
+    form.deposit_bonus_max_points !== "" &&
+    form.deposit_bonus_max_points !== undefined
+      ? Number(form.deposit_bonus_max_points)
+      : null;
+
+  if (base <= 0 || step <= 0 || deposit <= 0) {
+    return {
+      points: 0,
+      levelLabel: "No deposit",
+      description: "Enter positive base points, bracket size, and deposit amount.",
+    };
+  }
+
+  const levelNum = Math.ceil(deposit / step);
+  const rawPoints = base * levelNum;
+  const isCapped = max !== null && rawPoints > max;
+  const finalPoints = isCapped ? max : rawPoints;
+
+  const fromUsd = ((levelNum - 1) * step).toFixed(2);
+  const toUsd = (levelNum * step).toFixed(2);
+
+  let desc = `Deposit $${deposit} falls into Level #${levelNum} ($${fromUsd}–$${toUsd}) = ${levelNum} × ${base} pts = ${rawPoints} pts.`;
+  if (isCapped) {
+    desc += ` Capped at maximum ${max} pts.`;
+  }
+  return {
+    points: finalPoints,
+    levelLabel: `Level #${levelNum}`,
+    description: desc,
+  };
+});
+
+const depositBonusErrors = computed(() => {
+  const errors = { base: "", band: "", max: "", hasError: false };
+  if (!form.deposit_bonus_enabled) return errors;
+
+  const base = Number(form.deposit_bonus_base_points);
+  const step = Number(form.deposit_bonus_band_usd);
+
+  if (form.deposit_bonus_base_points === "" || isNaN(base) || base <= 0) {
+    errors.base = "Points per bracket must be > 0";
+    errors.hasError = true;
+  }
+  if (form.deposit_bonus_band_usd === "" || isNaN(step) || step <= 0) {
+    errors.band = "Bracket size (USD) must be > 0";
+    errors.hasError = true;
+  }
+
+  if (
+    form.deposit_bonus_max_points !== null &&
+    form.deposit_bonus_max_points !== "" &&
+    form.deposit_bonus_max_points !== undefined
+  ) {
+    const max = Number(form.deposit_bonus_max_points);
+    if (isNaN(max) || max < 0) {
+      errors.max = "Max points cannot be negative";
+      errors.hasError = true;
+    } else if (base > 0 && max < base) {
+      errors.max = "Max points must be ≥ points per bracket";
+      errors.hasError = true;
+    }
+  }
+
+  return errors;
+});
+
 const handleSubmit = async () => {
   if (!props.program?.id) return;
+
+  if (form.deposit_bonus_enabled && depositBonusErrors.value.hasError) {
+    snackbar.show(
+      depositBonusErrors.value.base ||
+        depositBonusErrors.value.band ||
+        depositBonusErrors.value.max ||
+        "Please fix deposit bonus configuration errors",
+      "error",
+    );
+    return;
+  }
 
   const p = props.program;
   const payload = {};
@@ -1005,17 +1197,37 @@ const handleSubmit = async () => {
   if (Boolean(form.deposit_bonus_enabled) !== Boolean(p.deposit_bonus_enabled)) {
     payload.deposit_bonus_enabled = Boolean(form.deposit_bonus_enabled);
   }
-  if (form.deposit_bonus_mode !== (p.deposit_bonus_mode || "conversion")) {
-    payload.deposit_bonus_mode = form.deposit_bonus_mode;
-  }
-  if (Number(form.deposit_bonus_min_usd) !== Number(p.deposit_bonus_min_usd || 0)) {
-    payload.deposit_bonus_min_usd = String(Number(form.deposit_bonus_min_usd).toFixed(2));
-  }
-  if (Number(form.deposit_bonus_points_per_usd) !== Number(p.deposit_bonus_points_per_usd || 0)) {
-    payload.deposit_bonus_points_per_usd = String(Number(form.deposit_bonus_points_per_usd).toFixed(4));
-  }
-  if (Number(form.deposit_bonus_fixed_points) !== Number(p.deposit_bonus_fixed_points || 0)) {
-    payload.deposit_bonus_fixed_points = String(Number(form.deposit_bonus_fixed_points).toFixed(2));
+  if (form.deposit_bonus_enabled) {
+    if (
+      Boolean(form.deposit_bonus_enabled) !== Boolean(p.deposit_bonus_enabled) ||
+      Number(form.deposit_bonus_base_points) !== Number(p.deposit_bonus_base_points || 0)
+    ) {
+      payload.deposit_bonus_base_points = Number(form.deposit_bonus_base_points);
+    }
+    if (
+      Boolean(form.deposit_bonus_enabled) !== Boolean(p.deposit_bonus_enabled) ||
+      Number(form.deposit_bonus_band_usd) !== Number(p.deposit_bonus_band_usd || 0)
+    ) {
+      payload.deposit_bonus_band_usd = Number(form.deposit_bonus_band_usd);
+    }
+    const currentMax =
+      form.deposit_bonus_max_points !== null &&
+      form.deposit_bonus_max_points !== "" &&
+      form.deposit_bonus_max_points !== undefined
+        ? Number(form.deposit_bonus_max_points)
+        : null;
+    const prevMax =
+      p.deposit_bonus_max_points !== null &&
+      p.deposit_bonus_max_points !== undefined &&
+      p.deposit_bonus_max_points !== ""
+        ? Number(p.deposit_bonus_max_points)
+        : null;
+    if (
+      Boolean(form.deposit_bonus_enabled) !== Boolean(p.deposit_bonus_enabled) ||
+      currentMax !== prevMax
+    ) {
+      payload.deposit_bonus_max_points = currentMax;
+    }
   }
 
   // Check Eligibility Rules diff
