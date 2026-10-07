@@ -632,27 +632,54 @@ const dropdownBgClass = computed(() => {
 function updatePosition() {
   if (!triggerRef.value) return;
   const rect = triggerRef.value.getBoundingClientRect();
-  const isTop = props.placement === "top" || props.position === "top";
+  
+  const dropdownWidth = dropdownRef.value?.offsetWidth || (effectiveShowPresets.value ? 520 : 340);
+  const dropdownHeight = dropdownRef.value?.offsetHeight || (effectiveShowPresets.value ? 430 : 380);
 
-  const dropdownWidth = effectiveShowPresets.value ? 520 : 340;
-  let left = rect.left;
-  if (left + dropdownWidth > window.innerWidth - 12) {
-    left = Math.max(12, window.innerWidth - dropdownWidth - 12);
+  // Horizontal positioning:
+  // If trigger is on right side or dropdown would overflow screen right, align right edge of dropdown with trigger right edge
+  let left;
+  if (rect.left + dropdownWidth > window.innerWidth - 16 || rect.right > window.innerWidth / 2) {
+    left = rect.right - dropdownWidth;
+  } else {
+    left = rect.left;
   }
 
-  if (isTop) {
+  // Strict boundary clamping so it never overflows viewport
+  left = Math.max(16, Math.min(left, window.innerWidth - dropdownWidth - 16));
+
+  const explicitTop = props.placement === "top" || props.position === "top";
+  const explicitBottom = props.placement === "bottom" || props.position === "bottom";
+
+  let shouldOpenTop = explicitTop;
+  if (!explicitTop) {
+    const spaceBelow = window.innerHeight - rect.bottom - 12;
+    const spaceAbove = rect.top - 12;
+    // Auto flip to top if space below is less than dropdown height and there is more space above
+    if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
+      shouldOpenTop = true;
+    }
+  }
+
+  if (shouldOpenTop) {
     dropdownStyle.value = {
       position: "fixed",
-      bottom: `${window.innerHeight - rect.top + 6}px`,
+      bottom: `${Math.max(6, window.innerHeight - rect.top + 6)}px`,
       left: `${left}px`,
       zIndex: 9999,
+      maxHeight: `calc(100vh - 24px)`,
     };
   } else {
+    let top = rect.bottom + 6;
+    if (top + dropdownHeight > window.innerHeight - 12) {
+      top = Math.max(12, window.innerHeight - dropdownHeight - 12);
+    }
     dropdownStyle.value = {
       position: "fixed",
-      top: `${rect.bottom + 6}px`,
+      top: `${top}px`,
       left: `${left}px`,
       zIndex: 9999,
+      maxHeight: `calc(100vh - 24px)`,
     };
   }
 }
@@ -678,12 +705,14 @@ function initFromModel() {
   activePresetLabel.value = matchedPreset.value?.label || null;
 }
 
-function toggle() {
+async function toggle() {
   if (props.disabled) return;
   isOpen.value = !isOpen.value;
   if (isOpen.value) {
     initFromModel();
     pickerView.value = "days";
+    updatePosition();
+    await nextTick();
     updatePosition();
     emit("open");
   } else {
