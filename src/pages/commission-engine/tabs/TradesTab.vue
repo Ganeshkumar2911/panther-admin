@@ -506,6 +506,13 @@ const formatDate = (val) => {
     <!-- Rebuild Trades Ops Modal -->
     <RebuildTradesModal
       v-model="isRebuildModalOpen"
+      :initial-filters="{
+        ib_id: ibIdFilter,
+        login: loginFilter,
+        date_from: dateFrom,
+        date_to: dateTo,
+        date_field: dateField,
+      }"
       @rebuilt="loadTrades(store.tradesPagination.page, true)"
     />
   </div>
