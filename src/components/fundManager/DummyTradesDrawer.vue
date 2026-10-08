@@ -292,7 +292,6 @@
                         @change="toggleSelectAll"
                       />
                     </th>
-                    <th class="py-2.5 px-3">#ID</th>
                     <th class="py-2.5 px-3">Symbol</th>
                     <th class="py-2.5 px-3">Type</th>
                     <th class="py-2.5 px-3 text-right">Lot</th>
@@ -322,10 +321,7 @@
                       />
                     </td>
 
-                    <!-- Trade ID -->
-                    <td class="py-2.5 px-3 font-bold text-primary-text">
-                      #{{ trade.id }}
-                    </td>
+
 
                     <!-- Symbol -->
                     <td class="py-2.5 px-3 font-bold text-primary-text">
