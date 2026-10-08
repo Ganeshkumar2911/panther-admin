@@ -8,8 +8,12 @@
           class="flex w-full min-w-0 flex-col gap-2 rounded-xl border border-primary-border bg-card-background/40 p-2.5 sm:flex-row sm:items-center sm:flex-wrap xl:flex-1"
         >
           <!-- Real / Dummy FM Tab Switcher Pill -->
-          <div class="flex items-center gap-1 p-0.5 bg-background border border-primary-border rounded-lg shrink-0 h-9">
+          <div
+            v-if="canViewRealFm && canViewDummyFm"
+            class="flex items-center gap-1 p-0.5 bg-background border border-primary-border rounded-lg shrink-0 h-9"
+          >
             <button
+              v-if="canViewRealFm"
               type="button"
               @click="switchTab('real')"
               class="flex items-center gap-1.5 px-3 h-7 rounded-md text-xs font-bold transition-all cursor-pointer select-none"
@@ -24,6 +28,7 @@
             </button>
 
             <button
+              v-if="canViewDummyFm"
               type="button"
               @click="switchTab('dummy')"
               class="flex items-center gap-1.5 px-3 h-7 rounded-md text-xs font-bold transition-all cursor-pointer select-none"
@@ -698,6 +703,7 @@
       @switch-tab="switchTab"
       :is-toggling="togglingId ? { [togglingId]: true } : {}"
       @open-details="openDummyDetailsDrawer"
+      @view-trades="openDummyTradesDrawer"
       @edit-dummy="openEditDummySheet"
       @import-trades="openImportTradesDrawer"
       @toggle-status="handleToggleDummy"
@@ -736,6 +742,16 @@
       :open="dummyDetailsDrawerOpen"
       :item="selectedDummyDetailsItem"
       @close="dummyDetailsDrawerOpen = false"
+      @view-trades="openDummyTradesDrawer"
+      @edit-dummy="openEditDummySheet"
+      @import-trades="openImportTradesDrawer"
+    />
+
+    <!-- DUMMY TRADES MANAGEMENT SIDE DRAWER -->
+    <DummyTradesDrawer
+      :open="dummyTradesDrawerOpen"
+      :item="selectedDummyTradesItem"
+      @close="dummyTradesDrawerOpen = false"
       @edit-dummy="openEditDummySheet"
       @import-trades="openImportTradesDrawer"
     />
@@ -804,6 +820,7 @@ import FmDetailsDrawer from '@/components/fundManager/FmDetailsDrawer.vue'
 import DummyFmLeaderboard from '@/components/fundManager/DummyFmLeaderboard.vue'
 import DummyFmSheet from '@/components/fundManager/DummyFmSheet.vue'
 import DummyFmDetailsDrawer from '@/components/fundManager/DummyFmDetailsDrawer.vue'
+import DummyTradesDrawer from '@/components/fundManager/DummyTradesDrawer.vue'
 import ImportDummyTradesDrawer from '@/components/fundManager/ImportDummyTradesDrawer.vue'
 import FMLoginModal from '@/components/common/FMLoginModal.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
@@ -819,19 +836,30 @@ const { hasPermission } = usePermissionCheck()
 const router = useRouter()
 const route = useRoute()
 
+const canViewRealFm = computed(() => hasPermission('fund_manager.view'))
+const canViewDummyFm = computed(() => hasPermission('dummyfm.view'))
+
 const getInitialTab = () => {
-  const queryTab = route.query.tab
-  if (queryTab === 'dummy' || queryTab === 'real') return queryTab
-  try {
-    const savedTab = localStorage.getItem('fm_leaderboard_tab')
-    if (savedTab === 'dummy' || savedTab === 'real') return savedTab
-  } catch (_) {}
+  if (canViewRealFm.value && canViewDummyFm.value) {
+    const queryTab = route.query.tab
+    if (queryTab === 'dummy' || queryTab === 'real') return queryTab
+    try {
+      const savedTab = localStorage.getItem('fm_leaderboard_tab')
+      if (savedTab === 'dummy' || savedTab === 'real') return savedTab
+    } catch (_) {}
+    return 'real'
+  }
+  if (canViewDummyFm.value && !canViewRealFm.value) {
+    return 'dummy'
+  }
   return 'real'
 }
 
 const activeTab = ref(getInitialTab())
 
 const switchTab = (tab) => {
+  if (tab === 'real' && !canViewRealFm.value) return
+  if (tab === 'dummy' && !canViewDummyFm.value) return
   if (activeTab.value === tab) return
   activeTab.value = tab
   try {
@@ -881,6 +909,9 @@ const selectedDetailsItem = ref(null)
 const dummyDetailsDrawerOpen = ref(false)
 const selectedDummyDetailsItem = ref(null)
 
+const dummyTradesDrawerOpen = ref(false)
+const selectedDummyTradesItem = ref(null)
+
 const importTradesDrawerOpen = ref(false)
 const selectedImportTradesItem = ref(null)
 
@@ -888,6 +919,12 @@ const openImportTradesDrawer = (item) => {
   setActiveFm(item)
   selectedImportTradesItem.value = item
   importTradesDrawerOpen.value = true
+}
+
+const openDummyTradesDrawer = (item) => {
+  setActiveFm(item)
+  selectedDummyTradesItem.value = item
+  dummyTradesDrawerOpen.value = true
 }
 
 const handleOpenCreateDummy = (item) => {
@@ -1193,7 +1230,7 @@ const getRowActions = (item) => {
     },
   ]
 
-  if (isDummyCreated(item)) {
+  if (isDummyCreated(item) && hasPermission('dummyfm.update')) {
     actions.push({
       action: 'toggle-mode',
       label: item.is_dummy ? 'Switch to Real FM' : 'Switch to Dummy FM',

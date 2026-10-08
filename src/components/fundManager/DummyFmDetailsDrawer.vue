@@ -56,8 +56,21 @@
           </div>
 
           <div class="flex items-center gap-2 shrink-0">
+            <!-- View Dummy Trades Button -->
+            <button
+              v-if="hasPermission('dummyfm.view')"
+              type="button"
+              class="h-8 inline-flex items-center gap-1.5 px-3 rounded-lg text-xs font-semibold border border-primary-border bg-card-background hover:bg-background text-primary-text transition cursor-pointer"
+              title="View & Manage Dummy Trades"
+              @click="handleViewTrades"
+            >
+              <CandlestickChart class="w-3.5 h-3.5 text-primary" />
+              <span class="hidden sm:inline">Dummy Trades</span>
+            </button>
+
             <!-- Import Dummy Trades Button -->
             <button
+              v-if="hasPermission('dummyfm.update')"
               type="button"
               class="h-8 inline-flex items-center gap-1.5 px-3 rounded-lg text-xs font-semibold border border-primary-border bg-card-background hover:bg-background text-primary-text transition cursor-pointer"
               title="Import Dummy Trades"
@@ -69,6 +82,7 @@
 
             <!-- Edit Dummy FM Button -->
             <button
+              v-if="hasPermission('dummyfm.update')"
               type="button"
               class="h-8 inline-flex items-center gap-1.5 px-3 rounded-lg text-xs font-bold bg-primary text-white hover:bg-primary-hover transition cursor-pointer shadow-xs"
               title="Edit Dummy Simulation Metrics"
@@ -217,6 +231,7 @@
         <!-- Drawer Footer -->
         <div class="px-6 py-3.5 border-t border-primary-border bg-background/50 flex items-center justify-between shrink-0">
           <button
+            v-if="hasPermission('dummyfm.delete')"
             type="button"
             class="h-8 px-3 rounded-lg border border-primary-red/30 bg-primary-red/10 text-primary-red hover:bg-primary-red hover:text-white text-xs font-semibold transition cursor-pointer flex items-center gap-1.5"
             @click="isDeleteModalOpen = true"
@@ -224,6 +239,7 @@
             <Trash2 class="w-3.5 h-3.5" />
             <span>Delete Simulation</span>
           </button>
+          <div v-else />
 
           <button
             type="button"
@@ -261,6 +277,7 @@ import {
   Pencil,
   Trash2,
   FileSpreadsheet,
+  CandlestickChart,
   Copy,
   Check,
 } from 'lucide-vue-next'
@@ -274,7 +291,7 @@ const props = defineProps({
   item: { type: Object, default: null },
 })
 
-const emit = defineEmits(['close', 'edit-dummy', 'import-trades'])
+const emit = defineEmits(['close', 'edit-dummy', 'import-trades', 'view-trades'])
 
 const permissionsStore = useMyPermissionsStore()
 const hasPermission = (perm) => permissionsStore.hasPermission(perm)
@@ -293,6 +310,11 @@ const handleEdit = () => {
 const handleImportTrades = () => {
   emit('close')
   emit('import-trades', props.item)
+}
+
+const handleViewTrades = () => {
+  emit('close')
+  emit('view-trades', props.item)
 }
 
 const handleDeleteConfirm = async () => {

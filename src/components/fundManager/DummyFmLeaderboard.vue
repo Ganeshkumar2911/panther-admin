@@ -9,9 +9,11 @@
       >
         <!-- Real / Dummy FM Tab Switcher Pill -->
         <div
+          v-if="canViewRealFm && canViewDummyFm"
           class="flex items-center gap-1 p-0.5 bg-background border border-primary-border rounded-lg shrink-0 h-9"
         >
           <button
+            v-if="canViewRealFm"
             type="button"
             @click="emit('switch-tab', 'real')"
             class="flex items-center gap-1.5 px-3 h-7 rounded-md text-xs font-bold transition-all cursor-pointer select-none"
@@ -26,6 +28,7 @@
           </button>
 
           <button
+            v-if="canViewDummyFm"
             type="button"
             @click="emit('switch-tab', 'dummy')"
             class="flex items-center gap-1.5 px-3 h-7 rounded-md text-xs font-bold transition-all cursor-pointer select-none"
@@ -804,6 +807,7 @@ import {
   Loader2,
   X,
   FileSpreadsheet,
+  CandlestickChart,
 } from "lucide-vue-next";
 import {
   UserGroupIcon,
@@ -835,6 +839,7 @@ const store = useFmLeaderboardStore();
 
 const emit = defineEmits([
   "open-details",
+  "view-trades",
   "edit-dummy",
   "import-trades",
   "toggle-status",
@@ -844,6 +849,9 @@ const emit = defineEmits([
 
 const permissionsStore = useMyPermissionsStore();
 const hasPermission = (perm) => permissionsStore.hasPermission(perm);
+
+const canViewRealFm = computed(() => hasPermission("fund_manager.view"));
+const canViewDummyFm = computed(() => hasPermission("dummyfm.view"));
 
 // Local state
 const searchQuery = ref("");
@@ -1032,35 +1040,45 @@ const getRowActions = (item) => {
       icon: Eye,
     },
     {
-      action: "import-trades",
-      label: "Import Dummy Trades",
-      icon: FileSpreadsheet,
-    },
-    {
-      action: "toggle-mode",
-      label: isDummy(item) ? "Switch to Real FM" : "Switch to Dummy FM",
-      icon: isDummy(item) ? Users : UsersRound,
+      action: "view-trades",
+      label: "View Dummy Trades",
+      icon: CandlestickChart,
     },
   ];
 
-  if (hasPermission("fund_manager.update")) {
-    actions.push({
-      action: "edit",
-      label: "Edit Dummy FM",
-      icon: Pencil,
-    });
+  if (hasPermission("dummyfm.update")) {
+    actions.push(
+      {
+        action: "import-trades",
+        label: "Import Dummy Trades",
+        icon: FileSpreadsheet,
+      },
+      {
+        action: "toggle-mode",
+        label: isDummy(item) ? "Switch to Real FM" : "Switch to Dummy FM",
+        icon: isDummy(item) ? Users : UsersRound,
+      },
+      {
+        action: "edit",
+        label: "Edit Dummy FM",
+        icon: Pencil,
+      }
+    );
   }
 
-  actions.push({
-    divider: true,
-  });
-
-  actions.push({
-    action: "delete",
-    label: "Delete Dummy FM",
-    icon: Trash2,
-    danger: true,
-  });
+  if (hasPermission("dummyfm.delete")) {
+    actions.push(
+      {
+        divider: true,
+      },
+      {
+        action: "delete",
+        label: "Delete Dummy FM",
+        icon: Trash2,
+        danger: true,
+      }
+    );
+  }
 
   return actions;
 };
@@ -1069,6 +1087,8 @@ const onMenuSelect = (menuItem, item) => {
   switch (menuItem.action) {
     case "details":
       return emit("open-details", item);
+    case "view-trades":
+      return emit("view-trades", item);
     case "import-trades":
       return emit("import-trades", item);
     case "toggle-mode":

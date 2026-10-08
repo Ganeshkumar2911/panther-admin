@@ -492,7 +492,10 @@
               type="button"
               class="px-5 py-2 rounded-lg bg-primary text-white hover:bg-primary-hover text-xs font-bold transition cursor-pointer shadow-md flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               :disabled="
-                !selectedFile || previewRows.length === 0 || isSubmitting
+                !selectedFile ||
+                previewRows.length === 0 ||
+                isSubmitting ||
+                !hasPermission('dummyfm.update')
               "
               @click="handleImportSubmit"
             >
@@ -525,6 +528,7 @@ import {
 import * as XLSX from "xlsx";
 import { useFmLeaderboardStore } from "@/stores/fmLeaderboard/fmLeaderboard";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
+import { useMyPermissionsStore } from "@/stores/rbac/myPermissions";
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -535,6 +539,8 @@ const emit = defineEmits(["close", "success"]);
 
 const store = useFmLeaderboardStore();
 const snackbar = useSnackbarStore();
+const permissionsStore = useMyPermissionsStore();
+const hasPermission = (perm) => permissionsStore.hasPermission(perm);
 
 const fileInputRef = ref(null);
 const selectedFile = ref(null);

@@ -258,6 +258,7 @@
             Cancel
           </button>
           <button
+            v-if="canSubmit"
             type="button"
             @click="handleSubmit"
             :disabled="store.isSubmitting"
@@ -277,6 +278,7 @@
 import { ref, watch, computed } from 'vue'
 import { Sparkles, X, TrendingUp, Loader2 } from 'lucide-vue-next'
 import { useFmLeaderboardStore } from '@/stores/fmLeaderboard/fmLeaderboard'
+import { useMyPermissionsStore } from '@/stores/rbac/myPermissions'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -286,6 +288,15 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'success'])
 const store = useFmLeaderboardStore()
+const permissionsStore = useMyPermissionsStore()
+const hasPermission = (perm) => permissionsStore.hasPermission(perm)
+
+const canSubmit = computed(() => {
+  if (props.isEdit) {
+    return hasPermission('dummyfm.update')
+  }
+  return hasPermission('dummyfm.create')
+})
 
 const form = ref({
   enabled: true,

@@ -382,6 +382,135 @@ export const useFmLeaderboardStore = defineStore("fmLeaderboard", () => {
     });
   };
 
+  // ─── Dummy Trades State & Actions ─────────────────────────
+  const dummyTrades = ref([]);
+  const dummyTradesPagination = ref({
+    page: 1,
+    per_page: 50,
+    total: 0,
+    pages: 1,
+  });
+  const dummyTradesLoading = ref(false);
+  const dummyTradesActionLoading = ref(false);
+
+  const fetchDummyTrades = (fmId, params = {}) => {
+    return new Promise((resolve, reject) => {
+      if (!fmId) {
+        dummyTrades.value = [];
+        return resolve([]);
+      }
+
+      dummyTradesLoading.value = true;
+
+      const successHandler = (res) => {
+        const payload = res?.data || {};
+        if (Array.isArray(payload)) {
+          dummyTrades.value = payload;
+          dummyTradesPagination.value = {
+            page: params.page || 1,
+            per_page: params.per_page || 50,
+            total: payload.length,
+            pages: 1,
+          };
+        } else {
+          dummyTrades.value = Array.isArray(payload.trades) ? payload.trades : [];
+          dummyTradesPagination.value = {
+            page: payload.page || params.page || 1,
+            per_page: payload.per_page || params.per_page || 50,
+            total: payload.total ?? (dummyTrades.value.length),
+            pages: payload.pages || 1,
+          };
+        }
+        dummyTradesLoading.value = false;
+        resolve(dummyTrades.value);
+      };
+
+      const failureHandler = (err) => {
+        dummyTradesLoading.value = false;
+        snackbar.show(
+          err?.error || err?.message || "Failed to fetch dummy trades.",
+          "error"
+        );
+        reject(err);
+      };
+
+      const endpoint = urls.dummyFm.trades(fmId);
+
+      apiRequest(urls.KEYS.GET, endpoint, {
+        params,
+        isTokenRequired: true,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+      });
+    });
+  };
+
+  const updateDummyTrade = (tradeId, formData) => {
+    return new Promise((resolve, reject) => {
+      dummyTradesActionLoading.value = true;
+
+      const successHandler = (res) => {
+        snackbar.show(
+          res?.message || "Dummy trade updated successfully",
+          "success"
+        );
+        dummyTradesActionLoading.value = false;
+        resolve(res?.data || res);
+      };
+
+      const failureHandler = (err) => {
+        dummyTradesActionLoading.value = false;
+        snackbar.show(
+          err?.error || err?.message || "Failed to update dummy trade.",
+          "error"
+        );
+        reject(err);
+      };
+
+      const endpoint = urls.dummyFm.updateTrade(tradeId);
+
+      apiRequest(urls.KEYS.PUT, endpoint, {
+        data: formData,
+        isTokenRequired: true,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+      });
+    });
+  };
+
+  const deleteDummyTrades = (fmId, payload = {}) => {
+    return new Promise((resolve, reject) => {
+      dummyTradesActionLoading.value = true;
+
+      const successHandler = (res) => {
+        snackbar.show(
+          res?.message || "Dummy trade(s) deleted successfully",
+          "success"
+        );
+        dummyTradesActionLoading.value = false;
+        resolve(res);
+      };
+
+      const failureHandler = (err) => {
+        dummyTradesActionLoading.value = false;
+        snackbar.show(
+          err?.error || err?.message || "Failed to delete dummy trade(s).",
+          "error"
+        );
+        reject(err);
+      };
+
+      const endpoint = urls.dummyFm.deleteTrades(fmId);
+
+      apiRequest(urls.KEYS.DELETE, endpoint, {
+        data: payload,
+        isTokenRequired: true,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+      });
+    });
+  };
+
   const reset = () => {
     data.value = [];
     isLoading.value = false;
@@ -389,11 +518,20 @@ export const useFmLeaderboardStore = defineStore("fmLeaderboard", () => {
     isFetched.value = false;
     isSubmitting.value = false;
     sortBy.value = null;
+    dummyTrades.value = [];
+    dummyTradesLoading.value = false;
+    dummyTradesActionLoading.value = false;
     pagination.value = {
       page: 1,
       per_page: 10,
       total_items: 0,
       total_pages: 0,
+    };
+    dummyTradesPagination.value = {
+      page: 1,
+      per_page: 50,
+      total: 0,
+      pages: 1,
     };
   };
 
@@ -407,6 +545,10 @@ export const useFmLeaderboardStore = defineStore("fmLeaderboard", () => {
     pagination,
     perPageOptions,
     sortBy,
+    dummyTrades,
+    dummyTradesPagination,
+    dummyTradesLoading,
+    dummyTradesActionLoading,
     updateSortBy,
     fetchFmLeaderboard,
     updatePerPage,
@@ -417,7 +559,11 @@ export const useFmLeaderboardStore = defineStore("fmLeaderboard", () => {
     editDummyFundManager,
     deleteDummyFundManager,
     importDummyTrades,
+    fetchDummyTrades,
+    updateDummyTrade,
+    deleteDummyTrades,
     reset,
   };
 });
+
 

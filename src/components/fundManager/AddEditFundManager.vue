@@ -43,7 +43,7 @@
           </div>
           <div class="flex items-center gap-2">
             <!-- Create Dummy FM Button (Only in edit mode) -->
-            <template v-if="mode === 'edit'">
+            <template v-if="mode === 'edit' && hasPermission('dummyfm.create')">
               <!-- If dummy already created -->
               <span
                 v-if="isDummyCreated"
@@ -1038,6 +1038,7 @@ import {
   Sparkles,
 } from "lucide-vue-next";
 import { useFmLeaderboardStore } from "@/stores/fmLeaderboard/fmLeaderboard";
+import { useMyPermissionsStore } from "@/stores/rbac/myPermissions";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import BaseDatePicker from "@/components/common/BaseDatePicker.vue";
 import { countries } from "@/utils/countries";
@@ -1052,6 +1053,8 @@ const props = defineProps({
 
 const emit = defineEmits(["close", "success", "create-dummy"]);
 const store = useFmLeaderboardStore();
+const permissionsStore = useMyPermissionsStore();
+const hasPermission = (perm) => permissionsStore.hasPermission(perm);
 
 const isDummyCreated = computed(() => {
   return Boolean(
