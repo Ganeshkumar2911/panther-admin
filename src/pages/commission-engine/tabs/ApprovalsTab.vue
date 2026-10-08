@@ -70,7 +70,7 @@
             <div class="mt-2">
               <p class="text-sm font-bold text-primary-text font-mono truncate">{{ activePeriodLabel }}</p>
               <p class="text-[10px] text-secondary-text font-mono mt-0.5">
-                {{ formatShortDate(store.approvalsSummary?.start) }} &ndash; {{ formatShortDate(store.approvalsSummary?.end) }}
+                {{ formatShortDate(store.approvalsSummary?.start) }}
               </p>
             </div>
           </div>
@@ -258,8 +258,12 @@
               <span class="font-mono text-xs font-bold text-primary-green tabular-nums">
                 +${{ formatNum(row.total_commission) }}
               </span>
-              <div v-if="row.by_currency && Object.keys(row.by_currency).length > 1" class="flex flex-wrap items-center justify-end gap-1 font-mono text-[10px] text-secondary-text">
-                <span v-for="(amount, curr) in row.by_currency" :key="curr">
+              <div v-if="row.by_currency && Object.keys(row.by_currency).length" class="flex flex-wrap items-center justify-end gap-1 font-mono text-[10px]">
+                <span
+                  v-for="(amount, curr) in row.by_currency"
+                  :key="curr"
+                  class="px-1.5 py-0.2 rounded bg-background border border-primary-border text-secondary-text"
+                >
                   {{ curr }}: ${{ formatNum(amount) }}
                 </span>
               </div>
