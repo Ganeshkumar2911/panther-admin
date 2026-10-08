@@ -318,6 +318,45 @@
                   </p>
                 </div>
               </div>
+
+              <!-- Row 5: Two-Factor Authentication (2FA) Status & Reset -->
+              <div
+                v-if="hasPermission(['two_factor.view', 'two_factor.reset'])"
+                class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-4 border-t border-primary-border/60"
+              >
+                <div>
+                  <p class="text-[11px] sm:text-xs text-secondary-text font-medium mb-1">
+                    Two-Factor Authentication (2FA)
+                  </p>
+                  <div class="flex items-center gap-2">
+                    <span
+                      class="text-[11px] font-bold px-2.5 py-0.5 rounded-full border inline-flex items-center gap-1.5"
+                      :class="
+                        user.totp_enabled || user.is_2fa_enabled
+                          ? 'bg-primary-green/10 text-primary-green border-primary-green/20'
+                          : 'bg-secondary-text/10 text-secondary-text border-primary-border'
+                      "
+                    >
+                      <span
+                        class="w-1.5 h-1.5 rounded-full"
+                        :class="user.totp_enabled || user.is_2fa_enabled ? 'bg-primary-green' : 'bg-secondary-text'"
+                      />
+                      {{ (user.totp_enabled || user.is_2fa_enabled) ? 'Enabled' : 'Disabled' }}
+                    </span>
+                  </div>
+                </div>
+
+                <div v-if="canResetUser2fa && (user.totp_enabled || user.is_2fa_enabled)">
+                  <button
+                    type="button"
+                    class="btn-danger text-xs px-3 py-1.5"
+                    @click="reset2FaModalOpen = true"
+                  >
+                    <RefreshCw class="w-3.5 h-3.5" />
+                    <span>Reset 2FA</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -359,9 +398,9 @@
                 </div>
               </Tooltip>
 
-              <!-- When KYC is Pending & Docs are Uploaded: Show Approve/Reject Button if permitted -->
+              <!-- When KYC is Pending: Show Approve/Reject Button if permitted -->
               <button
-                v-else-if="(canApproveKyc || canRejectKyc) && isDocUploaded"
+                v-else-if="canApproveKyc || canRejectKyc"
                 type="button"
                 @click="openApprovalModal(canApproveKyc ? 'approve' : 'reject')"
                 class="bg-primary hover:bg-primary-hover text-white rounded-xl px-3.5 py-1.5 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all"
@@ -393,9 +432,20 @@
                 <p class="text-xs font-semibold tracking-wider text-secondary-text">
                   Current Status
                 </p>
-                <p class="text-xl min-[1650px]:text-2xl font-bold capitalize mt-0.5" :class="kycHeroBoxClasses.statusText">
-                  {{ kycStatus }}
-                </p>
+                <div class="flex items-center gap-2 flex-wrap mt-0.5">
+                  <p class="text-xl min-[1650px]:text-2xl font-bold capitalize" :class="kycHeroBoxClasses.statusText">
+                    {{ kycStatus }}
+                  </p>
+                  <!-- Verification Channel Badge -->
+                  <span
+                    v-if="verificationChannel"
+                    class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border"
+                    :class="kycHeroBoxClasses.channelBadge"
+                  >
+                    <span class="opacity-70 font-medium text-[11px]">Via</span>
+                    <span>{{ verificationChannel }}</span>
+                  </span>
+                </div>
                 <p class="text-xs text-secondary-text mt-0.5">
                   {{ kycStatusMessage }}
                 </p>
@@ -516,7 +566,7 @@
                         <!-- If Document Uploaded -->
                         <template v-if="doc.uploaded">
                           <!-- 1. View Document Button (Icon with Tooltip) -->
-                          <Tooltip v-if="canViewDoc" text="View Document" position="top">
+                          <Tooltip v-if="canViewDoc && (doc.front || doc.back || doc.doc_path?.front || doc.doc_path?.back)" text="View Document" position="top">
                             <button
                               type="button"
                               @click="openViewDoc(doc)"
@@ -550,7 +600,7 @@
                           </Tooltip>
 
                           <!-- Case C: Document is Pending Review & user has approve/reject permission -->
-                          <template v-else-if="canApproveKyc || canRejectKyc">
+                          <template v-else-if="(canApproveKyc || canRejectKyc) && !doc.isSumsub && !doc.isDirect">
                             <!-- Approve Icon Button -->
                             <Tooltip v-if="canApproveKyc" text="Approve Document" position="top">
                               <button
@@ -574,8 +624,8 @@
                             </Tooltip>
                           </template>
 
-                          <!-- 3. Edit / Replace Document Button -->
-                          <Tooltip v-if="canUpdateDoc" text="Edit / Replace Document" position="left">
+                          <!-- 3. Edit / Replace Document Button (only if not sumsub and not approved) -->
+                          <Tooltip v-if="canUpdateDoc && !doc.isSumsub && !doc.isDirect && !isKycApproved" text="Edit / Replace Document" position="left">
                             <button
                               type="button"
                               @click="openEditDoc(doc)"
@@ -586,9 +636,9 @@
                           </Tooltip>
                         </template>
 
-                        <!-- If Document Not Uploaded: Upload button -->
+                        <!-- If Document Not Uploaded: Upload button (only if not approved) -->
                         <template v-else>
-                          <Tooltip v-if="canAddDoc" text="Upload Document" position="top">
+                          <Tooltip v-if="canAddDoc && !isKycApproved" text="Upload Document" position="top">
                             <button
                               type="button"
                               @click="openUploadDoc(doc)"
@@ -637,9 +687,9 @@
       :open="viewDocModalOpen"
       :doc="selectedDoc"
       :status="kycStatus"
-      :canApprove="canApproveKyc"
-      :canReject="canRejectKyc"
-      :canEdit="canUpdateDoc"
+      :canApprove="canApproveKyc && !selectedDoc?.isSumsub"
+      :canReject="canRejectKyc && !selectedDoc?.isSumsub"
+      :canEdit="canUpdateDoc && !selectedDoc?.isSumsub"
       @close="closeViewDocModal"
       @edit="openEditDoc(selectedDoc)"
       @approve="openApprovalModal('approve')"
@@ -655,6 +705,15 @@
       @close="approveRejectModalOpen = false"
       @success="handleApprovalSuccess"
     />
+
+    <!-- 5. Reset User 2FA Confirmation Modal -->
+    <Reset2FaConfirmDialog
+      :open="reset2FaModalOpen"
+      :target-name="user.name || user.email || 'this client'"
+      :loading="twoFactorStore.actionLoading"
+      @close="reset2FaModalOpen = false"
+      @confirm="handleResetUser2fa"
+    />
   </div>
 </template>
 
@@ -663,11 +722,13 @@ import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useClientDepthStore } from "@/stores/clientDepth/clientDepth";
 import { useProfileStore } from "@/stores/profile/profile";
+import { useTwoFactorStore } from "@/stores/twoFactor/twoFactor";
 import { useMyPermissionsStore } from "@/stores/rbac/myPermissions";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import { getFlagCode, cleanCountryLabel } from "@/utils/countries";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
 import Tooltip from "@/components/common/Tooltip.vue";
+import Reset2FaConfirmDialog from "@/components/common/Reset2FaConfirmDialog.vue";
 import EditClientProfileDrawer from "@/components/clientDetails/EditClientProfileDrawer.vue";
 import UploadKycVerificationModal from "@/components/clientDetails/UploadKycVerificationModal.vue";
 import ViewKycDocumentModal from "@/components/clientDetails/ViewKycDocumentModal.vue";
@@ -697,8 +758,31 @@ const route = useRoute();
 const snackbar = useSnackbarStore();
 const clientDepthStore = useClientDepthStore();
 const profileStore = useProfileStore();
+const twoFactorStore = useTwoFactorStore();
 const permissionsStore = useMyPermissionsStore();
 const { hasPermission } = usePermissionCheck();
+
+// 2FA Reset State
+const reset2FaModalOpen = ref(false);
+
+const canResetUser2fa = computed(() => {
+  return hasPermission(["two_factor.reset"]);
+});
+
+const handleResetUser2fa = async () => {
+  const userId = clientForEdit.value.id;
+  if (!userId) return;
+  try {
+    await twoFactorStore.resetUser2fa(userId);
+    reset2FaModalOpen.value = false;
+    // Refresh client overview to update 2FA status
+    if (clientDepthStore.fetchOverview) {
+      clientDepthStore.fetchOverview(userId);
+    }
+  } catch (_) {
+    // snackbar is handled in store
+  }
+};
 
 // ─── Permission & Access Checks ──────────────────────────────────────────────
 // Pure RBAC permission checks from backend 'client' module:
@@ -896,18 +980,22 @@ const handleProfileEditSuccess = (updatedClient) => {
 // ─── KYC Document Helpers & Formatters ────────────────────────────────────────
 const formatDocType = (type) => {
   if (!type) return "Passport, ID Card, or Driver's License";
+  const key = String(type).toLowerCase();
   const map = {
     aadhaar: "Aadhaar Card",
     pan: "PAN Card",
     passport: "Passport",
-    driving_license: "Driving License",
+    driving_license: "Driver's License",
+    drivers: "Driver's License",
+    driver_license: "Driver's License",
     voter_id: "Voter ID Card",
     national_id: "National Identity Card",
     address_proof: "Address Proof",
     selfie: "Selfie Photo",
+    direct_verification: "Direct Verification",
     other: "Official Identity Document",
   };
-  return map[type] || String(type).replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  return map[key] || String(type).replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 };
 
 const getVerificationStatusBadgeClass = (status) => {
@@ -935,14 +1023,8 @@ const kycStatus = computed(() => {
   );
 });
 
-const isDocUploaded = computed(() => {
-  return !!(
-    kycData.value?.docs_uploaded ||
-    kycData.value?.front ||
-    kycData.value?.doc_path?.front ||
-    kycData.value?.front_url ||
-    kycData.value?.file_url
-  );
+const hasSumsubDocs = computed(() => {
+  return Array.isArray(kycData.value?.sumsub_documents) && kycData.value.sumsub_documents.length > 0;
 });
 
 const isKycApproved = computed(() => {
@@ -955,6 +1037,39 @@ const isKycRejected = computed(() => {
   return s === "rejected";
 });
 
+const isDocUploaded = computed(() => {
+  return !!(
+    kycData.value?.docs_uploaded ||
+    hasSumsubDocs.value ||
+    kycData.value?.front ||
+    kycData.value?.doc_path?.front ||
+    kycData.value?.front_url ||
+    kycData.value?.file_url ||
+    isKycApproved.value
+  );
+});
+
+const verificationChannel = computed(() => {
+  const channel = kycData.value?.verification_channel;
+  if (channel) {
+    const c = String(channel).trim().toLowerCase();
+    if (c === "sumsub") return "Sumsub";
+    if (c === "manual") return "Manual";
+    if (c === "direct") return "Direct";
+    return channel.charAt(0).toUpperCase() + channel.slice(1);
+  }
+  if (hasSumsubDocs.value || kycData.value?.sumsub_applicant_id) {
+    return "Sumsub";
+  }
+  if (kycData.value?.docs_uploaded || kycData.value?.doc_path?.front || kycData.value?.front || kycData.value?.front_url) {
+    return "Manual";
+  }
+  if (isKycApproved.value) {
+    return "Direct";
+  }
+  return null;
+});
+
 const kycHeroBoxClasses = computed(() => {
   if (isKycApproved.value) {
     return {
@@ -962,6 +1077,7 @@ const kycHeroBoxClasses = computed(() => {
       iconBox: "bg-primary-green/15 border-primary-green/30 text-primary-green",
       statusText: "text-primary-green",
       progressBar: "bg-primary-green",
+      channelBadge: "bg-primary-green/15 text-primary-green border-primary-green/30",
     };
   }
   if (isKycRejected.value) {
@@ -970,6 +1086,7 @@ const kycHeroBoxClasses = computed(() => {
       iconBox: "bg-primary-red/15 border-primary-red/30 text-primary-red",
       statusText: "text-primary-red",
       progressBar: "bg-primary-red",
+      channelBadge: "bg-primary-red/15 text-primary-red border-primary-red/30",
     };
   }
   return {
@@ -977,11 +1094,12 @@ const kycHeroBoxClasses = computed(() => {
     iconBox: "bg-primary-yellow/15 border-primary-yellow/30 text-primary-yellow",
     statusText: "text-primary-yellow",
     progressBar: "bg-primary-yellow",
+    channelBadge: "bg-primary-yellow/15 text-primary-yellow border-primary-yellow/30",
   };
 });
 
 const kycStatusMessage = computed(() => {
-  const isUploaded = !!kycData.value?.docs_uploaded;
+  const isUploaded = isDocUploaded.value || hasSumsubDocs.value;
   if (isKycApproved.value) {
     return "Client identity verification completed.";
   }
@@ -997,36 +1115,115 @@ const kycStatusMessage = computed(() => {
 // ─── 3-Field Document Checklist Resolver ──────────────────────────────────────
 const documentChecklist = computed(() => {
   const k = clientDepthStore.kycData || {};
-  const isUploaded = !!k.docs_uploaded;
+  const sumsubDocs = Array.isArray(k.sumsub_documents) ? k.sumsub_documents : [];
   const docType = k.doc_type || "passport";
   const docPath = k.doc_path || {};
   const frontUrl = docPath.front || k.front || k.front_url || null;
   const backUrl = docPath.back || k.back || k.back_url || null;
-  const status = k.kyc_status || (k.doc_approved ? "approved" : (isUploaded ? "unverified" : null));
-  const remarks = k.kyc_reject_reason || (k.doc_approved ? "Approved" : (isUploaded ? "Waiting for verification" : "Required"));
+  const hasManualUploaded = !!(k.docs_uploaded || frontUrl || backUrl);
+  const status = k.kyc_status || (k.doc_approved ? "approved" : (hasManualUploaded ? "unverified" : null));
+  const remarks = k.kyc_reject_reason || (k.doc_approved ? "Approved" : (hasManualUploaded ? "Waiting for verification" : "Required"));
 
-  return [
-    {
+  const checklist = [];
+
+  // Case 1: Verified or uploaded via Sumsub
+  if (sumsubDocs.length > 0) {
+    const groupedSumsubDocs = {};
+    sumsubDocs.forEach((doc) => {
+      const type = doc.idDocType || "IDENTITY";
+      if (!groupedSumsubDocs[type]) {
+        groupedSumsubDocs[type] = { front: null, back: null };
+      }
+      if (doc.idDocSubType === "BACK_SIDE") {
+        groupedSumsubDocs[type].back = doc.image;
+      } else {
+        groupedSumsubDocs[type].front = doc.image;
+      }
+    });
+
+    for (const [type, docs] of Object.entries(groupedSumsubDocs)) {
+      checklist.push({
+        id: `sumsub_${type}`,
+        type: "identity",
+        doc_type: type.toLowerCase(),
+        title: "Proof of Identity (Sumsub)",
+        subtitle: formatDocType(type),
+        uploaded: true,
+        verification_status: k.kyc_status || "approved",
+        remarks: k.kyc_reject_reason || "Sumsub Verification",
+        front: docs.front,
+        back: docs.back,
+        doc_path: { front: docs.front, back: docs.back },
+        isSumsub: true,
+      });
+    }
+    return checklist;
+  }
+
+  // Case 2: Manual Uploaded Document
+  if (hasManualUploaded) {
+    checklist.push({
       id: "identity",
       type: "identity",
       doc_type: docType,
       title: "Proof of Identity",
-      subtitle: isUploaded ? formatDocType(docType) : "Passport, ID Card, or Driver's License",
-      uploaded: isUploaded,
-      verification_status: isUploaded ? status : null,
-      remarks: isUploaded ? remarks : "Waiting for verification",
+      subtitle: formatDocType(docType),
+      uploaded: true,
+      verification_status: status,
+      remarks: remarks,
       front: frontUrl,
       back: backUrl,
       doc_path: docPath,
-    },
-  ];
+    });
+    return checklist;
+  }
+
+  // Case 3: Direct Admin Verification without documents (Approved)
+  if (isKycApproved.value) {
+    checklist.push({
+      id: "direct_verification",
+      type: "identity",
+      doc_type: "direct_verification",
+      title: "Proof of Identity",
+      subtitle: "Direct Admin Verification",
+      uploaded: true,
+      verification_status: "approved",
+      remarks: "Directly verified without documents",
+      isDirect: true,
+      front: null,
+      back: null,
+      doc_path: null,
+    });
+    return checklist;
+  }
+
+  // Case 4: Pending manual document upload
+  checklist.push({
+    id: "identity",
+    type: "identity",
+    doc_type: docType,
+    title: "Proof of Identity",
+    subtitle: "Passport, ID Card, or Driver's License",
+    uploaded: false,
+    verification_status: null,
+    remarks: "Waiting for verification",
+    front: null,
+    back: null,
+    doc_path: docPath,
+  });
+
+  return checklist;
 });
 
 // ─── Stepper Progress Logic ───────────────────────────────────────────────────
 const completedStepsCount = computed(() => {
   let count = 1; // Personal Info
-  if (kycData.value?.docs_uploaded) count += 1;
-  if (isKycApproved.value) count += 1;
+  if (isKycApproved.value) {
+    return 3;
+  }
+  if (isDocUploaded.value || hasSumsubDocs.value) {
+    count += 1;
+  }
   return count;
 });
 
@@ -1040,7 +1237,7 @@ const progressPercentage = computed(() => {
 });
 
 const stepperSteps = computed(() => {
-  const isDocUploaded = !!kycData.value?.docs_uploaded;
+  const docsDone = isKycApproved.value || isDocUploaded.value || hasSumsubDocs.value;
 
   return [
     {
@@ -1052,14 +1249,26 @@ const stepperSteps = computed(() => {
     {
       number: 2,
       label: "Documents",
-      status: isDocUploaded ? "completed" : "pending",
-      statusText: isDocUploaded ? "Completed" : "Pending",
+      status: docsDone ? "completed" : "pending",
+      statusText: docsDone ? "Completed" : "Pending",
     },
     {
       number: 3,
       label: "Verification",
-      status: isKycApproved.value ? "completed" : (isKycRejected.value ? "rejected" : (isDocUploaded ? "in_progress" : "pending")),
-      statusText: isKycApproved.value ? "Approved" : (isKycRejected.value ? "Rejected" : (isDocUploaded ? "Under Review" : "Pending")),
+      status: isKycApproved.value
+        ? "completed"
+        : isKycRejected.value
+        ? "rejected"
+        : docsDone
+        ? "in_progress"
+        : "pending",
+      statusText: isKycApproved.value
+        ? "Approved"
+        : isKycRejected.value
+        ? "Rejected"
+        : docsDone
+        ? "Under Review"
+        : "Pending",
     },
   ];
 });

@@ -127,11 +127,43 @@
                   'fi',
                   `fi-${getFlagCode(user.country)}`,
                   'fis',
-                  'w-4 h-3 flex-shrink-0',
+                  'w-4 h-3 shrink-0',
                 ]"
               ></span>
               <span>{{ cleanCountryLabel(user.country) || "—" }}</span>
             </p>
+          </div>
+        </div>
+
+        <div class="border-l border-primary-border h-20 hidden md:block"></div>
+
+        <div class="hidden md:flex flex-col gap-2 justify-center">
+          <div>
+            <p class="text-[11px] text-secondary-text uppercase tracking-widest mb-1.5">
+              Auto Withdrawal
+            </p>
+            <label class="inline-flex items-center gap-2 cursor-pointer shrink-0 select-none" @click.prevent="handleToggleClick">
+              <input
+                type="checkbox"
+                role="switch"
+                :checked="user.eligible_for_auto_withdrawal"
+                class="peer sr-only"
+              />
+              <span
+                class="relative block h-5.5 w-10 rounded-full bg-zinc-300 transition-colors duration-200 dark:bg-zinc-600 peer-checked:bg-emerald-500 peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500/40 peer-checked:[&>span]:translate-x-4.5"
+                :class="{'opacity-50 pointer-events-none': isUpdatingAutoWithdrawal}"
+              >
+                <span
+                  class="absolute left-0.75 top-0.75 h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200"
+                ></span>
+              </span>
+              <span
+                class="text-xs font-bold"
+                :class="user.eligible_for_auto_withdrawal ? 'text-emerald-500' : 'text-zinc-500'"
+              >
+                {{ user.eligible_for_auto_withdrawal ? 'Enabled' : 'Disabled' }}
+              </span>
+            </label>
           </div>
         </div>
 
@@ -155,7 +187,8 @@
                 @click="handleQuickAction(action)"
                 class="cursor-pointer border border-primary-border p-2 rounded-lg text-secondary-text hover:bg-background hover:text-primary-text transition-colors"
               >
-                <component :is="action.icon" class="w-4 h-4" />
+                <HugeiconsIcon v-if="action.hugeIcon" :icon="action.hugeIcon" class="w-4 h-4" />
+                <component v-else :is="action.icon" class="w-4 h-4" />
               </button>
             </Tooltip>
           </div>
@@ -273,7 +306,7 @@
                       'fi',
                       `fi-${getFlagCode(item.value())}`,
                       'fis',
-                      'w-4 h-3 flex-shrink-0',
+                      'w-4 h-3 shrink-0',
                     ]"
                   ></span>
                   <span>{{
@@ -307,7 +340,7 @@
       <!-- MAIN CONTENT (router-view) -->
       <main class="flex-1 overflow-y-auto no-scrollbar px-5 pb-5">
         <div
-          class="flex items-center justify-between gap-3 overflow-x-auto sticky top-0 z-20 bg-background border-b border-primary-border py-3"
+          class="flex items-center justify-between gap-3 overflow-x-auto sticky top-0 z-30 bg-background border-b border-primary-border py-3"
         >
           <div class="flex items-center gap-1 overflow-x-auto no-scrollbar">
             <RouterLink
@@ -367,6 +400,30 @@
       :client="user"
       @close="whatsappDrawerOpen = false"
     />
+
+    <!-- Auto Withdrawal Confirmation Modal -->
+    <ConfirmationDialog
+      :open="autoWithdrawalConfirmOpen"
+      title="Confirm Auto Withdrawal Change"
+      :message="`Are you sure you want to ${pendingAutoWithdrawalState ? 'enable' : 'disable'} auto withdrawal for this client?`"
+      :confirmText="pendingAutoWithdrawalState ? 'Enable' : 'Disable'"
+      :type="pendingAutoWithdrawalState ? 'success' : 'danger'"
+      :loading="isUpdatingAutoWithdrawal"
+      @confirm="confirmAutoWithdrawalToggle"
+      @cancel="autoWithdrawalConfirmOpen = false"
+    />
+
+    <!-- Reset 2FA Confirmation Modal -->
+    <ConfirmationDialog
+      :open="reset2faConfirmOpen"
+      title="Reset 2FA"
+      message="This removes their authenticator and backup codes. They can set 2FA up again after login."
+      confirmText="Reset 2FA"
+      type="danger"
+      :loading="isResetting2fa"
+      @confirm="confirmReset2fa"
+      @cancel="reset2faConfirmOpen = false"
+    />
   </div>
 </template>
 
@@ -375,10 +432,14 @@ import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { getFlagCode, cleanCountryLabel } from "@/utils/countries";
 import Tooltip from "@/components/common/Tooltip.vue";
+import ConfirmationDialog from "@/components/common/ConfirmationDialog.vue";
+import apiRequest from "@/api/request";
+import urls from "@/api/urls";
 import UploadKycDocumentModal from "@/components/clientDetails/UploadKycDocumentModal.vue";
 import ClientEmailTriggerPanel from "@/components/clientDetails/ClientEmailTriggerPanel.vue";
 import ClientWhatsAppChatDrawer from "@/components/clientDetails/ClientWhatsAppChatDrawer.vue";
 import { useClientDepthStore } from "@/stores/clientDepth/clientDepth";
+import { useEnhancedAuditLogsStore } from "@/stores/enhancedAuditLogs/enhancedAuditLogs";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import {
@@ -400,11 +461,15 @@ import {
   RefreshCw,
   Bell,
   Landmark,
+  ClipboardList,
+  ShieldOff,
 } from "lucide-vue-next";
+import { WhatsappIcon } from "@hugeicons/core-free-icons/index";
 const route = useRoute();
 const router = useRouter();
 const snackbar = useSnackbarStore();
 const clientDepthStore = useClientDepthStore();
+const enhancedAuditLogsStore = useEnhancedAuditLogsStore();
 const { hasPermission } = usePermissionCheck();
 
 // ─── Account Badges Styling & Navigation ───────────────────────────────────────
@@ -591,6 +656,65 @@ const kycClass = computed(() => {
   return "bg-secondary-text/10 text-secondary-text border border-primary-border";
 });
 
+const autoWithdrawalConfirmOpen = ref(false);
+const pendingAutoWithdrawalState = ref(false);
+const isUpdatingAutoWithdrawal = ref(false);
+
+const handleToggleClick = () => {
+  if (isUpdatingAutoWithdrawal.value) return;
+  pendingAutoWithdrawalState.value = !user.value.eligible_for_auto_withdrawal;
+  autoWithdrawalConfirmOpen.value = true;
+};
+
+const confirmAutoWithdrawalToggle = () => {
+  toggleAutoWithdrawal(pendingAutoWithdrawalState.value);
+};
+
+const toggleAutoWithdrawal = (newVal) => {
+  if (!user.value?.id) return;
+  isUpdatingAutoWithdrawal.value = true;
+  apiRequest(urls.KEYS.PATCH, urls.clientList.update, {
+    look_up_key: user.value.id,
+    data: { eligible_for_auto_withdrawal: newVal },
+    isTokenRequired: true,
+    onSuccess: (res) => {
+      snackbar.show("Auto withdrawal status updated successfully", "success");
+      
+      const raw = localStorage.getItem("active_client");
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (String(parsed.id) === String(user.value.id)) {
+            parsed.eligible_for_auto_withdrawal = newVal;
+            localStorage.setItem("active_client", JSON.stringify(parsed));
+          }
+        } catch(e) {}
+      }
+      
+      window.dispatchEvent(
+        new CustomEvent("client-profile-updated", {
+          detail: { eligible_for_auto_withdrawal: newVal },
+        })
+      );
+      
+      clientDepthStore.fetchClientOverview(user.value.id, true);
+      autoWithdrawalConfirmOpen.value = false;
+    },
+    onFailure: (err) => {
+      snackbar.show(err?.message || "Failed to update auto withdrawal status", "error");
+      autoWithdrawalConfirmOpen.value = false;
+      window.dispatchEvent(
+        new CustomEvent("client-profile-updated", {
+          detail: { eligible_for_auto_withdrawal: !newVal },
+        })
+      );
+    },
+    onFinally: () => {
+      isUpdatingAutoWithdrawal.value = false;
+    }
+  });
+};
+
 // ─── Quick Actions ────────────────────────────────────────────────────────────
 const uploadDocModalOpen = ref(false);
 const emailTriggerPanelOpen = ref(false);
@@ -599,8 +723,9 @@ const whatsappDrawerOpen = ref(false);
 const quickActions = [
   { action: "call", label: "Call", icon: Phone },
   { action: "email", label: "Email", icon: Mail, permission: ["email.manage", "email.template_manual_trigger", "email.view"] },
-  { action: "message", label: "WhatsApp Chat", icon: MessageSquare, permission: ["whatsapp.send", "whatsapp.view"] },
+  { action: "message", label: "WhatsApp Chat", hugeIcon: WhatsappIcon, permission: ["whatsapp.send", "whatsapp.view"] },
   { action: "documents", label: "Documents", icon: FileText, permission: ["client.document_add", "client.document_view"] },
+  { action: "reset2fa", label: "Reset 2FA", icon: ShieldOff, permission: ["two_factor.reset"] },
 ];
 
 const visibleQuickActions = computed(() => {
@@ -650,6 +775,14 @@ const handleQuickAction = (action) => {
     }
     return;
   }
+  if (actionType === "reset2fa") {
+    if (action.permission && !hasPermission(action.permission)) {
+      snackbar.show("You do not have permission to reset 2FA.", "error");
+      return;
+    }
+    reset2faConfirmOpen.value = true;
+    return;
+  }
   if (actionType === "more") {
     snackbar.show("Additional quick actions coming soon.", "info");
     return;
@@ -666,6 +799,37 @@ const handleUploadDocSuccess = () => {
   }
 };
 
+const reset2faConfirmOpen = ref(false);
+const isResetting2fa = ref(false);
+
+const confirmReset2fa = () => {
+  const userId = route.params.id || user.value?.id;
+  if (!userId) return;
+  isResetting2fa.value = true;
+  apiRequest(urls.KEYS.POST, urls.twoFactor.reset(userId), {
+    isTokenRequired: true,
+    onSuccess: (res) => {
+      snackbar.show(res?.message || "User 2FA has been reset.", "success");
+      reset2faConfirmOpen.value = false;
+      // Optional: Dispatch event if user object has totp_enabled flag in future
+      window.dispatchEvent(
+        new CustomEvent("client-profile-updated", {
+          detail: { totp_enabled: false },
+        })
+      );
+    },
+    onFailure: (err) => {
+      snackbar.show(
+        err?.response?.data?.message || err?.message || "Failed to reset 2FA",
+        "error"
+      );
+    },
+    onFinally: () => {
+      isResetting2fa.value = false;
+    },
+  });
+};
+
 // ─── Current Active Tab Resolver ──────────────────────────────────────────────
 const currentActiveTab = computed(() => {
   const currentPath = route.path.replace(/\/$/, "");
@@ -674,6 +838,7 @@ const currentActiveTab = computed(() => {
   if (currentPath.endsWith("/bank-details") || route.name === "client-details-bank-details") return "bank-details";
   if (currentPath.endsWith("/marketing") || route.name === "client-details-marketing") return "marketing";
   if (currentPath.endsWith("/notifications") || route.name === "client-details-notifications") return "notifications";
+  if (currentPath.includes("/audit-logs") || route.name === "client-details-audit-logs" || route.name === "client-details-audit-log-detail") return "audit-logs";
   if (currentPath.endsWith("/trading") || route.name === "client-details-trading") return "trading";
   if (currentPath.endsWith("/crm") || route.name === "client-details-crm") return "crm";
   return "overview";
@@ -695,6 +860,9 @@ const isGlobalRefreshing = computed(() => {
   }
   if (currentActiveTab.value === "notifications") {
     return clientDepthStore.clientNotificationsLoading;
+  }
+  if (currentActiveTab.value === "audit-logs") {
+    return enhancedAuditLogsStore.loading;
   }
   return false;
 });
@@ -728,6 +896,8 @@ const handleGlobalRefresh = async () => {
       ]);
     } else if (activeTab === "notifications") {
       await clientDepthStore.fetchClientNotifications(userId, {}, true);
+    } else if (activeTab === "audit-logs") {
+      await enhancedAuditLogsStore.fetchUserAuditLogs(userId, 1, enhancedAuditLogsStore.pagination.per_page, true);
     }
 
     const tabLabel = tabs.value.find((t) => t.key === activeTab)?.label || "Tab";
@@ -740,56 +910,69 @@ const handleGlobalRefresh = async () => {
 };
 
 // ─── Top Tabs ─────────────────────────────────────────────────────────────────
-const tabs = computed(() => [
-  {
-    key: "overview",
-    label: "Overview",
-    to: `/client/details/${route.params.id}`,
-    icon: Activity,
-  },
-  {
-    key: "profile",
-    label: "Profile & KYC",
-    to: `/client/details/${route.params.id}/profile`,
-    icon: FileCheck,
-  },
-  {
-    key: "financials",
-    label: "Financials",
-    to: `/client/details/${route.params.id}/financials`,
-    icon: CreditCard,
-  },
-  {
-    key: "bank-details",
-    label: "Bank Details",
-    to: `/client/details/${route.params.id}/bank-details`,
-    icon: Landmark,
-  },
-  // {
-  //   key: "trading",
-  //   label: "Trading",
-  //   to: `/client/details/${route.params.id}/trading`,
-  //   icon: BarChart2,
-  // },
-  // {
-  //   key: "crm",
-  //   label: "CRM & Support",
-  //   to: `/client/details/${route.params.id}/crm`,
-  //   icon: Headphones,
-  // },
-  {
-    key: "marketing",
-    label: "Marketing",
-    to: `/client/details/${route.params.id}/marketing`,
-    icon: Megaphone,
-  },
-  // {
-  //   key: "notifications",
-  //   label: "Notifications",
-  //   to: `/client/details/${route.params.id}/notifications`,
-  //   icon: Bell,
-  // },
-]);
+const tabs = computed(() => {
+  const list = [
+    {
+      key: "overview",
+      label: "Overview",
+      to: `/client/details/${route.params.id}`,
+      icon: Activity,
+    },
+    {
+      key: "profile",
+      label: "Profile & KYC",
+      to: `/client/details/${route.params.id}/profile`,
+      icon: FileCheck,
+    },
+    {
+      key: "financials",
+      label: "Financials",
+      to: `/client/details/${route.params.id}/financials`,
+      icon: CreditCard,
+    },
+    {
+      key: "bank-details",
+      label: "Bank Details",
+      to: `/client/details/${route.params.id}/bank-details`,
+      icon: Landmark,
+    },
+    // {
+    //   key: "trading",
+    //   label: "Trading",
+    //   to: `/client/details/${route.params.id}/trading`,
+    //   icon: BarChart2,
+    // },
+    // {
+    //   key: "crm",
+    //   label: "CRM & Support",
+    //   to: `/client/details/${route.params.id}/crm`,
+    //   icon: Headphones,
+    // },
+    {
+      key: "marketing",
+      label: "Marketing",
+      to: `/client/details/${route.params.id}/marketing`,
+      icon: Megaphone,
+    },
+    // {
+    //   key: "notifications",
+    //   label: "Notifications",
+    //   to: `/client/details/${route.params.id}/notifications`,
+    //   icon: Bell,
+    // },
+  ];
+
+  if (hasPermission(["audit.view", "audit"])) {
+    list.push({
+      key: "audit-logs",
+      label: "Audit Log",
+      to: `/client/details/${route.params.id}/audit-logs`,
+      icon: ClipboardList,
+    });
+  }
+
+  return list;
+});
 
 const isTabActive = (tab) => {
   const currentPath = route.path.replace(/\/$/, "");

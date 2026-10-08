@@ -147,6 +147,12 @@ const handleTagModalUpdated = () => {
   store.fetchClients(store.pagination.page);
 };
 
+const autoWithdrawalOptions = [
+  { label: 'All Auto Withdrawal Status', value: '' },
+  { label: 'Eligible', value: 'true' },
+  { label: 'Not Eligible', value: 'false' },
+]
+
 const tagOptions = computed(() => {
   const options = [{ label: "All Tags", value: "" }];
   (tagsStore.tags || []).forEach((t) => {
@@ -665,6 +671,7 @@ onMounted(() => {
           :isLoading="store.searchLoading"
           placeholder="Search IB..."
           searchable
+          clearable
           class="w-full sm:w-52 xl:w-52"
           @search="onIbSearch"
           @update:modelValue="store.applyFilters()"
@@ -675,6 +682,17 @@ onMounted(() => {
           v-model="store.filters.tag_ids"
           :options="tagOptions"
           placeholder="All Tags..."
+          clearable
+          class="w-full sm:w-56 xl:w-56"
+          @update:modelValue="store.applyFilters()"
+        />
+
+        <!-- Auto Withdrawal Filter -->
+        <BaseSelect
+          v-model="store.filters.eligible_for_auto_withdrawal"
+          :options="autoWithdrawalOptions"
+          placeholder="Auto Withdrawal..."
+          clearable
           class="w-full sm:w-56 xl:w-56"
           @update:modelValue="store.applyFilters()"
         />
@@ -730,7 +748,7 @@ onMounted(() => {
 
         <button
           v-if="hasPermission('client.create')"
-          class="flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all active:scale-95 cursor-pointer sm:flex-none shadow-sm"
+          class="btn-primary"
           @click="openCreateClientDialog"
         >
           <Plus class="w-3.5 h-3.5" />

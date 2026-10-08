@@ -21,10 +21,34 @@ export const useFmLeaderboardStore = defineStore("fmLeaderboard", () => {
   const snackbar = useSnackbarStore();
 
   const currentTab = ref("real");
+  const sortBy = ref(null);
 
-  const fetchFmLeaderboard = (force = false, page = 1, tab = currentTab.value) => {
-    const tabChanged = currentTab.value !== tab;
-    currentTab.value = tab;
+  const fetchFmLeaderboard = (
+    force = false,
+    page = 1,
+    tab = currentTab.value,
+    sort = undefined
+  ) => {
+    let activeTabName = currentTab.value;
+    if (typeof tab === "string" && (tab === "real" || tab === "dummy")) {
+      activeTabName = tab;
+    } else if (
+      tab !== undefined &&
+      tab !== null &&
+      typeof tab === "string" &&
+      tab !== "real" &&
+      tab !== "dummy"
+    ) {
+      sortBy.value = tab || null;
+    }
+
+    if (sort !== undefined) {
+      sortBy.value = sort || null;
+    }
+
+    const tabChanged = currentTab.value !== activeTabName;
+    currentTab.value = activeTabName;
+
     if (isFetched.value && !force && !tabChanged) return;
 
     isLoading.value = true;
@@ -51,17 +75,32 @@ export const useFmLeaderboardStore = defineStore("fmLeaderboard", () => {
       snackbar.show(err?.error || err?.message || "Something went wrong.", "error");
     };
 
-    const endpoint = tab === "dummy" ? urls.dummyFm.list : urls.fm.list;
+    const endpoint =
+      currentTab.value === "dummy" ? urls.dummyFm.list : urls.fm.list;
+
+    const params = {
+      page: page || 1,
+      per_page: pagination.value.per_page || 10,
+    };
+
+    if (sortBy.value) {
+      params.sort_by = sortBy.value;
+    }
 
     apiRequest(urls.KEYS.GET, endpoint, {
-      params: {
-        page: page || 1,
-        per_page: pagination.value.per_page || 10,
-      },
+      params,
       isTokenRequired: true,
       onSuccess: successHandler,
       onFailure: failureHandler,
     });
+  };
+
+  const updateSortBy = (val) => {
+    const newSortBy = val && typeof val === "object" && val.value ? val.value : val;
+    sortBy.value = newSortBy || null;
+    pagination.value.page = 1;
+    isFetched.value = false;
+    fetchFmLeaderboard(true, 1);
   };
 
   const updatePerPage = (newPerPage) => {
@@ -80,12 +119,13 @@ export const useFmLeaderboardStore = defineStore("fmLeaderboard", () => {
         isSubmitting.value = false;
         isFetched.value = false;
         fetchFmLeaderboard(true);
-        resolve();
+        resolve(true);
       };
 
       const failureHandler = (err) => {
         isSubmitting.value = false;
-        snackbar.show(err?.error || "Something went wrong.", "error");
+        snackbar.show(err?.error || err?.message || "Something went wrong.", "error");
+        resolve(false);
       };
 
       apiRequest(urls.KEYS.POST, urls.fm.create, {
@@ -106,15 +146,16 @@ export const useFmLeaderboardStore = defineStore("fmLeaderboard", () => {
         isSubmitting.value = false;
         isFetched.value = false;
         fetchFmLeaderboard(true);
-        resolve();
+        resolve(true);
       };
 
       const failureHandler = (err) => {
         isSubmitting.value = false;
         snackbar.show(
-          err?.message || "Failed to update fund manager.",
+          err?.message || err?.error || "Failed to update fund manager.",
           "error",
         );
+        resolve(false);
       };
 
       apiRequest(urls.KEYS.PATCH, urls.fm.edit, {
@@ -347,6 +388,7 @@ export const useFmLeaderboardStore = defineStore("fmLeaderboard", () => {
     error.value = null;
     isFetched.value = false;
     isSubmitting.value = false;
+    sortBy.value = null;
     pagination.value = {
       page: 1,
       per_page: 10,
@@ -364,6 +406,8 @@ export const useFmLeaderboardStore = defineStore("fmLeaderboard", () => {
     currentTab,
     pagination,
     perPageOptions,
+    sortBy,
+    updateSortBy,
     fetchFmLeaderboard,
     updatePerPage,
     createFundManager,

@@ -115,6 +115,11 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     pages: 1,
   });
 
+  // Recalc Revert Date (ETL Settings) State
+  const recalcRevertMasterSummary = ref(null);
+  const currentIbRecalcRevert = ref(null);
+  const recalcRunResult = ref(null);
+
   // ─── 2. In-Flight Tracking (Prevents Parallel Duplicate Requests) ─
   const inFlight = {
     referralLinks: false,
@@ -136,6 +141,9 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     approvalsSummary: false,
     approvalEntries: false,
     approveIbPeriod: false,
+    recalcRevertMaster: false,
+    currentIbRecalcRevert: false,
+    runRecalcRevert: false,
   };
 
   // ─── 3. isFetched Tracking (Prevents Redundant API Calls) ─
@@ -155,6 +163,8 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     demoWallets: false,
     demoTransactions: false,
     approvalsSummary: false,
+    recalcRevertMaster: false,
+    currentIbRecalcRevert: false,
   });
 
   // ─── 4. Loading & Error Flags ──────────────────────────
@@ -172,6 +182,8 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
   const approvalPeriodsLoading = ref(false);
   const approvalEntriesLoading = ref(false);
   const approveIbLoading = ref(false);
+  const recalcRevertLoading = ref(false);
+  const runRecalcLoading = ref(false);
   const error = ref(null);
 
   // ─── 5. Reset Helper ──────────────────────────────────
@@ -192,6 +204,8 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
       demoWallets: false,
       demoTransactions: false,
       approvalsSummary: false,
+      recalcRevertMaster: false,
+      currentIbRecalcRevert: false,
     };
   };
 
@@ -1847,6 +1861,182 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     });
   };
 
+  // ─── 24. Recalc Revert Date (ETL Settings) Actions ─────
+  const fetchRecalcRevertMaster = (force = false) => {
+    if (inFlight.recalcRevertMaster) return;
+    if (isFetched.value.recalcRevertMaster && !force) return;
+
+    inFlight.recalcRevertMaster = true;
+    recalcRevertLoading.value = true;
+    error.value = null;
+
+    const successHandler = (res) => {
+      recalcRevertMasterSummary.value = res?.data || null;
+      isFetched.value.recalcRevertMaster = true;
+    };
+
+    const failureHandler = (err) => {
+      error.value = err?.message || "Failed to fetch master recalc revert settings";
+      snackbar.show(err?.message || "Failed to fetch master recalc revert settings", "error");
+    };
+
+    const finallyHandler = () => {
+      inFlight.recalcRevertMaster = false;
+      recalcRevertLoading.value = false;
+    };
+
+    return apiRequest(urls.KEYS.GET, urls.ibCommission.recalcRevertMaster, {
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+      onFinally: finallyHandler,
+    });
+  };
+
+  const saveUniversalRecalcRevert = (payload) => {
+    actionLoading.value = true;
+
+    return new Promise((resolve, reject) => {
+      const successHandler = (res) => {
+        const msg = res?.message || "Universal recalc revert settings saved successfully";
+        snackbar.show(msg, "success");
+        fetchRecalcRevertMaster(true);
+        if (currentIbRecalcRevert.value?.ib_id) {
+          fetchIbRecalcRevert(currentIbRecalcRevert.value.ib_id, true);
+        }
+        resolve(res);
+      };
+
+      const failureHandler = (err) => {
+        snackbar.show(err?.message || "Failed to save universal recalc revert settings", "error");
+        reject(err);
+      };
+
+      const finallyHandler = () => {
+        actionLoading.value = false;
+      };
+
+      apiRequest(urls.KEYS.PUT, urls.ibCommission.recalcRevertMaster, {
+        data: payload,
+        isTokenRequired: true,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+        onFinally: finallyHandler,
+      });
+    });
+  };
+
+  const fetchIbRecalcRevert = (ibId, force = false) => {
+    if (!ibId) return;
+    if (inFlight.currentIbRecalcRevert) return;
+
+    inFlight.currentIbRecalcRevert = true;
+    recalcRevertLoading.value = true;
+    error.value = null;
+
+    const successHandler = (res) => {
+      currentIbRecalcRevert.value = res?.data || null;
+      isFetched.value.currentIbRecalcRevert = true;
+    };
+
+    const failureHandler = (err) => {
+      error.value = err?.message || `Failed to fetch recalc revert settings for IB #${ibId}`;
+      snackbar.show(err?.message || `Failed to fetch recalc revert settings for IB #${ibId}`, "error");
+    };
+
+    const finallyHandler = () => {
+      inFlight.currentIbRecalcRevert = false;
+      recalcRevertLoading.value = false;
+    };
+
+    return apiRequest(urls.KEYS.GET, urls.ibCommission.ibRecalcRevert(ibId), {
+      isTokenRequired: true,
+      onSuccess: successHandler,
+      onFailure: failureHandler,
+      onFinally: finallyHandler,
+    });
+  };
+
+  const saveIbRecalcRevert = (ibId, payload) => {
+    if (!ibId) return;
+    actionLoading.value = true;
+
+    return new Promise((resolve, reject) => {
+      const successHandler = (res) => {
+        currentIbRecalcRevert.value = res?.data || null;
+        snackbar.show(res?.message || `Recalc revert settings saved for IB #${ibId}`, "success");
+        fetchRecalcRevertMaster(true);
+        resolve(res);
+      };
+
+      const failureHandler = (err) => {
+        snackbar.show(err?.message || `Failed to save recalc revert settings for IB #${ibId}`, "error");
+        reject(err);
+      };
+
+      const finallyHandler = () => {
+        actionLoading.value = false;
+      };
+
+      apiRequest(urls.KEYS.PUT, urls.ibCommission.ibRecalcRevert(ibId), {
+        data: payload,
+        isTokenRequired: true,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+        onFinally: finallyHandler,
+      });
+    });
+  };
+
+  const runRecalcRevert = (payload = {}) => {
+    runRecalcLoading.value = true;
+    actionLoading.value = true;
+
+    return new Promise((resolve, reject) => {
+      const successHandler = (res) => {
+        const d = res?.data || {};
+        const isDryRun = !!payload.dry_run;
+        if (isDryRun) {
+          snackbar.show(
+            res?.message ||
+              `Dry-run preview: ${d.trades_processed ?? 0} trades evaluated, ${d.entries_created ?? 0} commissions would be created.`,
+            "info"
+          );
+        } else {
+          snackbar.show(
+            res?.message ||
+              `Recalculation complete: ${d.trades_processed ?? 0} trades processed, ${d.entries_created ?? 0} pending commissions created.`,
+            "success"
+          );
+          // Refresh list of pending commissions
+          fetchCommissions({ status: "pending" }, true);
+          fetchRecalcRevertMaster(true);
+        }
+        recalcRunResult.value = res?.data || res;
+        resolve(res);
+      };
+
+      const failureHandler = (err) => {
+        snackbar.show(err?.message || "Failed to execute recalc revert run", "error");
+        reject(err);
+      };
+
+      const finallyHandler = () => {
+        runRecalcLoading.value = false;
+        actionLoading.value = false;
+      };
+
+      apiRequest(urls.KEYS.POST, urls.ibCommission.runRecalcRevert, {
+        data: payload,
+        isTokenRequired: true,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+        onFinally: finallyHandler,
+      });
+    });
+  };
+
+
   return {
     // State
     referralLinks,
@@ -1879,6 +2069,9 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     approvalsSummary,
     approvalEntriesList,
     approvalEntriesPagination,
+    recalcRevertMasterSummary,
+    currentIbRecalcRevert,
+    recalcRunResult,
 
     // Loading & tracking
     inFlight,
@@ -1897,6 +2090,8 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     approvalPeriodsLoading,
     approvalEntriesLoading,
     approveIbLoading,
+    recalcRevertLoading,
+    runRecalcLoading,
     error,
 
     // Actions
@@ -1939,5 +2134,10 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     fetchApprovalsSummary,
     fetchApprovalEntries,
     approveIbPeriod,
+    fetchRecalcRevertMaster,
+    saveUniversalRecalcRevert,
+    fetchIbRecalcRevert,
+    saveIbRecalcRevert,
+    runRecalcRevert,
   };
 });

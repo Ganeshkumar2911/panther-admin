@@ -18,7 +18,7 @@
           <button
             type="button"
             @click="close"
-            class="text-secondary-text hover:text-primary-text p-0.5 rounded-md hover:bg-background transition"
+            class="text-secondary-text hover:text-primary-text p-0.5 rounded-md hover:bg-background transition cursor-pointer"
           >
             <X class="w-3.5 h-3.5" />
           </button>

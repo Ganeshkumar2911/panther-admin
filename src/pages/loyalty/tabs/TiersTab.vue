@@ -76,10 +76,10 @@
           @click="handleEdit(tier)"
         >
           <div class="absolute inset-0 bg-black/20 pointer-events-none" />
-          <div class="absolute inset-0 bg-gradient-to-b from-white/[0.08] to-transparent pointer-events-none" />
+          <div class="absolute inset-0 bg-linear-to-b from-white/8 to-transparent pointer-events-none" />
 
           <!-- Refined corner sheen -->
-          <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-white/[0.15] to-transparent rounded-bl-full pointer-events-none opacity-80" />
+          <div class="absolute top-0 right-0 w-24 h-24 bg-linear-to-bl from-white/15 to-transparent rounded-bl-full pointer-events-none opacity-80" />
 
           <!-- Brand Logo Watermark Background with shine effect strictly inside logo vector paths -->
           <div class="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden select-none">

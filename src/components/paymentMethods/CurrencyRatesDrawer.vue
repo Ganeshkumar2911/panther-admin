@@ -184,8 +184,8 @@
                   </div>
                   <div class="text-right">
                     <span class="text-[10px] font-mono text-secondary-text">
-                      Rate: 1 USD =
-                      {{ formatNumber(calculatorResult.unitsPerUsd) }}
+                      Deposit Rate: 1 USD =
+                      {{ formatNumber(calculatorResult.depositUnits) }}
                       {{ calcTargetCurrency }}
                     </span>
                   </div>
@@ -443,35 +443,40 @@
 
                 <!-- Middle Exchange Rate Banner -->
                 <div
-                  class="mt-3 p-3 rounded-lg bg-card-background border border-primary-border/60 flex flex-wrap items-center justify-between gap-2"
+                  class="mt-3 p-3 rounded-lg bg-card-background border border-primary-border/60 grid grid-cols-2 gap-4"
                 >
+                  <!-- Deposit Rate -->
                   <div class="space-y-0.5">
                     <span
                       class="text-[9px] uppercase font-semibold text-secondary-text tracking-wider"
-                      >Exchange Rate</span
+                      >Deposit Rate</span
                     >
-                    <div class="flex items-baseline gap-1.5">
+                    <div class="flex flex-col">
                       <span class="text-sm font-bold text-primary font-mono">
-                        1 USD = {{ formatNumber(rate.units_per_usd) }}
+                        1 USD = {{ formatNumber(rate.deposit_units_per_usd || rate.units_per_usd) }}
                         {{ rate.currency }}
+                      </span>
+                      <span class="text-[10px] font-mono text-secondary-text">
+                        1 {{ rate.currency }} = ${{ formatInverseRate(rate.deposit_units_per_usd || rate.units_per_usd) }} USD
                       </span>
                     </div>
                   </div>
 
-                  <!-- Inverted USD Rate Tag -->
-                  <div class="text-right space-y-0.5">
+                  <!-- Withdrawal Rate -->
+                  <div class="space-y-0.5 text-right">
                     <span
                       class="text-[9px] uppercase font-semibold text-secondary-text tracking-wider"
-                      >USD Value</span
+                      >Withdrawal Rate</span
                     >
-                    <p
-                      class="text-xs font-mono font-semibold text-primary-text"
-                    >
-                      1 {{ rate.currency }} = ${{
-                        formatInverseRate(rate.units_per_usd)
-                      }}
-                      USD
-                    </p>
+                    <div class="flex flex-col items-end">
+                      <span class="text-sm font-bold text-primary-text font-mono">
+                        1 USD = {{ formatNumber(rate.withdrawal_units_per_usd || rate.units_per_usd) }}
+                        {{ rate.currency }}
+                      </span>
+                      <span class="text-[10px] font-mono text-secondary-text">
+                        1 {{ rate.currency }} = ${{ formatInverseRate(rate.withdrawal_units_per_usd || rate.units_per_usd) }} USD
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -618,40 +623,75 @@
                   </p>
                 </div>
 
-                <!-- Units Per USD (units_per_usd) -->
-                <div>
-                  <div class="flex items-center justify-between mb-1">
-                    <label class="text-xs font-semibold text-primary-text">
-                      Exchange Rate (Units per 1 USD)
-                      <span class="text-primary-red">*</span>
-                    </label>
-                    <span class="text-[10px] font-mono text-secondary-text">
-                      1 USD = {{ formData.units_per_usd || "?" }}
-                      {{ formData.currency || "Units" }}
-                    </span>
+                <!-- Deposit Units Per USD -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <div class="flex items-center justify-between mb-1">
+                      <label class="text-xs font-semibold text-primary-text">
+                        Deposit Rate
+                        <span class="text-primary-red">*</span>
+                      </label>
+                    </div>
+
+                    <div class="relative">
+                      <input
+                        v-model.number="formData.deposit_units_per_usd"
+                        type="number"
+                        step="any"
+                        min="0.00000001"
+                        placeholder="e.g. 100.0"
+                        class="w-full px-3 py-2 rounded-lg bg-background border text-xs font-mono font-bold text-primary-text outline-none focus:border-primary transition"
+                        :class="
+                          formErrors.deposit_units_per_usd
+                            ? 'border-primary-red'
+                            : 'border-primary-border'
+                        "
+                      />
+                    </div>
+                    <p class="text-[10px] text-secondary-text mt-1 font-mono">
+                      1 USD = {{ formData.deposit_units_per_usd || "?" }} {{ formData.currency || "Units" }} (deposit)
+                    </p>
+                    <p
+                      v-if="formErrors.deposit_units_per_usd"
+                      class="text-[10px] text-primary-red mt-1"
+                    >
+                      {{ formErrors.deposit_units_per_usd }}
+                    </p>
                   </div>
 
-                  <div class="relative">
-                    <input
-                      v-model.number="formData.units_per_usd"
-                      type="number"
-                      step="any"
-                      min="0.00000001"
-                      placeholder="e.g. 100.0 for INR, 278.0 for PKR, 1.0 for USD"
-                      class="w-full px-3 py-2 rounded-lg bg-background border text-xs font-mono font-bold text-primary-text outline-none focus:border-primary transition"
-                      :class="
-                        formErrors.units_per_usd
-                          ? 'border-primary-red'
-                          : 'border-primary-border'
-                      "
-                    />
+                  <!-- Withdrawal Units Per USD -->
+                  <div>
+                    <div class="flex items-center justify-between mb-1">
+                      <label class="text-xs font-semibold text-primary-text">
+                        Withdrawal Rate
+                      </label>
+                    </div>
+
+                    <div class="relative">
+                      <input
+                        v-model.number="formData.withdrawal_units_per_usd"
+                        type="number"
+                        step="any"
+                        min="0.00000001"
+                        placeholder="Optional, e.g. 105.0"
+                        class="w-full px-3 py-2 rounded-lg bg-background border text-xs font-mono font-bold text-primary-text outline-none focus:border-primary transition"
+                        :class="
+                          formErrors.withdrawal_units_per_usd
+                            ? 'border-primary-red'
+                            : 'border-primary-border'
+                        "
+                      />
+                    </div>
+                    <p class="text-[10px] text-secondary-text mt-1 font-mono">
+                      1 USD = {{ formData.withdrawal_units_per_usd || formData.deposit_units_per_usd || "?" }} {{ formData.currency || "Units" }} (withdrawal)
+                    </p>
+                    <p
+                      v-if="formErrors.withdrawal_units_per_usd"
+                      class="text-[10px] text-primary-red mt-1"
+                    >
+                      {{ formErrors.withdrawal_units_per_usd }}
+                    </p>
                   </div>
-                  <p
-                    v-if="formErrors.units_per_usd"
-                    class="text-[10px] text-primary-red mt-1"
-                  >
-                    {{ formErrors.units_per_usd }}
-                  </p>
                 </div>
 
                 <!-- Live Rate Visualizer & Conversion Preview -->
@@ -663,7 +703,7 @@
                     class="flex items-center gap-1.5 text-xs font-bold text-primary"
                   >
                     <Sparkles class="w-3.5 h-3.5" />
-                    <span>Live Rate Calculation Preview</span>
+                    <span>Live Rate Calculation Preview (Deposit)</span>
                   </div>
 
                   <div
@@ -709,7 +749,7 @@
                       >
                     </p>
                     <p>
-                      • 1,000 {{ formData.currency }} =
+                      • 1,000 {{ formData.currency }} (Deposit) =
                       <strong class="text-primary font-mono"
                         >${{ ratePreview.example1000Local }} USD</strong
                       >
@@ -856,12 +896,21 @@
                 }})</span
               >
             </div>
-            <div class="flex justify-between">
-              <span class="text-secondary-text">Rate:</span>
-              <span class="text-primary font-bold"
-                >1 USD = {{ rateToDelete?.units_per_usd }}
-                {{ rateToDelete?.currency }}</span
-              >
+            <div class="flex flex-col gap-1">
+              <div class="flex justify-between">
+                <span class="text-secondary-text">Deposit Rate:</span>
+                <span class="text-primary font-bold"
+                  >1 USD = {{ rateToDelete?.deposit_units_per_usd || rateToDelete?.units_per_usd }}
+                  {{ rateToDelete?.currency }}</span
+                >
+              </div>
+              <div class="flex justify-between">
+                <span class="text-secondary-text">Withdrawal Rate:</span>
+                <span class="text-primary font-bold"
+                  >1 USD = {{ rateToDelete?.withdrawal_units_per_usd || rateToDelete?.units_per_usd }}
+                  {{ rateToDelete?.currency }}</span
+                >
+              </div>
             </div>
           </div>
 
@@ -943,7 +992,8 @@ const rateToDelete = ref(null);
 // ── Form State ──
 const formData = ref({
   currency: "",
-  units_per_usd: null,
+  deposit_units_per_usd: null,
+  withdrawal_units_per_usd: null,
   label: "",
   description: "",
   is_active: true,
@@ -1056,7 +1106,7 @@ const filteredRecords = computed(() => {
 
 // ── Live Rate Preview in Form ──
 const ratePreview = computed(() => {
-  const units = Number(formData.value.units_per_usd);
+  const units = Number(formData.value.deposit_units_per_usd);
   if (!units || isNaN(units) || units <= 0) {
     return { isValid: false };
   }
@@ -1091,7 +1141,7 @@ const ratePreview = computed(() => {
 // ── Currency Select Options for BaseSelect ──
 const currencySelectOptions = computed(() => {
   return (currencyStore.records || []).map((rate) => ({
-    label: `${getCurrencyFlag(rate.currency)} ${rate.currency} - ${rate.label || rate.currency} (${formatNumber(rate.units_per_usd)}/USD)`,
+    label: `${getCurrencyFlag(rate.currency)} ${rate.currency} - ${rate.label || rate.currency} (${formatNumber(rate.deposit_units_per_usd || rate.units_per_usd)}/USD deposit)`,
     value: rate.currency,
   }));
 });
@@ -1103,12 +1153,12 @@ const calculatorResult = computed(() => {
   );
   if (!targetRate) return null;
 
-  const units = Number(targetRate.units_per_usd) || 1;
+  const units = Number(targetRate.deposit_units_per_usd || targetRate.units_per_usd) || 1;
   const amount = Number(calcUsdAmount.value) || 0;
   const converted = amount * units;
 
   return {
-    unitsPerUsd: units,
+    depositUnits: units,
     convertedAmount: converted,
   };
 });
@@ -1172,8 +1222,8 @@ const handleClose = () => {
 const applyPreset = (preset) => {
   formData.value.currency = preset.code;
   formData.value.label = preset.label;
-  if (!formData.value.units_per_usd) {
-    formData.value.units_per_usd = preset.defaultUnits;
+  if (!formData.value.deposit_units_per_usd) {
+    formData.value.deposit_units_per_usd = preset.defaultUnits;
   }
 };
 
@@ -1191,7 +1241,8 @@ const openCreateForm = () => {
   formErrors.value = {};
   formData.value = {
     currency: "",
-    units_per_usd: null,
+    deposit_units_per_usd: null,
+    withdrawal_units_per_usd: null,
     label: "",
     description: "",
     is_active: true,
@@ -1204,7 +1255,8 @@ const openEditForm = (rateRecord) => {
   formErrors.value = {};
   formData.value = {
     currency: rateRecord.currency || "",
-    units_per_usd: rateRecord.units_per_usd ?? null,
+    deposit_units_per_usd: rateRecord.deposit_units_per_usd ?? rateRecord.units_per_usd ?? null,
+    withdrawal_units_per_usd: rateRecord.withdrawal_units_per_usd ?? rateRecord.units_per_usd ?? null,
     label: rateRecord.label || "",
     description: rateRecord.description || "",
     is_active: rateRecord.is_active ?? true,
@@ -1249,13 +1301,23 @@ const validateForm = () => {
   }
 
   if (
-    formData.value.units_per_usd === null ||
-    formData.value.units_per_usd === undefined ||
-    formData.value.units_per_usd === ""
+    formData.value.deposit_units_per_usd === null ||
+    formData.value.deposit_units_per_usd === undefined ||
+    formData.value.deposit_units_per_usd === ""
   ) {
-    errors.units_per_usd = "Exchange rate (units per USD) is required";
-  } else if (Number(formData.value.units_per_usd) <= 0) {
-    errors.units_per_usd = "Rate must be greater than 0";
+    errors.deposit_units_per_usd = "Deposit rate is required";
+  } else if (Number(formData.value.deposit_units_per_usd) <= 0) {
+    errors.deposit_units_per_usd = "Rate must be greater than 0";
+  }
+
+  if (
+    formData.value.withdrawal_units_per_usd !== null &&
+    formData.value.withdrawal_units_per_usd !== undefined &&
+    formData.value.withdrawal_units_per_usd !== ""
+  ) {
+    if (Number(formData.value.withdrawal_units_per_usd) <= 0) {
+      errors.withdrawal_units_per_usd = "Rate must be greater than 0";
+    }
   }
 
   formErrors.value = errors;
@@ -1267,13 +1329,17 @@ const handleSubmit = async () => {
 
   const payload = {
     currency: formData.value.currency.trim().toUpperCase(),
-    units_per_usd: Number(formData.value.units_per_usd),
+    deposit_units_per_usd: Number(formData.value.deposit_units_per_usd),
     label: formData.value.label ? formData.value.label.trim() : "",
     description: formData.value.description
       ? formData.value.description.trim()
       : "",
     is_active: Boolean(formData.value.is_active),
   };
+
+  if (formData.value.withdrawal_units_per_usd) {
+    payload.withdrawal_units_per_usd = Number(formData.value.withdrawal_units_per_usd);
+  }
 
   try {
     if (mode.value === "create") {
@@ -1287,8 +1353,12 @@ const handleSubmit = async () => {
       const msg = err.message.toLowerCase();
       if (msg.includes("currency")) {
         formErrors.value.currency = err.message;
+      } else if (msg.includes("deposit")) {
+        formErrors.value.deposit_units_per_usd = err.message;
+      } else if (msg.includes("withdrawal")) {
+        formErrors.value.withdrawal_units_per_usd = err.message;
       } else if (msg.includes("units") || msg.includes("rate")) {
-        formErrors.value.units_per_usd = err.message;
+        formErrors.value.deposit_units_per_usd = err.message;
       }
     }
   }

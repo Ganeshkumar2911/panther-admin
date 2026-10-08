@@ -19,7 +19,7 @@ import {
 import { useProfileStore } from "@/stores/profile/profile";
 import { useMyPermissionsStore } from "@/stores/rbac/myPermissions";
 import Tooltip from "@/components/common/Tooltip.vue";
-import ProfileDialog from '@/components/common/profileDialog.vue';
+import ProfileDialog from "@/components/common/profileDialog.vue";
 import { navClusters } from "@/config/navItems";
 
 const store = useProfileStore();
@@ -272,9 +272,9 @@ const handleSearchKeydown = (e) => {
   }
 };
 
-// Global Cmd+K / Ctrl+K listener
+// Global Cmd+K / Ctrl+K / Cmd+S / Ctrl+S listener
 const handleGlobalKeydown = (e) => {
-  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+  if ((e.metaKey || e.ctrlKey) && (e.key.toLowerCase() === "k" || e.key.toLowerCase() === "s")) {
     e.preventDefault();
     if (props.isCollapsed) {
       emit("toggle-collapse");
@@ -644,7 +644,13 @@ const handleFlyoutMouseLeave = () => {
                       : 'text-white/65 hover:text-white hover:bg-white/10',
                   ]"
                 >
+                  <HugeiconsIcon
+                    v-if="child.hugeIcon"
+                    :icon="child.hugeIcon"
+                    class="w-3.5 h-3.5 flex-shrink-0 transition-transform group-hover:scale-105"
+                  />
                   <component
+                    v-else
                     :is="child.icon"
                     class="w-3.5 h-3.5 flex-shrink-0 transition-transform group-hover:scale-105"
                   />

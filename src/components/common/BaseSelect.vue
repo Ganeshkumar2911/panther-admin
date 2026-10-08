@@ -9,7 +9,7 @@ import {
   watch,
   watchEffect,
 } from "vue";
-import { ChevronDown, Check, Search } from "lucide-vue-next";
+import { ChevronDown, Check, Search, X } from "lucide-vue-next";
 import { getFlagCode } from "@/utils/countries";
 
 const attrs = useAttrs();
@@ -128,6 +128,10 @@ const props = defineProps({
   py: {
     type: [String, Number],
     default: "",
+  },
+  clearable: {
+    type: Boolean,
+    default: false,
   },
 });
 
@@ -435,6 +439,11 @@ function select(option) {
   close();
 }
 
+function clearValue() {
+  emit("update:modelValue", null);
+  close();
+}
+
 function isSelected(option) {
   if (option.value === null) {
     return (
@@ -587,17 +596,25 @@ onBeforeUnmount(() => {
             'fi',
             `fi-${selectedFlagCode}`,
             'fis',
-            'w-4 h-3 flex-shrink-0',
+            'w-4 h-3 shrink-0',
           ]"
         ></span>
         <span>{{ displayLabel }}</span>
       </span>
 
-      <ChevronDown
-        :size="16"
-        class="ml-2 flex-shrink-0 text-secondary-text transition-transform duration-200"
-        :class="{ 'rotate-180': isOpen }"
-      />
+      <div class="flex items-center gap-1 shrink-0 ml-2">
+        <X
+          v-if="clearable && !isPlaceholder && modelValue !== null && modelValue !== ''"
+          :size="14"
+          class="text-secondary-text hover:text-primary transition-colors cursor-pointer"
+          @click.stop="clearValue"
+        />
+        <ChevronDown
+          :size="16"
+          class="text-secondary-text transition-transform duration-200"
+          :class="{ 'rotate-180': isOpen }"
+        />
+      </div>
     </button>
 
     <!-- Dropdown -->
@@ -674,7 +691,7 @@ onBeforeUnmount(() => {
                     'fi',
                     `fi-${getOptionFlagCode(option)}`,
                     'fis',
-                    'w-4 h-3 flex-shrink-0',
+                    'w-4 h-3 shrink-0',
                   ]"
                 ></span>
                 <span v-if="option?.optinalLableName"
@@ -700,7 +717,7 @@ onBeforeUnmount(() => {
               <Check
                 v-if="isSelected(option) && !option.disabled"
                 :size="14"
-                class="text-primary flex-shrink-0"
+                class="text-primary shrink-0"
               />
             </li>
           </ul>

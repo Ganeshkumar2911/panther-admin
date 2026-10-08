@@ -86,7 +86,7 @@
                 v-model="copyForm.broker_label"
                 type="text"
                 placeholder="e.g. metatrader"
-                class="w-full px-3 py-2.5 rounded-lg bg-background border border-primary-border text-primary-text text-sm outline-none focus:border-primary transition-colors placeholder:text-secondary-text"
+                class="w-full px-3 py-2 rounded-lg border border-primary-border text-primary-text text-sm outline-none focus:border-primary transition-colors placeholder:text-secondary-text"
               />
             </div>
           </div>

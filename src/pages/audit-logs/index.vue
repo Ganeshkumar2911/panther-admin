@@ -559,6 +559,7 @@ const closeDetails = () => {
 // Styling & Text Helpers
 const formatActionName = (action) => {
   if (!action) return "Audit Action";
+  if (action === "CLEAR_FM_FOLLOWER_POSITIONS") return "GET_FM_FOLLOWER_POSITIONS";
   return String(action)
     .replace(/_/g, " ")
     .toLowerCase()

@@ -66,6 +66,7 @@ const urls = {
   fmLedger: {
     list: "/ledger/fms",
     allFundManagers: "/search/fm",
+    update: "/ledger/fm/update",
   },
   ibLedger: {
     list: "/ledger/ib",
@@ -91,8 +92,16 @@ const urls = {
   auditLogs: {
     list: "/audit-logs",
   },
+  enhancedAuditLogs: {
+    list: "/enhanced-audit-logs",
+    details: (id) => `/audit-logs/${id}/details`,
+    userTimeline: (userId) => `/enhanced-audit-logs/user/${userId}`,
+    filters: "/enhanced-audit-logs/filters",
+    staffFlow: "/admin/audit-staff",
+  },
   fm: {
     list: "/fund_managers",
+    simpleList: "/fm-list",
     create: "/fund_managers/create",
     edit: "/fund_managers/edit",
     dummyList: "/get-dummy/fm",
@@ -105,12 +114,19 @@ const urls = {
     settlementPreview: "/settlement/preview",
     settlementRun: "/settlement/run",
     offers: "/fund_managers/offers",
-    followers: (fmId) => (fmId ? `/fund_managers/followers/${fmId}` : "/fund_managers/followers"),
+    followers: (fmId) =>
+      fmId ? `/fund_managers/followers/${fmId}` : "/fund_managers/followers",
     followersHistory: (fmId) => `/fund_managers/followers/${fmId}/history`,
     followersDetails: "fund_managers/followers/info/",
     editFollower: "/fund_managers/followers/edit",
     offerJoinLinks: "/fund_managers/offers/join-links",
     offerAgents: "/fund_managers/offers/agents",
+    availableJoiners: "/fund_managers/followers/available-joiners",
+    addFollower: "/fund_managers/followers/add",
+    openPositionCounts: "/fund_managers/followers/open-position-counts",
+    clearFollowerPositions: (fmId) =>
+      `/fund-managers/${fmId}/clear-follower-positions`,
+    dealsByComment: (fmId) => `/fund_managers/${fmId}/deals/by-comment`,
   },
   dummyFm: {
     list: "/get-dummy/fm",
@@ -194,6 +210,7 @@ const urls = {
     approve: "/payment-requests/approve/",
     reject: "/payment-requests/reject/",
     updateAmount: (id) => `/payment-requests/${id}/amount`,
+    paymaxisCancel: (id) => `/payment-requests/paymaxis-cancel/${id}`,
   },
   paymentGatewayData: {
     list: "/payment-gateway-data",
@@ -402,9 +419,12 @@ const urls = {
     enrollmentDetail: (enrollmentId) => `/loyalty/enrollments/${enrollmentId}`,
     updateEnrollment: (enrollmentId) => `/loyalty/enrollments/${enrollmentId}`,
     deenroll: "/loyalty/enrollments/deenroll",
-    deenrollById: (enrollmentId) => `/loyalty/enrollments/${enrollmentId}/deenroll`,
-    attachEnrollmentAccount: (enrollmentId) => `/loyalty/enrollments/${enrollmentId}/accounts`,
-    detachEnrollmentAccount: (enrollmentId, accountId) => `/loyalty/enrollments/${enrollmentId}/accounts/${accountId}`,
+    deenrollById: (enrollmentId) =>
+      `/loyalty/enrollments/${enrollmentId}/deenroll`,
+    attachEnrollmentAccount: (enrollmentId) =>
+      `/loyalty/enrollments/${enrollmentId}/accounts`,
+    detachEnrollmentAccount: (enrollmentId, accountId) =>
+      `/loyalty/enrollments/${enrollmentId}/accounts/${accountId}`,
     creditWallet: "/loyalty/wallets/credit",
     // Deals & Backfill
     deals: "/loyalty/deals",
@@ -434,6 +454,7 @@ const urls = {
     rejectCommission: (id) => `/ib-commission/commissions/${id}/reject`,
     bulkApproveCommissions: "/ib-commission/commissions/approve-bulk",
     // Payout Settings & Settlement Batches
+    eligibilitySettings: "/ib-commission/settings/eligibility",
     payoutAllSettings: "/ib-commission/settings/payout-all",
     ibPayoutSettings: (ibId) => `/ib-commission/ibs/${ibId}/payout-settings`,
     settlements: "/ib-commission/settlements",
@@ -441,15 +462,58 @@ const urls = {
     // Demo Wallets
     demoWallets: "/ib-commission/demo-wallets",
     demoWalletByIb: (ibId) => `/ib-commission/demo-wallets/by-ib/${ibId}`,
-    demoWalletByUser: (userId) => `/ib-commission/demo-wallets/by-user/${userId}`,
+    demoWalletByUser: (userId) =>
+      `/ib-commission/demo-wallets/by-user/${userId}`,
     demoWalletTransactions: "/ib-commission/demo-wallets/transactions",
     // Approvals / Draft Commission Workflow
     approvalPeriods: "/ib-commission/commissions/approvals/periods",
     approvalsSummary: "/ib-commission/commissions/approvals",
     approvalEntries: "/ib-commission/commissions/approvals/entries",
     approveIbPeriod: "/ib-commission/commissions/approvals/approve-ib",
+    // Recalc Revert Date (ETL Settings)
+    recalcRevertMaster: "/ib-commission/settings/recalc-revert",
+    ibRecalcRevert: (ibId) => `/ib-commission/ibs/${ibId}/recalc-revert`,
+    runRecalcRevert: "/ib-commission/settings/recalc-revert/run",
+  },
+  cashback: {
+    programs: "/cashback/programs",
+    program: "/cashback/program",
+    updateProgram: (id) => `/cashback/program/${id}`,
+    plans: (id) => `/cashback/program/${id}/plans`,
+    updatePlan: (id) => `/cashback/plans/${id}`,
+    enrollments: "/cashback/enrollments",
+    unenroll: "/cashback/enrollments/unenroll",
+    transactions: "/cashback/transactions",
+    redemptions: "/cashback/redemptions",
+    userSearch: "/cashback/user-search",
+  },
+  vendor: {
+    transfers: "/vendor/transfers",
+  },
+  twoFactor: {
+    // Platform-wide settings
+    settings: "/2fa-settings",
+    reset: (userId) => `/users/${userId}/2fa/reset`,
+
+    // Staff self-service (Logged-in Admin/Staff)
+    status: "/2fa/status",
+    setup: "/2fa/setup",
+    confirm: "/2fa/confirm",
+    disable: "/2fa/disable",
+    regenerateBackupCodes: "/2fa/backup-codes/regenerate",
+    verifyLogin2fa: "/login/verify-2fa",
+
+    // Staff list (Superadmin managing staff 2FA)
+    staffStatus: (userId) => `/rbac/users/${userId}/2fa`,
+    staffReset: (userId) => `/users/${userId}/2fa/reset`,
+  },
+  bankRequests: {
+    list: "/bank-accounts",
+    userAccounts: (userId) => `/users/bank-accounts/${userId}`,
+    approve: (id) => `/bank-accounts/${id}/approve`,
+    reject: (id) => `/bank-accounts/${id}/reject`,
+    enableEdit: (userId, id) => `/users/bank-accounts/${userId}/${id}/enable-edit`,
   },
 };
 
 export default urls;
-

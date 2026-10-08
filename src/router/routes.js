@@ -16,6 +16,11 @@ const routes = [
         name: "dev-login",
         component: () => import("@/pages/auth/dev-login.vue"),
       },
+      {
+        path: "/2fa",
+        name: "two-factor",
+        component: () => import("@/pages/auth/two-factor.vue"),
+      },
     ],
   },
   {
@@ -141,6 +146,28 @@ const routes = [
               description: "View client notifications and history.",
             },
           },
+          {
+            path: "audit-logs",
+            name: "client-details-audit-logs",
+            component: () => import("@/pages/client-details/auditLogs.vue"),
+            meta: {
+              showBackButton: true,
+              requiresAuth: true,
+              title: "Client Audit Logs",
+              description: "View client enhanced audit log events.",
+            },
+          },
+          {
+            path: "audit-logs/:logId",
+            name: "client-details-audit-log-detail",
+            component: () => import("@/pages/enhanced-audit-logs/AuditLogForensicsView.vue"),
+            meta: {
+              showBackButton: true,
+              requiresAuth: true,
+              title: "Client Audit Log Details",
+              description: "View client audit log event details.",
+            },
+          },
         ],
       },
       {
@@ -215,6 +242,26 @@ const routes = [
           requiresAuth: true,
           title: "Payment Requests",
           description: "Manage and view payment requests.",
+        },
+      },
+      {
+        path: "/bank-requests",
+        name: "bank-requests",
+        component: () => import("@/pages/bankrequest/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Bank Requests",
+          description: "Review and approve client, IB, and FM saved bank account requests.",
+        },
+      },
+      {
+        path: "/vendor-transfers",
+        name: "vendor-transfers",
+        component: () => import("@/pages/vendor-transfers/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Vendor Transfers",
+          description: "Manage and view vendor transfer queue.",
         },
       },
       {
@@ -651,6 +698,27 @@ const routes = [
         },
       },
       {
+        path: "/enhanced-audit-logs",
+        name: "enhanced-audit-logs",
+        component: () => import("@/pages/enhanced-audit-logs/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Enhanced Audit Logs",
+          description: "Advanced tracking and detailed view of system modifications and events.",
+        },
+      },
+      {
+        path: "/enhanced-audit-logs/:id",
+        name: "enhanced-audit-log-details",
+        component: () => import("@/pages/enhanced-audit-logs/AuditLogForensicsView.vue"),
+        meta: {
+          requiresAuth: true,
+          showBackButton: true,
+          title: "Event Forensics",
+          description: "Detailed view of audit event with complete context and changes.",
+        },
+      },
+      {
         path: "/rbac",
         name: "rbac",
         component: () => import("@/pages/rbac/index.vue"),
@@ -784,6 +852,17 @@ const routes = [
         },
       },
       {
+        path: "/commission-engine/etl-settings",
+        name: "commission-engine-etl-settings",
+        component: () => import("@/pages/commission-engine/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "IB Commission ETL Settings",
+          description:
+            "Configure recalculation revert dates (Next, Night, Weekend) and trigger on-demand recalculation runs.",
+        },
+      },
+      {
         path: "/commission-engine/demo-wallets",
         name: "commission-engine-demo-wallets",
         component: () => import("@/pages/commission-engine/index.vue"),
@@ -802,6 +881,16 @@ const routes = [
           title: "System Settings",
           description:
             "Configure system-wide settings, transaction restrictions, and miscellaneous platform settings.",
+        },
+      },
+      {
+        path: "/cashback",
+        name: "cashback",
+        component: () => import("@/pages/cashback/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Cashback Program",
+          description: "Manage Cashback Program rules, plans, enrollments, and ledger transactions.",
         },
       },
     ],

@@ -630,7 +630,8 @@ export const useFmTradeBookStore = defineStore("fmTradeBook", () => {
     fetchTradesData(true);
   };
 
-  const setPerPage = (newPerPage) => {
+  const setPerPage = (payload) => {
+    const newPerPage = typeof payload === "object" && payload !== null ? payload.per_page : payload;
     pagination.value.per_page = Number(newPerPage);
     pagination.value.page = 1;
     fetchTradesData(true);

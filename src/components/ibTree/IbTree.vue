@@ -115,6 +115,15 @@
                 <Plus class="w-3.5 h-3.5 text-secondary-text" />
               </button>
             </Tooltip>
+
+            <Tooltip v-if="hasPermission('xtention_dev.login_as_client')" text="Client Login">
+              <button
+                class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-card-background border border-transparent hover:border-primary-border transition-colors cursor-pointer"
+                @click.stop="emit('client-login', node)"
+              >
+                <LogIn class="w-3.5 h-3.5 text-secondary-text" />
+              </button>
+            </Tooltip>
           </div>
         </div>
       </div>
@@ -132,6 +141,7 @@
           @add-sub="emit('add-sub', $event)"
           @transfer-parent="emit('transfer-parent', $event)"
           @view-clients="emit('view-clients', $event)"
+          @client-login="emit('client-login', $event)"
         />
       </div>
 
@@ -140,7 +150,7 @@
 </template>
 
 <script setup>
-import { ChevronRight, Minus, Pencil, Plus, ArrowLeftRight, Users, Link, UserCheck } from 'lucide-vue-next'
+import { ChevronRight, Minus, Pencil, Plus, ArrowLeftRight, Users, Link, UserCheck, LogIn } from 'lucide-vue-next'
 import Tooltip from '@/components/common/Tooltip.vue'
 import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
@@ -151,7 +161,7 @@ defineProps({
   expanded: { type: Object, default: () => ({}) },
 })
 
-const emit = defineEmits(['toggle', 'edit', 'add-sub', 'transfer-parent', 'view-clients'])
+const emit = defineEmits(['toggle', 'edit', 'add-sub', 'transfer-parent', 'view-clients', 'client-login'])
 const toggle = (id) => emit('toggle', id)
 </script>
 

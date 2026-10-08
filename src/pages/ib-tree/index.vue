@@ -52,7 +52,7 @@
 
       <button
         v-if="hasPermission('ib.create')"
-        class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-medium transition-colors shrink-0 self-start md:self-auto cursor-pointer"
+        class="btn-primary shrink-0 self-start md:self-auto"
         @click="openAdd"
       >
         <Plus class="w-3.5 h-3.5" /> Add Master IB
@@ -90,6 +90,7 @@
         @edit="openEdit"
         @add-sub="openAddSub"
         @transfer-parent="openTransferParent"
+        @client-login="handleClientLogin"
       />
     </div>
 
@@ -149,6 +150,7 @@
             @edit="openEdit"
             @transfer-parent="openTransferParent"
             @assign-staff="handleAssignStaff"
+            @client-login="handleClientLogin"
           />
         </tbody>
       </table>
@@ -194,6 +196,13 @@
       @confirm="handleConfirmAssignStaff"
       @cancel="handleCancelAssignStaff"
     />
+
+    <!-- Client Login Confirmation Modal -->
+    <ClientLoginModal
+      :open="clientLoginModalOpen"
+      :client="selectedClientForLogin || {}"
+      @close="closeClientLoginModal"
+    />
   </div>
 </template>
 
@@ -208,6 +217,7 @@ import IbTree from '@/components/ibTree/IbTree.vue'
 import IbDialog from '@/components/ibTree/IbDialog.vue'
 import TransferIbDialog from '@/components/ibTree/TransferIbDialog.vue'
 import ConfirmationDialog from '@/components/common/ConfirmationDialog.vue'
+import ClientLoginModal from '@/components/common/ClientLoginModal.vue'
 import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
 const store = useIbTreeStore()
@@ -224,6 +234,25 @@ import urls from '@/api/urls'
 import { useSnackbarStore } from '@/stores/snackbar/snackbar'
 
 const snackbar = useSnackbarStore()
+
+const clientLoginModalOpen = ref(false)
+const selectedClientForLogin = ref(null)
+
+const handleClientLogin = (node) => {
+  if (!node) return
+  // An IB node usually has `user_id` which corresponds to the client ID
+  const clientId = node.user_id || node.lead_id || node.ib_id || node.id
+  if (!clientId) return
+  
+  // Pass the node as the client object, ensuring it has an `id` field that matches the client ID
+  selectedClientForLogin.value = { ...node, id: clientId }
+  clientLoginModalOpen.value = true
+}
+
+const closeClientLoginModal = () => {
+  clientLoginModalOpen.value = false
+  selectedClientForLogin.value = null
+}
 
 const assignDialog = ref({
   open: false,

@@ -649,6 +649,63 @@
               {{ program.allow_general_wallet_transfer ? 'Enabled' : 'Disabled' }}
             </span>
           </div>
+
+          <!-- Deposit Bonus (Promo Grant) Status -->
+          <div class="p-3 bg-background/40 border border-primary-border rounded-lg text-xs space-y-2">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1.5">
+                <Coins class="w-3.5 h-3.5 text-primary" />
+                <p class="font-medium text-primary-text">Deposit Bonus (Promo Grant)</p>
+              </div>
+              <span
+                class="px-2 py-0.5 rounded text-[10px] font-medium uppercase"
+                :class="program.deposit_bonus_enabled ? 'bg-primary-green/10 text-primary-green border border-primary-green/20' : 'bg-background text-secondary-text border border-primary-border'"
+              >
+                {{ program.deposit_bonus_enabled ? 'Enabled' : 'Disabled' }}
+              </span>
+            </div>
+            <p class="text-[10px] text-secondary-text">
+              Auto-grants points on PaymentRequest deposits. Formula: <span class="font-mono text-primary-text font-semibold">base × ceil(usd / bracket)</span>
+            </p>
+            <div v-if="program.deposit_bonus_enabled" class="grid grid-cols-3 gap-2 pt-1.5 border-t border-primary-border/40">
+              <div>
+                <span class="text-[9px] uppercase font-medium text-secondary-text block">Points per Bracket</span>
+                <span class="font-mono text-primary-green text-[11px] font-semibold">{{ Number(program.deposit_bonus_base_points || 0) }} pts</span>
+              </div>
+              <div>
+                <span class="text-[9px] uppercase font-medium text-secondary-text block">Bracket Size (USD)</span>
+                <span class="font-mono text-primary-text text-[11px] font-semibold">${{ Number(program.deposit_bonus_band_usd || 0).toLocaleString() }}</span>
+              </div>
+              <div>
+                <span class="text-[9px] uppercase font-medium text-secondary-text block">Max Points Cap</span>
+                <span class="font-mono text-primary-text text-[11px] font-semibold">
+                  {{ program.deposit_bonus_max_points !== null && program.deposit_bonus_max_points !== undefined ? `${Number(program.deposit_bonus_max_points).toLocaleString()} pts` : 'No Cap' }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Dynamic 3-Level Preview -->
+            <div v-if="program.deposit_bonus_enabled && dynamicProgramLevels.length > 0" class="pt-2 border-t border-primary-border/40 space-y-1.5">
+              <span class="text-[9px] uppercase font-semibold text-secondary-text block">Bracket Breakdown (First 3 Levels)</span>
+              <div class="grid grid-cols-3 gap-2">
+                <div
+                  v-for="lvl in dynamicProgramLevels"
+                  :key="lvl.level"
+                  class="p-2 rounded bg-background/60 border border-primary-border/70 flex flex-col justify-between"
+                >
+                  <div class="flex items-center justify-between">
+                    <span class="text-[9px] font-semibold text-secondary-text uppercase">Level {{ lvl.level }}</span>
+                    <span v-if="lvl.isCapped" class="text-[8px] px-1 rounded bg-primary-yellow/10 text-primary-yellow font-medium">Capped</span>
+                  </div>
+                  <span class="font-mono text-[11px] text-primary-text font-medium mt-0.5">{{ lvl.range }}</span>
+                  <div class="flex items-center justify-between mt-1 pt-1 border-t border-primary-border/40">
+                    <span class="text-[9px] text-secondary-text">Awards</span>
+                    <span class="font-mono text-[11px] font-bold text-primary-green">{{ lvl.points }} pts</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Card 2: Cycle Timelines & Lifecycle -->
@@ -934,6 +991,7 @@ import {
   LayoutList,
   LayoutPanelLeft,
   Layers,
+  Coins,
 } from "lucide-vue-next";
 import { useLoyaltyStore } from "@/stores/loyalty/loyalty";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
@@ -958,6 +1016,35 @@ const handleOpenEdit = (section = "all") => {
 const program = computed(() => store.program);
 const eligibilityRules = computed(() => program.value?.eligibility_rules || program.value?.eligibility || {});
 const programsList = computed(() => store.programsList || []);
+
+const dynamicProgramLevels = computed(() => {
+  const p = program.value;
+  if (!p || !p.deposit_bonus_enabled) return [];
+  const step = Number(p.deposit_bonus_band_usd || 0);
+  const pts = Number(p.deposit_bonus_base_points || 0);
+  const max =
+    p.deposit_bonus_max_points !== null &&
+    p.deposit_bonus_max_points !== undefined &&
+    p.deposit_bonus_max_points !== ""
+      ? Number(p.deposit_bonus_max_points)
+      : null;
+
+  if (step <= 0 || pts <= 0) return [];
+
+  return [1, 2, 3].map((lvl) => {
+    const fromUsd = (lvl - 1) * step;
+    const toUsd = lvl * step;
+    const rawPts = pts * lvl;
+    const isCapped = max !== null && rawPts > max;
+    const finalPts = isCapped ? max : rawPts;
+    return {
+      level: lvl,
+      range: `$${fromUsd.toLocaleString()} – $${toUsd.toLocaleString()}`,
+      points: finalPts,
+      isCapped,
+    };
+  });
+});
 
 // Banner Images & Video Carousel Logic
 const currentImageIndex = ref(0);

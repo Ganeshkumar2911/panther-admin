@@ -29,6 +29,7 @@
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-4 py-3 rounded-tl-2xl">Name</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-4 py-3">Email</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-4 py-3">Role</th>
+            <th v-if="hasPermission(['two_factor.view', 'two_factor.reset'])" class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-4 py-3">2FA</th>
             <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest px-4 py-3">Status</th>
             <th class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-widest px-4 py-3 rounded-tr-2xl">Actions</th>
           </tr>
@@ -45,6 +46,7 @@
             </td>
             <td class="px-4 py-3.5"><div class="h-3 w-36 bg-background rounded" /></td>
             <td class="px-4 py-3.5"><div class="h-7 w-28 bg-background rounded-lg" /></td>
+            <td v-if="hasPermission(['two_factor.view', 'two_factor.reset'])" class="px-4 py-3.5"><div class="h-5 w-14 bg-background rounded-full" /></td>
             <td class="px-4 py-3.5"><div class="h-5 w-12 bg-background rounded-full" /></td>
             <td class="px-4 py-3.5 flex justify-end group-last:rounded-br-2xl"><div class="h-7 w-16 bg-background rounded-lg" /></td>
           </tr>
@@ -53,7 +55,7 @@
         <!-- Empty -->
         <tbody v-else-if="staffStore.records.length === 0">
           <tr>
-            <td colspan="5" class="py-20 text-center bg-card-background rounded-b-2xl">
+            <td :colspan="hasPermission(['two_factor.view', 'two_factor.reset']) ? 6 : 5" class="py-20 text-center bg-card-background rounded-b-2xl">
               <div class="flex flex-col items-center gap-3">
                 <div class="w-12 h-12 rounded-full bg-background flex items-center justify-center">
                   <Users class="w-5 h-5 text-secondary-text" />
@@ -95,9 +97,46 @@
               />
             </td>
 
+            <!-- 2FA Status Badge (Click to View / Manage) -->
+            <td v-if="hasPermission(['two_factor.view', 'two_factor.reset'])" class="px-4 py-3.5">
+              <button
+                v-if="hasPermission(['two_factor.view'])"
+                type="button"
+                class="text-[11px] font-bold px-2.5 py-0.5 rounded-full border transition-all inline-flex items-center gap-1.5 cursor-pointer hover:opacity-80 active:scale-95"
+                :class="
+                  staff.totp_enabled
+                    ? 'bg-primary-green/10 text-primary-green border-primary-green/20'
+                    : 'bg-secondary-text/10 text-secondary-text border-primary-border'
+                "
+                title="Click to view or manage 2FA"
+                @click="open2FaDetails(staff)"
+              >
+                <span
+                  class="w-1.5 h-1.5 rounded-full"
+                  :class="staff.totp_enabled ? 'bg-primary-green' : 'bg-secondary-text'"
+                />
+                {{ staff.totp_enabled ? 'On' : 'Off' }}
+              </button>
+              <span
+                v-else
+                class="text-[11px] font-bold px-2.5 py-0.5 rounded-full border inline-flex items-center gap-1.5"
+                :class="
+                  staff.totp_enabled
+                    ? 'bg-primary-green/10 text-primary-green border-primary-green/20'
+                    : 'bg-secondary-text/10 text-secondary-text border-primary-border'
+                "
+              >
+                <span
+                  class="w-1.5 h-1.5 rounded-full"
+                  :class="staff.totp_enabled ? 'bg-primary-green' : 'bg-secondary-text'"
+                />
+                {{ staff.totp_enabled ? 'On' : 'Off' }}
+              </span>
+            </td>
+
             <td class="px-4 py-3.5">
               <button
-                class="relative w-9 h-5 rounded-full transition-colors duration-200"
+                class="relative w-9 h-5 rounded-full transition-colors duration-200 cursor-pointer"
                 :class="staff.is_active ? 'bg-primary' : 'border border-primary-border bg-background'"
                 :disabled="staffStore.actionLoading"
                 @click="staffStore.updateStaffStatus(staff.id, !staff.is_active)"
@@ -176,23 +215,45 @@
       :staff="changePasswordStaff"
       @close="changePasswordDialogOpen = false"
     />
+
+    <!-- Staff 2FA Detail Modal -->
+    <Staff2FaDetailModal
+      :open="staff2FaModalOpen"
+      :staff="selectedStaff2Fa"
+      :can-reset="hasPermission(['two_factor.reset'])"
+      @close="staff2FaModalOpen = false"
+      @reset="handleResetFromModal"
+    />
+
+    <!-- Reset 2FA Confirmation Dialog -->
+    <Reset2FaConfirmDialog
+      :open="reset2FaTarget !== null"
+      :target-name="reset2FaTarget?.name || reset2FaTarget?.email || ''"
+      :loading="twoFactorStore.actionLoading"
+      @close="reset2FaTarget = null"
+      @confirm="executeReset2Fa"
+    />
   </div>
 </template>
 
 <script setup>
 import { onMounted, ref, computed } from 'vue'
-import { Search, Plus, Users, Trash2, Loader2, ShieldCheck, KeyRound } from 'lucide-vue-next'
+import { Search, Plus, Users, Trash2, Loader2, ShieldCheck, ShieldOff, KeyRound, RefreshCw } from 'lucide-vue-next'
 import { useRbacStaffStore } from '@/stores/rbac/staff'
 import { useRbacRolesStore } from '@/stores/rbac/roles'
+import { useTwoFactorStore } from '@/stores/twoFactor/twoFactor'
 import { usePermissionCheck } from '@/composables/usePermissionCheck'
 import Pagination from '@/components/common/Pagination.vue'
 import StaffDialog from './StaffDialog.vue'
 import UserPermissionDrawer from './UserPermissionDrawer.vue'
 import RoleChangeConfirmDialog from './RoleChangeConfirmDialog.vue'
 import StaffChangePasswordDialog from './StaffChangePasswordDialog.vue'
+import Staff2FaDetailModal from './Staff2FaDetailModal.vue'
+import Reset2FaConfirmDialog from '@/components/common/Reset2FaConfirmDialog.vue'
 
 const staffStore = useRbacStaffStore()
 const rolesStore = useRbacRolesStore()
+const twoFactorStore = useTwoFactorStore()
 const { hasPermission } = usePermissionCheck()
 
 const roleOptions = computed(() =>
@@ -213,6 +274,11 @@ const roleChangeTarget = ref(null)
 const changePasswordDialogOpen = ref(false)
 const changePasswordStaff = ref(null)
 
+// 2FA Modals State
+const staff2FaModalOpen = ref(false)
+const selectedStaff2Fa = ref(null)
+const reset2FaTarget = ref(null)
+
 const getStaffActions = (staff) => {
   const actions = [
     {
@@ -222,11 +288,27 @@ const getStaffActions = (staff) => {
     },
   ]
 
-  if (hasPermission('xtention_dev.manage_role')) {
+  actions.push({
+    action: 'changePassword',
+    label: 'Change Password',
+    icon: KeyRound,
+  })
+
+  // 2FA Actions strictly check two_factor permissions
+  if (hasPermission(['two_factor.view'])) {
     actions.push({
-      action: 'changePassword',
-      label: 'Change Password',
-      icon: KeyRound,
+      action: 'view2fa',
+      label: 'View 2FA Details',
+      icon: ShieldCheck,
+    })
+  }
+
+  if (hasPermission(['two_factor.reset'])) {
+    actions.push({
+      action: 'reset2fa',
+      label: staff.totp_enabled ? 'Disable 2FA' : 'Reset 2FA',
+      icon: staff.totp_enabled ? ShieldOff : RefreshCw,
+      danger: true,
     })
   }
 
@@ -244,6 +326,11 @@ const getStaffActions = (staff) => {
   return actions
 }
 
+const open2FaDetails = (staff) => {
+  selectedStaff2Fa.value = staff
+  staff2FaModalOpen.value = true
+}
+
 const onMenuSelect = (item, staff) => {
   switch (item.action) {
     case 'permissions':
@@ -253,9 +340,32 @@ const onMenuSelect = (item, staff) => {
       changePasswordStaff.value = staff
       changePasswordDialogOpen.value = true
       break
+    case 'view2fa':
+      open2FaDetails(staff)
+      break
+    case 'reset2fa':
+      reset2FaTarget.value = staff
+      break
     case 'delete':
       confirmDelete(staff)
       break
+  }
+}
+
+const handleResetFromModal = (staff) => {
+  staff2FaModalOpen.value = false
+  reset2FaTarget.value = staff
+}
+
+const executeReset2Fa = async () => {
+  if (!reset2FaTarget.value) return
+  const staffId = reset2FaTarget.value.id
+  try {
+    await twoFactorStore.resetStaff2fa(staffId)
+    reset2FaTarget.value = null
+    staffStore.fetchStaff()
+  } catch (_) {
+    // snackbar is handled in store
   }
 }
 

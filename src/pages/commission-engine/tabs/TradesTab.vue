@@ -21,7 +21,12 @@ const store = useCommissionEngineStore();
 const { hasPermission } = usePermissionCheck();
 
 const canSync = computed(() =>
-  hasPermission(["ib_commission.trades.update", "ib_commission.sync.update"])
+  hasPermission([
+    "ib_commission_trades.update",
+    "ib_commission.trades.update",
+    "ib_commission_sync.update",
+    "ib_commission.sync.update",
+  ])
 );
 
 // Filters
@@ -501,6 +506,13 @@ const formatDate = (val) => {
     <!-- Rebuild Trades Ops Modal -->
     <RebuildTradesModal
       v-model="isRebuildModalOpen"
+      :initial-filters="{
+        ib_id: ibIdFilter,
+        login: loginFilter,
+        date_from: dateFrom,
+        date_to: dateTo,
+        date_field: dateField,
+      }"
       @rebuilt="loadTrades(store.tradesPagination.page, true)"
     />
   </div>

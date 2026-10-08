@@ -61,6 +61,15 @@
         <!-- Right Quick Actions -->
         <div class="flex items-center gap-2.5 shrink-0 flex-wrap">
           <button
+            v-if="hasPermission('fund_manager.update')"
+            class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
+            @click="addFollowerDialogOpen = true"
+          >
+            <UserPlus class="w-3.5 h-3.5" />
+            <span>Add Follower</span>
+          </button>
+
+          <button
             class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 text-xs font-semibold transition-colors cursor-pointer"
             @click="openCreateLinkDialog"
           >
@@ -318,6 +327,20 @@
             </p>
           </div>
           <div class="space-y-2 pt-0.5">
+            <button
+              v-if="hasPermission('fund_manager.update')"
+              class="w-full flex items-center justify-between px-3 py-2 rounded-lg border border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 text-primary-text text-xs font-semibold transition-colors cursor-pointer shadow-2xs group"
+              @click="addFollowerDialogOpen = true"
+            >
+              <span class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                  <UserPlus class="w-3.5 h-3.5" />
+                </div>
+                <span>Add Follower</span>
+              </span>
+              <Plus class="w-3.5 h-3.5 opacity-60 group-hover:text-emerald-600 transition-colors" />
+            </button>
+
             <button
               class="w-full flex items-center justify-between px-3 py-2 rounded-lg border border-primary-border bg-background hover:bg-card-background text-primary-text text-xs font-semibold transition-colors cursor-pointer shadow-2xs group"
               @click="openCreateLinkDialog"
@@ -654,6 +677,15 @@
     </div>
 
     <!-- DIALOGS -->
+    <AddFollowerDialog
+      :open="addFollowerDialogOpen"
+      :fm-id="fmId"
+      :default-offer-id="offerId"
+      :currency="activeCurrency"
+      @close="addFollowerDialogOpen = false"
+      @created="onFollowerAdded"
+    />
+
     <CreateJoinLinkDialog
       :open="linkDialogOpen"
       :offer-id="offerId"
@@ -737,21 +769,24 @@ import { useRoute, useRouter } from 'vue-router'
 import {
   Plus, Tag, Link2, Pencil, Trash2, Copy, RotateCw, Loader2,
   CheckCircle2, XCircle, Users, ArrowLeft, Calendar, DollarSign,
-  TrendingUp, Wallet, Clock, Shield, Check
+  TrendingUp, Wallet, Clock, Shield, Check, UserPlus
 } from 'lucide-vue-next'
 import { useFmOffersStore } from '@/stores/fmOffers/fmOffers'
 import { useSnackbarStore } from '@/stores/snackbar/snackbar'
 import Tooltip from '@/components/common/Tooltip.vue'
+import AddFollowerDialog from '@/components/fmOffers/AddFollowerDialog.vue'
 import CreateJoinLinkDialog from '@/components/fmOffers/CreateJoinLinkDialog.vue'
 import EditOfferInfoDialog from '@/components/fmOffers/EditOfferInfoDialog.vue'
 import CreateAgentDialog from '@/components/fmOffers/CreateAgentDialog.vue'
 import EditAgentDialog from '@/components/fmOffers/EditAgentDialog.vue'
 import DeleteAgentConfirmationDialog from '@/components/fmOffers/DeleteAgentConfirmationDialog.vue'
+import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
 const route = useRoute()
 const router = useRouter()
 const snackbar = useSnackbarStore()
 const store = useFmOffersStore()
+const { hasPermission } = usePermissionCheck()
 
 const offerId = computed(() => route.params.id)
 const storedActiveOffer = ref(null)
@@ -768,7 +803,14 @@ const activeOffer = computed(() => {
 })
 
 const fmId = computed(() => {
-  return route.query.fm_id || activeOffer.value?.fm_id || storedActiveOffer.value?.fm_id || null
+  return (
+    route.query.fm_id ||
+    activeOffer.value?.fund_manager_id ||
+    activeOffer.value?.fm_id ||
+    storedActiveOffer.value?.fund_manager_id ||
+    storedActiveOffer.value?.fm_id ||
+    null
+  )
 })
 
 const tabs = computed(() => [
@@ -778,6 +820,7 @@ const tabs = computed(() => [
 ])
 
 // Dialog States
+const addFollowerDialogOpen = ref(false)
 const linkDialogOpen = ref(false)
 const editingLink = ref(null)
 const deleteLinkTarget = ref(null)
@@ -819,6 +862,10 @@ const doDeleteLink = () => {
 const onLinkCreated = () => {
   activeTab.value = 'links'
   store.fetchJoinLinks(offerId.value)
+}
+
+const onFollowerAdded = () => {
+  refreshData()
 }
 
 const openEditInfoDialog = (section) => {

@@ -41,6 +41,7 @@
           :options="clientOptions"
           placeholder="All Clients"
           searchable
+          clearable
           class="w-full sm:w-40 xl:w-40"
           @search="onClientSearch"
           @update:modelValue="store.applyFilters()"
@@ -52,6 +53,7 @@
           :options="accountOptions"
           placeholder="All Accounts"
           searchable
+          clearable
           class="w-full sm:w-44 xl:w-44"
           @search="onAccountSearch"
           @update:modelValue="store.applyFilters()"
@@ -62,8 +64,7 @@
           v-model="store.filters.type"
           :options="typeOptions"
           placeholder="All Types"
-          :allow-all="true"
-          all-label="All Types"
+          clearable
           class="w-full sm:w-36 xl:w-36"
           @update:modelValue="store.applyFilters()"
         />
@@ -73,8 +74,7 @@
           v-model="store.filters.approval_status"
           :options="statusOptions"
           placeholder="All Statuses"
-          :allow-all="true"
-          all-label="All Statuses"
+          clearable
           class="w-full sm:w-36 xl:w-36"
           @update:modelValue="store.applyFilters()"
         />
@@ -91,7 +91,7 @@
           :modelValue="store.pagination.per_page"
           :options="store.perPageOptions"
           placeholder="Per page..."
-          class="w-full sm:w-32 xl:w-32"
+          class="sm:w-2 xl:w-20"
           @update:modelValue="store.updatePerPage"
         />
 
@@ -655,6 +655,17 @@
                     Reject
                   </button>
                 </template>
+                <template v-else-if="req.approval_status === 'processing' && req.type?.toLowerCase() === 'deposit' && (req.gateway?.toLowerCase() === 'paymaxis' || req.method?.toLowerCase() === 'paymaxis')">
+                  <button
+                    v-if="hasPermission('payment_requests.reject')"
+                    class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border bg-primary-red/10 text-primary-red border-primary-red/20 hover:bg-primary-red/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    title="Cancel deposit (unlocks user for a new deposit)"
+                    @click="openConfirmDialog('cancelPaymaxis', req)"
+                  >
+                    <X class="w-3 h-3" />
+                    Cancel
+                  </button>
+                </template>
                 <span v-else-if="!hasBankDetails(req)" class="text-[11px] text-secondary-text font-medium"
                   >Processed</span
                 >
@@ -710,7 +721,7 @@
 
 <script setup>
 import { onMounted, computed, ref, watch } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { Receipt, Check, X, RefreshCw, Copy, FileText, AlertCircle, Pencil, Landmark } from "lucide-vue-next";
 import { usePaymentRequestsStore } from "@/stores/paymentRequests/paymentRequests";
 import { useProfileStore } from "@/stores/profile/profile";
@@ -1153,7 +1164,9 @@ const fmtRate = (v) => {
 const isConfirmLoading = computed(() =>
   confirmDialog.value.action === "approve"
     ? store.approveLoading
-    : store.rejectLoading,
+    : confirmDialog.value.action === "cancelPaymaxis"
+      ? store.cancelPaymaxisLoading
+      : store.rejectLoading,
 );
 
 const openConfirmDialog = (action, request) => {
@@ -1182,8 +1195,10 @@ const handleConfirm = async (payload) => {
   try {
     if (confirmDialog.value.action === "approve") {
       await store.approveRequest(requestId, payload);
-    } else {
+    } else if (confirmDialog.value.action === "reject") {
       await store.rejectRequest(requestId, payload);
+    } else if (confirmDialog.value.action === "cancelPaymaxis") {
+      await store.cancelPaymaxisDeposit(requestId, payload);
     }
   } finally {
     closeConfirmDialog();
@@ -1195,5 +1210,17 @@ const handlePageChange = (page) => {
   store.fetchRequests(true);
 };
 
-onMounted(() => store.fetchRequests());
+const route = useRoute();
+
+onMounted(() => {
+  if (route.query.id) {
+    store.filters.id = route.query.id;
+    if (route.query.detail === 'true') {
+      store.filters.detailMode = true;
+    }
+    store.applyFilters();
+  } else if (!store.isFetched) {
+    store.fetchRequests();
+  }
+});
 </script>

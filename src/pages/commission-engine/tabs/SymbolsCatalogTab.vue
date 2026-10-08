@@ -22,9 +22,16 @@ import ConfirmationDialog from "@/components/common/ConfirmationDialog.vue";
 const store = useCommissionEngineStore();
 const { hasPermission } = usePermissionCheck();
 
-const canAssign = computed(() => hasPermission("ib_commission.symbol_groups.update"));
+const canAssign = computed(() =>
+  hasPermission(["ib_commission_symbol_groups.update", "ib_commission.symbol_groups.update"])
+);
 const canUnassign = computed(() =>
-  hasPermission(["ib_commission.symbol_groups.delete", "ib_commission.symbol_groups.update"])
+  hasPermission([
+    "ib_commission_symbol_groups.delete",
+    "ib_commission.symbol_groups.delete",
+    "ib_commission_symbol_groups.update",
+    "ib_commission.symbol_groups.update",
+  ])
 );
 const canManage = computed(() => canAssign.value);
 

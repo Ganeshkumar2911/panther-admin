@@ -14,10 +14,22 @@ export const useMyPermissionsStore = defineStore("myPermissions", () => {
   // Flattened set of permission codes for fast lookup e.g. 'analytics.view'
   const userCodes = computed(() => {
     const codes = new Set();
-    Object.values(permissions.value || {}).forEach((permList) => {
+    const raw = permissions.value;
+    if (!raw) return codes;
+
+    if (Array.isArray(raw)) {
+      raw.forEach((item) => {
+        if (typeof item === "string" && item) codes.add(item);
+        else if (item?.code) codes.add(item.code);
+      });
+      return codes;
+    }
+
+    Object.values(raw).forEach((permList) => {
       if (Array.isArray(permList)) {
         permList.forEach((item) => {
-          if (item.code) codes.add(item.code);
+          if (typeof item === "string" && item) codes.add(item);
+          else if (item?.code) codes.add(item.code);
         });
       }
     });
@@ -62,11 +74,22 @@ export const useMyPermissionsStore = defineStore("myPermissions", () => {
     return codes.every((code) => userCodes.value.has(code));
   };
 
-  // Check if user has ANY permission in a given module (e.g. 'client', 'email', 'kyc')
+  // Check if user has ANY permission in a given module (e.g. 'client', 'email', 'kyc', 'ib_commission')
   const hasModulePermission = (moduleName) => {
     if (!moduleName) return true;
     const moduleList = permissions.value[moduleName];
-    return Array.isArray(moduleList) && moduleList.length > 0;
+    if (Array.isArray(moduleList) && moduleList.length > 0) return true;
+    // Fallback: check if user has any permission starting with module prefix
+    for (const code of userCodes.value) {
+      if (
+        code.startsWith(`${moduleName}.`) ||
+        code.startsWith(`${moduleName}_`) ||
+        code === moduleName
+      ) {
+        return true;
+      }
+    }
+    return false;
   };
 
   let inFlightPromise = null;

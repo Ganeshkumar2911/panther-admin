@@ -19,9 +19,15 @@ import ConfirmationDialog from "@/components/common/ConfirmationDialog.vue";
 const store = useCommissionEngineStore();
 const { hasPermission } = usePermissionCheck();
 
-const canCreate = computed(() => hasPermission("ib_commission.symbol_groups.create"));
-const canEdit = computed(() => hasPermission("ib_commission.symbol_groups.update"));
-const canDelete = computed(() => hasPermission("ib_commission.symbol_groups.delete"));
+const canCreate = computed(() =>
+  hasPermission(["ib_commission_symbol_groups.create", "ib_commission.symbol_groups.create"])
+);
+const canEdit = computed(() =>
+  hasPermission(["ib_commission_symbol_groups.update", "ib_commission.symbol_groups.update"])
+);
+const canDelete = computed(() =>
+  hasPermission(["ib_commission_symbol_groups.delete", "ib_commission.symbol_groups.delete"])
+);
 
 const searchQuery = ref("");
 const isModalOpen = ref(false);
@@ -185,7 +191,7 @@ const handleDeleteConfirm = async () => {
             <button
               v-if="canCreate"
               type="button"
-              class="flex items-center gap-1.5 px-3.5 py-1.5 bg-primary hover:bg-primary-hover text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer shadow-2xs"
+              class="btn-primary"
               @click="openCreateModal"
             >
               <HugeIcon :icon="PlusSignIcon" :size="14" />
