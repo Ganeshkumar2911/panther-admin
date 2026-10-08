@@ -1,15 +1,53 @@
 <template>
   <div class="space-y-4 py-2">
-    <!-- Toolbar Header: Search, Filters, View Switcher & Actions -->
-    <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3">
-      <div
-        class="flex w-full min-w-0 flex-col gap-2 rounded-xl border border-primary-border bg-card-background/40 p-2.5 sm:flex-row sm:items-center sm:flex-wrap xl:flex-1"
-      >
-        <!-- Search Input -->
-        <div class="relative w-full sm:w-56 xl:w-64 h-9">
-          <Search
-            class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-secondary-text pointer-events-none"
-          />
+    <!-- REAL FUND MANAGERS VIEW -->
+    <div v-if="activeTab === 'real'" class="space-y-4">
+      <!-- Toolbar Header: Search, Filters, View Switcher & Actions -->
+      <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3">
+        <div
+          class="flex w-full min-w-0 flex-col gap-2 rounded-xl border border-primary-border bg-card-background/40 p-2.5 sm:flex-row sm:items-center sm:flex-wrap xl:flex-1"
+        >
+          <!-- Real / Dummy FM Tab Switcher Pill -->
+          <div
+            v-if="canViewRealFm && canViewDummyFm"
+            class="flex items-center gap-1 p-0.5 bg-background border border-primary-border rounded-lg shrink-0 h-9"
+          >
+            <button
+              v-if="canViewRealFm"
+              type="button"
+              @click="switchTab('real')"
+              class="flex items-center gap-1.5 px-3 h-7 rounded-md text-xs font-bold transition-all cursor-pointer select-none"
+              :class="
+                activeTab === 'real'
+                  ? 'bg-primary text-white shadow-xs'
+                  : 'text-secondary-text hover:text-primary-text hover:bg-card-background'
+              "
+            >
+              <HugeIcon :icon="UserGroupIcon" :size="15" />
+              <span>Real FM Info</span>
+            </button>
+
+            <button
+              v-if="canViewDummyFm"
+              type="button"
+              @click="switchTab('dummy')"
+              class="flex items-center gap-1.5 px-3 h-7 rounded-md text-xs font-bold transition-all cursor-pointer select-none"
+              :class="
+                activeTab === 'dummy'
+                  ? 'bg-primary text-white shadow-xs'
+                  : 'text-secondary-text hover:text-primary-text hover:bg-card-background'
+              "
+            >
+              <HugeIcon :icon="UserAiIcon" :size="15" />
+              <span>Dummy FM Info</span>
+            </button>
+          </div>
+
+          <!-- Search Input -->
+          <div class="relative w-full sm:w-56 xl:w-60 h-9">
+            <Search
+              class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-secondary-text pointer-events-none"
+            />
           <input
             v-model="searchQuery"
             type="text"
@@ -151,23 +189,98 @@
         <div
           v-for="n in 6"
           :key="n"
-          class="bg-card-background border border-primary-border rounded-2xl overflow-hidden animate-pulse p-5 space-y-4"
+          class="bg-card-background border border-primary-border rounded-lg p-5 flex flex-col justify-between animate-pulse space-y-4"
         >
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl bg-background" />
-              <div class="space-y-1.5">
-                <div class="h-3.5 w-32 bg-background rounded" />
-                <div class="h-2.5 w-24 bg-background rounded" />
+          <div>
+            <!-- Card Identity Header Skeleton -->
+            <div class="flex items-start justify-between gap-3 mb-3">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="w-11 h-11 rounded-xl bg-background border border-primary-border/60 shrink-0" />
+                <div class="space-y-1.5 min-w-0">
+                  <div class="h-4 w-32 bg-background rounded" />
+                  <div class="h-3 w-20 bg-background rounded" />
+                </div>
+              </div>
+              <div class="flex flex-col items-end gap-1.5 shrink-0">
+                <div class="h-5 w-16 bg-background rounded-full" />
+                <div class="h-4 w-12 bg-background rounded-md" />
               </div>
             </div>
-            <div class="h-5 w-16 bg-background rounded-full" />
+
+            <!-- Prominent Email & KYC Banner Skeleton -->
+            <div class="bg-background/80 border border-primary-border/80 rounded-xl px-3 py-2 flex items-center justify-between mb-3.5">
+              <div class="flex items-center gap-2">
+                <div class="w-3.5 h-3.5 rounded bg-background shrink-0" />
+                <div class="h-3 w-40 bg-background rounded" />
+              </div>
+              <div class="h-4 w-16 bg-background rounded-md" />
+            </div>
+
+            <!-- Hero Min Capital Banner Skeleton -->
+            <div class="bg-background/70 border border-primary-border/80 rounded-xl p-3 flex items-center justify-between mb-3">
+              <div class="space-y-1.5">
+                <div class="h-2.5 w-28 bg-background rounded" />
+                <div class="h-5 w-28 bg-background rounded" />
+              </div>
+              <div class="flex flex-col items-end space-y-1.5">
+                <div class="h-2.5 w-14 bg-background rounded" />
+                <div class="h-6 w-14 bg-background rounded-lg" />
+              </div>
+            </div>
+
+            <!-- Core Fees Grid Skeleton (3 columns) -->
+            <div class="grid grid-cols-3 gap-2 mb-3">
+              <div class="bg-background/40 border border-primary-border/40 rounded-xl p-2 flex flex-col items-center gap-1">
+                <div class="h-2 w-16 bg-background rounded" />
+                <div class="h-3.5 w-10 bg-background rounded" />
+                <div class="h-2 w-12 bg-background rounded" />
+              </div>
+              <div class="bg-background/40 border border-primary-border/40 rounded-xl p-2 flex flex-col items-center gap-1">
+                <div class="h-2 w-16 bg-background rounded" />
+                <div class="h-3.5 w-14 bg-background rounded" />
+              </div>
+              <div class="bg-background/40 border border-primary-border/40 rounded-xl p-2 flex flex-col items-center gap-1">
+                <div class="h-2 w-14 bg-background rounded" />
+                <div class="h-3.5 w-10 bg-background rounded" />
+                <div class="h-2 w-8 bg-background rounded" />
+              </div>
+            </div>
+
+            <!-- Share Distribution Progress Bar Skeleton -->
+            <div class="bg-background/40 border border-primary-border/40 rounded-xl p-2.5 mb-3 space-y-2">
+              <div class="flex items-center justify-between">
+                <div class="h-2 w-24 bg-background rounded" />
+                <div class="h-2 w-36 bg-background rounded" />
+              </div>
+              <div class="h-2 w-full bg-background border border-primary-border/60 rounded-full" />
+            </div>
+
+            <!-- Account Specifications Summary Skeleton -->
+            <div class="space-y-2 py-2 border-t border-primary-border/60 text-xs">
+              <div class="flex items-center justify-between">
+                <div class="h-2.5 w-16 bg-background rounded" />
+                <div class="h-2.5 w-36 bg-background rounded" />
+              </div>
+              <div class="flex items-center justify-between">
+                <div class="h-2.5 w-20 bg-background rounded" />
+                <div class="h-2.5 w-40 bg-background rounded" />
+              </div>
+              <div class="flex items-center justify-between">
+                <div class="h-2.5 w-28 bg-background rounded" />
+                <div class="h-4 w-28 bg-background rounded-md" />
+              </div>
+              <div class="flex items-center justify-between">
+                <div class="h-2.5 w-24 bg-background rounded" />
+                <div class="h-2.5 w-16 bg-background rounded" />
+              </div>
+            </div>
           </div>
-          <div class="h-16 bg-background rounded-xl" />
-          <div class="grid grid-cols-3 gap-2">
-            <div v-for="m in 3" :key="m" class="h-12 bg-background rounded-xl" />
+
+          <!-- Card Action Footer Skeleton -->
+          <div class="pt-3 mt-2 border-t border-primary-border/60 flex items-center justify-between gap-2">
+            <div class="h-7 w-24 bg-background border border-primary-border/60 rounded-lg" />
+            <div class="h-7 w-7 bg-background border border-primary-border/60 rounded-lg" />
           </div>
-          <div class="h-10 bg-background rounded-xl" />
         </div>
       </div>
     </div>
@@ -180,7 +293,7 @@
         class="flex flex-col items-center justify-center rounded-2xl border border-dashed border-primary-border bg-card-background/30 py-16 px-4 text-center"
       >
         <div
-          class="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-background border border-primary-border shadow-sm mb-4"
+          class="relative flex h-16 w-16 items-center justify-center rounded-lg bg-background border border-primary-border shadow-sm mb-4"
         >
           <UserRoundPlus class="w-8 h-8 text-secondary-text" />
         </div>
@@ -222,24 +335,29 @@
         <div
           v-for="item in filteredData"
           :key="item.id"
-          class="bg-card-background border border-primary-border rounded-2xl p-5 transition-all duration-200 flex flex-col justify-between group relative overflow-hidden"
+          class="bg-card-background border border-primary-border rounded-lg p-5 transition-all duration-200 flex flex-col justify-between group relative overflow-hidden"
         >
           <div>
             <!-- Card Identity Header -->
             <div class="flex items-start justify-between gap-3 mb-3">
-              <div class="flex items-center gap-3 min-w-0">
+              <div class="flex items-center gap-3 min-w-0 flex-1">
                 <div
                   class="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center font-bold text-sm shrink-0 group-hover:scale-105 transition-transform"
                 >
                   {{ (item.label_name || 'FM')[0].toUpperCase() }}
                 </div>
-                <div class="min-w-0">
-                  <h4
-                    class="text-base font-bold text-primary-text truncate tracking-tight"
-                    :title="item.label_name"
-                  >
-                    {{ item.label_name || 'Unnamed Fund Manager' }}
-                  </h4>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-1.5">
+                    <h4
+                      class="text-base font-bold text-primary-text truncate tracking-tight"
+                      :title="item.label_name"
+                    >
+                      {{ item.label_name || 'Unnamed Fund Manager' }}
+                    </h4>
+                    <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-background border border-primary-border text-secondary-text shrink-0" title="Fund Manager ID">
+                      #{{ item.id }}
+                    </span>
+                  </div>
                   <p v-if="item.user?.name" class="text-xs text-secondary-text truncate font-medium">
                     {{ item.user.name }}
                   </p>
@@ -249,7 +367,7 @@
               <!-- Status Badges -->
               <div class="flex flex-col items-end gap-1.5 shrink-0">
                 <span
-                  class="text-[10px] font-bold tracking-wide uppercase px-2.5 py-0.5 rounded-full border inline-flex items-center gap-1.5 shadow-2xs"
+                  class="text-[10px] font-bold tracking-wide uppercase px-2.5 py-0.5 rounded-full border inline-flex items-center gap-1.5"
                   :class="
                     item.is_active
                       ? 'bg-primary-green/10 text-primary-green border border-primary-green/20'
@@ -259,16 +377,28 @@
                   <span class="w-1.5 h-1.5 rounded-full animate-pulse" :class="item.is_active ? 'bg-primary-green' : 'bg-zinc-400'" />
                   {{ item.is_active ? 'Active' : 'Inactive' }}
                 </span>
-                <span
-                  class="text-[9px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-md border text-secondary-text bg-background/80 border-primary-border"
-                >
-                  {{ item.visibility_type || 'public' }}
-                </span>
+
+                <div class="flex items-center gap-1.5 flex-wrap justify-end">
+                  <span
+                    v-if="isDummyActive(item)"
+                    class="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border inline-flex items-center gap-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30"
+                    title="Dummy Leaderboard Simulation is Enabled"
+                  >
+                    <HugeIcon :icon="AiMagicIcon" :size="11" class="text-amber-500 shrink-0" />
+                    <span>Dummy Enabled</span>
+                  </span>
+
+                  <span
+                    class="text-[9px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-md border text-secondary-text bg-background/80 border-primary-border"
+                  >
+                    {{ item.visibility_type || 'public' }}
+                  </span>
+                </div>
               </div>
             </div>
 
             <!-- Prominent User Email Banner -->
-            <div class="bg-background/80 border border-primary-border/80 rounded-xl px-3 py-2 flex items-center justify-between mb-3.5 shadow-2xs">
+            <div class="bg-background/80 border border-primary-border/80 rounded-lg px-3 py-2 flex items-center justify-between mb-3.5">
               <div class="flex items-center gap-2 min-w-0">
                 <Mail class="w-3.5 h-3.5 text-primary shrink-0" />
                 <span class="text-xs font-semibold text-primary-text truncate font-mono select-all" :title="item.user?.email">
@@ -281,7 +411,7 @@
             </div>
 
             <!-- Hero Min Capital Banner -->
-            <div class="bg-background/70 border border-primary-border/80 rounded-xl p-3 flex items-center justify-between mb-3 shadow-2xs">
+            <div class="bg-background/70 border border-primary-border/80 rounded-lg p-3 flex items-center justify-between mb-3">
               <div>
                 <p class="text-[10px] font-semibold uppercase tracking-wider text-secondary-text">Min Investment Capital</p>
                 <p class="text-base font-extrabold text-primary-text tracking-tight mt-0.5">
@@ -298,20 +428,20 @@
 
             <!-- Core Fees Grid -->
             <div class="grid grid-cols-3 gap-2 mb-3">
-              <div class="bg-background/40 border border-primary-border/40 rounded-xl p-2 text-center">
+              <div class="bg-background/40 border border-primary-border/40 rounded-lg p-2 text-center">
                 <p class="text-[9px] uppercase font-semibold tracking-wider text-secondary-text mb-0.5">Management</p>
                 <p class="text-xs font-bold text-primary-text">{{ formatPercent(item.management_fee) }}</p>
                 <p v-if="item.management_fee_interval" class="text-[9px] text-secondary-text capitalize">
                   {{ item.management_fee_interval }}
                 </p>
               </div>
-              <div class="bg-background/40 border border-primary-border/40 rounded-xl p-2 text-center">
+              <div class="bg-background/40 border border-primary-border/40 rounded-lg p-2 text-center">
                 <p class="text-[9px] uppercase font-semibold tracking-wider text-secondary-text mb-0.5">Registration</p>
                 <p class="text-xs font-bold text-primary-text">
                   {{ item.registration_fee ? formatMoney(item.registration_fee, item.broker_currency) : 'Free' }}
                 </p>
               </div>
-              <div class="bg-background/40 border border-primary-border/40 rounded-xl p-2 text-center">
+              <div class="bg-background/40 border border-primary-border/40 rounded-lg p-2 text-center">
                 <p class="text-[9px] uppercase font-semibold tracking-wider text-secondary-text mb-0.5">Leverage</p>
                 <p class="text-xs font-bold text-primary">1:{{ item.broker_leverage || '—' }}</p>
                 <p class="text-[9px] text-secondary-text uppercase font-mono">
@@ -321,7 +451,7 @@
             </div>
 
             <!-- Shares Allocation Visual Distribution Bar -->
-            <div class="bg-background/40 border border-primary-border/40 rounded-xl p-2.5 mb-3 space-y-1.5">
+            <div class="bg-background/40 border border-primary-border/40 rounded-lg p-2.5 mb-3 space-y-1.5">
               <div class="flex items-center justify-between text-[11px] font-semibold text-secondary-text">
                 <span class="uppercase tracking-wider text-[9px]">Share Distribution</span>
                 <span class="text-primary-text text-[10px] font-bold">
@@ -517,6 +647,14 @@
                   {{ item.is_active ? 'Active' : 'Inactive' }}
                 </span>
                 <span
+                  v-if="isDummyActive(item)"
+                  class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md border inline-flex items-center gap-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30"
+                  title="Dummy Simulation is Enabled"
+                >
+                  <HugeIcon :icon="AiMagicIcon" :size="11" class="text-amber-500 shrink-0" />
+                  <span>Dummy Enabled</span>
+                </span>
+                <span
                   class="text-[9px] uppercase tracking-widest font-bold px-1.5 py-0.5 rounded-md border text-secondary-text bg-background/80 border-primary-border"
                 >
                   {{ item.visibility_type || 'public' }}
@@ -556,6 +694,22 @@
         @page-change="handlePageChange"
       />
     </div>
+  </div>
+
+  <!-- DUMMY FUND MANAGERS VIEW -->
+  <div v-else-if="activeTab === 'dummy'">
+    <DummyFmLeaderboard
+      :active-tab="activeTab"
+      @switch-tab="switchTab"
+      :is-toggling="togglingId ? { [togglingId]: true } : {}"
+      @open-details="openDummyDetailsDrawer"
+      @view-trades="openDummyTradesDrawer"
+      @edit-dummy="openEditDummySheet"
+      @import-trades="openImportTradesDrawer"
+      @toggle-status="handleToggleDummy"
+      @switch-to-real="switchTab('real')"
+    />
+  </div>
 
     <!-- ADD / EDIT FUND MANAGER DIALOG -->
     <AddEditFundManager
@@ -564,14 +718,64 @@
       :item="selectedItem"
       @close="dialogOpen = false"
       @success="dialogOpen = false"
+      @create-dummy="handleOpenCreateDummy"
     />
 
-    <!-- FULL DETAILS SIDE DRAWER PANEL -->
+    <!-- DUMMY FM CREATE / EDIT SHEET -->
+    <DummyFmSheet
+      :open="dummySheetOpen"
+      :item="selectedDummyFmItem"
+      :is-edit="isDummySheetEdit"
+      @close="dummySheetOpen = false"
+      @success="onDummySheetSuccess"
+    />
+
+    <!-- FULL DETAILS SIDE DRAWER PANEL (Real FM) -->
     <FmDetailsDrawer
       :open="detailsDrawerOpen"
       :item="selectedDetailsItem"
       @close="detailsDrawerOpen = false"
     />
+
+    <!-- FULL DETAILS SIDE DRAWER PANEL (Dummy FM) -->
+    <DummyFmDetailsDrawer
+      :open="dummyDetailsDrawerOpen"
+      :item="selectedDummyDetailsItem"
+      @close="dummyDetailsDrawerOpen = false"
+      @view-trades="openDummyTradesDrawer"
+      @edit-dummy="openEditDummySheet"
+      @import-trades="openImportTradesDrawer"
+    />
+
+    <!-- DUMMY TRADES MANAGEMENT SIDE DRAWER -->
+    <DummyTradesDrawer
+      :open="dummyTradesDrawerOpen"
+      :item="selectedDummyTradesItem"
+      @close="dummyTradesDrawerOpen = false"
+      @edit-dummy="openEditDummySheet"
+      @import-trades="openImportTradesDrawer"
+    />
+
+    <!-- IMPORT DUMMY TRADES SIDE DRAWER -->
+    <ImportDummyTradesDrawer
+      :open="importTradesDrawerOpen"
+      :item="selectedImportTradesItem"
+      @close="importTradesDrawerOpen = false"
+      @success="importTradesDrawerOpen = false"
+    />
+
+    <!-- TOGGLE CONFIRMATION MODAL -->
+    <ConfirmationDialog
+      :open="toggleConfirmOpen"
+      :title="itemToToggle?.is_dummy ? 'Switch to Real Fund Manager' : 'Switch to Dummy Fund Manager'"
+      :message="`Are you sure you want to switch '${itemToToggle?.label_name || 'this Fund Manager'}' to ${itemToToggle?.is_dummy ? 'Real' : 'Dummy'} mode?`"
+      :confirm-text="itemToToggle?.is_dummy ? 'Switch to Real' : 'Switch to Dummy'"
+      cancel-text="Cancel"
+      type="warning"
+      :loading="isTogglingConfirm"
+      @confirm="handleConfirmToggle"
+      @cancel="toggleConfirmOpen = false"
+      />
 
     <!-- FM Login Confirmation Modal -->
     <FMLoginModal
@@ -584,7 +788,7 @@
 
 <script setup>
 import { onMounted, ref, computed, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useGoToTradingAccount } from '@/composables/useGoToTradingAccount'
 import {
   CalendarDays,
@@ -605,16 +809,24 @@ import {
   Tag,
   Users,
   BookOpen,
+  Sparkles,
   LogIn
 } from 'lucide-vue-next'
+import { UserGroupIcon, UserAiIcon, AiMagicIcon } from '@hugeicons/core-free-icons'
 import { useFmLeaderboardStore } from '@/stores/fmLeaderboard/fmLeaderboard'
 import Pagination from '@/components/common/Pagination.vue'
 import AddEditFundManager from '@/components/fundManager/AddEditFundManager.vue'
 import FmDetailsDrawer from '@/components/fundManager/FmDetailsDrawer.vue'
+import DummyFmLeaderboard from '@/components/fundManager/DummyFmLeaderboard.vue'
+import DummyFmSheet from '@/components/fundManager/DummyFmSheet.vue'
+import DummyFmDetailsDrawer from '@/components/fundManager/DummyFmDetailsDrawer.vue'
+import DummyTradesDrawer from '@/components/fundManager/DummyTradesDrawer.vue'
+import ImportDummyTradesDrawer from '@/components/fundManager/ImportDummyTradesDrawer.vue'
 import FMLoginModal from '@/components/common/FMLoginModal.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import Tooltip from '@/components/common/Tooltip.vue'
 import DropdownMenu from '@/components/common/DropdownMenu.vue'
+import ConfirmationDialog from '@/components/common/ConfirmationDialog.vue'
 import DataTable from '@/components/common/DataTable/DataTable.vue'
 import { usePermissionCheck } from '@/composables/usePermissionCheck'
 import { perPageOptions } from '@/constants/pagination'
@@ -622,6 +834,58 @@ import { perPageOptions } from '@/constants/pagination'
 const store = useFmLeaderboardStore()
 const { hasPermission } = usePermissionCheck()
 const router = useRouter()
+const route = useRoute()
+
+const canViewRealFm = computed(() => hasPermission('fund_manager.view'))
+const canViewDummyFm = computed(() => hasPermission('dummyfm.view'))
+
+const getInitialTab = () => {
+  if (canViewRealFm.value && canViewDummyFm.value) {
+    const queryTab = route.query.tab
+    if (queryTab === 'dummy' || queryTab === 'real') return queryTab
+    try {
+      const savedTab = localStorage.getItem('fm_leaderboard_tab')
+      if (savedTab === 'dummy' || savedTab === 'real') return savedTab
+    } catch (_) {}
+    return 'real'
+  }
+  if (canViewDummyFm.value && !canViewRealFm.value) {
+    return 'dummy'
+  }
+  return 'real'
+}
+
+const activeTab = ref(getInitialTab())
+
+const switchTab = (tab) => {
+  if (tab === 'real' && !canViewRealFm.value) return
+  if (tab === 'dummy' && !canViewDummyFm.value) return
+  if (activeTab.value === tab) return
+  activeTab.value = tab
+  try {
+    localStorage.setItem('fm_leaderboard_tab', tab)
+  } catch (_) {}
+  router.replace({
+    query: {
+      ...route.query,
+      tab,
+    },
+  })
+  store.fetchFmLeaderboard(true, 1, tab)
+}
+
+watch(
+  () => route.query.tab,
+  (newTab) => {
+    if (newTab && (newTab === 'dummy' || newTab === 'real') && newTab !== activeTab.value) {
+      activeTab.value = newTab
+      try {
+        localStorage.setItem('fm_leaderboard_tab', newTab)
+      } catch (_) {}
+      store.fetchFmLeaderboard(true, 1, newTab)
+    }
+  }
+)
 const { goToTradingAccount } = useGoToTradingAccount()
 
 const layoutMode = ref('grid')
@@ -635,9 +899,56 @@ const dialogOpen = ref(false)
 const dialogMode = ref('add')
 const selectedItem = ref(null)
 
+const dummySheetOpen = ref(false)
+const selectedDummyFmItem = ref(null)
+const isDummySheetEdit = ref(false)
+
 const detailsDrawerOpen = ref(false)
 const selectedDetailsItem = ref(null)
 
+const dummyDetailsDrawerOpen = ref(false)
+const selectedDummyDetailsItem = ref(null)
+
+const dummyTradesDrawerOpen = ref(false)
+const selectedDummyTradesItem = ref(null)
+
+const importTradesDrawerOpen = ref(false)
+const selectedImportTradesItem = ref(null)
+
+const openImportTradesDrawer = (item) => {
+  setActiveFm(item)
+  selectedImportTradesItem.value = item
+  importTradesDrawerOpen.value = true
+}
+
+const openDummyTradesDrawer = (item) => {
+  setActiveFm(item)
+  selectedDummyTradesItem.value = item
+  dummyTradesDrawerOpen.value = true
+}
+
+const handleOpenCreateDummy = (item) => {
+  dialogOpen.value = false
+  selectedDummyFmItem.value = item
+  isDummySheetEdit.value = false
+  dummySheetOpen.value = true
+}
+
+const openEditDummySheet = (item) => {
+  selectedDummyFmItem.value = item
+  isDummySheetEdit.value = true
+  dummySheetOpen.value = true
+}
+
+const openDummyDetailsDrawer = (item) => {
+  selectedDummyDetailsItem.value = item
+  dummyDetailsDrawerOpen.value = true
+}
+
+const onDummySheetSuccess = () => {
+  dummySheetOpen.value = false
+  store.fetchFmLeaderboard(true, store.pagination.page, activeTab.value)
+}
 const fmLoginModalOpen = ref(false)
 const selectedFmForLogin = ref(null)
 
@@ -814,12 +1125,69 @@ const closeFmLoginModal = () => {
 
 const handlePageChange = (page) => {
   store.pagination.page = page
-  store.fetchFmLeaderboard(true, page)
+  store.fetchFmLeaderboard(true, page, activeTab.value)
 }
 
 const handlePerPageChange = (val) => {
   const newPerPage = (val && typeof val === 'object' && val.per_page) ? val.per_page : val
   store.updatePerPage(newPerPage)
+}
+
+const togglingId = ref(null)
+const toggleConfirmOpen = ref(false)
+const itemToToggle = ref(null)
+const isTogglingConfirm = ref(false)
+
+const openToggleConfirm = (item) => {
+  itemToToggle.value = item
+  toggleConfirmOpen.value = true
+}
+
+const handleConfirmToggle = async () => {
+  if (!itemToToggle.value) return
+  isTogglingConfirm.value = true
+  try {
+    await store.toggleFundManagerType(itemToToggle.value)
+    toggleConfirmOpen.value = false
+    itemToToggle.value = null
+  } catch (err) {
+    console.error('Failed to toggle FM mode:', err)
+  } finally {
+    isTogglingConfirm.value = false
+  }
+}
+
+const isDummyActive = (item) => {
+  if (item?.dummy_fm && typeof item.dummy_fm.enabled !== 'undefined') {
+    const v = item.dummy_fm.enabled
+    return v === true || v === 1 || v === '1' || v === 'true'
+  }
+  if (typeof item?.is_dummy !== 'undefined') {
+    const v = item.is_dummy
+    return v === true || v === 1 || v === '1' || v === 'true'
+  }
+  if (typeof item?.enabled !== 'undefined') {
+    const v = item.enabled
+    return v === true || v === 1 || v === '1' || v === 'true'
+  }
+  return false
+}
+
+const isDummyCreated = (item) => {
+  return Boolean(item?.is_dummy_created === true || item?.dummy_created === true || item?.dummy_fm || item?.is_dummy)
+}
+
+const handleToggleDummy = async (item) => {
+  const fmId = item?.fm_id || item?.dummy_fm?.fm_id || item?.fund_manager?.id || item?.id
+  if (!fmId || togglingId.value) return
+  togglingId.value = fmId
+  try {
+    await store.toggleFundManagerType(item)
+  } catch (err) {
+    console.error('Failed to toggle FM type:', err)
+  } finally {
+    togglingId.value = null
+  }
 }
 
 const handleSettlement = (item) => {
@@ -862,6 +1230,13 @@ const getRowActions = (item) => {
     },
   ]
 
+  if (isDummyCreated(item) && hasPermission('dummyfm.update')) {
+    actions.push({
+      action: 'toggle-mode',
+      label: item.is_dummy ? 'Switch to Real FM' : 'Switch to Dummy FM',
+      icon: item.is_dummy ? Users : Sparkles,
+    })
+  }
   if (hasPermission('xtention_dev.login_as_fm')) {
     actions.splice(1, 0, {
       action: 'fmLogin',
@@ -914,6 +1289,8 @@ const onMenuSelect = (menuItem, item) => {
         params: { id: item.id },
         query: { currency: item.broker_currency || item.currency || item.coverage_account?.broker_currency || item.master_account?.broker_currency },
       })
+    case 'toggle-mode':
+      return openToggleConfirm(item)
     case 'settlement':
       return handleSettlement(item)
     case 'edit':
@@ -922,6 +1299,16 @@ const onMenuSelect = (menuItem, item) => {
 }
 
 onMounted(() => {
-  store.fetchFmLeaderboard()
+  const initial = getInitialTab()
+  activeTab.value = initial
+  if (route.query.tab !== initial) {
+    router.replace({
+      query: {
+        ...route.query,
+        tab: initial,
+      },
+    })
+  }
+  store.fetchFmLeaderboard(true, 1, initial)
 })
 </script>
