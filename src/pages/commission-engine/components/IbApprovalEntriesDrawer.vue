@@ -45,7 +45,7 @@
 
             <button
               type="button"
-              class="p-2 text-secondary-text hover:text-primary-text hover:bg-background rounded-xl transition-colors cursor-pointer shrink-0"
+              class="btn-icon"
               title="Close Drawer"
               @click="handleClose"
             >
@@ -55,14 +55,18 @@
 
           <!-- Drawer Quick Summary Bar -->
           <div class="px-6 py-3 bg-background/60 border-b border-primary-border flex items-center justify-between gap-4 flex-wrap shrink-0">
-            <div class="flex items-center gap-4 text-xs font-mono">
+            <div class="flex items-center gap-4 text-xs font-mono flex-wrap">
               <div>
                 <span class="text-secondary-text">Pending Entries: </span>
-                <strong class="text-primary-text">{{ ib?.entry_count || store.approvalEntriesPagination.total_items }}</strong>
+                <strong class="text-primary-text">{{ currentPendingEntries }}</strong>
               </div>
               <div>
                 <span class="text-secondary-text">Total Commission: </span>
-                <strong class="text-primary-green font-bold text-sm">+${{ formatNum(ib?.total_commission) }}</strong>
+                <strong class="text-primary-green font-bold text-sm">+${{ formatNum(currentTotalCommission) }}</strong>
+              </div>
+              <div v-if="currentTotalLots != null">
+                <span class="text-secondary-text">Total Lots: </span>
+                <strong class="text-primary-text font-bold">{{ formatNum(currentTotalLots) }} lots</strong>
               </div>
             </div>
 
@@ -71,12 +75,49 @@
               v-if="canApprove && ib?.can_approve !== false"
               type="button"
               :disabled="store.approveIbLoading"
-              class="flex items-center gap-1.5 px-3.5 py-1.5 bg-primary-green hover:bg-primary-green/90 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-xs disabled:opacity-50"
+              class="btn-success !px-3.5 !py-1.5"
               @click="$emit('approve', ib)"
             >
               <HugeIcon :icon="CheckmarkCircle02Icon" :size="14" />
               <span>Approve IB Period</span>
             </button>
+          </div>
+
+          <!-- Client Search Filter Bar -->
+          <div class="px-6 py-2.5 bg-card-background border-b border-primary-border flex items-center justify-between gap-3 flex-wrap shrink-0">
+            <div class="flex items-center gap-2 flex-1 min-w-[260px] max-w-md">
+              <!-- <span class="text-[11px] font-bold text-secondary-text uppercase tracking-wider shrink-0 font-mono">
+                Client:
+              </span> -->
+              <div class="flex-1">
+                <BaseSelect
+                  v-model="selectedUserId"
+                  :options="clientOptions"
+                  :is-loading="clientsLoading"
+                  placeholder="All Clients / Search by name, email, ID..."
+                  searchable
+                  clearable
+                  variant="surface"
+                  @search="onClientSearch"
+                  @update:model-value="handleClientChange"
+                />
+              </div>
+            </div>
+
+            <div v-if="selectedUserId" class="flex items-center gap-2">
+              <span class="text-[11px] font-mono font-semibold text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-md">
+                User ID: {{ selectedUserId }}
+              </span>
+              <button
+                type="button"
+                class="btn-danger !px-2 !py-1 text-xs"
+                title="Clear Client Filter"
+                @click="clearClientFilter"
+              >
+                <HugeIcon :icon="Cancel01Icon" :size="12" />
+                <span>Reset</span>
+              </button>
+            </div>
           </div>
 
           <!-- Drawer Body with DataTable -->
@@ -163,7 +204,7 @@
 </template>
 
 <script setup>
-import { computed, watch, onMounted, onBeforeUnmount } from "vue";
+import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
 import {
   Cancel01Icon,
   CheckmarkCircle02Icon,
@@ -171,6 +212,9 @@ import {
 import { useCommissionEngineStore } from "@/stores/commissionEngine/commissionEngine";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import DataTable from "@/components/common/DataTable/DataTable.vue";
+import BaseSelect from "@/components/common/BaseSelect.vue";
+import apiRequest from "@/api/request";
+import urls from "@/api/urls";
 
 const props = defineProps({
   open: {
@@ -205,8 +249,84 @@ const canApprove = computed(() =>
     "ib_commission.approvals.approve",
     "ib_commission_settlements.approve",
     "ib_commission.settlements.approve",
+    "ib_commission.approve",
   ])
 );
+
+// ─── Client Search & Filter State ───────────────────────────
+const selectedUserId = ref(null);
+const clientsList = ref([]);
+const clientsLoading = ref(false);
+
+const fetchClients = (query = "") => {
+  const ibId = props.ib?.ib_id;
+  if (!ibId) {
+    clientsList.value = [];
+    return;
+  }
+
+  clientsLoading.value = true;
+  apiRequest(urls.KEYS.GET, urls.ibTree.clients, {
+    look_up_key: ibId,
+    params: {
+      search: query ? String(query).trim() : undefined,
+      page: 1,
+      per_page: 20,
+    },
+    isTokenRequired: true,
+    onSuccess: (res) => {
+      let list = [];
+      if (Array.isArray(res?.data)) {
+        list = res.data;
+      } else if (res?.data?.items && Array.isArray(res.data.items)) {
+        list = res.data.items;
+      } else if (res?.data?.clients && Array.isArray(res.data.clients)) {
+        list = res.data.clients;
+      } else if (Array.isArray(res?.clients)) {
+        list = res.clients;
+      }
+      clientsList.value = list;
+      clientsLoading.value = false;
+    },
+    onFailure: () => {
+      clientsList.value = [];
+      clientsLoading.value = false;
+    },
+  });
+};
+
+let clientSearchDebounce = null;
+const onClientSearch = (query) => {
+  clearTimeout(clientSearchDebounce);
+  clientSearchDebounce = setTimeout(() => {
+    fetchClients(query);
+  }, 300);
+};
+
+const clientOptions = computed(() => {
+  return clientsList.value.map((c) => {
+    const userId = c.user_id || c.id;
+    const name = c.name || "Client";
+    const email = c.email || "";
+    return {
+      label: email ? `${name} (${email}) - #${userId}` : `${name} - #${userId}`,
+      value: Number(userId),
+      userId: Number(userId),
+      name,
+      email,
+    };
+  });
+});
+
+const handleClientChange = (val) => {
+  selectedUserId.value = val ? Number(val) : null;
+  loadEntries(1);
+};
+
+const clearClientFilter = () => {
+  selectedUserId.value = null;
+  loadEntries(1);
+};
 
 // ─── DataTable Columns ──────────────────────────────────────
 const columns = [
@@ -267,20 +387,54 @@ const columns = [
 // ─── Data Loading ───────────────────────────────────────────
 const loadEntries = (page = 1, perPage = 50) => {
   if (!props.ib?.ib_id || !props.periodKey) return;
-  store.fetchApprovalEntries({
+  const params = {
     frequency: props.frequency,
     period_key: props.periodKey,
     ib_id: props.ib.ib_id,
     page,
     per_page: perPage,
-  });
+  };
+  if (selectedUserId.value) {
+    params.user_id = selectedUserId.value;
+  }
+  store.fetchApprovalEntries(params);
 };
 
+// ─── Dynamic Summary Values ─────────────────────────────────
+const currentPendingEntries = computed(() => {
+  if (store.approvalEntriesSummary?.entry_count != null) {
+    return store.approvalEntriesSummary.entry_count;
+  }
+  if (store.approvalEntriesPagination?.total_items != null) {
+    return store.approvalEntriesPagination.total_items;
+  }
+  return props.ib?.entry_count ?? 0;
+});
+
+const currentTotalCommission = computed(() => {
+  if (store.approvalEntriesSummary?.total_commission != null) {
+    return store.approvalEntriesSummary.total_commission;
+  }
+  return props.ib?.total_commission ?? 0;
+});
+
+const currentTotalLots = computed(() => {
+  if (store.approvalEntriesSummary?.total_lots != null) {
+    return store.approvalEntriesSummary.total_lots;
+  }
+  return props.ib?.total_lots ?? null;
+});
+
 watch(
-  () => props.open,
-  (isOpen) => {
-    if (isOpen && props.ib?.ib_id) {
+  () => [props.open, props.ib?.ib_id, props.periodKey],
+  ([isOpen, ibId]) => {
+    if (isOpen && ibId) {
+      selectedUserId.value = null;
+      store.approvalEntriesSummary = null;
+      fetchClients("");
       loadEntries(1);
+    } else if (!isOpen) {
+      store.approvalEntriesSummary = null;
     }
   },
   { immediate: true }
@@ -313,7 +467,7 @@ onBeforeUnmount(() => {
 });
 
 // ─── Helpers ────────────────────────────────────────────────
-const formatNum = (val, maxDecimals = 2) => {
+const formatNum = (val, maxDecimals = 4) => {
   if (val == null || isNaN(Number(val))) return "0.00";
   return Number(val).toLocaleString("en-US", {
     minimumFractionDigits: 2,

@@ -782,6 +782,28 @@ const routes = [
         },
       },
       {
+        path: "/commission-engine/approvals/details/:id",
+        name: "commission-engine-approvals-detail",
+        component: () => import("@/pages/commission-engine/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Settlement Details",
+          description: "View client summaries and distributions for this settlement.",
+          showBackButton: true,
+        },
+      },
+      {
+        path: "/commission-engine/approvals/details/:id/user/:userId",
+        name: "commission-engine-approvals-user",
+        component: () => import("@/pages/commission-engine/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Client Settlement Breakdown",
+          description: "Detailed follower trades and period breakdown for this client.",
+          showBackButton: true,
+        },
+      },
+      {
         path: "/commission-engine/commissions",
         name: "commission-engine-commissions",
         component: () => import("@/pages/commission-engine/index.vue"),
