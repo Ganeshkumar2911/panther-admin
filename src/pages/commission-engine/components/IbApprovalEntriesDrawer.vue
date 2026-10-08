@@ -45,7 +45,7 @@
 
             <button
               type="button"
-              class="p-2 text-secondary-text hover:text-primary-text hover:bg-background rounded-xl transition-colors cursor-pointer shrink-0"
+              class="btn-icon"
               title="Close Drawer"
               @click="handleClose"
             >
@@ -75,7 +75,7 @@
               v-if="canApprove && ib?.can_approve !== false"
               type="button"
               :disabled="store.approveIbLoading"
-              class="flex items-center gap-1.5 px-3.5 py-1.5 bg-primary-green hover:bg-primary-green/90 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-xs disabled:opacity-50"
+              class="btn-success !px-3.5 !py-1.5"
               @click="$emit('approve', ib)"
             >
               <HugeIcon :icon="CheckmarkCircle02Icon" :size="14" />
@@ -110,7 +110,7 @@
               </span>
               <button
                 type="button"
-                class="inline-flex items-center gap-1 px-2 py-1 text-xs text-secondary-text hover:text-primary-red hover:bg-primary-red/5 rounded-lg transition-colors cursor-pointer"
+                class="btn-danger !px-2 !py-1 text-xs"
                 title="Clear Client Filter"
                 @click="clearClientFilter"
               >
@@ -249,6 +249,7 @@ const canApprove = computed(() =>
     "ib_commission.approvals.approve",
     "ib_commission_settlements.approve",
     "ib_commission.settlements.approve",
+    "ib_commission.approve",
   ])
 );
 
