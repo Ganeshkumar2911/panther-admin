@@ -36,15 +36,15 @@
         <template #cell-actions="{ row }">
           <div class="flex gap-2" v-if="row.status === 'PENDING' && hasPermission('pamm.approve_withdrawal')">
             <button 
-              class="text-xs text-primary-green hover:underline font-medium disabled:opacity-50"
+              class="text-xs text-primary-green hover:underline font-medium disabled:opacity-50 cursor-pointer"
               :disabled="store.actionLoading"
-              @click="approveRequest(row.id)"
+              @click="openApproveModal(row)"
             >
               Approve
             </button>
             <span class="text-primary-border">|</span>
             <button 
-              class="text-xs text-primary-red hover:underline font-medium disabled:opacity-50"
+              class="text-xs text-primary-red hover:underline font-medium disabled:opacity-50 cursor-pointer"
               :disabled="store.actionLoading"
               @click="openRejectModal(row.id)"
             >
@@ -54,6 +54,18 @@
         </template>
       </DataTable>
     </div>
+
+    <!-- Approve Confirmation Dialog -->
+    <ConfirmationDialog
+      :open="showApproveDialog"
+      title="Approve PAMM Withdrawal"
+      :message="`Are you sure you want to approve this withdrawal request (${selectedOperation?.reference_id || '#' + selectedOperation?.id}) for ${store.activePAMM?.currency || 'USD'} ${Number(selectedOperation?.requested_amount || 0).toFixed(2)}? Cash will be transferred from the master MT5 account.`"
+      confirm-text="Approve Withdrawal"
+      type="success"
+      :loading="store.actionLoading"
+      @confirm="handleConfirmApprove"
+      @cancel="showApproveDialog = false"
+    />
 
     <RejectWithdrawalModal 
       v-if="rejectModalOpen"
@@ -72,6 +84,7 @@ import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import { useSnackbarStore } from '@/stores/snackbar/snackbar';
 import DataTable from '@/components/common/DataTable/DataTable.vue';
 import StatusBadge from '@/components/common/StatusBadge.vue';
+import ConfirmationDialog from '@/components/common/ConfirmationDialog.vue';
 import RejectWithdrawalModal from '../components/RejectWithdrawalModal.vue';
 
 const route = useRoute();
@@ -82,6 +95,8 @@ const { hasPermission } = usePermissionCheck();
 
 const rejectModalOpen = ref(false);
 const selectedOperationId = ref(null);
+const showApproveDialog = ref(false);
+const selectedOperation = ref(null);
 
 const fetchData = (force = false) => {
   store.fetchPendingWithdrawals(pammId, force);
@@ -91,10 +106,16 @@ onMounted(() => {
   fetchData();
 });
 
-const approveRequest = async (opId) => {
-  if (confirm('Are you sure you want to approve this withdrawal request? Cash will be moved.')) {
-    await store.approveWithdrawal(opId, pammId);
-  }
+const openApproveModal = (row) => {
+  selectedOperation.value = row;
+  showApproveDialog.value = true;
+};
+
+const handleConfirmApprove = async () => {
+  if (!selectedOperation.value) return;
+  await store.approveWithdrawal(selectedOperation.value.id, pammId);
+  showApproveDialog.value = false;
+  selectedOperation.value = null;
 };
 
 const openRejectModal = (opId) => {
