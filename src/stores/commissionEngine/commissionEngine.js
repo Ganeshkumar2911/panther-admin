@@ -106,6 +106,7 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
   const approvalPeriods = ref({ frequency: "monthly", options: [] });
   const approvalsSummary = ref(null);
   const approvalEntriesList = ref([]);
+  const approvalEntriesSummary = ref(null);
   const approvalEntriesPagination = ref({
     page: 1,
     per_page: 50,
@@ -1781,12 +1782,13 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     const successHandler = (res) => {
       const data = res?.data;
       approvalEntriesList.value = data?.items || (Array.isArray(data) ? data : []);
+      approvalEntriesSummary.value = data?.summary || null;
       approvalEntriesPagination.value = {
         page: data?.page || params.page || 1,
         per_page: data?.per_page || params.per_page || 50,
-        total_items: data?.total || approvalEntriesList.value.length,
+        total_items: data?.total ?? data?.summary?.entry_count ?? approvalEntriesList.value.length,
         total_pages: data?.pages || Math.ceil((data?.total || 1) / (data?.per_page || 50)) || 1,
-        total: data?.total || approvalEntriesList.value.length,
+        total: data?.total ?? data?.summary?.entry_count ?? approvalEntriesList.value.length,
         pages: data?.pages || 1,
       };
     };
@@ -2068,6 +2070,7 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     approvalPeriods,
     approvalsSummary,
     approvalEntriesList,
+    approvalEntriesSummary,
     approvalEntriesPagination,
     recalcRevertMasterSummary,
     currentIbRecalcRevert,

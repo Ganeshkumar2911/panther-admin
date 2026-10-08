@@ -143,7 +143,7 @@
     <!-- Period KPI Ribbon -->
     <div
       v-if="store.approvalsSummary && !store.approvalsSummary.empty"
-      class="grid grid-cols-2 lg:grid-cols-4 gap-4"
+      class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4"
     >
       <!-- Grand Total -->
       <div class="bg-card-background border border-primary-border rounded-lg p-4 flex items-center justify-between ">
@@ -156,6 +156,21 @@
           </div>
         </div>
         <div class="w-10 h-10 rounded-lg bg-primary-green/10 border border-primary-green/20 flex items-center justify-center text-primary-green">
+          <HugeIcon :icon="Coins01Icon" :size="20" />
+        </div>
+      </div>
+      
+      <!-- Grand Total Lots -->
+      <div class="bg-card-background border border-primary-border rounded-lg p-4 flex items-center justify-between ">
+        <div>
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-secondary-text mb-1">
+            Grand Total Lots
+          </p>
+          <div class="text-xl font-bold font-mono text-primary-text">
+            {{ formatNum(store.approvalsSummary.grand_total_lots ?? store.approvalsSummary.total_lots) }} lots
+          </div>
+        </div>
+        <div class="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
           <HugeIcon :icon="Coins01Icon" :size="20" />
         </div>
       </div>
@@ -200,7 +215,7 @@
             {{ activePeriodLabel }}
           </div>
           <p class="text-[10px] text-secondary-text font-mono mt-0.5">
-            {{ formatShortDate(store.approvalsSummary.start) }} &rarr; {{ formatShortDate(store.approvalsSummary.end) }}
+            {{ formatShortDate(store.approvalsSummary.start) }}
           </p>
         </div>
         <div class="w-10 h-10 rounded-lg bg-card-background border border-primary-border flex items-center justify-center text-secondary-text">
@@ -281,6 +296,13 @@
           </span>
         </template>
 
+        <!-- Cell: Total Lots -->
+        <template #cell-total_lots="{ row }">
+          <span class="font-mono text-xs font-bold text-primary-green tabular-nums text-sm">
+            +{{ formatNum(row.total_lots) }} lots
+          </span>
+        </template>
+
         <!-- Cell: Total Commission -->
         <template #cell-total="{ row }">
           <span class="font-mono text-xs font-bold text-primary-green tabular-nums text-sm">
@@ -299,6 +321,20 @@
               {{ curr }}: <strong class="text-primary-text font-bold">${{ formatNum(amount) }}</strong>
             </span>
           </div>
+        </template>
+
+        <!-- Cell: Lots Breakdown -->
+        <template #cell-lots_by_symbol="{ row }">
+          <div v-if="row.lots_by_symbol && Object.keys(row.lots_by_symbol).length" class="flex flex-wrap items-center gap-1 font-mono text-[11px]">
+            <span
+              v-for="(lots, symbol) in row.lots_by_symbol"
+              :key="symbol"
+              class="px-2 py-0.5 rounded-md bg-background border border-primary-border text-secondary-text font-medium"
+            >
+              {{ symbol }}: <strong class="text-primary-text font-bold">{{ formatNum(lots) }} lots</strong>
+            </span>
+          </div>
+          <span v-else class="text-secondary-text text-xs">—</span>
         </template>
 
         <!-- Cell: Wallet Target -->
@@ -452,6 +488,8 @@ const columns = [
   { key: "entries", label: "Pending Entries", align: "center", width: "140px" },
   { key: "total", label: "Total Commission", align: "right", width: "150px" },
   { key: "currency", label: "Currency Breakdown", width: "190px" },
+  { key: "total_lots", label: "Total Lots", align: "right", width: "150px" },
+  { key: "lots_by_symbol", label: "Lots Breakdown", width: "190px" },
   { key: "wallet", label: "Wallet Target", align: "center", width: "140px" },
   { key: "mode", label: "Payout Mode", align: "center", width: "150px" },
   { key: "actions", label: "Actions", align: "right", width: "180px", sticky: "right" },
