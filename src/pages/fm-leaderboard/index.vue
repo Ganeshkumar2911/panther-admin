@@ -1,4 +1,5 @@
 <template>
+  <div class="space-y-4 py-2">
     <!-- REAL FUND MANAGERS VIEW -->
     <div v-if="activeTab === 'real'" class="space-y-4">
       <!-- Toolbar Header: Search, Filters, View Switcher & Actions -->
