@@ -108,6 +108,12 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
   const approvalEntriesList = ref([]);
   const approvalEntriesClients = ref([]);
   const approvalEntriesClient = ref(null);
+  const approvalEntriesSubIbs = ref([]);
+  const approvalEntriesSubIbsSummary = ref(null);
+  const approvalEntriesSubIb = ref(null);
+  const approvalEntriesIbSummary = ref(null);
+  const approvalEntriesView = ref("clients_summary");
+  const approvalEntriesArea = ref("direct");
   const approvalEntriesSummary = ref(null);
   const approvalEntriesPagination = ref({
     page: 1,
@@ -1745,10 +1751,13 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     });
   };
 
+  let lastApprovalsSummaryQuery = "";
   const fetchApprovalsSummary = (params = {}, force = false) => {
+    const queryKey = JSON.stringify(params);
     if (inFlight.approvalsSummary) return;
-    if (isFetched.value.approvalsSummary && !force) return;
+    if (isFetched.value.approvalsSummary && !force && lastApprovalsSummaryQuery === queryKey) return;
 
+    lastApprovalsSummaryQuery = queryKey;
     inFlight.approvalsSummary = true;
     approvalsLoading.value = true;
     error.value = null;
@@ -1785,6 +1794,12 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
       const data = res?.data;
       approvalEntriesClients.value = data?.clients || [];
       approvalEntriesClient.value = data?.client || null;
+      approvalEntriesSubIbs.value = data?.sub_ibs || [];
+      approvalEntriesSubIbsSummary.value = data?.sub_ibs_summary || null;
+      approvalEntriesSubIb.value = data?.sub_ib || null;
+      approvalEntriesIbSummary.value = data?.ib_summary || null;
+      approvalEntriesView.value = data?.view || "clients_summary";
+      approvalEntriesArea.value = data?.area || "direct";
       approvalEntriesList.value = data?.items || (Array.isArray(data) ? data : []);
       approvalEntriesSummary.value = data?.summary || null;
       approvalEntriesPagination.value = {
@@ -2076,6 +2091,12 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     approvalEntriesList,
     approvalEntriesClients,
     approvalEntriesClient,
+    approvalEntriesSubIbs,
+    approvalEntriesSubIbsSummary,
+    approvalEntriesSubIb,
+    approvalEntriesIbSummary,
+    approvalEntriesView,
+    approvalEntriesArea,
     approvalEntriesSummary,
     approvalEntriesPagination,
     recalcRevertMasterSummary,
