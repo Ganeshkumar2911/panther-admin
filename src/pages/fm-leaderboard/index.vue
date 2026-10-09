@@ -6,7 +6,7 @@
         class="flex w-full min-w-0 flex-col gap-2 rounded-xl border border-primary-border bg-card-background/40 p-2.5 sm:flex-row sm:items-center sm:flex-wrap xl:flex-1"
       >
         <!-- Search Input -->
-        <div class="relative w-full sm:w-56 xl:w-64 h-9">
+        <div class="relative w-full sm:w-42 xl:w-50 h-9">
           <Search
             class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-secondary-text pointer-events-none"
           />
@@ -249,7 +249,7 @@
               <!-- Status Badges -->
               <div class="flex flex-col items-end gap-1.5 shrink-0">
                 <span
-                  class="text-[10px] font-bold tracking-wide uppercase px-2.5 py-0.5 rounded-full border inline-flex items-center gap-1.5 shadow-2xs"
+                  class="text-[10px] font-bold tracking-wide uppercase px-2.5 py-0.5 rounded-full border inline-flex items-center gap-1.5 "
                   :class="
                     item.is_active
                       ? 'bg-primary-green/10 text-primary-green border border-primary-green/20'
@@ -267,8 +267,9 @@
               </div>
             </div>
 
-            <!-- Prominent User Email Banner -->
-            <div class="bg-background/80 border border-primary-border/80 rounded-xl px-3 py-2 flex items-center justify-between mb-3.5 shadow-2xs">
+            <div v-if="!showingPammDetails[item.id]">
+              <!-- Prominent User Email Banner -->
+              <div class="bg-background/80 border border-primary-border/80 rounded-xl px-3 py-2 flex items-center justify-between mb-3.5 ">
               <div class="flex items-center gap-2 min-w-0">
                 <Mail class="w-3.5 h-3.5 text-primary shrink-0" />
                 <span class="text-xs font-semibold text-primary-text truncate font-mono select-all" :title="item.user?.email">
@@ -281,7 +282,7 @@
             </div>
 
             <!-- Hero Min Capital Banner -->
-            <div class="bg-background/70 border border-primary-border/80 rounded-xl p-3 flex items-center justify-between mb-3 shadow-2xs">
+            <div class="bg-background/70 border border-primary-border/80 rounded-xl p-3 flex items-center justify-between mb-3 ">
               <div>
                 <p class="text-[10px] font-semibold uppercase tracking-wider text-secondary-text">Min Investment Capital</p>
                 <p class="text-base font-extrabold text-primary-text tracking-tight mt-0.5">
@@ -391,19 +392,98 @@
                 <span class="font-medium text-primary-text text-[11px] font-mono">{{ item.settlement_time || '—' }}</span>
               </div>
             </div>
+            </div>
+
+            <!-- PAMM Details View -->
+            <div v-else class="flex-1 animate-in fade-in duration-300">
+              <div class="h-full flex flex-col">
+                <!-- Header with Icon -->
+                <div class="bg-gradient-to-r from-primary-green/10 to-transparent border border-primary-green/20 rounded-xl p-3 flex items-center justify-between mb-3 ">
+                  <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-primary-green/20 flex items-center justify-center shrink-0">
+                      <Briefcase class="w-4 h-4 text-primary-green" />
+                    </div>
+                    <div class="min-w-0">
+                      <h4 class="text-sm font-extrabold text-primary-text tracking-tight truncate">PAMM Pool</h4>
+                      <p class="text-[9px] text-secondary-text font-medium uppercase tracking-wider">Dedicated Master</p>
+                    </div>
+                  </div>
+                  <span class="text-[9px] font-bold tracking-wide uppercase px-2 py-0.5 rounded-md border shrink-0"
+                    :class="item.pamm?.status === 'active' ? 'bg-primary-green/10 text-primary-green border-primary-green/20 shadow-[0_0_8px_rgba(34,197,94,0.15)]' : 'bg-background text-secondary-text border-primary-border'"
+                  >
+                    {{ item.pamm?.status || 'N/A' }}
+                  </span>
+                </div>
+
+                <!-- Main Info Card -->
+                <div class="bg-background/60 border border-primary-border/60 rounded-xl p-3 mb-3 relative overflow-hidden group-hover:border-primary-green/30 transition-colors ">
+                  <!-- Decorative background element -->
+                  <div class="absolute -right-4 -top-4 w-16 h-16 bg-primary-green/5 rounded-full blur-xl"></div>
+                  
+                  <p class="text-[10px] font-semibold uppercase tracking-wider text-secondary-text">Pool Name</p>
+                  <p class="text-base font-extrabold text-primary-text tracking-tight mt-0.5 truncate"
+                     :title="item.pamm?.name">
+                    {{ item.pamm?.name || 'Unnamed Pool' }}
+                  </p>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-2 gap-2 mb-3">
+                  <div class="bg-background/40 border border-primary-border/40 rounded-xl p-2.5 flex flex-col justify-center items-center text-center">
+                    <p class="text-[9px] uppercase font-semibold tracking-wider text-secondary-text mb-1">Currency</p>
+                    <div class="inline-flex items-center justify-center px-2 py-0.5 rounded-md bg-primary-green/10 text-primary-green border border-primary-green/20 font-mono text-xs font-bold">
+                      {{ item.pamm?.currency || 'USD' }}
+                    </div>
+                  </div>
+                  <div class="bg-background/40 border border-primary-border/40 rounded-xl p-2.5 flex flex-col justify-center items-center text-center">
+                    <p class="text-[9px] uppercase font-semibold tracking-wider text-secondary-text mb-1">Master MT5</p>
+                    <span 
+                      class="text-xs font-bold font-mono text-primary cursor-pointer hover:underline"
+                      @click.stop="item.pamm?.master_trading_account?.account_number && goToTradingAccount(item.pamm.master_trading_account.account_number)"
+                    >
+                      {{ item.pamm?.master_trading_account?.account_number || 'N/A' }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Broker Group Footer -->
+                <div class="mt-auto pt-2 border-t border-primary-border/60">
+                  <div class="flex items-center justify-between">
+                    <span class="text-[10px] uppercase font-semibold tracking-wider text-secondary-text shrink-0">Broker Group</span>
+                    <Tooltip :text="item.pamm?.master_trading_account?.broker_group || ''" placement="left">
+                      <span class="text-[11px] font-mono text-primary-text max-w-[140px] truncate block text-right">
+                        {{ item.pamm?.master_trading_account?.broker_group || 'N/A' }}
+                      </span>
+                    </Tooltip>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- Card Action Footer -->
           <div
             class="pt-3 mt-2 border-t border-primary-border/60 flex items-center justify-between gap-2"
           >
-            <button
-              class="px-2.5 py-1.5 rounded-lg border border-primary-border hover:bg-background text-primary-text text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5"
-              @click="openDetailsDrawer(item)"
-            >
-              <Eye class="w-3.5 h-3.5 text-primary" />
-              <span>Full Details</span>
-            </button>
+            <div class="flex items-center gap-2">
+              <button
+                class="px-2.5 py-1.5 rounded-lg border border-primary-border hover:bg-background text-primary-text text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5"
+                @click="openDetailsDrawer(item)"
+              >
+                <Eye class="w-3.5 h-3.5 text-primary" />
+                <span>Full Details</span>
+              </button>
+
+              <button
+                v-if="item.allow_pamm && item.pamm"
+                class="px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5"
+                :class="showingPammDetails[item.id] ? 'border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary' : 'border-primary-green/20 bg-primary-green/5 hover:bg-primary-green/10 text-primary-green'"
+                @click="togglePammDetails(item.id)"
+              >
+                <Briefcase class="w-3.5 h-3.5" />
+                <span>{{ showingPammDetails[item.id] ? 'View FM Data' : 'PAMM Data' }}</span>
+              </button>
+            </div>
 
             <DropdownMenu
               :items="getRowActions(item)"
@@ -570,6 +650,18 @@
       :fm="selectedFmForLogin || {}"
       @close="closeFmLoginModal"
     />
+
+    <!-- PAMM Enrollment Confirmation Dialog -->
+    <ConfirmationDialog
+      :open="showEnrollPammDialog"
+      title="Enroll Fund Manager in PAMM"
+      :message="enrollPammDialogMessage"
+      confirm-text="Enroll in PAMM"
+      :type="selectedFmForEnroll?.allow_pamm ? 'success' : 'warning'"
+      :loading="pammStore.actionLoading"
+      @confirm="confirmEnrollPamm"
+      @cancel="showEnrollPammDialog = false"
+    />
   </div>
 </template>
 
@@ -605,6 +697,7 @@ import Pagination from '@/components/common/Pagination.vue'
 import AddEditFundManager from '@/components/fundManager/AddEditFundManager.vue'
 import FmDetailsDrawer from '@/components/fundManager/FmDetailsDrawer.vue'
 import FMLoginModal from '@/components/common/FMLoginModal.vue'
+import ConfirmationDialog from '@/components/common/ConfirmationDialog.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import Tooltip from '@/components/common/Tooltip.vue'
 import DropdownMenu from '@/components/common/DropdownMenu.vue'
@@ -634,6 +727,11 @@ const selectedDetailsItem = ref(null)
 
 const fmLoginModalOpen = ref(false)
 const selectedFmForLogin = ref(null)
+
+const showingPammDetails = ref({})
+const togglePammDetails = (id) => {
+  showingPammDetails.value[id] = !showingPammDetails.value[id]
+}
 
 const tableColumns = [
   { key: 'fund_manager', title: 'Fund Manager & Email', sortable: false, minWidth: '260px' },
@@ -887,23 +985,32 @@ const getRowActions = (item) => {
   return actions
 }
 
-const handleEnrollPamm = async (item) => {
-  if (!item || !item.id) return
+const showEnrollPammDialog = ref(false)
+const selectedFmForEnroll = ref(null)
 
-  if (!item.allow_pamm) {
-    const proceed = confirm(
-      `Notice: PAMM capability (allow_pamm) is currently disabled on ${item.label_name || 'this Fund Manager'}. The pool will be created in draft status, but the FM will not be able to activate it from the FM portal until PAMM is enabled in their profile.\n\nDo you want to proceed with enrollment?`
-    )
-    if (!proceed) return
-  } else {
-    const proceed = confirm(
-      `Enroll Fund Manager "${item.label_name || item.user?.name || item.id}" (Master MT5: #${item.master_account?.account_number || item.master_account_id}) into PAMM?`
-    )
-    if (!proceed) return
+const enrollPammDialogMessage = computed(() => {
+  if (!selectedFmForEnroll.value) return ''
+  const fm = selectedFmForEnroll.value
+  const name = fm.label_name || fm.user?.name || `FM #${fm.id}`
+  const account = fm.master_account?.account_number || `#${fm.master_account_id}`
+  if (!fm.allow_pamm) {
+    return `Notice: PAMM capability (allow_pamm) is currently disabled on ${name}. The pool will be created in draft status, but the FM will not be able to activate it from the FM portal until PAMM is enabled in their profile. Do you want to proceed with enrollment?`
   }
+  return `Are you sure you want to enroll Fund Manager "${name}" (Master MT5: ${account}) into PAMM? This will provision a dedicated PAMM pool for this Fund Manager.`
+})
 
+const handleEnrollPamm = (item) => {
+  if (!item || !item.id) return
+  selectedFmForEnroll.value = item
+  showEnrollPammDialog.value = true
+}
+
+const confirmEnrollPamm = async () => {
+  if (!selectedFmForEnroll.value) return
   try {
-    await pammStore.enrollFundManager(item.id)
+    await pammStore.enrollFundManager(selectedFmForEnroll.value.id)
+    showEnrollPammDialog.value = false
+    selectedFmForEnroll.value = null
   } catch (err) {
     // handled by store
   }
