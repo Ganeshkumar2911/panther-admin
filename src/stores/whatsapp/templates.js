@@ -191,7 +191,9 @@ export const useWhatsAppTemplatesStore = defineStore('whatsappTemplates', () => 
   // Actions
   // ─────────────────────────────────────
   const fetchTemplates = (force = false, customParams = null) => {
-    loading.value = true
+    if (templates.value.length === 0 || force) {
+      loading.value = true
+    }
 
     // 1. Resolve status (by default 'ALL', supports 'APPROVED', 'REJECTED', 'PENDING', 'PAUSED', 'ALL')
     let statusParam = 'ALL'
@@ -237,6 +239,10 @@ export const useWhatsAppTemplatesStore = defineStore('whatsappTemplates', () => 
             rawList = res.templates
           } else if (res?.items && Array.isArray(res.items)) {
             rawList = res.items
+          } else if (res?.data?.templates && Array.isArray(res.data.templates)) {
+            rawList = res.data.templates
+          } else if (res?.data?.items && Array.isArray(res.data.items)) {
+            rawList = res.data.items
           }
 
           templates.value = rawList.map(normalizeTemplate).filter(Boolean)
@@ -245,7 +251,9 @@ export const useWhatsAppTemplatesStore = defineStore('whatsappTemplates', () => 
         },
         onFailure: (err) => {
           console.error('WhatsApp templates API error:', err)
-          templates.value = []
+          if (templates.value.length === 0) {
+            templates.value = []
+          }
           loading.value = false
           snackbar.show(err?.message || 'Failed to fetch templates from WhatsApp API', 'error')
           resolve([])

@@ -18,6 +18,7 @@ import {
   Smartphone,
   XCircle,
   AlertCircle,
+  ShieldAlert,
   LayoutGrid,
   List,
   GitFork,
@@ -47,7 +48,19 @@ const flowsStore = useWhatsAppFlowsStore()
 const templatesStore = useWhatsAppTemplatesStore()
 const { hasPermission } = usePermissionCheck()
 
-const canManageFlows = computed(() => hasPermission(['whatsapp.create', 'whatsapp.manage', 'whatsapp.view']))
+// Permissions
+const canViewFlows = computed(() =>
+  hasPermission(['whatsapp.template_view', 'template_view'])
+)
+const canCreateTemplate = computed(() =>
+  hasPermission(['whatsapp.template_create', 'template_create'])
+)
+const canUpdateTemplate = computed(() =>
+  hasPermission(['whatsapp.template_update', 'template_update'])
+)
+const canDeleteTemplate = computed(() =>
+  hasPermission(['whatsapp.template_delete', 'template_delete'])
+)
 
 // UI States
 const viewMode = ref('journey') // 'journey' | 'table'
@@ -77,7 +90,9 @@ const stageFilterOptions = computed(() => {
 })
 
 onMounted(() => {
-  flowsStore.fetchFlows()
+  if (canViewFlows.value) {
+    flowsStore.fetchFlows()
+  }
   if (templatesStore.templates.length === 0) {
     templatesStore.fetchTemplates()
   }
@@ -85,22 +100,25 @@ onMounted(() => {
 
 // Open modals
 const openCreateModal = (stage = 'KYC') => {
+  if (!canCreateTemplate.value) return
   defaultStageForCreate.value = stage || 'KYC'
   isCreateModalOpen.value = true
 }
 
 const openEditModal = (flow) => {
+  if (!canUpdateTemplate.value) return
   selectedFlowForEdit.value = flow
   isEditModalOpen.value = true
 }
 
 const openDeleteDialog = (flow) => {
+  if (!canDeleteTemplate.value) return
   selectedFlowForDelete.value = flow
   isDeleteDialogOpen.value = true
 }
 
 const confirmDelete = async () => {
-  if (!selectedFlowForDelete.value) return
+  if (!canDeleteTemplate.value || !selectedFlowForDelete.value) return
   await flowsStore.deleteFlow(selectedFlowForDelete.value.id)
   isDeleteDialogOpen.value = false
   selectedFlowForDelete.value = null
@@ -187,7 +205,24 @@ const formatTime = (dateStr) => {
 </script>
 
 <template>
-  <div class="h-full flex flex-col overflow-hidden space-y-3">
+  <div class="h-full">
+    <!-- Access Restricted Fallback -->
+    <div
+      v-if="!canViewFlows"
+      class="flex flex-col items-center justify-center p-12 bg-card-background border border-primary-border rounded-2xl text-center min-h-[360px] gap-3"
+    >
+      <div class="w-12 h-12 rounded-xl bg-card-background border border-primary-border flex items-center justify-center text-secondary-text">
+        <ShieldAlert class="w-6 h-6 text-primary-red" />
+      </div>
+      <div class="space-y-1">
+        <h3 class="text-sm font-semibold text-primary-text">Access Restricted</h3>
+        <p class="text-xs text-secondary-text max-w-sm mx-auto">
+          You do not have permission to view WhatsApp flows. Please contact your system administrator.
+        </p>
+      </div>
+    </div>
+
+    <div v-else class="h-full flex flex-col overflow-hidden space-y-3">
     <!-- Filter Toolbar Section (Fixed at Top) -->
     <div class="shrink-0 relative z-10">
       <div
@@ -247,7 +282,7 @@ const formatTime = (dateStr) => {
         <div class="flex flex-wrap items-center gap-2 shrink-0 self-end sm:self-auto">
           <!-- Reorder Button -->
           <button
-            v-if="canManageFlows && flowsStore.flows.length > 1"
+            v-if="canUpdateTemplate && flowsStore.flows.length > 1"
             @click="isReorderModalOpen = true"
             class="h-9 inline-flex items-center gap-1.5 px-3 rounded-lg border border-primary-border bg-card-background hover:bg-background text-secondary-text hover:text-primary-text text-xs font-semibold transition-all cursor-pointer"
           >
@@ -257,7 +292,7 @@ const formatTime = (dateStr) => {
 
           <!-- New Flow Step Button -->
           <button
-            v-if="canManageFlows"
+            v-if="canCreateTemplate"
             @click="openCreateModal(flowsStore.filters.stage || 'KYC')"
             class="h-9 inline-flex items-center justify-center gap-1.5 px-3.5 rounded-lg bg-primary hover:bg-primary-hover text-btn-text-primary text-xs font-semibold transition-all duration-200 cursor-pointer active:scale-95 shrink-0"
           >
@@ -345,7 +380,7 @@ const formatTime = (dateStr) => {
           Clear Filters
         </button>
         <button
-          v-else-if="canManageFlows"
+          v-else-if="canCreateTemplate"
           @click="openCreateModal(flowsStore.filters.stage || 'KYC')"
           class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-btn-text-primary text-xs font-semibold transition-colors cursor-pointer"
         >
@@ -419,7 +454,7 @@ const formatTime = (dateStr) => {
                 </button>
               </Tooltip>
 
-              <Tooltip text="Edit Step" placement="top">
+              <Tooltip v-if="canUpdateTemplate" text="Edit Step" placement="top">
                 <button
                   @click="openEditModal(flow)"
                   class="w-8 h-8 flex items-center justify-center rounded-lg border border-primary-border bg-background hover:bg-card-background text-secondary-text hover:text-primary transition-colors cursor-pointer"
@@ -428,7 +463,7 @@ const formatTime = (dateStr) => {
                 </button>
               </Tooltip>
 
-              <Tooltip text="Delete Step" placement="top">
+              <Tooltip v-if="canDeleteTemplate" text="Delete Step" placement="top">
                 <button
                   @click="openDeleteDialog(flow)"
                   class="w-8 h-8 flex items-center justify-center rounded-lg border border-primary-border bg-background hover:bg-card-background text-secondary-text hover:text-primary-red transition-colors cursor-pointer"
@@ -530,7 +565,7 @@ const formatTime = (dateStr) => {
                       </button>
                     </Tooltip>
 
-                    <Tooltip text="Edit Step" placement="top">
+                    <Tooltip v-if="canUpdateTemplate" text="Edit Step" placement="top">
                       <button
                         class="p-1.5 rounded-lg border border-primary-border bg-background hover:bg-card-background text-secondary-text hover:text-primary transition-colors cursor-pointer"
                         @click="openEditModal(flow)"
@@ -539,7 +574,7 @@ const formatTime = (dateStr) => {
                       </button>
                     </Tooltip>
 
-                    <Tooltip text="Delete Step" placement="top">
+                    <Tooltip v-if="canDeleteTemplate" text="Delete Step" placement="top">
                       <button
                         class="p-1.5 rounded-lg border border-primary-border bg-background hover:bg-card-background text-secondary-text hover:text-primary-red transition-colors cursor-pointer"
                         @click="openDeleteDialog(flow)"
@@ -598,5 +633,6 @@ const formatTime = (dateStr) => {
       @confirm="confirmDelete"
       @cancel="isDeleteDialogOpen = false"
     />
+  </div>
   </div>
 </template>

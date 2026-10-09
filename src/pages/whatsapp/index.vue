@@ -17,28 +17,36 @@ const { hasPermission } = usePermissionCheck()
 
 // Permissions
 const canViewWhatsApp = computed(() =>
-  hasPermission(['whatsapp.view', 'whatsapp.create', 'whatsapp.manage'])
+  hasPermission([
+    'whatsapp.view',
+    'whatsapp.create',
+    'whatsapp.manage',
+  ])
 )
 
-const tabs = [
+const allTabs = [
   {
     key: 'templates',
     label: 'Templates',
     description: 'WhatsApp message templates & approvals',
     icon: FileText,
+    permission: ['whatsapp.view', 'whatsapp.create', 'whatsapp.manage'],
   },
   {
     key: 'flows',
     label: 'Flows',
     description: 'Automated journey drip sequences',
     icon: GitFork,
+    permission: ['whatsapp.template_view', 'template_view'],
   },
 ]
 
-const validTabKeys = ['templates', 'flows']
+const tabs = computed(() => {
+  return allTabs.filter((tab) => !tab.permission || hasPermission(tab.permission))
+})
 
 const activeTab = ref(
-  typeof route.query.tab === 'string' && validTabKeys.includes(route.query.tab)
+  typeof route.query.tab === 'string'
     ? route.query.tab
     : 'templates'
 )
@@ -47,7 +55,7 @@ const activeTab = ref(
 watch(
   () => route.query.tab,
   (tab) => {
-    if (typeof tab === 'string' && validTabKeys.includes(tab) && activeTab.value !== tab) {
+    if (typeof tab === 'string' && tabs.value.some((t) => t.key === tab) && activeTab.value !== tab) {
       activeTab.value = tab
     }
   }
@@ -59,13 +67,25 @@ watch(activeTab, (tab) => {
   }
 })
 
+// Keep activeTab aligned with visible tabs
+watch(
+  tabs,
+  (newTabs) => {
+    if (newTabs.length > 0 && !newTabs.some((t) => t.key === activeTab.value)) {
+      activeTab.value = newTabs[0].key
+    }
+  },
+  { immediate: true }
+)
+
 const activeComponent = computed(() => {
   switch (activeTab.value) {
     case 'flows':
       return FlowsTab
     case 'templates':
-    default:
       return TemplatesTab
+    default:
+      return tabs.value[0]?.key === 'flows' ? FlowsTab : TemplatesTab
   }
 })
 </script>
@@ -74,7 +94,7 @@ const activeComponent = computed(() => {
   <div class="h-[calc(100vh-115px)] flex flex-col overflow-hidden space-y-3">
     <!-- Tabs (Fixed at Top) -->
     <div
-      v-if="canViewWhatsApp"
+      v-if="canViewWhatsApp && tabs.length > 0"
       class="shrink-0 flex items-center gap-1 bg-card-background border border-primary-border rounded-lg p-1 w-fit z-20"
     >
       <button
@@ -98,9 +118,11 @@ const activeComponent = computed(() => {
     </div>
 
     <!-- Active Tab Component Display (Fills remaining height) -->
-    <div v-if="canViewWhatsApp" class="flex-1 min-h-0 flex flex-col overflow-hidden">
+    <div v-if="canViewWhatsApp && tabs.length > 0" class="flex-1 min-h-0 flex flex-col overflow-hidden">
       <Transition name="tab-fade" mode="out-in">
-        <component :is="activeComponent" :key="activeTab" />
+        <KeepAlive>
+          <component :is="activeComponent" :key="activeTab" />
+        </KeepAlive>
       </Transition>
     </div>
 

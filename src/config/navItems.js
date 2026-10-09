@@ -533,7 +533,9 @@ export const navClusters = [
         label: "WhatsApp",
         to: "/whatsapp/templates",
         hugeIcon: WhatsappIcon,
-        permission: ["whatsapp.view", "whatsapp.create"],
+        permission: [
+          "whatsapp.view",
+        ],
         keywords: ["whatsapp", "templates", "chat", "messages", "meta"],
       },
     ],
