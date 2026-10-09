@@ -1725,10 +1725,13 @@ const clientTradeCount = computed(() => {
 });
 
 const avgCommPerLot = computed(() => {
+  if (selectedClient.value?.avg_commission_per_lot != null) {
+    return selectedClient.value.avg_commission_per_lot;
+  }
   const comm = Number(selectedClient.value?.total_commission ?? store.approvalEntriesSummary?.total_commission ?? 0);
   const lots = Number(selectedClient.value?.total_lots ?? store.approvalEntriesSummary?.total_lots ?? 0);
-  if (!lots || lots <= 0) return "0.00";
-  return (comm / lots).toFixed(2);
+  if (!lots || lots <= 0) return 0;
+  return comm / lots;
 });
 
 const filteredTradeList = computed(() => {
@@ -2097,11 +2100,8 @@ const handleConfirmApprove = async () => {
 
 // ─── Number & Date Formatters ───────────────────────────
 const formatNum = (val) => {
-  if (val == null || isNaN(Number(val))) return "0.00";
-  return Number(val).toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  if (val == null || val === "") return 0;
+  return val;
 };
 
 const formatShortDate = (val) => {
