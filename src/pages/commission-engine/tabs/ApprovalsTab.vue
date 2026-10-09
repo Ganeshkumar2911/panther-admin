@@ -1497,12 +1497,12 @@ const selectedClient = ref(null);
 
 // ─── Step 1: Main Approvals Filters & State ─────────────
 const frequencies = [
-  { value: "monthly", label: "Monthly" },
-  { value: "weekly", label: "Weekly" },
   { value: "daily", label: "Daily" },
+  { value: "weekly", label: "Weekly" },
+  { value: "monthly", label: "Monthly" },
 ];
 
-const activeFrequency = ref("monthly");
+const activeFrequency = ref("daily");
 const selectedPeriodKey = ref("");
 
 const filterWalletTarget = ref("");
