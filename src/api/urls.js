@@ -66,6 +66,7 @@ const urls = {
   fmLedger: {
     list: "/ledger/fms",
     allFundManagers: "/search/fm",
+    update: "/ledger/fm/update",
   },
   ibLedger: {
     list: "/ledger/ib",
@@ -103,13 +104,18 @@ const urls = {
     simpleList: "/fm-list",
     create: "/fund_managers/create",
     edit: "/fund_managers/edit",
+    dummyList: "/get-dummy/fm",
+    dummyCreate: (fmId) => (fmId ? `/create/dummy-fm/${fmId}` : "/create/dummy-fm"),
+    dummyEdit: (fmId) => `/dummy-fm/${fmId}`,
+    dummyToggle: (fmId) => `/dummy-fm/${fmId}`,
     requestList: "/fm/requests",
     acceptRequest: "/fm/requests/approve",
     rejectRequest: "/fm/requests/reject",
     settlementPreview: "/settlement/preview",
     settlementRun: "/settlement/run",
     offers: "/fund_managers/offers",
-    followers: (fmId) => (fmId ? `/fund_managers/followers/${fmId}` : "/fund_managers/followers"),
+    followers: (fmId) =>
+      fmId ? `/fund_managers/followers/${fmId}` : "/fund_managers/followers",
     followersHistory: (fmId) => `/fund_managers/followers/${fmId}/history`,
     followersDetails: "fund_managers/followers/info/",
     editFollower: "/fund_managers/followers/edit",
@@ -118,7 +124,22 @@ const urls = {
     availableJoiners: "/fund_managers/followers/available-joiners",
     addFollower: "/fund_managers/followers/add",
     openPositionCounts: "/fund_managers/followers/open-position-counts",
-    clearFollowerPositions: (fmId) => `/fund-managers/${fmId}/clear-follower-positions`,
+    clearFollowerPositions: (fmId) =>
+      `/fund-managers/${fmId}/clear-follower-positions`,
+    dealsByComment: (fmId) => `/fund_managers/${fmId}/deals/by-comment`,
+  },
+  dummyFm: {
+    list: "/get-dummy/fm",
+    create: (fmId) => (fmId ? `/create/dummy-fm/${fmId}` : "/create/dummy-fm"),
+    edit: (fmId) => `/dummy-fm/${fmId}`,
+    toggle: (fmId) => `/dummy-fm/${fmId}`,
+    delete: (fmId) => `/delete/dummy-fm/${fmId}`,
+    importTrades: (fmId) => `/import/dummy_trades/${fmId}`,
+    trades: (fmId) => `/dummy/trades/${fmId}`,
+    updateTrade: (tradeId) => `/update/dummy/trade/${tradeId}`,
+    deleteTrades: (fmId) => `/delete/dummy/trades/${fmId}`,
+    offers: "/dummy_fund_managers/offers",
+    followers: (fmId) => (fmId ? `/dummy_fund_managers/followers/${fmId}` : "/dummy_fund_managers/followers"),
   },
   tradeBook: {
     filters: "/trade-book/filters",
@@ -408,9 +429,12 @@ const urls = {
     enrollmentDetail: (enrollmentId) => `/loyalty/enrollments/${enrollmentId}`,
     updateEnrollment: (enrollmentId) => `/loyalty/enrollments/${enrollmentId}`,
     deenroll: "/loyalty/enrollments/deenroll",
-    deenrollById: (enrollmentId) => `/loyalty/enrollments/${enrollmentId}/deenroll`,
-    attachEnrollmentAccount: (enrollmentId) => `/loyalty/enrollments/${enrollmentId}/accounts`,
-    detachEnrollmentAccount: (enrollmentId, accountId) => `/loyalty/enrollments/${enrollmentId}/accounts/${accountId}`,
+    deenrollById: (enrollmentId) =>
+      `/loyalty/enrollments/${enrollmentId}/deenroll`,
+    attachEnrollmentAccount: (enrollmentId) =>
+      `/loyalty/enrollments/${enrollmentId}/accounts`,
+    detachEnrollmentAccount: (enrollmentId, accountId) =>
+      `/loyalty/enrollments/${enrollmentId}/accounts/${accountId}`,
     creditWallet: "/loyalty/wallets/credit",
     // Deals & Backfill
     deals: "/loyalty/deals",
@@ -440,6 +464,7 @@ const urls = {
     rejectCommission: (id) => `/ib-commission/commissions/${id}/reject`,
     bulkApproveCommissions: "/ib-commission/commissions/approve-bulk",
     // Payout Settings & Settlement Batches
+    eligibilitySettings: "/ib-commission/settings/eligibility",
     payoutAllSettings: "/ib-commission/settings/payout-all",
     ibPayoutSettings: (ibId) => `/ib-commission/ibs/${ibId}/payout-settings`,
     settlements: "/ib-commission/settlements",
@@ -447,7 +472,8 @@ const urls = {
     // Demo Wallets
     demoWallets: "/ib-commission/demo-wallets",
     demoWalletByIb: (ibId) => `/ib-commission/demo-wallets/by-ib/${ibId}`,
-    demoWalletByUser: (userId) => `/ib-commission/demo-wallets/by-user/${userId}`,
+    demoWalletByUser: (userId) =>
+      `/ib-commission/demo-wallets/by-user/${userId}`,
     demoWalletTransactions: "/ib-commission/demo-wallets/transactions",
     // Approvals / Draft Commission Workflow
     approvalPeriods: "/ib-commission/commissions/approvals/periods",
@@ -474,7 +500,30 @@ const urls = {
   vendor: {
     transfers: "/vendor/transfers",
   },
+  twoFactor: {
+    // Platform-wide settings
+    settings: "/2fa-settings",
+    reset: (userId) => `/users/${userId}/2fa/reset`,
+
+    // Staff self-service (Logged-in Admin/Staff)
+    status: "/2fa/status",
+    setup: "/2fa/setup",
+    confirm: "/2fa/confirm",
+    disable: "/2fa/disable",
+    regenerateBackupCodes: "/2fa/backup-codes/regenerate",
+    verifyLogin2fa: "/login/verify-2fa",
+
+    // Staff list (Superadmin managing staff 2FA)
+    staffStatus: (userId) => `/rbac/users/${userId}/2fa`,
+    staffReset: (userId) => `/users/${userId}/2fa/reset`,
+  },
+  bankRequests: {
+    list: "/bank-accounts",
+    userAccounts: (userId) => `/users/bank-accounts/${userId}`,
+    approve: (id) => `/bank-accounts/${id}/approve`,
+    reject: (id) => `/bank-accounts/${id}/reject`,
+    enableEdit: (userId, id) => `/users/bank-accounts/${userId}/${id}/enable-edit`,
+  },
 };
 
 export default urls;
-

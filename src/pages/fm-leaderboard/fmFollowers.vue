@@ -6,7 +6,7 @@
     >
       <div
         v-if="fmInfo"
-        class="flex flex-col md:flex-row md:items-center justify-between gap-4"
+        class="flex flex-col xl:flex-row xl:items-center justify-between gap-4"
       >
         <div class="flex items-center gap-3.5 min-w-0">
           <div
@@ -60,9 +60,9 @@
         </div>
 
         <!-- Summary Specs & Refresh Button -->
-        <div class="flex flex-col lg:flex-row lg:items-center gap-3 shrink-0 w-full xl:w-auto mt-2 md:mt-0">
+        <div class="flex flex-col xl:flex-row xl:items-center gap-3 shrink-0 w-full xl:w-auto mt-2 xl:mt-0">
           <div
-            class="grid grid-cols-2 sm:flex sm:items-center gap-3 text-xs bg-background/60 border border-primary-border/60 rounded-xl px-3.5 py-2 w-full lg:w-auto"
+            class="grid grid-cols-2 sm:flex sm:items-center gap-3 text-xs bg-background/60 border border-primary-border/60 rounded-xl px-3.5 py-2 w-full xl:w-auto"
           >
             <div>
               <span
@@ -104,9 +104,9 @@
             </div>
           </div>
 
-          <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+          <div class="grid grid-cols-2 sm:flex sm:flex-wrap sm:justify-end items-center gap-2 w-full xl:w-auto">
             <button
-              class="flex-1 sm:flex-none inline-flex justify-center items-center gap-1.5 px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
+              class="w-full sm:w-auto inline-flex justify-center items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-semibold transition-colors cursor-pointer shadow-xs"
               @click="fetchOpenPositions"
               :disabled="loadingOpenPositions"
             >
@@ -118,11 +118,20 @@
             </button>
 
             <button
+              v-if="hasPermission('fund_manager.view')"
+              class="w-full sm:w-auto inline-flex justify-center items-center gap-1.5 px-3 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-semibold transition-colors cursor-pointer shadow-xs"
+              @click="scanDealsDialogOpen = true"
+            >
+              <Search class="w-3.5 h-3.5" />
+              <span class="whitespace-nowrap">Scan Deals</span>
+            </button>
+
+            <button
               v-if="
                 hasPermission('fund_manager.update') ||
                 hasPermission('xtention_dev.view')
               "
-              class="flex-1 sm:flex-none inline-flex justify-center items-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary-red hover:bg-primary-red/90 text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
+              class="w-full sm:w-auto inline-flex justify-center items-center gap-1.5 px-3 py-2 rounded-lg bg-primary-red hover:bg-primary-red/90 text-white text-[11px] font-semibold transition-colors cursor-pointer shadow-xs"
               @click="clearPositionsDialogOpen = true"
             >
               <XCircle class="w-3.5 h-3.5" />
@@ -131,39 +140,40 @@
 
             <button
               v-if="hasPermission('fund_manager.update')"
-              class="flex-1 sm:flex-none inline-flex justify-center items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
+              class="w-full sm:w-auto inline-flex justify-center items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold transition-colors cursor-pointer shadow-xs"
               @click="addFollowerDialogOpen = true"
             >
               <UserPlus class="w-3.5 h-3.5" />
               <span class="whitespace-nowrap">Add Follower</span>
             </button>
 
-            <Tooltip text="Refresh List">
+            <Tooltip text="Refresh List" class="col-span-2 sm:col-span-1 w-full sm:w-auto mt-1 sm:mt-0">
               <button
-                class="flex-none p-2 rounded-lg border border-primary-border text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer"
+                class="w-full sm:w-auto flex justify-center items-center p-2 rounded-lg border border-primary-border text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer"
                 @click="fetchFollowers(true, pagination.page)"
                 :disabled="loading"
                 title="Refresh List"
               >
                 <RotateCw
-                  class="w-3.5 h-3.5"
+                  class="w-4 h-4 sm:w-3.5 sm:h-3.5"
                   :class="{ 'animate-spin': loading }"
                 />
+                <span class="ml-2 sm:hidden text-xs font-semibold">Refresh</span>
               </button>
             </Tooltip>
           </div>
         </div>
       </div>
-      <div v-else class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div v-else class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
         <h2 class="text-base font-bold text-primary-text">
           Clients & Followers List
           <span class="text-xs text-secondary-text font-normal block sm:inline-block sm:ml-1 mt-0.5 sm:mt-0"
             >(FM #{{ fmId }})</span
           >
         </h2>
-        <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+        <div class="grid grid-cols-2 sm:flex sm:flex-wrap sm:justify-end items-center gap-2 w-full xl:w-auto">
           <button
-            class="flex-1 sm:flex-none inline-flex justify-center items-center gap-1.5 px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
+            class="w-full sm:w-auto inline-flex justify-center items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-semibold transition-colors cursor-pointer shadow-xs"
             @click="fetchOpenPositions"
             :disabled="loadingOpenPositions"
           >
@@ -175,8 +185,17 @@
           </button>
 
           <button
+            v-if="hasPermission('fund_manager.view')"
+            class="w-full sm:w-auto inline-flex justify-center items-center gap-1.5 px-3 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-semibold transition-colors cursor-pointer shadow-xs"
+            @click="scanDealsDialogOpen = true"
+          >
+            <Search class="w-3.5 h-3.5" />
+            <span class="whitespace-nowrap">Scan Deals</span>
+          </button>
+
+          <button
             v-if="hasPermission('fund_manager.update')"
-            class="flex-1 sm:flex-none inline-flex justify-center items-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary-red hover:bg-primary-red/90 text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
+            class="w-full sm:w-auto inline-flex justify-center items-center gap-1.5 px-3 py-2 rounded-lg bg-primary-red hover:bg-primary-red/90 text-white text-[11px] font-semibold transition-colors cursor-pointer shadow-xs"
             @click="clearPositionsDialogOpen = true"
           >
             <XCircle class="w-3.5 h-3.5" />
@@ -185,24 +204,25 @@
 
           <button
             v-if="hasPermission('fund_manager.update')"
-            class="flex-1 sm:flex-none inline-flex justify-center items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors cursor-pointer shadow-xs"
+            class="w-full sm:w-auto inline-flex justify-center items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold transition-colors cursor-pointer shadow-xs"
             @click="addFollowerDialogOpen = true"
           >
             <UserPlus class="w-3.5 h-3.5" />
             <span class="whitespace-nowrap">Add Follower</span>
           </button>
 
-          <Tooltip text="Refresh List">
+          <Tooltip text="Refresh List" class="col-span-2 sm:col-span-1 w-full sm:w-auto mt-1 sm:mt-0">
             <button
-              class="flex-none p-2 rounded-lg border border-primary-border text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer"
+              class="w-full sm:w-auto flex justify-center items-center p-2 rounded-lg border border-primary-border text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer"
               @click="fetchFollowers(true, pagination.page)"
               :disabled="loading"
               title="Refresh List"
             >
               <RotateCw
-                class="w-3.5 h-3.5"
+                class="w-4 h-4 sm:w-3.5 sm:h-3.5"
                 :class="{ 'animate-spin': loading }"
               />
+              <span class="ml-2 sm:hidden text-xs font-semibold">Refresh</span>
             </button>
           </Tooltip>
         </div>
@@ -525,7 +545,7 @@
           <!-- Joined At -->
           <template #cell-joined_at="{ row }">
             <span class="text-[10px] text-secondary-text font-mono">
-              {{ row.joined_at ? formatDate(row.joined_at) : '—' }}
+              {{ row.joined_at ? formatDateTime(row.joined_at) : '—' }}
             </span>
           </template>
 
@@ -824,6 +844,13 @@
       @confirm="handleClearPositions"
       @cancel="clearPositionsDialogOpen = false"
     />
+
+    <!-- SCAN DEALS BY COMMENT DIALOG -->
+    <ScanDealsByCommentDialog
+      :open="scanDealsDialogOpen"
+      :fm-id="fmId"
+      @close="scanDealsDialogOpen = false"
+    />
   </div>
 </template>
 
@@ -850,12 +877,14 @@ import {
 } from "lucide-vue-next";
 import apiRequest from "@/api/request";
 import urls from "@/api/urls";
+import { formatDate as formatDateTime } from "@/utils/timeFormatter";
 import Tooltip from "@/components/common/Tooltip.vue";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import DataTablePagination from "@/components/common/DataTable/DataTablePagination.vue";
 
 import EditFollowerDialog from "@/components/fmOffers/EditFollowerDialog.vue";
 import AddFollowerDialog from "@/components/fmOffers/AddFollowerDialog.vue";
+import ScanDealsByCommentDialog from "@/components/fmOffers/ScanDealsByCommentDialog.vue";
 import ClientLoginModal from "@/components/common/ClientLoginModal.vue";
 import ConfirmationDialog from "@/components/common/ConfirmationDialog.vue";
 import DataTable from "@/components/common/DataTable/DataTable.vue";
@@ -891,6 +920,7 @@ const availableOffers = ref([]);
 const loading = ref(false);
 const loadingOpenPositions = ref(false);
 const addFollowerDialogOpen = ref(false);
+const scanDealsDialogOpen = ref(false);
 
 const clearPositionsDialogOpen = ref(false);
 const clearingPositions = ref(false);

@@ -1,13 +1,30 @@
 <script setup>
-import { onMounted, computed } from 'vue'
-import { BookOpen } from 'lucide-vue-next'
+import { onMounted, computed, ref } from 'vue'
+import { BookOpen, RefreshCw, Plus } from 'lucide-vue-next'
 import { useFmLedgerStore } from '@/stores/fmLedger/fmLedger'
 import Pagination from '@/components/common/Pagination.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import BaseDatePicker from '@/components/common/BaseDatePicker.vue'
-import { RefreshCw } from 'lucide-vue-next'
+import Tooltip from '@/components/common/Tooltip.vue'
+import UpdateLedgerDialog from '@/components/fm-wallet/UpdateLedgerDialog.vue'
+import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
 const store = useFmLedgerStore()
+const { hasPermission } = usePermissionCheck()
+
+const updateLedgerDialogOpen = ref(false)
+
+const openUpdateLedgerDialog = () => {
+  updateLedgerDialogOpen.value = true
+}
+
+const closeUpdateLedgerDialog = () => {
+  updateLedgerDialogOpen.value = false
+}
+
+const handleUpdateSuccess = () => {
+  store.fetchLedger(true)
+}
 
 const isLoading = computed(() => store.loading)
 let fmSearchTimer = null
@@ -199,12 +216,22 @@ onMounted(() => {
         <!-- Clear -->
         <button
           v-if="hasFilters"
-          class="rounded-lg px-3 py-2 text-xs font-medium text-secondary-text hover:bg-background hover:text-primary-text transition-colors sm:flex-none"
+          class="rounded-lg px-3 py-2 text-xs font-medium text-secondary-text hover:bg-background hover:text-primary-text transition-colors sm:flex-none cursor-pointer"
           @click="clearFilters"
         >
           Clear
         </button>
       </div>
+
+      <!-- Update Ledger Action Button -->
+      <button
+        v-if="hasPermission('fund_manager.update')"
+        class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all active:scale-95 cursor-pointer self-start xl:self-auto shrink-0"
+        @click="openUpdateLedgerDialog"
+      >
+        <Plus class="w-3.5 h-3.5" />
+        Update FM Ledger
+      </button>
     </div>
 
     <!-- Table -->
@@ -313,6 +340,13 @@ onMounted(() => {
         @page-change="handlePageChange"
       />
     </div>
+
+    <!-- Update Ledger Dialog -->
+    <UpdateLedgerDialog
+      :open="updateLedgerDialogOpen"
+      @close="closeUpdateLedgerDialog"
+      @success="handleUpdateSuccess"
+    />
 
   </div>
 </template>

@@ -79,7 +79,7 @@
         <template #cell-device="{ row: log }">
           <div class="flex items-center gap-1.5 text-xs text-primary-text">
             <Computer class="w-3.5 h-3.5 shrink-0 text-secondary-text" />
-            <p class="truncate text-[11px] max-w-[140px]" :title="log.request_context?.user_agent || log.user_agent">
+            <p class="truncate text-[11px] max-w-35" :title="log.request_context?.user_agent || log.user_agent">
               {{ parseUserAgent(log.request_context?.user_agent || log.user_agent) }}
             </p>
           </div>
@@ -89,10 +89,10 @@
         <template #cell-details="{ row: log }">
           <button
             type="button"
-            class="inline-flex items-center justify-center gap-1 px-2.5 py-1 text-xs font-semibold text-primary rounded-lg bg-primary/10 hover:bg-primary/20 transition cursor-pointer mx-auto"
+            class="btn-secondary px-2.5 py-1 text-xs text-primary font-bold inline-flex items-center gap-1 mx-auto"
             @click="openDetails(log)"
           >
-            <Eye class="w-3.5 h-3.5" />
+            <Eye class="w-3.5 h-3.5 text-primary" />
             <span>View</span>
           </button>
         </template>

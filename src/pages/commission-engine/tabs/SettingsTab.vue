@@ -26,6 +26,8 @@ import ConfirmationDialog from "@/components/common/ConfirmationDialog.vue";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import SettlementRunResultModal from "../components/SettlementRunResultModal.vue";
 import BatchDetailsModal from "../components/BatchDetailsModal.vue";
+import apiRequest from "@/api/request";
+import urls from "@/api/urls";
 
 const store = useCommissionEngineStore();
 const router = useRouter();
@@ -90,6 +92,45 @@ const settlementFilterPeriodType = ref("");
 const settlementFilterPeriodKey = ref("");
 const settlementFilterStatus = ref("");
 const filterDebounceTimer = ref(null);
+
+// ─── Eligibility State ───────────────────────────────────
+const eligibilityForm = ref({
+  eligibility_duration: null,
+});
+const eligibilityLoading = ref(false);
+
+const fetchEligibility = async () => {
+  eligibilityLoading.value = true;
+  await apiRequest(urls.KEYS.GET, urls.ibCommission.eligibilitySettings, {
+    isTokenRequired: true,
+    onSuccess: (res) => {
+      eligibilityForm.value.eligibility_duration = res?.data?.eligibility_duration ?? null;
+    },
+    onFailure: (err) => {
+      console.error("Failed to fetch eligibility", err);
+    },
+  });
+  eligibilityLoading.value = false;
+};
+
+const handleSaveEligibility = async () => {
+  if (!canManageSettings.value) return;
+  eligibilityLoading.value = true;
+  const val = eligibilityForm.value.eligibility_duration;
+  await apiRequest(urls.KEYS.PUT, urls.ibCommission.eligibilitySettings, {
+    isTokenRequired: true,
+    data: {
+      eligibility_duration: (val === "" || val == null) ? null : Number(val),
+    },
+    onSuccess: () => {
+      // Success handled by global interceptors
+    },
+    onFailure: (err) => {
+      console.error("Failed to save eligibility", err);
+    },
+  });
+  eligibilityLoading.value = false;
+};
 
 // ─── Modals & Dialogs State ──────────────────────────────
 const isApplyAllConfirmOpen = ref(false);
@@ -188,6 +229,7 @@ onMounted(() => {
   store.fetchMasterPayoutSummary();
   store.fetchSettlements({ page: 1 });
   store.searchIbs("");
+  fetchEligibility();
 });
 
 // Watch master summary to initialize master form state when available
@@ -511,6 +553,50 @@ const getWalletTargetMasterBadge = (state) => {
 <template>
   <div class="space-y-4">
     <!-- ═════════════════════════════════════════════════════════════ -->
+    <!-- SECTION -1: GLOBAL ELIGIBILITY                              -->
+    <!-- ═════════════════════════════════════════════════════════════ -->
+    <div class="rounded-lg bg-card-background/80 backdrop-blur-xl border border-primary-border/50 overflow-hidden">
+      <div class="p-4 sm:p-5 border-b border-primary-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-background/40">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center border border-primary/20 shrink-0">
+            <HugeIcon :icon="Clock01Icon" :size="18" />
+          </div>
+          <div>
+            <h2 class="text-sm font-bold text-primary-text">Eligibility (global)</h2>
+            <p class="text-xs text-secondary-text mt-0.5">
+              Minimum hold time a position must stay open before IB commission is created.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 sm:p-5 flex flex-col sm:flex-row items-end gap-4">
+        <div class="space-y-1.5 flex-1 max-w-sm">
+          <label class="text-xs font-semibold text-primary-text block">Min hold time (seconds, optional)</label>
+          <input
+            v-model.number="eligibilityForm.eligibility_duration"
+            type="number"
+            min="0"
+            placeholder="e.g. 30"
+            class="input-field w-full px-3 py-2 text-sm"
+          />
+          <p class="text-[11px] text-secondary-text">Hint: leave empty = no minimum; 30 = &ge;30s to earn IB</p>
+        </div>
+        <button
+          v-if="canManageSettings"
+          type="button"
+          class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg bg-primary text-white hover:bg-primary-hover transition-colors cursor-pointer disabled:opacity-50"
+          :disabled="eligibilityLoading"
+          @click="handleSaveEligibility"
+        >
+          <HugeIcon v-if="eligibilityLoading" :icon="Loading03Icon" :size="13" class="animate-spin" />
+          <HugeIcon v-else :icon="Tick02Icon" :size="14" />
+          <span>Save eligibility</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ═════════════════════════════════════════════════════════════ -->
     <!-- SECTION 0: MASTER (ALL IBs) SETTINGS                        -->
     <!-- ═════════════════════════════════════════════════════════════ -->
     <div class="rounded-lg bg-card-background/80 backdrop-blur-xl border border-primary-border/50 overflow-hidden">
@@ -804,15 +890,15 @@ const getWalletTargetMasterBadge = (state) => {
           v-if="selectedIbId && store.currentIbPayoutSettings"
           class="p-3 rounded-lg bg-background/60 border border-primary-border/50 backdrop-blur-sm  flex flex-wrap items-center justify-between gap-2"
         >
-          <div class="flex items-center gap-2 min-w-0">
-            <div class="w-7 h-7 rounded-md bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0">
+          <div class="flex items-stretch gap-2.5 min-w-0">
+            <div class="px-2.5 rounded-lg bg-primary/10 text-primary border border-primary/20 flex items-center justify-center font-bold font-mono text-xs shrink-0 whitespace-nowrap self-stretch">
               #{{ selectedIbId }}
             </div>
-            <div class="truncate">
-              <span class="text-xs font-bold text-primary-text block truncate">
+            <div class="min-w-0 flex flex-col justify-center">
+              <span class="text-xs font-bold text-primary-text block truncate leading-tight">
                 {{ selectedIbOption?.name || store.currentIbPayoutSettings?.ib_name || `IB #${selectedIbId}` }}
               </span>
-              <span class="text-[11px] text-secondary-text font-mono block truncate">
+              <span class="text-[11px] text-secondary-text font-mono block truncate leading-tight mt-0.5">
                 {{ selectedIbOption?.email || store.currentIbPayoutSettings?.ib_email || `ID: ${selectedIbId}` }}
               </span>
             </div>

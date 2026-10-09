@@ -6,7 +6,7 @@ import path from "path";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
-  const port = Number(env.PORT || env.VITE_PORT || process.env.PORT || 3003);
+  const port = Number(env.PORT || env.VITE_PORT || process.env.PORT || 60035);
 
   return {
     plugins: [vue(), tailwindcss(), vueDevTools()],

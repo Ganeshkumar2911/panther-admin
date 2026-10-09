@@ -18,7 +18,7 @@
           class="w-screen max-w-2xl bg-card-background border-l border-primary-border shadow-2xl flex flex-col justify-between overflow-hidden transition-all duration-300"
         >
           <!-- Drawer Header -->
-          <div class="px-6 py-4 border-b border-primary-border bg-card-background flex items-center justify-between gap-4">
+          <div class="px-6 py-4 border-b border-primary-border bg-card-background flex items-center justify-between gap-4 shrink-0">
             <div class="min-w-0 space-y-1">
               <div class="flex items-center gap-2 flex-wrap">
                 <h3 class="text-base font-bold text-primary-text truncate">
@@ -45,7 +45,7 @@
 
             <button
               type="button"
-              class="p-2 text-secondary-text hover:text-primary-text hover:bg-background rounded-xl transition-colors cursor-pointer shrink-0"
+              class="btn-icon"
               title="Close Drawer"
               @click="handleClose"
             >
@@ -54,15 +54,19 @@
           </div>
 
           <!-- Drawer Quick Summary Bar -->
-          <div class="px-6 py-3 bg-background/60 border-b border-primary-border flex items-center justify-between gap-4 flex-wrap">
-            <div class="flex items-center gap-4 text-xs font-mono">
+          <div class="px-6 py-3 bg-background/60 border-b border-primary-border flex items-center justify-between gap-4 flex-wrap shrink-0">
+            <div class="flex items-center gap-4 text-xs font-mono flex-wrap">
               <div>
                 <span class="text-secondary-text">Pending Entries: </span>
-                <strong class="text-primary-text">{{ ib?.entry_count || store.approvalEntriesPagination.total_items }}</strong>
+                <strong class="text-primary-text">{{ currentPendingEntries }}</strong>
               </div>
               <div>
                 <span class="text-secondary-text">Total Commission: </span>
-                <strong class="text-primary-green font-bold text-sm">+${{ formatNum(ib?.total_commission) }}</strong>
+                <strong class="text-primary-green font-bold text-sm">+${{ formatNum(currentTotalCommission) }}</strong>
+              </div>
+              <div v-if="currentTotalLots != null">
+                <span class="text-secondary-text">Total Lots: </span>
+                <strong class="text-primary-text font-bold">{{ formatNum(currentTotalLots) }} lots</strong>
               </div>
             </div>
 
@@ -71,7 +75,7 @@
               v-if="canApprove && ib?.can_approve !== false"
               type="button"
               :disabled="store.approveIbLoading"
-              class="flex items-center gap-1.5 px-3.5 py-1.5 bg-primary-green hover:bg-primary-green/90 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-xs disabled:opacity-50"
+              class="btn-success !px-3.5 !py-1.5"
               @click="$emit('approve', ib)"
             >
               <HugeIcon :icon="CheckmarkCircle02Icon" :size="14" />
@@ -79,110 +83,119 @@
             </button>
           </div>
 
-          <!-- Drawer Body / Line Items Table -->
-          <div class="flex-1 overflow-y-auto p-6 space-y-4">
-            <!-- Loading Skeleton -->
-            <div v-if="store.approvalEntriesLoading" class="space-y-3">
-              <div v-for="n in 5" :key="n" class="p-3 bg-background/50 border border-primary-border rounded-xl animate-pulse flex justify-between">
-                <div class="h-4 w-32 bg-background rounded" />
-                <div class="h-4 w-20 bg-background rounded" />
+          <!-- Client Search Filter Bar -->
+          <div class="px-6 py-2.5 bg-card-background border-b border-primary-border flex items-center justify-between gap-3 flex-wrap shrink-0">
+            <div class="flex items-center gap-2 flex-1 min-w-[260px] max-w-md">
+              <!-- <span class="text-[11px] font-bold text-secondary-text uppercase tracking-wider shrink-0 font-mono">
+                Client:
+              </span> -->
+              <div class="flex-1">
+                <BaseSelect
+                  v-model="selectedUserId"
+                  :options="clientOptions"
+                  :is-loading="clientsLoading"
+                  placeholder="All Clients / Search by name, email, ID..."
+                  searchable
+                  clearable
+                  variant="surface"
+                  @search="onClientSearch"
+                  @update:model-value="handleClientChange"
+                />
               </div>
             </div>
 
-            <!-- Empty State -->
-            <div
-              v-else-if="!store.approvalEntriesList.length"
-              class="py-16 text-center text-secondary-text space-y-2"
-            >
-              <p class="text-sm font-semibold text-primary-text">No line items found</p>
-              <p class="text-xs">There are no individual trade commission entries for this IB in the selected period.</p>
-            </div>
-
-            <!-- Line Items Table -->
-            <div v-else class="border border-primary-border rounded-xl overflow-hidden bg-card-background">
-              <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr class="border-b border-primary-border bg-background/80 text-secondary-text font-bold text-[11px] uppercase tracking-wider">
-                      <th class="py-3 px-3.5">ID</th>
-                      <th class="py-3 px-3.5">Trade (Login & Symbol)</th>
-                      <th class="py-3 px-3.5 text-right">Lots</th>
-                      <th class="py-3 px-3.5 text-right">Commission</th>
-                      <th class="py-3 px-3.5 text-right">Close Time</th>
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-primary-border/60">
-                    <tr
-                      v-for="entry in store.approvalEntriesList"
-                      :key="entry.id"
-                      class="hover:bg-background/40 transition-colors"
-                    >
-                      <!-- Entry ID -->
-                      <td class="py-3 px-3.5 font-mono text-primary-text font-semibold whitespace-nowrap">
-                        #{{ entry.id }}
-                      </td>
-
-                      <!-- Trade Login & Symbol -->
-                      <td class="py-3 px-3.5 whitespace-nowrap">
-                        <div class="space-y-0.5">
-                          <span class="font-mono font-bold text-primary-text">
-                            {{ entry.trade?.symbol || '—' }}
-                          </span>
-                          <p class="text-[10px] text-secondary-text font-mono">
-                            Login: {{ entry.trade?.login || '—' }}
-                          </p>
-                        </div>
-                      </td>
-
-                      <!-- Lots (trade.lots) -->
-                      <td class="py-3 px-3.5 text-right font-mono font-semibold text-primary-text whitespace-nowrap">
-                        {{ entry.trade?.lots ?? entry.closed_volume_lots ?? '—' }}
-                      </td>
-
-                      <!-- Commission Amount -->
-                      <td class="py-3 px-3.5 text-right font-mono font-bold text-primary-green whitespace-nowrap">
-                        +${{ formatNum(entry.total_commission) }}
-                      </td>
-
-                      <!-- Trade Close Time -->
-                      <td class="py-3 px-3.5 text-right text-[11px] text-secondary-text whitespace-nowrap font-mono">
-                        {{ formatDate(entry.trade?.close_time || entry.created_at) }}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          <!-- Drawer Footer / Pagination -->
-          <div class="px-6 py-3 border-t border-primary-border bg-card-background flex items-center justify-between gap-4">
-            <p class="text-xs text-secondary-text font-mono">
-              Showing {{ store.approvalEntriesList.length }} of {{ store.approvalEntriesPagination.total_items }} entries
-            </p>
-
-            <!-- Pagination Buttons -->
-            <div class="flex items-center gap-2">
-              <button
-                type="button"
-                :disabled="store.approvalEntriesPagination.page <= 1 || store.approvalEntriesLoading"
-                class="px-2.5 py-1 text-xs font-semibold rounded-lg border border-primary-border bg-card-background text-secondary-text hover:text-primary-text disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
-                @click="handlePageChange(store.approvalEntriesPagination.page - 1)"
-              >
-                Previous
-              </button>
-              <span class="text-xs font-mono text-primary-text font-semibold px-1">
-                {{ store.approvalEntriesPagination.page }} / {{ store.approvalEntriesPagination.total_pages || 1 }}
+            <div v-if="selectedUserId" class="flex items-center gap-2">
+              <span class="text-[11px] font-mono font-semibold text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-md">
+                User ID: {{ selectedUserId }}
               </span>
               <button
                 type="button"
-                :disabled="store.approvalEntriesPagination.page >= store.approvalEntriesPagination.total_pages || store.approvalEntriesLoading"
-                class="px-2.5 py-1 text-xs font-semibold rounded-lg border border-primary-border bg-card-background text-secondary-text hover:text-primary-text disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
-                @click="handlePageChange(store.approvalEntriesPagination.page + 1)"
+                class="btn-danger !px-2 !py-1 text-xs"
+                title="Clear Client Filter"
+                @click="clearClientFilter"
               >
-                Next
+                <HugeIcon :icon="Cancel01Icon" :size="12" />
+                <span>Reset</span>
               </button>
             </div>
+          </div>
+
+          <!-- Drawer Body with DataTable -->
+          <div class="flex-1 overflow-hidden p-4 sm:p-6 flex flex-col min-h-0">
+            <DataTable
+              :columns="columns"
+              :data="store.approvalEntriesList"
+              :loading="store.approvalEntriesLoading"
+              :pagination="store.approvalEntriesPagination"
+              row-key="id"
+              table-key="ib-approval-entries-datatable"
+              :per-page-options="[10, 20, 50, 100]"
+              empty-title="No line items found"
+              empty-text="There are no individual trade commission entries for this IB in the selected period."
+              @page-change="handlePageChange"
+              @per-page-change="handlePerPageChange"
+            >
+              <!-- Cell: Entry ID -->
+              <template #cell-id="{ row }">
+                <span class="font-mono text-primary-text font-bold text-xs">
+                  #{{ row.id }}
+                </span>
+              </template>
+
+              <!-- Cell: Position ID -->
+              <template #cell-position_id="{ row }">
+                <span class="font-mono text-primary-text font-medium text-xs">
+                  {{ row.trade?.position_id || '—' }}
+                </span>
+              </template>
+
+              <!-- Cell: Trade (Symbol & Login) -->
+              <template #cell-trade="{ row }">
+                <div class="space-y-0.5">
+                  <span class="font-mono font-bold text-primary-text">
+                    {{ row.trade?.symbol || '—' }}
+                  </span>
+                  <p class="text-[10px] text-secondary-text font-mono">
+                    Login: {{ row.trade?.login || '—' }}
+                  </p>
+                </div>
+              </template>
+
+              <!-- Cell: Lots -->
+              <template #cell-lots="{ row }">
+                <span class="font-mono font-semibold text-primary-text text-xs tabular-nums">
+                  {{ row.trade?.lots ?? row.closed_volume_lots ?? row.lots ?? '—' }}
+                </span>
+              </template>
+
+              <!-- Cell: Commission -->
+              <template #cell-total_commission="{ row }">
+                <span class="font-mono text-xs font-bold text-primary-green tabular-nums">
+                  +${{ formatNum(row.total_commission) }}
+                </span>
+              </template>
+
+              <!-- Cell: Open Time -->
+              <template #cell-open_time="{ row }">
+                <span class="text-[11px] text-secondary-text whitespace-nowrap font-mono">
+                  {{ formatDate(row.trade?.open_time) }}
+                </span>
+              </template>
+
+              <!-- Cell: Close Time -->
+              <template #cell-close_time="{ row }">
+                <span class="text-[11px] text-secondary-text whitespace-nowrap font-mono">
+                  {{ formatDate(row.trade?.close_time) }}
+                </span>
+              </template>
+
+              <!-- Cell: Created At -->
+              <template #cell-created_at="{ row }">
+                <span class="text-[11px] text-secondary-text whitespace-nowrap font-mono">
+                  {{ formatDate(row.created_at) }}
+                </span>
+              </template>
+            </DataTable>
           </div>
         </div>
       </div>
@@ -191,13 +204,17 @@
 </template>
 
 <script setup>
-import { computed, watch, onMounted, onBeforeUnmount } from "vue";
+import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
 import {
   Cancel01Icon,
   CheckmarkCircle02Icon,
 } from "@hugeicons/core-free-icons";
 import { useCommissionEngineStore } from "@/stores/commissionEngine/commissionEngine";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
+import DataTable from "@/components/common/DataTable/DataTable.vue";
+import BaseSelect from "@/components/common/BaseSelect.vue";
+import apiRequest from "@/api/request";
+import urls from "@/api/urls";
 
 const props = defineProps({
   open: {
@@ -232,25 +249,192 @@ const canApprove = computed(() =>
     "ib_commission.approvals.approve",
     "ib_commission_settlements.approve",
     "ib_commission.settlements.approve",
+    "ib_commission.approve",
   ])
 );
 
-const loadEntries = (page = 1) => {
+// ─── Client Search & Filter State ───────────────────────────
+const selectedUserId = ref(null);
+const clientsList = ref([]);
+const clientsLoading = ref(false);
+
+const fetchClients = (query = "") => {
+  const ibId = props.ib?.ib_id;
+  if (!ibId) {
+    clientsList.value = [];
+    return;
+  }
+
+  clientsLoading.value = true;
+  apiRequest(urls.KEYS.GET, urls.ibTree.clients, {
+    look_up_key: ibId,
+    params: {
+      search: query ? String(query).trim() : undefined,
+      page: 1,
+      per_page: 20,
+    },
+    isTokenRequired: true,
+    onSuccess: (res) => {
+      let list = [];
+      if (Array.isArray(res?.data)) {
+        list = res.data;
+      } else if (res?.data?.items && Array.isArray(res.data.items)) {
+        list = res.data.items;
+      } else if (res?.data?.clients && Array.isArray(res.data.clients)) {
+        list = res.data.clients;
+      } else if (Array.isArray(res?.clients)) {
+        list = res.clients;
+      }
+      clientsList.value = list;
+      clientsLoading.value = false;
+    },
+    onFailure: () => {
+      clientsList.value = [];
+      clientsLoading.value = false;
+    },
+  });
+};
+
+let clientSearchDebounce = null;
+const onClientSearch = (query) => {
+  clearTimeout(clientSearchDebounce);
+  clientSearchDebounce = setTimeout(() => {
+    fetchClients(query);
+  }, 300);
+};
+
+const clientOptions = computed(() => {
+  return clientsList.value.map((c) => {
+    const userId = c.user_id || c.id;
+    const name = c.name || "Client";
+    const email = c.email || "";
+    return {
+      label: email ? `${name} (${email}) - #${userId}` : `${name} - #${userId}`,
+      value: Number(userId),
+      userId: Number(userId),
+      name,
+      email,
+    };
+  });
+});
+
+const handleClientChange = (val) => {
+  selectedUserId.value = val ? Number(val) : null;
+  loadEntries(1);
+};
+
+const clearClientFilter = () => {
+  selectedUserId.value = null;
+  loadEntries(1);
+};
+
+// ─── DataTable Columns ──────────────────────────────────────
+const columns = [
+  {
+    key: "id",
+    label: "ID",
+    width: "75px",
+    sortable: true,
+  },
+  {
+    key: "position_id",
+    label: "Position ID",
+    width: "110px",
+    sortable: true,
+  },
+  {
+    key: "trade",
+    label: "Trade",
+    sortable: true,
+  },
+  {
+    key: "lots",
+    label: "Lots",
+    align: "right",
+    width: "80px",
+    sortable: true,
+  },
+  {
+    key: "total_commission",
+    label: "Commission",
+    align: "right",
+    width: "115px",
+    sortable: true,
+  },
+  {
+    key: "open_time",
+    label: "Open Time",
+    align: "right",
+    width: "140px",
+    sortable: true,
+  },
+  {
+    key: "close_time",
+    label: "Close Time",
+    align: "right",
+    width: "140px",
+    sortable: true,
+  },
+  {
+    key: "created_at",
+    label: "Created At",
+    align: "right",
+    width: "140px",
+    sortable: true,
+  },
+];
+
+// ─── Data Loading ───────────────────────────────────────────
+const loadEntries = (page = 1, perPage = 50) => {
   if (!props.ib?.ib_id || !props.periodKey) return;
-  store.fetchApprovalEntries({
+  const params = {
     frequency: props.frequency,
     period_key: props.periodKey,
     ib_id: props.ib.ib_id,
     page,
-    per_page: 50,
-  });
+    per_page: perPage,
+  };
+  if (selectedUserId.value) {
+    params.user_id = selectedUserId.value;
+  }
+  store.fetchApprovalEntries(params);
 };
 
+// ─── Dynamic Summary Values ─────────────────────────────────
+const currentPendingEntries = computed(() => {
+  if (store.approvalEntriesSummary?.entry_count != null) {
+    return store.approvalEntriesSummary.entry_count;
+  }
+  if (store.approvalEntriesPagination?.total_items != null) {
+    return store.approvalEntriesPagination.total_items;
+  }
+  return props.ib?.entry_count ?? 0;
+});
+
+const currentTotalCommission = computed(() => {
+  if (store.approvalEntriesSummary?.total_commission != null) {
+    return store.approvalEntriesSummary.total_commission;
+  }
+  return props.ib?.total_commission ?? 0;
+});
+
+const currentTotalLots = computed(() => {
+  if (store.approvalEntriesSummary?.total_lots != null) {
+    return store.approvalEntriesSummary.total_lots;
+  }
+  return props.ib?.total_lots ?? null;
+});
+
 watch(
-  () => props.open,
-  (isOpen) => {
-    if (isOpen && props.ib?.ib_id) {
+  () => [props.open, props.ib?.ib_id, props.periodKey],
+  ([isOpen, ibId]) => {
+    if (isOpen && ibId) {
+      selectedUserId.value = null;
+      store.approvalEntriesSummary = null;
+      fetchClients("");
       loadEntries(1);
+    } else if (!isOpen) {
+      store.approvalEntriesSummary = null;
     }
   },
   { immediate: true }
@@ -261,7 +445,11 @@ const handleClose = () => {
 };
 
 const handlePageChange = (page) => {
-  loadEntries(page);
+  loadEntries(page, store.approvalEntriesPagination?.per_page || 50);
+};
+
+const handlePerPageChange = (perPage) => {
+  loadEntries(1, perPage);
 };
 
 const handleKeyDown = (e) => {
@@ -278,11 +466,12 @@ onBeforeUnmount(() => {
   window.removeEventListener("keydown", handleKeyDown);
 });
 
-const formatNum = (val) => {
+// ─── Helpers ────────────────────────────────────────────────
+const formatNum = (val, maxDecimals = 4) => {
   if (val == null || isNaN(Number(val))) return "0.00";
   return Number(val).toLocaleString("en-US", {
     minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    maximumFractionDigits: maxDecimals,
   });
 };
 
@@ -296,6 +485,7 @@ const formatDate = (val) => {
         day: "numeric",
         hour: "2-digit",
         minute: "2-digit",
+        second: "2-digit",
       });
 };
 </script>

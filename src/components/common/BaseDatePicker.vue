@@ -136,6 +136,10 @@ const props = defineProps({
     type: [String, Object, Array],
     default: "",
   },
+  py: {
+    type: [String, Number],
+    default: null,
+  },
 });
 
 // ─── Emits ──────────────────────────────────────────────────────────────────
@@ -594,7 +598,17 @@ const triggerClassList = computed(() => {
         .join(" ")
     : String(custom || "");
 
-  const hasCustomPy = /\bpy-\S+/.test(customStr);
+  const hasCustomPy =
+    /\bpy-\S+/.test(customStr) ||
+    (props.py !== "" && props.py !== null && props.py !== undefined);
+  
+  const pyVal =
+    props.py !== "" && props.py !== null && props.py !== undefined
+      ? String(props.py).startsWith("py-")
+        ? String(props.py)
+        : `py-${props.py}`
+      : "";
+
   const hasCustomPx = /\bpx-\S+/.test(customStr);
   const hasCustomRounded = /\brounded\S*/.test(customStr);
   const hasCustomText = /\btext-(xs|sm|base|lg|\[\S+\])/.test(customStr);
@@ -602,7 +616,7 @@ const triggerClassList = computed(() => {
   return [
     "flex items-center justify-between w-full min-w-0 transition-all duration-200 ease-in-out focus:outline-none select-none border border-primary-border",
     !hasCustomPx ? "px-3.5" : "",
-    !hasCustomPy ? "py-1" : "",
+    !hasCustomPy ? "py-1" : pyVal,
     !hasCustomRounded ? "rounded-lg" : "",
     !hasCustomText ? "text-sm font-medium" : "",
     props.disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer",
@@ -618,27 +632,54 @@ const dropdownBgClass = computed(() => {
 function updatePosition() {
   if (!triggerRef.value) return;
   const rect = triggerRef.value.getBoundingClientRect();
-  const isTop = props.placement === "top" || props.position === "top";
+  
+  const dropdownWidth = dropdownRef.value?.offsetWidth || (effectiveShowPresets.value ? 520 : 340);
+  const dropdownHeight = dropdownRef.value?.offsetHeight || (effectiveShowPresets.value ? 430 : 380);
 
-  const dropdownWidth = effectiveShowPresets.value ? 520 : 340;
-  let left = rect.left;
-  if (left + dropdownWidth > window.innerWidth - 12) {
-    left = Math.max(12, window.innerWidth - dropdownWidth - 12);
+  // Horizontal positioning:
+  // If trigger is on right side or dropdown would overflow screen right, align right edge of dropdown with trigger right edge
+  let left;
+  if (rect.left + dropdownWidth > window.innerWidth - 16 || rect.right > window.innerWidth / 2) {
+    left = rect.right - dropdownWidth;
+  } else {
+    left = rect.left;
   }
 
-  if (isTop) {
+  // Strict boundary clamping so it never overflows viewport
+  left = Math.max(16, Math.min(left, window.innerWidth - dropdownWidth - 16));
+
+  const explicitTop = props.placement === "top" || props.position === "top";
+  const explicitBottom = props.placement === "bottom" || props.position === "bottom";
+
+  let shouldOpenTop = explicitTop;
+  if (!explicitTop) {
+    const spaceBelow = window.innerHeight - rect.bottom - 12;
+    const spaceAbove = rect.top - 12;
+    // Auto flip to top if space below is less than dropdown height and there is more space above
+    if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
+      shouldOpenTop = true;
+    }
+  }
+
+  if (shouldOpenTop) {
     dropdownStyle.value = {
       position: "fixed",
-      bottom: `${window.innerHeight - rect.top + 6}px`,
+      bottom: `${Math.max(6, window.innerHeight - rect.top + 6)}px`,
       left: `${left}px`,
       zIndex: 9999,
+      maxHeight: `calc(100vh - 24px)`,
     };
   } else {
+    let top = rect.bottom + 6;
+    if (top + dropdownHeight > window.innerHeight - 12) {
+      top = Math.max(12, window.innerHeight - dropdownHeight - 12);
+    }
     dropdownStyle.value = {
       position: "fixed",
-      top: `${rect.bottom + 6}px`,
+      top: `${top}px`,
       left: `${left}px`,
       zIndex: 9999,
+      maxHeight: `calc(100vh - 24px)`,
     };
   }
 }
@@ -664,12 +705,14 @@ function initFromModel() {
   activePresetLabel.value = matchedPreset.value?.label || null;
 }
 
-function toggle() {
+async function toggle() {
   if (props.disabled) return;
   isOpen.value = !isOpen.value;
   if (isOpen.value) {
     initFromModel();
     pickerView.value = "days";
+    updatePosition();
+    await nextTick();
     updatePosition();
     emit("open");
   } else {
@@ -864,7 +907,7 @@ watch(
       :class="triggerClassList"
     >
       <div class="flex items-center gap-2 truncate min-w-0">
-        <Calendar :size="16" class="flex-shrink-0 text-secondary-text" />
+        <Calendar :size="16" class="shrink-0 text-secondary-text" />
         <span
           :class="[
             'truncate text-sm',
@@ -875,7 +918,7 @@ watch(
         </span>
       </div>
 
-      <div class="flex items-center gap-1.5 flex-shrink-0 ml-2">
+      <div class="flex items-center gap-1.5 shrink-0 ml-2">
         <X
           v-if="clearable && hasValue && !disabled"
           :size="14"
@@ -898,7 +941,7 @@ watch(
           ref="dropdownRef"
           :style="dropdownStyle"
           :class="[
-            'flex flex-col rounded-xl overflow-hidden border border-primary-border shadow-2xl z-[9999]',
+            'flex flex-col rounded-xl overflow-hidden border border-primary-border shadow-2xl z-9999',
             dropdownBgClass,
           ]"
         >
@@ -932,7 +975,7 @@ watch(
             </div>
 
             <!-- Calendar Container -->
-            <div class="p-4 flex flex-col gap-3 min-w-[280px] sm:min-w-[320px]">
+            <div class="p-4 flex flex-col gap-3 min-w-70 sm:min-w-[320px]">
               <!-- Header -->
               <div class="flex items-center justify-between px-1">
                 <button

@@ -1,6 +1,22 @@
 <template>
   <div class="space-y-4">
-    <div class="flex justify-end items-center">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+      <!-- Status Tabs -->
+      <div class="flex items-center gap-1.5">
+        <button
+          v-for="filter in statusFilters"
+          :key="filter.value"
+          type="button"
+          class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition cursor-pointer"
+          :class="selectedStatus === filter.value
+            ? 'bg-primary text-white shadow-xs'
+            : 'bg-card-background text-secondary-text hover:text-primary-text border border-primary-border'"
+          @click="selectStatus(filter.value)"
+        >
+          {{ filter.label }}
+        </button>
+      </div>
+
       <button
         class="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-hover transition-colors cursor-pointer"
         @click="isEnrollModalOpen = true"
@@ -17,11 +33,25 @@
         :pagination="store.enrollmentsPagination"
         @page-change="handlePageChange"
       >
+        <template #cell-user="{ row }">
+          <div class="flex flex-col">
+            <span class="text-sm font-medium text-primary-text">{{ row.user_name || '-' }}</span>
+            <span class="text-xs text-secondary-text">{{ row.user_email || '-' }}</span>
+          </div>
+        </template>
+        <template #cell-account="{ row }">
+          <span class="font-medium text-primary-text">{{ row.account_number || '-' }}</span>
+        </template>
         <template #cell-plan="{ row }">
           <span class="font-medium text-primary-text">{{ row.plan?.name || '-' }}</span>
         </template>
         <template #cell-status="{ row }">
-          <StatusBadge :status="row.status" />
+          <div class="flex flex-col items-start gap-0.5">
+            <StatusBadge :status="row.status" />
+            <span v-if="row.status === 'ended' && row.ended_by" class="text-[10px] text-secondary-text font-medium">
+              Ended by {{ row.ended_by === 'admin' ? 'Admin' : 'Client' }}
+            </span>
+          </div>
         </template>
         <template #cell-pending_plan="{ row }">
           <div v-if="row.pending_plan_id" class="text-xs">
@@ -99,8 +129,8 @@ const clearPlanLock = ref(true);
 
 const columns = [
   { key: "id", label: "ID", sortable: false },
-  { key: "user_id", label: "User ID", sortable: false },
-  { key: "trading_account_id", label: "Account ID", sortable: false },
+  { key: "user", label: "User", sortable: false },
+  { key: "account", label: "Account", sortable: false },
   { key: "plan", label: "Active Plan", sortable: false },
   { key: "status", label: "Status", sortable: false },
   { key: "pending_plan", label: "Pending Switch", sortable: false },
@@ -108,11 +138,28 @@ const columns = [
   { key: "actions", label: "Actions", sortable: false, align: "right" },
 ];
 
+const statusFilters = [
+  { label: "Active", value: "active" },
+  { label: "Ended", value: "ended" },
+  { label: "All Enrollments", value: "all" },
+];
+const selectedStatus = ref("active");
+
+const selectStatus = (status) => {
+  selectedStatus.value = status;
+  store.fetchEnrollments({
+    status,
+    limit: store.enrollmentsPagination.limit || 50,
+    offset: 0,
+  }, true);
+};
+
 const handlePageChange = (page) => {
   store.fetchEnrollments({
+    status: selectedStatus.value,
     offset: (page - 1) * store.enrollmentsPagination.limit,
     limit: store.enrollmentsPagination.limit,
-  });
+  }, true);
 };
 
 const openUnenrollConfirm = (row) => {

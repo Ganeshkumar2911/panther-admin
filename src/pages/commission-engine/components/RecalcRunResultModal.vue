@@ -39,20 +39,72 @@ const closeModal = () => {
 
 const data = computed(() => props.result?.data || props.result || {});
 
+const resultsList = computed(() => {
+  return Array.isArray(data.value.results) ? data.value.results : [];
+});
+
 const tradesProcessed = computed(() => {
-  return data.value.trades_processed ?? data.value.positions_evaluated ?? data.value.trades_count ?? 0;
+  if (resultsList.value.length > 0) {
+    return resultsList.value.reduce(
+      (acc, r) => acc + (Number(r.trades_processed ?? r.trades_matched ?? 0) || 0),
+      0
+    );
+  }
+  return Number(data.value.trades_processed ?? data.value.positions_evaluated ?? data.value.trades_count ?? 0) || 0;
 });
 
 const entriesCreated = computed(() => {
-  return data.value.entries_created ?? data.value.pending_entries ?? data.value.commissions_created ?? 0;
+  if (resultsList.value.length > 0) {
+    return resultsList.value.reduce(
+      (acc, r) => acc + (Number(r.entries_created ?? 0) || 0),
+      0
+    );
+  }
+  return Number(data.value.entries_created ?? data.value.pending_entries ?? data.value.commissions_created ?? 0) || 0;
 });
 
 const entriesRejected = computed(() => {
-  return data.value.entries_rejected ?? data.value.stale_rejected ?? data.value.rejected_entries ?? 0;
+  if (resultsList.value.length > 0) {
+    return resultsList.value.reduce(
+      (acc, r) => acc + (Number(r.pending_rejected ?? 0) || 0),
+      0
+    );
+  }
+  return Number(data.value.entries_rejected ?? data.value.stale_rejected ?? data.value.rejected_entries ?? 0) || 0;
 });
 
 const unlockedTrades = computed(() => {
-  return data.value.unlocked_trades ?? data.value.trades_unlocked ?? data.value.unlocked_count ?? 0;
+  if (resultsList.value.length > 0) {
+    return resultsList.value.reduce(
+      (acc, r) => acc + (Number(r.trades_unlocked ?? 0) || 0),
+      0
+    );
+  }
+  return Number(data.value.unlocked_trades ?? data.value.trades_unlocked ?? data.value.unlocked_count ?? 0) || 0;
+});
+
+const effectiveFromDate = computed(() => {
+  if (data.value.from_date_override) return data.value.from_date_override;
+  if (data.value.from_date) return data.value.from_date;
+  if (resultsList.value.length === 1 && resultsList.value[0].from_date) {
+    return resultsList.value[0].from_date;
+  }
+  if (resultsList.value.length > 1) {
+    const dates = [...new Set(resultsList.value.map((r) => r.from_date).filter(Boolean))];
+    if (dates.length === 1) return dates[0];
+    if (dates.length > 1) return "Multiple Dates";
+  }
+  return null;
+});
+
+const targetIbLabel = computed(() => {
+  if (data.value.ib_id) return `IB #${data.value.ib_id}`;
+  if (resultsList.value.length === 1 && resultsList.value[0].ib_id) {
+    return `IB #${resultsList.value[0].ib_id}`;
+  }
+  if (data.value.scope === "all") return "All Active IBs";
+  if (data.value.scope) return String(data.value.scope).toUpperCase();
+  return null;
 });
 
 const navigateToPendingCommissions = () => {
@@ -131,13 +183,13 @@ const navigateToPendingCommissions = () => {
                   <span class="font-semibold text-secondary-text">Date Kind:</span>
                   <span class="font-mono uppercase font-bold text-primary">{{ data.kind || "next" }}</span>
                 </div>
-                <div v-if="data.from_date" class="flex items-center gap-2">
+                <div v-if="effectiveFromDate" class="flex items-center gap-2">
                   <span class="font-semibold text-secondary-text">Effective From Date:</span>
-                  <span class="font-mono font-medium">{{ data.from_date }}</span>
+                  <span class="font-mono font-medium">{{ effectiveFromDate }}</span>
                 </div>
-                <div v-if="data.ib_id" class="flex items-center gap-2">
+                <div v-if="targetIbLabel" class="flex items-center gap-2">
                   <span class="font-semibold text-secondary-text">Target IB:</span>
-                  <span class="font-mono font-medium">IB #{{ data.ib_id }}</span>
+                  <span class="font-mono font-medium">{{ targetIbLabel }}</span>
                 </div>
               </div>
 
@@ -152,49 +204,61 @@ const navigateToPendingCommissions = () => {
               <!-- Trades Processed -->
               <div class="p-4 rounded-xl bg-background border border-primary-border flex flex-col gap-1">
                 <div class="flex items-center justify-between">
-                  <span class="text-xs text-secondary-text font-medium">Trades Evaluated</span>
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-xs text-primary-text font-semibold">Trades Processed</span>
+                    <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-card-background border border-primary-border text-secondary-text">trades_processed</span>
+                  </div>
                   <HugeIcon :icon="Activity01Icon" :size="16" class="text-primary" />
                 </div>
                 <div class="text-xl font-bold font-mono text-primary-text mt-1">
                   {{ tradesProcessed }}
                 </div>
-                <span class="text-[11px] text-secondary-text">Closed positions evaluated</span>
+                <span class="text-[11px] text-secondary-text font-mono">sum(trades_processed)</span>
               </div>
 
-              <!-- Pending Entries Created -->
+              <!-- Entries Created -->
               <div class="p-4 rounded-xl bg-background border border-primary-border flex flex-col gap-1">
                 <div class="flex items-center justify-between">
-                  <span class="text-xs text-secondary-text font-medium">Commissions Created</span>
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-xs text-primary-green font-semibold">Entries Created</span>
+                    <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-card-background border border-primary-border text-secondary-text">entries_created</span>
+                  </div>
                   <HugeIcon :icon="Coins01Icon" :size="16" class="text-primary-green" />
                 </div>
                 <div class="text-xl font-bold font-mono text-primary-green mt-1">
                   {{ entriesCreated }}
                 </div>
-                <span class="text-[11px] text-secondary-text">Pending entries ready for review</span>
+                <span class="text-[11px] text-secondary-text font-mono">sum(entries_created)</span>
               </div>
 
-              <!-- Stale Entries Rejected -->
+              <!-- Pending Rejected -->
               <div class="p-4 rounded-xl bg-background border border-primary-border flex flex-col gap-1">
                 <div class="flex items-center justify-between">
-                  <span class="text-xs text-secondary-text font-medium">Stale Rejected</span>
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-xs text-primary-yellow font-semibold">Pending Rejected</span>
+                    <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-card-background border border-primary-border text-secondary-text">pending_rejected</span>
+                  </div>
                   <HugeIcon :icon="Alert02Icon" :size="16" class="text-primary-yellow" />
                 </div>
                 <div class="text-xl font-bold font-mono text-primary-yellow mt-1">
                   {{ entriesRejected }}
                 </div>
-                <span class="text-[11px] text-secondary-text">Outside new IB chain</span>
+                <span class="text-[11px] text-secondary-text font-mono">sum(pending_rejected)</span>
               </div>
 
-              <!-- Unlocked Trades -->
+              <!-- Trades Unlocked -->
               <div class="p-4 rounded-xl bg-background border border-primary-border flex flex-col gap-1">
                 <div class="flex items-center justify-between">
-                  <span class="text-xs text-secondary-text font-medium">Unlocked Trades</span>
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-xs text-primary-blue font-semibold">Trades Unlocked</span>
+                    <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-card-background border border-primary-border text-secondary-text">trades_unlocked</span>
+                  </div>
                   <HugeIcon :icon="Layers01Icon" :size="16" class="text-primary-blue" />
                 </div>
                 <div class="text-xl font-bold font-mono text-primary-blue mt-1">
                   {{ unlockedTrades }}
                 </div>
-                <span class="text-[11px] text-secondary-text">Trade locks reset for sync</span>
+                <span class="text-[11px] text-secondary-text font-mono">sum(trades_unlocked)</span>
               </div>
             </div>
 

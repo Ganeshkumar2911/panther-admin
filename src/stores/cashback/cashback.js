@@ -126,7 +126,7 @@ export const useCashbackStore = defineStore("cashback", () => {
 
   const fetchEnrollments = (params = {}, force = false) => {
     if (inFlight.enrollments) return;
-    if (isFetched.value.enrollments && !force) return;
+    if (isFetched.value.enrollments && !force && Object.keys(params).length === 0) return;
 
     inFlight.enrollments = true;
     loading.value = true;
@@ -165,7 +165,7 @@ export const useCashbackStore = defineStore("cashback", () => {
 
   const fetchTransactions = (params = {}, force = false) => {
     if (inFlight.transactions) return;
-    if (isFetched.value.transactions && !force) return;
+    if (isFetched.value.transactions && !force && Object.keys(params).length === 0) return;
 
     inFlight.transactions = true;
     loading.value = true;
@@ -204,7 +204,7 @@ export const useCashbackStore = defineStore("cashback", () => {
 
   const fetchRedemptions = (params = {}, force = false) => {
     if (inFlight.redemptions) return;
-    if (isFetched.value.redemptions && !force) return;
+    if (isFetched.value.redemptions && !force && Object.keys(params).length === 0) return;
 
     inFlight.redemptions = true;
     loading.value = true;
