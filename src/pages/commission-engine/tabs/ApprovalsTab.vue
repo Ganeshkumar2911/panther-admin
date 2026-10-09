@@ -361,20 +361,19 @@
 
           <!-- Cell: Entries Count (Total, Direct & Sub-IBs) -->
           <template #cell-entries="{ row }">
-            <div class="space-y-0.5 text-center font-mono">
-              <span class="inline-flex items-center justify-center px-2 py-0.5 rounded-lg bg-card-background border border-primary-border text-xs font-bold text-primary-text tabular-nums shadow-2xs">
-                {{ row.entry_count_all ?? row.entry_count }}
+            <div class="space-y-1 text-right font-mono">
+              <span class="text-xs font-bold text-primary-text tabular-nums">
+                {{ row.entry_count_all ?? row.entry_count }} entries
               </span>
-              <div class="flex items-center justify-center gap-1 text-[10px] text-secondary-text">
-                <span title="Direct Client Trades">
-                  Dir: <strong class="text-primary-text font-semibold">{{ row.entry_count || 0 }}</strong>
+              <div class="flex flex-col items-end gap-0.5 font-mono text-[10px]">
+                <span class="px-1.5 py-0.2 rounded bg-background border border-primary-border text-secondary-text whitespace-nowrap">
+                  Dir: {{ row.entry_count || 0 }}
                 </span>
-                <span class="text-secondary-text/50">&middot;</span>
                 <span
-                  title="Sub-IB Network Trades"
+                  class="px-1.5 py-0.2 rounded bg-background border border-primary-border whitespace-nowrap"
                   :class="(row.entry_count_from_subibs || 0) > 0 ? 'text-primary' : 'text-secondary-text'"
                 >
-                  Sub: <strong :class="(row.entry_count_from_subibs || 0) > 0 ? 'text-primary font-bold' : 'text-secondary-text font-semibold'">{{ row.entry_count_from_subibs || 0 }}</strong>
+                  Sub: {{ row.entry_count_from_subibs || 0 }}
                 </span>
               </div>
             </div>
@@ -1537,7 +1536,7 @@ const columns = [
   { key: "commission_paid_to_master", label: "Comm. Paid to Master", align: "right", width: "140px" },
   { key: "total", label: "Total Commission", align: "right", width: "160px" },
   { key: "total_lots", label: "Total Lots", align: "right", width: "170px" },
-  { key: "entries", label: "Entries", align: "center", width: "125px" },
+  { key: "entries", label: "Entries", align: "right", width: "135px" },
   { key: "wallet", label: "Wallet Target", align: "center", width: "130px" },
   { key: "mode", label: "Payout Mode", align: "center", width: "140px" },
   { key: "status", label: "Status", align: "center", width: "110px" },
