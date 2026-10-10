@@ -50,7 +50,7 @@
                 class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary/10 text-primary border border-primary/20 flex items-center gap-1.5"
                 title="Dummy Fund Manager already exists for this account"
               >
-                <Sparkles class="w-3.5 h-3.5 text-primary" />
+                <Sliders class="w-3.5 h-3.5 text-primary" />
                 <span>Dummy FM Exists</span>
               </span>
 
@@ -62,7 +62,7 @@
                 class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary/10 hover:bg-primary text-primary hover:text-white border border-primary/30 transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
                 title="Create a Dummy FM for this fund manager"
               >
-                <Sparkles class="w-3.5 h-3.5" />
+                <Sliders class="w-3.5 h-3.5" />
                 <span>+ Create Dummy FM</span>
               </button>
             </template>
@@ -1035,7 +1035,6 @@ import {
   MapPin,
   ShieldCheck,
   AlertTriangle,
-  Sparkles,
 } from "lucide-vue-next";
 import { useFmLeaderboardStore } from "@/stores/fmLeaderboard/fmLeaderboard";
 import { useMyPermissionsStore } from "@/stores/rbac/myPermissions";
