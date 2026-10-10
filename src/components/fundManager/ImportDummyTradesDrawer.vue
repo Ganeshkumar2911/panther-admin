@@ -841,35 +841,59 @@
                 </div>
 
                 <!-- Mode Specific Inputs -->
-                <!-- A: Range Mode Fields -->
-                <div v-if="generateForm.lot_mode === 'range'" class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                  <div>
-                    <label class="block text-xs font-semibold text-secondary-text mb-1">
-                      Min Lot Per Trade <span class="text-primary-red">*</span>
-                    </label>
-                    <input
-                      v-model.number="generateForm.min_lot"
-                      type="number"
-                      step="0.01"
-                      min="0.01"
-                      placeholder="0.10"
-                      class="input-field px-3 py-2 text-xs font-mono"
-                    />
+                <!-- A: Range Mode Fields (Mutually exclusive: Min/Max Lot vs Total Lots) -->
+                <div v-if="generateForm.lot_mode === 'range'" class="space-y-3 pt-1">
+                  <div class="flex items-center gap-1.5 p-1 bg-background/80 rounded-xl border border-primary-border w-fit">
+                    <button
+                      type="button"
+                      class="px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer"
+                      :class="generateForm.range_sub_mode === 'min_max' ? 'bg-primary text-white shadow-sm' : 'text-secondary-text hover:text-primary-text'"
+                      @click="generateForm.range_sub_mode = 'min_max'"
+                    >
+                      Min & Max Lot Range
+                    </button>
+                    <button
+                      type="button"
+                      class="px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer"
+                      :class="generateForm.range_sub_mode === 'total_lots' ? 'bg-primary text-white shadow-sm' : 'text-secondary-text hover:text-primary-text'"
+                      @click="generateForm.range_sub_mode = 'total_lots'"
+                    >
+                      Total Target Lots
+                    </button>
                   </div>
-                  <div>
-                    <label class="block text-xs font-semibold text-secondary-text mb-1">
-                      Max Lot Per Trade <span class="text-primary-red">*</span>
-                    </label>
-                    <input
-                      v-model.number="generateForm.max_lot"
-                      type="number"
-                      step="0.01"
-                      min="0.01"
-                      placeholder="4.00"
-                      class="input-field px-3 py-2 text-xs font-mono"
-                    />
+
+                  <!-- 1. Min & Max Range Inputs -->
+                  <div v-if="generateForm.range_sub_mode === 'min_max'" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-xs font-semibold text-secondary-text mb-1">
+                        Min Lot Per Trade <span class="text-primary-red">*</span>
+                      </label>
+                      <input
+                        v-model.number="generateForm.min_lot"
+                        type="number"
+                        step="0.01"
+                        min="0.01"
+                        placeholder="0.10"
+                        class="input-field px-3 py-2 text-xs font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-semibold text-secondary-text mb-1">
+                        Max Lot Per Trade <span class="text-primary-red">*</span>
+                      </label>
+                      <input
+                        v-model.number="generateForm.max_lot"
+                        type="number"
+                        step="0.01"
+                        min="0.01"
+                        placeholder="4.00"
+                        class="input-field px-3 py-2 text-xs font-mono"
+                      />
+                    </div>
                   </div>
-                  <div>
+
+                  <!-- 2. Single Total Target Lots Input -->
+                  <div v-else class="max-w-xs">
                     <label class="block text-xs font-semibold text-secondary-text mb-1">
                       Total Target Lots <span class="text-primary-red">*</span>
                     </label>
@@ -1509,6 +1533,7 @@ const generateForm = ref({
   max_buy_trades: 10,
   max_sell_trades: 10,
   lot_mode: "range", // 'range' | 'fixed'
+  range_sub_mode: "min_max", // 'min_max' | 'total_lots'
   min_lot: 0.1,
   max_lot: 4.0,
   fixed_lot: 0.5,
@@ -1585,6 +1610,7 @@ const resetGenerateForm = () => {
     max_buy_trades: 10,
     max_sell_trades: 10,
     lot_mode: "range",
+    range_sub_mode: "min_max",
     min_lot: 0.1,
     max_lot: 4.0,
     fixed_lot: 0.5,
@@ -1632,34 +1658,11 @@ const handleGenerateSubmit = async () => {
     return;
   }
 
-  if (f.lot_mode === "range") {
-    if (!f.min_lot || Number(f.min_lot) <= 0) {
-      snackbar.show("Min lot must be greater than 0.", "error");
-      return;
-    }
-    if (!f.max_lot || Number(f.max_lot) < Number(f.min_lot)) {
-      snackbar.show("Max lot must be greater than or equal to min lot.", "error");
-      return;
-    }
-    if (!f.total_lots || Number(f.total_lots) <= 0) {
-      snackbar.show("Total lots must be greater than 0.", "error");
-      return;
-    }
-  } else if (f.lot_mode === "fixed") {
-    if (!f.fixed_lot || Number(f.fixed_lot) <= 0) {
-      snackbar.show("Fixed lot must be greater than 0.", "error");
-      return;
-    }
-    // Auto-match exact math
-    syncFixedTotalLots();
-  }
-
   // Construct payload adhering strictly to dummy_trade_api.md
   const payload = {
     symbol: sym,
     date_from: formatIsoDate(f.date_from),
     date_to: formatIsoDate(f.date_to),
-    total_lots: Number(f.total_lots),
     interval: f.interval || "5minute",
     min_trade_pnl: Number(f.min_trade_pnl ?? -100),
     max_trade_pnl: Number(f.max_trade_pnl ?? 150),
@@ -1673,17 +1676,42 @@ const handleGenerateSubmit = async () => {
     payload.max_sell_trades = Number(f.max_sell_trades);
   }
 
-  if (f.lot_mode === "fixed") {
+  if (f.lot_mode === "range") {
+    if (f.range_sub_mode === "total_lots") {
+      if (!f.total_lots || Number(f.total_lots) <= 0) {
+        snackbar.show("Total target lots must be greater than 0.", "error");
+        return;
+      }
+      payload.total_lots = Number(f.total_lots);
+      payload.lot_config = {
+        mode: "range",
+      };
+    } else {
+      if (!f.min_lot || Number(f.min_lot) <= 0) {
+        snackbar.show("Min lot must be greater than 0.", "error");
+        return;
+      }
+      if (!f.max_lot || Number(f.max_lot) < Number(f.min_lot)) {
+        snackbar.show("Max lot must be greater than or equal to min lot.", "error");
+        return;
+      }
+      // Mutually exclusive: do NOT send total_lots when sending min_lot & max_lot
+      payload.lot_config = {
+        mode: "range",
+        min_lot: Number(f.min_lot),
+        max_lot: Number(f.max_lot),
+      };
+    }
+  } else if (f.lot_mode === "fixed") {
+    if (!f.fixed_lot || Number(f.fixed_lot) <= 0) {
+      snackbar.show("Fixed lot must be greater than 0.", "error");
+      return;
+    }
+    syncFixedTotalLots();
     payload.total_lots = expectedFixedTotalLots.value;
     payload.lot_config = {
       mode: "fixed",
       lot: Number(f.fixed_lot),
-    };
-  } else {
-    payload.lot_config = {
-      mode: "range",
-      min_lot: Number(f.min_lot),
-      max_lot: Number(f.max_lot),
     };
   }
 
