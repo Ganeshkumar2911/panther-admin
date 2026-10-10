@@ -1,10 +1,19 @@
 <template>
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-    <div class="bg-card-background rounded-lg shadow-xl w-full max-w-2xl p-6">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="title-text text-primary-text">Pool Reconciliation Report</h3>
-        <button @click="$emit('close')" class="text-secondary-text hover:text-primary-text">&times;</button>
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    <div class="bg-card-background rounded-xl shadow-xl w-full max-w-2xl border border-primary-border overflow-hidden">
+      <!-- Header -->
+      <div class="px-6 py-4 border-b border-primary-border flex justify-between items-center">
+        <h3 class="title-text text-primary-text font-semibold">Pool Reconciliation Report</h3>
+        <button
+          @click="$emit('close')"
+          class="text-secondary-text hover:text-primary-text p-1 rounded-lg transition-colors cursor-pointer"
+        >
+          &times;
+        </button>
       </div>
+      
+      <!-- Body -->
+      <div class="p-6">
       
       <div v-if="store.actionLoading" class="flex justify-center p-8">
         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -58,10 +67,13 @@
         Failed to load report.
       </div>
       
-      <div class="flex justify-end mt-4">
+      </div>
+      
+      <!-- Footer -->
+      <div class="px-6 py-4 border-t border-primary-border flex justify-end bg-background/50">
         <button 
           @click="$emit('close')"
-          class="bg-card-background border border-primary-border text-primary-text hover:bg-gray-50 px-4 py-2 rounded text-sm font-medium transition-colors"
+          class="bg-card-background border border-primary-border text-primary-text hover:bg-background px-4 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
         >
           Close
         </button>

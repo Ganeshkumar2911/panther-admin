@@ -1,20 +1,14 @@
 <template>
   <div>
-    <div class="bg-card-background border border-primary-border rounded-lg shadow-sm p-4">
+    <div>
       <div class="flex justify-between items-center mb-4">
         <h3 class="title-text text-primary-text">Pool Trades</h3>
-        <button 
-          @click="fetchData(true)"
-          class="text-xs text-primary-blue hover:underline"
-        >
-          Refresh List
-        </button>
       </div>
       
       <DataTable
+        :columns="columns"
         :data="store.trades"
         :loading="store.loading"
-        :pagination="store.pagination"
       >
         <template #cell-mt5_deal_id="{ row }">
           <div class="font-mono font-medium">{{ row.mt5_deal_id }}</div>
@@ -62,6 +56,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
+import { RefreshCw } from 'lucide-vue-next';
 import { usePAMMStore } from '@/stores/pamm/pamm';
 import DataTable from '@/components/common/DataTable/DataTable.vue';
 import TradeAllocationsDrawer from '../components/TradeAllocationsDrawer.vue';
@@ -73,9 +68,20 @@ const pammId = route.params.id;
 const allocationsDrawerOpen = ref(false);
 const selectedTradeId = ref(null);
 
+const columns = [
+  { key: 'mt5_deal_id', label: 'MT5 Deal ID' },
+  { key: 'volume_lots', label: 'Volume (Lots)' },
+  { key: 'deal_net_pnl', label: 'Net PnL' },
+  { key: 'unit_value_at_attribution', label: 'Unit Value (At Trade)' },
+  { key: 'deal_time', label: 'Deal Time' },
+  { key: 'actions', label: 'Actions', align: 'right' }
+];
+
 const fetchData = (force = false) => {
   store.fetchTrades(pammId, force);
 };
+
+defineExpose({ fetchData });
 
 onMounted(() => {
   fetchData();

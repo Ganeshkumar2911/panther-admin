@@ -1,5 +1,5 @@
 <template>
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
     <div class="bg-card-background rounded-xl shadow-xl w-full max-w-lg border border-primary-border overflow-hidden">
       <!-- Modal Header -->
       <div class="px-6 py-4 border-b border-primary-border flex justify-between items-center">

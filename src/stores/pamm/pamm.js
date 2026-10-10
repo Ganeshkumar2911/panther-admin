@@ -21,7 +21,7 @@ export const usePAMMStore = defineStore("pamm", () => {
   // Pagination for lists (defaults, as PAMM doesn't have cursor pagination yet but capped to 200)
   const pagination = ref({
     page: 1,
-    per_page: 200,
+    per_page: 10,
     total: 0,
     pages: 1,
   });

@@ -1,20 +1,14 @@
 <template>
   <div>
-    <div class="bg-card-background border border-primary-border rounded-lg shadow-sm p-4">
+    <div>
       <div class="flex justify-between items-center mb-4">
         <h3 class="title-text text-primary-text">Pending Withdrawals</h3>
-        <button 
-          @click="fetchData(true)"
-          class="text-xs text-primary-blue hover:underline"
-        >
-          Refresh List
-        </button>
       </div>
       
       <DataTable
+        :columns="columns"
         :data="store.pendingWithdrawals"
         :loading="store.loading"
-        :pagination="store.pagination"
       >
         <template #cell-reference_id="{ row }">
           <div class="font-mono text-xs">{{ row.reference_id }}</div>
@@ -79,6 +73,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
+import { RefreshCw } from 'lucide-vue-next';
 import { usePAMMStore } from '@/stores/pamm/pamm';
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import { useSnackbarStore } from '@/stores/snackbar/snackbar';
@@ -98,9 +93,19 @@ const selectedOperationId = ref(null);
 const showApproveDialog = ref(false);
 const selectedOperation = ref(null);
 
+const columns = [
+  { key: 'reference_id', label: 'Reference ID' },
+  { key: 'status', label: 'Status' },
+  { key: 'requested_amount', label: 'Requested Amount' },
+  { key: 'created_at', label: 'Date' },
+  { key: 'actions', label: 'Actions', align: 'right' }
+];
+
 const fetchData = (force = false) => {
   store.fetchPendingWithdrawals(pammId, force);
 };
+
+defineExpose({ fetchData });
 
 onMounted(() => {
   fetchData();

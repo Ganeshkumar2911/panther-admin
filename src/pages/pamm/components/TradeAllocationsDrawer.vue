@@ -1,5 +1,5 @@
 <template>
-  <div class="fixed inset-0 z-40 bg-black bg-opacity-50" @click="$emit('close')"></div>
+  <div class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" @click="$emit('close')"></div>
   <div class="fixed top-0 right-0 z-50 h-full w-full md:w-[600px] bg-card-background shadow-xl flex flex-col transform transition-transform duration-300">
     <div class="p-4 border-b border-primary-border flex justify-between items-center bg-card-background">
       <h2 class="title-text text-primary-text">Trade Allocations</h2>
@@ -37,7 +37,7 @@
 
         <h3 class="font-medium text-primary-text mb-3">Participant Splits</h3>
         
-        <div class="bg-card-background border border-primary-border rounded overflow-hidden">
+        <div>
           <DataTable
             :data="store.tradeAllocations"
             :loading="false"

@@ -105,7 +105,8 @@ const urls = {
     create: "/fund_managers/create",
     edit: "/fund_managers/edit",
     dummyList: "/get-dummy/fm",
-    dummyCreate: (fmId) => (fmId ? `/create/dummy-fm/${fmId}` : "/create/dummy-fm"),
+    dummyCreate: (fmId) =>
+      fmId ? `/create/dummy-fm/${fmId}` : "/create/dummy-fm",
     dummyEdit: (fmId) => `/dummy-fm/${fmId}`,
     dummyToggle: (fmId) => `/dummy-fm/${fmId}`,
     requestList: "/fm/requests",
@@ -139,7 +140,10 @@ const urls = {
     updateTrade: (tradeId) => `/update/dummy/trade/${tradeId}`,
     deleteTrades: (fmId) => `/delete/dummy/trades/${fmId}`,
     offers: "/dummy_fund_managers/offers",
-    followers: (fmId) => (fmId ? `/dummy_fund_managers/followers/${fmId}` : "/dummy_fund_managers/followers"),
+    followers: (fmId) =>
+      fmId
+        ? `/dummy_fund_managers/followers/${fmId}`
+        : "/dummy_fund_managers/followers",
   },
   tradeBook: {
     filters: "/trade-book/filters",
@@ -515,7 +519,8 @@ const urls = {
     userAccounts: (userId) => `/users/bank-accounts/${userId}`,
     approve: (id) => `/bank-accounts/${id}/approve`,
     reject: (id) => `/bank-accounts/${id}/reject`,
-    enableEdit: (userId, id) => `/users/bank-accounts/${userId}/${id}/enable-edit`,
+    enableEdit: (userId, id) =>
+      `/users/bank-accounts/${userId}/${id}/enable-edit`,
   },
   pamm: {
     list: "/pamm",
@@ -525,10 +530,20 @@ const urls = {
     rejectWithdrawal: (opId) => `/pamm/withdrawals/${opId}/reject`,
     accountingEntries: (id) => `/pamm/${id}/accounting-entries`,
     trades: (id) => `/pamm/${id}/trades`,
-    tradeAllocations: (pammId, tradeId) => `/pamm/${pammId}/trades/${tradeId}/allocations`,
+    tradeAllocations: (pammId, tradeId) =>
+      `/pamm/${pammId}/trades/${tradeId}/allocations`,
     reconcile: (id) => `/pamm/${id}/reconcile`,
     settlements: (id) => `/pamm/${id}/settlements`,
     enrollFundManager: (fmId) => `/pamm/fund-managers/${fmId}/enroll`,
+  },
+  pammSettlement: {
+    list: (pammId) => `/pamm/${pammId}/settlements`,
+    detail: (pammId, settlementId) =>
+      `/pamm/${pammId}/settlements/${settlementId}`,
+    run: (pammId) => `/pamm/${pammId}/settlements`,
+    runAll: "/pamm/settlements/run-all",
+    rerunParticipant: (pammId, settlementId, participantId) =>
+      `/pamm/${pammId}/settlements/${settlementId}/participants/${participantId}/rerun`,
   },
 };
 

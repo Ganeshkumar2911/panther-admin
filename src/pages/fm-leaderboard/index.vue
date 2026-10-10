@@ -892,13 +892,9 @@ import {
   Tag,
   Users,
   BookOpen,
-<<<<<<< HEAD
   LogIn,
   Briefcase,
-=======
-  Sparkles,
-  LogIn
->>>>>>> 2d1c8205eff9aa2cd657b79d809971ff9c31e4fb
+  Sparkles
 } from 'lucide-vue-next'
 import { UserGroupIcon, UserAiIcon, AiMagicIcon } from '@hugeicons/core-free-icons'
 import { useFmLeaderboardStore } from '@/stores/fmLeaderboard/fmLeaderboard'
@@ -916,7 +912,6 @@ import ConfirmationDialog from '@/components/common/ConfirmationDialog.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import Tooltip from '@/components/common/Tooltip.vue'
 import DropdownMenu from '@/components/common/DropdownMenu.vue'
-import ConfirmationDialog from '@/components/common/ConfirmationDialog.vue'
 import DataTable from '@/components/common/DataTable/DataTable.vue'
 import { usePermissionCheck } from '@/composables/usePermissionCheck'
 import { perPageOptions } from '@/constants/pagination'

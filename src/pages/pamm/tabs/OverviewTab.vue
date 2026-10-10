@@ -2,39 +2,48 @@
   <div>
     <!-- Metrics -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-      <div class="bg-card-background border border-primary-border rounded-lg shadow-sm p-4">
+      <div
+        class="bg-card-background border border-primary-border rounded-lg p-4"
+      >
         <div class="text-sm text-secondary-text mb-1">Total Pool Value</div>
         <div class="text-xl font-bold text-primary-text font-mono">
-          {{ store.activePAMM?.currency || 'USD' }} {{ Number(store.activePAMM?.total_pamm_value || 0).toFixed(2) }}
+          {{ store.activePAMM?.currency || "USD" }}
+          {{ Number(store.activePAMM?.total_pamm_value || 0).toFixed(2) }}
         </div>
       </div>
-      
-      <div class="bg-card-background border border-primary-border rounded-lg shadow-sm p-4">
+
+      <div
+        class="bg-card-background border border-primary-border rounded-lg p-4"
+      >
         <div class="text-sm text-secondary-text mb-1">Total PAMM Units</div>
         <div class="text-xl font-bold text-primary-text font-mono">
           {{ Number(store.activePAMM?.total_pamm_units || 0).toFixed(6) }}
         </div>
       </div>
-      
-      <div class="bg-card-background border border-primary-border rounded-lg shadow-sm p-4">
+
+      <div
+        class="bg-card-background border border-primary-border rounded-lg p-4"
+      >
         <div class="text-sm text-secondary-text mb-1">Current Unit Value</div>
         <div class="text-xl font-bold text-primary-text font-mono">
           {{ Number(store.activePAMM?.unit_value || 1).toFixed(6) }}
         </div>
       </div>
 
-      <div class="bg-card-background border border-primary-border rounded-lg shadow-sm p-4 flex flex-col justify-center gap-2">
-        <button 
+      <div
+        class="bg-card-background border border-primary-border rounded-lg p-4 flex flex-col justify-center gap-2"
+      >
+        <button
           v-if="hasPermission('pamm.reconcile')"
           @click="isReconcileModalOpen = true"
-          class="w-full bg-card-background border border-primary-border hover:bg-gray-50 text-primary-text px-3 py-1.5 rounded text-sm font-medium transition-colors"
+          class="btn-secondary w-full"
         >
           Reconcile Pool
         </button>
-        <button 
+        <button
           v-if="hasPermission('pamm.manage')"
           @click="isSettlementModalOpen = true"
-          class="w-full bg-primary hover:bg-primary-hover text-white px-3 py-1.5 rounded text-sm font-medium transition-colors"
+          class="btn-primary w-full"
         >
           Run Settlement
         </button>
@@ -42,60 +51,72 @@
     </div>
 
     <!-- Participants Table -->
-    <div class="bg-card-background border border-primary-border rounded-lg shadow-sm p-4">
+    <div>
       <h3 class="title-text text-primary-text mb-4">Participants</h3>
-      
+
       <DataTable
+        :columns="columns"
         :data="store.activeParticipants"
         :loading="store.detailLoading"
-        :pagination="store.pagination"
       >
         <template #cell-user_id="{ row }">
-          <div class="font-medium text-primary-text">User #{{ row.user_id }}</div>
-          <div v-if="row.is_master_participant" class="text-xs text-primary-blue">Master</div>
+          <div class="font-medium text-primary-text">
+            User #{{ row.user_id }}
+          </div>
+          <div
+            v-if="row.is_master_participant"
+            class="text-xs text-primary-blue"
+          >
+            Master
+          </div>
         </template>
-        
+
         <template #cell-status="{ row }">
           <StatusBadge :status="row.status" />
         </template>
-        
+
         <template #cell-units="{ row }">
           <span class="font-mono">{{ Number(row.units || 0).toFixed(6) }}</span>
         </template>
-        
+
         <template #cell-participant_value="{ row }">
-          <span class="font-mono">{{ store.activePAMM?.currency || 'USD' }} {{ Number(row.participant_value || 0).toFixed(2) }}</span>
+          <span class="font-mono"
+            >{{ store.activePAMM?.currency || "USD" }}
+            {{ Number(row.participant_value || 0).toFixed(2) }}</span
+          >
         </template>
-        
+
         <template #cell-ownership_percentage="{ row }">
-          <span class="font-mono">{{ Number(row.ownership_percentage || 0).toFixed(2) }}%</span>
+          <span class="font-mono"
+            >{{ Number(row.ownership_percentage || 0).toFixed(2) }}%</span
+          >
         </template>
       </DataTable>
     </div>
 
-    <ReconcileModal 
-      v-if="isReconcileModalOpen" 
+    <ReconcileModal
+      v-if="isReconcileModalOpen"
       :pammId="pammId"
-      @close="isReconcileModalOpen = false" 
+      @close="isReconcileModalOpen = false"
     />
-    
-    <RunSettlementModal 
-      v-if="isSettlementModalOpen" 
+
+    <RunSettlementModal
+      v-if="isSettlementModalOpen"
       :pammId="pammId"
-      @close="isSettlementModalOpen = false" 
+      @close="isSettlementModalOpen = false"
     />
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { useRoute } from 'vue-router';
-import { usePAMMStore } from '@/stores/pamm/pamm';
+import { ref } from "vue";
+import { useRoute } from "vue-router";
+import { usePAMMStore } from "@/stores/pamm/pamm";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
-import DataTable from '@/components/common/DataTable/DataTable.vue';
-import StatusBadge from '@/components/common/StatusBadge.vue';
-import ReconcileModal from '../components/ReconcileModal.vue';
-import RunSettlementModal from '../components/RunSettlementModal.vue';
+import DataTable from "@/components/common/DataTable/DataTable.vue";
+import StatusBadge from "@/components/common/StatusBadge.vue";
+import ReconcileModal from "../components/ReconcileModal.vue";
+import RunSettlementModal from "../components/RunSettlementModal.vue";
 
 const route = useRoute();
 const store = usePAMMStore();
@@ -104,4 +125,12 @@ const { hasPermission } = usePermissionCheck();
 
 const isReconcileModalOpen = ref(false);
 const isSettlementModalOpen = ref(false);
+
+const columns = [
+  { key: "user_id", label: "User ID" },
+  { key: "status", label: "Status" },
+  { key: "units", label: "Units" },
+  { key: "participant_value", label: "Value" },
+  { key: "ownership_percentage", label: "Ownership (%)" },
+];
 </script>
