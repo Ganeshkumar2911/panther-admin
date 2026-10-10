@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import apiRequest from "@/api/request";
+import apiRequest, { axiosInstance } from "@/api/request";
 import urls from "@/api/urls";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
 
@@ -129,6 +129,23 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
   const currentIbRecalcRevert = ref(null);
   const recalcRunResult = ref(null);
 
+  // Reports & Analytics State
+  const reportsCatalog = ref(null);
+  const reportPeriods = ref({ frequency: "daily", options: [] });
+  const reportsSummary = ref(null);
+  const reportsList = ref([]);
+  const reportsPagination = ref({
+    page: 1,
+    per_page: 50,
+    total: 0,
+    pages: 1,
+    total_items: 0,
+  });
+  const reportsFilters = ref(null);
+  const reportsScope = ref(null);
+  const reportsEmpty = ref(false);
+  const reportsRawData = ref(null);
+
   // ─── 2. In-Flight Tracking (Prevents Parallel Duplicate Requests) ─
   const inFlight = {
     referralLinks: false,
@@ -153,6 +170,9 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     recalcRevertMaster: false,
     currentIbRecalcRevert: false,
     runRecalcRevert: false,
+    reportsCatalog: false,
+    reportPeriods: false,
+    reportsData: false,
   };
 
   // ─── 3. isFetched Tracking (Prevents Redundant API Calls) ─
@@ -174,6 +194,9 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     approvalsSummary: false,
     recalcRevertMaster: false,
     currentIbRecalcRevert: false,
+    reportsCatalog: false,
+    reportPeriods: false,
+    reportsData: false,
   });
 
   // ─── 4. Loading & Error Flags ──────────────────────────
@@ -193,6 +216,9 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
   const approveIbLoading = ref(false);
   const recalcRevertLoading = ref(false);
   const runRecalcLoading = ref(false);
+  const reportsLoading = ref(false);
+  const reportsCatalogLoading = ref(false);
+  const reportPeriodsLoading = ref(false);
   const error = ref(null);
 
   // ─── 5. Reset Helper ──────────────────────────────────
@@ -215,6 +241,9 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
       approvalsSummary: false,
       recalcRevertMaster: false,
       currentIbRecalcRevert: false,
+      reportsCatalog: false,
+      reportPeriods: false,
+      reportsData: false,
     };
   };
 
@@ -1513,9 +1542,9 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     });
   };
 
-  // ─── 19. Search IBs Helper ─────────────────────────────
+  // ─── 19. Search IBs Helper (/admin/search/ib) ─────────
   const searchIbs = (query = "") => {
-    const searchQuery = String(query).trim();
+    const searchQuery = String(query || "").trim();
     searchLoading.value = true;
 
     return new Promise((resolve, reject) => {
@@ -1525,16 +1554,27 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
           list = res.data;
         } else if (res?.data?.items && Array.isArray(res.data.items)) {
           list = res.data.items;
+        } else if (res?.data?.ibs && Array.isArray(res.data.ibs)) {
+          list = res.data.ibs;
+        } else if (Array.isArray(res)) {
+          list = res;
         }
         const options = list.map((ib) => {
           const id = ib.ib_id || ib.id || ib.user_id;
           const name =
-            ib.ib_name || ib.name || ib.label_name || ib.email || `IB #${id}`;
-          const email = ib.email || ib.ib_email || "";
+            ib.ib_name ||
+            ib.name ||
+            ib.label_name ||
+            ib.full_name ||
+            (ib.user ? `${ib.user.first_name || ""} ${ib.user.last_name || ""}`.trim() : "") ||
+            `IB #${id}`;
+          const email = ib.email || ib.ib_email || ib.user?.email || "";
           return {
-            label: email ? `${name} (${email})` : `${name} (ID: ${id})`,
+            label: email ? `${name} (${email}) [ID: ${id}]` : `${name} [ID: ${id}]`,
             value: id,
+            id,
             ib_id: id,
+            parent_ib_id: id,
             name,
             email,
             referral_code: ib.referral_code || ib.code || "",
@@ -1554,8 +1594,11 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
         searchLoading.value = false;
       };
 
-      apiRequest(urls.KEYS.GET, urls.ibLedger.allIbs, {
-        params: { search: searchQuery },
+      const url = urls.ibCommission?.searchIb || urls.ibLedger?.allIbs || "/search/ib";
+      const params = searchQuery ? { search: searchQuery } : {};
+
+      apiRequest(urls.KEYS.GET, url, {
+        params,
         isTokenRequired: true,
         onSuccess: successHandler,
         onFailure: failureHandler,
@@ -2057,6 +2100,331 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     });
   };
 
+  // ─── 26. IB Commission Reports & Analytics Actions ──────
+  const fetchReportsCatalog = (force = false) => {
+    if (inFlight.reportsCatalog) return;
+    if (isFetched.value.reportsCatalog && !force) return;
+
+    inFlight.reportsCatalog = true;
+    reportsCatalogLoading.value = true;
+
+    return new Promise((resolve, reject) => {
+      const successHandler = (res) => {
+        const raw = res?.data !== undefined ? res.data : res;
+        reportsCatalog.value = raw || null;
+        isFetched.value.reportsCatalog = true;
+        resolve(reportsCatalog.value);
+      };
+
+      const failureHandler = (err) => {
+        resolve(null);
+      };
+
+      const finallyHandler = () => {
+        inFlight.reportsCatalog = false;
+        reportsCatalogLoading.value = false;
+      };
+
+      apiRequest(urls.KEYS.GET, urls.ibCommission.reportsCatalog, {
+        isTokenRequired: true,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+        onFinally: finallyHandler,
+      });
+    });
+  };
+
+  const fetchReportPeriods = (frequency = "daily", count = 12) => {
+    inFlight.reportPeriods = true;
+    reportPeriodsLoading.value = true;
+
+    return new Promise((resolve, reject) => {
+      const successHandler = (res) => {
+        const raw = res?.data !== undefined ? res.data : res;
+        let options = [];
+        if (Array.isArray(raw)) {
+          options = raw;
+        } else if (Array.isArray(raw?.options)) {
+          options = raw.options;
+        } else if (Array.isArray(raw?.periods)) {
+          options = raw.periods;
+        } else if (Array.isArray(res?.options)) {
+          options = res.options;
+        } else if (Array.isArray(res?.periods)) {
+          options = res.periods;
+        }
+
+        const normalizedOptions = options.map((opt) => {
+          if (typeof opt === "string") {
+            return {
+              period_key: opt,
+              label: opt,
+              value: opt,
+            };
+          }
+          const key = opt.period_key || opt.key || opt.period || opt.id || opt.value || opt.label;
+          const label = opt.label || opt.name || opt.title || opt.period_key || key;
+          return {
+            ...opt,
+            period_key: key,
+            label,
+            value: key,
+          };
+        });
+
+        reportPeriods.value = {
+          frequency: raw?.frequency || frequency,
+          options: normalizedOptions,
+        };
+        resolve(reportPeriods.value);
+      };
+
+      const failureHandler = (err) => {
+        resolve({ frequency, options: [] });
+      };
+
+      const finallyHandler = () => {
+        inFlight.reportPeriods = false;
+        reportPeriodsLoading.value = false;
+      };
+
+      apiRequest(urls.KEYS.GET, urls.ibCommission.reportsPeriods, {
+        params: { frequency, count },
+        isTokenRequired: true,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+        onFinally: finallyHandler,
+      });
+    });
+  };
+
+  const getReportEndpoint = (reportType) => {
+    const type = String(reportType || "").toLowerCase().trim();
+    if (["affiliates", "affiliate", "affiliate_performance"].includes(type)) {
+      return urls.ibCommission.reportsAffiliates;
+    }
+    if (["sub_affiliates", "sub-affiliates", "sub_affiliate", "sub_affiliate_performance"].includes(type)) {
+      return urls.ibCommission.reportsSubAffiliates;
+    }
+    if (["customers", "customer", "customer_performance"].includes(type)) {
+      return urls.ibCommission.reportsCustomers;
+    }
+    if (["symbols", "symbol", "symbol_performance"].includes(type)) {
+      return urls.ibCommission.reportsSymbols;
+    }
+    if (["payouts", "payout", "payout_wallet"].includes(type)) {
+      return urls.ibCommission.reportsPayouts;
+    }
+    return urls.ibCommission.reportsPerformance;
+  };
+
+  const fetchReportData = (reportType = "daily_performance", params = {}, force = false) => {
+    inFlight.reportsData = true;
+    reportsLoading.value = true;
+    error.value = null;
+
+    const endpoint = getReportEndpoint(reportType);
+
+    // Filter out null, undefined, and empty string params
+    const cleanParams = {};
+    for (const [key, val] of Object.entries(params)) {
+      if (val !== null && val !== undefined && val !== "") {
+        cleanParams[key] = val;
+      }
+    }
+
+    // Ensure frequency is always provided
+    if (!cleanParams.frequency) {
+      cleanParams.frequency = "daily";
+    }
+
+    return new Promise((resolve, reject) => {
+      const successHandler = (res) => {
+        const raw = res?.data !== undefined ? res.data : res;
+        reportsRawData.value = raw || {};
+        reportsSummary.value = raw?.summary || res?.summary || raw?.data?.summary || null;
+        
+        let items = [];
+        if (Array.isArray(raw?.items)) items = raw.items;
+        else if (Array.isArray(raw?.data)) items = raw.data;
+        else if (Array.isArray(raw?.reports)) items = raw.reports;
+        else if (Array.isArray(raw)) items = raw;
+        else if (Array.isArray(res?.items)) items = res.items;
+        else if (Array.isArray(res?.data)) items = res.data;
+        
+        reportsList.value = items;
+        reportsFilters.value = raw?.filters || res?.filters || null;
+        reportsScope.value = raw?.scope || res?.scope || null;
+        reportsEmpty.value = Boolean(raw?.empty || items.length === 0);
+        
+        const totalCount = Number(raw?.total ?? raw?.total_items ?? res?.total ?? res?.pagination?.total ?? items.length);
+        const perPageCount = Number(raw?.per_page ?? res?.per_page ?? params.per_page ?? 50);
+        const pageNum = Number(raw?.page ?? res?.page ?? params.page ?? 1);
+        const calculatedPages = Math.ceil(totalCount / perPageCount) || 1;
+        const pagesCount = Number(raw?.pages ?? raw?.total_pages ?? res?.pages ?? calculatedPages);
+
+        reportsPagination.value = {
+          page: pageNum,
+          per_page: perPageCount,
+          total: totalCount,
+          total_items: totalCount,
+          pages: pagesCount,
+        };
+        isFetched.value.reportsData = true;
+        resolve(res);
+      };
+
+      const failureHandler = (err) => {
+        error.value = err?.message || "Failed to load report data";
+        reportsSummary.value = null;
+        reportsList.value = [];
+        reportsEmpty.value = true;
+        snackbar.show(err?.message || "Failed to load report data", "error");
+        reject(err);
+      };
+
+      const finallyHandler = () => {
+        inFlight.reportsData = false;
+        reportsLoading.value = false;
+      };
+
+      apiRequest(urls.KEYS.GET, endpoint, {
+        params: cleanParams,
+        isTokenRequired: true,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+        onFinally: finallyHandler,
+      });
+    });
+  };
+
+  // ─── 27. Export Reports (CSV / XLSX / PDF) ──────────────
+  const reportsExportLoading = ref(false);
+  const reportsExportFormat = ref(null);
+
+  const exportReportFile = async (options = {}) => {
+    const {
+      report = "performance",
+      format = "csv",
+      orientation = "landscape",
+      columns = null,
+      frequency = "daily",
+      date_from = null,
+      date_to = null,
+      status = null,
+      wallet_target = null,
+      ib_id = null,
+      parent_ib_id = null,
+    } = options;
+
+    if (!["csv", "xlsx", "pdf"].includes(format)) {
+      snackbar.show(`Invalid export format: ${format}. Use csv, xlsx, or pdf.`, "error");
+      throw new Error(`Invalid format ${format}`);
+    }
+
+    if (report === "sub-affiliates" && !parent_ib_id && !ib_id) {
+      snackbar.show("Sub-affiliates export requires a Parent Affiliate ID (parent_ib_id).", "warning");
+      throw new Error("Missing parent_ib_id for sub-affiliates export");
+    }
+
+    reportsExportLoading.value = true;
+    reportsExportFormat.value = format;
+
+    const freq = frequency || "daily";
+    const params = {
+      report,
+      format,
+      frequency: freq,
+    };
+
+    if (format === "pdf" && orientation) {
+      params.orientation = orientation;
+    }
+
+    if (columns) {
+      params.columns = Array.isArray(columns) ? columns.join(",") : columns;
+    }
+
+    if (date_from && date_to) {
+      params.date_from = date_from;
+      params.date_to = date_to;
+    }
+
+    if (status && status !== "all" && report !== "payouts") {
+      params.status = status;
+    }
+
+    if (wallet_target && wallet_target !== "all") {
+      params.wallet_target = wallet_target;
+    }
+
+    if (report === "sub-affiliates") {
+      params.parent_ib_id = parent_ib_id || ib_id;
+    } else if (ib_id) {
+      params.ib_id = ib_id;
+    }
+
+    try {
+      const response = await axiosInstance.get(urls.ibCommission.reportsExport, {
+        params,
+        responseType: "blob",
+      });
+
+      const blob = response.data instanceof Blob ? response.data : new Blob([response.data]);
+
+      // Determine file name from Content-Disposition header
+      const disposition = response.headers?.["content-disposition"] || response.headers?.get?.("content-disposition") || "";
+      let filename = "";
+      if (disposition) {
+        const filenameMatch = disposition.match(/filename\*?=(?:UTF-8'')?"?([^";]+)"?/i);
+        if (filenameMatch && filenameMatch[1]) {
+          filename = decodeURIComponent(filenameMatch[1]);
+        }
+      }
+
+      if (!filename) {
+        const now = new Date();
+        const dateStr = now.toISOString().slice(0, 10).replace(/-/g, "");
+        const timeStr = now.toTimeString().slice(0, 8).replace(/:/g, "");
+        const cleanPeriod = (date_from && date_to ? `${date_from}_${date_to}` : freq).replace(/[^a-zA-Z0-9_-]/g, "_");
+        filename = `ib_commission_${report}_${cleanPeriod}_${dateStr}_${timeStr}.${format}`;
+      }
+
+      // Trigger browser download
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+
+      snackbar.show(`Exported ${format.toUpperCase()} (${filename}) successfully`, "success");
+      return { success: true, filename };
+    } catch (err) {
+      let errorMsg = "Export failed. Please try again.";
+      if (err.response?.data instanceof Blob) {
+        try {
+          const text = await err.response.data.text();
+          const parsed = JSON.parse(text);
+          errorMsg = parsed.message || parsed.error || parsed.code || errorMsg;
+        } catch (_) {
+          // ignore parsing error
+        }
+      } else if (err.response?.data?.message) {
+        errorMsg = err.response.data.message;
+      } else if (err.message) {
+        errorMsg = err.message;
+      }
+      snackbar.show(errorMsg, "error");
+      throw new Error(errorMsg);
+    } finally {
+      reportsExportLoading.value = false;
+      reportsExportFormat.value = null;
+    }
+  };
+
 
   return {
     // State
@@ -2103,6 +2471,17 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     currentIbRecalcRevert,
     recalcRunResult,
 
+    // Reports State
+    reportsCatalog,
+    reportPeriods,
+    reportsSummary,
+    reportsList,
+    reportsPagination,
+    reportsFilters,
+    reportsScope,
+    reportsEmpty,
+    reportsRawData,
+
     // Loading & tracking
     inFlight,
     isFetched,
@@ -2122,6 +2501,11 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     approveIbLoading,
     recalcRevertLoading,
     runRecalcLoading,
+    reportsLoading,
+    reportsCatalogLoading,
+    reportPeriodsLoading,
+    reportsExportLoading,
+    reportsExportFormat,
     error,
 
     // Actions
@@ -2169,5 +2553,10 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     fetchIbRecalcRevert,
     saveIbRecalcRevert,
     runRecalcRevert,
+    fetchReportsCatalog,
+    fetchReportPeriods,
+    fetchReportData,
+    getReportEndpoint,
+    exportReportFile,
   };
 });

@@ -772,6 +772,16 @@ const routes = [
         },
       },
       {
+        path: "/commission-engine/reports",
+        name: "commission-engine-reports",
+        component: () => import("@/pages/commission-engine/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "IB Commission Reports",
+          description: "Read-only analytics and performance reports for IB commissions, partners, sub-IBs, and customers.",
+        },
+      },
+      {
         path: "/commission-engine/approvals",
         name: "commission-engine-approvals",
         component: () => import("@/pages/commission-engine/index.vue"),

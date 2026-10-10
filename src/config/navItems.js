@@ -114,6 +114,31 @@ export const navClusters = [
     icon: Calculator,
     children: [
       {
+        label: "Reports",
+        to: "/commission-engine/reports",
+        icon: LineChart,
+        permission: [
+          "ib_commission_reports.view",
+          "ib_commission.reports.view",
+          "ib_commission.view",
+        ],
+        keywords: [
+          "reports",
+          "performance",
+          "analytics",
+          "daily",
+          "weekly",
+          "monthly",
+          "affiliates",
+          "sub affiliates",
+          "customers",
+          "symbols",
+          "payouts",
+          "country",
+          "campaign",
+        ],
+      },
+      {
         label: "Approvals",
         to: "/commission-engine/approvals",
         icon: ShieldCheck,
