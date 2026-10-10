@@ -382,6 +382,45 @@ export const useFmLeaderboardStore = defineStore("fmLeaderboard", () => {
     });
   };
 
+  const generateDummyTrades = (fmId, payload) => {
+    return new Promise((resolve, reject) => {
+      isSubmitting.value = true;
+      error.value = null;
+
+      const successHandler = (res) => {
+        snackbar.show(
+          res?.message || "Dummy trades generated successfully",
+          "success",
+        );
+        isSubmitting.value = false;
+        isFetched.value = false;
+        fetchFmLeaderboard(true, pagination.value.page, currentTab.value);
+        resolve(res);
+      };
+
+      const failureHandler = (err) => {
+        isSubmitting.value = false;
+        error.value = err;
+        snackbar.show(
+          err?.error || err?.message || "Failed to generate dummy trades.",
+          "error",
+        );
+        reject(err);
+      };
+
+      const endpoint = urls.dummyFm.generateTrades
+        ? urls.dummyFm.generateTrades(fmId)
+        : `/dummy/fm_trades/${fmId}`;
+
+      apiRequest(urls.KEYS.POST, endpoint, {
+        data: payload,
+        isTokenRequired: true,
+        onSuccess: successHandler,
+        onFailure: failureHandler,
+      });
+    });
+  };
+
   // ─── Dummy Trades State & Actions ─────────────────────────
   const dummyTrades = ref([]);
   const dummyTradesPagination = ref({
@@ -559,6 +598,7 @@ export const useFmLeaderboardStore = defineStore("fmLeaderboard", () => {
     editDummyFundManager,
     deleteDummyFundManager,
     importDummyTrades,
+    generateDummyTrades,
     fetchDummyTrades,
     updateDummyTrade,
     deleteDummyTrades,

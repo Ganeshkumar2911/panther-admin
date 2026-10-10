@@ -135,6 +135,7 @@ const urls = {
     toggle: (fmId) => `/dummy-fm/${fmId}`,
     delete: (fmId) => `/delete/dummy-fm/${fmId}`,
     importTrades: (fmId) => `/import/dummy_trades/${fmId}`,
+    generateTrades: (fmId) => `/dummy/fm_trades/${fmId}`,
     trades: (fmId) => `/dummy/trades/${fmId}`,
     updateTrade: (tradeId) => `/update/dummy/trade/${tradeId}`,
     deleteTrades: (fmId) => `/delete/dummy/trades/${fmId}`,
