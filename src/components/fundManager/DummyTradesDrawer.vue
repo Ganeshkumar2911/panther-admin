@@ -38,7 +38,7 @@
                 <span
                   class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20 inline-flex items-center gap-1"
                 >
-                  <HugeIcon :icon="AiMagicIcon" :size="10" />
+                  <HugeIcon :icon="Activity01Icon" :size="10" />
                   <span>Dummy Trades</span>
                 </span>
                 <span
@@ -897,7 +897,7 @@ import {
   ArrowDownRight,
   Loader2,
 } from 'lucide-vue-next'
-import { AiMagicIcon } from '@hugeicons/core-free-icons'
+import { Activity01Icon } from '@hugeicons/core-free-icons'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import ConfirmationDialog from '@/components/common/ConfirmationDialog.vue'
 import { useMyPermissionsStore } from '@/stores/rbac/myPermissions'

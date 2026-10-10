@@ -38,7 +38,7 @@
                 : 'text-secondary-text hover:text-primary-text hover:bg-card-background'
             "
           >
-            <HugeIcon :icon="UserAiIcon" :size="15" />
+            <HugeIcon :icon="User02Icon" :size="15" />
             <span>Dummy FM Info</span>
           </button>
         </div>
@@ -258,7 +258,7 @@
         <div
           class="relative flex h-16 w-16 items-center justify-center rounded-lg bg-background border border-primary-border mb-4"
         >
-          <Sparkles class="w-8 h-8 text-primary" />
+          <Users class="w-8 h-8 text-secondary-text" />
         </div>
 
         <h3 class="text-base font-semibold text-primary-text mb-1">
@@ -800,7 +800,7 @@ import {
   Eye,
   Pencil,
   Trash2,
-  Sparkles,
+  Sliders,
   Users,
   UsersRound,
   Mail,
@@ -811,10 +811,7 @@ import {
 } from "lucide-vue-next";
 import {
   UserGroupIcon,
-  UserAiIcon,
-  AiMagicIcon,
   User02Icon,
-  AddTeamIcon,
 } from "@hugeicons/core-free-icons";
 import Tooltip from "@/components/common/Tooltip.vue";
 import BaseSelect from "@/components/common/BaseSelect.vue";
@@ -870,99 +867,36 @@ const perPageOptions = [
   { label: "100", value: 100 },
 ];
 
-// Helper Accessors specifically for Dummy FM structure
-const getFmId = (item) =>
-  item?.fm_id ||
-  item?.dummy_fm?.fm_id ||
-  item?.fund_manager?.id ||
-  item?.id ||
-  "N/A";
+// Helper Accessors specifically for Dummy FM structure from API response
+const getFmId = (item) => item?.fm_id || item?.dummy_fm?.fm_id || "N/A";
 
-const getLabelName = (item) =>
-  item?.label_name ||
-  item?.fund_manager?.label_name ||
-  item?.user_name ||
-  `FM #${getFmId(item)}`;
+const getLabelName = (item) => item?.label_name || item?.user_name || `FM #${getFmId(item)}`;
 
-const getUserName = (item) =>
-  item?.user_name || item?.fund_manager?.user_name || item?.user?.name || "";
+const getUserName = (item) => item?.user_name || "";
 
-const getUserEmail = (item) =>
-  item?.user_email ||
-  item?.fund_manager?.user_email ||
-  item?.user?.email ||
-  "N/A";
+const getUserEmail = (item) => item?.user_email || "N/A";
 
-const getKycStatus = (item) =>
-  item?.kyc_status ||
-  item?.fund_manager?.kyc_status ||
-  item?.user?.kyc_status ||
-  "";
+const getKycStatus = (item) => item?.fund_manager?.kyc_status || "";
 
-const isTruthy = (val) =>
-  val === true || val === 1 || val === "1" || val === "true";
+const getIsActive = (item) => Boolean(item?.dummy_fm?.enabled);
 
-const isDummyActive = (item) => {
-  if (item?.dummy_fm && typeof item.dummy_fm.enabled !== "undefined") {
-    return isTruthy(item.dummy_fm.enabled);
-  }
-  if (typeof item?.is_dummy !== "undefined") {
-    return isTruthy(item.is_dummy);
-  }
-  if (typeof item?.enabled !== "undefined") {
-    return isTruthy(item.enabled);
-  }
-  return true;
-};
+const isDummyActive = (item) => Boolean(item?.dummy_fm?.enabled);
 
-const getIsActive = (item) => {
-  if (
-    item?.fund_manager &&
-    typeof item.fund_manager.is_active !== "undefined"
-  ) {
-    return isTruthy(item.fund_manager.is_active);
-  }
-  if (typeof item?.is_active !== "undefined") {
-    return isTruthy(item.is_active);
-  }
-  if (item?.dummy_fm && typeof item.dummy_fm.enabled !== "undefined") {
-    return isTruthy(item.dummy_fm.enabled);
-  }
-  if (typeof item?.enabled !== "undefined") {
-    return isTruthy(item.enabled);
-  }
-  return true;
-};
+const isDummy = (item) => Boolean(item?.dummy_fm?.enabled);
 
-const isDummy = (item) => isDummyActive(item);
+const getTotalReturn = (item) => item?.dummy_fm?.total_return ?? 0;
 
-const getTotalReturn = (item) =>
-  item?.dummy_fm?.total_return ?? item?.total_return ?? 0;
+const getWinRate = (item) => item?.dummy_fm?.win_rate ?? 0;
 
-const getWinRate = (item) => item?.dummy_fm?.win_rate ?? item?.win_rate ?? 0;
+const getProfitSharing = (item) => item?.dummy_fm?.profit_sharing ?? 0;
 
-const getProfitSharing = (item) =>
-  item?.dummy_fm?.profit_sharing ?? item?.profit_sharing ?? 0;
+const getMaxDrawdown = (item) => item?.dummy_fm?.max_drawdown ?? 0;
 
-const getMaxDrawdown = (item) =>
-  item?.dummy_fm?.max_drawdown ?? item?.max_drawdown ?? 0;
+const getCopiers = (item) => item?.dummy_fm?.active_copiers ?? item?.dummy_fm?.copiers ?? 0;
 
-const getCopiers = (item) =>
-  item?.dummy_fm?.active_copiers ??
-  item?.dummy_fm?.copiers ??
-  item?.active_copiers ??
-  item?.copiers ??
-  0;
+const getActiveSince = (item) => item?.dummy_fm?.active_since ?? "";
 
-const getActiveSince = (item) =>
-  item?.dummy_fm?.active_since ??
-  item?.active_since ??
-  item?.fund_manager?.created_at ??
-  item?.created_at ??
-  "";
-
-const getCurrency = (item) =>
-  item?.fund_manager?.broker_currency || item?.broker_currency || "USD";
+const getCurrency = (item) => item?.fund_manager?.broker_currency || "USD";
 
 // Formatting
 const formatMoney = (val, cur = "USD") => {
@@ -1050,8 +984,8 @@ const getRowActions = (item) => {
     actions.push(
       {
         action: "import-trades",
-        label: "Import Dummy Trades",
-        icon: FileSpreadsheet,
+        label: "Import / Generate Trades",
+        icon: Sliders,
       },
       {
         action: "toggle-mode",
