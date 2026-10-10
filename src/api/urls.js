@@ -104,6 +104,10 @@ const urls = {
     simpleList: "/fm-list",
     create: "/fund_managers/create",
     edit: "/fund_managers/edit",
+    dummyList: "/get-dummy/fm",
+    dummyCreate: (fmId) => (fmId ? `/create/dummy-fm/${fmId}` : "/create/dummy-fm"),
+    dummyEdit: (fmId) => `/dummy-fm/${fmId}`,
+    dummyToggle: (fmId) => `/dummy-fm/${fmId}`,
     requestList: "/fm/requests",
     acceptRequest: "/fm/requests/approve",
     rejectRequest: "/fm/requests/reject",
@@ -123,6 +127,19 @@ const urls = {
     clearFollowerPositions: (fmId) =>
       `/fund-managers/${fmId}/clear-follower-positions`,
     dealsByComment: (fmId) => `/fund_managers/${fmId}/deals/by-comment`,
+  },
+  dummyFm: {
+    list: "/get-dummy/fm",
+    create: (fmId) => (fmId ? `/create/dummy-fm/${fmId}` : "/create/dummy-fm"),
+    edit: (fmId) => `/dummy-fm/${fmId}`,
+    toggle: (fmId) => `/dummy-fm/${fmId}`,
+    delete: (fmId) => `/delete/dummy-fm/${fmId}`,
+    importTrades: (fmId) => `/import/dummy_trades/${fmId}`,
+    trades: (fmId) => `/dummy/trades/${fmId}`,
+    updateTrade: (tradeId) => `/update/dummy/trade/${tradeId}`,
+    deleteTrades: (fmId) => `/delete/dummy/trades/${fmId}`,
+    offers: "/dummy_fund_managers/offers",
+    followers: (fmId) => (fmId ? `/dummy_fund_managers/followers/${fmId}` : "/dummy_fund_managers/followers"),
   },
   tradeBook: {
     filters: "/trade-book/filters",
@@ -477,8 +494,21 @@ const urls = {
     transfers: "/vendor/transfers",
   },
   twoFactor: {
+    // Platform-wide settings
     settings: "/2fa-settings",
     reset: (userId) => `/users/${userId}/2fa/reset`,
+
+    // Staff self-service (Logged-in Admin/Staff)
+    status: "/2fa/status",
+    setup: "/2fa/setup",
+    confirm: "/2fa/confirm",
+    disable: "/2fa/disable",
+    regenerateBackupCodes: "/2fa/backup-codes/regenerate",
+    verifyLogin2fa: "/login/verify-2fa",
+
+    // Staff list (Superadmin managing staff 2FA)
+    staffStatus: (userId) => `/rbac/users/${userId}/2fa`,
+    staffReset: (userId) => `/users/${userId}/2fa/reset`,
   },
   bankRequests: {
     list: "/bank-accounts",

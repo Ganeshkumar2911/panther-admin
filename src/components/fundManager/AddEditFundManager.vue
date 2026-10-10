@@ -41,12 +41,39 @@
               </p>
             </div>
           </div>
-          <button
-            @click="closeDialog"
-            class="p-2 rounded-lg text-secondary-text hover:text-primary-text hover:bg-background transition-all cursor-pointer"
-          >
-            <X class="w-5 h-5" />
-          </button>
+          <div class="flex items-center gap-2">
+            <!-- Create Dummy FM Button (Only in edit mode) -->
+            <template v-if="mode === 'edit' && hasPermission('dummyfm.create')">
+              <!-- If dummy already created -->
+              <span
+                v-if="isDummyCreated"
+                class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary/10 text-primary border border-primary/20 flex items-center gap-1.5"
+                title="Dummy Fund Manager already exists for this account"
+              >
+                <Sparkles class="w-3.5 h-3.5 text-primary" />
+                <span>Dummy FM Exists</span>
+              </span>
+
+              <!-- If dummy NOT created yet -->
+              <button
+                v-else
+                type="button"
+                @click="handleCreateDummy"
+                class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary/10 hover:bg-primary text-primary hover:text-white border border-primary/30 transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                title="Create a Dummy FM for this fund manager"
+              >
+                <Sparkles class="w-3.5 h-3.5" />
+                <span>+ Create Dummy FM</span>
+              </button>
+            </template>
+
+            <button
+              @click="closeDialog"
+              class="p-2 rounded-lg text-secondary-text hover:text-primary-text hover:bg-background transition-all cursor-pointer"
+            >
+              <X class="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         <!-- Scrollable Form Body -->
@@ -986,8 +1013,10 @@ import {
   MapPin,
   ShieldCheck,
   AlertTriangle,
+  Sparkles,
 } from "lucide-vue-next";
 import { useFmLeaderboardStore } from "@/stores/fmLeaderboard/fmLeaderboard";
+import { useMyPermissionsStore } from "@/stores/rbac/myPermissions";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import BaseDatePicker from "@/components/common/BaseDatePicker.vue";
 import { countries } from "@/utils/countries";
@@ -1000,8 +1029,21 @@ const props = defineProps({
   item: { type: Object, default: null },
 });
 
-const emit = defineEmits(["close", "success"]);
+const emit = defineEmits(["close", "success", "create-dummy"]);
 const store = useFmLeaderboardStore();
+const permissionsStore = useMyPermissionsStore();
+const hasPermission = (perm) => permissionsStore.hasPermission(perm);
+
+const isDummyCreated = computed(() => {
+  return Boolean(
+    props.item?.is_dummy_created === true ||
+    props.item?.dummy_created === true
+  );
+});
+
+const handleCreateDummy = () => {
+  emit("create-dummy", props.item);
+};
 
 const rawGroups = ref([]);
 const groupsLoading = ref(false);

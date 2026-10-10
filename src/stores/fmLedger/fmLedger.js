@@ -32,6 +32,7 @@ export const useFmLedgerStore = defineStore('fmLedger', () => {
   // ✅ Filters (selected values)
   const filters = reactive({
     account_id: null,
+    source:     'account', // by default 'account'
     type:       null,
     fm_id:      null, // from search dropdown
     from_date:  null,
@@ -41,6 +42,7 @@ export const useFmLedgerStore = defineStore('fmLedger', () => {
   // ✅ Dynamic filter options (from API)
   const filterOptions = ref({
     types: [],
+    sources: [],
   })
 
   // ✅ Search dropdown (FM search)

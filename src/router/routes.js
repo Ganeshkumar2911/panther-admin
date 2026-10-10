@@ -16,6 +16,11 @@ const routes = [
         name: "dev-login",
         component: () => import("@/pages/auth/dev-login.vue"),
       },
+      {
+        path: "/2fa",
+        name: "two-factor",
+        component: () => import("@/pages/auth/two-factor.vue"),
+      },
     ],
   },
   {
@@ -774,6 +779,28 @@ const routes = [
           requiresAuth: true,
           title: "Draft Commission Workflow",
           description: "Period-based review and batch approval of pending IB commissions.",
+        },
+      },
+      {
+        path: "/commission-engine/approvals/details/:id",
+        name: "commission-engine-approvals-detail",
+        component: () => import("@/pages/commission-engine/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Settlement Details",
+          description: "View client summaries and distributions for this settlement.",
+          showBackButton: true,
+        },
+      },
+      {
+        path: "/commission-engine/approvals/details/:id/user/:userId",
+        name: "commission-engine-approvals-user",
+        component: () => import("@/pages/commission-engine/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Client Settlement Breakdown",
+          description: "Detailed follower trades and period breakdown for this client.",
+          showBackButton: true,
         },
       },
       {

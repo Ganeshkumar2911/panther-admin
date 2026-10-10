@@ -90,7 +90,7 @@ const validTabKeys = [
 
 const activeTab = computed(() => {
   const path = route.path;
-  if (path.endsWith("/approvals")) return "approvals";
+  if (path.includes("/approvals")) return "approvals";
   if (path.endsWith("/etl-settings")) return "etl-settings";
   if (path.endsWith("/settings")) return "settings";
   if (path.endsWith("/demo-wallets")) return "demo-wallets";

@@ -33,6 +33,16 @@ const typeOptions = computed(() =>
   (store.filterOptions.types ?? []).map((t) => ({ label: formatType(t), value: t }))
 )
 
+const sourceOptions = computed(() => {
+  if (store.filterOptions.sources?.length) {
+    return store.filterOptions.sources.map((s) => ({ label: formatType(s), value: s }))
+  }
+  return [
+    { label: 'Account', value: 'account' },
+    { label: 'Wallet', value: 'wallet' },
+  ]
+})
+
 const onFmSearch = (query) => {
   clearTimeout(fmSearchTimer)
 
@@ -72,7 +82,7 @@ const dateRangeValue = computed({
 })
 
 const hasFilters = computed(() =>
-  store.filters.fm_id || store.filters.type || store.filters.from_date || store.filters.to_date
+  store.filters.fm_id || (store.filters.source && store.filters.source !== 'account') || store.filters.type || store.filters.from_date || store.filters.to_date
 )
 
 const hasCompleteDateRange = () => store.filters.from_date && store.filters.to_date
@@ -89,7 +99,7 @@ const applyDateFilters = () => {
 }
 
 const clearFilters = () => {
-  Object.assign(store.filters, { fm_id: null, type: null, from_date: '', to_date: '' })
+  Object.assign(store.filters, { fm_id: null, source: 'account', type: null, from_date: '', to_date: '' })
   applyFilters()
 }
 
@@ -117,7 +127,10 @@ const amountClass = (type, amount) => {
 }
 
 onMounted(() => {
-  store.fetchLedger()
+  if (!store.filters.source) {
+    store.filters.source = 'account'
+  }
+  store.fetchLedger(true)
 })
 </script>
 
@@ -167,6 +180,15 @@ onMounted(() => {
           searchable
           class="w-full sm:w-52 xl:w-52"
           @search="onFmSearch"
+          @update:modelValue="applyFilters"
+        />
+
+        <!-- Source Filter -->
+        <BaseSelect
+          v-model="store.filters.source"
+          :options="sourceOptions"
+          placeholder="Select Source"
+          class="w-full sm:w-36 xl:w-36"
           @update:modelValue="applyFilters"
         />
 
@@ -325,7 +347,20 @@ onMounted(() => {
             <td class="p-3 text-xs text-secondary-text tabular-nums">${{ formatNum(entry.balance_before) }}</td>
             <td class="p-3 text-xs text-primary-text tabular-nums">${{ formatNum(entry.balance_after) }}</td>
 
-            <td class="p-3 text-xs text-secondary-text max-w-[160px] truncate">{{ entry.description ?? '—' }}</td>
+            <td class="p-3 text-xs text-secondary-text max-w-[180px]">
+              <Tooltip
+                v-if="entry.description"
+                :text="entry.description"
+                position="top"
+                maxWidth="320px"
+                block
+              >
+                <span class="block truncate text-secondary-text cursor-default">
+                  {{ entry.description }}
+                </span>
+              </Tooltip>
+              <span v-else>—</span>
+            </td>
 
             <td class="p-3 text-xs text-secondary-text text-right">{{ formatDate(entry.created_at) }}</td>
           </tr>

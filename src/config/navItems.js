@@ -303,7 +303,7 @@ export const navClusters = [
         label: "Fund Manager",
         to: "/fm-leaderboard",
         icon: Trophy,
-        permission: "fund_manager.view",
+        permission: ["fund_manager.view", "dummyfm.view"],
         keywords: [
           "fm",
           "leaderboard",

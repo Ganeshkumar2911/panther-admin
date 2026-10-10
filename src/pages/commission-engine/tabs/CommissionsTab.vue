@@ -272,16 +272,10 @@ const columns = [
   { key: "trade_info", label: "Client & Trade Details", width: "210px" },
   { key: "rates", label: "Rate Applied", width: "150px" },
   {
-    key: "close_market_ask",
-    label: "Market Ask",
+    key: "close_market",
+    label: "Close Market (Ask/Bid)",
     align: "right",
-    width: "120px",
-  },
-  {
-    key: "close_market_bid",
-    label: "Market Bid",
-    align: "right",
-    width: "120px",
+    width: "160px",
   },
   {
     key: "closed_spread_points",
@@ -771,29 +765,19 @@ const formatDate = (val) => {
         </div>
       </template>
 
-      <!-- Cell: Market Ask -->
-      <template #cell-close_market_ask="{ row }">
-        <div class="text-right font-mono text-xs">
-          <span
-            v-if="row.calculation?.close_market_ask != null"
-            class="text-primary-text font-semibold"
-          >
-            {{ row.calculation.close_market_ask }}
-          </span>
-          <span v-else class="text-secondary-text">-</span>
-        </div>
-      </template>
-
-      <!-- Cell: Market Bid -->
-      <template #cell-close_market_bid="{ row }">
-        <div class="text-right font-mono text-xs">
-          <span
-            v-if="row.calculation?.close_market_bid != null"
-            class="text-primary-text font-semibold"
-          >
-            {{ row.calculation.close_market_bid }}
-          </span>
-          <span v-else class="text-secondary-text">-</span>
+      <!-- Cell: Close Market (Ask / Bid / Spread) -->
+      <template #cell-close_market="{ row }">
+        <div class="text-right font-mono text-xs space-y-0.5">
+          <p v-if="row.trade?.close_market_ask != null || row.calculation?.close_market_ask != null" class="text-primary-text">
+            Ask: <span class="font-semibold">{{ row.trade?.close_market_ask ?? row.calculation?.close_market_ask }}</span>
+          </p>
+          <p v-if="row.trade?.close_market_bid != null || row.calculation?.close_market_bid != null" class="text-primary-text">
+            Bid: <span class="font-semibold">{{ row.trade?.close_market_bid ?? row.calculation?.close_market_bid }}</span>
+          </p>
+          <p v-if="row.trade?.closed_spread != null || row.closed_spread != null" class="text-[10px] text-secondary-text">
+            Spread: {{ row.trade?.closed_spread ?? row.closed_spread }} pts
+          </p>
+          <span v-if="row.trade?.close_market_ask == null && row.calculation?.close_market_ask == null && row.trade?.close_market_bid == null && row.calculation?.close_market_bid == null">-</span>
         </div>
       </template>
 
@@ -1051,10 +1035,10 @@ const formatDate = (val) => {
       <template #cell-trade_prices="{ row }">
         <div class="text-right font-mono text-xs space-y-0.5">
           <p class="text-primary-text">
-            Open: <span class="font-semibold">{{ row.trade?.open_price != null ? row.trade.open_price : "-" }}</span>
+            Open: <span class="font-semibold">{{ row.trade?.price_open ?? row.trade?.open_price ?? "-" }}</span>
           </p>
           <p class="text-primary-text">
-            Close: <span class="font-semibold">{{ row.trade?.close_price != null ? row.trade.close_price : "-" }}</span>
+            Close: <span class="font-semibold">{{ row.trade?.price_close ?? row.trade?.close_price ?? "-" }}</span>
           </p>
         </div>
       </template>

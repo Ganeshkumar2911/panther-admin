@@ -890,15 +890,15 @@ const getWalletTargetMasterBadge = (state) => {
           v-if="selectedIbId && store.currentIbPayoutSettings"
           class="p-3 rounded-lg bg-background/60 border border-primary-border/50 backdrop-blur-sm  flex flex-wrap items-center justify-between gap-2"
         >
-          <div class="flex items-center gap-2 min-w-0">
-            <div class="w-7 h-7 rounded-md bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0">
+          <div class="flex items-stretch gap-2.5 min-w-0">
+            <div class="px-2.5 rounded-lg bg-primary/10 text-primary border border-primary/20 flex items-center justify-center font-bold font-mono text-xs shrink-0 whitespace-nowrap self-stretch">
               #{{ selectedIbId }}
             </div>
-            <div class="truncate">
-              <span class="text-xs font-bold text-primary-text block truncate">
+            <div class="min-w-0 flex flex-col justify-center">
+              <span class="text-xs font-bold text-primary-text block truncate leading-tight">
                 {{ selectedIbOption?.name || store.currentIbPayoutSettings?.ib_name || `IB #${selectedIbId}` }}
               </span>
-              <span class="text-[11px] text-secondary-text font-mono block truncate">
+              <span class="text-[11px] text-secondary-text font-mono block truncate leading-tight mt-0.5">
                 {{ selectedIbOption?.email || store.currentIbPayoutSettings?.ib_email || `ID: ${selectedIbId}` }}
               </span>
             </div>

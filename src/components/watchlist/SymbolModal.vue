@@ -61,7 +61,7 @@ watch(
 )
 
 function onSymbolInput(e) {
-  form.value.symbol = e.target.value.toUpperCase().replace(/\s+/g, '')
+  form.value.symbol = e.target.value
   if (errors.value.symbol) errors.value.symbol = ''
 }
 
@@ -72,7 +72,7 @@ function handleSave() {
   }
 
   const payload = {
-    symbol: form.value.symbol.trim().toUpperCase(),
+    symbol: form.value.symbol.trim(),
     name: form.value.name?.trim() || null,
     category: form.value.category?.trim() || null,
     is_active: Boolean(form.value.is_active),
@@ -128,7 +128,7 @@ function handleSave() {
             type="text"
             placeholder="e.g. EURUSD, BTCUSD, XAUUSD"
             maxlength="50"
-            class="input-field font-mono font-medium tracking-wide uppercase px-3.5 py-2.5"
+            class="input-field font-mono font-medium tracking-wide px-3.5 py-2.5"
             :class="{ 'border-primary-red focus:border-primary-red': errors.symbol }"
           />
           <p v-if="errors.symbol" class="text-xs text-primary-red mt-1">
