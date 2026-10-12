@@ -3,6 +3,7 @@ import routes from "./routes";
 import authToken from "@/common/authToken";
 import { useMyPermissionsStore } from "@/stores/rbac/myPermissions";
 import { navItems } from "@/config/navItems";
+import { cancelAllPendingGetRequests } from "@/api/request";
 
 const router = createRouter({
   history: createWebHistory(),
@@ -10,6 +11,8 @@ const router = createRouter({
 });
 
 router.beforeEach(async (to, from) => {
+  cancelAllPendingGetRequests();
+
   const token = authToken.getToken().accessToken;
   const isAuthenticated = Boolean(token);
 

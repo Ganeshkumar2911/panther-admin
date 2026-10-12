@@ -21,6 +21,10 @@ const classes = computed(() => {
       return 'text-secondary-text border-primary-border/50 bg-primary-border/10 opacity-70'
     case 'pending':
       return 'text-secondary-text border-primary-border bg-primary-border/20'
+    case 'exited':
+    case 'closed':
+    case 'inactive':
+      return 'text-amber-500 border-amber-500/30 bg-amber-500/10'
     default:
       return 'text-secondary-text border-primary-border bg-primary-border/10'
   }

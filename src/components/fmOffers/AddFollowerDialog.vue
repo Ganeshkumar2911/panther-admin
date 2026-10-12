@@ -574,7 +574,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch } from "vue";
+import { ref, reactive, computed, watch, onUnmounted } from "vue";
 import {
   UserPlus,
   X,
@@ -747,7 +747,7 @@ const handleClientSearch = (query) => {
       onFailure: failureHandler,
       onFinally: finallyHandler,
     });
-  }, 250);
+  }, 500);
 };
 
 const loadInitialClients = () => {
@@ -880,6 +880,11 @@ const selectAccount = (acc) => {
 };
 
 const resetForm = () => {
+  if (clientSearchTimer) {
+    clearTimeout(clientSearchTimer);
+    clientSearchTimer = null;
+  }
+  isSearchingClients.value = false;
   form.user_id = null;
   form.mode = "copy_trading";
   form.trading_account_id = null;
@@ -891,6 +896,13 @@ const resetForm = () => {
   errorMessage.value = "";
   modeNotice.value = "";
 };
+
+onUnmounted(() => {
+  if (clientSearchTimer) {
+    clearTimeout(clientSearchTimer);
+    clientSearchTimer = null;
+  }
+});
 
 const handleClose = () => {
   if (isSubmitting.value) return;
