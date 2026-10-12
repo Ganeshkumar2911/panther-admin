@@ -4,7 +4,7 @@
       <div>
         <h1 class="title-text text-primary-text">{{ store.activePAMM?.name || 'PAMM Details' }}</h1>
         <p class="sub-text text-secondary-text">
-          Master MT5: {{ store.activePAMM?.master_trading_account_id }} | 
+          Master MT5: {{ store.activePAMM?.master_trading_account?.account_number || store.activePAMM?.master_trading_account_id }} | 
           Status: <StatusBadge :status="store.activePAMM?.status || 'draft'" class="ml-1 inline-block" />
         </p>
       </div>
