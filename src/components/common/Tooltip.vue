@@ -220,7 +220,7 @@ const handleMouseLeave = () => {
   font-weight: 500;
   line-height: 1.4;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-  white-space: normal;
+  white-space: pre-line;
   word-break: break-word;
   text-align: left;
 }

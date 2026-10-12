@@ -894,9 +894,8 @@ import {
   BookOpen,
   LogIn,
   Briefcase,
-  Sparkles
+  Sliders
 } from 'lucide-vue-next'
-import { UserGroupIcon, UserAiIcon, AiMagicIcon } from '@hugeicons/core-free-icons'
 import { useFmLeaderboardStore } from '@/stores/fmLeaderboard/fmLeaderboard'
 import { usePAMMStore } from '@/stores/pamm/pamm'
 import Pagination from '@/components/common/Pagination.vue'
@@ -1321,7 +1320,7 @@ const getRowActions = (item) => {
     actions.push({
       action: 'toggle-mode',
       label: item.is_dummy ? 'Switch to Real FM' : 'Switch to Dummy FM',
-      icon: item.is_dummy ? Users : Sparkles,
+      icon: item.is_dummy ? Users : Sliders,
     })
   }
   if (hasPermission('xtention_dev.login_as_fm')) {

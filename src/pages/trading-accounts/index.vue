@@ -15,6 +15,7 @@ import {
   Power,
   Layers,
   SlidersHorizontal,
+  ShieldCheck,
 } from "lucide-vue-next";
 import DataTable from "@/components/common/DataTable/DataTable.vue";
 import ChangePasswordDialog from "@/components/trading-accounts/ChangePasswordDialog.vue";
@@ -23,6 +24,7 @@ import AddEditAccount from "@/components/trading-accounts/AddEditAccount.vue";
 import ToggleTradingDialog from "@/components/trading-accounts/ToggleTradingDialog.vue";
 import ChangeTradingGroupDrawer from "@/components/trading-accounts/ChangeTradingGroupDrawer.vue";
 import ManageTransactionsDialog from "@/components/common/ManageTransactionsDialog.vue";
+import Mt5AccountRightsDrawer from "@/components/trading-accounts/Mt5AccountRightsDrawer.vue";
 import { useAccountsStore } from "@/stores/tradingAccounts/tradingAccounts";
 import { useClientListStore } from "@/stores/clientList/clientList";
 import { useProfileStore } from "@/stores/profile/profile";
@@ -95,6 +97,11 @@ const changeGroupDrawer = ref({
 });
 
 const manageTransactionsDialog = ref({
+  open: false,
+  account: null,
+});
+
+const mt5RightsDrawer = ref({
   open: false,
   account: null,
 });
@@ -321,6 +328,24 @@ const closeManageTransactions = () => {
   };
 };
 
+const openMt5Rights = (acc) => {
+  if (acc?.trading_type !== "real") return;
+  mt5RightsDrawer.value = {
+    open: true,
+    account: {
+      ...acc,
+      id: getAccountId(acc),
+    },
+  };
+};
+
+const closeMt5Rights = () => {
+  mt5RightsDrawer.value = {
+    open: false,
+    account: null,
+  };
+};
+
 const formatNum = (val) =>
   Number(val ?? 0).toLocaleString("en-US", {
     minimumFractionDigits: 2,
@@ -399,6 +424,12 @@ function getRowActions(acc) {
         icon: SlidersHorizontal,
       },
       {
+        action: "mt5Rights",
+        label: "MT5 Rights",
+        icon: ShieldCheck,
+        hidden: acc.trading_type !== "real",
+      },
+      {
         action: "changePassword",
         label: "Change Password",
         icon: RotateCcwKey,
@@ -455,6 +486,10 @@ function onMenuSelect(item, acc) {
     case "manageRestrictions":
       setActiveCurrency(acc);
       openManageTransactions(acc);
+      break;
+    case "mt5Rights":
+      setActiveAccount(acc);
+      openMt5Rights(acc);
       break;
     case "changePassword":
       setActiveCurrency(acc);
@@ -928,6 +963,13 @@ onBeforeUnmount(() => clearTimeout(searchTimer));
       :open="manageTransactionsDialog.open"
       :account="manageTransactionsDialog.account"
       @close="closeManageTransactions"
+      @success="store.fetchAccounts(true)"
+    />
+
+    <Mt5AccountRightsDrawer
+      :open="mt5RightsDrawer.open"
+      :account="mt5RightsDrawer.account"
+      @close="closeMt5Rights"
       @success="store.fetchAccounts(true)"
     />
   </div>

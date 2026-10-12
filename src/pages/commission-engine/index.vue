@@ -43,6 +43,7 @@ import SettingsTab from "./tabs/SettingsTab.vue";
 import DemoWalletsTab from "./tabs/DemoWalletsTab.vue";
 import ApprovalsTab from "./tabs/ApprovalsTab.vue";
 import EtlSettingsTab from "./tabs/EtlSettingsTab.vue";
+import ReportsTab from "./tabs/ReportsTab.vue";
 
 const route = useRoute();
 const { hasModulePermission, hasPermission } = usePermissionCheck();
@@ -50,6 +51,8 @@ const { hasModulePermission, hasPermission } = usePermissionCheck();
 const hasAccess = computed(() => {
   return (
     hasPermission("ib_commission.view") ||
+    hasPermission("ib_commission_reports.view") ||
+    hasPermission("ib_commission.reports.view") ||
     hasPermission("ib_commission_rates.view") ||
     hasPermission("ib_commission.rates.view") ||
     hasPermission("ib_commission_symbol_groups.view") ||
@@ -77,6 +80,7 @@ const hasAccess = computed(() => {
 
 const validTabKeys = [
   "approvals",
+  "reports",
   "commissions",
   "trades",
   "rates",
@@ -91,6 +95,7 @@ const validTabKeys = [
 const activeTab = computed(() => {
   const path = route.path;
   if (path.includes("/approvals")) return "approvals";
+  if (path.includes("/reports")) return "reports";
   if (path.endsWith("/etl-settings")) return "etl-settings";
   if (path.endsWith("/settings")) return "settings";
   if (path.endsWith("/demo-wallets")) return "demo-wallets";
@@ -111,6 +116,8 @@ const activeComponent = computed(() => {
   switch (activeTab.value) {
     case "approvals":
       return ApprovalsTab;
+    case "reports":
+      return ReportsTab;
     case "etl-settings":
       return EtlSettingsTab;
     case "settings":

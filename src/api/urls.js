@@ -32,6 +32,8 @@ const urls = {
     toggleTrading: "/account/toggle-trading",
     transactionRestrictions: (tradingAccountId) =>
       `/trading-accounts/${tradingAccountId}/transaction-restrictions`,
+    rights: "/accounts/rights",
+    updateRights: "/accounts/update-rights",
   },
   clientList: {
     list: "/client-list",
@@ -136,6 +138,7 @@ const urls = {
     toggle: (fmId) => `/dummy-fm/${fmId}`,
     delete: (fmId) => `/delete/dummy-fm/${fmId}`,
     importTrades: (fmId) => `/import/dummy_trades/${fmId}`,
+    generateTrades: (fmId) => `/dummy/fm_trades/${fmId}`,
     trades: (fmId) => `/dummy/trades/${fmId}`,
     updateTrade: (tradeId) => `/update/dummy/trade/${tradeId}`,
     deleteTrades: (fmId) => `/delete/dummy/trades/${fmId}`,
@@ -481,6 +484,17 @@ const urls = {
     recalcRevertMaster: "/ib-commission/settings/recalc-revert",
     ibRecalcRevert: (ibId) => `/ib-commission/ibs/${ibId}/recalc-revert`,
     runRecalcRevert: "/ib-commission/settings/recalc-revert/run",
+    // Reports & Analytics
+    searchIb: "/search/ib",
+    reportsCatalog: "/ib-commission/reports/catalog",
+    reportsPeriods: "/ib-commission/reports/periods",
+    reportsPerformance: "/ib-commission/reports/performance",
+    reportsAffiliates: "/ib-commission/reports/affiliates",
+    reportsSubAffiliates: "/ib-commission/reports/sub-affiliates",
+    reportsCustomers: "/ib-commission/reports/customers",
+    reportsSymbols: "/ib-commission/reports/symbols",
+    reportsPayouts: "/ib-commission/reports/payouts",
+    reportsExport: "/ib-commission/reports/export",
   },
   cashback: {
     programs: "/cashback/programs",

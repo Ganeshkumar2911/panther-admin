@@ -34,7 +34,7 @@
                 <span
                   class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20 inline-flex items-center gap-1"
                 >
-                  <HugeIcon :icon="AiMagicIcon" :size="10" />
+                  <HugeIcon :icon="User02Icon" :size="10" />
                   <span>Dummy FM</span>
                 </span>
                 <span
@@ -68,16 +68,16 @@
               <span class="hidden sm:inline">Dummy Trades</span>
             </button>
 
-            <!-- Import Dummy Trades Button -->
+            <!-- Import / Generate Dummy Trades Button -->
             <button
               v-if="hasPermission('dummyfm.update')"
               type="button"
               class="h-8 inline-flex items-center gap-1.5 px-3 rounded-lg text-xs font-semibold border border-primary-border bg-card-background hover:bg-background text-primary-text transition cursor-pointer"
-              title="Import Dummy Trades"
+              title="Import / Generate Dummy Trades"
               @click="handleImportTrades"
             >
-              <FileSpreadsheet class="w-3.5 h-3.5 text-primary" />
-              <span class="hidden sm:inline">Import Trades</span>
+              <Sliders class="w-3.5 h-3.5 text-primary" />
+              <span class="hidden sm:inline">Import / Generate</span>
             </button>
 
             <!-- Edit Dummy FM Button -->
@@ -116,9 +116,9 @@
               </div>
               <span
                 v-if="isEnabled"
-                class="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border inline-flex items-center gap-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30"
+                class="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border inline-flex items-center gap-1.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30"
               >
-                <HugeIcon :icon="AddTeamIcon" :size="11" class="text-amber-500 shrink-0" />
+                <span class="inline-block w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
                 <span>Dummy Enabled</span>
               </span>
             </div>
@@ -276,12 +276,13 @@ import {
   Calendar,
   Pencil,
   Trash2,
+  Sliders,
   FileSpreadsheet,
   CandlestickChart,
   Copy,
   Check,
 } from 'lucide-vue-next'
-import { AiMagicIcon,User02Icon,AddTeamIcon } from '@hugeicons/core-free-icons'
+import { User02Icon } from '@hugeicons/core-free-icons'
 import ConfirmationDialog from '@/components/common/ConfirmationDialog.vue'
 import { useMyPermissionsStore } from '@/stores/rbac/myPermissions'
 import { useFmLeaderboardStore } from '@/stores/fmLeaderboard/fmLeaderboard'
@@ -362,7 +363,7 @@ const isEnabled = computed(() => {
   if (dummyData.value?.enabled !== undefined) return isTruthy(dummyData.value.enabled)
   if (props.item?.enabled !== undefined) return isTruthy(props.item.enabled)
   if (props.item?.is_dummy !== undefined) return isTruthy(props.item.is_dummy)
-  return true
+  return false
 })
 
 const totalReturn = computed(() => {
