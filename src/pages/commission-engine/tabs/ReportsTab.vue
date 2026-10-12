@@ -32,6 +32,7 @@ import DataTable from "@/components/common/DataTable/DataTable.vue";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import BaseDatePicker from "@/components/common/BaseDatePicker.vue";
 import StatusBadge from "@/components/common/StatusBadge.vue";
+import Tooltip from "@/components/common/Tooltip.vue";
 import ReportColumnsModal from "../components/reports/ReportColumnsModal.vue";
 
 const store = useCommissionEngineStore();
@@ -708,13 +709,21 @@ const copyTableToClipboard = () => {
 
 // ─── Format Helpers ────────────────────────────────────────────────────────────
 const formatUSD = (num) => {
-  const val = Number(num || 0);
-  return "$" + val.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (num === null || num === undefined || num === "" || isNaN(Number(num))) return "$0.00";
+  const n = Number(num);
+  const isNegative = n < 0;
+  const cleaned = parseFloat(Math.abs(n).toFixed(12));
+  const str = cleaned.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 20 });
+  return (isNegative ? "-$" : "$") + str;
 };
 
 const formatLots = (num) => {
-  const val = Number(num || 0);
-  return val.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (num === null || num === undefined || num === "" || isNaN(Number(num))) return "0.00";
+  const n = Number(num);
+  const isNegative = n < 0;
+  const cleaned = parseFloat(Math.abs(n).toFixed(12));
+  const str = cleaned.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 20 });
+  return (isNegative ? "-" : "") + str;
 };
 
 // Reset Filters
@@ -1144,9 +1153,10 @@ onMounted(async () => {
     </div>
 
     <!-- ================================================================= -->
+    <!-- ================================================================= -->
     <!-- SUMMARY KPI METRIC CARDS                                          -->
     <!-- ================================================================= -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3.5">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5 gap-3.5">
       <!-- Loading Skeleton -->
       <template v-if="store.reportsLoading">
         <div
@@ -1177,250 +1187,300 @@ onMounted(async () => {
       <!-- Loaded Cards -->
       <template v-else>
         <!-- KPI 1: Grand Total Commission -->
-        <div
-          class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between hover:border-emerald-500/40 transition-all min-w-0 shadow-2xs group cursor-default"
-          :title="`Grand Total Commission: ${formatUSD(store.reportsSummary?.grand_total_commission ?? store.reportsSummary?.total_commission ?? tableTotals.grand_total_commission)}\n• Direct Commission: ${formatUSD(store.reportsSummary?.performance_commission ?? tableTotals.performance_commission)}\n• From Sub-IBs: ${formatUSD(store.reportsSummary?.commission_from_subibs ?? tableTotals.commission_from_subibs)}`"
-        >
-          <div class="flex items-center justify-between gap-2">
-            <span class="text-[11px] font-bold uppercase tracking-wider text-secondary-text">Grand Total Commission</span>
+        <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between hover:border-emerald-500/40 transition-all min-w-0 shadow-2xs group cursor-default">
+          <div class="flex items-center justify-between gap-2 min-w-0">
+            <Tooltip text="Grand Total Commission" position="top" class="min-w-0 truncate">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-secondary-text truncate block">Grand Total Commission</span>
+            </Tooltip>
             <div class="w-7 h-7 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
               <Coins :size="15" />
             </div>
           </div>
 
-          <div class="mt-2.5">
-            <p
-              class="text-xl sm:text-2xl font-bold text-emerald-500 tabular-nums font-mono tracking-tight whitespace-nowrap"
-              :title="`Grand Total: ${formatUSD(store.reportsSummary?.grand_total_commission ?? store.reportsSummary?.total_commission ?? tableTotals.grand_total_commission)}`"
+          <div class="mt-2.5 min-w-0">
+            <Tooltip
+              :text="`+${formatUSD(store.reportsSummary?.grand_total_commission ?? store.reportsSummary?.total_commission ?? tableTotals.grand_total_commission)}`"
+              position="top"
+              class="block max-w-full"
             >
-              +{{ formatUSD(store.reportsSummary?.grand_total_commission ?? store.reportsSummary?.total_commission ?? tableTotals.grand_total_commission) }}
-            </p>
+              <p class="text-xl sm:text-2xl font-bold text-emerald-500 tabular-nums font-mono tracking-tight">
+                +{{ formatUSD(store.reportsSummary?.grand_total_commission ?? store.reportsSummary?.total_commission ?? tableTotals.grand_total_commission) }}
+              </p>
+            </Tooltip>
 
             <!-- Sub-metrics Grid -->
             <div class="grid grid-cols-2 gap-2 mt-3 pt-2.5 border-t border-primary-border/60 text-xs">
-              <div
-                class="min-w-0"
-                :title="`Direct Commission: ${formatUSD(store.reportsSummary?.performance_commission ?? tableTotals.performance_commission)}`"
-              >
-                <span class="block text-[10px] uppercase font-semibold text-secondary-text tracking-wide">Direct</span>
-                <span class="font-mono font-bold text-primary block whitespace-nowrap">
-                  {{ formatUSD(store.reportsSummary?.performance_commission ?? tableTotals.performance_commission) }}
-                </span>
+              <div class="min-w-0">
+                <span class="block text-[10px] uppercase font-semibold text-secondary-text tracking-wide truncate">Direct</span>
+                <Tooltip
+                  :text="`Direct: ${formatUSD(store.reportsSummary?.performance_commission ?? tableTotals.performance_commission)}`"
+                  position="top"
+                  class="block max-w-full"
+                >
+                  <span class="font-mono font-bold text-primary block text-xs truncate">
+                    {{ formatUSD(store.reportsSummary?.performance_commission ?? tableTotals.performance_commission) }}
+                  </span>
+                </Tooltip>
               </div>
-              <div
-                class="min-w-0 text-right"
-                :title="`Sub-IBs Override: ${formatUSD(store.reportsSummary?.commission_from_subibs ?? tableTotals.commission_from_subibs)}`"
-              >
-                <span class="block text-[10px] uppercase font-semibold text-secondary-text tracking-wide">Sub-IBs</span>
-                <span class="font-mono font-bold text-amber-500 block whitespace-nowrap">
-                  {{ formatUSD(store.reportsSummary?.commission_from_subibs ?? tableTotals.commission_from_subibs) }}
-                </span>
+              <div class="min-w-0 text-right">
+                <span class="block text-[10px] uppercase font-semibold text-secondary-text tracking-wide truncate">Sub-IBs</span>
+                <Tooltip
+                  :text="`Sub-IBs: ${formatUSD(store.reportsSummary?.commission_from_subibs ?? tableTotals.commission_from_subibs)}`"
+                  position="top"
+                  class="block max-w-full"
+                >
+                  <span class="font-mono font-bold text-amber-500 block text-xs truncate">
+                    {{ formatUSD(store.reportsSummary?.commission_from_subibs ?? tableTotals.commission_from_subibs) }}
+                  </span>
+                </Tooltip>
               </div>
             </div>
           </div>
         </div>
 
         <!-- KPI 2: Total Lots Traded -->
-        <div
-          class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between hover:border-primary/40 transition-all min-w-0 shadow-2xs group cursor-default"
-          :title="`Total Traded Volume: ${formatLots(store.reportsSummary?.total_lots ?? store.reportsSummary?.total_lots_all ?? tableTotals.total_lots)} lots\n• Closed Volume: ${formatLots(store.reportsSummary?.closed_volume_lots ?? tableTotals.closed_volume_lots)} lots\n• Open Volume: ${formatLots(store.reportsSummary?.open_volume_lots ?? tableTotals.open_volume_lots)} lots`"
-        >
-          <div class="flex items-center justify-between gap-2">
-            <span class="text-[11px] font-bold uppercase tracking-wider text-secondary-text">Total Traded Volume</span>
+        <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between hover:border-primary/40 transition-all min-w-0 shadow-2xs group cursor-default">
+          <div class="flex items-center justify-between gap-2 min-w-0">
+            <Tooltip text="Total Traded Volume" position="top" class="min-w-0 truncate">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-secondary-text truncate block">Total Traded Volume</span>
+            </Tooltip>
             <div class="w-7 h-7 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0">
               <CandlestickChart :size="15" />
             </div>
           </div>
 
-          <div class="mt-2.5">
-            <p
-              class="text-xl sm:text-2xl font-bold text-primary-text tabular-nums font-mono tracking-tight whitespace-nowrap"
-              :title="`${formatLots(store.reportsSummary?.total_lots ?? store.reportsSummary?.total_lots_all ?? tableTotals.total_lots)} lots`"
+          <div class="mt-2.5 min-w-0">
+            <Tooltip
+              :text="`${formatLots(store.reportsSummary?.total_lots ?? store.reportsSummary?.total_lots_all ?? tableTotals.total_lots)} lots`"
+              position="top"
+              class="block max-w-full"
             >
-              {{ formatLots(store.reportsSummary?.total_lots ?? store.reportsSummary?.total_lots_all ?? tableTotals.total_lots) }}
-              <span class="text-xs font-sans font-normal text-secondary-text ml-1">lots</span>
-            </p>
+              <div class="text-xl sm:text-2xl font-bold text-primary-text tabular-nums font-mono tracking-tight flex items-baseline gap-1 min-w-0">
+                <span class="truncate">{{ formatLots(store.reportsSummary?.total_lots ?? store.reportsSummary?.total_lots_all ?? tableTotals.total_lots) }}</span>
+                <span class="text-xs font-sans font-normal text-secondary-text shrink-0">lots</span>
+              </div>
+            </Tooltip>
 
             <!-- Sub-metrics Grid -->
             <div class="grid grid-cols-2 gap-2 mt-3 pt-2.5 border-t border-primary-border/60 text-xs">
-              <div
-                class="min-w-0"
-                :title="`Closed Volume: ${formatLots(store.reportsSummary?.closed_volume_lots ?? tableTotals.closed_volume_lots)} lots`"
-              >
-                <span class="block text-[10px] uppercase font-semibold text-secondary-text tracking-wide">Closed Vol</span>
-                <span class="font-mono font-bold text-primary-text block whitespace-nowrap">
-                  {{ formatLots(store.reportsSummary?.closed_volume_lots ?? tableTotals.closed_volume_lots) }} <span class="text-[10px] font-normal text-secondary-text">lots</span>
-                </span>
+              <div class="min-w-0">
+                <span class="block text-[10px] uppercase font-semibold text-secondary-text tracking-wide truncate">Closed Vol</span>
+                <Tooltip
+                  :text="`Closed Vol: ${formatLots(store.reportsSummary?.closed_volume_lots ?? tableTotals.closed_volume_lots)} lots`"
+                  position="top"
+                  class="block max-w-full"
+                >
+                  <span class="font-mono font-bold text-primary-text block text-xs truncate">
+                    {{ formatLots(store.reportsSummary?.closed_volume_lots ?? tableTotals.closed_volume_lots) }}
+                  </span>
+                  <span class="text-[10px] font-normal text-secondary-text block truncate">lots</span>
+                </Tooltip>
               </div>
-              <div
-                class="min-w-0 text-right"
-                :title="`Open Volume: ${formatLots(store.reportsSummary?.open_volume_lots ?? tableTotals.open_volume_lots)} lots`"
-              >
-                <span class="block text-[10px] uppercase font-semibold text-secondary-text tracking-wide">Open Vol</span>
-                <span class="font-mono font-bold text-primary-text block whitespace-nowrap">
-                  {{ formatLots(store.reportsSummary?.open_volume_lots ?? tableTotals.open_volume_lots) }} <span class="text-[10px] font-normal text-secondary-text">lots</span>
-                </span>
+              <div class="min-w-0 text-right">
+                <span class="block text-[10px] uppercase font-semibold text-secondary-text tracking-wide truncate">Open Vol</span>
+                <Tooltip
+                  :text="`Open Vol: ${formatLots(store.reportsSummary?.open_volume_lots ?? tableTotals.open_volume_lots)} lots`"
+                  position="top"
+                  class="block max-w-full"
+                >
+                  <span class="font-mono font-bold text-primary-text block text-xs truncate">
+                    {{ formatLots(store.reportsSummary?.open_volume_lots ?? tableTotals.open_volume_lots) }}
+                  </span>
+                  <span class="text-[10px] font-normal text-secondary-text block truncate">lots</span>
+                </Tooltip>
               </div>
             </div>
           </div>
         </div>
 
         <!-- KPI 3: Direct vs Sub-IB Split -->
-        <div
-          class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between hover:border-primary/40 transition-all min-w-0 shadow-2xs group cursor-default"
-          :title="`Direct vs Sub-IB Split\n• Direct: ${formatUSD(store.reportsSummary?.performance_commission ?? tableTotals.performance_commission)} (${formatLots(store.reportsSummary?.performance_lots ?? tableTotals.performance_lots)} lots)\n• Sub-IBs: ${formatUSD(store.reportsSummary?.commission_from_subibs ?? tableTotals.commission_from_subibs)} (${formatLots(store.reportsSummary?.lots_from_subibs ?? tableTotals.lots_from_subibs)} lots)`"
-        >
-          <div class="flex items-center justify-between gap-2">
-            <span class="text-[11px] font-bold uppercase tracking-wider text-secondary-text">Direct vs Sub-IBs</span>
+        <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between hover:border-primary/40 transition-all min-w-0 shadow-2xs group cursor-default">
+          <div class="flex items-center justify-between gap-2 min-w-0">
+            <Tooltip text="Direct vs Sub-IBs" position="top" class="min-w-0 truncate">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-secondary-text truncate block">Direct vs Sub-IBs</span>
+            </Tooltip>
             <div class="w-7 h-7 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center shrink-0">
               <Layers :size="15" />
             </div>
           </div>
 
-          <div class="mt-2.5 space-y-2">
+          <div class="mt-2.5 space-y-2 min-w-0">
             <!-- Direct Block -->
-            <div
-              class="px-2.5 py-1.5 rounded-xl bg-primary/5 border border-primary/15"
-              :title="`Direct: ${formatUSD(store.reportsSummary?.performance_commission ?? tableTotals.performance_commission)} • ${formatLots(store.reportsSummary?.performance_lots ?? tableTotals.performance_lots)} lots`"
+            <Tooltip
+              :text="`Direct: ${formatUSD(store.reportsSummary?.performance_commission ?? tableTotals.performance_commission)} (${formatLots(store.reportsSummary?.performance_lots ?? tableTotals.performance_lots)} lots)`"
+              position="top"
+              class="block w-full"
             >
-              <div class="flex items-center justify-between gap-2 text-[11px]">
-                <span class="inline-flex items-center gap-1.5 font-bold text-primary">
-                  <span class="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
-                  Direct
-                </span>
-                <span class="font-mono text-secondary-text text-[10px] font-medium whitespace-nowrap">
-                  {{ formatLots(store.reportsSummary?.performance_lots ?? tableTotals.performance_lots) }} lots
-                </span>
+              <div class="px-2.5 py-1.5 rounded-xl bg-primary/5 border border-primary/15 min-w-0">
+                <div class="flex items-center justify-between gap-1.5 text-[11px] min-w-0">
+                  <span class="inline-flex items-center gap-1 font-bold text-primary shrink-0">
+                    <span class="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+                    Direct
+                  </span>
+                  <span class="font-mono text-secondary-text text-[10px] font-medium truncate text-right">
+                    {{ formatLots(store.reportsSummary?.performance_lots ?? tableTotals.performance_lots) }} lots
+                  </span>
+                </div>
+                <div class="text-sm font-bold font-mono text-primary-text mt-0.5 truncate">
+                  {{ formatUSD(store.reportsSummary?.performance_commission ?? tableTotals.performance_commission) }}
+                </div>
               </div>
-              <div class="text-sm font-bold font-mono text-primary-text mt-0.5 whitespace-nowrap">
-                {{ formatUSD(store.reportsSummary?.performance_commission ?? tableTotals.performance_commission) }}
-              </div>
-            </div>
+            </Tooltip>
 
             <!-- Sub-IBs Block -->
-            <div
-              class="px-2.5 py-1.5 rounded-xl bg-amber-500/5 border border-amber-500/15"
-              :title="`Sub-IBs: ${formatUSD(store.reportsSummary?.commission_from_subibs ?? tableTotals.commission_from_subibs)} • ${formatLots(store.reportsSummary?.lots_from_subibs ?? tableTotals.lots_from_subibs)} lots`"
+            <Tooltip
+              :text="`Sub-IBs: ${formatUSD(store.reportsSummary?.commission_from_subibs ?? tableTotals.commission_from_subibs)} (${formatLots(store.reportsSummary?.lots_from_subibs ?? tableTotals.lots_from_subibs)} lots)`"
+              position="top"
+              class="block w-full"
             >
-              <div class="flex items-center justify-between gap-2 text-[11px]">
-                <span class="inline-flex items-center gap-1.5 font-bold text-amber-500">
-                  <span class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-                  Sub-IBs
-                </span>
-                <span class="font-mono text-secondary-text text-[10px] font-medium whitespace-nowrap">
-                  {{ formatLots(store.reportsSummary?.lots_from_subibs ?? tableTotals.lots_from_subibs) }} lots
-                </span>
+              <div class="px-2.5 py-1.5 rounded-xl bg-amber-500/5 border border-amber-500/15 min-w-0">
+                <div class="flex items-center justify-between gap-1.5 text-[11px] min-w-0">
+                  <span class="inline-flex items-center gap-1 font-bold text-amber-500 shrink-0">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                    Sub-IBs
+                  </span>
+                  <span class="font-mono text-secondary-text text-[10px] font-medium truncate text-right">
+                    {{ formatLots(store.reportsSummary?.lots_from_subibs ?? tableTotals.lots_from_subibs) }} lots
+                  </span>
+                </div>
+                <div class="text-sm font-bold font-mono text-primary-text mt-0.5 truncate">
+                  {{ formatUSD(store.reportsSummary?.commission_from_subibs ?? tableTotals.commission_from_subibs) }}
+                </div>
               </div>
-              <div class="text-sm font-bold font-mono text-primary-text mt-0.5 whitespace-nowrap">
-                {{ formatUSD(store.reportsSummary?.commission_from_subibs ?? tableTotals.commission_from_subibs) }}
-              </div>
-            </div>
+            </Tooltip>
           </div>
         </div>
 
         <!-- KPI 4: Executed Entries / Deals -->
-        <div
-          class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between hover:border-primary/40 transition-all min-w-0 shadow-2xs group cursor-default"
-          :title="`Total Deals / Entries: ${(store.reportsSummary?.entry_count_all ?? (store.reportsSummary?.entry_count ?? tableTotals.entry_count_all)).toLocaleString()} deals\n• Closed Trades: ${(store.reportsSummary?.closed_trades ?? tableTotals.closed_trades).toLocaleString()}\n• Open Trades: ${(store.reportsSummary?.open_trades ?? tableTotals.open_trades).toLocaleString()}\n• Sub-IB Entries: ${(store.reportsSummary?.entry_count_from_subibs ?? tableTotals.entry_count_from_subibs).toLocaleString()}`"
-        >
-          <div class="flex items-center justify-between gap-2">
-            <span class="text-[11px] font-bold uppercase tracking-wider text-secondary-text">Total Deals / Entries</span>
+        <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between hover:border-primary/40 transition-all min-w-0 shadow-2xs group cursor-default">
+          <div class="flex items-center justify-between gap-2 min-w-0">
+            <Tooltip text="Total Deals / Entries" position="top" class="min-w-0 truncate">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-secondary-text truncate block">Total Deals / Entries</span>
+            </Tooltip>
             <div class="w-7 h-7 rounded-xl bg-slate-500/10 text-slate-500 flex items-center justify-center shrink-0">
               <Receipt :size="15" />
             </div>
           </div>
 
-          <div class="mt-2.5">
-            <p
-              class="text-xl sm:text-2xl font-bold text-primary-text tabular-nums font-mono tracking-tight whitespace-nowrap"
-              :title="`${(store.reportsSummary?.entry_count_all ?? (store.reportsSummary?.entry_count ?? tableTotals.entry_count_all)).toLocaleString()} deals`"
+          <div class="mt-2.5 min-w-0">
+            <Tooltip
+              :text="`${(store.reportsSummary?.entry_count_all ?? (store.reportsSummary?.entry_count ?? tableTotals.entry_count_all)).toLocaleString()} deals`"
+              position="top"
+              class="block max-w-full"
             >
-              {{ (store.reportsSummary?.entry_count_all ?? (store.reportsSummary?.entry_count ?? tableTotals.entry_count_all)).toLocaleString() }}
-              <span class="text-xs font-sans font-normal text-secondary-text ml-1">deals</span>
-            </p>
+              <div class="text-xl sm:text-2xl font-bold text-primary-text tabular-nums font-mono tracking-tight flex items-baseline gap-1 min-w-0">
+                <span class="truncate">{{ (store.reportsSummary?.entry_count_all ?? (store.reportsSummary?.entry_count ?? tableTotals.entry_count_all)).toLocaleString() }}</span>
+                <span class="text-xs font-sans font-normal text-secondary-text shrink-0">deals</span>
+              </div>
+            </Tooltip>
 
             <!-- Sub-metrics Grid (3 columns) -->
             <div class="grid grid-cols-3 gap-1.5 mt-3 pt-2.5 border-t border-primary-border/60 text-center text-xs">
-              <div
-                class="min-w-0"
-                :title="`Closed Trades: ${(store.reportsSummary?.closed_trades ?? tableTotals.closed_trades).toLocaleString()}`"
-              >
-                <span class="block text-[10px] uppercase font-semibold text-secondary-text tracking-wide">Closed</span>
-                <span class="font-mono font-bold text-primary-text block whitespace-nowrap">
-                  {{ (store.reportsSummary?.closed_trades ?? tableTotals.closed_trades).toLocaleString() }}
-                </span>
+              <div class="min-w-0">
+                <span class="block text-[10px] uppercase font-semibold text-secondary-text tracking-wide truncate">Closed</span>
+                <Tooltip
+                  :text="`Closed: ${(store.reportsSummary?.closed_trades ?? tableTotals.closed_trades).toLocaleString()}`"
+                  position="top"
+                  class="block max-w-full"
+                >
+                  <span class="font-mono font-bold text-primary-text block text-xs truncate">
+                    {{ (store.reportsSummary?.closed_trades ?? tableTotals.closed_trades).toLocaleString() }}
+                  </span>
+                </Tooltip>
               </div>
-              <div
-                class="min-w-0"
-                :title="`Open Trades: ${(store.reportsSummary?.open_trades ?? tableTotals.open_trades).toLocaleString()}`"
-              >
-                <span class="block text-[10px] uppercase font-semibold text-secondary-text tracking-wide">Open</span>
-                <span class="font-mono font-bold text-primary-text block whitespace-nowrap">
-                  {{ (store.reportsSummary?.open_trades ?? tableTotals.open_trades).toLocaleString() }}
-                </span>
+              <div class="min-w-0">
+                <span class="block text-[10px] uppercase font-semibold text-secondary-text tracking-wide truncate">Open</span>
+                <Tooltip
+                  :text="`Open: ${(store.reportsSummary?.open_trades ?? tableTotals.open_trades).toLocaleString()}`"
+                  position="top"
+                  class="block max-w-full"
+                >
+                  <span class="font-mono font-bold text-primary-text block text-xs truncate">
+                    {{ (store.reportsSummary?.open_trades ?? tableTotals.open_trades).toLocaleString() }}
+                  </span>
+                </Tooltip>
               </div>
-              <div
-                class="min-w-0"
-                :title="`Sub-IB Entries: ${(store.reportsSummary?.entry_count_from_subibs ?? tableTotals.entry_count_from_subibs).toLocaleString()}`"
-              >
-                <span class="block text-[10px] uppercase font-semibold text-secondary-text tracking-wide">Sub-IB</span>
-                <span class="font-mono font-bold text-primary-text block whitespace-nowrap">
-                  {{ (store.reportsSummary?.entry_count_from_subibs ?? tableTotals.entry_count_from_subibs).toLocaleString() }}
-                </span>
+              <div class="min-w-0">
+                <span class="block text-[10px] uppercase font-semibold text-secondary-text tracking-wide truncate">Sub-IB</span>
+                <Tooltip
+                  :text="`Sub-IB: ${(store.reportsSummary?.entry_count_from_subibs ?? tableTotals.entry_count_from_subibs).toLocaleString()}`"
+                  position="top"
+                  class="block max-w-full"
+                >
+                  <span class="font-mono font-bold text-primary-text block text-xs truncate">
+                    {{ (store.reportsSummary?.entry_count_from_subibs ?? tableTotals.entry_count_from_subibs).toLocaleString() }}
+                  </span>
+                </Tooltip>
               </div>
             </div>
           </div>
         </div>
 
         <!-- KPI 5: Pending & Status Liability -->
-        <div
-          class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between hover:border-amber-500/40 transition-all min-w-0 shadow-2xs group cursor-default"
-          :title="`Pending Approvals: ${formatUSD(store.reportsSummary?.by_status?.pending?.commission)} (${store.reportsSummary?.by_status?.pending?.entry_count || 0} deals)\n• Approved: ${formatUSD(store.reportsSummary?.by_status?.approved?.commission)} (${store.reportsSummary?.by_status?.approved?.entry_count || 0} deals)\n• Rejected: ${formatUSD(store.reportsSummary?.by_status?.rejected?.commission)} (${store.reportsSummary?.by_status?.rejected?.entry_count || 0} deals)`"
-        >
-          <div class="flex items-center justify-between gap-2">
-            <span class="text-[11px] font-bold uppercase tracking-wider text-secondary-text">Pending Approvals</span>
-            <div class="flex items-center gap-1.5 shrink-0">
-              <span
-                class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 whitespace-nowrap"
-                :title="`${store.reportsSummary?.by_status?.pending?.entry_count || 0} pending deals`"
-              >
-                {{ store.reportsSummary?.by_status?.pending?.entry_count || 0 }} deals
-              </span>
-              <div class="w-7 h-7 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
-                <Clock :size="15" />
-              </div>
+        <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between hover:border-amber-500/40 transition-all min-w-0 shadow-2xs group cursor-default">
+          <div class="flex items-center justify-between gap-2 min-w-0">
+            <Tooltip text="Pending Approvals" position="top" class="min-w-0 truncate">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-secondary-text truncate block">Pending Approvals</span>
+            </Tooltip>
+            <div class="w-7 h-7 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
+              <Clock :size="15" />
             </div>
           </div>
 
-          <div class="mt-2.5">
-            <p
-              class="text-xl sm:text-2xl font-bold text-amber-500 tabular-nums font-mono tracking-tight whitespace-nowrap"
-              :title="`Pending: ${formatUSD(store.reportsSummary?.by_status?.pending?.commission)}`"
-            >
-              {{ formatUSD(store.reportsSummary?.by_status?.pending?.commission) }}
-            </p>
+          <div class="mt-2.5 min-w-0">
+            <div class="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1.5 min-w-0">
+              <Tooltip
+                :text="`Pending: ${formatUSD(store.reportsSummary?.by_status?.pending?.commission)}`"
+                position="top"
+                class="min-w-0"
+              >
+                <p class="text-xl sm:text-2xl font-bold text-amber-500 tabular-nums font-mono tracking-tight whitespace-nowrap">
+                  {{ formatUSD(store.reportsSummary?.by_status?.pending?.commission) }}
+                </p>
+              </Tooltip>
+
+              <Tooltip
+                :text="`${(store.reportsSummary?.by_status?.pending?.entry_count || 0).toLocaleString()} pending deals`"
+                position="top"
+                class="shrink-0"
+              >
+                <span class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 inline-block whitespace-nowrap">
+                  {{ (store.reportsSummary?.by_status?.pending?.entry_count || 0).toLocaleString() }} deals
+                </span>
+              </Tooltip>
+            </div>
 
             <!-- Sub-metrics Grid -->
             <div class="grid grid-cols-2 gap-2 mt-3 pt-2.5 border-t border-primary-border/60 text-xs">
-              <div
-                class="min-w-0"
-                :title="`Approved: ${formatUSD(store.reportsSummary?.by_status?.approved?.commission)} (${store.reportsSummary?.by_status?.approved?.entry_count || 0} deals)`"
-              >
-                <span class="block text-[10px] uppercase font-semibold text-secondary-text tracking-wide">Approved</span>
-                <span class="font-mono font-bold text-emerald-500 block whitespace-nowrap">
-                  {{ formatUSD(store.reportsSummary?.by_status?.approved?.commission) }}
-                  <span class="text-[10px] font-normal opacity-80 text-secondary-text">({{ store.reportsSummary?.by_status?.approved?.entry_count || 0 }})</span>
-                </span>
+              <div class="min-w-0">
+                <span class="block text-[10px] uppercase font-semibold text-secondary-text tracking-wide truncate">Approved</span>
+                <Tooltip
+                  :text="`Approved: ${formatUSD(store.reportsSummary?.by_status?.approved?.commission)} (${store.reportsSummary?.by_status?.approved?.entry_count || 0} deals)`"
+                  position="top"
+                  class="block max-w-full"
+                >
+                  <span class="font-mono font-bold text-emerald-500 block text-xs truncate">
+                    {{ formatUSD(store.reportsSummary?.by_status?.approved?.commission) }}
+                  </span>
+                  <span class="text-[10px] font-normal opacity-80 text-secondary-text block truncate">
+                    ({{ store.reportsSummary?.by_status?.approved?.entry_count || 0 }} deals)
+                  </span>
+                </Tooltip>
               </div>
-              <div
-                class="min-w-0 text-right"
-                :title="`Rejected: ${formatUSD(store.reportsSummary?.by_status?.rejected?.commission)} (${store.reportsSummary?.by_status?.rejected?.entry_count || 0} deals)`"
-              >
-                <span class="block text-[10px] uppercase font-semibold text-secondary-text tracking-wide">Rejected</span>
-                <span class="font-mono font-bold text-rose-500 block whitespace-nowrap">
-                  {{ formatUSD(store.reportsSummary?.by_status?.rejected?.commission) }}
-                  <span class="text-[10px] font-normal opacity-80 text-secondary-text">({{ store.reportsSummary?.by_status?.rejected?.entry_count || 0 }})</span>
-                </span>
+              <div class="min-w-0 text-right">
+                <span class="block text-[10px] uppercase font-semibold text-secondary-text tracking-wide truncate">Rejected</span>
+                <Tooltip
+                  :text="`Rejected: ${formatUSD(store.reportsSummary?.by_status?.rejected?.commission)} (${store.reportsSummary?.by_status?.rejected?.entry_count || 0} deals)`"
+                  position="top"
+                  class="block max-w-full"
+                >
+                  <span class="font-mono font-bold text-rose-500 block text-xs truncate">
+                    {{ formatUSD(store.reportsSummary?.by_status?.rejected?.commission) }}
+                  </span>
+                  <span class="text-[10px] font-normal opacity-80 text-secondary-text block truncate">
+                    ({{ store.reportsSummary?.by_status?.rejected?.entry_count || 0 }} deals)
+                  </span>
+                </Tooltip>
               </div>
             </div>
           </div>
@@ -1524,11 +1584,17 @@ onMounted(async () => {
 
         <!-- Customer Cell -->
         <template #cell-customer="{ row }">
-          <div>
-            <p class="font-semibold text-primary-text">
-              {{ row.name || row.customer_name || (row.user_id ? `Client #${row.user_id}` : 'Client') }}
-            </p>
-            <p v-if="row.email || row.user_id" class="text-[11px] text-secondary-text font-mono">
+          <div class="min-w-0">
+            <Tooltip
+              :text="row.name || row.customer_name || (row.user_id ? `Client #${row.user_id}` : 'Client')"
+              position="top"
+              class="block max-w-full truncate"
+            >
+              <p class="font-semibold text-primary-text truncate">
+                {{ row.name || row.customer_name || (row.user_id ? `Client #${row.user_id}` : 'Client') }}
+              </p>
+            </Tooltip>
+            <p v-if="row.email || row.user_id" class="text-[11px] text-secondary-text font-mono truncate">
               {{ row.email || `ID: ${row.user_id}` }}
             </p>
           </div>
@@ -1536,16 +1602,30 @@ onMounted(async () => {
 
         <!-- Logins Cell -->
         <template #cell-logins="{ row }">
-          <span class="font-mono text-secondary-text">
-            {{ Array.isArray(row.logins) ? row.logins.join(', ') : (row.logins || '-') }}
-          </span>
+          <Tooltip
+            v-if="Array.isArray(row.logins) ? row.logins.length > 0 : row.logins"
+            :text="Array.isArray(row.logins) ? row.logins.join(', ') : String(row.logins)"
+            position="top"
+            class="block max-w-full truncate"
+          >
+            <span class="font-mono text-secondary-text truncate block">
+              {{ Array.isArray(row.logins) ? row.logins.join(', ') : (row.logins || '-') }}
+            </span>
+          </Tooltip>
+          <span v-else class="font-mono text-secondary-text">-</span>
         </template>
 
         <!-- Attribution Cell -->
         <template #cell-attribution="{ row }">
-          <span class="font-mono text-primary font-semibold">
-            {{ row.attribution || row.parent_ib_name || (row.ib_id ? `IB #${row.ib_id}` : '-') }}
-          </span>
+          <Tooltip
+            :text="row.attribution || row.parent_ib_name || (row.ib_id ? `IB #${row.ib_id}` : '-')"
+            position="top"
+            class="block max-w-full truncate"
+          >
+            <span class="font-mono text-primary font-semibold truncate block">
+              {{ row.attribution || row.parent_ib_name || (row.ib_id ? `IB #${row.ib_id}` : '-') }}
+            </span>
+          </Tooltip>
         </template>
 
         <!-- Symbol Cell -->
@@ -1557,217 +1637,206 @@ onMounted(async () => {
 
         <!-- Total Deals Count -->
         <template #cell-entry_count_all="{ row }">
-          <span
-            class="font-mono text-primary-text font-semibold"
-            :title="`Total Deals: ${(row.entry_count_all ?? ((row.entry_count || row.entry_count_direct || 0) + (row.entry_count_from_subibs || 0))).toLocaleString()}`"
-          >
-            {{ (row.entry_count_all ?? ((row.entry_count || row.entry_count_direct || 0) + (row.entry_count_from_subibs || 0))).toLocaleString() }}
-          </span>
+          <Tooltip :text="`Total Deals: ${(row.entry_count_all ?? ((row.entry_count || row.entry_count_direct || 0) + (row.entry_count_from_subibs || 0))).toLocaleString()}`" position="top">
+            <span class="font-mono text-primary-text font-semibold">
+              {{ (row.entry_count_all ?? ((row.entry_count || row.entry_count_direct || 0) + (row.entry_count_from_subibs || 0))).toLocaleString() }}
+            </span>
+          </Tooltip>
         </template>
 
         <!-- Direct Entries -->
         <template #cell-entry_count="{ row }">
-          <span
-            class="font-mono text-primary-text font-medium"
-            :title="`Direct Entries: ${(row.entry_count ?? row.entry_count_direct ?? row.entries ?? 0).toLocaleString()}`"
-          >
-            {{ (row.entry_count ?? row.entry_count_direct ?? row.entries ?? 0).toLocaleString() }}
-          </span>
+          <Tooltip :text="`Direct Entries: ${(row.entry_count ?? row.entry_count_direct ?? row.entries ?? 0).toLocaleString()}`" position="top">
+            <span class="font-mono text-primary-text font-medium">
+              {{ (row.entry_count ?? row.entry_count_direct ?? row.entries ?? 0).toLocaleString() }}
+            </span>
+          </Tooltip>
         </template>
 
         <!-- Sub-IB Entries -->
         <template #cell-entry_count_from_subibs="{ row }">
-          <span
-            class="font-mono text-primary-text font-medium"
-            :title="`Sub-IB Entries: ${(row.entry_count_from_subibs || 0).toLocaleString()}`"
-          >
-            {{ (row.entry_count_from_subibs || 0).toLocaleString() }}
-          </span>
+          <Tooltip :text="`Sub-IB Entries: ${(row.entry_count_from_subibs || 0).toLocaleString()}`" position="top">
+            <span class="font-mono text-primary-text font-medium">
+              {{ (row.entry_count_from_subibs || 0).toLocaleString() }}
+            </span>
+          </Tooltip>
         </template>
 
         <!-- Closed Trades -->
         <template #cell-closed_trades="{ row }">
-          <span
-            class="font-mono text-primary-text font-medium"
-            :title="`Closed Trades: ${(row.closed_trades || 0).toLocaleString()}`"
-          >
-            {{ (row.closed_trades || 0).toLocaleString() }}
-          </span>
+          <Tooltip :text="`Closed Trades: ${(row.closed_trades || 0).toLocaleString()}`" position="top">
+            <span class="font-mono text-primary-text font-medium">
+              {{ (row.closed_trades || 0).toLocaleString() }}
+            </span>
+          </Tooltip>
         </template>
 
         <!-- Open Trades -->
         <template #cell-open_trades="{ row }">
-          <span
-            class="font-mono text-primary-text font-medium"
-            :title="`Open Trades: ${(row.open_trades || 0).toLocaleString()}`"
-          >
-            {{ (row.open_trades || 0).toLocaleString() }}
-          </span>
+          <Tooltip :text="`Open Trades: ${(row.open_trades || 0).toLocaleString()}`" position="top">
+            <span class="font-mono text-primary-text font-medium">
+              {{ (row.open_trades || 0).toLocaleString() }}
+            </span>
+          </Tooltip>
         </template>
 
         <!-- Commission Cells -->
         <template #cell-grand_total_commission="{ row }">
-          <span
-            class="font-mono font-bold text-primary-green"
-            :title="`Grand Total: ${formatUSD(row.grand_total_commission ?? row.total_commission ?? row.commission)}`"
-          >
-            {{ formatUSD(row.grand_total_commission ?? row.total_commission ?? row.commission) }}
-          </span>
+          <Tooltip :text="`Grand Total: ${formatUSD(row.grand_total_commission ?? row.total_commission ?? row.commission)}`" position="top">
+            <span class="font-mono font-bold text-primary-green">
+              {{ formatUSD(row.grand_total_commission ?? row.total_commission ?? row.commission) }}
+            </span>
+          </Tooltip>
         </template>
 
         <template #cell-total_commission="{ row }">
-          <span
-            class="font-mono font-bold text-primary-green"
-            :title="`Total Commission: ${formatUSD(row.grand_total_commission ?? row.total_commission ?? row.commission)}`"
-          >
-            {{ formatUSD(row.grand_total_commission ?? row.total_commission ?? row.commission) }}
-          </span>
+          <Tooltip :text="`Total Commission: ${formatUSD(row.grand_total_commission ?? row.total_commission ?? row.commission)}`" position="top">
+            <span class="font-mono font-bold text-primary-green">
+              {{ formatUSD(row.grand_total_commission ?? row.total_commission ?? row.commission) }}
+            </span>
+          </Tooltip>
         </template>
 
         <template #cell-performance_commission="{ row }">
-          <span
-            class="font-mono font-medium text-primary-text"
-            :title="`Performance (Direct): ${formatUSD(row.performance_commission)}`"
-          >
-            {{ formatUSD(row.performance_commission) }}
-          </span>
+          <Tooltip :text="`Performance (Direct): ${formatUSD(row.performance_commission)}`" position="top">
+            <span class="font-mono font-medium text-primary-text">
+              {{ formatUSD(row.performance_commission) }}
+            </span>
+          </Tooltip>
         </template>
 
         <template #cell-commission_from_subibs="{ row }">
-          <span
-            class="font-mono font-medium text-primary-yellow"
-            :title="`From Sub-IBs: ${formatUSD(row.commission_from_subibs)}`"
-          >
-            {{ formatUSD(row.commission_from_subibs) }}
-          </span>
+          <Tooltip :text="`From Sub-IBs: ${formatUSD(row.commission_from_subibs)}`" position="top">
+            <span class="font-mono font-medium text-primary-yellow">
+              {{ formatUSD(row.commission_from_subibs) }}
+            </span>
+          </Tooltip>
         </template>
 
         <template #cell-commission_paid_to_master="{ row }">
-          <span
-            class="font-mono font-medium"
-            :class="Number(row.commission_paid_to_master || 0) > 0 ? 'text-rose-500' : 'text-primary-text'"
-            :title="`Paid to Master: ${formatUSD(row.commission_paid_to_master || 0)}`"
-          >
-            {{ Number(row.commission_paid_to_master || 0) > 0 ? `-${formatUSD(row.commission_paid_to_master)}` : formatUSD(row.commission_paid_to_master || 0) }}
-          </span>
+          <Tooltip :text="`Paid to Master: ${formatUSD(row.commission_paid_to_master || 0)}`" position="top">
+            <span
+              class="font-mono font-medium"
+              :class="Number(row.commission_paid_to_master || 0) > 0 ? 'text-rose-500' : 'text-primary-text'"
+            >
+              {{ Number(row.commission_paid_to_master || 0) > 0 ? `-${formatUSD(row.commission_paid_to_master)}` : formatUSD(row.commission_paid_to_master || 0) }}
+            </span>
+          </Tooltip>
         </template>
 
         <!-- Lots & Volumes Cells -->
         <template #cell-total_lots="{ row }">
-          <span
-            class="font-mono text-primary-text font-medium"
-            :title="`Total Lots: ${formatLots(row.total_lots ?? row.total_lots_all ?? row.lots)} lots`"
-          >
-            {{ formatLots(row.total_lots ?? row.total_lots_all ?? row.lots) }}
-          </span>
+          <Tooltip :text="`Total Lots: ${formatLots(row.total_lots ?? row.total_lots_all ?? row.lots)} lots`" position="top">
+            <span class="font-mono text-primary-text font-medium">
+              {{ formatLots(row.total_lots ?? row.total_lots_all ?? row.lots) }}
+            </span>
+          </Tooltip>
         </template>
 
         <template #cell-total_lots_all="{ row }">
-          <span
-            class="font-mono text-primary-text font-medium"
-            :title="`Total Lots (All): ${formatLots(row.total_lots_all ?? row.total_lots ?? row.lots)} lots`"
-          >
-            {{ formatLots(row.total_lots_all ?? row.total_lots ?? row.lots) }}
-          </span>
+          <Tooltip :text="`Total Lots (All): ${formatLots(row.total_lots_all ?? row.total_lots ?? row.lots)} lots`" position="top">
+            <span class="font-mono text-primary-text font-medium">
+              {{ formatLots(row.total_lots_all ?? row.total_lots ?? row.lots) }}
+            </span>
+          </Tooltip>
         </template>
 
         <template #cell-performance_lots="{ row }">
-          <span
-            class="font-mono text-primary-text font-medium"
-            :title="`Direct Lots: ${formatLots(row.performance_lots)} lots`"
-          >
-            {{ formatLots(row.performance_lots) }}
-          </span>
+          <Tooltip :text="`Direct Lots: ${formatLots(row.performance_lots)} lots`" position="top">
+            <span class="font-mono text-primary-text font-medium">
+              {{ formatLots(row.performance_lots) }}
+            </span>
+          </Tooltip>
         </template>
 
         <template #cell-lots_from_subibs="{ row }">
-          <span
-            class="font-mono text-primary-text font-medium"
-            :title="`Lots from Sub-IBs: ${formatLots(row.lots_from_subibs)} lots`"
-          >
-            {{ formatLots(row.lots_from_subibs) }}
-          </span>
+          <Tooltip :text="`Lots from Sub-IBs: ${formatLots(row.lots_from_subibs)} lots`" position="top">
+            <span class="font-mono text-primary-text font-medium">
+              {{ formatLots(row.lots_from_subibs) }}
+            </span>
+          </Tooltip>
         </template>
 
         <template #cell-lots_paid_to_master="{ row }">
-          <span
-            class="font-mono text-secondary-text font-medium"
-            :title="`Lots Paid to Master: ${formatLots(row.lots_paid_to_master)} lots`"
-          >
-            {{ formatLots(row.lots_paid_to_master) }}
-          </span>
+          <Tooltip :text="`Lots Paid to Master: ${formatLots(row.lots_paid_to_master)} lots`" position="top">
+            <span class="font-mono text-secondary-text font-medium">
+              {{ formatLots(row.lots_paid_to_master) }}
+            </span>
+          </Tooltip>
         </template>
 
         <!-- Exit Volume Column (Bound to key: closed_volume_lots) -->
         <template #cell-closed_volume_lots="{ row }">
-          <span
-            class="font-mono text-primary-text font-medium"
-            :title="`Exit Volume: ${formatLots(row.closed_volume_lots)} lots`"
-          >
-            {{ formatLots(row.closed_volume_lots) }}
-          </span>
+          <Tooltip :text="`Exit Volume: ${formatLots(row.closed_volume_lots)} lots`" position="top">
+            <span class="font-mono text-primary-text font-medium">
+              {{ formatLots(row.closed_volume_lots) }}
+            </span>
+          </Tooltip>
         </template>
 
         <!-- Entry Volume Column (Bound to key: open_volume_lots) -->
         <template #cell-open_volume_lots="{ row }">
-          <span
-            class="font-mono text-primary-text font-medium"
-            :title="`Entry Volume: ${formatLots(row.open_volume_lots)} lots`"
-          >
-            {{ formatLots(row.open_volume_lots) }}
-          </span>
+          <Tooltip :text="`Entry Volume: ${formatLots(row.open_volume_lots)} lots`" position="top">
+            <span class="font-mono text-primary-text font-medium">
+              {{ formatLots(row.open_volume_lots) }}
+            </span>
+          </Tooltip>
         </template>
 
         <!-- Open Volume (Lots) Column (Bound to key: volume_entry_lots) -->
         <template #cell-volume_entry_lots="{ row }">
-          <span
-            class="font-mono text-primary-text font-medium"
-            :title="`Open Volume (Lots): ${formatLots(row.volume_entry_lots)} lots`"
-          >
-            {{ formatLots(row.volume_entry_lots) }}
-          </span>
+          <Tooltip :text="`Open Volume (Lots): ${formatLots(row.volume_entry_lots)} lots`" position="top">
+            <span class="font-mono text-primary-text font-medium">
+              {{ formatLots(row.volume_entry_lots) }}
+            </span>
+          </Tooltip>
         </template>
 
         <!-- Closed Volume (Lots) Column (Bound to key: volume_exit_lots) -->
         <template #cell-volume_exit_lots="{ row }">
-          <span
-            class="font-mono text-primary-text font-medium"
-            :title="`Closed Volume (Lots): ${formatLots(row.volume_exit_lots)} lots`"
-          >
-            {{ formatLots(row.volume_exit_lots) }}
-          </span>
+          <Tooltip :text="`Closed Volume (Lots): ${formatLots(row.volume_exit_lots)} lots`" position="top">
+            <span class="font-mono text-primary-text font-medium">
+              {{ formatLots(row.volume_exit_lots) }}
+            </span>
+          </Tooltip>
         </template>
 
         <!-- Status Breakdown Cell -->
         <template #cell-by_status="{ row }">
           <div v-if="row.by_status" class="flex items-center gap-1.5 flex-wrap">
-            <span
+            <Tooltip
               v-if="row.by_status.pending && (row.by_status.pending.commission > 0 || row.by_status.pending.entry_count > 0 || row.by_status.pending.lots > 0)"
-              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
-              :title="`Pending: ${formatUSD(row.by_status.pending.commission)} • ${row.by_status.pending.entry_count || 0} entries • ${formatLots(row.by_status.pending.lots)} lots`"
+              :text="`Pending: ${formatUSD(row.by_status.pending.commission)} • ${row.by_status.pending.entry_count || 0} entries • ${formatLots(row.by_status.pending.lots)} lots`"
+              position="top"
             >
-              <span>Pending:</span>
-              <span class="font-mono font-bold">{{ formatUSD(row.by_status.pending.commission) }}</span>
-              <span class="opacity-75">({{ row.by_status.pending.entry_count || 0 }}d • {{ formatLots(row.by_status.pending.lots) }}l)</span>
-            </span>
-            <span
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                <span>Pending:</span>
+                <span class="font-mono font-bold">{{ formatUSD(row.by_status.pending.commission) }}</span>
+                <span class="opacity-75">({{ row.by_status.pending.entry_count || 0 }}d • {{ formatLots(row.by_status.pending.lots) }}l)</span>
+              </span>
+            </Tooltip>
+            <Tooltip
               v-if="row.by_status.approved && (row.by_status.approved.commission > 0 || row.by_status.approved.entry_count > 0 || row.by_status.approved.lots > 0)"
-              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
-              :title="`Approved: ${formatUSD(row.by_status.approved.commission)} • ${row.by_status.approved.entry_count || 0} entries • ${formatLots(row.by_status.approved.lots)} lots`"
+              :text="`Approved: ${formatUSD(row.by_status.approved.commission)} • ${row.by_status.approved.entry_count || 0} entries • ${formatLots(row.by_status.approved.lots)} lots`"
+              position="top"
             >
-              <span>Approved:</span>
-              <span class="font-mono font-bold">{{ formatUSD(row.by_status.approved.commission) }}</span>
-              <span class="opacity-75">({{ row.by_status.approved.entry_count || 0 }}d • {{ formatLots(row.by_status.approved.lots) }}l)</span>
-            </span>
-            <span
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                <span>Approved:</span>
+                <span class="font-mono font-bold">{{ formatUSD(row.by_status.approved.commission) }}</span>
+                <span class="opacity-75">({{ row.by_status.approved.entry_count || 0 }}d • {{ formatLots(row.by_status.approved.lots) }}l)</span>
+              </span>
+            </Tooltip>
+            <Tooltip
               v-if="row.by_status.rejected && (row.by_status.rejected.commission > 0 || row.by_status.rejected.entry_count > 0 || row.by_status.rejected.lots > 0)"
-              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
-              :title="`Rejected: ${formatUSD(row.by_status.rejected.commission)} • ${row.by_status.rejected.entry_count || 0} entries • ${formatLots(row.by_status.rejected.lots)} lots`"
+              :text="`Rejected: ${formatUSD(row.by_status.rejected.commission)} • ${row.by_status.rejected.entry_count || 0} entries • ${formatLots(row.by_status.rejected.lots)} lots`"
+              position="top"
             >
-              <span>Rejected:</span>
-              <span class="font-mono font-bold">{{ formatUSD(row.by_status.rejected.commission) }}</span>
-              <span class="opacity-75">({{ row.by_status.rejected.entry_count || 0 }}d)</span>
-            </span>
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+                <span>Rejected:</span>
+                <span class="font-mono font-bold">{{ formatUSD(row.by_status.rejected.commission) }}</span>
+                <span class="opacity-75">({{ row.by_status.rejected.entry_count || 0 }}d)</span>
+              </span>
+            </Tooltip>
             <span
               v-if="
                 (!row.by_status.pending || (row.by_status.pending.commission === 0 && row.by_status.pending.entry_count === 0 && row.by_status.pending.lots === 0)) &&

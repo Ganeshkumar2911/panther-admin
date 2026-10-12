@@ -32,6 +32,8 @@ const urls = {
     toggleTrading: "/account/toggle-trading",
     transactionRestrictions: (tradingAccountId) =>
       `/trading-accounts/${tradingAccountId}/transaction-restrictions`,
+    rights: "/accounts/rights",
+    updateRights: "/accounts/update-rights",
   },
   clientList: {
     list: "/client-list",
