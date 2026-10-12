@@ -401,14 +401,55 @@ const onIbSearch = (query = "") => {
 };
 
 // ─── Format Date Helpers ───────────────────────────────────────────────────────
+const getIsoWeekDateRange = (year, week) => {
+  const jan4 = new Date(Date.UTC(Number(year), 0, 4));
+  const dow = jan4.getUTCDay() || 7;
+  const start = new Date(jan4.getTime() + ((Number(week) - 1) * 7 + (1 - dow)) * 86400000);
+  const end = new Date(start.getTime() + 6 * 86400000);
+  return { start, end };
+};
+
+const formatIsoWeekSpan = (year, week) => {
+  const { start, end } = getIsoWeekDateRange(year, week);
+  const sMonth = start.toLocaleDateString("en-US", { month: "short", timeZone: "UTC" });
+  const sDay = start.getUTCDate();
+  const sYear = start.getUTCFullYear();
+  const eMonth = end.toLocaleDateString("en-US", { month: "short", timeZone: "UTC" });
+  const eDay = end.getUTCDate();
+  const eYear = end.getUTCFullYear();
+
+  if (sYear === eYear) {
+    if (sMonth === eMonth) {
+      return `${sMonth} ${sDay} – ${eDay}, ${sYear}`;
+    }
+    return `${sMonth} ${sDay} – ${eMonth} ${eDay}, ${sYear}`;
+  }
+  return `${sMonth} ${sDay}, ${sYear} – ${eMonth} ${eDay}, ${eYear}`;
+};
+
+const formatDateRangeFromDates = (startStr, endStr) => {
+  if (!startStr) return "";
+  const s = new Date(startStr);
+  if (isNaN(s.getTime())) return "";
+  const sFormatted = s.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  if (!endStr) return sFormatted;
+  const e = new Date(endStr);
+  if (isNaN(e.getTime())) return sFormatted;
+  const adjustedEnd = (endStr.includes("T00:00:00") || endStr.includes(" 00:00:00")) && e.getTime() > s.getTime()
+    ? new Date(e.getTime() - 1000)
+    : e;
+  const eFormatted = adjustedEnd.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  return sFormatted === eFormatted ? sFormatted : `${sFormatted} – ${eFormatted}`;
+};
+
 const formatDateLabel = (val) => {
   if (!val) return "";
   const str = String(val).trim();
 
-  // Weekly format: YYYY-Www (e.g. 2026-W38)
+  // Weekly format: YYYY-Www (e.g. 2026-W42) -> show only date range
   if (str.includes("-W")) {
     const parts = str.split("-W");
-    return `Week ${parts[1]}, ${parts[0]}`;
+    return formatIsoWeekSpan(parts[0], parts[1]);
   }
 
   // Monthly format: YYYY-MM (e.g. 2026-06)
@@ -460,8 +501,17 @@ const getRowTitle = (row, reportType) => {
 
   // For performance timeline reports (Daily, Weekly, Monthly performance)
   if (reportType?.type === "performance") {
-    if (row.label || row.period_key || row.start) {
-      return formatDateLabel(row.label || row.period_key || row.start);
+    const raw = String(row.label || row.period_key || "");
+    if (raw.includes("-W")) {
+      const parts = raw.split("-W");
+      return formatIsoWeekSpan(parts[0], parts[1]);
+    }
+    if (raw || row.start) {
+      return formatDateLabel(raw || row.start);
+    }
+    if (row.start && row.end) {
+      const range = formatDateRangeFromDates(row.start, row.end);
+      if (range) return range;
     }
   }
 
@@ -1098,18 +1148,29 @@ onMounted(async () => {
     <!-- ================================================================= -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3.5">
       <!-- Loading Skeleton -->
-      <template v-if="store.reportsLoading && !store.reportsSummary">
+      <template v-if="store.reportsLoading">
         <div
           v-for="n in 5"
           :key="n"
-          class="bg-card-background border border-primary-border rounded-2xl p-4 animate-pulse space-y-2.5 min-w-0"
+          class="bg-card-background border border-primary-border rounded-2xl p-4 animate-pulse space-y-3 min-w-0 flex flex-col justify-between"
         >
           <div class="flex items-center justify-between">
-            <div class="h-3 w-20 bg-background rounded" />
+            <div class="h-3 w-24 bg-background rounded" />
             <div class="h-7 w-7 bg-background rounded-xl" />
           </div>
-          <div class="h-7 w-28 bg-background rounded mt-2" />
-          <div class="h-2.5 w-24 bg-background rounded mt-2" />
+          <div class="my-1">
+            <div class="h-7 w-32 bg-background rounded" />
+          </div>
+          <div class="pt-2.5 border-t border-primary-border/60 grid grid-cols-2 gap-2">
+            <div>
+              <div class="h-2.5 w-12 bg-background rounded mb-1.5" />
+              <div class="h-3.5 w-16 bg-background rounded" />
+            </div>
+            <div class="flex flex-col items-end">
+              <div class="h-2.5 w-12 bg-background rounded mb-1.5" />
+              <div class="h-3.5 w-16 bg-background rounded" />
+            </div>
+          </div>
         </div>
       </template>
 
