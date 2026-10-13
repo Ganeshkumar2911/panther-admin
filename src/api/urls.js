@@ -491,6 +491,7 @@ const urls = {
     reportsSymbols: "/ib-commission/reports/symbols",
     reportsPayouts: "/ib-commission/reports/payouts",
     reportsExport: "/ib-commission/reports/export",
+    reportsPerformanceEntries: "/ib-commission/reports/performance/entries",
   },
   cashback: {
     programs: "/cashback/programs",
