@@ -317,16 +317,16 @@
         </span>
       </template>
 
-      <!-- Custom Cell: Closed At -->
-      <template #cell-closed_at="{ row }">
-        <span class="text-xs text-secondary-text whitespace-nowrap font-mono">
-          {{ row.closed_at }}
-        </span>
-      </template>
       <!-- Custom Cell: Created At -->
       <template #cell-created_at="{ row }">
         <span class="text-xs text-secondary-text whitespace-nowrap font-mono">
           {{ row.created_at }}
+        </span>
+      </template>
+      <!-- Custom Cell: Closed At -->
+      <template #cell-closed_at="{ row }">
+        <span class="text-xs text-secondary-text whitespace-nowrap font-mono">
+          {{ row.closed_at }}
         </span>
       </template>
     </DataTable>
@@ -362,8 +362,8 @@ const tradeColumns = [
   { key: 'ltp', label: 'LTP' },
   { key: 'pnl', label: 'PnL' },
   { key: 'status', label: 'Status' },
-  { key: 'closed_at', label: 'Closed' },
-  { key: 'created_at', label: 'Created', align: 'right' },
+  { key: 'created_at', label: 'Created' },
+  { key: 'closed_at', label: 'Closed', align: 'right' },
 ];
 
 const dateRangeValue = computed({
