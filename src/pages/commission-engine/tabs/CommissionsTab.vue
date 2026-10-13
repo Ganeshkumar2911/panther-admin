@@ -405,104 +405,106 @@ const formatDate = (val) => {
             class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-primary-border/60"
           >
             <!-- Status Filter Pills -->
-            <div
-              class="inline-flex p-1 rounded-lg bg-background border border-primary-border shrink-0 self-start sm:self-auto shadow-2xs"
-            >
-              <!-- Pending -->
-              <button
-                type="button"
-                class="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer"
-                :class="[
-                  statusFilter === 'pending'
-                    ? 'bg-primary text-white shadow-2xs font-bold'
-                    : 'text-secondary-text hover:text-primary-text hover:bg-card-background/60',
-                ]"
-                @click="
-                  statusFilter = 'pending';
-                  handleFilterChange();
-                "
+            <div class="w-full sm:w-auto overflow-x-auto no-scrollbar">
+              <div
+                class="inline-flex p-1 rounded-lg bg-background border border-primary-border shrink-0 min-w-full sm:min-w-0 shadow-2xs justify-between sm:justify-start"
               >
-                <span
-                  class="w-2 h-2 rounded-full"
-                  :class="statusFilter === 'pending' ? 'bg-white' : 'bg-primary/80'"
-                />
-                <span>Pending</span>
-              </button>
+                <!-- Pending -->
+                <button
+                  type="button"
+                  class="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer whitespace-nowrap"
+                  :class="[
+                    statusFilter === 'pending'
+                      ? 'bg-primary text-white shadow-2xs font-bold'
+                      : 'text-secondary-text hover:text-primary-text hover:bg-card-background/60',
+                  ]"
+                  @click="
+                    statusFilter = 'pending';
+                    handleFilterChange();
+                  "
+                >
+                  <span
+                    class="w-2 h-2 rounded-full shrink-0"
+                    :class="statusFilter === 'pending' ? 'bg-white' : 'bg-primary/80'"
+                  />
+                  <span>Pending</span>
+                </button>
 
-              <!-- Approved -->
-              <button
-                type="button"
-                class="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer"
-                :class="[
-                  statusFilter === 'approved'
-                    ? 'bg-primary-green text-white shadow-2xs font-bold'
-                    : 'text-secondary-text hover:text-primary-text hover:bg-card-background/60',
-                ]"
-                @click="
-                  statusFilter = 'approved';
-                  handleFilterChange();
-                "
-              >
-                <span
-                  class="w-2 h-2 rounded-full"
-                  :class="
+                <!-- Approved -->
+                <button
+                  type="button"
+                  class="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer whitespace-nowrap"
+                  :class="[
                     statusFilter === 'approved'
-                      ? 'bg-white'
-                      : 'bg-primary-green/80'
+                      ? 'bg-primary-green text-white shadow-2xs font-bold'
+                      : 'text-secondary-text hover:text-primary-text hover:bg-card-background/60',
+                  ]"
+                  @click="
+                    statusFilter = 'approved';
+                    handleFilterChange();
                   "
-                />
-                <span>Approved</span>
-              </button>
+                >
+                  <span
+                    class="w-2 h-2 rounded-full shrink-0"
+                    :class="
+                      statusFilter === 'approved'
+                        ? 'bg-white'
+                        : 'bg-primary-green/80'
+                    "
+                  />
+                  <span>Approved</span>
+                </button>
 
-              <!-- Rejected -->
-              <button
-                type="button"
-                class="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer"
-                :class="[
-                  statusFilter === 'rejected'
-                    ? 'bg-primary-red text-white shadow-2xs font-bold'
-                    : 'text-secondary-text hover:text-primary-text hover:bg-card-background/60',
-                ]"
-                @click="
-                  statusFilter = 'rejected';
-                  handleFilterChange();
-                "
-              >
-                <span
-                  class="w-2 h-2 rounded-full"
-                  :class="
-                    statusFilter === 'rejected' ? 'bg-white' : 'bg-primary-red/80'
+                <!-- Rejected -->
+                <button
+                  type="button"
+                  class="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer whitespace-nowrap"
+                  :class="[
+                    statusFilter === 'rejected'
+                      ? 'bg-primary-red text-white shadow-2xs font-bold'
+                      : 'text-secondary-text hover:text-primary-text hover:bg-card-background/60',
+                  ]"
+                  @click="
+                    statusFilter = 'rejected';
+                    handleFilterChange();
                   "
-                />
-                <span>Rejected</span>
-              </button>
+                >
+                  <span
+                    class="w-2 h-2 rounded-full shrink-0"
+                    :class="
+                      statusFilter === 'rejected' ? 'bg-white' : 'bg-primary-red/80'
+                    "
+                  />
+                  <span>Rejected</span>
+                </button>
 
-              <!-- All -->
-              <button
-                type="button"
-                class="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer"
-                :class="[
-                  statusFilter === ''
-                    ? 'bg-card-background text-primary-text shadow-2xs border border-primary-border font-bold'
-                    : 'text-secondary-text hover:text-primary-text hover:bg-card-background/60',
-                ]"
-                @click="
-                  statusFilter = '';
-                  handleFilterChange();
-                "
-              >
-                <span>All</span>
-              </button>
+                <!-- All -->
+                <button
+                  type="button"
+                  class="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer whitespace-nowrap"
+                  :class="[
+                    statusFilter === ''
+                      ? 'bg-card-background text-primary-text shadow-2xs border border-primary-border font-bold'
+                      : 'text-secondary-text hover:text-primary-text hover:bg-card-background/60',
+                  ]"
+                  @click="
+                    statusFilter = '';
+                    handleFilterChange();
+                  "
+                >
+                  <span>All</span>
+                </button>
+              </div>
             </div>
 
             <!-- Right: Action Buttons -->
-            <div class="flex items-center gap-2 self-end sm:self-auto shrink-0 flex-wrap">
+            <div class="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto shrink-0 flex-wrap">
               <!-- Bulk Approve Button -->
               <button
                 v-if="canApprove && pendingSelectedCommissions.length > 0"
                 type="button"
                 :disabled="store.actionLoading"
-                class="flex items-center gap-1.5 px-3.5 py-1.5 bg-primary-green hover:bg-primary-green/90 text-white text-xs font-bold rounded-lg transition-all cursor-pointer shadow-xs animate-in fade-in zoom-in-95 duration-150"
+                class="flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 bg-primary-green hover:bg-primary-green/90 text-white text-xs font-bold rounded-lg transition-all cursor-pointer shadow-xs animate-in fade-in zoom-in-95 duration-150"
                 @click="openBulkApprove"
               >
                 <HugeIcon :icon="CheckmarkCircle02Icon" :size="14" />
@@ -518,7 +520,7 @@ const formatDate = (val) => {
                 v-if="canSync"
                 type="button"
                 :disabled="store.actionLoading"
-                class="btn-primary disabled:opacity-50"
+                class="btn-primary disabled:opacity-50 text-xs py-1.5"
                 @click="isCalculateModalOpen = true"
               >
                 <HugeIcon :icon="Coins01Icon" :size="14" />
@@ -526,20 +528,18 @@ const formatDate = (val) => {
               </button>
 
               <!-- Refresh Button -->
-             
-                <button
-                  type="button"
-                  :disabled="store.loading"
-                  class="flex items-center justify-center w-8 h-8 border border-primary-border rounded-lg text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer disabled:opacity-50"
-                  @click="loadCommissions(store.commissionsPagination.page, true)"
-                >
-                  <HugeIcon
-                    :icon="RefreshCwIcon"
-                    :size="14"
-                    :class="{ 'animate-spin': store.loading }"
-                  />
-                </button>
-
+              <button
+                type="button"
+                :disabled="store.loading"
+                class="flex items-center justify-center w-8 h-8 border border-primary-border rounded-lg text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer disabled:opacity-50 shrink-0"
+                @click="loadCommissions(store.commissionsPagination.page, true)"
+              >
+                <HugeIcon
+                  :icon="RefreshCwIcon"
+                  :size="14"
+                  :class="{ 'animate-spin': store.loading }"
+                />
+              </button>
             </div>
           </div>
 

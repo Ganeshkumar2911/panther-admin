@@ -135,34 +135,38 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="px-4">
+  <div>
 
     <!-- Summary Cards -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-6">
       <template v-if="isLoading">
-        <div v-for="n in 4" :key="n" class="bg-card-background border border-primary-border rounded-xl p-4 animate-pulse space-y-2">
-          <div class="h-3 w-24 bg-background rounded" />
-          <div class="h-6 w-28 bg-background rounded" />
+        <div v-for="n in 4" :key="n" class="bg-card-background border border-primary-border rounded-xl p-3 sm:p-4 animate-pulse space-y-2 min-w-0">
+          <div class="h-3 w-20 bg-background rounded" />
+          <div class="h-5 sm:h-6 w-24 bg-background rounded" />
         </div>
       </template>
       <template v-else>
-        <div class="bg-card-background border border-primary-border rounded-xl p-4">
-          <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-1">Total Deposit</p>
-          <p class="text-xl font-medium text-green-700">+${{ formatNum(store.summary.total_deposit) }}</p>
+        <div class="bg-card-background border border-primary-border rounded-xl p-3 sm:p-4 min-w-0">
+          <p class="text-[10px] sm:text-[11px] uppercase tracking-wide text-secondary-text mb-1 truncate" title="Total Deposit">Total Deposit</p>
+          <p class="text-sm sm:text-lg lg:text-xl font-semibold sm:font-medium text-green-700 truncate" :title="`+$${formatNum(store.summary.total_deposit)}`">+${{ formatNum(store.summary.total_deposit) }}</p>
         </div>
-        <div class="bg-card-background border border-primary-border rounded-xl p-4">
-          <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-1">Total Withdrawal</p>
-          <p class="text-xl font-medium text-red-700">-${{ formatNum(store.summary.total_withdrawal) }}</p>
+        <div class="bg-card-background border border-primary-border rounded-xl p-3 sm:p-4 min-w-0">
+          <p class="text-[10px] sm:text-[11px] uppercase tracking-wide text-secondary-text mb-1 truncate" title="Total Withdrawal">Total Withdrawal</p>
+          <p class="text-sm sm:text-lg lg:text-xl font-semibold sm:font-medium text-red-700 truncate" :title="`-$${formatNum(store.summary.total_withdrawal)}`">-${{ formatNum(store.summary.total_withdrawal) }}</p>
         </div>
-        <div class="bg-card-background border border-primary-border rounded-xl p-4">
-          <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-1">Trade PnL</p>
-          <p class="text-xl font-medium" :class="store.summary.total_pnl >= 0 ? 'text-green-700' : 'text-red-700'">
+        <div class="bg-card-background border border-primary-border rounded-xl p-3 sm:p-4 min-w-0">
+          <p class="text-[10px] sm:text-[11px] uppercase tracking-wide text-secondary-text mb-1 truncate" title="Trade PnL">Trade PnL</p>
+          <p
+            class="text-sm sm:text-lg lg:text-xl font-semibold sm:font-medium truncate"
+            :class="store.summary.total_pnl >= 0 ? 'text-green-700' : 'text-red-700'"
+            :title="`${store.summary.total_pnl >= 0 ? '+' : ''}$${formatNum(store.summary.total_pnl)}`"
+          >
             {{ store.summary.total_pnl >= 0 ? '+' : '' }}${{ formatNum(store.summary.total_pnl) }}
           </p>
         </div>
-        <div class="bg-card-background border border-primary-border rounded-xl p-4">
-          <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-1">Total FM Fee</p>
-          <p class="text-xl font-medium text-primary-text">${{ formatNum(store.summary.total_fm_fee) }}</p>
+        <div class="bg-card-background border border-primary-border rounded-xl p-3 sm:p-4 min-w-0">
+          <p class="text-[10px] sm:text-[11px] uppercase tracking-wide text-secondary-text mb-1 truncate" title="Total FM Fee">Total FM Fee</p>
+          <p class="text-sm sm:text-lg lg:text-xl font-semibold sm:font-medium text-primary-text truncate" :title="`$${formatNum(store.summary.total_fm_fee)}`">${{ formatNum(store.summary.total_fm_fee) }}</p>
         </div>
       </template>
     </div>

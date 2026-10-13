@@ -111,13 +111,15 @@ const activeTab = computed(() => {
     return null;
   return (
     store.rateGrid.tabs.find(
-      (t) => t.broker_group_config_id === selectedGroupConfigId.value,
+      (t) => t.broker_group_config_id === selectedGroupConfigId.value
     ) || store.rateGrid.tabs[0]
   );
 });
 
 // Symbol groups headers
-const symbolGroups = computed(() => activeTab.value?.symbol_groups || store.rateGrid?.symbol_groups || []);
+const symbolGroups = computed(
+  () => activeTab.value?.symbol_groups || store.rateGrid?.symbol_groups || []
+);
 
 // Sync local cells when active tab or rateGrid changes
 const initLocalCells = () => {
@@ -127,7 +129,7 @@ const initLocalCells = () => {
       symbolGroups.value.forEach((sg) => {
         const key = `${row.ib_id}_${sg.id}`;
         const raw = row.rates
-          ? (row.rates[sg.id] ?? row.rates[String(sg.id)])
+          ? row.rates[sg.id] ?? row.rates[String(sg.id)]
           : null;
         if (raw !== null && typeof raw === "object") {
           map[key] = {
@@ -157,7 +159,7 @@ watch(
   () => {
     initLocalCells();
   },
-  { deep: true },
+  { deep: true }
 );
 
 // Watch store.activeGroupConfigId
@@ -168,7 +170,7 @@ watch(
       selectedGroupConfigId.value = val;
     }
   },
-  { immediate: true },
+  { immediate: true }
 );
 
 watch(
@@ -178,7 +180,7 @@ watch(
       selectedReferralLinkId.value = link.id;
     }
   },
-  { immediate: true },
+  { immediate: true }
 );
 
 // On mount, do initial search if empty
@@ -193,7 +195,7 @@ const handleAffiliateSearch = (q) => {
   searchDebounceTimer.value = setTimeout(() => {
     store.searchReferralLinks(
       { q: q !== null && q !== undefined ? String(q).trim() : "", limit: 30 },
-      true,
+      true
     );
   }, 300);
 };
@@ -256,11 +258,17 @@ const handleCellTypeChange = (ibId, symbolGroupId, newType) => {
 // Fill row across all symbol groups using first symbol group's values
 const handleFillRow = (row, sourceSgId) => {
   const sourceKey = `${row.ib_id}_${sourceSgId}`;
-  const sourceCell = localCells.value[sourceKey] || { rate: "", rate_type: "value" };
+  const sourceCell = localCells.value[sourceKey] || {
+    rate: "",
+    rate_type: "value",
+  };
   symbolGroups.value.forEach((sg) => {
     const key = `${row.ib_id}_${sg.id}`;
     localCells.value[key] = {
-      rate: sourceCell.rate !== "" && sourceCell.rate !== null ? sourceCell.rate : "",
+      rate:
+        sourceCell.rate !== "" && sourceCell.rate !== null
+          ? sourceCell.rate
+          : "",
       rate_type: sourceCell.rate_type || "value",
     };
   });
@@ -341,7 +349,9 @@ const handleSave = async () => {
 <template>
   <div class="space-y-5">
     <!-- Top Configuration Header & Method Selector -->
-    <div class="bg-card-background p-6 rounded-lg space-y-4 border border-primary-border">
+    <div
+      class="bg-card-background p-6 rounded-lg space-y-4 border border-primary-border"
+    >
       <div
         class="flex flex-col lg:flex-row lg:items-center justify-between gap-4"
       >
@@ -430,7 +440,7 @@ const handleSave = async () => {
                 store.fetchRateGrid(
                   store.selectedReferralLink.id,
                   activeMethod,
-                  true,
+                  true
                 )
               "
             >
@@ -591,7 +601,9 @@ const handleSave = async () => {
                   ? 'bg-primary/10 text-primary border-primary/20 '
                   : 'bg-background text-secondary-text border-primary-border group-hover:border-primary-border/80'
               "
-              :title="`${t.referral_links?.length || 1} referral link(s) configured with this MT5 group`"
+              :title="`${
+                t.referral_links?.length || 1
+              } referral link(s) configured with this MT5 group`"
             >
               {{ t.referral_links?.length || 1 }} link{{
                 (t.referral_links?.length || 1) === 1 ? "" : "s"
@@ -604,7 +616,7 @@ const handleSave = async () => {
       <!-- Active Tab Card Container -->
       <div
         v-if="activeTab"
-        class="bg-card-background border border-primary-border rounded-xl overflow-hidden "
+        class="bg-card-background border border-primary-border rounded-xl overflow-hidden"
       >
         <!-- Group Tab Meta Summary Bar -->
         <div
@@ -697,7 +709,9 @@ const handleSave = async () => {
                   class="py-3 px-4 min-w-[160px] text-center whitespace-nowrap bg-card-background/40"
                 >
                   <div class="flex flex-col items-center gap-0.5">
-                    <span class="font-bold text-primary-text uppercase tracking-tight">
+                    <span
+                      class="font-bold text-primary-text uppercase tracking-tight"
+                    >
                       {{ sg.name }}
                     </span>
                     <span
@@ -730,7 +744,9 @@ const handleSave = async () => {
                     <!-- Left Stripe -->
                     <span
                       class="w-1.5 h-7 rounded-full shrink-0"
-                      :class="row.level === 1 ? 'bg-primary-green' : 'bg-primary'"
+                      :class="
+                        row.level === 1 ? 'bg-primary-green' : 'bg-primary'
+                      "
                     />
                     <div class="space-y-0.5">
                       <span
@@ -749,8 +765,8 @@ const handleSave = async () => {
                           (row.level === 1
                             ? "Direct Affiliate"
                             : row.level === 2
-                              ? "Master Partner"
-                              : "Sub-Affiliate")
+                            ? "Master Partner"
+                            : "Sub-Affiliate")
                         }}
                       </p>
                     </div>
@@ -805,28 +821,43 @@ const handleSave = async () => {
                         getCellValue(row.ib_id, sg.id) !== ''
                           ? 'text-primary font-bold'
                           : 'text-primary-text',
-                        activeMethod === 'per_spread' ? 'rounded-l-lg' : 'rounded-lg'
+                        activeMethod === 'per_spread'
+                          ? 'rounded-l-lg'
+                          : 'rounded-lg',
                       ]"
                       @input="handleCellRateInput(row.ib_id, sg.id, $event)"
                     />
 
                     <!-- Type Switcher Toggle (val | %) -->
-                    <div 
+                    <div
                       v-if="activeMethod === 'per_spread'"
                       class="flex items-center shrink-0 h-full border-l border-primary-border bg-card-background/70 px-1 gap-1 select-none rounded-r-lg"
                     >
-                      <Tooltip text="val: Value multiplier | %: Percentage share" position="top">
-                        <div class="text-secondary-text hover:text-primary-text cursor-help flex items-center justify-center p-0.5">
+                      <Tooltip
+                        text="val: Value multiplier | %: Percentage share"
+                        position="top"
+                      >
+                        <div
+                          class="text-secondary-text hover:text-primary-text cursor-help flex items-center justify-center p-0.5"
+                        >
                           <HugeIcon :icon="InformationCircleIcon" :size="12" />
                         </div>
                       </Tooltip>
-                      <div class="flex items-center bg-background border border-primary-border/50 rounded-full p-0.5">
+                      <div
+                        class="flex items-center bg-background border border-primary-border/50 rounded-full p-0.5"
+                      >
                         <button
                           type="button"
                           :disabled="!canManageRates"
                           class="px-1.5 py-0.5 text-[10px] font-mono font-bold rounded-full transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                          :class="getCellType(row.ib_id, sg.id) === 'value' ? 'bg-primary text-white' : 'text-secondary-text hover:text-primary-text hover:bg-card-background'"
-                          @click="handleCellTypeChange(row.ib_id, sg.id, 'value')"
+                          :class="
+                            getCellType(row.ib_id, sg.id) === 'value'
+                              ? 'bg-primary text-white'
+                              : 'text-secondary-text hover:text-primary-text hover:bg-card-background'
+                          "
+                          @click="
+                            handleCellTypeChange(row.ib_id, sg.id, 'value')
+                          "
                         >
                           val
                         </button>
@@ -834,8 +865,14 @@ const handleSave = async () => {
                           type="button"
                           :disabled="!canManageRates"
                           class="px-1.5 py-0.5 text-[10px] font-mono font-bold rounded-full transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                          :class="getCellType(row.ib_id, sg.id) === 'percent' ? 'bg-primary text-white' : 'text-secondary-text hover:text-primary-text hover:bg-card-background'"
-                          @click="handleCellTypeChange(row.ib_id, sg.id, 'percent')"
+                          :class="
+                            getCellType(row.ib_id, sg.id) === 'percent'
+                              ? 'bg-primary text-white'
+                              : 'text-secondary-text hover:text-primary-text hover:bg-card-background'
+                          "
+                          @click="
+                            handleCellTypeChange(row.ib_id, sg.id, 'percent')
+                          "
                         >
                           %
                         </button>
@@ -874,10 +911,26 @@ const handleSave = async () => {
         </div>
 
         <!-- Rate Type Footnote Helper -->
-        <div class="flex items-center gap-2 text-[11px] text-secondary-text px-5 py-2.5 bg-background/30 border-t border-primary-border/60">
-          <HugeIcon :icon="InformationCircleIcon" :size="13" class="text-primary shrink-0" />
+        <div
+          class="flex items-center gap-2 text-[11px] text-secondary-text px-5 py-2.5 bg-background/30 border-t border-primary-border/60"
+        >
+          <HugeIcon
+            :icon="InformationCircleIcon"
+            :size="13"
+            class="text-primary shrink-0"
+          />
           <span>
-            <strong>Rate Types:</strong> <code class="px-1 py-0.2 bg-background border border-primary-border rounded font-mono text-[10px] text-primary">val</code> = Fixed multiplier (base &times; rate). <code class="px-1 py-0.2 bg-background border border-primary-border rounded font-mono text-[10px] text-primary">%</code> = Share of base (base &times; rate / 100).
+            <strong>Rate Types:</strong>
+            <code
+              class="px-1 py-0.2 bg-background border border-primary-border rounded font-mono text-[10px] text-primary"
+              >val</code
+            >
+            = Fixed multiplier (base &times; rate).
+            <code
+              class="px-1 py-0.2 bg-background border border-primary-border rounded font-mono text-[10px] text-primary"
+              >%</code
+            >
+            = Share of base (base &times; rate / 100).
           </span>
         </div>
 
@@ -891,7 +944,9 @@ const handleSave = async () => {
               v-if="isDirty"
               class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary-yellow/10 text-primary-yellow border border-primary-yellow/30 font-bold"
             >
-              <span class="w-2 h-2 rounded-full bg-primary-yellow animate-ping" />
+              <span
+                class="w-2 h-2 rounded-full bg-primary-yellow animate-ping"
+              />
               <span>Unsaved changes on this MT5 group tab</span>
             </div>
             <div
@@ -921,7 +976,7 @@ const handleSave = async () => {
               v-if="canManageRates"
               type="button"
               :disabled="store.actionLoading"
-              class="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover text-white text-xs font-bold rounded-lg transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto justify-center "
+              class="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-hover text-white text-xs font-bold rounded-lg transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto justify-center"
               @click="handleSave"
             >
               <HugeIcon

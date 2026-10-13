@@ -1,21 +1,21 @@
 <template>
   <div>
     <!-- Summary Cards -->
-    <div class="grid grid-cols-2 lg:grid-cols-2 gap-4 mb-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-6">
       <template v-if="store.loading">
-        <div v-for="n in 2" :key="n" class="bg-card-background border border-primary-border rounded-xl p-4 animate-pulse space-y-2">
-          <div class="h-3 w-24 bg-background rounded" />
-          <div class="h-6 w-28 bg-background rounded" />
+        <div v-for="n in 2" :key="n" class="bg-card-background border border-primary-border rounded-xl p-3.5 sm:p-4 animate-pulse space-y-2 min-w-0">
+          <div class="h-3 w-28 bg-background rounded" />
+          <div class="h-5 sm:h-6 w-32 bg-background rounded" />
         </div>
       </template>
       <template v-else>
-        <div class="bg-card-background border border-primary-border rounded-xl p-4">
-          <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-1">Total Internal Deposit</p>
-          <p class="text-xl font-medium text-green-700">+${{ formatNum(store.summary.total_deposit) }}</p>
+        <div class="bg-card-background border border-primary-border rounded-xl p-3.5 sm:p-4 min-w-0">
+          <p class="text-xs sm:text-[11px] uppercase tracking-wide text-secondary-text mb-1 truncate" title="Total Internal Deposit">Total Internal Deposit</p>
+          <p class="text-base sm:text-xl font-bold sm:font-medium text-green-700 truncate" :title="`+$${formatNum(store.summary.total_deposit)}`">+${{ formatNum(store.summary.total_deposit) }}</p>
         </div>
-        <div class="bg-card-background border border-primary-border rounded-xl p-4">
-          <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-1">Total Internal Withdrawal</p>
-          <p class="text-xl font-medium text-red-700">-${{ formatNum(store.summary.total_withdrawal) }}</p>
+        <div class="bg-card-background border border-primary-border rounded-xl p-3.5 sm:p-4 min-w-0">
+          <p class="text-xs sm:text-[11px] uppercase tracking-wide text-secondary-text mb-1 truncate" title="Total Internal Withdrawal">Total Internal Withdrawal</p>
+          <p class="text-base sm:text-xl font-bold sm:font-medium text-red-700 truncate" :title="`-$${formatNum(store.summary.total_withdrawal)}`">-${{ formatNum(store.summary.total_withdrawal) }}</p>
         </div>
       </template>
     </div>
