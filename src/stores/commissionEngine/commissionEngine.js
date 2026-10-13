@@ -146,6 +146,27 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
   const reportsEmpty = ref(false);
   const reportsRawData = ref(null);
 
+  // ─── Performance Reports Drill-Down State (/reports/performance/entries) ─
+  const performanceEntriesList = ref([]);
+  const performanceEntriesClients = ref([]);
+  const performanceEntriesClient = ref(null);
+  const performanceEntriesSubIbs = ref([]);
+  const performanceEntriesSubIbsSummary = ref(null);
+  const performanceEntriesSubIb = ref(null);
+  const performanceEntriesIbSummary = ref(null);
+  const performanceEntriesView = ref("clients_summary");
+  const performanceEntriesArea = ref("direct");
+  const performanceEntriesSummary = ref(null);
+  const performanceEntriesPagination = ref({
+    page: 1,
+    per_page: 50,
+    total: 0,
+    total_items: 0,
+    total_pages: 1,
+    pages: 1,
+  });
+  const performanceEntriesLoading = ref(false);
+
   // ─── 2. In-Flight Tracking (Prevents Parallel Duplicate Requests) ─
   const inFlight = {
     referralLinks: false,
@@ -2425,6 +2446,45 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     }
   };
 
+  // ─── 28. Performance Reports Drill-Down (/reports/performance/entries) ───
+  const fetchPerformanceEntries = (params = {}) => {
+    performanceEntriesLoading.value = true;
+    return new Promise((resolve, reject) => {
+      apiRequest(urls.KEYS.GET, urls.ibCommission.reportsPerformanceEntries, {
+        params,
+        isTokenRequired: true,
+        onSuccess: (res) => {
+          const raw = res?.data !== undefined ? res.data : res;
+          performanceEntriesClients.value = raw?.clients || [];
+          performanceEntriesClient.value = raw?.client || null;
+          performanceEntriesSubIbs.value = raw?.sub_ibs || [];
+          performanceEntriesSubIbsSummary.value = raw?.sub_ibs_summary || null;
+          performanceEntriesSubIb.value = raw?.sub_ib || null;
+          performanceEntriesIbSummary.value = raw?.ib_summary || null;
+          performanceEntriesView.value = raw?.view || "clients_summary";
+          performanceEntriesArea.value = raw?.area || "direct";
+          performanceEntriesList.value = raw?.items || (Array.isArray(raw) ? raw : []);
+          performanceEntriesSummary.value = raw?.summary || null;
+          performanceEntriesPagination.value = {
+            page: Number(raw?.page || params.page || 1),
+            per_page: Number(raw?.per_page || params.per_page || 50),
+            total_items: Number(raw?.total ?? raw?.summary?.entry_count ?? performanceEntriesList.value.length),
+            total_pages: Number(raw?.pages || Math.ceil((raw?.total || 1) / (raw?.per_page || 50)) || 1),
+            total: Number(raw?.total ?? raw?.summary?.entry_count ?? performanceEntriesList.value.length),
+            pages: Number(raw?.pages || 1),
+          };
+          resolve(res);
+        },
+        onFailure: (err) => {
+          snackbar.show(err?.message || "Failed to load performance entries drill-down", "error");
+          reject(err);
+        },
+        onFinally: () => {
+          performanceEntriesLoading.value = false;
+        },
+      });
+    });
+  };
 
   return {
     // State
@@ -2558,5 +2618,19 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     fetchReportData,
     getReportEndpoint,
     exportReportFile,
+    // Performance Entries Drill-Down
+    performanceEntriesList,
+    performanceEntriesClients,
+    performanceEntriesClient,
+    performanceEntriesSubIbs,
+    performanceEntriesSubIbsSummary,
+    performanceEntriesSubIb,
+    performanceEntriesIbSummary,
+    performanceEntriesView,
+    performanceEntriesArea,
+    performanceEntriesSummary,
+    performanceEntriesPagination,
+    performanceEntriesLoading,
+    fetchPerformanceEntries,
   };
 });

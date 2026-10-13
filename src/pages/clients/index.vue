@@ -76,7 +76,7 @@ const remainingTags = (tags) => {
 
 const selectedClients = ref([]);
 const selectedClientIds = computed(() =>
-  selectedClients.value.map((c) => (typeof c === "object" ? c.id : c)),
+  selectedClients.value.map((c) => (typeof c === "object" ? c.id : c))
 );
 
 const isAllClientsSelected = computed(() => {
@@ -99,7 +99,7 @@ const toggleSelectAllClients = () => {
 
 const toggleSelectClient = (clientId) => {
   const idx = selectedClients.value.findIndex(
-    (c) => (typeof c === "object" ? c.id : c) === clientId,
+    (c) => (typeof c === "object" ? c.id : c) === clientId
   );
   if (idx > -1) {
     selectedClients.value.splice(idx, 1);
@@ -149,10 +149,10 @@ const handleTagModalUpdated = () => {
 };
 
 const autoWithdrawalOptions = [
-  { label: 'All Auto Withdrawal Status', value: '' },
-  { label: 'Eligible', value: 'true' },
-  { label: 'Not Eligible', value: 'false' },
-]
+  { label: "All Auto Withdrawal Status", value: "" },
+  { label: "Eligible", value: "true" },
+  { label: "Not Eligible", value: "false" },
+];
 
 const tagOptions = computed(() => {
   const options = [{ label: "All Tags", value: "" }];
@@ -216,7 +216,7 @@ const onIbSearch = (query) => {
 };
 
 const hasFilters = computed(
-  () => store.filters.search || store.filters.ib_id || store.filters.tag_ids,
+  () => store.filters.search || store.filters.ib_id || store.filters.tag_ids
 );
 
 const handlePageChange = (page) => store.fetchClients(page);
@@ -296,7 +296,7 @@ function getRowActions(client) {
         icon: client.is_active ? UserX : UserCheck,
         danger: client.is_active,
         success: !client.is_active,
-      },
+      }
     );
   }
 
@@ -404,6 +404,19 @@ const handleDeleteSuccess = () => {
 };
 
 const { goToTradingAccount } = useGoToTradingAccount();
+
+const navigateToTradingAccount = (accountOrEmail, event) => {
+  if (!accountOrEmail) return;
+  if (event && (event.ctrlKey || event.metaKey || event.button === 1)) {
+    const routeData = router.resolve({
+      path: "/trading-accounts",
+      query: { search: accountOrEmail },
+    });
+    window.open(routeData.href, "_blank");
+    return;
+  }
+  goToTradingAccount(accountOrEmail);
+};
 
 const expandedAccountsMap = ref({});
 
@@ -526,7 +539,7 @@ const promptAssignStaff = (client, staffId) => {
   if (!hasPermission("client.update")) {
     snackbar.show(
       "You do not have permission to assign or update staff.",
-      "error",
+      "error"
     );
     return;
   }
@@ -549,7 +562,7 @@ const promptAssignStaff = (client, staffId) => {
   if (currentStaffId && Number(currentStaffId) === Number(staffId)) {
     snackbar.show(
       "This staff member is already assigned to this client.",
-      "info",
+      "info"
     );
     editingStaffClientId.value = null;
     return;
@@ -607,7 +620,7 @@ const handleConfirmAssignStaff = () => {
 
       snackbar.show(
         res?.message || res?.data?.message || "Staff assigned successfully.",
-        "success",
+        "success"
       );
       store.fetchClients(store.pagination.page);
     },
@@ -618,7 +631,7 @@ const handleConfirmAssignStaff = () => {
           err?.message ||
           err?.error ||
           "Failed to assign staff.",
-        "error",
+        "error"
       );
     },
   });
@@ -891,9 +904,9 @@ onMounted(() => {
         <template #cell-contact="{ row }">
           <p
             v-if="row.email"
-            @click.stop="goToTradingAccount(row.email)"
+            @click.stop="navigateToTradingAccount(row.email, $event)"
             class="text-xs font-medium text-primary hover:underline cursor-pointer transition-colors"
-            title="Search trading accounts for this email"
+            title="Search trading accounts for this email (Ctrl+Click to open in new tab)"
           >
             {{ row.email }}
           </p>
@@ -984,7 +997,7 @@ onMounted(() => {
               class="w-44 flex items-center gap-1"
             >
               <div class="flex-1">
-               <BaseSelect
+                <BaseSelect
                   :model-value="
                     row.staff_assigned?.id ||
                     row.assigned_staff?.id ||
@@ -1112,8 +1125,12 @@ onMounted(() => {
                 <span
                   v-for="(acc, idx) in row.accounts.slice(0, 2)"
                   :key="acc.account_number || acc || idx"
-                  @click.stop="goToTradingAccount(acc.account_number || acc)"
-                  :title="`Trading Account: #${acc.account_number || acc}${acc.account_type ? ' (' + acc.account_type + ')' : ''} — Click to view`"
+                  @click.stop="
+                    navigateToTradingAccount(acc.account_number || acc, $event)
+                  "
+                  :title="`Trading Account: #${acc.account_number || acc}${
+                    acc.account_type ? ' (' + acc.account_type + ')' : ''
+                  } — Click to view (Ctrl+Click for new tab)`"
                   class="font-mono text-[9px] px-1.5 py-0.5 rounded-md cursor-pointer hover:scale-105 active:scale-95 transition-all duration-150 inline-block border"
                   :class="[
                     chooseBgColor[acc.account_type] ||
@@ -1139,8 +1156,12 @@ onMounted(() => {
                 <span
                   v-for="(acc, idx) in row.accounts"
                   :key="acc.account_number || acc || idx"
-                  @click.stop="goToTradingAccount(acc.account_number || acc)"
-                  :title="`Trading Account: #${acc.account_number || acc}${acc.account_type ? ' (' + acc.account_type + ')' : ''} — Click to view`"
+                  @click.stop="
+                    navigateToTradingAccount(acc.account_number || acc, $event)
+                  "
+                  :title="`Trading Account: #${acc.account_number || acc}${
+                    acc.account_type ? ' (' + acc.account_type + ')' : ''
+                  } — Click to view (Ctrl+Click for new tab)`"
                   class="font-mono text-[9px] px-1.5 py-0.5 rounded-md cursor-pointer hover:scale-105 active:scale-95 transition-all duration-150 inline-block border"
                   :class="[
                     chooseBgColor[acc.account_type] ||
@@ -1255,19 +1276,23 @@ onMounted(() => {
                 <p class="text-sm font-semibold text-primary-text">
                   {{ client.name }}
                 </p>
-                <span class="text-[10px] text-secondary-text font-mono">#{{ client.id }}</span>
+                <span class="text-[10px] text-secondary-text font-mono"
+                  >#{{ client.id }}</span
+                >
               </div>
               <p
                 v-if="client.email"
-                @click="goToTradingAccount(client.email)"
-                class="text-[11px] font-medium text-primary hover:underline cursor-pointer transition-colors break-all leading-snug"
-                title="Search trading accounts for this email"
+                @click.stop="navigateToTradingAccount(client.email, $event)"
+                class="text-[11px] font-medium text-primary hover:underline cursor-pointer transition-colors truncate"
+                title="Search trading accounts for this email (Ctrl+Click to open in new tab)"
               >
                 {{ client.email }}
               </p>
               <p v-else class="text-[11px] text-secondary-text">—</p>
               <p
-                v-if="client.phone_number && hasPermission('client.view_number')"
+                v-if="
+                  client.phone_number && hasPermission('client.view_number')
+                "
                 class="text-[10px] text-secondary-text/80"
               >
                 {{ client.phone_number }}
@@ -1349,10 +1374,18 @@ onMounted(() => {
         <div class="grid grid-cols-2 gap-2 text-xs">
           <!-- Location / Address -->
           <div
-            v-if="client.address || client.city || client.state || client.country || client.zip_code"
+            v-if="
+              client.address ||
+              client.city ||
+              client.state ||
+              client.country ||
+              client.zip_code
+            "
             class="bg-background rounded-lg px-3 py-2 col-span-2"
           >
-            <p class="text-[10px] text-secondary-text mb-0.5">Location & Address</p>
+            <p class="text-[10px] text-secondary-text mb-0.5">
+              Location & Address
+            </p>
             <p class="font-medium text-primary-text text-[11px] truncate">
               {{
                 [client.address, client.city, client.state, client.zip_code]
@@ -1516,7 +1549,10 @@ onMounted(() => {
             >
               ✓ Verified: {{ formatDate(client.kyc_verified_at) }}
             </p>
-            <p v-if="client.kyc_reject_reason" class="text-[10px] text-primary-red">
+            <p
+              v-if="client.kyc_reject_reason"
+              class="text-[10px] text-primary-red"
+            >
               Reject Reason: {{ client.kyc_reject_reason }}
             </p>
           </div>
@@ -1621,14 +1657,20 @@ onMounted(() => {
               Types: {{ client.account_types.join(", ") }}
             </p>
           </div>
-          <div class="bg-background rounded-lg px-3 py-2 col-span-2 flex items-center justify-between text-[10px]">
+          <div
+            class="bg-background rounded-lg px-3 py-2 col-span-2 flex items-center justify-between text-[10px]"
+          >
             <div>
               <span class="text-secondary-text">Joined: </span>
-              <span class="text-primary-text font-medium">{{ formatDate(client.created_at) }}</span>
+              <span class="text-primary-text font-medium">{{
+                formatDate(client.created_at)
+              }}</span>
             </div>
             <div>
               <span class="text-secondary-text">Updated: </span>
-              <span class="text-primary-text font-medium">{{ formatDate(client.updated_at) }}</span>
+              <span class="text-primary-text font-medium">{{
+                formatDate(client.updated_at)
+              }}</span>
             </div>
           </div>
 
@@ -1639,7 +1681,8 @@ onMounted(() => {
               hasPermission('client.update') ||
               hasAnyPermission(['user_bank_accounts.enable_edit']) ||
               hasPermission('xtention_dev.login_as_client') ||
-              (client.kyc_status === 'pending' && hasPermission('client.delete'))
+              (client.kyc_status === 'pending' &&
+                hasPermission('client.delete'))
             "
             class="col-span-2 flex items-center gap-2 pt-1"
           >
@@ -1664,7 +1707,9 @@ onMounted(() => {
                   <div
                     class="w-full flex items-center justify-center gap-1.5 text-xs font-semibold py-2 px-3 rounded-xl bg-background border border-primary-border text-primary-text hover:bg-primary-border/20 active:scale-[0.98] transition cursor-pointer shadow-2xs"
                   >
-                    <SlidersHorizontal class="w-3.5 h-3.5 shrink-0 text-secondary-text" />
+                    <SlidersHorizontal
+                      class="w-3.5 h-3.5 shrink-0 text-secondary-text"
+                    />
                     <span>Actions</span>
                   </div>
                 </template>
@@ -1765,13 +1810,19 @@ onMounted(() => {
           ? `Are you sure you want to reassign staff for client '${
               assignDialog.client?.name ||
               (assignDialog.client?.first_name
-                ? `${assignDialog.client.first_name} ${assignDialog.client.last_name || ''}`.trim()
+                ? `${assignDialog.client.first_name} ${
+                    assignDialog.client.last_name || ''
+                  }`.trim()
                 : 'Selected Client')
             }' to ${assignDialog.staffName}?`
-          : `Are you sure you want to assign ${assignDialog.staffName} to client '${
+          : `Are you sure you want to assign ${
+              assignDialog.staffName
+            } to client '${
               assignDialog.client?.name ||
               (assignDialog.client?.first_name
-                ? `${assignDialog.client.first_name} ${assignDialog.client.last_name || ''}`.trim()
+                ? `${assignDialog.client.first_name} ${
+                    assignDialog.client.last_name || ''
+                  }`.trim()
                 : 'Selected Client')
             }'?`
       "
