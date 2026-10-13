@@ -21,6 +21,12 @@ const ALLOWED_METHODS = ["get", "post", "patch", "put", "delete"];
 // ─── Request Deduplication (takeLatest)
 
 const pendingRequests = new Map();
+export const globalPendingGetRequests = new Set();
+
+export const cancelAllPendingGetRequests = () => {
+  globalPendingGetRequests.forEach(controller => controller.abort());
+  globalPendingGetRequests.clear();
+};
 
 const generateRequestKey = (method, url) => {
   return `${method.toUpperCase()}:${url}`;
@@ -236,6 +242,17 @@ const apiRequest = (
     cancelPreviousRequest(requestKey);
     pendingRequests.set(requestKey, { abortController });
   }
+
+  let activeController = abortController;
+  if (!activeController && !signal && method.toLowerCase() === "get") {
+    activeController = new AbortController();
+  }
+  const finalSignal = activeController?.signal || signal;
+
+  if (activeController && method.toLowerCase() === "get") {
+    globalPendingGetRequests.add(activeController);
+  }
+
   const config = {
     method,
     url,
@@ -248,7 +265,7 @@ const apiRequest = (
     skipAdminPrefix,
     skipAuthRedirect,
     ...(signal && { signal }),
-    signal: abortController?.signal || signal,
+    signal: finalSignal,
     ...(timeout != null && { timeout }),
   };
 
@@ -281,6 +298,9 @@ const apiRequest = (
     .finally(() => {
       if (requestKey) {
         cleanupRequest(requestKey, abortController);
+      }
+      if (activeController && method.toLowerCase() === "get") {
+        globalPendingGetRequests.delete(activeController);
       }
 
       if (onFinally) onFinally();
