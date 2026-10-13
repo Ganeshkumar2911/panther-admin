@@ -197,71 +197,74 @@ const formatDate = (val) => {
             class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-primary-border/60"
           >
             <!-- Status Filter Pills -->
-            <div
-              class="inline-flex p-1 rounded-xl bg-background border border-primary-border shrink-0 self-start sm:self-auto shadow-2xs"
-            >
-              <!-- All Trades -->
-              <button
-                type="button"
-                class="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer"
-                :class="[
-                  statusFilter === ''
-                    ? 'bg-card-background text-primary-text shadow-2xs border border-primary-border font-bold'
-                    : 'text-secondary-text hover:text-primary-text hover:bg-card-background/60',
-                ]"
-                @click="
-                  statusFilter = '';
-                  handleFilterChange();
-                "
+            <!-- Status Filter Pills -->
+            <div class="w-full sm:w-auto overflow-x-auto no-scrollbar">
+              <div
+                class="inline-flex p-1 rounded-xl bg-background border border-primary-border shrink-0 min-w-full sm:min-w-0 shadow-2xs justify-between sm:justify-start"
               >
-                <span>All Trades</span>
-              </button>
+                <!-- All Trades -->
+                <button
+                  type="button"
+                  class="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 sm:px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer whitespace-nowrap"
+                  :class="[
+                    statusFilter === ''
+                      ? 'bg-card-background text-primary-text shadow-2xs border border-primary-border font-bold'
+                      : 'text-secondary-text hover:text-primary-text hover:bg-card-background/60',
+                  ]"
+                  @click="
+                    statusFilter = '';
+                    handleFilterChange();
+                  "
+                >
+                  <span>All Trades</span>
+                </button>
 
-              <!-- Closed Only -->
-              <button
-                type="button"
-                class="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer"
-                :class="[
-                  statusFilter === 'closed'
-                    ? 'bg-primary text-white shadow-2xs font-bold'
-                    : 'text-secondary-text hover:text-primary-text hover:bg-card-background/60',
-                ]"
-                @click="
-                  statusFilter = 'closed';
-                  handleFilterChange();
-                "
-              >
-                <span
-                  class="w-2 h-2 rounded-full"
-                  :class="statusFilter === 'closed' ? 'bg-white' : 'bg-primary/80'"
-                />
-                <span>Closed Only</span>
-              </button>
+                <!-- Closed Only -->
+                <button
+                  type="button"
+                  class="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 sm:px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer whitespace-nowrap"
+                  :class="[
+                    statusFilter === 'closed'
+                      ? 'bg-primary text-white shadow-2xs font-bold'
+                      : 'text-secondary-text hover:text-primary-text hover:bg-card-background/60',
+                  ]"
+                  @click="
+                    statusFilter = 'closed';
+                    handleFilterChange();
+                  "
+                >
+                  <span
+                    class="w-2 h-2 rounded-full shrink-0"
+                    :class="statusFilter === 'closed' ? 'bg-white' : 'bg-primary/80'"
+                  />
+                  <span>Closed Only</span>
+                </button>
 
-              <!-- Open Only -->
-              <button
-                type="button"
-                class="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer"
-                :class="[
-                  statusFilter === 'open'
-                    ? 'bg-primary-green text-white shadow-2xs font-bold'
-                    : 'text-secondary-text hover:text-primary-text hover:bg-card-background/60',
-                ]"
-                @click="
-                  statusFilter = 'open';
-                  handleFilterChange();
-                "
-              >
-                <span
-                  class="w-2 h-2 rounded-full"
-                  :class="statusFilter === 'open' ? 'bg-white' : 'bg-primary-green/80'"
-                />
-                <span>Open Only</span>
-              </button>
+                <!-- Open Only -->
+                <button
+                  type="button"
+                  class="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 sm:px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer whitespace-nowrap"
+                  :class="[
+                    statusFilter === 'open'
+                      ? 'bg-primary-green text-white shadow-2xs font-bold'
+                      : 'text-secondary-text hover:text-primary-text hover:bg-card-background/60',
+                  ]"
+                  @click="
+                    statusFilter = 'open';
+                    handleFilterChange();
+                  "
+                >
+                  <span
+                    class="w-2 h-2 rounded-full shrink-0"
+                    :class="statusFilter === 'open' ? 'bg-white' : 'bg-primary-green/80'"
+                  />
+                  <span>Open Only</span>
+                </button>
+              </div>
             </div>
 
             <!-- Right: Actions -->
-            <div class="flex items-center gap-2 self-end sm:self-auto shrink-0 flex-wrap">
+            <div class="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto shrink-0 flex-wrap">
               <!-- Rebuild Trades Ops Button -->
               <button
                 v-if="canSync"
@@ -276,11 +279,10 @@ const formatDate = (val) => {
               </button>
 
               <!-- Refresh Button -->
-            
               <button
                 type="button"
                 :disabled="store.loading"
-                class="flex items-center justify-center w-8 h-8 border border-primary-border rounded-xl text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer disabled:opacity-50"
+                class="flex items-center justify-center w-8 h-8 border border-primary-border rounded-xl text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer disabled:opacity-50 shrink-0"
                 @click="loadTrades(store.tradesPagination.page, true)"
               >
                 <HugeIcon

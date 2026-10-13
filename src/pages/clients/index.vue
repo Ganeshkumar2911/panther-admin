@@ -18,6 +18,7 @@ import {
   Tag,
   X,
   Landmark,
+  MoreVertical,
 } from "lucide-vue-next";
 import ConfirmationDialog from "@/components/common/ConfirmationDialog.vue";
 import ClientBankAccountsDialog from "@/components/common/ClientBankAccountsDialog.vue";
@@ -1249,28 +1250,31 @@ onMounted(() => {
             >
               {{ client.name?.charAt(0).toUpperCase() }}
             </div>
-            <div class="min-w-0">
-              <p class="text-sm font-medium text-primary-text truncate">
-                {{ client.name }}
-              </p>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <p class="text-sm font-semibold text-primary-text">
+                  {{ client.name }}
+                </p>
+                <span class="text-[10px] text-secondary-text font-mono">#{{ client.id }}</span>
+              </div>
               <p
                 v-if="client.email"
                 @click="goToTradingAccount(client.email)"
-                class="text-[11px] font-medium text-primary hover:underline cursor-pointer transition-colors truncate"
+                class="text-[11px] font-medium text-primary hover:underline cursor-pointer transition-colors break-all leading-snug"
                 title="Search trading accounts for this email"
               >
                 {{ client.email }}
               </p>
-              <p v-else class="text-[11px] text-secondary-text truncate">—</p>
+              <p v-else class="text-[11px] text-secondary-text">—</p>
               <p
-                v-if="client.phone_number"
-                class="text-[10px] text-secondary-text/80 truncate"
+                v-if="client.phone_number && hasPermission('client.view_number')"
+                class="text-[10px] text-secondary-text/80"
               >
                 {{ client.phone_number }}
               </p>
             </div>
           </div>
-          <div class="flex flex-col gap-1.5 items-end shrink-0">
+          <div class="flex flex-col gap-1 items-end shrink-0">
             <button
               class="text-[10px] font-medium px-2 py-0.5 rounded-full border transition-all duration-200 cursor-pointer focus:outline-none hover:scale-105 active:scale-95"
               :class="
@@ -1343,21 +1347,37 @@ onMounted(() => {
         </div>
 
         <div class="grid grid-cols-2 gap-2 text-xs">
-          <div class="bg-background rounded-lg px-3 py-2">
-            <p class="text-[10px] text-secondary-text mb-0.5">Email</p>
-            <p class="font-medium text-primary-text text-[11px] truncate">
-              {{ client.email ?? "—" }}
-            </p>
-          </div>
+          <!-- Location / Address -->
           <div
-            v-if="hasPermission('client.view_number')"
-            class="bg-background rounded-lg px-3 py-2"
+            v-if="client.address || client.city || client.state || client.country || client.zip_code"
+            class="bg-background rounded-lg px-3 py-2 col-span-2"
           >
-            <p class="text-[10px] text-secondary-text mb-0.5">Phone</p>
+            <p class="text-[10px] text-secondary-text mb-0.5">Location & Address</p>
             <p class="font-medium text-primary-text text-[11px] truncate">
-              {{ client.phone_number ?? "—" }}
+              {{
+                [client.address, client.city, client.state, client.zip_code]
+                  .filter(Boolean)
+                  .join(", ") || "—"
+              }}
+            </p>
+            <p
+              v-if="client.country"
+              class="text-[10px] text-secondary-text flex items-center gap-1.5 mt-0.5"
+            >
+              <span
+                v-if="getFlagCode(client.country)"
+                :class="[
+                  'fi',
+                  `fi-${getFlagCode(client.country)}`,
+                  'fis',
+                  'w-3.5 h-2.5 shrink-0',
+                ]"
+              ></span>
+              <span>{{ cleanCountryLabel(client.country) }}</span>
             </p>
           </div>
+
+          <!-- Date of Birth -->
           <div class="bg-background rounded-lg px-3 py-2">
             <p class="text-[10px] text-secondary-text mb-0.5">Date of Birth</p>
             <p class="font-medium text-primary-text text-[11px]">
@@ -1366,28 +1386,12 @@ onMounted(() => {
               }}
             </p>
           </div>
+
+          <!-- Tracking ID -->
           <div class="bg-background rounded-lg px-3 py-2">
-            <p class="text-[10px] text-secondary-text mb-0.5">City</p>
+            <p class="text-[10px] text-secondary-text mb-0.5">Tracking ID</p>
             <p class="font-medium text-primary-text text-[11px] truncate">
-              {{ client.city ?? "—" }}
-            </p>
-          </div>
-          <div class="bg-background rounded-lg px-3 py-2 col-span-2">
-            <p class="text-[10px] text-secondary-text mb-0.5">Address</p>
-            <p class="font-medium text-primary-text text-[11px] truncate">
-              {{ client.address ?? "—" }}
-            </p>
-          </div>
-          <div class="bg-background rounded-lg px-3 py-2">
-            <p class="text-[10px] text-secondary-text mb-0.5">State</p>
-            <p class="font-medium text-primary-text text-[11px]">
-              {{ client.state ?? "—" }}
-            </p>
-          </div>
-          <div class="bg-background rounded-lg px-3 py-2">
-            <p class="text-[10px] text-secondary-text mb-0.5">Zip Code</p>
-            <p class="font-medium text-primary-text text-[11px]">
-              {{ client.zip_code ?? "—" }}
+              {{ client.tracking_id ?? "—" }}
             </p>
           </div>
           <div class="bg-background rounded-lg px-3 py-2 col-span-2">
@@ -1617,91 +1621,55 @@ onMounted(() => {
               Types: {{ client.account_types.join(", ") }}
             </p>
           </div>
-          <div class="bg-background rounded-lg px-3 py-2 col-span-2">
-            <p class="text-[10px] text-secondary-text mb-0.5">Timeline</p>
-            <p class="text-[10px] text-primary-text">
-              Joined: {{ formatDate(client.created_at) }}
-            </p>
-            <p class="text-[10px] text-primary-text">
-              Updated: {{ formatDate(client.updated_at) }}
-            </p>
-            <p class="text-[10px] text-secondary-text">
-              Tracking ID: {{ client.tracking_id ?? "—" }}
-            </p>
+          <div class="bg-background rounded-lg px-3 py-2 col-span-2 flex items-center justify-between text-[10px]">
+            <div>
+              <span class="text-secondary-text">Joined: </span>
+              <span class="text-primary-text font-medium">{{ formatDate(client.created_at) }}</span>
+            </div>
+            <div>
+              <span class="text-secondary-text">Updated: </span>
+              <span class="text-primary-text font-medium">{{ formatDate(client.updated_at) }}</span>
+            </div>
           </div>
+
+          <!-- Compact Mobile Actions Bar -->
           <div
             v-if="
               hasPermission('client.view') ||
               hasPermission('client.update') ||
-              (client.kyc_status === 'pending' &&
-                hasPermission('client.delete'))
+              hasAnyPermission(['user_bank_accounts.enable_edit']) ||
+              hasPermission('xtention_dev.login_as_client') ||
+              (client.kyc_status === 'pending' && hasPermission('client.delete'))
             "
-            class="bg-background rounded-lg px-3 py-2 col-span-2 flex flex-wrap items-center justify-center gap-2"
+            class="col-span-2 flex items-center gap-2 pt-1"
           >
             <button
               v-if="hasPermission('client.view')"
-              @click="openClientDepth(client)"
-              class="flex-1 min-w-22.5 text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer"
+              type="button"
+              @click.stop="openClientDepth(client)"
+              class="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-2 px-3 rounded-xl bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 active:scale-[0.98] transition cursor-pointer"
             >
-              Client Depth
+              <Eye class="w-3.5 h-3.5 shrink-0" />
+              <span>Client Depth</span>
             </button>
-            <button
-              v-if="hasPermission('client.update')"
-              @click="openEditClientDialog(client)"
-              class="flex-1 min-w-17.5 text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer"
-            >
-              Edit
-            </button>
-            <button
-              v-if="hasPermission('client.update')"
-              @click="openManageTransactionsDialog(client)"
-              class="flex-1 min-w-22.5 text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer"
-            >
-              Transactions
-            </button>
-            <button
-              v-if="hasPermission('client.update')"
-              @click="openChangeIBDialog(client)"
-              class="flex-1 min-w-20 text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer"
-            >
-              Change IB
-            </button>
-            <button
-              v-if="client.is_ib === false && hasPermission('client.update')"
-              @click="openMakeIBDialog(client)"
-              class="flex-1 min-w-20 text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition animate-all duration-200 cursor-pointer"
-            >
-              Make IB
-            </button>
-            <button
-              v-if="hasPermission('client.update')"
-              @click="openUpdateReferralLinkDrawer(client)"
-              class="flex-1 min-w-25 text-xs font-medium py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer"
-            >
-              Referral Link
-            </button>
-            <button
-              v-if="hasPermission('client.update')"
-              @click="openChangeStatusDialog(client)"
-              class="flex-1 min-w-17.5 text-xs font-medium py-1.5 rounded-lg transition animate-all duration-200 cursor-pointer"
-              :class="
-                client.is_active
-                  ? 'bg-primary-red/10 text-primary-red hover:bg-primary-red/20'
-                  : 'bg-primary-green/10 text-primary-green hover:bg-primary-green/20'
-              "
-            >
-              Status
-            </button>
-            <button
-              v-if="
-                client.kyc_status === 'pending' &&
-                hasPermission('client.delete')
-              "
-              @click="openDeleteClientDialog(client)"
-              class="flex-1 min-w-17.5 text-xs font-medium py-1.5 rounded-lg bg-primary-red/10 text-primary-red hover:bg-primary-red/20 transition animate-all duration-200 cursor-pointer"
-            >
-              Delete
-            </button>
+            <div class="flex-1">
+              <DropdownMenu
+                :items="getRowActions(client)"
+                :client="client"
+                title="Client Actions"
+                class="w-full block"
+                @select="onMenuSelect($event, client)"
+              >
+                <template #trigger>
+                  <div
+                    class="w-full flex items-center justify-center gap-1.5 text-xs font-semibold py-2 px-3 rounded-xl bg-background border border-primary-border text-primary-text hover:bg-primary-border/20 active:scale-[0.98] transition cursor-pointer shadow-2xs"
+                  >
+                    <SlidersHorizontal class="w-3.5 h-3.5 shrink-0 text-secondary-text" />
+                    <span>Actions</span>
+                  </div>
+                </template>
+              </DropdownMenu>
+            </div>
           </div>
         </div>
       </div>

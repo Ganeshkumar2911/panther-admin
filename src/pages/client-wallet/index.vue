@@ -1,16 +1,16 @@
 <template>
-  <div class="px-4">
+  <div>
     <!-- Tabs -->
     <div
-      class="flex items-center gap-1 bg-card-background border border-primary-border rounded-lg p-1 w-fit mb-6"
+      class="flex items-center gap-1 bg-card-background border border-primary-border rounded-lg p-1 w-full sm:w-fit mb-6 overflow-x-auto no-scrollbar"
     >
       <button
         v-for="tab in tabs"
         :key="tab.value"
-        class="px-4 py-2 rounded-md text-xs font-medium transition-colors cursor-pointer"
+        class="flex-1 sm:flex-initial text-center px-4 py-2 rounded-md text-xs font-medium transition-colors cursor-pointer whitespace-nowrap"
         :class="
           activeTab === tab.value
-            ? 'bg-primary text-white'
+            ? 'bg-primary text-white font-semibold shadow-2xs'
             : 'text-secondary-text hover:text-primary-text'
         "
         @click="activeTab = tab.value"
@@ -21,55 +21,65 @@
 
     <div v-if="activeTab === 'transactions'">
       <!-- Summary Cards -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-6">
         <template v-if="store.loading">
           <div
             v-for="n in 4"
             :key="n"
-            class="bg-card-background border border-primary-border rounded-xl p-4 animate-pulse space-y-2"
+            class="bg-card-background border border-primary-border rounded-xl p-3 sm:p-4 animate-pulse space-y-2 min-w-0"
           >
-            <div class="h-3 w-24 bg-background rounded" />
-            <div class="h-6 w-28 bg-background rounded" />
+            <div class="h-3 w-20 bg-background rounded" />
+            <div class="h-5 sm:h-6 w-24 bg-background rounded" />
           </div>
         </template>
         <template v-else>
           <div
-            class="bg-card-background border border-primary-border rounded-xl p-4"
+            class="bg-card-background border border-primary-border rounded-xl p-3 sm:p-4 min-w-0"
           >
             <p
-              class="text-[11px] uppercase tracking-wide text-secondary-text mb-1"
+              class="text-[10px] sm:text-[11px] uppercase tracking-wide text-secondary-text mb-1 truncate"
+              title="Total Deposit"
             >
               Total Deposit
             </p>
-            <p class="text-xl font-medium text-green-700">
+            <p
+              class="text-sm sm:text-lg lg:text-xl font-semibold sm:font-medium text-green-700 truncate"
+              :title="`+$${formatNum(store.summary.total_deposit)}`"
+            >
               +${{ formatNum(store.summary.total_deposit) }}
             </p>
           </div>
           <div
-            class="bg-card-background border border-primary-border rounded-xl p-4"
+            class="bg-card-background border border-primary-border rounded-xl p-3 sm:p-4 min-w-0"
           >
             <p
-              class="text-[11px] uppercase tracking-wide text-secondary-text mb-1"
+              class="text-[10px] sm:text-[11px] uppercase tracking-wide text-secondary-text mb-1 truncate"
+              title="Total Withdrawal"
             >
               Total Withdrawal
             </p>
-            <p class="text-xl font-medium text-red-700">
+            <p
+              class="text-sm sm:text-lg lg:text-xl font-semibold sm:font-medium text-red-700 truncate"
+              :title="`-$${formatNum(store.summary.total_withdrawal)}`"
+            >
               -${{ formatNum(store.summary.total_withdrawal) }}
             </p>
           </div>
           <div
-            class="bg-card-background border border-primary-border rounded-xl p-4"
+            class="bg-card-background border border-primary-border rounded-xl p-3 sm:p-4 min-w-0"
           >
             <p
-              class="text-[11px] uppercase tracking-wide text-secondary-text mb-1"
+              class="text-[10px] sm:text-[11px] uppercase tracking-wide text-secondary-text mb-1 truncate"
+              title="Trade PnL"
             >
               Trade PnL
             </p>
             <p
-              class="text-xl font-medium"
+              class="text-sm sm:text-lg lg:text-xl font-semibold sm:font-medium truncate"
               :class="
                 store.summary.total_pnl >= 0 ? 'text-green-700' : 'text-red-700'
               "
+              :title="`${store.summary.total_pnl >= 0 ? '+' : ''}$${formatNum(store.summary.total_pnl)}`"
             >
               {{ store.summary.total_pnl >= 0 ? "+" : "" }}${{
                 formatNum(store.summary.total_pnl)
@@ -77,14 +87,18 @@
             </p>
           </div>
           <div
-            class="bg-card-background border border-primary-border rounded-xl p-4"
+            class="bg-card-background border border-primary-border rounded-xl p-3 sm:p-4 min-w-0"
           >
             <p
-              class="text-[11px] uppercase tracking-wide text-secondary-text mb-1"
+              class="text-[10px] sm:text-[11px] uppercase tracking-wide text-secondary-text mb-1 truncate"
+              title="Fee Paid"
             >
               Fee Paid
             </p>
-            <p class="text-xl font-medium text-primary-text">
+            <p
+              class="text-sm sm:text-lg lg:text-xl font-semibold sm:font-medium text-primary-text truncate"
+              :title="`$${formatNum(store.summary.total_fee_paid)}`"
+            >
               ${{ formatNum(store.summary.total_fee_paid) }}
             </p>
           </div>

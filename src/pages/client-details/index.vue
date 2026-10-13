@@ -1,26 +1,26 @@
 <template>
   <div
-    class="h-screen bg-background text-primary-text flex flex-col -m-4 lg:-m-6"
+    class="min-h-screen md:h-screen bg-background text-primary-text flex flex-col -m-4 lg:-m-6"
   >
     <!-- TOP BAR -->
-    <div class="border-b border-primary-border px-6 py-4">
-      <div class="flex items-start justify-between gap-4">
-        <!-- Avatar -->
-        <div class="md:flex-2 flex items-center gap-4">
+    <div class="border-b border-primary-border px-4 sm:px-6 py-3.5 sm:py-4">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4">
+        <!-- Identity block (Avatar + Name + meta) -->
+        <div class="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0">
           <div
-            class="w-12 h-12 rounded-full bg-accent flex items-center justify-center text-white font-semibold text-lg shrink-0"
+            class="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-accent flex items-center justify-center text-white font-semibold text-base sm:text-lg shrink-0 shadow-xs"
           >
             {{ initials }}
           </div>
 
           <!-- Name + meta -->
-          <div class="flex-1">
-            <div class="flex items-center gap-3 flex-wrap">
-              <h1 class="text-lg font-semibold text-primary-text">
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+              <h1 class="text-base sm:text-lg font-semibold text-primary-text truncate">
                 {{ user.name }}
               </h1>
               <span
-                class="px-2 py-0.5 rounded-full text-[11px] font-medium"
+                class="px-2 py-0.5 rounded-full text-[11px] font-medium shrink-0"
                 :class="
                   user.is_active
                     ? 'bg-primary-green/10 text-primary-green'
@@ -31,13 +31,13 @@
               </span>
               <span
                 v-if="user.state"
-                class="px-2 py-0.5 rounded-full text-[11px] font-medium bg-primary-blue/10 text-primary-blue"
+                class="px-2 py-0.5 rounded-full text-[11px] font-medium bg-primary-blue/10 text-primary-blue shrink-0"
               >
                 {{ user.state }}
               </span>
               <span
                 v-if="user.role"
-                class="text-[11px] text-secondary-text uppercase tracking-widest font-semibold"
+                class="text-[11px] text-secondary-text uppercase tracking-widest font-semibold shrink-0"
               >
                 {{ user.role }}
               </span>
@@ -45,7 +45,7 @@
                 <span
                   v-for="tag in user.tags"
                   :key="tag.id || tag.name"
-                  class="px-2 py-0.5 rounded-full text-[11px] font-semibold"
+                  class="px-2 py-0.5 rounded-full text-[11px] font-semibold shrink-0"
                   :style="{
                     backgroundColor: `${tag.color || '#3B82F6'}1A`,
                     color: tag.color || '#3B82F6',
@@ -57,7 +57,7 @@
               </template>
             </div>
 
-            <div class="flex items-center gap-6 mt-1 flex-wrap">
+            <div class="flex items-center gap-4 sm:gap-6 mt-1 flex-wrap text-xs">
               <span class="text-[11px] text-secondary-text">
                 CLIENT ID
                 <span class="text-primary-text font-medium tabular-nums"
@@ -74,17 +74,18 @@
           </div>
         </div>
 
-        <div class="border-l border-primary-border h-20"></div>
+        <!-- Desktop vertical divider -->
+        <div class="hidden lg:block border-l border-primary-border h-16 shrink-0"></div>
 
-        <!-- Email / Phone / KYC -->
-        <div class="hidden flex-1 md:flex flex-col gap-2 text-sm">
+        <!-- Email / Phone (Desktop view) -->
+        <div class="hidden lg:flex flex-1 flex-col gap-1.5 text-sm">
           <div>
             <p
               class="text-[11px] text-secondary-text uppercase tracking-widest mb-0.5"
             >
               Email
             </p>
-            <p class="text-primary-text tabular-nums">{{ user.email }}</p>
+            <p class="text-primary-text tabular-nums break-all">{{ user.email }}</p>
           </div>
           <div>
             <p
@@ -98,9 +99,11 @@
           </div>
         </div>
 
-        <div class="border-l border-primary-border h-20"></div>
+        <!-- Desktop vertical divider -->
+        <div class="hidden lg:block border-l border-primary-border h-16 shrink-0"></div>
 
-        <div class="flex-1">
+        <!-- KYC / Country (Desktop view) -->
+        <div class="hidden lg:block flex-1">
           <div class="flex items-center gap-2">
             <p
               class="text-[11px] text-secondary-text uppercase tracking-widest mb-0.5"
@@ -114,7 +117,7 @@
               {{ kycStatus }}
             </span>
           </div>
-          <div>
+          <div class="mt-1.5">
             <p
               class="text-[11px] text-secondary-text uppercase tracking-widest mb-0.5"
             >
@@ -135,9 +138,11 @@
           </div>
         </div>
 
-        <div class="border-l border-primary-border h-20 hidden md:block"></div>
+        <!-- Desktop vertical divider -->
+        <div class="hidden lg:block border-l border-primary-border h-16 shrink-0"></div>
 
-        <div class="hidden md:flex flex-col gap-2 justify-center">
+        <!-- Auto Withdrawal (Desktop view) -->
+        <div class="hidden lg:flex flex-col gap-1.5 justify-center shrink-0">
           <div>
             <p class="text-[11px] text-secondary-text uppercase tracking-widest mb-1.5">
               Auto Withdrawal
@@ -167,58 +172,78 @@
           </div>
         </div>
 
-        <!-- <div class="border-l border-primary-border h-20"></div> -->
-
-        <!-- Quick Actions -->
-        <div class="shrink-0 border border-primary-border rounded-lg p-3">
-          <p class="text-secondary-text font-extralight text-xs">
-            Quick Actions
-          </p>
-          <div class="flex items-center gap-1.5 mt-2">
-            <Tooltip
-              v-for="action in visibleQuickActions"
-              :key="action.label"
-              :text="action.label"
-              position="bottom"
-            >
-              <button
-                type="button"
-                :aria-label="action.label"
-                @click="handleQuickAction(action)"
-                class="cursor-pointer border border-primary-border p-2 rounded-lg text-secondary-text hover:bg-background hover:text-primary-text transition-colors"
+        <!-- Quick Actions (Desktop & Mobile) -->
+        <div class="flex items-center justify-between sm:justify-start lg:justify-end gap-3 shrink-0">
+          <div class="border border-primary-border rounded-xl p-2 sm:p-2.5 bg-card-background/40 w-full sm:w-auto">
+            <div class="flex items-center justify-between gap-2 mb-1.5">
+              <p class="text-secondary-text font-extralight text-xs">
+                Quick Actions
+              </p>
+            </div>
+            <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+              <Tooltip
+                v-for="action in visibleQuickActions"
+                :key="action.label"
+                :text="action.label"
+                position="bottom"
               >
-                <HugeiconsIcon v-if="action.hugeIcon" :icon="action.hugeIcon" class="w-4 h-4" />
-                <component v-else :is="action.icon" class="w-4 h-4" />
-              </button>
-            </Tooltip>
+                <button
+                  type="button"
+                  :aria-label="action.label"
+                  @click="handleQuickAction(action)"
+                  class="cursor-pointer border border-primary-border p-2 rounded-lg text-secondary-text hover:bg-background hover:text-primary-text transition-colors"
+                >
+                  <HugeiconsIcon v-if="action.hugeIcon" :icon="action.hugeIcon" class="w-4 h-4" />
+                  <component v-else :is="action.icon" class="w-4 h-4" />
+                </button>
+              </Tooltip>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Sub-tabs -->
-      <!-- <div class="flex items-center gap-1 mt-4 overflow-x-auto scrollbar-none">
-        <button
-          v-for="tab in tabs"
-          :key="tab.key"
-          @click="activeTab = tab.key"
-          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap"
-          :class="
-            activeTab === tab.key
-              ? 'bg-primary text-white'
-              : 'text-secondary-text hover:bg-background hover:text-primary-text'
-          "
-        >
-          <component :is="tab.icon" class="w-4 h-4" />
-          {{ tab.label }}
-        </button>
-      </div> -->
+      <!-- Mobile info card: Email, Phone, KYC, Country, Auto Withdrawal (shown on < lg screens) -->
+      <div class="lg:hidden mt-3 pt-3 border-t border-primary-border/60 grid grid-cols-2 sm:grid-cols-4 gap-2.5 bg-card-background/40 p-2.5 sm:p-3 rounded-xl border border-primary-border/40 text-xs">
+        <div>
+          <p class="text-[10px] text-secondary-text uppercase tracking-widest mb-0.5">Email</p>
+          <p class="text-primary-text font-medium truncate" :title="user.email">{{ user.email }}</p>
+        </div>
+        <div>
+          <p class="text-[10px] text-secondary-text uppercase tracking-widest mb-0.5">Phone</p>
+          <p class="text-primary-text font-medium">{{ user.phone_number ?? "—" }}</p>
+        </div>
+        <div>
+          <p class="text-[10px] text-secondary-text uppercase tracking-widest mb-0.5">KYC / Country</p>
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <span class="px-1.5 py-0.2 rounded text-[10px] font-semibold border" :class="kycClass">
+              {{ kycStatus }}
+            </span>
+            <span v-if="user.country && getFlagCode(user.country)" :class="['fi', `fi-${getFlagCode(user.country)}`, 'fis', 'w-3.5 h-2.5 shrink-0']"></span>
+          </div>
+        </div>
+        <div>
+          <p class="text-[10px] text-secondary-text uppercase tracking-widest mb-1">Auto Withdrawal</p>
+          <label class="inline-flex items-center gap-1.5 cursor-pointer select-none" @click.prevent="handleToggleClick">
+            <input type="checkbox" role="switch" :checked="user.eligible_for_auto_withdrawal" class="peer sr-only" />
+            <span
+              class="relative block h-4.5 w-8 rounded-full bg-zinc-300 transition-colors duration-200 dark:bg-zinc-600 peer-checked:bg-emerald-500 peer-checked:[&>span]:translate-x-3.5"
+              :class="{'opacity-50 pointer-events-none': isUpdatingAutoWithdrawal}"
+            >
+              <span class="absolute left-0.5 top-0.5 h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform duration-200"></span>
+            </span>
+            <span class="text-[11px] font-bold" :class="user.eligible_for_auto_withdrawal ? 'text-emerald-500' : 'text-zinc-500'">
+              {{ user.eligible_for_auto_withdrawal ? 'On' : 'Off' }}
+            </span>
+          </label>
+        </div>
+      </div>
     </div>
 
     <!-- BODY -->
-    <div class="flex flex-1 overflow-hidden">
-      <!-- LEFT SIDEBAR -->
+    <div class="flex flex-1 overflow-hidden min-h-0">
+      <!-- LEFT SIDEBAR (Desktop only) -->
       <aside
-        class="w-52 shrink-0 border-r border-primary-border overflow-y-auto no-scrollbar"
+        class="hidden md:block w-52 shrink-0 border-r border-primary-border overflow-y-auto no-scrollbar"
       >
         <div class="p-3 space-y-1">
           <template v-for="section in sidebarSections" :key="section.key">
@@ -338,23 +363,33 @@
       </aside>
 
       <!-- MAIN CONTENT (router-view) -->
-      <main class="flex-1 overflow-y-auto no-scrollbar px-5 pb-5">
+      <main class="flex-1 w-full min-w-0 overflow-y-auto no-scrollbar px-3 sm:px-5 pb-5">
         <div
-          class="flex items-center justify-between gap-3 overflow-x-auto sticky top-0 z-30 bg-background border-b border-primary-border py-3"
+          class="flex items-center justify-between gap-2 sm:gap-3 overflow-x-auto sticky top-0 z-30 bg-background border-b border-primary-border py-2.5 sm:py-3"
         >
-          <div class="flex items-center gap-1 overflow-x-auto no-scrollbar">
+          <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+            <!-- Mobile "Client Info" drawer trigger button -->
+            <button
+              type="button"
+              @click="mobileSidebarOpen = true"
+              class="md:hidden flex items-center gap-1.5 px-3 py-1.5 sm:py-2 rounded-lg text-xs font-semibold bg-card-background border border-primary-border text-primary-text shrink-0 hover:bg-card-background/80 transition-colors shadow-2xs cursor-pointer"
+            >
+              <User class="w-3.5 h-3.5 text-primary" />
+              <span>Client Info</span>
+            </button>
+
             <RouterLink
               v-for="tab in tabs"
               :key="tab.key"
               :to="tab.to"
-              class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap"
+              class="flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap"
               :class="
                 isTabActive(tab)
                   ? 'bg-primary text-white shadow-xs'
                   : 'text-secondary-text hover:bg-card-background hover:text-primary-text'
               "
             >
-              <component :is="tab.icon" class="w-4 h-4" />
+              <component :is="tab.icon" class="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               {{ tab.label }}
             </RouterLink>
           </div>
@@ -365,11 +400,11 @@
               type="button"
               @click="handleGlobalRefresh"
               :disabled="isGlobalRefreshing"
-              class="border border-primary-border bg-card-background/40 hover:bg-card-background/70 rounded-xl p-2 text-secondary-text hover:text-primary-text transition-colors cursor-pointer shadow-2xs disabled:opacity-50 flex items-center gap-1.5"
+              class="border border-primary-border bg-card-background/40 hover:bg-card-background/70 rounded-xl p-1.5 sm:p-2 text-secondary-text hover:text-primary-text transition-colors cursor-pointer shadow-2xs disabled:opacity-50 flex items-center gap-1.5"
               title="Refresh Tab Data"
             >
               <RefreshCw
-                class="w-4 h-4"
+                class="w-3.5 h-3.5 sm:w-4 sm:h-4"
                 :class="{ 'animate-spin text-primary': isGlobalRefreshing }"
               />
             </button>
@@ -377,6 +412,137 @@
         </div>
         <RouterView />
       </main>
+    </div>
+
+    <!-- Mobile Client Info Drawer (Modal for < md screens) -->
+    <div
+      v-if="mobileSidebarOpen"
+      class="fixed inset-0 z-50 md:hidden flex justify-end"
+    >
+      <!-- Backdrop -->
+      <div
+        class="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
+        @click="mobileSidebarOpen = false"
+      ></div>
+
+      <!-- Drawer Content -->
+      <div
+        class="relative w-[85%] max-w-sm h-full bg-background border-l border-primary-border z-10 flex flex-col shadow-2xl overflow-hidden"
+      >
+        <div class="flex items-center justify-between px-4 py-3.5 border-b border-primary-border bg-card-background/70">
+          <div class="flex items-center gap-2">
+            <User class="w-4 h-4 text-primary" />
+            <h3 class="font-semibold text-sm text-primary-text">Client Details</h3>
+          </div>
+          <button
+            type="button"
+            @click="mobileSidebarOpen = false"
+            class="p-1 rounded-lg text-secondary-text hover:text-primary-text hover:bg-card-background transition-colors cursor-pointer"
+          >
+            <X class="w-4 h-4" />
+          </button>
+        </div>
+
+        <div class="p-3 space-y-1 overflow-y-auto flex-1 no-scrollbar">
+          <template v-for="section in sidebarSections" :key="section.key">
+            <!-- Section header -->
+            <button
+              @click="toggleSection(section.key)"
+              class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-secondary-text hover:bg-card-background hover:text-primary-text transition-colors"
+            >
+              <div class="flex items-center gap-2">
+                <component :is="section.icon" class="w-4 h-4" />
+                {{ section.label }}
+              </div>
+              <ChevronDown
+                class="w-3.5 h-3.5 transition-transform"
+                :class="expanded[section.key] ? 'rotate-180' : ''"
+              />
+            </button>
+
+            <!-- Info fields -->
+            <div
+              v-if="section.isInfo && expanded[section.key]"
+              class="ml-3 pl-3 border-l border-primary-border space-y-2 py-1"
+            >
+              <div
+                v-for="item in section.fields"
+                :key="item.label"
+                class="text-xs"
+              >
+                <p
+                  class="text-[10px] text-secondary-text uppercase tracking-widest mb-0.5"
+                >
+                  {{ item.label }}
+                </p>
+
+                <!-- Accounts badges -->
+                <div
+                  v-if="item.isAccounts"
+                  class="flex flex-wrap gap-1.5 pt-0.5"
+                >
+                  <template v-if="clientAccounts.length > 0">
+                    <span
+                      v-for="(acc, idx) in clientAccounts"
+                      :key="acc.account_number || acc.login || acc.id || acc || idx"
+                      @click="handleAccountClick(acc.account_number || acc.login || acc.id || acc)"
+                      :title="`Trading Account: #${acc.account_number || acc.login || acc.id || acc}`"
+                      class="font-mono text-[9px] px-1.5 py-0.5 rounded-md cursor-pointer inline-flex items-center font-semibold border shadow-2xs"
+                      :class="getAccountBadgeClass(acc)"
+                    >
+                      {{ acc.account_number || acc.login || acc.id || acc }}
+                    </span>
+                  </template>
+                  <span v-else class="text-secondary-text text-xs">—</span>
+                </div>
+
+                <!-- Account types -->
+                <div
+                  v-else-if="item.isAccountTypes"
+                  class="flex flex-wrap gap-1.5 pt-0.5"
+                >
+                  <template v-if="accountTypesList.length > 0">
+                    <span
+                      v-for="t in accountTypesList"
+                      :key="t"
+                      class="text-[9px] px-1.5 py-0.5 rounded-md capitalize font-semibold border"
+                      :class="getAccountBadgeClass({ account_type: t })"
+                    >
+                      {{ String(t).replace(/_/g, " ") }}
+                    </span>
+                  </template>
+                  <span v-else class="text-secondary-text text-xs">—</span>
+                </div>
+
+                <!-- Default field -->
+                <p
+                  v-else
+                  class="text-primary-text break-all flex items-center gap-1.5"
+                >
+                  <span
+                    v-if="
+                      item.label === 'Country' &&
+                      item.value() &&
+                      getFlagCode(item.value())
+                    "
+                    :class="[
+                      'fi',
+                      `fi-${getFlagCode(item.value())}`,
+                      'fis',
+                      'w-4 h-3 shrink-0',
+                    ]"
+                  ></span>
+                  <span>{{
+                    item.label === "Country"
+                      ? cleanCountryLabel(item.value())
+                      : item.value() || "—"
+                  }}</span>
+                </p>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
     </div>
 
     <!-- Upload KYC Document Modal (Quick Action) -->
@@ -463,6 +629,7 @@ import {
   Landmark,
   ClipboardList,
   ShieldOff,
+  X,
 } from "lucide-vue-next";
 import { WhatsappIcon } from "@hugeicons/core-free-icons/index";
 const route = useRoute();
@@ -471,6 +638,8 @@ const snackbar = useSnackbarStore();
 const clientDepthStore = useClientDepthStore();
 const enhancedAuditLogsStore = useEnhancedAuditLogsStore();
 const { hasPermission } = usePermissionCheck();
+
+const mobileSidebarOpen = ref(false);
 
 // ─── Account Badges Styling & Navigation ───────────────────────────────────────
 const chooseBgColor = {
@@ -512,6 +681,11 @@ const goToTradingAccount = (accountNumber) => {
     path: "/trading-accounts",
     query: { search: accountNumber },
   });
+};
+
+const handleAccountClick = (accountNumber) => {
+  mobileSidebarOpen.value = false;
+  goToTradingAccount(accountNumber);
 };
 
 // ─── Reactive Client User State ───────────────────────────────────────────────

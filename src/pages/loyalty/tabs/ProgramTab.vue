@@ -3,12 +3,12 @@
     <!-- Header Banner & Program Switcher (Classic View Mode) -->
     <div
       v-if="program && viewMode === 'classic'"
-      class="relative overflow-hidden bg-card-background border border-primary-border rounded-2xl p-6 flex flex-wrap items-center justify-between gap-4 group shadow-2xs"
+      class="relative overflow-hidden bg-card-background border border-primary-border rounded-2xl p-4 sm:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4 group shadow-2xs"
     >
       <div class="absolute inset-0 bg-linear-to-r from-primary/10 via-transparent to-transparent pointer-events-none" />
       <div class="absolute top-0 right-0 w-64 h-32 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
 
-      <div class="relative space-y-2 z-10">
+      <div class="relative space-y-2 z-10 min-w-0 max-w-2xl">
         <!-- Badges & Selector -->
         <div class="flex flex-wrap items-center gap-2">
           <!-- Program Select Dropdown if multiple programs -->
@@ -50,9 +50,9 @@
       </div>
 
       <!-- Header Action Buttons & View Controls (Clean Multi-Row Layout) -->
-      <div class="relative z-10 flex flex-col sm:items-end justify-between gap-3 shrink-0 ml-auto">
+      <div class="relative z-10 flex flex-col sm:items-end justify-between gap-3 w-full lg:w-auto shrink-0">
         <!-- Top Row: View Mode Segmented Switcher & Refresh Button -->
-        <div class="flex items-center gap-2">
+        <div class="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
           <!-- View Mode Segmented Control -->
           <div class="inline-flex items-center p-0.5 rounded-lg border border-primary-border bg-background/80">
             <button
@@ -89,11 +89,11 @@
         </div>
 
         <!-- Bottom Row: Primary Management Action Buttons -->
-        <div class="flex items-center gap-2 flex-wrap">
+        <div class="flex items-center gap-2 w-full sm:w-auto flex-wrap">
           <button
             v-if="hasPermission('loyalty.update')"
             type="button"
-            class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-primary-border bg-card-background hover:bg-background text-primary-text text-xs font-semibold transition cursor-pointer shadow-2xs"
+            class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg border border-primary-border bg-card-background hover:bg-background text-primary-text text-xs font-semibold transition cursor-pointer shadow-2xs whitespace-nowrap"
             @click="isCreateDrawerOpen = true"
           >
             <Plus class="w-3.5 h-3.5 text-primary" />
@@ -103,7 +103,7 @@
           <button
             v-if="hasPermission('loyalty.update')"
             type="button"
-            class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all active:scale-95 cursor-pointer shadow-2xs"
+            class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap"
             @click="handleOpenEdit('all')"
           >
             <SlidersHorizontal class="w-3.5 h-3.5" />
@@ -259,7 +259,7 @@
               </div>
 
               <!-- Top Right Actions & View Switcher -->
-              <div class="flex items-center gap-2 flex-wrap">
+              <div class="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto flex-wrap">
                 <!-- View Mode Segmented Control -->
                 <div class="inline-flex items-center p-0.5 rounded-lg border border-primary-border bg-background">
                   <button
@@ -560,15 +560,15 @@
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <!-- Card 1: Core Trade & Tier Policy -->
         <div class="bg-card-background border border-primary-border rounded-lg p-4.5 space-y-4 shadow-2xs">
-          <div class="flex items-center justify-between pb-3 border-b border-primary-border">
-            <h3 class="text-xs font-semibold text-primary-text flex items-center gap-2">
-              <ShieldCheck class="w-4 h-4 text-primary" />
-              <span>Core Program Rules & Thresholds</span>
+          <div class="flex items-center justify-between pb-3 border-b border-primary-border gap-2">
+            <h3 class="text-xs font-semibold text-primary-text flex items-center gap-2 min-w-0">
+              <ShieldCheck class="w-4 h-4 text-primary shrink-0" />
+              <span class="truncate">Core Program Rules & Thresholds</span>
             </h3>
             <button
               v-if="hasPermission('loyalty.update')"
               type="button"
-              class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-[11px] font-semibold transition cursor-pointer active:scale-95 shadow-2xs"
+              class="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-[11px] font-semibold transition cursor-pointer active:scale-95 shadow-2xs whitespace-nowrap"
               @click="handleOpenEdit('core_rules')"
             >
               <Pencil class="w-3 h-3" />
@@ -710,15 +710,15 @@
 
         <!-- Card 2: Cycle Timelines & Lifecycle -->
         <div class="bg-card-background border border-primary-border rounded-lg p-4.5 space-y-4 shadow-2xs">
-          <div class="flex items-center justify-between pb-3 border-b border-primary-border">
-            <h3 class="text-xs font-semibold text-primary-text flex items-center gap-2">
-              <Calendar class="w-4 h-4 text-primary" />
-              <span>Cycle Lifespan & Schedule</span>
+          <div class="flex items-center justify-between pb-3 border-b border-primary-border gap-2">
+            <h3 class="text-xs font-semibold text-primary-text flex items-center gap-2 min-w-0">
+              <Calendar class="w-4 h-4 text-primary shrink-0" />
+              <span class="truncate">Cycle Lifespan & Schedule</span>
             </h3>
             <button
               v-if="hasPermission('loyalty.update')"
               type="button"
-              class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-[11px] font-semibold transition cursor-pointer active:scale-95 shadow-2xs"
+              class="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-[11px] font-semibold transition cursor-pointer active:scale-95 shadow-2xs whitespace-nowrap"
               @click="handleOpenEdit('lifecycle')"
             >
               <Pencil class="w-3 h-3" />
@@ -762,15 +762,15 @@
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <!-- Eligibility Rules -->
         <div class="bg-card-background border border-primary-border rounded-lg p-4.5 space-y-3 shadow-2xs text-xs">
-          <div class="flex items-center justify-between pb-2.5 border-b border-primary-border">
-            <h3 class="font-semibold text-primary-text flex items-center gap-2">
-              <CheckCircle2 class="w-4 h-4 text-primary-green" />
-              <span>Account Eligibility Rules</span>
+          <div class="flex items-center justify-between pb-2.5 border-b border-primary-border gap-2">
+            <h3 class="font-semibold text-primary-text flex items-center gap-2 min-w-0">
+              <CheckCircle2 class="w-4 h-4 text-primary-green shrink-0" />
+              <span class="truncate">Account Eligibility Rules</span>
             </h3>
             <button
               v-if="hasPermission('loyalty.update')"
               type="button"
-              class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-[11px] font-semibold transition cursor-pointer active:scale-95 shadow-2xs"
+              class="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-[11px] font-semibold transition cursor-pointer active:scale-95 shadow-2xs whitespace-nowrap"
               @click="handleOpenEdit('eligibility')"
             >
               <Pencil class="w-3 h-3" />
@@ -848,7 +848,7 @@
             <button
               v-if="hasPermission('loyalty.update')"
               type="button"
-              class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-[11px] font-semibold transition cursor-pointer active:scale-95 shadow-2xs"
+              class="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-[11px] font-semibold transition cursor-pointer active:scale-95 shadow-2xs whitespace-nowrap"
               @click="handleOpenEdit('instruments')"
             >
               <Pencil class="w-3 h-3" />
