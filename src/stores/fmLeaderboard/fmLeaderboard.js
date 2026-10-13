@@ -92,6 +92,9 @@ export const useFmLeaderboardStore = defineStore("fmLeaderboard", () => {
       isTokenRequired: true,
       onSuccess: successHandler,
       onFailure: failureHandler,
+      onFinally: () => {
+        isLoading.value = false;
+      },
     });
   };
 

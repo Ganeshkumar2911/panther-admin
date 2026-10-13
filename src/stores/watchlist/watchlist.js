@@ -181,6 +181,9 @@ export const useWatchlistStore = defineStore('watchlist', () => {
         console.error('Watchlist symbols fetch error:', err)
         snackbar.show(err?.message || 'Failed to fetch symbol catalog.', 'error')
       },
+      onFinally: () => {
+        symbolsLoading.value = false
+      },
     })
   }
 

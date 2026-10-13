@@ -404,6 +404,19 @@ const handleDeleteSuccess = () => {
 
 const { goToTradingAccount } = useGoToTradingAccount();
 
+const navigateToTradingAccount = (accountOrEmail, event) => {
+  if (!accountOrEmail) return;
+  if (event && (event.ctrlKey || event.metaKey || event.button === 1)) {
+    const routeData = router.resolve({
+      path: "/trading-accounts",
+      query: { search: accountOrEmail },
+    });
+    window.open(routeData.href, "_blank");
+    return;
+  }
+  goToTradingAccount(accountOrEmail);
+};
+
 const expandedAccountsMap = ref({});
 
 const toggleExpandAccounts = (id) => {
@@ -890,9 +903,9 @@ onMounted(() => {
         <template #cell-contact="{ row }">
           <p
             v-if="row.email"
-            @click.stop="goToTradingAccount(row.email)"
+            @click.stop="navigateToTradingAccount(row.email, $event)"
             class="text-xs font-medium text-primary hover:underline cursor-pointer transition-colors"
-            title="Search trading accounts for this email"
+            title="Search trading accounts for this email (Ctrl+Click to open in new tab)"
           >
             {{ row.email }}
           </p>
@@ -1111,8 +1124,8 @@ onMounted(() => {
                 <span
                   v-for="(acc, idx) in row.accounts.slice(0, 2)"
                   :key="acc.account_number || acc || idx"
-                  @click.stop="goToTradingAccount(acc.account_number || acc)"
-                  :title="`Trading Account: #${acc.account_number || acc}${acc.account_type ? ' (' + acc.account_type + ')' : ''} — Click to view`"
+                  @click.stop="navigateToTradingAccount(acc.account_number || acc, $event)"
+                  :title="`Trading Account: #${acc.account_number || acc}${acc.account_type ? ' (' + acc.account_type + ')' : ''} — Click to view (Ctrl+Click for new tab)`"
                   class="font-mono text-[9px] px-1.5 py-0.5 rounded-md cursor-pointer hover:scale-105 active:scale-95 transition-all duration-150 inline-block border"
                   :class="[
                     chooseBgColor[acc.account_type] ||
@@ -1138,8 +1151,8 @@ onMounted(() => {
                 <span
                   v-for="(acc, idx) in row.accounts"
                   :key="acc.account_number || acc || idx"
-                  @click.stop="goToTradingAccount(acc.account_number || acc)"
-                  :title="`Trading Account: #${acc.account_number || acc}${acc.account_type ? ' (' + acc.account_type + ')' : ''} — Click to view`"
+                  @click.stop="navigateToTradingAccount(acc.account_number || acc, $event)"
+                  :title="`Trading Account: #${acc.account_number || acc}${acc.account_type ? ' (' + acc.account_type + ')' : ''} — Click to view (Ctrl+Click for new tab)`"
                   class="font-mono text-[9px] px-1.5 py-0.5 rounded-md cursor-pointer hover:scale-105 active:scale-95 transition-all duration-150 inline-block border"
                   :class="[
                     chooseBgColor[acc.account_type] ||
@@ -1255,9 +1268,9 @@ onMounted(() => {
               </p>
               <p
                 v-if="client.email"
-                @click="goToTradingAccount(client.email)"
+                @click.stop="navigateToTradingAccount(client.email, $event)"
                 class="text-[11px] font-medium text-primary hover:underline cursor-pointer transition-colors truncate"
-                title="Search trading accounts for this email"
+                title="Search trading accounts for this email (Ctrl+Click to open in new tab)"
               >
                 {{ client.email }}
               </p>
