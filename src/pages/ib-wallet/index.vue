@@ -106,109 +106,85 @@
     </div>
 
     <!-- Table -->
-    <div class="w-full border border-primary-border rounded-xl overflow-x-auto">
-      <table class="w-full border-collapse">
-        <thead>
-          <tr class="border-b border-primary-border">
-            <!-- <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">ID</th> -->
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">IB Name</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Type</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Amount</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Bal. Before</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Bal. After</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Reference</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Description</th>
-            <th class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Aff. comm. Date</th>
-            <th class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Date</th>
-          </tr>
-        </thead>
+    <DataTable
+      :data="store.data"
+      :columns="columns"
+      :loading="store.loading"
+      :pagination="store.pagination"
+      row-key="ledger_id"
+      empty-title="No records found"
+      empty-text="Try adjusting your filters"
+      @page-change="handlePageChange"
+      @per-page-change="handlePerPageChange"
+    >
+      <template #empty>
+        <div class="flex flex-col items-center gap-3 py-16">
+          <div class="w-12 h-12 rounded-full bg-card-background flex items-center justify-center">
+            <Wallet class="w-5 h-5 text-secondary-text" />
+          </div>
+          <p class="text-sm font-medium text-primary-text">No records found</p>
+          <p class="text-xs text-secondary-text">Try adjusting your filters</p>
+        </div>
+      </template>
 
-        <!-- Skeleton -->
-        <tbody v-if="store.loading">
-          <tr v-for="n in 8" :key="n" class="border-b border-primary-border animate-pulse">
-            <td class="p-3"><div class="h-3 w-10 bg-card-background rounded" /></td>
-            <td class="p-3">
-              <div class="space-y-1.5">
-                <div class="h-3 w-20 bg-card-background rounded" />
-                <div class="h-2.5 w-10 bg-card-background rounded" />
-              </div>
-            </td>
-            <td class="p-3"><div class="h-5 w-20 bg-card-background rounded-full" /></td>
-            <td class="p-3"><div class="h-3 w-14 bg-card-background rounded" /></td>
-            <td class="p-3"><div class="h-3 w-16 bg-card-background rounded" /></td>
-            <td class="p-3"><div class="h-3 w-16 bg-card-background rounded" /></td>
-            <td class="p-3"><div class="h-3 w-20 bg-card-background rounded" /></td>
-            <td class="p-3"><div class="h-3 w-32 bg-card-background rounded" /></td>
-            <td class="p-3 flex justify-end"><div class="h-3 w-20 bg-card-background rounded" /></td>
-          </tr>
-        </tbody>
+      <!-- IB Name -->
+      <template #cell-ib_name="{ row }">
+        <div>
+          <p class="text-xs font-medium text-primary-text">{{ row.ib_name ?? '—' }}</p>
+          <p class="text-[11px] text-secondary-text">ID {{ row.ib_user_id }}</p>
+        </div>
+      </template>
 
-        <!-- Empty -->
-        <tbody v-else-if="store.data.length === 0">
-          <tr>
-            <td colspan="9" class="py-16 text-center">
-              <div class="flex flex-col items-center gap-3">
-                <div class="w-12 h-12 rounded-full bg-card-background flex items-center justify-center">
-                  <Wallet class="w-5 h-5 text-secondary-text" />
-                </div>
-                <p class="text-sm font-medium text-primary-text">No records found</p>
-                <p class="text-xs text-secondary-text">Try adjusting your filters</p>
-              </div>
-            </td>
-          </tr>
-        </tbody>
+      <!-- Type -->
+      <template #cell-type="{ value }">
+        <span class="text-[11px] font-medium px-2 py-0.5 rounded-full border capitalize" :class="typeClass(value)">
+          {{ formatType(value) }}
+        </span>
+      </template>
 
-        <!-- Data -->
-        <tbody v-else>
-          <tr
-            v-for="entry in store.data"
-            :key="entry.ledger_id"
-            class="border-b border-primary-border last:border-none hover:bg-card-background transition-colors"
-          >
-            <!-- <td class="p-3 text-xs font-medium text-primary-text">{{ entry.ledger_id }}</td> -->
+      <!-- Amount -->
+      <template #cell-amount="{ value }">
+        <span class="text-xs font-medium tabular-nums" :class="value >= 0 ? 'text-green-700' : 'text-red-700'">
+          {{ value >= 0 ? '+' : '' }}${{ formatNum(Math.abs(value)) }}
+        </span>
+      </template>
 
-            <td class="p-3">
-              <p class="text-xs font-medium text-primary-text">{{ entry.ib_name ?? '—' }}</p>
-              <p class="text-[11px] text-secondary-text">ID {{ entry.ib_user_id }}</p>
-            </td>
+      <!-- Bal. Before -->
+      <template #cell-balance_before="{ value }">
+        <span class="text-xs text-secondary-text tabular-nums">${{ formatNum(value) }}</span>
+      </template>
 
-            <td class="p-3">
-              <span class="text-[11px] font-medium px-2 py-0.5 rounded-full border capitalize" :class="typeClass(entry.type)">
-                {{ formatType(entry.type) }}
-              </span>
-            </td>
+      <!-- Bal. After -->
+      <template #cell-balance_after="{ value }">
+        <span class="text-xs text-primary-text tabular-nums">${{ formatNum(value) }}</span>
+      </template>
 
-            <td class="p-3">
-              <span class="text-xs font-medium tabular-nums" :class="entry.amount >= 0 ? 'text-green-700' : 'text-red-700'">
-                {{ entry.amount >= 0 ? '+' : '' }}${{ formatNum(Math.abs(entry.amount)) }}
-              </span>
-            </td>
+      <!-- Reference -->
+      <template #cell-reference_id="{ value }">
+        <span class="text-xs text-secondary-text">{{ value ?? '—' }}</span>
+      </template>
 
-            <td class="p-3 text-xs text-secondary-text tabular-nums">${{ formatNum(entry.balance_before) }}</td>
-            <td class="p-3 text-xs text-primary-text tabular-nums">${{ formatNum(entry.balance_after) }}</td>
+      <!-- Description -->
+      <template #cell-description="{ value }">
+        <span class="text-xs text-secondary-text max-w-[160px] truncate block" :title="parseDescription(value).text">
+          {{ parseDescription(value).text }}
+        </span>
+      </template>
 
-            <td class="p-3 text-xs text-secondary-text">{{ entry.reference_id ?? '—' }}</td>
+      <!-- Aff. comm. Date -->
+      <template #cell-aff_comm_date="{ row }">
+        <span class="text-xs text-secondary-text text-right block">
+          {{ parseDescription(row.description).date ? formatDate(parseDescription(row.description).date) : '_' }}
+        </span>
+      </template>
 
-            <td class="p-3 text-xs text-secondary-text max-w-[160px] truncate">{{ parseDescription(entry.description).text }}</td>
-
-            <td class="p-3 text-xs text-secondary-text text-right">
-              {{ parseDescription(entry.description).date ? formatDate(parseDescription(entry.description).date) : '_' }}
-            </td>
-            <td class="p-3 text-xs text-secondary-text text-right">
-              {{ formatDate(entry.created_at) }}
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="mt-4">
-      <Pagination
-        v-if="store.pagination.total_items > store.pagination.per_page"
-        :pagination="store.pagination"
-        @page-change="handlePageChange"
-      />
-    </div>
+      <!-- Date -->
+      <template #cell-created_at="{ value }">
+        <span class="text-xs text-secondary-text text-right block">
+          {{ formatDate(value) }}
+        </span>
+      </template>
+    </DataTable>
 
     <!-- Update Ledger Dialog -->
     <UpdateLedgerDialog
@@ -224,7 +200,7 @@
 import { onMounted, onBeforeUnmount, computed, ref } from 'vue'
 import { Wallet, RotateCw, Plus } from 'lucide-vue-next'
 import { useIbWalletStore } from '@/stores/ibLedger/ibLedger'
-import Pagination from '@/components/common/Pagination.vue'
+import DataTable from '@/components/common/DataTable/DataTable.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import BaseDatePicker from '@/components/common/BaseDatePicker.vue'
 import Tooltip from '@/components/common/Tooltip.vue'
@@ -234,6 +210,22 @@ import { usePermissionCheck } from '@/composables/usePermissionCheck'
 const store = useIbWalletStore()
 const { hasPermission } = usePermissionCheck()
 let ibSearchTimer = null
+
+const columns = [
+  { key: 'ib_name', label: 'IB Name', sortable: false },
+  { key: 'type', label: 'Type', sortable: false },
+  { key: 'amount', label: 'Amount', sortable: false },
+  { key: 'balance_before', label: 'Bal. Before', sortable: false },
+  { key: 'balance_after', label: 'Bal. After', sortable: false },
+  { key: 'reference_id', label: 'Reference', sortable: false },
+  { key: 'description', label: 'Description', sortable: false },
+  { key: 'aff_comm_date', label: 'Aff. comm. Date', align: 'right', sortable: false },
+  { key: 'created_at', label: 'Date', align: 'right', sortable: false },
+]
+
+const handlePerPageChange = (perPage) => {
+  store.updatePerPage(perPage)
+}
 
 const updateLedgerDialogOpen = ref(false)
 

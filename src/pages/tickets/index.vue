@@ -278,284 +278,198 @@
       </div>
 
       <!-- Table -->
-      <div
-        class="w-full border border-primary-border rounded-xl overflow-x-auto"
+      <DataTable
+        :data="platformTicketsStore.data"
+        :columns="platformTicketsColumns"
+        :loading="platformTicketsStore.isLoading"
+        :pagination="platformTicketsStore.pagination"
+        row-key="id"
+        empty-title="No tickets found"
+        empty-text="Try adjusting your filters or create a new ticket"
+        @page-change="platformTicketsStore.changePage"
+        @per-page-change="platformTicketsStore.updatePerPage"
       >
-        <table class="w-full border-collapse">
-          <thead>
-            <tr class="border-b border-primary-border">
-              <th
-                class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
-              >
-                #
-              </th>
-              <th
-                class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
-              >
-                Subject
-              </th>
-              <th
-                class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
-              >
-                Priority
-              </th>
-              <th
-                class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
-              >
-                Status
-              </th>
-              <th
-                class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
-              >
-                TAT Status
-              </th>
-              <th
-                class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
-              >
-                Assigned Staff
-              </th>
-              <th
-                class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
-              >
-                Created By
-              </th>
-              <th
-                class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
-              >
-                Created
-              </th>
-              <th
-                class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
-              >
-                Updated
-              </th>
-              <th
-                class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3"
-              >
-                Action
-              </th>
-            </tr>
-          </thead>
-
-          <!-- Skeleton -->
-          <tbody v-if="platformTicketsStore.isLoading">
-            <tr
-              v-for="n in 6"
-              :key="n"
-              class="border-b border-primary-border animate-pulse"
+        <template #empty>
+          <div class="flex flex-col items-center gap-3 py-16">
+            <div
+              class="w-12 h-12 rounded-full bg-card-background flex items-center justify-center"
             >
-              <td class="p-3">
-                <div class="h-3 w-20 bg-card-background rounded" />
-              </td>
-              <td class="p-3">
-                <div class="h-3 w-40 bg-card-background rounded" />
-              </td>
-              <td class="p-3">
-                <div class="h-5 w-14 bg-card-background rounded-full" />
-              </td>
-              <td class="p-3">
-                <div class="h-5 w-14 bg-card-background rounded-full" />
-              </td>
-              <td class="p-3">
-                <div class="h-3 w-48 bg-card-background rounded" />
-              </td>
-              <td class="p-3">
-                <div class="h-3 w-28 bg-card-background rounded" />
-              </td>
-              <td class="p-3">
-                <div class="h-3 w-20 bg-card-background rounded" />
-              </td>
-              <td class="p-3">
-                <div class="h-3 w-20 bg-card-background rounded" />
-              </td>
-              <td class="p-3 flex justify-end">
-                <div class="h-7 w-14 bg-card-background rounded-lg" />
-              </td>
-            </tr>
-          </tbody>
+              <TicketIcon class="w-5 h-5 text-secondary-text" />
+            </div>
+            <p class="text-sm font-medium text-primary-text">
+              No tickets found
+            </p>
+            <p class="text-xs text-secondary-text">
+              Try adjusting your filters or create a new ticket
+            </p>
+          </div>
+        </template>
 
-          <!-- Empty -->
-          <tbody v-else-if="platformTicketsStore.data.length === 0">
-            <tr>
-              <td colspan="10" class="py-16 text-center">
-                <div class="flex flex-col items-center gap-3">
-                  <div
-                    class="w-12 h-12 rounded-full bg-card-background flex items-center justify-center"
-                  >
-                    <TicketIcon class="w-5 h-5 text-secondary-text" />
-                  </div>
-                  <p class="text-sm font-medium text-primary-text">
-                    No tickets found
-                  </p>
-                  <p class="text-xs text-secondary-text">
-                    Try adjusting your filters or create a new ticket
-                  </p>
-                </div>
-              </td>
-            </tr>
-          </tbody>
+        <!-- Ticket Number -->
+        <template #cell-ticket_number="{ value }">
+          <span class="text-xs font-medium text-primary-text">
+            {{ value }}
+          </span>
+        </template>
 
-          <!-- Data -->
-          <tbody v-else>
-            <tr
-              v-for="ticket in platformTicketsStore.data"
-              :key="ticket.id"
-              class="border-b border-primary-border last:border-none hover:bg-card-background transition-colors"
+        <!-- Subject -->
+        <template #cell-subject="{ value }">
+          <span class="text-xs text-primary-text max-w-[200px] truncate block" :title="value">
+            {{ value }}
+          </span>
+        </template>
+
+        <!-- Priority -->
+        <template #cell-priority="{ value }">
+          <span
+            class="text-[11px] font-medium px-2 py-0.5 rounded-full border capitalize"
+            :class="priorityClass(value)"
+          >
+            {{ value }}
+          </span>
+        </template>
+
+        <!-- Status -->
+        <template #cell-status="{ value }">
+          <span
+            class="text-[11px] font-medium px-2 py-0.5 rounded-full border capitalize"
+            :class="statusClass(value)"
+          >
+            {{ value }}
+          </span>
+        </template>
+
+        <!-- TAT Status -->
+        <template #cell-tat="{ row }">
+          <div class="flex flex-col gap-1">
+            <template v-if="getTat(row).hasDeadline">
+              <span class="text-[11px] font-medium text-primary-text">
+                {{ getTat(row).tatFormatted }}
+              </span>
+              <span
+                class="text-[10px]"
+                :class="getTat(row).isBreached ? 'text-primary-red font-medium' : 'text-primary-green'"
+              >
+                {{ getTat(row).tatMessage }}
+              </span>
+            </template>
+            <span v-else class="text-[11px] text-secondary-text">
+              No target resolution deadline set
+            </span>
+          </div>
+        </template>
+
+        <!-- Assigned Staff -->
+        <template #cell-assigned_staff="{ row }">
+          <div class="whitespace-nowrap" @click.stop>
+            <div
+              v-if="
+                row.assigned_staff?.name &&
+                editingStaffTicketId !== row.id
+              "
+              class="flex items-center justify-evenly gap-2 group"
             >
-              <td class="p-3 text-xs font-medium text-primary-text">
-                {{ ticket.ticket_number }}
-              </td>
-              <td class="p-3 text-xs text-primary-text max-w-[200px] truncate">
-                {{ ticket.subject }}
-              </td>
-              <td class="p-3">
-                <span
-                  class="text-[11px] font-medium px-2 py-0.5 rounded-full border capitalize"
-                  :class="priorityClass(ticket.priority)"
-                >
-                  {{ ticket.priority }}
-                </span>
-              </td>
-              <td class="p-3">
-                <span
-                  class="text-[11px] font-medium px-2 py-0.5 rounded-full border capitalize"
-                  :class="statusClass(ticket.status)"
-                >
-                  {{ ticket.status }}
-                </span>
-              </td>
-
-              <td class="p-3 text-xs text-secondary-text">
-                <div class="flex flex-col gap-1">
-                  <template v-if="getTat(ticket).hasDeadline">
-                    <span class="text-[11px] font-medium text-primary-text">
-                      {{ getTat(ticket).tatFormatted }}
-                    </span>
-                    <span
-                      class="text-[10px]"
-                      :class="getTat(ticket).isBreached ? 'text-primary-red font-medium' : 'text-primary-green'"
-                    >
-                      {{ getTat(ticket).tatMessage }}
-                    </span>
-                  </template>
-                  <span v-else class="text-[11px] text-secondary-text">
-                    No target resolution deadline set
-                  </span>
-                </div>
-              </td>
-
-              <!-- Assigned Staff -->
-              <td class="p-3 whitespace-nowrap" @click.stop>
+              <div class="flex items-center gap-2">
                 <div
-                  v-if="
-                    ticket.assigned_staff?.name  &&
-                    editingStaffTicketId !== ticket.id
+                  class="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-[9px] font-bold text-btn-text-primary shrink-0"
+                >
+                  {{
+                    (
+                      row.assigned_staff?.name ||
+                      ""
+                    )
+                      .charAt(0)
+                      .toUpperCase()
+                  }}
+                </div>
+                <span class="text-primary-text font-medium text-xs">{{
+                  row.assigned_staff?.name
+                }}</span>
+              </div>
+              <button
+                v-if="hasPermission('ticket.update')"
+                type="button"
+                @click="editingStaffTicketId = row.id"
+                class="p-1 rounded-md text-secondary-text hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer"
+                title="Edit Assigned Staff"
+              >
+                <Pencil class="w-3 h-3" />
+              </button>
+            </div>
+            <div v-else-if="hasPermission('ticket.update')" class="w-40 flex items-center gap-1">
+              <div class="flex-1">
+                <BaseSelect
+                  :model-value="
+                    row.assigned_staff?.id ||
+                    row.assigned_staff_id ||
+                    null
                   "
-                  class="flex items-center justify-evenly gap-2 group"
-                >
-                  <div class="flex items-center gap-2">
-                    <div
-                      class="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-[9px] font-bold text-btn-text-primary shrink-0"
-                    >
-                      {{
-                        (
-                          ticket.assigned_staff?.name ||
-                          ""
-                        )
-                          .charAt(0)
-                          .toUpperCase()
-                      }}
-                    </div>
-                    <span class="text-primary-text font-medium text-xs">{{
-                      ticket.assigned_staff?.name
-                    }}</span>
-                  </div>
-                  <button
-                    v-if="hasPermission('ticket.update')"
-                    type="button"
-                    @click="editingStaffTicketId = ticket.id"
-                    class="p-1 rounded-md text-secondary-text hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer"
-                    title="Edit Assigned Staff"
-                  >
-                    <Pencil class="w-3 h-3" />
-                  </button>
-                </div>
-                <div v-else-if="hasPermission('ticket.update')" class="w-40 flex items-center gap-1">
-                  <div class="flex-1">
-                    <BaseSelect
-                      :model-value="
-                        ticket.assigned_staff?.id ||
-                        ticket.assigned_staff_id ||
-                        null
-                      "
-                      :options="staffOptions"
-                      :placeholder="
-                        ticket.assigned_staff?.name || ticket.staff_assigned?.name
-                          ? 'Change Staff...'
-                          : 'Assign Staff...'
-                      "
-                      searchable
-                      variant="surface"
-                      @update:model-value="
-                        (staffId) => promptAssignStaff(ticket, staffId)
-                      "
-                    />
-                  </div>
-                  <button
-                    v-if="editingStaffTicketId === ticket.id"
-                    type="button"
-                    @click="editingStaffTicketId = null"
-                    class="p-1 rounded-md text-secondary-text hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer shrink-0"
-                    title="Cancel Edit"
-                  >
-                    <X class="w-3.5 h-3.5" />
-                  </button>
-                </div>
-                <span v-else class="text-xs text-secondary-text">Unassigned</span>
-              </td>
+                  :options="staffOptions"
+                  :placeholder="
+                    row.assigned_staff?.name || row.staff_assigned?.name
+                      ? 'Change Staff...'
+                      : 'Assign Staff...'
+                  "
+                  searchable
+                  variant="surface"
+                  @update:model-value="
+                    (staffId) => promptAssignStaff(row, staffId)
+                  "
+                />
+              </div>
+              <button
+                v-if="editingStaffTicketId === row.id"
+                type="button"
+                @click="editingStaffTicketId = null"
+                class="p-1 rounded-md text-secondary-text hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer shrink-0"
+                title="Cancel Edit"
+              >
+                <X class="w-3.5 h-3.5" />
+              </button>
+            </div>
+            <span v-else class="text-xs text-secondary-text">Unassigned</span>
+          </div>
+        </template>
 
-              <td class="p-3 text-xs text-secondary-text">
-                <div class="flex flex-col">
-                  <span class="text-[11px] text-secondary-text mt-0.5">
-                    <template v-if="ticket.created_by_email">{{
-                      ticket.created_by_email
-                    }}</template>
-                    <template v-if="ticket.created_by_role">
-                      <span v-if="ticket.created_by_email"> &middot; </span
-                      >{{ ticket.created_by_role }}
-                    </template>
-                  </span>
-                </div>
-              </td>
-              <td class="p-3 text-xs text-secondary-text">
-                {{ formatDate(ticket.created_at) }}
-              </td>
-              <td class="p-3 text-xs text-secondary-text">
-                {{ formatDate(ticket.updated_at) }}
-              </td>
-              <td class="p-3 text-right">
-                <button
-                  class="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-primary-border text-xs text-secondary-text hover:text-primary-text hover:bg-background transition-colors ml-auto cursor-pointer"
-                  @click="$router.push(`/ticket/${ticket.id}`)"
-                >
-                  <Eye class="w-3.5 h-3.5" /> View
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+        <!-- Created By -->
+        <template #cell-created_by="{ row }">
+          <div class="flex flex-col">
+            <span class="text-[11px] text-secondary-text mt-0.5">
+              <template v-if="row.created_by_email">{{
+                row.created_by_email
+              }}</template>
+              <template v-if="row.created_by_role">
+                <span v-if="row.created_by_email"> &middot; </span
+                >{{ row.created_by_role }}
+              </template>
+            </span>
+          </div>
+        </template>
 
-      <div class="mt-4">
-        <Pagination
-          v-if="
-            platformTicketsStore.pagination.total_items >
-            platformTicketsStore.pagination.per_page
-          "
-          :pagination="platformTicketsStore.pagination"
-          @page-change="platformTicketsStore.changePage"
-        />
-      </div>
+        <!-- Created At -->
+        <template #cell-created_at="{ value }">
+          <span class="text-xs text-secondary-text">
+            {{ formatDate(value) }}
+          </span>
+        </template>
+
+        <!-- Updated At -->
+        <template #cell-updated_at="{ value }">
+          <span class="text-xs text-secondary-text">
+            {{ formatDate(value) }}
+          </span>
+        </template>
+
+        <!-- Action -->
+        <template #cell-actions="{ row }">
+          <button
+            class="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-primary-border text-xs text-secondary-text hover:text-primary-text hover:bg-background transition-colors ml-auto cursor-pointer"
+            @click="$router.push(`/ticket/${row.id}`)"
+          >
+            <Eye class="w-3.5 h-3.5" /> View
+          </button>
+        </template>
+      </DataTable>
 
       <CreateTicketDialog :open="dialogOpen" @close="dialogOpen = false" />
 
@@ -587,6 +501,7 @@ import { useTicketsStore } from "@/stores/tickets/tickets";
 import { usePlatfromTicketsStore } from "@/stores/platformTickets/platformTickets";
 import { useRbacStaffStore } from "@/stores/rbac/staff";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
+import DataTable from "@/components/common/DataTable/DataTable.vue";
 import Pagination from "@/components/common/Pagination.vue";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import CreateTicketDialog from "@/components/tickets/CreateTicketDialog.vue";
@@ -600,6 +515,19 @@ const platformTicketsStore = usePlatfromTicketsStore();
 const rbacStaffStore = useRbacStaffStore();
 const snackbar = useSnackbarStore();
 const { hasPermission } = usePermissionCheck();
+
+const platformTicketsColumns = [
+  { key: 'ticket_number', label: '#', sortable: false },
+  { key: 'subject', label: 'Subject', sortable: false },
+  { key: 'priority', label: 'Priority', sortable: false },
+  { key: 'status', label: 'Status', sortable: false },
+  { key: 'tat', label: 'TAT Status', sortable: false },
+  { key: 'assigned_staff', label: 'Assigned Staff', sortable: false },
+  { key: 'created_by', label: 'Created By', sortable: false },
+  { key: 'created_at', label: 'Created', sortable: false },
+  { key: 'updated_at', label: 'Updated', sortable: false },
+  { key: 'actions', label: 'Action', align: 'right', sortable: false },
+];
 
 const allTabs = [
   { id: "your-tickets", label: "Your Tickets", permission: "ticket.view" },

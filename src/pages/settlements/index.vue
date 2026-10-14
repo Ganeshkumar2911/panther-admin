@@ -123,195 +123,155 @@
     </div>
 
     <!-- Table -->
-    <div class="w-full border border-primary-border rounded-2xl overflow-hidden bg-card-background shadow-2xs">
-      <div class="overflow-x-auto">
-        <table class="w-full border-collapse">
-          <thead>
-            <tr class="border-b border-primary-border bg-background/50">
-              <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">ID</th>
-              <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">FM Details</th>
-              <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Executed / Period</th>
-              <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Type</th>
-              <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Net Profit</th>
-              <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Gross Fee</th>
-              <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">FM Share</th>
-              <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">IB's Share</th>
-              <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Broker Net</th>
-              <th class="text-center text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Followers</th>
-              <th class="text-center text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Trades</th>
-              <th class="text-center text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Status</th>
-              <th class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3 w-36">Actions</th>
-            </tr>
-          </thead>
+    <DataTable
+      :data="store.records"
+      :columns="columns"
+      :loading="store.loading"
+      :pagination="store.pagination"
+      row-key="settlement_id"
+      empty-title="No settlements found"
+      empty-text="Try adjusting your filters or search criteria"
+      @page-change="handlePageChange"
+      @per-page-change="handlePerPageChange"
+      @row-click="({ row }) => goToDetail(row.settlement_id)"
+    >
+      <template #empty>
+        <div class="flex flex-col items-center gap-3 py-16">
+          <div class="w-12 h-12 rounded-full bg-card-background border border-primary-border flex items-center justify-center">
+            <ReceiptText class="w-5 h-5 text-secondary-text" />
+          </div>
+          <p class="text-sm font-semibold text-primary-text">No settlements found</p>
+          <p class="text-xs text-secondary-text">Try adjusting your filters or search criteria</p>
+          <button
+            v-if="store.filters.fm_id"
+            class="mt-2 px-3 py-1.5 text-xs font-medium rounded-lg bg-primary text-white hover:bg-primary-hover transition-colors cursor-pointer"
+            @click="clearFmFilter"
+          >
+            Clear FM Filter
+          </button>
+        </div>
+      </template>
 
-          <!-- Skeleton -->
-          <tbody v-if="store.loading">
-            <tr v-for="n in 8" :key="n" class="border-b border-primary-border animate-pulse">
-              <td class="p-3"><div class="h-3 w-10 bg-background rounded" /></td>
-              <td class="p-3"><div class="h-3 w-28 bg-background rounded" /></td>
-              <td class="p-3"><div class="h-3 w-28 bg-background rounded" /></td>
-              <td class="p-3"><div class="h-3 w-14 bg-background rounded" /></td>
-              <td class="p-3"><div class="h-3 w-16 bg-background rounded" /></td>
-              <td class="p-3"><div class="h-3 w-14 bg-background rounded" /></td>
-              <td class="p-3"><div class="h-3 w-14 bg-background rounded" /></td>
-              <td class="p-3"><div class="h-3 w-12 bg-background rounded" /></td>
-              <td class="p-3"><div class="h-3 w-14 bg-background rounded" /></td>
-              <td class="p-3"><div class="h-3 w-10 bg-background rounded mx-auto" /></td>
-              <td class="p-3"><div class="h-3 w-10 bg-background rounded mx-auto" /></td>
-              <td class="p-3"><div class="h-5 w-16 bg-background rounded-full mx-auto" /></td>
-              <td class="p-3 flex justify-end"><div class="h-6 w-24 bg-background rounded" /></td>
-            </tr>
-          </tbody>
+      <!-- Settlement ID -->
+      <template #cell-settlement_id="{ value }">
+        <span class="text-xs font-bold font-mono text-primary">#{{ value }}</span>
+      </template>
 
-          <!-- Empty -->
-          <tbody v-else-if="!store.records || store.records.length === 0">
-            <tr>
-              <td colspan="13" class="py-16 text-center">
-                <div class="flex flex-col items-center gap-3">
-                  <div class="w-12 h-12 rounded-full bg-card-background border border-primary-border flex items-center justify-center">
-                    <ReceiptText class="w-5 h-5 text-secondary-text" />
-                  </div>
-                  <p class="text-sm font-semibold text-primary-text">No settlements found</p>
-                  <p class="text-xs text-secondary-text">Try adjusting your filters or search criteria</p>
-                  <button
-                    v-if="store.filters.fm_id"
-                    class="mt-2 px-3 py-1.5 text-xs font-medium rounded-lg bg-primary text-white hover:bg-primary-hover transition-colors cursor-pointer"
-                    @click="clearFmFilter"
-                  >
-                    Clear FM Filter
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
+      <!-- FM Details -->
+      <template #cell-fm_details="{ row }">
+        <div>
+          <p class="text-xs font-semibold text-primary-text">{{ row.fm_name || 'FM' }}</p>
+          <p class="text-[11px] text-secondary-text font-mono">FM ID: #{{ row.fm_id }}</p>
+        </div>
+      </template>
 
-          <!-- Data -->
-          <tbody v-else>
-            <tr
-              v-for="row in store.records"
-              :key="row.settlement_id"
-              class="border-b border-primary-border last:border-none hover:bg-background/40 transition-colors cursor-pointer"
-              @click="goToDetail(row.settlement_id)"
-            >
-              <!-- Settlement ID -->
-              <td class="p-3 text-xs font-bold font-mono text-primary">#{{ row.settlement_id }}</td>
+      <!-- Executed / Period -->
+      <template #cell-period="{ row }">
+        <div>
+          <p class="text-xs font-medium text-primary-text">{{ formatDate(row.executed_at) || row.period }}</p>
+          <p v-if="row.settlement_period_start" class="text-[10px] text-secondary-text mt-0.5">
+            {{ formatDateShort(row.settlement_period_start) }} – {{ formatDateShort(row.settlement_period_end) }}
+          </p>
+        </div>
+      </template>
 
-              <!-- FM Details -->
-              <td class="p-3">
-                <p class="text-xs font-semibold text-primary-text">{{ row.fm_name || 'FM' }}</p>
-                <p class="text-[11px] text-secondary-text font-mono">FM ID: #{{ row.fm_id }}</p>
-              </td>
+      <!-- Settlement Type -->
+      <template #cell-settlement_type="{ value }">
+        <span
+          v-if="value"
+          class="px-1.5 py-0.5 rounded text-[10px] uppercase font-bold bg-background border border-primary-border text-secondary-text inline-block"
+        >
+          {{ value }}
+        </span>
+        <span v-else class="text-xs text-secondary-text">—</span>
+      </template>
 
-              <!-- Executed / Period -->
-              <td class="p-3">
-                <p class="text-xs font-medium text-primary-text">{{ formatDate(row.executed_at) || row.period }}</p>
-                <p v-if="row.settlement_period_start" class="text-[10px] text-secondary-text mt-0.5">
-                  {{ formatDateShort(row.settlement_period_start) }} – {{ formatDateShort(row.settlement_period_end) }}
-                </p>
-              </td>
+      <!-- Net Profit -->
+      <template #cell-net_profit="{ row }">
+        <span
+          class="text-xs font-bold tabular-nums"
+          :class="getNetProfit(row) >= 0 ? 'text-primary-green' : 'text-primary-red'"
+        >
+          {{ formatNetProfit(row) }}
+        </span>
+      </template>
 
-              <!-- Settlement Type -->
-              <td class="p-3">
-                <span
-                  v-if="row.settlement_type"
-                  class="px-1.5 py-0.5 rounded text-[10px] uppercase font-bold bg-background border border-primary-border text-secondary-text"
-                >
-                  {{ row.settlement_type }}
-                </span>
-                <span v-else class="text-xs text-secondary-text">—</span>
-              </td>
+      <!-- Gross Fee -->
+      <template #cell-gross_fee="{ row }">
+        <span class="text-xs font-medium text-primary-text tabular-nums">
+          {{ formatValWithCurrency(getGrossFee(row), row) }}
+        </span>
+      </template>
 
-              <!-- Net Profit -->
-              <td class="p-3">
-                <span
-                  class="text-xs font-bold tabular-nums"
-                  :class="getNetProfit(row) >= 0 ? 'text-primary-green' : 'text-primary-red'"
-                >
-                  {{ formatNetProfit(row) }}
-                </span>
-              </td>
+      <!-- FM Share -->
+      <template #cell-fm_share="{ row }">
+        <span class="text-xs text-primary-text tabular-nums">
+          {{ formatValWithCurrency(getFmShare(row), row) }}
+        </span>
+      </template>
 
-              <!-- Gross Fee -->
-              <td class="p-3 text-xs font-medium text-primary-text tabular-nums">
-                {{ formatValWithCurrency(getGrossFee(row), row) }}
-              </td>
+      <!-- IB's Share -->
+      <template #cell-ib_share="{ row }">
+        <span class="text-xs text-primary-text tabular-nums">
+          {{ formatValWithCurrency(getIbShare(row), row) }}
+        </span>
+      </template>
 
-              <!-- FM Share -->
-              <td class="p-3 text-xs text-primary-text tabular-nums">
-                {{ formatValWithCurrency(getFmShare(row), row) }}
-              </td>
+      <!-- Broker Net -->
+      <template #cell-broker_net="{ row }">
+        <span class="text-xs text-primary-green font-medium tabular-nums">
+          {{ formatValWithCurrency(getBrokerNet(row), row) }}
+        </span>
+      </template>
 
-              <!-- IB's Share -->
-              <td class="p-3 text-xs text-primary-text tabular-nums">
-                {{ formatValWithCurrency(getIbShare(row), row) }}
-              </td>
+      <!-- Followers Count -->
+      <template #cell-followers_count="{ value }">
+        <span class="inline-block px-2 py-0.5 rounded text-xs font-mono font-medium bg-background border border-primary-border text-primary-text">
+          {{ value ?? 0 }}
+        </span>
+      </template>
 
-              <!-- Broker Net -->
-              <td class="p-3 text-xs text-primary-green font-medium tabular-nums">
-                {{ formatValWithCurrency(getBrokerNet(row), row) }}
-              </td>
+      <!-- Trades Count -->
+      <template #cell-trades_count="{ value }">
+        <span class="inline-block px-2 py-0.5 rounded text-xs font-mono font-bold bg-background border border-primary-border text-primary-text">
+          {{ value ?? 0 }}
+        </span>
+      </template>
 
-              <!-- Followers Count -->
-              <td class="p-3 text-center">
-                <span class="inline-block px-2 py-0.5 rounded text-xs font-mono font-medium bg-background border border-primary-border text-primary-text">
-                  {{ row.followers_count ?? 0 }}
-                </span>
-              </td>
+      <!-- Status -->
+      <template #cell-status="{ value }">
+        <span
+          class="text-[10px] font-medium px-2 py-0.5 rounded-full border capitalize inline-block"
+          :class="statusClass(value)"
+        >
+          {{ value }}
+        </span>
+      </template>
 
-              <!-- Trades Count -->
-              <td class="p-3 text-center">
-                <span class="inline-block px-2 py-0.5 rounded text-xs font-mono font-bold bg-background border border-primary-border text-primary-text">
-                  {{ row.trades_count ?? 0 }}
-                </span>
-              </td>
+      <!-- Actions -->
+      <template #cell-actions="{ row }">
+        <div class="flex items-center justify-end gap-1.5" @click.stop>
+          <button
+            class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-xs font-medium transition-colors cursor-pointer"
+            title="View Settlement Details"
+            @click="goToDetail(row.settlement_id)"
+          >
+            <Eye class="w-3.5 h-3.5" />
+            <span>View</span>
+          </button>
 
-              <!-- Status -->
-              <td class="p-3 text-center">
-                <span
-                  class="text-[10px] font-medium px-2 py-0.5 rounded-full border capitalize inline-block"
-                  :class="statusClass(row.status)"
-                >
-                  {{ row.status }}
-                </span>
-              </td>
-
-              <!-- Actions -->
-              <td class="p-3 text-right" @click.stop>
-                <div class="flex items-center justify-end gap-1.5">
-                  <button
-                    class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-xs font-medium transition-colors cursor-pointer"
-                    title="View Settlement Details"
-                    @click="goToDetail(row.settlement_id)"
-                  >
-                    <Eye class="w-3.5 h-3.5" />
-                    <span>View</span>
-                  </button>
-
-                  <button
-                    v-if="hasPermission('settlement.trades')"
-                    class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-primary-border text-xs text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer"
-                    title="View Flat Trades"
-                    @click="goToTrade(row.settlement_id)"
-                  >
-                    <BarChart2 class="w-3.5 h-3.5" />
-                    <span>Trades</span>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Pagination -->
-    <div class="mt-4">
-      <Pagination
-        v-if="store.pagination.total_items > store.pagination.per_page"
-        :pagination="store.pagination"
-        @page-change="handlePageChange"
-      />
-    </div>
+          <button
+            v-if="hasPermission('settlement.trades')"
+            class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-primary-border text-xs text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer"
+            title="View Flat Trades"
+            @click="goToTrade(row.settlement_id)"
+          >
+            <BarChart2 class="w-3.5 h-3.5" />
+            <span>Trades</span>
+          </button>
+        </div>
+      </template>
+    </DataTable>
 
   </div>
 </template>
@@ -333,7 +293,7 @@ import {
   Info,
 } from 'lucide-vue-next'
 import { useSettlementsStore } from '@/stores/settlements/settlements'
-import Pagination from '@/components/common/Pagination.vue'
+import DataTable from '@/components/common/DataTable/DataTable.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import { usePermissionCheck } from '@/composables/usePermissionCheck'
 import apiRequest from '@/api/request'
@@ -342,6 +302,26 @@ import urls from '@/api/urls'
 const router = useRouter()
 const store = useSettlementsStore()
 const { hasPermission } = usePermissionCheck()
+
+const columns = [
+  { key: 'settlement_id', label: 'ID', sortable: false },
+  { key: 'fm_details', label: 'FM Details', sortable: false },
+  { key: 'period', label: 'Executed / Period', sortable: false },
+  { key: 'settlement_type', label: 'Type', sortable: false },
+  { key: 'net_profit', label: 'Net Profit', sortable: false },
+  { key: 'gross_fee', label: 'Gross Fee', sortable: false },
+  { key: 'fm_share', label: 'FM Share', sortable: false },
+  { key: 'ib_share', label: "IB's Share", sortable: false },
+  { key: 'broker_net', label: 'Broker Net', sortable: false },
+  { key: 'followers_count', label: 'Followers', align: 'center', sortable: false },
+  { key: 'trades_count', label: 'Trades', align: 'center', sortable: false },
+  { key: 'status', label: 'Status', align: 'center', sortable: false },
+  { key: 'actions', label: 'Actions', align: 'right', sortable: false },
+]
+
+const handlePerPageChange = (perPage) => {
+  store.updatePerPage(perPage)
+}
 
 const fmIdInput = ref('')
 const fmOptions = ref([])

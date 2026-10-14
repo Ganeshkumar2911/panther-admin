@@ -90,134 +90,112 @@
       </button>
     </div>
 
-    <!-- Loading Skeleton -->
-    <div v-if="store.loading" class="space-y-3">
-      <div
-        v-for="n in 6"
-        :key="n"
-        class="h-12 bg-card-background border border-primary-border rounded-xl animate-pulse"
-      />
-    </div>
-
-    <!-- Empty State -->
-    <div
-      v-else-if="deals.length === 0"
-      class="flex flex-col items-center justify-center p-12 bg-card-background border border-dashed border-primary-border rounded-xl text-center gap-3"
+    <!-- Deals DataTable -->
+    <DataTable
+      :columns="columns"
+      :data="deals"
+      :loading="store.loading"
+      row-key="id"
     >
-      <div
-        class="w-12 h-12 rounded-xl bg-card-background border border-primary-border flex items-center justify-center text-secondary-text"
-      >
-        <Activity class="w-6 h-6 text-primary" />
-      </div>
-      <div class="space-y-1">
-        <h3 class="text-sm font-semibold text-primary-text">
-          No Loyalty Deals Found
-        </h3>
-        <p class="text-xs text-secondary-text max-w-sm mx-auto">
-          {{
-            filters.account_number ||
-            filters.enrollment_id ||
-            filters.from_at ||
-            filters.to_at
-              ? "No deals match your filter parameters."
-              : "Closed trades by enrolled accounts will be processed and logged here in real-time."
-          }}
-        </p>
-      </div>
-    </div>
-
-    <!-- Deals Table -->
-    <div
-      v-else
-      class="bg-card-background border border-primary-border rounded-xl overflow-hidden shadow-2xs"
-    >
-      <div
-        class="px-4 py-3 border-b border-primary-border flex items-center justify-between bg-background/50"
-      >
-        <h3
-          class="text-xs font-semibold text-primary-text uppercase tracking-wider"
+      <template #empty>
+        <div
+          class="flex flex-col items-center justify-center p-12 text-center gap-3"
         >
-          Audited MT5 Deals ({{ deals.length }})
-        </h3>
-      </div>
+          <div
+            class="w-12 h-12 rounded-xl bg-card-background border border-primary-border flex items-center justify-center text-secondary-text"
+          >
+            <Activity class="w-6 h-6 text-primary" />
+          </div>
+          <div class="space-y-1">
+            <h3 class="text-sm font-semibold text-primary-text">
+              No Loyalty Deals Found
+            </h3>
+            <p class="text-xs text-secondary-text max-w-sm mx-auto">
+              {{
+                filters.account_number ||
+                filters.enrollment_id ||
+                filters.from_at ||
+                filters.to_at
+                  ? "No deals match your filter parameters."
+                  : "Closed trades by enrolled accounts will be processed and logged here in real-time."
+              }}
+            </p>
+          </div>
+        </div>
+      </template>
 
-      <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse text-xs">
-          <thead>
-            <tr
-              class="border-b border-primary-border text-[11px] font-semibold text-secondary-text uppercase tracking-wider bg-background/30"
-            >
-              <th class="py-2.5 px-4">Deal ID</th>
-              <th class="py-2.5 px-4">Account Number</th>
-              <th class="py-2.5 px-4">Position</th>
-              <th class="py-2.5 px-4">Symbol</th>
-              <th class="py-2.5 px-4">Side</th>
-              <th class="py-2.5 px-4">Lots</th>
-              <th class="py-2.5 px-4">Duration</th>
-              <th class="py-2.5 px-4">Points</th>
-              <th class="py-2.5 px-4">Status</th>
-              <th class="py-2.5 px-4">Closed Time</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-primary-border">
-            <tr
-              v-for="deal in deals"
-              :key="deal.id"
-              class="hover:bg-background/40 transition-colors"
-            >
-              <td class="py-2.5 px-4 font-mono font-medium text-primary">
-                #{{ deal.mt5_deal_id || deal.id }}
-              </td>
-              <td class="py-2.5 px-4 font-mono text-primary-text">
-                {{ deal.account_number || deal.trading_account_id }}
-              </td>
-              <td class="py-2.5 px-4 font-mono text-secondary-text">
-                #{{ deal.position_id }}
-              </td>
-              <td class="py-2.5 px-4 font-mono font-bold text-primary-text">
-                {{ deal.symbol }}
-              </td>
-              <td class="py-2.5 px-4">
-                <span
-                  class="px-1.5 py-0.5 rounded font-mono text-[10px] font-bold uppercase"
-                  :class="
-                    deal.side === 'BUY'
-                      ? 'bg-primary-green/10 text-primary-green border border-primary-green/20'
-                      : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
-                  "
-                >
-                  {{ deal.side }}
-                </span>
-              </td>
-              <td class="py-2.5 px-4 font-mono text-primary-text">
-                {{ deal.lots }}
-              </td>
-              <td class="py-2.5 px-4 font-mono text-secondary-text">
-                {{ deal.duration_seconds }}s
-              </td>
-              <td class="py-2.5 px-4 font-mono font-bold text-primary-green">
-                +{{ deal.points_awarded ?? "0.00" }}
-              </td>
-              <td class="py-2.5 px-4">
-                <span
-                  class="px-2 py-0.5 rounded-full text-[10px] font-medium uppercase border"
-                  :class="
-                    deal.eligibility_status === 'awarded'
-                      ? 'bg-primary-green/10 text-primary-green border-primary-green/20'
-                      : 'bg-zinc-800 text-zinc-400 border-zinc-700'
-                  "
-                >
-                  {{ deal.eligibility_status }}
-                </span>
-              </td>
-              <td class="py-2.5 px-4 text-secondary-text font-mono text-[11px]">
-                {{ formatDate(deal.close_time) }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+      <template #cell-deal_id="{ row }">
+        <span class="font-mono font-medium text-primary"
+          >#{{ row.mt5_deal_id || row.id }}</span
+        >
+      </template>
+
+      <template #cell-account_number="{ row }">
+        <span class="font-mono text-primary-text">{{
+          row.account_number || row.trading_account_id
+        }}</span>
+      </template>
+
+      <template #cell-position_id="{ row }">
+        <span class="font-mono text-secondary-text"
+          >#{{ row.position_id }}</span
+        >
+      </template>
+
+      <template #cell-symbol="{ row }">
+        <span class="font-mono font-bold text-primary-text">{{
+          row.symbol
+        }}</span>
+      </template>
+
+      <template #cell-side="{ row }">
+        <span
+          class="px-1.5 py-0.5 rounded font-mono text-[10px] font-bold uppercase"
+          :class="
+            row.side === 'BUY'
+              ? 'bg-primary-green/10 text-primary-green border border-primary-green/20'
+              : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+          "
+        >
+          {{ row.side }}
+        </span>
+      </template>
+
+      <template #cell-lots="{ row }">
+        <span class="font-mono text-primary-text">{{ row.lots }}</span>
+      </template>
+
+      <template #cell-duration_seconds="{ row }">
+        <span class="font-mono text-secondary-text"
+          >{{ row.duration_seconds }}s</span
+        >
+      </template>
+
+      <template #cell-points_awarded="{ row }">
+        <span class="font-mono font-bold text-primary-green"
+          >+{{ row.points_awarded ?? "0.00" }}</span
+        >
+      </template>
+
+      <template #cell-eligibility_status="{ row }">
+        <span
+          class="px-2 py-0.5 rounded-full text-[10px] font-medium uppercase border"
+          :class="
+            row.eligibility_status === 'awarded'
+              ? 'bg-primary-green/10 text-primary-green border-primary-green/20'
+              : 'bg-zinc-800 text-zinc-400 border-zinc-700'
+          "
+        >
+          {{ row.eligibility_status }}
+        </span>
+      </template>
+
+      <template #cell-close_time="{ row }">
+        <span class="text-secondary-text font-mono text-[11px] whitespace-nowrap">
+          {{ formatDate(row.close_time) }}
+        </span>
+      </template>
+    </DataTable>
   </div>
 </template>
 
@@ -227,8 +205,22 @@ import { RefreshCw, Search, Activity } from "lucide-vue-next";
 import { useLoyaltyStore } from "@/stores/loyalty/loyalty";
 import { formatDate } from "@/utils/timeFormatter";
 import BaseDatePicker from "@/components/common/BaseDatePicker.vue";
+import DataTable from "@/components/common/DataTable/DataTable.vue";
 
 const store = useLoyaltyStore();
+
+const columns = [
+  { key: "deal_id", label: "Deal ID", sortable: true },
+  { key: "account_number", label: "Account Number", sortable: true },
+  { key: "position_id", label: "Position", sortable: true },
+  { key: "symbol", label: "Symbol", sortable: true },
+  { key: "side", label: "Side", sortable: true },
+  { key: "lots", label: "Lots", sortable: true },
+  { key: "duration_seconds", label: "Duration", sortable: true },
+  { key: "points_awarded", label: "Points", sortable: true },
+  { key: "eligibility_status", label: "Status", sortable: true },
+  { key: "close_time", label: "Closed Time", sortable: true },
+];
 
 const filters = reactive({
   account_number: "",

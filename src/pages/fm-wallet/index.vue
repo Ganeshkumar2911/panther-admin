@@ -2,7 +2,7 @@
 import { onMounted, computed, ref } from 'vue'
 import { BookOpen, RefreshCw, Plus } from 'lucide-vue-next'
 import { useFmLedgerStore } from '@/stores/fmLedger/fmLedger'
-import Pagination from '@/components/common/Pagination.vue'
+import DataTable from '@/components/common/DataTable/DataTable.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import BaseDatePicker from '@/components/common/BaseDatePicker.vue'
 import Tooltip from '@/components/common/Tooltip.vue'
@@ -11,6 +11,22 @@ import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
 const store = useFmLedgerStore()
 const { hasPermission } = usePermissionCheck()
+
+const columns = [
+  { key: 'fm_name', label: 'FM Name', sortable: false },
+  { key: 'account', label: 'Account', sortable: false },
+  { key: 'account_role', label: 'Role', sortable: false },
+  { key: 'type', label: 'Type', sortable: false },
+  { key: 'amount', label: 'Amount', sortable: false },
+  { key: 'balance_before', label: 'Bal. Before', sortable: false },
+  { key: 'balance_after', label: 'Bal. After', sortable: false },
+  { key: 'description', label: 'Description', sortable: false },
+  { key: 'created_at', label: 'Date', align: 'right', sortable: false },
+]
+
+const handlePerPageChange = (perPage) => {
+  store.updatePerPage(perPage)
+}
 
 const updateLedgerDialogOpen = ref(false)
 
@@ -261,124 +277,99 @@ onMounted(() => {
     </div>
 
     <!-- Table -->
-    <div class="w-full border border-primary-border rounded-xl overflow-x-auto">
-      <table class="w-full border-collapse">
-        <thead>
-          <tr class="border-b border-primary-border">
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">FM Name</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Account</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Role</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Type</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Amount</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Bal. Before</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Bal. After</th>
-            <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Description</th>
-            <th class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Date</th>
-          </tr>
-        </thead>
+    <DataTable
+      :data="store.data"
+      :columns="columns"
+      :loading="isLoading"
+      :pagination="store.pagination"
+      row-key="ledger_id"
+      empty-title="No ledger entries found"
+      empty-text="Try adjusting your filters"
+      @page-change="handlePageChange"
+      @per-page-change="handlePerPageChange"
+    >
+      <template #empty>
+        <div class="flex flex-col items-center gap-3 py-16">
+          <div class="w-12 h-12 rounded-full bg-card-background flex items-center justify-center">
+            <BookOpen class="w-5 h-5 text-secondary-text" />
+          </div>
+          <p class="text-sm font-medium text-primary-text">No ledger entries found</p>
+          <p class="text-xs text-secondary-text">Try adjusting your filters</p>
+        </div>
+      </template>
 
-        <!-- Skeleton -->
-        <tbody v-if="isLoading">
-          <tr v-for="n in 8" :key="n" class="border-b border-primary-border animate-pulse">
-            <td class="p-3"><div class="h-3 w-24 bg-card-background rounded" /></td>
-            <td class="p-3">
-              <div class="space-y-1.5">
-                <div class="h-3 w-16 bg-card-background rounded" />
-                <div class="h-2.5 w-12 bg-card-background rounded" />
-              </div>
-            </td>
-            <td class="p-3"><div class="h-5 w-16 bg-card-background rounded-full" /></td>
-            <td class="p-3"><div class="h-5 w-16 bg-card-background rounded-full" /></td>
-            <td class="p-3"><div class="h-3 w-14 bg-card-background rounded" /></td>
-            <td class="p-3"><div class="h-3 w-16 bg-card-background rounded" /></td>
-            <td class="p-3"><div class="h-3 w-16 bg-card-background rounded" /></td>
-            <td class="p-3"><div class="h-3 w-32 bg-card-background rounded" /></td>
-            <td class="p-3 flex justify-end"><div class="h-3 w-20 bg-card-background rounded" /></td>
-          </tr>
-        </tbody>
+      <!-- FM Name -->
+      <template #cell-fm_name="{ value }">
+        <span class="text-xs font-medium text-primary-text">{{ value }}</span>
+      </template>
 
-        <!-- Empty -->
-        <tbody v-else-if="store.data.length === 0">
-          <tr>
-            <td colspan="9" class="py-16 text-center">
-              <div class="flex flex-col items-center gap-3">
-                <div class="w-12 h-12 rounded-full bg-card-background flex items-center justify-center">
-                  <BookOpen class="w-5 h-5 text-secondary-text" />
-                </div>
-                <p class="text-sm font-medium text-primary-text">No ledger entries found</p>
-                <p class="text-xs text-secondary-text">Try adjusting your filters</p>
-              </div>
-            </td>
-          </tr>
-        </tbody>
+      <!-- Account -->
+      <template #cell-account="{ row }">
+        <div>
+          <p class="text-xs text-primary-text">#{{ row.account_number }}</p>
+          <p class="text-[11px] text-secondary-text">ID {{ row.account_id }}</p>
+        </div>
+      </template>
 
-        <!-- Data -->
-        <tbody v-else>
-          <tr
-            v-for="entry in store.data"
-            :key="entry.ledger_id"
-            class="border-b border-primary-border last:border-none hover:bg-card-background transition-colors"
+      <!-- Role -->
+      <template #cell-account_role="{ value }">
+        <span
+          class="text-[11px] font-medium px-2 py-0.5 rounded-full border capitalize"
+          :class="value === 'master'
+            ? 'bg-primary-blue/50 border-blue-200'
+            : 'bg-background text-secondary-text border-primary-border'"
+        >
+          {{ value ?? '—' }}
+        </span>
+      </template>
+
+      <!-- Type -->
+      <template #cell-type="{ value }">
+        <span class="text-[11px] font-medium px-2 py-0.5 rounded-full border capitalize" :class="typeClass(value)">
+          {{ formatType(value) }}
+        </span>
+      </template>
+
+      <!-- Amount -->
+      <template #cell-amount="{ row }">
+        <span class="text-xs font-medium tabular-nums" :class="amountClass(row.type, row.amount)">
+          {{ row.amount >= 0 ? '+' : '' }}${{ formatNum(Math.abs(row.amount)) }}
+        </span>
+      </template>
+
+      <!-- Bal. Before -->
+      <template #cell-balance_before="{ value }">
+        <span class="text-xs text-secondary-text tabular-nums">${{ formatNum(value) }}</span>
+      </template>
+
+      <!-- Bal. After -->
+      <template #cell-balance_after="{ value }">
+        <span class="text-xs text-primary-text tabular-nums">${{ formatNum(value) }}</span>
+      </template>
+
+      <!-- Description -->
+      <template #cell-description="{ value }">
+        <div class="max-w-[180px]">
+          <Tooltip
+            v-if="value"
+            :text="value"
+            position="top"
+            maxWidth="320px"
+            block
           >
-            <td class="p-3 text-xs font-medium text-primary-text">{{ entry.fm_name }}</td>
+            <span class="block truncate text-secondary-text cursor-default">
+              {{ value }}
+            </span>
+          </Tooltip>
+          <span v-else class="text-xs text-secondary-text">—</span>
+        </div>
+      </template>
 
-            <td class="p-3">
-              <p class="text-xs text-primary-text">#{{ entry.account_number }}</p>
-              <p class="text-[11px] text-secondary-text">ID {{ entry.account_id }}</p>
-            </td>
-
-            <td class="p-3">
-              <span class="text-[11px] font-medium px-2 py-0.5 rounded-full border capitalize"
-                :class="entry.account_role === 'master'
-                  ? 'bg-primary-blue/50 border-blue-200'
-                  : 'bg-background text-secondary-text border-primary-border'"
-              >
-                {{ entry.account_role ?? '—' }}
-              </span>
-            </td>
-
-            <td class="p-3">
-              <span class="text-[11px] font-medium px-2 py-0.5 rounded-full border capitalize" :class="typeClass(entry.type)">
-                {{ formatType(entry.type) }}
-              </span>
-            </td>
-
-            <td class="p-3">
-              <span class="text-xs font-medium tabular-nums" :class="amountClass(entry.type, entry.amount)">
-                {{ entry.amount >= 0 ? '+' : '' }}${{ formatNum(Math.abs(entry.amount)) }}
-              </span>
-            </td>
-
-            <td class="p-3 text-xs text-secondary-text tabular-nums">${{ formatNum(entry.balance_before) }}</td>
-            <td class="p-3 text-xs text-primary-text tabular-nums">${{ formatNum(entry.balance_after) }}</td>
-
-            <td class="p-3 text-xs text-secondary-text max-w-[180px]">
-              <Tooltip
-                v-if="entry.description"
-                :text="entry.description"
-                position="top"
-                maxWidth="320px"
-                block
-              >
-                <span class="block truncate text-secondary-text cursor-default">
-                  {{ entry.description }}
-                </span>
-              </Tooltip>
-              <span v-else>—</span>
-            </td>
-
-            <td class="p-3 text-xs text-secondary-text text-right">{{ formatDate(entry.created_at) }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="mt-4">
-      <Pagination
-        v-if="store.pagination.total_items > store.pagination.per_page"
-        :pagination="store.pagination"
-        @page-change="handlePageChange"
-      />
-    </div>
+      <!-- Date -->
+      <template #cell-created_at="{ value }">
+        <span class="text-xs text-secondary-text text-right block">{{ formatDate(value) }}</span>
+      </template>
+    </DataTable>
 
     <!-- Update Ledger Dialog -->
     <UpdateLedgerDialog
