@@ -181,10 +181,10 @@ jobs:
                       Out-Null
 
                   # Validate key with ssh-keygen
-                  $keyInfo = ssh-keygen -l -f "$keyPath" 2>&1
+                  $keyInfo = cmd.exe /c "ssh-keygen -l -f `"$keyPath`" 2>&1"
                   if ($LASTEXITCODE -ne 0) {
                       Write-Warning "ssh-keygen check failed ($LASTEXITCODE): $keyInfo"
-                      throw "The configured CLIENT_SSH_PRIVATE_KEY could not be loaded by OpenSSH. Error: $keyInfo. Please verify the secret contains an unencrypted OpenSSH private key with valid header and footer."
+                      throw "The configured CLIENT_SSH_PRIVATE_KEY could not be loaded by OpenSSH. Error: $keyInfo. Please verify the secret contains an unencrypted OpenSSH private key with valid header and footer (-----BEGIN ... KEY----- to -----END ... KEY-----)."
                   } else {
                       Write-Host "SSH key format validated: $keyInfo"
                   }
