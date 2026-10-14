@@ -1,0 +1,246 @@
+name: Panther Admin Frontend CI
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: "22"
+  ARTIFACT_NAME: panther-admin-frontend-release
+
+jobs:
+  # ============================================================
+  # BUILD
+  # ============================================================
+
+  build:
+    name: Build Admin Frontend
+    runs-on: windows-latest
+
+    permissions:
+      contents: read
+      actions: write
+
+    outputs:
+      release_version: ${{ steps.package.outputs.release_version }}
+
+    steps:
+      # --------------------------------------------------------
+      # Checkout
+      # --------------------------------------------------------
+
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      # --------------------------------------------------------
+      # Setup Node.js
+      # --------------------------------------------------------
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          package-manager-cache: false
+
+      # --------------------------------------------------------
+      # Verify tools
+      # --------------------------------------------------------
+
+      - name: Verify tools
+        shell: powershell
+        run: |
+          node --version
+          npm --version
+          git --version
+
+      # --------------------------------------------------------
+      # Install dependencies
+      # --------------------------------------------------------
+
+      - name: Install dependencies
+        shell: powershell
+        run: |
+          Write-Host "Installing dependencies..."
+
+          npm install
+
+          if ($LASTEXITCODE -ne 0) {
+              throw "npm install failed."
+          }
+
+          Write-Host "Dependencies installed successfully."
+
+      # --------------------------------------------------------
+      # Build Vue/Vite frontend
+      # --------------------------------------------------------
+
+      - name: Build frontend
+        shell: powershell
+        run: |
+          Write-Host "Building Vue/Vite frontend..."
+
+          npm run build
+
+          if ($LASTEXITCODE -ne 0) {
+              throw "npm run build failed."
+          }
+
+          if (-not (Test-Path "dist")) {
+              throw "dist directory was not created."
+          }
+
+          if (-not (Test-Path "dist\index.html")) {
+              throw "dist\index.html was not created."
+          }
+
+          Write-Host "Frontend build completed successfully."
+
+      # --------------------------------------------------------
+      # Validate build
+      # --------------------------------------------------------
+
+      - name: Validate frontend build
+        shell: powershell
+        run: |
+          Write-Host "Validating dist..."
+
+          $indexFile = "dist\index.html"
+
+          if (-not (Test-Path $indexFile)) {
+              throw "index.html not found."
+          }
+
+          $files = Get-ChildItem `
+              -Path "dist" `
+              -Recurse `
+              -File `
+              -ErrorAction SilentlyContinue
+
+          if (-not $files) {
+              throw "No files found in dist."
+          }
+
+          Write-Host "Frontend files: $($files.Count)"
+
+          $assetsPath = "dist\assets"
+
+          if (-not (Test-Path $assetsPath)) {
+              Write-Warning "dist\assets directory was not found."
+          }
+          else {
+              $assetFiles = Get-ChildItem `
+                  -Path $assetsPath `
+                  -Recurse `
+                  -File `
+                  -ErrorAction SilentlyContinue
+
+              Write-Host "Asset files: $($assetFiles.Count)"
+          }
+
+          Write-Host "Frontend validation passed."
+
+      # --------------------------------------------------------
+      # Create release ZIP
+      # --------------------------------------------------------
+
+      - name: Package frontend
+        id: package
+        shell: powershell
+        run: |
+
+          $shortSha = "${{ github.sha }}".Substring(0, 8)
+
+          $version = "run-${{ github.run_number }}-$shortSha"
+
+          $releaseZip = "panther-admin-$version.zip"
+
+          Write-Host "Release version: $version"
+          Write-Host "Release ZIP: $releaseZip"
+
+          if (Test-Path $releaseZip) {
+              Remove-Item `
+                  -Path $releaseZip `
+                  -Force
+          }
+
+          Compress-Archive `
+              -Path "dist\*" `
+              -DestinationPath $releaseZip `
+              -CompressionLevel Optimal
+
+          if (-not (Test-Path $releaseZip)) {
+              throw "Frontend release ZIP was not created."
+          }
+
+          $size = (Get-Item $releaseZip).Length
+
+          Write-Host "Release ZIP created."
+          Write-Host "Size: $size bytes"
+
+          "release_version=$version" |
+              Out-File `
+                  -FilePath $env:GITHUB_OUTPUT `
+                  -Encoding utf8 `
+                  -Append
+
+          "release_zip=$releaseZip" |
+              Out-File `
+                  -FilePath $env:GITHUB_OUTPUT `
+                  -Encoding utf8 `
+                  -Append
+
+      # --------------------------------------------------------
+      # Upload GitHub artifact
+      # --------------------------------------------------------
+
+      - name: Upload frontend artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: ${{ steps.package.outputs.release_zip }}
+          if-no-files-found: error
+          retention-days: 14
+
+      # --------------------------------------------------------
+      # Clean up old artifacts
+      # --------------------------------------------------------
+      - name: Remove old artifacts
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $repo = "${{ github.repository }}"
+          $artifactName = "${{ env.ARTIFACT_NAME }}"
+          Write-Host "Checking artifacts for: $artifactName"
+          $headers = @{
+              Authorization = "Bearer $env:GH_TOKEN"
+              Accept        = "application/vnd.github+json"
+              "X-GitHub-Api-Version" = "2022-11-28"
+          }
+          $url = "https://api.github.com/repos/$repo/actions/artifacts?name=$artifactName&per_page=100"
+          $response = Invoke-RestMethod -Uri $url -Headers $headers -Method Get
+          $artifacts = @(
+              $response.artifacts |
+                  Where-Object { $_.expired -eq $false } |
+                  Sort-Object created_at -Descending
+          )
+          Write-Host "Found $($artifacts.Count) active artifacts."
+          if ($artifacts.Count -le 3) {
+              Write-Host "Nothing to delete. Keeping latest 3 artifacts."
+              exit 0
+          }
+          $oldArtifacts = $artifacts | Select-Object -Skip 3
+          foreach ($artifact in $oldArtifacts) {
+              Write-Host "Deleting artifact ID: $($artifact.id) ($($artifact.name))"
+              $deleteUrl = "https://api.github.com/repos/$repo/actions/artifacts/$($artifact.id)"
+              Invoke-RestMethod -Uri $deleteUrl -Headers $headers -Method Delete
+              Write-Host "Deleted artifact $($artifact.id)"
+          }
+          Write-Host "Artifact cleanup completed."
