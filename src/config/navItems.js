@@ -358,6 +358,13 @@ export const navClusters = [
         permission: ["settlement.view"],
         keywords: ["reconciliation", "settle", "payout settlements", "batch"],
       },
+      {
+        label: "PAMM Pools",
+        to: "/pamm",
+        icon: Briefcase,
+        permission: ["pamm.view"],
+        keywords: ["pamm", "pool", "allocation", "fund"],
+      },
     ],
   },
 
@@ -725,13 +732,13 @@ export const navClusters = [
         permission: ["cashback.view"],
         keywords: ["cashback", "rebate", "usd", "earnings", "loyalty"],
       },
-      {
-        label: "PAMM Pools",
-        to: "/pamm",
-        icon: Briefcase,
-        permission: ["pamm.view"],
-        keywords: ["pamm", "pool", "allocation", "fund"],
-      },
+      // {
+      //   label: "PAMM Pools",
+      //   to: "/pamm",
+      //   icon: Briefcase,
+      //   permission: ["pamm.view"],
+      //   keywords: ["pamm", "pool", "allocation", "fund"],
+      // },
     ],
   },
 

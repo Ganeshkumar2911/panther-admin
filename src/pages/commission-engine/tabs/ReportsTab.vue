@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
+import { useRouter } from "vue-router";
 import {
   Calendar,
   CalendarDays,
@@ -25,6 +26,7 @@ import {
   Receipt,
   X,
   FileDown,
+  Eye,
 } from "lucide-vue-next";
 import { useCommissionEngineStore } from "@/stores/commissionEngine/commissionEngine";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
@@ -34,9 +36,15 @@ import BaseDatePicker from "@/components/common/BaseDatePicker.vue";
 import StatusBadge from "@/components/common/StatusBadge.vue";
 import Tooltip from "@/components/common/Tooltip.vue";
 import ReportColumnsModal from "../components/reports/ReportColumnsModal.vue";
+import PerformanceDrilldownView from "../components/reports/PerformanceDrilldownView.vue";
 
+const router = useRouter();
 const store = useCommissionEngineStore();
 const snackbar = useSnackbarStore();
+
+// ─── Performance Drill-Down State (ib_commission_reports_performance_entries) ──
+const isDrilldownActive = ref(false);
+const selectedDrilldownRow = ref(null);
 
 // ─── Exact Report Types from ib_commission_reports_frontend.md ────────────────
 const reportTypes = [
@@ -212,6 +220,7 @@ const columnDefinitions = ref({
     { key: "volume_entry_lots", label: "Open Volume (Lots)", visible: true, default: true, sortable: true, align: "right", width: "145px" },
     { key: "open_volume_lots", label: "Entry Volume", visible: true, default: true, sortable: true, align: "right", width: "130px" },
     { key: "closed_volume_lots", label: "Exit Volume", visible: true, default: true, sortable: true, align: "right", width: "130px" },
+    { key: "actions", label: "Actions", visible: true, default: true, align: "right", width: "110px", sticky: "right" },
   ],
   affiliates: [
     { key: "ib", label: "IB Partner", visible: true, default: true, width: "240px" },
@@ -232,6 +241,7 @@ const columnDefinitions = ref({
     { key: "volume_entry_lots", label: "Open Volume (Lots)", visible: true, default: true, sortable: true, align: "right", width: "145px" },
     { key: "open_volume_lots", label: "Entry Volume", visible: true, default: true, sortable: true, align: "right", width: "130px" },
     { key: "closed_volume_lots", label: "Exit Volume", visible: true, default: true, sortable: true, align: "right", width: "130px" },
+    { key: "actions", label: "Actions", visible: true, default: true, align: "right", width: "110px", sticky: "right" },
   ],
   "sub-affiliates": [
     { key: "child_ib", label: "Sub-Affiliate (Child IB)", visible: true, default: true, width: "240px" },
@@ -252,6 +262,7 @@ const columnDefinitions = ref({
     { key: "volume_entry_lots", label: "Open Volume (Lots)", visible: true, default: true, sortable: true, align: "right", width: "145px" },
     { key: "open_volume_lots", label: "Entry Volume", visible: true, default: true, sortable: true, align: "right", width: "130px" },
     { key: "closed_volume_lots", label: "Exit Volume", visible: true, default: true, sortable: true, align: "right", width: "130px" },
+    { key: "actions", label: "Actions", visible: true, default: true, align: "right", width: "110px", sticky: "right" },
   ],
   customers: [
     { key: "customer", label: "Client Account", visible: true, default: true, width: "240px" },
@@ -266,6 +277,7 @@ const columnDefinitions = ref({
     { key: "open_volume_lots", label: "Entry Volume", visible: true, default: true, sortable: true, align: "right", width: "130px" },
     { key: "closed_volume_lots", label: "Exit Volume", visible: true, default: true, sortable: true, align: "right", width: "130px" },
     { key: "attribution", label: "Parent IB Attribution", visible: true, default: true, width: "190px" },
+    { key: "actions", label: "Actions", visible: true, default: true, align: "right", width: "110px", sticky: "right" },
   ],
   symbols: [
     { key: "symbol", label: "Trading Symbol", visible: true, default: true, width: "180px" },
@@ -278,6 +290,7 @@ const columnDefinitions = ref({
     { key: "volume_entry_lots", label: "Open Volume (Lots)", visible: true, default: true, sortable: true, align: "right", width: "145px" },
     { key: "open_volume_lots", label: "Entry Volume", visible: true, default: true, sortable: true, align: "right", width: "130px" },
     { key: "closed_volume_lots", label: "Exit Volume", visible: true, default: true, sortable: true, align: "right", width: "130px" },
+    { key: "actions", label: "Actions", visible: true, default: true, align: "right", width: "110px", sticky: "right" },
   ],
   payouts: [
     { key: "ib", label: "IB Partner", visible: true, default: true, width: "240px" },
@@ -292,6 +305,7 @@ const columnDefinitions = ref({
     { key: "closed_volume_lots", label: "Exit Volume", visible: true, default: true, sortable: true, align: "right", width: "130px" },
     { key: "wallet_target", label: "Wallet Target", visible: true, default: true, width: "140px" },
     { key: "status_badge", label: "Payout Status", visible: true, default: true, align: "center", width: "140px" },
+    { key: "actions", label: "Actions", visible: true, default: true, align: "right", width: "110px", sticky: "right" },
   ],
 });
 
@@ -306,6 +320,19 @@ const currentColumnList = computed(() => {
 
 const visibleColumns = computed(() => {
   return currentColumnList.value.filter((c) => c.visible);
+});
+
+// Columns shown in modal (data columns only, excluding actions)
+const modalColumns = computed(() => {
+  return currentColumnList.value.filter((c) => c.key !== "actions");
+});
+
+const visibleDataColumnsCount = computed(() => {
+  return currentColumnList.value.filter((c) => c.key !== "actions" && c.visible).length;
+});
+
+const totalDataColumnsCount = computed(() => {
+  return modalColumns.value.length;
 });
 
 // ─── Query Params Builder ──────────────────────────────────────────────────────
@@ -624,20 +651,89 @@ const tableTotals = computed(() => {
 // ─── Column Toggle & Reordering ────────────────────────────────────────────────
 const toggleColumn = (key) => {
   const col = currentColumnList.value.find((c) => c.key === key);
-  if (col) col.visible = !col.visible;
+  if (col && col.key !== "actions") col.visible = !col.visible;
 };
 
 const selectAllColumns = (val) => {
-  currentColumnList.value.forEach((c) => (c.visible = val));
+  currentColumnList.value.forEach((c) => {
+    if (c.key !== "actions") {
+      c.visible = val;
+    }
+  });
 };
 
 const resetColumns = () => {
-  currentColumnList.value.forEach((c) => (c.visible = c.default));
+  currentColumnList.value.forEach((c) => {
+    c.visible = c.default;
+  });
+};
+
+// ─── Depth / Detail Action Handler ───────────────────────────────────────────
+const handleViewDetail = (row) => {
+  if (!row) return;
+
+  // 1. If row is from performance timeline breakdown (Daily, Weekly, Monthly date rows)
+  // Open Performance Entries Drill-Down View according to ib_commission_reports_performance_entries (2).md
+  if (activeReportType.value.type === "performance") {
+    selectedDrilldownRow.value = row;
+    isDrilldownActive.value = true;
+    return;
+  }
+
+  // 2. If row has IB Partner ID (Affiliates, Sub-Affiliates, Payouts)
+  const ibId = row.ib_id || row.id || row.child_ib_id;
+  if (ibId) {
+    router.push({
+      path: `/commission-engine/approvals/details/${ibId}`,
+      query: {
+        frequency: activeReportType.value.frequency || "daily",
+        period: dateFrom.value || undefined,
+        date_from: dateFrom.value || undefined,
+        date_to: dateTo.value || undefined,
+      },
+    });
+    return;
+  }
+
+  // 3. If row is Customer / Client Account
+  if (row.user_id) {
+    if (row.ib_id) {
+      router.push({
+        path: `/commission-engine/approvals/details/${row.ib_id}/user/${row.user_id}`,
+        query: {
+          frequency: activeReportType.value.frequency || "daily",
+          period: dateFrom.value || undefined,
+          date_from: dateFrom.value || undefined,
+          date_to: dateTo.value || undefined,
+        },
+      });
+      return;
+    }
+    router.push({
+      path: `/clients/${row.user_id}`,
+    });
+    return;
+  }
+
+  // 4. If row is Symbol
+  if (row.symbol) {
+    router.push({
+      path: "/commission-engine/trades",
+      query: {
+        symbol: row.symbol,
+        date_from: dateFrom.value || undefined,
+        date_to: dateTo.value || undefined,
+      },
+    });
+    return;
+  }
+
+  snackbar.show(`Details for ${getRowTitle(row, activeReportType.value)}`, "info");
 };
 
 // ─── Export Actions (API Backend /admin/ib-commission/reports/export) ────────
 const getExportColumns = () => {
-  const currentList = currentColumnList.value;
+  const currentList = currentColumnList.value.filter((c) => c.key !== "actions");
   const visible = currentList.filter((c) => c.visible);
 
   // If all columns are visible, omit to include all fields
@@ -772,12 +868,29 @@ onMounted(async () => {
 
 <template>
   <div class="space-y-5">
-    <!-- ================================================================= -->
-    <!-- TOP TOOLBAR & CONTROLS                                            -->
-    <!-- ================================================================= -->
-    <div
-      class="flex flex-wrap items-center justify-between gap-3 bg-card-background border border-primary-border rounded-2xl p-3"
-    >
+    <!-- Performance Entries Drill-Down View (ib_commission_reports_performance_entries (2).md) -->
+    <Transition name="fade" mode="out-in">
+      <div v-if="isDrilldownActive">
+        <PerformanceDrilldownView
+          :period-row="selectedDrilldownRow"
+          :frequency="activeReportType.frequency || 'daily'"
+          :date-from="dateFrom"
+          :date-to="dateTo"
+          :filter-ib-id="filterIbId"
+          :status-filter="statusFilter"
+          :wallet-target="walletTargetFilter"
+          @back="isDrilldownActive = false"
+        />
+      </div>
+
+      <!-- Main Reports Page -->
+      <div v-else class="space-y-5">
+        <!-- ================================================================= -->
+        <!-- TOP TOOLBAR & CONTROLS                                            -->
+        <!-- ================================================================= -->
+        <div
+          class="flex flex-wrap items-center justify-between gap-3 bg-card-background border border-primary-border rounded-2xl p-3"
+        >
       <!-- LEFT: Report Type Dropdown -->
       <div class="flex items-center gap-2">
         <div class="relative">
@@ -960,7 +1073,7 @@ onMounted(async () => {
           @click="showColumnsModal = true"
         >
           <Settings2 :size="14" />
-          <span>Columns: {{ visibleColumns.length }} out of {{ currentColumnList.length }}</span>
+          <span>Columns: {{ visibleDataColumnsCount }} out of {{ totalDataColumnsCount }}</span>
         </button>
 
         <!-- 3. Date Range Picker (Required) -->
@@ -1863,6 +1976,21 @@ onMounted(async () => {
           <StatusBadge :status="row.status || 'approved'" />
         </template>
 
+        <!-- Actions Cell (Fixed on Right for Depth / Detail View) -->
+        <template #cell-actions="{ row }">
+          <div class="flex items-center justify-end">
+            <button
+              type="button"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary-border bg-card-background hover:bg-background text-xs font-semibold text-primary hover:text-primary-hover transition-colors cursor-pointer"
+              title="View Depth Details"
+              @click="handleViewDetail(row)"
+            >
+              <Eye :size="13" />
+              <span>View</span>
+            </button>
+          </div>
+        </template>
+
         <!-- Empty State Slot Override -->
         <template #empty>
           <div class="flex flex-col items-center justify-center p-12 text-center bg-card-background gap-2 max-w-md mx-auto">
@@ -1911,6 +2039,8 @@ onMounted(async () => {
         </div>
       </div>
     </div>
+  </div>
+</Transition>
 
     <!-- ================================================================= -->
     <!-- DIALOGS & MODALS                                                  -->
@@ -1918,7 +2048,7 @@ onMounted(async () => {
     <!-- Column Manager Modal -->
     <ReportColumnsModal
       v-model="showColumnsModal"
-      :all-columns="currentColumnList"
+      :all-columns="modalColumns"
       @toggle-column="toggleColumn"
       @select-all="selectAllColumns"
       @reset-columns="resetColumns"

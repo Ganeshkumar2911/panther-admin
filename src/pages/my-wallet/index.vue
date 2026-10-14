@@ -1,30 +1,30 @@
 <template>
-  <div class="px-4">
+  <div>
 
     <!-- Summary Cards -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-6">
       <template v-if="store.loading">
-        <div v-for="n in 4" :key="n" class="bg-card-background border border-primary-border rounded-xl p-4 animate-pulse space-y-2">
-          <div class="h-3 w-24 bg-background rounded" />
-          <div class="h-6 w-28 bg-background rounded" />
+        <div v-for="n in 4" :key="n" class="bg-card-background border border-primary-border rounded-xl p-3 sm:p-4 animate-pulse space-y-2 min-w-0">
+          <div class="h-3 w-20 bg-background rounded" />
+          <div class="h-5 sm:h-6 w-24 bg-background rounded" />
         </div>
       </template>
       <template v-else>
-        <div class="bg-card-background border border-primary-border rounded-xl p-4">
-          <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-1">Total Records</p>
-          <p class="text-2xl font-medium text-primary-text">{{ store.summary.total_records ?? 0 }}</p>
+        <div class="bg-card-background border border-primary-border rounded-xl p-3 sm:p-4 min-w-0">
+          <p class="text-[10px] sm:text-[11px] uppercase tracking-wide text-secondary-text mb-1 truncate" title="Total Records">Total Records</p>
+          <p class="text-sm sm:text-lg lg:text-xl font-semibold sm:font-medium text-primary-text truncate" :title="String(store.summary.total_records ?? 0)">{{ store.summary.total_records ?? 0 }}</p>
         </div>
-        <div class="bg-card-background border border-primary-border rounded-xl p-4">
-          <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-1">Total Earnings</p>
-          <p class="text-2xl font-medium text-green-700">+${{ formatNum(store.summary.total_earnings) }}</p>
+        <div class="bg-card-background border border-primary-border rounded-xl p-3 sm:p-4 min-w-0">
+          <p class="text-[10px] sm:text-[11px] uppercase tracking-wide text-secondary-text mb-1 truncate" title="Total Earnings">Total Earnings</p>
+          <p class="text-sm sm:text-lg lg:text-xl font-semibold sm:font-medium text-green-700 truncate" :title="`+$${formatNum(store.summary.total_earnings)}`">+${{ formatNum(store.summary.total_earnings) }}</p>
         </div>
-        <div class="bg-card-background border border-primary-border rounded-xl p-4">
-          <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-1">Broker Fee</p>
-          <p class="text-2xl font-medium text-primary-text">${{ formatNum(store.summary.total_broker_fee) }}</p>
+        <div class="bg-card-background border border-primary-border rounded-xl p-3 sm:p-4 min-w-0">
+          <p class="text-[10px] sm:text-[11px] uppercase tracking-wide text-secondary-text mb-1 truncate" title="Broker Fee">Broker Fee</p>
+          <p class="text-sm sm:text-lg lg:text-xl font-semibold sm:font-medium text-primary-text truncate" :title="`$${formatNum(store.summary.total_broker_fee)}`">${{ formatNum(store.summary.total_broker_fee) }}</p>
         </div>
-        <div class="bg-card-background border border-primary-border rounded-xl p-4">
-          <p class="text-[11px] uppercase tracking-wide text-secondary-text mb-1">Platform Earning</p>
-          <p class="text-2xl font-medium text-primary-text">${{ formatNum(store.summary.total_platform_earning) }}</p>
+        <div class="bg-card-background border border-primary-border rounded-xl p-3 sm:p-4 min-w-0">
+          <p class="text-[10px] sm:text-[11px] uppercase tracking-wide text-secondary-text mb-1 truncate" title="Platform Earning">Platform Earning</p>
+          <p class="text-sm sm:text-lg lg:text-xl font-semibold sm:font-medium text-primary-text truncate" :title="`$${formatNum(store.summary.total_platform_earning)}`">${{ formatNum(store.summary.total_platform_earning) }}</p>
         </div>
       </template>
     </div>

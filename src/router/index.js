@@ -11,7 +11,10 @@ const router = createRouter({
 });
 
 router.beforeEach(async (to, from) => {
-  cancelAllPendingGetRequests();
+  // Only cancel pending GET requests when moving to a different route/page
+  if (to.path !== from.path) {
+    cancelAllPendingGetRequests();
+  }
 
   const token = authToken.getToken().accessToken;
   const isAuthenticated = Boolean(token);
