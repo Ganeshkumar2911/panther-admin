@@ -187,6 +187,14 @@ jobs:
                       throw "The configured CLIENT_SSH_PRIVATE_KEY could not be loaded by OpenSSH. Error: $keyInfo. Please verify the secret contains an unencrypted OpenSSH private key with valid header and footer (-----BEGIN ... KEY----- to -----END ... KEY-----)."
                   } else {
                       Write-Host "SSH key format validated: $keyInfo"
+                      $pubKey = cmd.exe /c "ssh-keygen -y -f `"$keyPath`" 2>&1"
+                      if ($LASTEXITCODE -eq 0) {
+                          Write-Host ""
+                          Write-Host "=== PUBLIC KEY (Must be in authorized_keys on server) ==="
+                          Write-Host "$pubKey"
+                          Write-Host "=========================================================="
+                          Write-Host ""
+                      }
                   }
 
                   "SSH_KEY_PATH=$keyPath" |
@@ -251,6 +259,7 @@ jobs:
                   ssh `
                       -i "$env:SSH_KEY_PATH" `
                       -o StrictHostKeyChecking=no `
+                      -o IdentitiesOnly=yes `
                       -o BatchMode=yes `
                       -o ConnectTimeout=30 `
                       -p "$env:CLIENT_PORT" `
@@ -258,7 +267,7 @@ jobs:
                       "powershell.exe -NoProfile -EncodedCommand $prepareEncoded"
 
                   if ($LASTEXITCODE -ne 0) {
-                      throw "Failed to prepare frontend directories."
+                      throw "Failed to prepare frontend directories. Ensure CLIENT_USER has permissions and the public key is in authorized_keys on the server."
                   }
 
                   # ----------------------------------------------------
@@ -268,6 +277,7 @@ jobs:
                   scp `
                       -i "$env:SSH_KEY_PATH" `
                       -o StrictHostKeyChecking=no `
+                      -o IdentitiesOnly=yes `
                       -o BatchMode=yes `
                       -o ConnectTimeout=30 `
                       -P "$env:CLIENT_PORT" `
@@ -340,6 +350,7 @@ jobs:
                   scp `
                       -i "$env:SSH_KEY_PATH" `
                       -o StrictHostKeyChecking=no `
+                      -o IdentitiesOnly=yes `
                       -P "$env:CLIENT_PORT" `
                       "$localScript" `
                       "${env:CLIENT_USER}@${env:CLIENT_HOST}:${remoteScript}"
@@ -359,6 +370,7 @@ jobs:
                   ssh `
                       -i "$env:SSH_KEY_PATH" `
                       -o StrictHostKeyChecking=no `
+                      -o IdentitiesOnly=yes `
                       -o BatchMode=yes `
                       -o ConnectTimeout=30 `
                       -p "$env:CLIENT_PORT" `
