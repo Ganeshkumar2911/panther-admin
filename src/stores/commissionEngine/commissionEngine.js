@@ -147,6 +147,8 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
   const reportsRawData = ref(null);
 
   // ─── Performance Reports Drill-Down State (/reports/performance/entries) ─
+  const performanceEntriesIbs = ref([]);
+  const performanceEntriesPeriodSummary = ref(null);
   const performanceEntriesList = ref([]);
   const performanceEntriesClients = ref([]);
   const performanceEntriesClient = ref(null);
@@ -2455,6 +2457,23 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
         isTokenRequired: true,
         onSuccess: (res) => {
           const raw = res?.data !== undefined ? res.data : res;
+
+          // If this is the Period-level response (contains ib_count or items array of IBs without ib_id param)
+          if (!params.ib_id && (raw?.ib_count !== undefined || (Array.isArray(raw?.items) && raw.items[0]?.ib_id))) {
+            performanceEntriesIbs.value = Array.isArray(raw?.items) ? raw.items : [];
+            performanceEntriesPeriodSummary.value = {
+              grand_total: raw?.grand_total ?? 0,
+              grand_total_lots: raw?.grand_total_lots ?? 0,
+              ib_count: raw?.ib_count ?? (Array.isArray(raw?.items) ? raw.items.length : 0),
+              entry_count: raw?.entry_count ?? 0,
+              period_key: raw?.period_key || "",
+              start: raw?.start || "",
+              end: raw?.end || "",
+              frequency: raw?.frequency || "daily",
+              empty: raw?.empty ?? false,
+            };
+          }
+
           performanceEntriesClients.value = raw?.clients || [];
           performanceEntriesClient.value = raw?.client || null;
           performanceEntriesSubIbs.value = raw?.sub_ibs || [];
@@ -2619,6 +2638,8 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
     getReportEndpoint,
     exportReportFile,
     // Performance Entries Drill-Down
+    performanceEntriesIbs,
+    performanceEntriesPeriodSummary,
     performanceEntriesList,
     performanceEntriesClients,
     performanceEntriesClient,

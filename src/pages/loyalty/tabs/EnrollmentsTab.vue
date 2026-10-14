@@ -114,208 +114,142 @@
       </button>
     </div>
 
-    <!-- Loading Skeleton -->
-    <div v-if="store.loading" class="space-y-3">
-      <div
-        v-for="n in 6"
-        :key="n"
-        class="h-12 bg-card-background border border-primary-border rounded-xl animate-pulse"
-      />
-    </div>
-
-    <!-- Empty State -->
-    <div
-      v-else-if="enrollments.length === 0"
-      class="flex flex-col items-center justify-center p-12 bg-card-background border border-dashed border-primary-border rounded-xl text-center gap-3"
+    <!-- Enrollments DataTable -->
+    <DataTable
+      :columns="columns"
+      :data="enrollments"
+      :loading="store.loading"
+      row-key="id"
     >
-      <div
-        class="w-12 h-12 rounded-xl bg-card-background border border-primary-border flex items-center justify-center text-secondary-text"
-      >
-        <HugeIcon :icon="UserGroupIcon" :size="24" class="text-primary" />
-      </div>
-      <div class="space-y-1">
-        <h3 class="text-sm font-semibold text-primary-text">
-          No Enrollments Found
-        </h3>
-        <p class="text-xs text-secondary-text max-w-sm mx-auto">
-          {{
-            filters.email ||
-            filters.account_number ||
-            filters.status !== "active"
-              ? "No enrollments match your filter criteria."
-              : "Enroll client trading accounts to begin tracking points and tier upgrades."
-          }}
-        </p>
-      </div>
-      <button
-        v-if="hasPermission('loyalty.enroll')"
-        type="button"
-        class="mt-2 flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition cursor-pointer shadow-2xs"
-        @click="isEnrollDrawerOpen = true"
-      >
-        <HugeIcon :icon="UserAdd01Icon" :size="14" />
-        <span>Enroll First Account</span>
-      </button>
-    </div>
-
-    <!-- Enrollments Table -->
-    <div
-      v-else
-      class="bg-card-background border border-primary-border rounded-xl overflow-hidden shadow-2xs"
-    >
-      <div
-        class="px-4 py-3 border-b border-primary-border flex items-center justify-between bg-background/50"
-      >
-        <h3
-          class="text-xs font-semibold text-primary-text uppercase tracking-wider"
+      <template #empty>
+        <div
+          class="flex flex-col items-center justify-center p-12 text-center gap-3"
         >
-          Enrolled Members ({{ enrollments.length }})
-        </h3>
-      </div>
-
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs">
-          <thead
-            class="bg-background/60 text-secondary-text border-b border-primary-border"
+          <div
+            class="w-12 h-12 rounded-xl bg-card-background border border-primary-border flex items-center justify-center text-secondary-text"
           >
-            <tr>
-              <th
-                class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider"
-              >
-                Enroll ID
-              </th>
-              <th
-                class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider"
-              >
-                User / Email
-              </th>
-              <th
-                class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider"
-              >
-                Trading Account
-              </th>
-              <th
-                class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider"
-              >
-                Current Tier
-              </th>
-              <th
-                class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider"
-              >
-                Available Points
-              </th>
-              <th
-                class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider"
-              >
-                Lifetime Points
-              </th>
-              <th
-                class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider"
-              >
-                Status
-              </th>
-              <th
-                class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider"
-              >
-                Abuse Status
-              </th>
-              <th
-                class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider"
-              >
-                Opted-In
-              </th>
-              <th
-                class="py-2.5 px-4 text-right text-[11px] font-medium uppercase tracking-wider"
-              >
-                Action
-              </th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-primary-border">
-            <tr
-              v-for="item in enrollments"
-              :key="item.id"
-              class="hover:bg-background/40 transition-colors"
-            >
-              <td class="py-2.5 px-4 text-secondary-text font-mono">
-                #{{ item.id }}
-              </td>
-              <td class="py-2.5 px-4">
-                <div class="space-y-0.5">
-                  <p v-if="item.email" class="font-medium text-primary-text">
-                    {{ item.email }}
-                  </p>
-                  <p class="font-mono text-secondary-text text-[11px]">
-                    User #{{ item.user_id }}
-                  </p>
-                </div>
-              </td>
-              <td class="py-2.5 px-4 font-mono font-medium text-primary">
-                #{{ item.trading_account_id }}
-              </td>
-              <td class="py-2.5 px-4">
-                <span
-                  class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded font-mono text-[10px] uppercase font-bold border"
-                  :style="
-                    item.current_tier?.color
-                      ? {
-                          backgroundColor: `${item.current_tier.color}1A`,
-                          color: item.current_tier.color,
-                          borderColor: `${item.current_tier.color}40`,
-                        }
-                      : {}
-                  "
-                  :class="
-                    !item.current_tier?.color
-                      ? 'bg-primary/10 text-primary border-primary/20'
-                      : ''
-                  "
-                >
-                  <span
-                    v-if="item.current_tier?.color"
-                    class="w-1.5 h-1.5 rounded-full shrink-0"
-                    :style="{ backgroundColor: item.current_tier.color }"
-                  />
-                  <span>{{
-                    item.current_tier?.name || item.current_tier?.code || "—"
-                  }}</span>
-                </span>
-              </td>
-              <td class="py-2.5 px-4 font-mono font-medium text-primary-green">
-                {{ item.available_points ?? "0.00" }}
-              </td>
-              <td class="py-2.5 px-4 font-mono text-primary-text">
-                {{ item.lifetime_earned_points ?? "0.00" }}
-              </td>
-              <td class="py-2.5 px-4">
-                <StatusBadge :status="item.status" />
-              </td>
-              <td class="py-2.5 px-4">
-                <span
-                  class="px-2 py-0.5 rounded text-[10px] font-medium uppercase"
-                  :class="
-                    item.abuse_status === 'flagged'
-                      ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
-                      : 'bg-primary-green/10 text-primary-green border border-primary-green/20'
-                  "
-                >
-                  {{ item.abuse_status || "clear" }}
-                </span>
-              </td>
-              <td class="py-2.5 px-4 text-secondary-text">
-                {{ formatDate(item.opted_in_at) }}
-              </td>
-              <td class="py-2.5 px-4 text-right">
-                <DropdownMenu
-                  :items="getRowActions(item)"
-                  position="bottom-end"
-                />
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+            <HugeIcon :icon="UserGroupIcon" :size="24" class="text-primary" />
+          </div>
+          <div class="space-y-1">
+            <h3 class="text-sm font-semibold text-primary-text">
+              No Enrollments Found
+            </h3>
+            <p class="text-xs text-secondary-text max-w-sm mx-auto">
+              {{
+                filters.email ||
+                filters.account_number ||
+                filters.status !== "active"
+                  ? "No enrollments match your filter criteria."
+                  : "Enroll client trading accounts to begin tracking points and tier upgrades."
+              }}
+            </p>
+          </div>
+          <button
+            v-if="hasPermission('loyalty.enroll')"
+            type="button"
+            class="mt-2 flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition cursor-pointer shadow-2xs"
+            @click="isEnrollDrawerOpen = true"
+          >
+            <HugeIcon :icon="UserAdd01Icon" :size="14" />
+            <span>Enroll First Account</span>
+          </button>
+        </div>
+      </template>
+
+      <template #cell-id="{ row }">
+        <span class="text-secondary-text font-mono">#{{ row.id }}</span>
+      </template>
+
+      <template #cell-user="{ row }">
+        <div class="space-y-0.5">
+          <p v-if="row.email" class="font-medium text-primary-text">
+            {{ row.email }}
+          </p>
+          <p class="font-mono text-secondary-text text-[11px]">
+            User #{{ row.user_id }}
+          </p>
+        </div>
+      </template>
+
+      <template #cell-trading_account_id="{ row }">
+        <span class="font-mono font-medium text-primary"
+          >#{{ row.trading_account_id }}</span
+        >
+      </template>
+
+      <template #cell-current_tier="{ row }">
+        <span
+          class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded font-mono text-[10px] uppercase font-bold border"
+          :style="
+            row.current_tier?.color
+              ? {
+                  backgroundColor: `${row.current_tier.color}1A`,
+                  color: row.current_tier.color,
+                  borderColor: `${row.current_tier.color}40`,
+                }
+              : {}
+          "
+          :class="
+            !row.current_tier?.color
+              ? 'bg-primary/10 text-primary border-primary/20'
+              : ''
+          "
+        >
+          <span
+            v-if="row.current_tier?.color"
+            class="w-1.5 h-1.5 rounded-full shrink-0"
+            :style="{ backgroundColor: row.current_tier.color }"
+          />
+          <span>{{
+            row.current_tier?.name || row.current_tier?.code || "—"
+          }}</span>
+        </span>
+      </template>
+
+      <template #cell-available_points="{ row }">
+        <span class="font-mono font-medium text-primary-green">{{
+          row.available_points ?? "0.00"
+        }}</span>
+      </template>
+
+      <template #cell-lifetime_earned_points="{ row }">
+        <span class="font-mono text-primary-text">{{
+          row.lifetime_earned_points ?? "0.00"
+        }}</span>
+      </template>
+
+      <template #cell-status="{ row }">
+        <StatusBadge :status="row.status" />
+      </template>
+
+      <template #cell-abuse_status="{ row }">
+        <span
+          class="px-2 py-0.5 rounded text-[10px] font-medium uppercase"
+          :class="
+            row.abuse_status === 'flagged'
+              ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+              : 'bg-primary-green/10 text-primary-green border border-primary-green/20'
+          "
+        >
+          {{ row.abuse_status || "clear" }}
+        </span>
+      </template>
+
+      <template #cell-opted_in_at="{ row }">
+        <span class="text-secondary-text">{{
+          formatDate(row.opted_in_at)
+        }}</span>
+      </template>
+
+      <template #cell-actions="{ row }">
+        <div class="flex items-center justify-end">
+          <DropdownMenu
+            :items="getRowActions(row)"
+            position="bottom-end"
+          />
+        </div>
+      </template>
+    </DataTable>
 
     <!-- Enroll Slide-Over Drawer -->
     <EnrollDrawer
@@ -433,12 +367,26 @@ import { formatDate } from "@/utils/timeFormatter";
 import StatusBadge from "@/components/common/StatusBadge.vue";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import DropdownMenu from "@/components/common/DropdownMenu.vue";
+import DataTable from "@/components/common/DataTable/DataTable.vue";
 import EnrollDrawer from "../components/EnrollDrawer.vue";
 import EnrollmentDetailDrawer from "../components/EnrollmentDetailDrawer.vue";
 import CreditWalletModal from "../components/CreditWalletModal.vue";
 
 const store = useLoyaltyStore();
 const { hasPermission } = usePermissionCheck();
+
+const columns = [
+  { key: "id", label: "Enroll ID", sortable: true },
+  { key: "user", label: "User / Email", sortable: true },
+  { key: "trading_account_id", label: "Trading Account", sortable: true },
+  { key: "current_tier", label: "Current Tier", sortable: true },
+  { key: "available_points", label: "Available Points", sortable: true },
+  { key: "lifetime_earned_points", label: "Lifetime Points", sortable: true },
+  { key: "status", label: "Status", sortable: true },
+  { key: "abuse_status", label: "Abuse Status", sortable: true },
+  { key: "opted_in_at", label: "Opted-In", sortable: true },
+  { key: "actions", label: "Action", align: "right" },
+];
 
 const isEnrollDrawerOpen = ref(false);
 const isDetailDrawerOpen = ref(false);

@@ -73,192 +73,128 @@
       </button>
     </div>
 
-    <!-- Loading Skeleton -->
-    <div v-if="store.loading" class="space-y-3">
-      <div
-        v-for="n in 5"
-        :key="n"
-        class="h-12 bg-card-background border border-primary-border rounded-xl animate-pulse"
-      />
-    </div>
-
-    <!-- Empty State -->
-    <div
-      v-else-if="jobs.length === 0"
-      class="flex flex-col items-center justify-center p-12 bg-card-background border border-dashed border-primary-border rounded-xl text-center gap-3"
+    <!-- Backfill Jobs DataTable -->
+    <DataTable
+      :columns="columns"
+      :data="jobs"
+      :loading="store.loading"
+      row-key="id"
     >
-      <div
-        class="w-12 h-12 rounded-xl bg-card-background border border-primary-border flex items-center justify-center text-secondary-text"
-      >
-        <History class="w-6 h-6 text-primary" />
-      </div>
-      <div class="space-y-1">
-        <h3 class="text-sm font-semibold text-primary-text">
-          No Backfill Jobs Found
-        </h3>
-        <p class="text-xs text-secondary-text max-w-sm mx-auto">
-          {{
-            filters.trading_account_id
-              ? "No jobs match this trading account filter."
-              : "Queue historical MT5 trade backfills for newly enrolled accounts to credit eligible points."
-          }}
-        </p>
-      </div>
-      <button
-        v-if="hasPermission('loyalty.backfill')"
-        type="button"
-        class="mt-2 flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition cursor-pointer shadow-2xs"
-        @click="isStartDrawerOpen = true"
-      >
-        <Play class="w-3.5 h-3.5" />
-        <span>Start First Backfill</span>
-      </button>
-    </div>
-
-    <!-- Backfill Jobs Table -->
-    <div
-      v-else
-      class="bg-card-background border border-primary-border rounded-xl overflow-hidden shadow-2xs"
-    >
-      <div
-        class="px-4 py-3 border-b border-primary-border flex items-center justify-between bg-background/50"
-      >
-        <h3
-          class="text-xs font-semibold text-primary-text uppercase tracking-wider"
+      <template #empty>
+        <div
+          class="flex flex-col items-center justify-center p-12 text-center gap-3"
         >
-          Backfill Queue & History ({{ jobs.length }})
-        </h3>
-      </div>
-
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs">
-          <thead
-            class="bg-background/60 text-secondary-text border-b border-primary-border"
+          <div
+            class="w-12 h-12 rounded-xl bg-card-background border border-primary-border flex items-center justify-center text-secondary-text"
           >
-            <tr>
-              <th
-                class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider"
-              >
-                Job ID
-              </th>
-              <th
-                class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider"
-              >
-                Trading Account
-              </th>
-              <th
-                class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider"
-              >
-                Date Range
-              </th>
-              <th
-                class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider"
-              >
-                Status
-              </th>
-              <th
-                class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider"
-              >
-                Deals Seen
-              </th>
-              <th
-                class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider"
-              >
-                Awarded
-              </th>
-              <th
-                class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider"
-              >
-                Skipped Exist.
-              </th>
-              <th
-                class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider"
-              >
-                Ineligible
-              </th>
-              <th
-                class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider"
-              >
-                Errors
-              </th>
-              <th
-                class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider"
-              >
-                Started At
-              </th>
-              <th
-                class="py-2.5 px-4 text-right text-[11px] font-medium uppercase tracking-wider"
-              >
-                Action
-              </th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-primary-border">
-            <tr
-              v-for="job in jobs"
-              :key="job.id"
-              class="hover:bg-background/40 transition-colors"
-            >
-              <td class="py-2.5 px-4 text-secondary-text font-mono">
-                #{{ job.id }}
-              </td>
-              <td class="py-2.5 px-4 font-mono font-medium text-primary">
-                #{{ job.trading_account_id }}
-              </td>
-              <td
-                class="py-2.5 px-4 text-secondary-text text-[11px] leading-relaxed"
-              >
-                {{ formatDate(job.from_at) }} – {{ formatDate(job.to_at) }}
-              </td>
-              <td class="py-2.5 px-4">
-                <span
-                  class="px-2 py-0.5 rounded text-[10px] font-medium uppercase"
-                  :class="getStatusBadgeClass(job.status)"
-                >
-                  {{ job.status }}
-                </span>
-              </td>
-              <td class="py-2.5 px-4 text-primary-text font-mono">
-                {{ job.deals_seen ?? 0 }}
-              </td>
-              <td class="py-2.5 px-4 font-mono font-medium text-primary-green">
-                {{ job.awarded ?? 0 }}
-              </td>
-              <td class="py-2.5 px-4 text-secondary-text font-mono">
-                {{ job.skipped_existing ?? 0 }}
-              </td>
-              <td class="py-2.5 px-4 text-secondary-text font-mono">
-                {{ job.skipped_ineligible ?? 0 }}
-              </td>
-              <td
-                class="py-2.5 px-4 font-mono"
-                :class="
-                  job.errors > 0
-                    ? 'text-rose-400 font-medium'
-                    : 'text-secondary-text'
-                "
-              >
-                {{ job.errors ?? 0 }}
-              </td>
-              <td class="py-2.5 px-4 text-secondary-text">
-                {{ formatDate(job.started_at) }}
-              </td>
-              <td class="py-2.5 px-4 text-right">
-                <button
-                  type="button"
-                  class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-primary-border hover:bg-background text-secondary-text hover:text-primary transition cursor-pointer text-xs"
-                  title="Inspect Backfill Job"
-                  @click="handleViewDetail(job)"
-                >
-                  <Eye class="w-3 h-3" />
-                  <span>Inspect</span>
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+            <History class="w-6 h-6 text-primary" />
+          </div>
+          <div class="space-y-1">
+            <h3 class="text-sm font-semibold text-primary-text">
+              No Backfill Jobs Found
+            </h3>
+            <p class="text-xs text-secondary-text max-w-sm mx-auto">
+              {{
+                filters.trading_account_id
+                  ? "No jobs match this trading account filter."
+                  : "Queue historical MT5 trade backfills for newly enrolled accounts to credit eligible points."
+              }}
+            </p>
+          </div>
+          <button
+            v-if="hasPermission('loyalty.backfill')"
+            type="button"
+            class="mt-2 flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition cursor-pointer shadow-2xs"
+            @click="isStartDrawerOpen = true"
+          >
+            <Play class="w-3.5 h-3.5" />
+            <span>Start First Backfill</span>
+          </button>
+        </div>
+      </template>
+
+      <template #cell-id="{ row }">
+        <span class="text-secondary-text font-mono">#{{ row.id }}</span>
+      </template>
+
+      <template #cell-trading_account_id="{ row }">
+        <span class="font-mono font-medium text-primary"
+          >#{{ row.trading_account_id }}</span
+        >
+      </template>
+
+      <template #cell-date_range="{ row }">
+        <span class="text-secondary-text text-[11px] leading-relaxed">
+          {{ formatDate(row.from_at) }} – {{ formatDate(row.to_at) }}
+        </span>
+      </template>
+
+      <template #cell-status="{ row }">
+        <span
+          class="px-2 py-0.5 rounded text-[10px] font-medium uppercase"
+          :class="getStatusBadgeClass(row.status)"
+        >
+          {{ row.status }}
+        </span>
+      </template>
+
+      <template #cell-deals_seen="{ row }">
+        <span class="text-primary-text font-mono">{{
+          row.deals_seen ?? 0
+        }}</span>
+      </template>
+
+      <template #cell-awarded="{ row }">
+        <span class="font-mono font-medium text-primary-green">{{
+          row.awarded ?? 0
+        }}</span>
+      </template>
+
+      <template #cell-skipped_existing="{ row }">
+        <span class="text-secondary-text font-mono">{{
+          row.skipped_existing ?? 0
+        }}</span>
+      </template>
+
+      <template #cell-skipped_ineligible="{ row }">
+        <span class="text-secondary-text font-mono">{{
+          row.skipped_ineligible ?? 0
+        }}</span>
+      </template>
+
+      <template #cell-errors="{ row }">
+        <span
+          class="font-mono"
+          :class="
+            row.errors > 0
+              ? 'text-rose-400 font-medium'
+              : 'text-secondary-text'
+          "
+        >
+          {{ row.errors ?? 0 }}
+        </span>
+      </template>
+
+      <template #cell-started_at="{ row }">
+        <span class="text-secondary-text whitespace-nowrap">
+          {{ formatDate(row.started_at) }}
+        </span>
+      </template>
+
+      <template #cell-actions="{ row }">
+        <div class="flex items-center justify-end">
+          <button
+            type="button"
+            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-primary-border hover:bg-background text-secondary-text hover:text-primary transition cursor-pointer text-xs"
+            title="Inspect Backfill Job"
+            @click="handleViewDetail(row)"
+          >
+            <Eye class="w-3 h-3" />
+            <span>Inspect</span>
+          </button>
+        </div>
+      </template>
+    </DataTable>
 
     <!-- Start Backfill Slide-Over Drawer -->
     <StartBackfillDrawer
@@ -282,11 +218,26 @@ import { Play, RefreshCw, History, Search, Eye } from "lucide-vue-next";
 import { useLoyaltyStore } from "@/stores/loyalty/loyalty";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import { formatDate } from "@/utils/timeFormatter";
+import DataTable from "@/components/common/DataTable/DataTable.vue";
 import StartBackfillDrawer from "../components/StartBackfillDrawer.vue";
 import BackfillDetailDrawer from "../components/BackfillDetailDrawer.vue";
 
 const store = useLoyaltyStore();
 const { hasPermission } = usePermissionCheck();
+
+const columns = [
+  { key: "id", label: "Job ID", sortable: true },
+  { key: "trading_account_id", label: "Trading Account", sortable: true },
+  { key: "date_range", label: "Date Range", sortable: true },
+  { key: "status", label: "Status", sortable: true },
+  { key: "deals_seen", label: "Deals Seen", sortable: true },
+  { key: "awarded", label: "Awarded", sortable: true },
+  { key: "skipped_existing", label: "Skipped Exist.", sortable: true },
+  { key: "skipped_ineligible", label: "Ineligible", sortable: true },
+  { key: "errors", label: "Errors", sortable: true },
+  { key: "started_at", label: "Started At", sortable: true },
+  { key: "actions", label: "Action", align: "right" },
+];
 
 const isStartDrawerOpen = ref(false);
 const isDetailDrawerOpen = ref(false);

@@ -90,162 +90,125 @@
       </template>
     </div>
 
-    <!-- Filter bar -->
-    <div class="flex items-center justify-between gap-3 bg-card-background border border-primary-border rounded-xl p-2.5">
-      <span class="text-xs text-secondary-text px-1">
-        Showing <strong>{{ store.records.length }}</strong> of <strong>{{ store.pagination.total_items }}</strong> trades
-      </span>
-
-      <BaseSelect
-        :modelValue="store.pagination.per_page"
-        :options="store.perPageOptions"
-        placeholder="Per page..."
-        class="w-32"
-        @update:modelValue="(val) => store.updatePerPage(settlementId, val)"
-      />
-    </div>
-
     <!-- Table -->
-    <div class="w-full border border-primary-border rounded-2xl overflow-hidden bg-card-background shadow-2xs">
-      <div class="overflow-x-auto">
-        <table class="w-full border-collapse">
-          <thead>
-            <tr class="border-b border-primary-border bg-background/50">
-              <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Trade ID</th>
-              <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Client</th>
-              <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Account</th>
-              <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Symbol</th>
-              <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Type</th>
-              <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Volume</th>
-              <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">PnL</th>
-              <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Fee</th>
-              <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">FM Fee</th>
-              <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Broker Net</th>
-              <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">IB Share</th>
-              <th class="text-center text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Status</th>
-              <th class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-widest p-3">Closed / Opened</th>
-            </tr>
-          </thead>
+    <DataTable
+      :data="store.records"
+      :columns="columns"
+      :loading="store.loading"
+      :pagination="store.pagination"
+      row-key="trade_id"
+      empty-title="No trades found"
+      empty-text="No trades recorded for this settlement"
+      @page-change="handlePageChange"
+      @per-page-change="handlePerPageChange"
+    >
+      <template #empty>
+        <div class="flex flex-col items-center gap-3 py-16">
+          <div class="w-12 h-12 rounded-full bg-card-background border border-primary-border flex items-center justify-center">
+            <BarChart2 class="w-5 h-5 text-secondary-text" />
+          </div>
+          <p class="text-sm font-semibold text-primary-text">No trades found</p>
+          <p class="text-xs text-secondary-text">No trades recorded for this settlement</p>
+        </div>
+      </template>
 
-          <!-- Skeleton -->
-          <tbody v-if="store.loading">
-            <tr v-for="n in 8" :key="n" class="border-b border-primary-border animate-pulse">
-              <td class="p-3"><div class="h-3 w-12 bg-background rounded" /></td>
-              <td class="p-3"><div class="h-3 w-28 bg-background rounded" /></td>
-              <td class="p-3"><div class="h-3 w-20 bg-background rounded" /></td>
-              <td class="p-3"><div class="h-3 w-14 bg-background rounded" /></td>
-              <td class="p-3"><div class="h-5 w-10 bg-background rounded-full" /></td>
-              <td class="p-3"><div class="h-3 w-10 bg-background rounded" /></td>
-              <td class="p-3"><div class="h-3 w-16 bg-background rounded" /></td>
-              <td class="p-3"><div class="h-3 w-12 bg-background rounded" /></td>
-              <td class="p-3"><div class="h-3 w-12 bg-background rounded" /></td>
-              <td class="p-3"><div class="h-3 w-12 bg-background rounded" /></td>
-              <td class="p-3"><div class="h-3 w-12 bg-background rounded" /></td>
-              <td class="p-3"><div class="h-5 w-14 bg-background rounded-full mx-auto" /></td>
-              <td class="p-3 flex justify-end"><div class="h-3 w-20 bg-background rounded" /></td>
-            </tr>
-          </tbody>
+      <!-- Trade ID -->
+      <template #cell-trade_id="{ value }">
+        <span class="text-xs font-bold font-mono text-primary">#{{ value }}</span>
+      </template>
 
-          <!-- Empty -->
-          <tbody v-else-if="store.records.length === 0">
-            <tr>
-              <td colspan="13" class="py-16 text-center">
-                <div class="flex flex-col items-center gap-3">
-                  <div class="w-12 h-12 rounded-full bg-card-background border border-primary-border flex items-center justify-center">
-                    <BarChart2 class="w-5 h-5 text-secondary-text" />
-                  </div>
-                  <p class="text-sm font-semibold text-primary-text">No trades found</p>
-                  <p class="text-xs text-secondary-text">No trades recorded for this settlement</p>
-                </div>
-              </td>
-            </tr>
-          </tbody>
+      <!-- Client -->
+      <template #cell-client="{ row }">
+        <div>
+          <p class="text-xs font-semibold text-primary-text">{{ row.client?.name ?? row.client_name ?? '—' }}</p>
+          <p class="text-[11px] text-secondary-text font-mono">{{ row.client?.email ?? row.client_email ?? '' }}</p>
+        </div>
+      </template>
 
-          <!-- Data -->
-          <tbody v-else>
-            <tr
-              v-for="row in store.records"
-              :key="row.trade_id"
-              class="border-b border-primary-border last:border-none hover:bg-background/40 transition-colors"
-            >
-              <td class="p-3 text-xs font-bold font-mono text-primary">#{{ row.trade_id }}</td>
+      <!-- Account -->
+      <template #cell-account="{ row }">
+        <div>
+          <p class="text-xs font-mono font-medium text-primary-text">
+            #{{ row.trading_account?.account_number ?? row.account_number ?? '—' }}
+          </p>
+          <p class="text-[11px] text-secondary-text">{{ row.trading_account?.broker ?? '' }}</p>
+        </div>
+      </template>
 
-              <td class="p-3">
-                <p class="text-xs font-semibold text-primary-text">{{ row.client?.name ?? row.client_name ?? '—' }}</p>
-                <p class="text-[11px] text-secondary-text font-mono">{{ row.client?.email ?? row.client_email ?? '' }}</p>
-              </td>
+      <!-- Symbol -->
+      <template #cell-symbol="{ value }">
+        <span class="inline-block px-1.5 py-0.5 rounded text-[11px] font-semibold bg-background border border-primary-border text-primary-text">
+          {{ value ?? '—' }}
+        </span>
+      </template>
 
-              <td class="p-3">
-                <p class="text-xs font-mono font-medium text-primary-text">
-                  #{{ row.trading_account?.account_number ?? row.account_number ?? '—' }}
-                </p>
-                <p class="text-[11px] text-secondary-text">{{ row.trading_account?.broker ?? '' }}</p>
-              </td>
+      <!-- Type -->
+      <template #cell-order_type="{ row }">
+        <span
+          class="text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase"
+          :class="String(row.order_type || row.type).toLowerCase() === 'buy'
+            ? 'bg-primary-green/10 text-primary-green border-primary-green/20'
+            : 'bg-primary-red/10 text-primary-red border-primary-red/20'"
+        >
+          {{ row.order_type || row.type || '—' }}
+        </span>
+      </template>
 
-              <td class="p-3">
-                <span class="inline-block px-1.5 py-0.5 rounded text-[11px] font-semibold bg-background border border-primary-border text-primary-text">
-                  {{ row.symbol ?? '—' }}
-                </span>
-              </td>
+      <!-- Volume -->
+      <template #cell-lot="{ row }">
+        <span class="text-xs font-mono text-primary-text tabular-nums">{{ formatNum(row.lot ?? row.volume) }}</span>
+      </template>
 
-              <td class="p-3">
-                <span
-                  class="text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase"
-                  :class="String(row.order_type || row.type).toLowerCase() === 'buy'
-                    ? 'bg-primary-green/10 text-primary-green border-primary-green/20'
-                    : 'bg-primary-red/10 text-primary-red border-primary-red/20'"
-                >
-                  {{ row.order_type || row.type || '—' }}
-                </span>
-              </td>
+      <!-- PnL -->
+      <template #cell-pnl="{ row }">
+        <span
+          class="text-xs font-bold font-mono tabular-nums"
+          :class="(row.pnl ?? row.gross_pnl ?? 0) >= 0 ? 'text-primary-green' : 'text-primary-red'"
+        >
+          {{ (row.pnl ?? row.gross_pnl ?? 0) >= 0 ? '+' : '' }}${{ formatNum(row.pnl ?? row.gross_pnl) }}
+        </span>
+      </template>
 
-              <td class="p-3 text-xs font-mono text-primary-text tabular-nums">{{ formatNum(row.lot ?? row.volume) }}</td>
+      <!-- Fee -->
+      <template #cell-fee="{ value }">
+        <span class="text-xs font-mono text-primary-text tabular-nums">${{ formatNum(value) }}</span>
+      </template>
 
-              <td class="p-3">
-                <span
-                  class="text-xs font-bold font-mono tabular-nums"
-                  :class="(row.pnl ?? row.gross_pnl ?? 0) >= 0 ? 'text-primary-green' : 'text-primary-red'"
-                >
-                  {{ (row.pnl ?? row.gross_pnl ?? 0) >= 0 ? '+' : '' }}${{ formatNum(row.pnl ?? row.gross_pnl) }}
-                </span>
-              </td>
+      <!-- FM Fee -->
+      <template #cell-fm_fee="{ value }">
+        <span class="text-xs font-mono text-secondary-text tabular-nums">
+          {{ value != null ? `$${formatNum(value)}` : '—' }}
+        </span>
+      </template>
 
-              <td class="p-3 text-xs font-mono text-primary-text tabular-nums">${{ formatNum(row.fee) }}</td>
+      <!-- Broker Net -->
+      <template #cell-broker_net="{ row }">
+        <span class="text-xs font-mono text-secondary-text tabular-nums">
+          {{ row.broker_net != null ? `$${formatNum(row.broker_net)}` : (row.broker_fee != null ? `$${formatNum(row.broker_fee)}` : '—') }}
+        </span>
+      </template>
 
-              <td class="p-3 text-xs font-mono text-secondary-text tabular-nums">
-                {{ row.fm_fee != null ? `$${formatNum(row.fm_fee)}` : '—' }}
-              </td>
+      <!-- IB Share -->
+      <template #cell-ib_distributed="{ value }">
+        <span class="text-xs font-mono text-primary-green tabular-nums">
+          {{ value != null ? `$${formatNum(value)}` : '—' }}
+        </span>
+      </template>
 
-              <td class="p-3 text-xs font-mono text-secondary-text tabular-nums">
-                {{ row.broker_net != null ? `$${formatNum(row.broker_net)}` : (row.broker_fee != null ? `$${formatNum(row.broker_fee)}` : '—') }}
-              </td>
+      <!-- Status -->
+      <template #cell-status="{ value }">
+        <span class="text-[10px] font-medium px-2 py-0.5 rounded-full border capitalize inline-block" :class="statusClass(value)">
+          {{ value ?? '—' }}
+        </span>
+      </template>
 
-              <td class="p-3 text-xs font-mono text-primary-green tabular-nums">
-                {{ row.ib_distributed != null ? `$${formatNum(row.ib_distributed)}` : '—' }}
-              </td>
-
-              <td class="p-3 text-center">
-                <span class="text-[10px] font-medium px-2 py-0.5 rounded-full border capitalize inline-block" :class="statusClass(row.status)">
-                  {{ row.status ?? '—' }}
-                </span>
-              </td>
-
-              <td class="p-3 text-xs text-secondary-text text-right font-mono">
-                {{ formatDate(row.closed_at ?? row.opened_at ?? row.created_at) }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="mt-4">
-      <Pagination
-        v-if="store.pagination.total_items > store.pagination.per_page"
-        :pagination="store.pagination"
-        @page-change="handlePageChange"
-      />
-    </div>
+      <!-- Closed / Opened -->
+      <template #cell-closed_at="{ row }">
+        <span class="text-xs text-secondary-text text-right font-mono block">
+          {{ formatDate(row.closed_at ?? row.opened_at ?? row.created_at) }}
+        </span>
+      </template>
+    </DataTable>
 
   </div>
 </template>
@@ -255,7 +218,7 @@ import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { BarChart2, ArrowLeft, RotateCw, Eye } from 'lucide-vue-next'
 import { useSettlementTradesStore } from '@/stores/settlements/settlementTrades'
-import Pagination from '@/components/common/Pagination.vue'
+import DataTable from '@/components/common/DataTable/DataTable.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 
 const store = useSettlementTradesStore()
@@ -263,8 +226,28 @@ const route = useRoute()
 const router = useRouter()
 const settlementId = route.params.id
 
+const columns = [
+  { key: 'trade_id', label: 'Trade ID', sortable: false },
+  { key: 'client', label: 'Client', sortable: false },
+  { key: 'account', label: 'Account', sortable: false },
+  { key: 'symbol', label: 'Symbol', sortable: false },
+  { key: 'order_type', label: 'Type', sortable: false },
+  { key: 'lot', label: 'Volume', sortable: false },
+  { key: 'pnl', label: 'PnL', sortable: false },
+  { key: 'fee', label: 'Fee', sortable: false },
+  { key: 'fm_fee', label: 'FM Fee', sortable: false },
+  { key: 'broker_net', label: 'Broker Net', sortable: false },
+  { key: 'ib_distributed', label: 'IB Share', sortable: false },
+  { key: 'status', label: 'Status', align: 'center', sortable: false },
+  { key: 'closed_at', label: 'Closed / Opened', align: 'right', sortable: false },
+]
+
 const handlePageChange = (page) => {
   store.setPage(settlementId, page)
+}
+
+const handlePerPageChange = (perPage) => {
+  store.updatePerPage(settlementId, perPage)
 }
 
 const loadTrades = () => {

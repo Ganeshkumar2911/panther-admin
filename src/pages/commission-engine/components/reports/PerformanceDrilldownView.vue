@@ -6,7 +6,9 @@
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div class="space-y-1.5">
         <div class="flex items-center gap-2.5 flex-wrap">
+          <!-- Back Button: Level-aware -->
           <button
+            v-if="currentLevel === 'ibs_list'"
             type="button"
             class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-primary-border bg-card-background hover:bg-background text-xs font-semibold text-primary hover:text-primary-hover transition-colors cursor-pointer"
             @click="handleBack"
@@ -15,42 +17,96 @@
             <span>Back to Performance</span>
           </button>
 
+          <button
+            v-else-if="currentLevel === 'ib_summary'"
+            type="button"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-primary-border bg-card-background hover:bg-background text-xs font-semibold text-primary hover:text-primary-hover transition-colors cursor-pointer"
+            @click="backToIbList"
+          >
+            <ArrowLeft :size="14" />
+            <span>Back to Main IBs</span>
+          </button>
+
+          <button
+            v-else-if="currentLevel === 'client_trades'"
+            type="button"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-primary-border bg-card-background hover:bg-background text-xs font-semibold text-primary hover:text-primary-hover transition-colors cursor-pointer"
+            @click="returnToIbSummary"
+          >
+            <ArrowLeft :size="14" />
+            <span>Back to {{ selectedSubIb ? 'Sub-IB Network' : 'Direct Clients' }}</span>
+          </button>
+
+          <!-- Period Badge -->
           <span class="px-2.5 py-1 rounded-md text-xs font-bold bg-primary text-white font-mono">
             {{ activePeriodLabel }}
           </span>
 
+          <!-- Frequency Badge -->
           <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold uppercase bg-card-background text-secondary-text border border-primary-border">
             {{ (frequency || "daily").toUpperCase() }}
           </span>
 
+          <!-- Selected IB Badge (When in ib_summary or client_trades) -->
           <span
-            v-if="selectedIbLabel"
+            v-if="selectedIb"
             class="px-2.5 py-1 rounded-md text-xs font-medium bg-card-background text-secondary-text border border-primary-border"
           >
-            IB: <strong class="text-primary-text font-semibold">{{ selectedIbLabel }}</strong>
+            IB: <strong class="text-primary-text font-semibold">{{ selectedIb.ib_name || `IB #${selectedIb.ib_id}` }}</strong> (ID: #{{ selectedIb.ib_id }})
           </span>
 
+          <!-- Selected Client Badge (When in client_trades) -->
           <span
-            v-if="walletTarget && walletTarget !== 'all'"
+            v-if="selectedClient"
+            class="px-2.5 py-1 rounded-md text-xs font-medium bg-card-background text-secondary-text border border-primary-border"
+          >
+            Client: <strong class="text-primary-text font-semibold">{{ selectedClient.name || `Client #${selectedClient.user_id}` }}</strong>
+          </span>
+
+          <!-- Wallet Target Badge -->
+          <span
+            v-if="effectiveWalletTarget && effectiveWalletTarget !== 'all'"
             class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase font-mono"
             :class="
-              walletTarget === 'demo'
+              effectiveWalletTarget === 'demo'
                 ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
                 : 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
             "
           >
-            {{ walletTarget === 'demo' ? 'Demo Wallet' : 'Main Wallet' }}
+            {{ effectiveWalletTarget === 'demo' ? 'Demo Wallet' : 'Main Wallet' }}
           </span>
         </div>
 
         <p class="text-xs text-secondary-text flex items-center gap-1.5">
           <Calendar :size="13" />
-          <span>Drill-down breakdown into direct clients, sub-IB network, and trade line items for this period.</span>
+          <span v-if="currentLevel === 'ibs_list'">
+            Main IB partner breakdown for this period. Click 'View' on any IB to inspect direct clients, sub-IB network, and trade line items.
+          </span>
+          <span v-else-if="currentLevel === 'ib_summary'">
+            Drill-down breakdown into direct clients, sub-IB network, and trade line items for this partner.
+          </span>
+          <span v-else>
+            Individual closed trades and deal attribution for this client.
+          </span>
         </p>
       </div>
 
-      <!-- Actions & Sub-view Toggles (When in Summary View) -->
-      <div v-if="currentLevel === 'summary'" class="flex items-center gap-2.5 flex-wrap">
+      <!-- Action & Sub-view Toggles -->
+      <!-- LEVEL 1 (ibs_list): Refresh only -->
+      <div v-if="currentLevel === 'ibs_list'" class="flex items-center gap-2.5 flex-wrap">
+        <button
+          type="button"
+          :disabled="store.performanceEntriesLoading"
+          class="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-primary-border bg-card-background hover:bg-background text-xs font-medium text-secondary-text hover:text-primary-text transition-colors disabled:opacity-50 cursor-pointer h-9"
+          @click="loadDrilldownData(true)"
+        >
+          <RefreshCw :size="13" :class="{ 'animate-spin': store.performanceEntriesLoading }" />
+          <span>Refresh</span>
+        </button>
+      </div>
+
+      <!-- LEVEL 2 (ib_summary): Toggles (Direct Clients vs Sub-IBs vs Trades) -->
+      <div v-else-if="currentLevel === 'ib_summary'" class="flex items-center gap-2.5 flex-wrap">
         <div class="flex items-center rounded-xl border border-primary-border bg-card-background overflow-hidden h-9 p-0.5">
           <button
             type="button"
@@ -94,30 +150,106 @@
           type="button"
           :disabled="store.performanceEntriesLoading"
           class="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-primary-border bg-card-background hover:bg-background text-xs font-medium text-secondary-text hover:text-primary-text transition-colors disabled:opacity-50 cursor-pointer h-9"
-          @click="loadDrilldownData(true)"
+          @click="loadIbDetailData(true)"
         >
           <RefreshCw :size="13" :class="{ 'animate-spin': store.performanceEntriesLoading }" />
           <span>Refresh</span>
         </button>
       </div>
 
-      <!-- Back to Overview Button (When in Client Trades View) -->
+      <!-- LEVEL 3 (client_trades): Back to IB Summary button -->
       <div v-else class="flex items-center gap-2.5">
         <button
           type="button"
           class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-primary-border bg-card-background hover:bg-background text-xs font-semibold text-secondary-text hover:text-primary-text transition-colors cursor-pointer h-9"
-          @click="returnToSummary"
+          @click="returnToIbSummary"
         >
           <ArrowLeft :size="14" />
-          <span>Back to {{ activeTab === 'sub_ibs' ? 'Sub-IB Network' : 'Direct Clients' }}</span>
+          <span>Back to {{ selectedSubIb ? 'Sub-IB Network' : 'Direct Clients' }}</span>
         </button>
       </div>
     </div>
 
     <!-- ================================================================= -->
-    <!-- 2. IB SUMMARY CARD (Network Header Banner)                         -->
+    <!-- 2. SUMMARY KPI CARDS                                              -->
     <!-- ================================================================= -->
-    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+    <!-- Period Level KPI Cards (When currentLevel === 'ibs_list') -->
+    <div v-if="currentLevel === 'ibs_list'" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
+      <!-- Grand Total Commission -->
+      <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-medium uppercase tracking-wide text-secondary-text">Grand Total Commission</span>
+          <DollarSign :size="16" class="text-primary-green" />
+        </div>
+        <div class="mt-2">
+          <p class="text-2xl font-bold text-primary-green tabular-nums">
+            +{{ formatUSD(periodSummary.grand_total) }}
+          </p>
+          <p class="text-[10px] text-secondary-text mt-0.5">Aggregated commission payout</p>
+        </div>
+      </div>
+
+      <!-- Grand Total Lots -->
+      <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-medium uppercase tracking-wide text-secondary-text">Total Traded Volume</span>
+          <BarChart3 :size="16" class="text-secondary-text" />
+        </div>
+        <div class="mt-2">
+          <p class="text-2xl font-bold text-primary-text tabular-nums">
+            {{ formatLots(periodSummary.grand_total_lots) }} lots
+          </p>
+          <p class="text-[10px] text-secondary-text mt-0.5">Traded volume in period</p>
+        </div>
+      </div>
+
+      <!-- Eligible IBs Count -->
+      <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-medium uppercase tracking-wide text-secondary-text">Eligible Main IBs</span>
+          <Users :size="16" class="text-primary" />
+        </div>
+        <div class="mt-2">
+          <p class="text-2xl font-bold text-primary-text tabular-nums">
+            {{ periodSummary.ib_count }}
+          </p>
+          <p class="text-[10px] text-secondary-text mt-0.5">Active partner accounts</p>
+        </div>
+      </div>
+
+      <!-- Total Deals / Entries -->
+      <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-medium uppercase tracking-wide text-secondary-text">Total Deals / Entries</span>
+          <Coins :size="16" class="text-secondary-text" />
+        </div>
+        <div class="mt-2">
+          <p class="text-2xl font-bold text-primary-text tabular-nums">
+            {{ (periodSummary.entry_count || 0).toLocaleString() }}
+          </p>
+          <p class="text-[10px] text-secondary-text mt-0.5">Individual trade commissions</p>
+        </div>
+      </div>
+
+      <!-- Period Window -->
+      <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-medium uppercase tracking-wide text-secondary-text">Period Window</span>
+          <Calendar :size="16" class="text-secondary-text" />
+        </div>
+        <div class="mt-2">
+          <p class="text-sm font-bold text-primary-text font-mono truncate">
+            {{ activePeriodLabel }}
+          </p>
+          <p class="text-[10px] text-secondary-text font-mono mt-0.5">
+            {{ formatTime(periodSummary.start) }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- IB Level KPI Cards (When currentLevel === 'ib_summary') -->
+    <div v-else-if="currentLevel === 'ib_summary'" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
       <!-- Grand Total Commission -->
       <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between lg:col-span-2">
         <div class="flex items-center justify-between">
@@ -200,9 +332,230 @@
     </div>
 
     <!-- ================================================================= -->
-    <!-- 3. LEVEL 1: DIRECT CLIENTS TAB                                    -->
+    <!-- 3. STEP 1: MAIN IBS LIST VIEW (currentLevel === 'ibs_list')       -->
     <!-- ================================================================= -->
-    <div v-if="currentLevel === 'summary' && activeTab === 'clients'" class="space-y-4">
+    <div v-if="currentLevel === 'ibs_list'" class="space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-1">
+        <div class="flex items-center gap-2">
+          <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-semibold">
+            <Users :size="14" />
+            <span>Main IB Partners</span>
+            <span class="px-1.5 py-0.2 rounded-full bg-white/20 text-[11px] font-mono">
+              {{ filteredIbs.length }}
+            </span>
+          </div>
+        </div>
+
+        <div class="relative w-full sm:w-80">
+          <input
+            v-model="ibSearch"
+            type="text"
+            placeholder="Search IB by name, email, ID..."
+            class="w-full h-9 pl-9 pr-8 text-xs rounded-xl border border-primary-border bg-card-background text-primary-text placeholder:text-secondary-text focus:outline-hidden focus:border-primary transition-colors"
+          />
+          <Search :size="14" class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary-text" />
+          <button
+            v-if="ibSearch"
+            type="button"
+            class="absolute right-2.5 top-1/2 -translate-y-1/2 text-secondary-text hover:text-primary-text"
+            @click="ibSearch = ''"
+          >
+            <X :size="13" />
+          </button>
+        </div>
+      </div>
+
+      <!-- Main IBs DataTable -->
+      <DataTable
+        :columns="ibTableColumns"
+        :data="filteredIbs"
+        :loading="store.performanceEntriesLoading"
+        row-key="ib_id"
+        table-key="performance-main-ibs-table"
+        :per-page-options="[10, 20, 50, 100]"
+        empty-title="No Main IBs Found"
+        empty-text="There are no partner commission records found for this period."
+      >
+        <!-- Cell: ID -->
+        <template #cell-id="{ row }">
+          <span class="font-mono text-xs font-bold text-primary">
+            #{{ row.ib_id }}
+          </span>
+        </template>
+
+        <!-- Cell: IB Partner Details -->
+        <template #cell-ib="{ row }">
+          <div class="space-y-0.5">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="font-bold text-primary-text text-xs">
+                {{ row.ib_name || `IB #${row.ib_id}` }}
+              </span>
+              <span class="text-[11px] font-mono text-secondary-text px-1.5 py-0.2 bg-background rounded border border-primary-border">
+                IB ID: #{{ row.ib_id }}
+              </span>
+            </div>
+            <p class="text-[11px] text-secondary-text font-mono truncate max-w-[240px]">
+              {{ row.ib_email || "No email" }} &middot; User #{{ row.ib_user_id || "N/A" }}
+            </p>
+          </div>
+        </template>
+
+        <!-- Cell: Performance Commission (Direct Clients) -->
+        <template #cell-performance_commission="{ row }">
+          <div class="space-y-1 text-right font-mono">
+            <span class="text-xs font-bold text-primary-green tabular-nums">
+              +{{ formatUSD(row.performance_commission) }}
+            </span>
+            <div v-if="row.performance_lots != null || row.entry_count != null" class="flex flex-col items-end gap-0.5 font-mono text-[10px]">
+              <span class="px-1.5 py-0.2 rounded bg-background border border-primary-border text-secondary-text whitespace-nowrap">
+                {{ formatLots(row.performance_lots ?? row.total_lots) }} lots
+              </span>
+              <span class="px-1.5 py-0.2 rounded bg-background border border-primary-border text-secondary-text whitespace-nowrap">
+                {{ row.entry_count || 0 }} deals
+              </span>
+            </div>
+          </div>
+        </template>
+
+        <!-- Cell: Commission from Sub-IBs -->
+        <template #cell-commission_from_subibs="{ row }">
+          <div class="space-y-1 text-right font-mono">
+            <span
+              class="text-xs font-bold tabular-nums"
+              :class="Number(row.commission_from_subibs) > 0 ? 'text-primary' : 'text-secondary-text'"
+            >
+              +{{ formatUSD(row.commission_from_subibs) }}
+            </span>
+            <div v-if="row.lots_from_subibs != null || row.entry_count_from_subibs != null" class="flex flex-col items-end gap-0.5 font-mono text-[10px]">
+              <span class="px-1.5 py-0.2 rounded bg-background border border-primary-border text-secondary-text whitespace-nowrap">
+                {{ formatLots(row.lots_from_subibs || 0) }} lots
+              </span>
+              <span class="px-1.5 py-0.2 rounded bg-background border border-primary-border text-secondary-text whitespace-nowrap">
+                {{ row.entry_count_from_subibs || 0 }} entries
+              </span>
+            </div>
+          </div>
+        </template>
+
+        <!-- Cell: Commission Paid to Master -->
+        <template #cell-commission_paid_to_master="{ row }">
+          <div class="space-y-1 text-right font-mono">
+            <span class="text-xs font-bold text-secondary-text tabular-nums">
+              {{ Number(row.commission_paid_to_master) > 0 ? `-${formatUSD(row.commission_paid_to_master)}` : "$0.00" }}
+            </span>
+            <div v-if="row.lots_paid_to_master != null" class="flex flex-col items-end gap-0.5 font-mono text-[10px]">
+              <span class="px-1.5 py-0.2 rounded bg-background border border-primary-border text-secondary-text whitespace-nowrap">
+                {{ formatLots(row.lots_paid_to_master) }} lots
+              </span>
+            </div>
+          </div>
+        </template>
+
+        <!-- Cell: Total Commission (Grand Total) -->
+        <template #cell-total_commission="{ row }">
+          <div class="space-y-0.5 text-right">
+            <span class="font-mono text-xs font-bold text-primary-green tabular-nums">
+              +{{ formatUSD(row.grand_total_commission ?? row.total_commission) }}
+            </span>
+            <div v-if="row.by_currency && Object.keys(row.by_currency).length" class="flex flex-wrap items-center justify-end gap-1 font-mono text-[10px]">
+              <span
+                v-for="(amount, curr) in row.by_currency"
+                :key="curr"
+                class="px-1.5 py-0.2 rounded bg-background border border-primary-border text-secondary-text"
+              >
+                {{ curr }}: {{ formatUSD(amount) }}
+              </span>
+            </div>
+          </div>
+        </template>
+
+        <!-- Cell: Total Lots -->
+        <template #cell-total_lots="{ row }">
+          <div class="space-y-0.5 text-right">
+            <span class="font-mono text-xs font-bold text-primary-text tabular-nums">
+              {{ formatLots(row.total_lots_all ?? row.total_lots) }} lots
+            </span>
+            <div v-if="row.lots_by_symbol && Object.keys(row.lots_by_symbol).length" class="flex flex-wrap items-center justify-end gap-1 font-mono text-[10px]">
+              <span
+                v-for="(lots, symbol) in row.lots_by_symbol"
+                :key="symbol"
+                class="px-1.5 py-0.2 rounded bg-background border border-primary-border text-secondary-text"
+              >
+                {{ symbol }}: {{ formatLots(lots) }}
+              </span>
+            </div>
+          </div>
+        </template>
+
+        <!-- Cell: Entries Count -->
+        <template #cell-entries="{ row }">
+          <div class="space-y-1 text-right font-mono">
+            <span class="text-xs font-bold text-primary-text tabular-nums">
+              {{ row.entry_count_all ?? row.entry_count }} entries
+            </span>
+            <div class="flex flex-col items-end gap-0.5 font-mono text-[10px]">
+              <span class="px-1.5 py-0.2 rounded bg-background border border-primary-border text-secondary-text whitespace-nowrap">
+                Dir: {{ row.entry_count || 0 }}
+              </span>
+              <span
+                class="px-1.5 py-0.2 rounded bg-background border border-primary-border whitespace-nowrap"
+                :class="(row.entry_count_from_subibs || 0) > 0 ? 'text-primary' : 'text-secondary-text'"
+              >
+                Sub: {{ row.entry_count_from_subibs || 0 }}
+              </span>
+            </div>
+          </div>
+        </template>
+
+        <!-- Cell: Wallet Target -->
+        <template #cell-wallet="{ row }">
+          <span
+            class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold font-mono uppercase tracking-wider"
+            :class="
+              row.wallet_target === 'demo'
+                ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                : 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+            "
+          >
+            {{ row.wallet_target === 'demo' ? 'Demo Wallet' : 'Main Wallet' }}
+          </span>
+        </template>
+
+        <!-- Cell: Payout Mode -->
+        <template #cell-mode="{ row }">
+          <span
+            class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold"
+            :class="
+              row.payout_mode === 'auto_settlement'
+                ? 'bg-primary/10 text-primary border border-primary-border'
+                : 'bg-card-background text-secondary-text border border-primary-border'
+            "
+          >
+            {{ row.payout_mode === 'auto_settlement' ? 'Auto Settlement' : 'Require Approval' }}
+          </span>
+        </template>
+
+        <!-- Cell: Action View Button -->
+        <template #cell-actions="{ row }">
+          <div class="flex items-center justify-end">
+            <button
+              type="button"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary-border bg-card-background hover:bg-background text-xs font-semibold text-primary hover:text-primary-hover transition-colors cursor-pointer"
+              title="View Partner Breakdown"
+              @click="openIbDetail(row)"
+            >
+              <Eye :size="13" />
+              <span>View</span>
+            </button>
+          </div>
+        </template>
+      </DataTable>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- 4. STEP 2: IB DIRECT CLIENTS TAB (currentLevel === 'ib_summary')  -->
+    <!-- ================================================================= -->
+    <div v-else-if="currentLevel === 'ib_summary' && activeTab === 'clients'" class="space-y-4">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-1">
         <div class="flex items-center gap-2">
           <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-semibold">
@@ -241,7 +594,7 @@
         row-key="user_id"
         table-key="performance-direct-clients-table"
         empty-title="No Direct Clients Found"
-        empty-text="There are no direct client trades recorded for this period."
+        empty-text="There are no direct client trades recorded for this partner in this period."
       >
         <template #cell-client="{ row }">
           <div class="space-y-0.5">
@@ -310,9 +663,9 @@
     </div>
 
     <!-- ================================================================= -->
-    <!-- 4. LEVEL 3: SUB-IB NETWORK TAB                                    -->
+    <!-- 5. STEP 2: SUB-IB NETWORK TAB (currentLevel === 'ib_summary')     -->
     <!-- ================================================================= -->
-    <div v-else-if="currentLevel === 'summary' && activeTab === 'sub_ibs'" class="space-y-4">
+    <div v-else-if="currentLevel === 'ib_summary' && activeTab === 'sub_ibs'" class="space-y-4">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-1">
         <div class="flex items-center gap-2">
           <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500 text-white text-xs font-semibold">
@@ -382,7 +735,7 @@
         <GitFork :size="24" class="text-secondary-text" />
         <h4 class="text-xs font-bold text-primary-text">No Sub-IBs Recorded</h4>
         <p class="text-xs text-secondary-text max-w-sm">
-          No downline Sub-IB commissions recorded for this period.
+          No downline Sub-IB commissions recorded for this partner in this period.
         </p>
       </div>
 
@@ -513,10 +866,10 @@
     </div>
 
     <!-- ================================================================= -->
-    <!-- 5. LEVEL 2 & 4: TRADE LINE ITEMS TABLE (Client Trades or All)      -->
+    <!-- 6. STEP 3: TRADE LINE ITEMS TABLE (Client Trades or IB Trades)    -->
     <!-- ================================================================= -->
     <div v-else class="space-y-4">
-      <!-- Active Client / Scope Banner (Level 2 or 4) -->
+      <!-- Active Client Banner (When drilling into a specific client) -->
       <div
         v-if="selectedClient"
         class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-2xs"
@@ -685,6 +1038,8 @@ import {
   DollarSign,
   TrendingUp,
   BarChart3,
+  Eye,
+  Coins,
 } from "lucide-vue-next";
 import { useCommissionEngineStore } from "@/stores/commissionEngine/commissionEngine";
 import DataTable from "@/components/common/DataTable/DataTable.vue";
@@ -725,15 +1080,19 @@ const emit = defineEmits(["back"]);
 
 const store = useCommissionEngineStore();
 
-// ─── Local State ─────────────────────────────────────────────────────────────
-// Levels: 'summary' (Level 1 / 3) | 'client_trades' (Level 2 / 4)
-const currentLevel = ref("summary");
-// Active summary tab: 'clients' | 'sub_ibs' | 'trades'
-const activeTab = ref("clients");
+// ─── 3-Step Navigation Flow State ──────────────────────────────────────────
+// 'ibs_list' (Step 1) | 'ib_summary' (Step 2) | 'client_trades' (Step 3)
+const currentLevel = ref("ibs_list");
 
+const selectedIb = ref(null);
 const selectedClient = ref(null);
 const selectedSubIb = ref(null);
 
+// Active Step 2 summary tab: 'clients' | 'sub_ibs' | 'trades'
+const activeTab = ref("clients");
+
+// Search inputs
+const ibSearch = ref("");
 const clientSearch = ref("");
 const subIbSearch = ref("");
 const tradeSearch = ref("");
@@ -744,52 +1103,110 @@ const activePeriodLabel = computed(() => {
   return row?.label || row?.period_key || props.dateFrom || "Selected Period";
 });
 
-const selectedIbLabel = computed(() => {
-  if (props.filterIbId) return `Partner #${props.filterIbId}`;
-  return null;
+const effectiveWalletTarget = computed(() => {
+  if (selectedIb.value?.wallet_target) return selectedIb.value.wallet_target;
+  return props.walletTarget;
 });
 
-// ─── Metrics Computed from ib_summary ─────────────────────────────────────────
+// ─── Step 1: Period Summary ───────────────────────────────────────────────────
+const periodSummary = computed(() => {
+  return (
+    store.performanceEntriesPeriodSummary || {
+      grand_total: props.periodRow?.grand_total_commission ?? props.periodRow?.total_commission ?? 0,
+      grand_total_lots: props.periodRow?.total_lots ?? props.periodRow?.total_lots_all ?? 0,
+      ib_count: (store.performanceEntriesIbs || []).length,
+      entry_count: props.periodRow?.entry_count_all ?? props.periodRow?.entry_count ?? 0,
+      start: props.periodRow?.start || "",
+    }
+  );
+});
+
+// ─── Step 2: Metrics for Selected IB ─────────────────────────────────────────
 const ibSummary = computed(() => store.performanceEntriesIbSummary || {});
 
 const grandTotalCommission = computed(() => {
-  return ibSummary.value.grand_total_commission ?? ibSummary.value.total_commission ?? props.periodRow?.grand_total_commission ?? 0;
+  return (
+    ibSummary.value.grand_total_commission ??
+    ibSummary.value.total_commission ??
+    selectedIb.value?.grand_total_commission ??
+    selectedIb.value?.total_commission ??
+    0
+  );
 });
 
 const directCommission = computed(() => {
-  return ibSummary.value.performance_commission ?? props.periodRow?.performance_commission ?? 0;
+  return (
+    ibSummary.value.performance_commission ??
+    selectedIb.value?.performance_commission ??
+    0
+  );
 });
 
 const directLots = computed(() => {
-  return ibSummary.value.performance_lots ?? props.periodRow?.performance_lots ?? 0;
+  return (
+    ibSummary.value.performance_lots ??
+    selectedIb.value?.performance_lots ??
+    selectedIb.value?.total_lots ??
+    0
+  );
 });
 
 const directEntries = computed(() => {
-  return ibSummary.value.entry_count ?? props.periodRow?.entry_count ?? 0;
+  return (
+    ibSummary.value.entry_count ??
+    selectedIb.value?.entry_count ??
+    0
+  );
 });
 
 const subIbsCommission = computed(() => {
-  return ibSummary.value.commission_from_subibs ?? props.periodRow?.commission_from_subibs ?? 0;
+  return (
+    ibSummary.value.commission_from_subibs ??
+    selectedIb.value?.commission_from_subibs ??
+    0
+  );
 });
 
 const subIbsLots = computed(() => {
-  return ibSummary.value.lots_from_subibs ?? props.periodRow?.lots_from_subibs ?? 0;
+  return (
+    ibSummary.value.lots_from_subibs ??
+    selectedIb.value?.lots_from_subibs ??
+    0
+  );
 });
 
 const subIbsEntries = computed(() => {
-  return ibSummary.value.entry_count_from_subibs ?? props.periodRow?.entry_count_from_subibs ?? 0;
+  return (
+    ibSummary.value.entry_count_from_subibs ??
+    selectedIb.value?.entry_count_from_subibs ??
+    0
+  );
 });
 
 const paidToMaster = computed(() => {
-  return ibSummary.value.commission_paid_to_master ?? props.periodRow?.commission_paid_to_master ?? 0;
+  return (
+    ibSummary.value.commission_paid_to_master ??
+    selectedIb.value?.commission_paid_to_master ??
+    0
+  );
 });
 
 const totalLots = computed(() => {
-  return ibSummary.value.total_lots ?? props.periodRow?.total_lots ?? 0;
+  return (
+    ibSummary.value.total_lots ??
+    selectedIb.value?.total_lots_all ??
+    selectedIb.value?.total_lots ??
+    0
+  );
 });
 
 const totalEntries = computed(() => {
-  return ibSummary.value.entry_count_all ?? props.periodRow?.entry_count_all ?? 0;
+  return (
+    ibSummary.value.entry_count_all ??
+    selectedIb.value?.entry_count_all ??
+    selectedIb.value?.entry_count ??
+    0
+  );
 });
 
 const totalTradesCount = computed(() => {
@@ -797,6 +1214,19 @@ const totalTradesCount = computed(() => {
 });
 
 // ─── Filtered Lists ──────────────────────────────────────────────────────────
+const filteredIbs = computed(() => {
+  const list = store.performanceEntriesIbs || [];
+  const q = ibSearch.value.trim().toLowerCase();
+  if (!q) return list;
+  return list.filter((ib) => {
+    const name = String(ib.ib_name || "").toLowerCase();
+    const email = String(ib.ib_email || "").toLowerCase();
+    const id = String(ib.ib_id || "");
+    const userId = String(ib.ib_user_id || "");
+    return name.includes(q) || email.includes(q) || id.includes(q) || userId.includes(q);
+  });
+});
+
 const filteredDirectClients = computed(() => {
   const list = store.performanceEntriesClients || [];
   const q = clientSearch.value.trim().toLowerCase();
@@ -819,9 +1249,11 @@ const filteredSubIbs = computed(() => {
     const email = String(s.sub_ib_email || "").toLowerCase();
     const id = String(s.sub_ib_id || "");
     const userId = String(s.sub_ib_user_id || "");
-    const clientMatch = Array.isArray(s.clients) && s.clients.some((c) => {
-      return String(c.name || "").toLowerCase().includes(q) || String(c.user_id || "").includes(q);
-    });
+    const clientMatch =
+      Array.isArray(s.clients) &&
+      s.clients.some((c) => {
+        return String(c.name || "").toLowerCase().includes(q) || String(c.user_id || "").includes(q);
+      });
     return name.includes(q) || email.includes(q) || id.includes(q) || userId.includes(q) || clientMatch;
   });
 });
@@ -840,6 +1272,20 @@ const filteredTradeItems = computed(() => {
 });
 
 // ─── Table Columns ────────────────────────────────────────────────────────────
+const ibTableColumns = [
+  { key: "id", label: "ID", width: "90px" },
+  { key: "ib", label: "IB Partner", width: "240px" },
+  { key: "performance_commission", label: "Direct Comm.", align: "right", width: "150px" },
+  { key: "commission_from_subibs", label: "From Sub-IBs", align: "right", width: "155px" },
+  { key: "commission_paid_to_master", label: "Paid to Master", align: "right", width: "140px" },
+  { key: "total_commission", label: "Total Commission", align: "right", width: "165px" },
+  { key: "total_lots", label: "Total Lots", align: "right", width: "170px" },
+  { key: "entries", label: "Entries", align: "right", width: "135px" },
+  { key: "wallet", label: "Wallet Target", align: "center", width: "130px" },
+  { key: "mode", label: "Payout Mode", align: "center", width: "140px" },
+  { key: "actions", label: "Action", align: "right", width: "110px", sticky: "right" },
+];
+
 const clientTableColumns = [
   { key: "client", label: "Client Account", width: "240px" },
   { key: "logins", label: "Logins / MT5", width: "200px" },
@@ -881,7 +1327,9 @@ const formatTime = (iso) => {
   if (!iso) return "—";
   try {
     const d = new Date(iso);
-    return isNaN(d.getTime()) ? String(iso) : d.toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+    return isNaN(d.getTime())
+      ? String(iso)
+      : d.toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
   } catch {
     return String(iso);
   }
@@ -904,6 +1352,7 @@ const buildQueryParams = (extra = {}) => {
 };
 
 // ─── Navigation & Data Fetching ──────────────────────────────────────────────
+// Step 1: Load main IBs list for this period
 const loadDrilldownData = async (force = false) => {
   const params = buildQueryParams();
   try {
@@ -913,21 +1362,61 @@ const loadDrilldownData = async (force = false) => {
   }
 };
 
-const switchTab = (tab) => {
-  activeTab.value = tab;
-  if (tab === "trades") {
-    // When switching to View Trades directly, load all line items
-    currentLevel.value = "client_trades";
-    selectedClient.value = null;
-    selectedSubIb.value = null;
-    store.fetchPerformanceEntries(buildQueryParams({ include_items: true, page: 1, per_page: 50 }));
-  } else {
-    currentLevel.value = "summary";
-    selectedClient.value = null;
-    selectedSubIb.value = null;
+// Step 1 -> Step 2: Open specific IB details
+const openIbDetail = async (ib) => {
+  selectedIb.value = ib;
+  selectedClient.value = null;
+  selectedSubIb.value = null;
+  currentLevel.value = "ib_summary";
+  activeTab.value = "clients";
+  clientSearch.value = "";
+  subIbSearch.value = "";
+  tradeSearch.value = "";
+  await loadIbDetailData(true);
+};
+
+// Step 2: Load specific IB's breakdown (clients, sub_ibs, etc.)
+const loadIbDetailData = async (force = false) => {
+  if (!selectedIb.value?.ib_id) return;
+  const params = buildQueryParams({ ib_id: selectedIb.value.ib_id });
+  try {
+    await store.fetchPerformanceEntries(params);
+  } catch (err) {
+    // Handled in store
   }
 };
 
+// Step 2 -> Step 1: Back to main IBs list
+const backToIbList = () => {
+  currentLevel.value = "ibs_list";
+  selectedIb.value = null;
+  selectedClient.value = null;
+  selectedSubIb.value = null;
+  loadDrilldownData(true);
+};
+
+// Step 2 tabs switch
+const switchTab = (tab) => {
+  activeTab.value = tab;
+  if (tab === "trades") {
+    selectedClient.value = null;
+    selectedSubIb.value = null;
+    store.fetchPerformanceEntries(
+      buildQueryParams({
+        ib_id: selectedIb.value?.ib_id,
+        include_items: true,
+        page: 1,
+        per_page: 50,
+      })
+    );
+  } else {
+    selectedClient.value = null;
+    selectedSubIb.value = null;
+    loadIbDetailData(true);
+  }
+};
+
+// Step 2 -> Step 3: Drill into closed trades for a client
 const drillIntoClientTrades = (client, subIb = null) => {
   selectedClient.value = client;
   selectedSubIb.value = subIb;
@@ -935,6 +1424,7 @@ const drillIntoClientTrades = (client, subIb = null) => {
   tradeSearch.value = "";
 
   const extra = {
+    ib_id: selectedIb.value?.ib_id,
     user_id: client.user_id,
     sub_ib_id: subIb ? subIb.sub_ib_id : undefined,
     include_items: true,
@@ -945,16 +1435,19 @@ const drillIntoClientTrades = (client, subIb = null) => {
   store.fetchPerformanceEntries(buildQueryParams(extra));
 };
 
-const returnToSummary = () => {
-  currentLevel.value = "summary";
+// Step 3 -> Step 2: Return from client trades to IB summary
+const returnToIbSummary = () => {
+  currentLevel.value = "ib_summary";
   selectedClient.value = null;
   selectedSubIb.value = null;
-  loadDrilldownData(true);
+  loadIbDetailData(true);
 };
 
+// Trades pagination
 const handleTradePageChange = (newPage) => {
   const pageVal = typeof newPage === "object" && newPage !== null ? newPage.page || 1 : newPage;
   const extra = {
+    ib_id: selectedIb.value?.ib_id,
     user_id: selectedClient.value?.user_id || undefined,
     sub_ib_id: selectedSubIb.value?.sub_ib_id || undefined,
     include_items: true,
@@ -967,6 +1460,7 @@ const handleTradePageChange = (newPage) => {
 const handleTradePerPageChange = (newPerPage) => {
   const perPageVal = typeof newPerPage === "object" && newPerPage !== null ? newPerPage.per_page || 50 : newPerPage;
   const extra = {
+    ib_id: selectedIb.value?.ib_id,
     user_id: selectedClient.value?.user_id || undefined,
     sub_ib_id: selectedSubIb.value?.sub_ib_id || undefined,
     include_items: true,
