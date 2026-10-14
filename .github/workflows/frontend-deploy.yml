@@ -274,7 +274,10 @@ jobs:
                   if ($LASTEXITCODE -ne 0) {
                       Write-Host ""
                       Write-Host "=== SSH DIAGNOSTIC PROBE (ssh -v) ==="
-                      ssh -v -i "$env:SSH_KEY_PATH" -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=10 -p "$env:CLIENT_PORT" "${env:CLIENT_USER}@${env:CLIENT_HOST}" exit 2>&1
+                      $prevEap = $ErrorActionPreference
+                      $ErrorActionPreference = 'Continue'
+                      cmd.exe /c "ssh -v -i `"$env:SSH_KEY_PATH`" -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=10 -p `"$env:CLIENT_PORT`" `"${env:CLIENT_USER}@${env:CLIENT_HOST}`" exit 2>&1"
+                      $ErrorActionPreference = $prevEap
                       Write-Host "======================================"
                       Write-Host ""
                       throw "Failed to prepare frontend directories. Ensure CLIENT_USER has permissions and the public key is in authorized_keys on the server."
