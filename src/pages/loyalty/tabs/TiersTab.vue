@@ -228,91 +228,93 @@
         </div>
       </div>
 
-      <!-- Tiers Table -->
-      <div class="bg-card-background border border-primary-border rounded-xl overflow-hidden shadow-2xs">
-        <div class="px-4 py-3 border-b border-primary-border flex items-center justify-between bg-background/50">
-          <h3 class="text-xs font-semibold text-primary-text uppercase tracking-wider">All Tier Stages ({{ tiers.length }})</h3>
-        </div>
+      <!-- Tiers DataTable -->
+      <DataTable
+        :columns="columns"
+        :data="tiers"
+        :loading="store.loading"
+        row-key="id"
+      >
+        <template #cell-sort_order="{ row }">
+          <span class="font-mono font-medium text-secondary-text">#{{ row.sort_order }}</span>
+        </template>
 
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs">
-            <thead class="bg-background/60 text-secondary-text border-b border-primary-border">
-              <tr>
-                <th class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider">Order</th>
-                <th class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider">Tier Code</th>
-                <th class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider">Name</th>
-                <th class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider">Color</th>
-                <th class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider">Min Points</th>
-                <th class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider">Max Points</th>
-                <th class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider">Multiplier</th>
-                <th class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider">Cash Rate</th>
-                <th class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider">Wallet Convert</th>
-                <th class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider">Status</th>
-                <th v-if="hasPermission('loyalty.update')" class="py-2.5 px-4 text-right text-[11px] font-medium uppercase tracking-wider">Action</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-primary-border">
-              <tr v-for="tier in tiers" :key="tier.id" class="hover:bg-background/50 transition">
-                <td class="py-3 px-4 font-mono font-medium text-secondary-text">#{{ tier.sort_order }}</td>
-                <td class="py-3 px-4">
-                  <span
-                    class="px-2 py-0.5 rounded font-mono text-[11px] font-bold border"
-                    :style="{
-                      backgroundColor: tier.color ? `${tier.color}15` : 'var(--color-primary-10)',
-                      color: tier.color || 'var(--color-primary)',
-                      borderColor: tier.color ? `${tier.color}35` : 'var(--color-primary-20)',
-                    }"
-                  >
-                    {{ tier.code }}
-                  </span>
-                </td>
-                <td class="py-3 px-4 font-semibold text-primary-text">{{ tier.name }}</td>
-                <td class="py-3 px-4">
-                  <div class="flex items-center gap-2">
-                    <span
-                      class="w-3.5 h-3.5 rounded-full border border-white/20 shadow-2xs shrink-0"
-                      :style="{ backgroundColor: tier.color || '#CD7F32' }"
-                    />
-                    <span class="font-mono text-[11px] text-secondary-text">{{ tier.color || 'Default' }}</span>
-                  </div>
-                </td>
-                <td class="py-3 px-4 font-mono text-primary-text">{{ tier.min_points }}</td>
-                <td class="py-3 px-4 font-mono text-secondary-text">
-                  {{ tier.max_points !== null && tier.max_points !== undefined ? tier.max_points : 'Open-Ended (∞)' }}
-                </td>
-                <td class="py-3 px-4 font-mono font-semibold text-primary">{{ tier.point_multiplier }}&times;</td>
-                <td class="py-3 px-4 font-mono text-primary-text">${{ tier.cash_conversion_rate }}</td>
-                <td class="py-3 px-4">
-                  <span
-                    class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border"
-                    :class="tier.allow_wallet_transfer ? 'bg-primary-green/10 text-primary-green border-primary-green/20' : 'bg-background text-secondary-text border-primary-border'"
-                  >
-                    {{ tier.allow_wallet_transfer ? 'Enabled' : 'Disabled' }}
-                  </span>
-                </td>
-                <td class="py-3 px-4">
-                  <span
-                    class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider"
-                    :class="tier.is_active ? 'bg-primary-green/10 text-primary-green' : 'bg-rose-500/10 text-rose-400'"
-                  >
-                    {{ tier.is_active ? 'ACTIVE' : 'INACTIVE' }}
-                  </span>
-                </td>
-                <td v-if="hasPermission('loyalty.update')" class="py-3 px-4 text-right">
-                  <button
-                    type="button"
-                    class="w-7 h-7 inline-flex items-center justify-center rounded-lg border border-primary-border hover:bg-background text-secondary-text hover:text-primary transition cursor-pointer"
-                    title="Edit Tier"
-                    @click="handleEdit(tier)"
-                  >
-                    <Pencil class="w-3.5 h-3.5" />
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+        <template #cell-code="{ row }">
+          <span
+            class="px-2 py-0.5 rounded font-mono text-[11px] font-bold border"
+            :style="{
+              backgroundColor: row.color ? `${row.color}15` : 'var(--color-primary-10)',
+              color: row.color || 'var(--color-primary)',
+              borderColor: row.color ? `${row.color}35` : 'var(--color-primary-20)',
+            }"
+          >
+            {{ row.code }}
+          </span>
+        </template>
+
+        <template #cell-name="{ row }">
+          <span class="font-semibold text-primary-text">{{ row.name }}</span>
+        </template>
+
+        <template #cell-color="{ row }">
+          <div class="flex items-center gap-2">
+            <span
+              class="w-3.5 h-3.5 rounded-full border border-white/20 shadow-2xs shrink-0"
+              :style="{ backgroundColor: row.color || '#CD7F32' }"
+            />
+            <span class="font-mono text-[11px] text-secondary-text">{{ row.color || 'Default' }}</span>
+          </div>
+        </template>
+
+        <template #cell-min_points="{ row }">
+          <span class="font-mono text-primary-text">{{ row.min_points }}</span>
+        </template>
+
+        <template #cell-max_points="{ row }">
+          <span class="font-mono text-secondary-text">
+            {{ row.max_points !== null && row.max_points !== undefined ? row.max_points : 'Open-Ended (∞)' }}
+          </span>
+        </template>
+
+        <template #cell-point_multiplier="{ row }">
+          <span class="font-mono font-semibold text-primary">{{ row.point_multiplier }}&times;</span>
+        </template>
+
+        <template #cell-cash_conversion_rate="{ row }">
+          <span class="font-mono text-primary-text">${{ row.cash_conversion_rate }}</span>
+        </template>
+
+        <template #cell-allow_wallet_transfer="{ row }">
+          <span
+            class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border"
+            :class="row.allow_wallet_transfer ? 'bg-primary-green/10 text-primary-green border-primary-green/20' : 'bg-background text-secondary-text border-primary-border'"
+          >
+            {{ row.allow_wallet_transfer ? 'Enabled' : 'Disabled' }}
+          </span>
+        </template>
+
+        <template #cell-is_active="{ row }">
+          <span
+            class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider"
+            :class="row.is_active ? 'bg-primary-green/10 text-primary-green' : 'bg-rose-500/10 text-rose-400'"
+          >
+            {{ row.is_active ? 'ACTIVE' : 'INACTIVE' }}
+          </span>
+        </template>
+
+        <template #cell-actions="{ row }">
+          <div v-if="hasPermission('loyalty.update')" class="flex items-center justify-end">
+            <button
+              type="button"
+              class="w-7 h-7 inline-flex items-center justify-center rounded-lg border border-primary-border hover:bg-background text-secondary-text hover:text-primary transition cursor-pointer"
+              title="Edit Tier"
+              @click="handleEdit(row)"
+            >
+              <Pencil class="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </template>
+      </DataTable>
     </div>
 
     <!-- Tier Slide-Over Drawer -->
@@ -331,11 +333,26 @@ import { ref, computed, watch, onMounted } from "vue";
 import { Award, Plus, RefreshCw, Layers, Pencil } from "lucide-vue-next";
 import { useLoyaltyStore } from "@/stores/loyalty/loyalty";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
+import DataTable from "@/components/common/DataTable/DataTable.vue";
 import logoIcon from "@/assets/logo.svg";
 import TierDrawer from "../components/TierDrawer.vue";
 
 const store = useLoyaltyStore();
 const { hasPermission } = usePermissionCheck();
+
+const columns = [
+  { key: "sort_order", label: "Order", sortable: true },
+  { key: "code", label: "Tier Code", sortable: true },
+  { key: "name", label: "Name", sortable: true },
+  { key: "color", label: "Color", sortable: true },
+  { key: "min_points", label: "Min Points", sortable: true },
+  { key: "max_points", label: "Max Points", sortable: true },
+  { key: "point_multiplier", label: "Multiplier", sortable: true },
+  { key: "cash_conversion_rate", label: "Cash Rate", sortable: true },
+  { key: "allow_wallet_transfer", label: "Wallet Convert", sortable: true },
+  { key: "is_active", label: "Status", sortable: true },
+  { key: "actions", label: "Action", align: "right" },
+];
 
 const isDrawerOpen = ref(false);
 const selectedTier = ref(null);
