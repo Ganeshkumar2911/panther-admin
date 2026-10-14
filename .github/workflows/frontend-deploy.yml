@@ -117,12 +117,55 @@ jobs:
                       $keyDir `
                       "client_key"
 
-                  $rawKey = $env:CLIENT_SSH_PRIVATE_KEY
-                  if ($rawKey -match '\\n' -and $rawKey -notmatch "`n") {
-                      $rawKey = $rawKey -replace '\\n', "`n"
+                  $rawKey = $env:CLIENT_SSH_PRIVATE_KEY.Trim()
+
+                  # If wrapped in quotes, strip them
+                  if (($rawKey.StartsWith('"') -and $rawKey.EndsWith('"')) -or ($rawKey.StartsWith("'") -and $rawKey.EndsWith("'"))) {
+                      $rawKey = $rawKey.Substring(1, $rawKey.Length - 2).Trim()
                   }
-                  $privateKey = $rawKey.Trim() + "`n"
-                  [System.IO.File]::WriteAllText($keyPath, $privateKey, [System.Text.Encoding]::ASCII)
+
+                  # Check if the secret is base64 encoded without PEM headers
+                  if ($rawKey -notmatch "-----BEGIN" -and $rawKey -match "^[A-Za-z0-9+/=\s]+$") {
+                      try {
+                          $decodedBytes = [System.Convert]::FromBase64String($rawKey -replace '\s', '')
+                          $decoded = [System.Text.Encoding]::UTF8.GetString($decodedBytes)
+                          if ($decoded -match "-----BEGIN") {
+                              Write-Host "Detected and decoded base64-encoded SSH private key."
+                              $rawKey = $decoded.Trim()
+                          }
+                      } catch {
+                          # Not base64, proceed as raw
+                      }
+                  }
+
+                  # Handle escaped newlines (literal \r\n or \n as text)
+                  $rawKey = $rawKey -replace '\\r\\n', "`n" -replace '\\r', "`n" -replace '\\n', "`n"
+
+                  # Strictly convert all CRLF and CR to pure Unix LF
+                  $rawKey = $rawKey -replace "`r", ""
+
+                  # Validate header for known format mismatches
+                  $lines = $rawKey -split "`n" | Where-Object { $_.Trim().Length -gt 0 }
+                  $firstLine = if ($lines.Count -gt 0) { $lines[0].Trim() } else { "" }
+
+                  if ($firstLine -match "^PuTTY-User-Key-File") {
+                      throw "CLIENT_SSH_PRIVATE_KEY is in PuTTY (.ppk) format. OpenSSH requires an OpenSSH/PEM key. In PuTTYgen, open the key and click Conversions -> 'Export OpenSSH key', then save that as your GitHub Secret."
+                  }
+                  if ($firstLine -match "^(ssh-rsa|ssh-ed25519|ecdsa-|ssh-dss)") {
+                      throw "CLIENT_SSH_PRIVATE_KEY is a PUBLIC key (starts with '$firstLine'). You must provide the PRIVATE key (starts with '-----BEGIN OPENSSH PRIVATE KEY-----' or '-----BEGIN RSA PRIVATE KEY-----')."
+                  }
+                  if ($firstLine -notmatch "^-----BEGIN") {
+                      Write-Warning "CLIENT_SSH_PRIVATE_KEY does not start with standard PEM header ('-----BEGIN...'). First line was: '$firstLine'"
+                  }
+
+                  # Ensure pure Unix LF line endings and trailing newline
+                  $privateKey = ($lines -join "`n") + "`n"
+
+                  [System.IO.File]::WriteAllText(
+                      $keyPath,
+                      $privateKey,
+                      [System.Text.Encoding]::ASCII
+                  )
 
                   # Remove inherited permissions.
                   icacls `
@@ -136,6 +179,15 @@ jobs:
                       /grant:r `
                       "$env:USERNAME`:F" |
                       Out-Null
+
+                  # Validate key with ssh-keygen
+                  $keyInfo = ssh-keygen -l -f "$keyPath" 2>&1
+                  if ($LASTEXITCODE -ne 0) {
+                      Write-Warning "ssh-keygen check failed ($LASTEXITCODE): $keyInfo"
+                      throw "The configured CLIENT_SSH_PRIVATE_KEY could not be loaded by OpenSSH. Error: $keyInfo. Please verify the secret contains an unencrypted OpenSSH private key with valid header and footer."
+                  } else {
+                      Write-Host "SSH key format validated: $keyInfo"
+                  }
 
                   "SSH_KEY_PATH=$keyPath" |
                       Out-File `
