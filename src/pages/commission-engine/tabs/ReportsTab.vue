@@ -1,6 +1,6 @@
 <script setup>
-import { ref, computed, onMounted } from "vue";
-import { useRouter } from "vue-router";
+import { ref, computed, watch, onMounted } from "vue";
+import { useRouter, useRoute } from "vue-router";
 import {
   Calendar,
   CalendarDays,
@@ -39,12 +39,38 @@ import ReportColumnsModal from "../components/reports/ReportColumnsModal.vue";
 import PerformanceDrilldownView from "../components/reports/PerformanceDrilldownView.vue";
 
 const router = useRouter();
+const route = useRoute();
 const store = useCommissionEngineStore();
 const snackbar = useSnackbarStore();
 
 // ─── Performance Drill-Down State (ib_commission_reports_performance_entries) ──
 const isDrilldownActive = ref(false);
 const selectedDrilldownRow = ref(null);
+
+const syncFromRoute = () => {
+  const period = route.params.period;
+  if (period) {
+    isDrilldownActive.value = true;
+    const decodedPeriod = decodeURIComponent(period);
+    if (!selectedDrilldownRow.value || selectedDrilldownRow.value.period_key !== decodedPeriod) {
+      selectedDrilldownRow.value = {
+        period_key: decodedPeriod,
+        period: decodedPeriod,
+        start: decodedPeriod,
+        label: decodedPeriod,
+      };
+    }
+  } else {
+    isDrilldownActive.value = false;
+  }
+};
+
+watch(
+  () => [route.path, route.params.period],
+  () => {
+    syncFromRoute();
+  }
+);
 
 // ─── Exact Report Types from ib_commission_reports_frontend.md ────────────────
 const reportTypes = [
@@ -675,8 +701,10 @@ const handleViewDetail = (row) => {
   // 1. If row is from performance timeline breakdown (Daily, Weekly, Monthly date rows)
   // Open Performance Entries Drill-Down View according to ib_commission_reports_performance_entries (2).md
   if (activeReportType.value.type === "performance") {
+    const periodKey = row.period_key || row.period || row.date || row.start || "all";
     selectedDrilldownRow.value = row;
     isDrilldownActive.value = true;
+    router.push(`/commission-engine/reports/details/${encodeURIComponent(periodKey)}`);
     return;
   }
 
@@ -859,10 +887,19 @@ const hasActiveFilters = computed(() => {
   );
 });
 
+const handleDrilldownBack = () => {
+  isDrilldownActive.value = false;
+  selectedDrilldownRow.value = null;
+  router.push("/commission-engine/reports");
+};
+
 onMounted(async () => {
+  syncFromRoute();
   await store.fetchReportsCatalog();
   store.searchIbs(""); // Pre-populate initial IBs via /admin/search/ib
-  loadReport(1);
+  if (!route.params.period) {
+    loadReport(1);
+  }
 });
 </script>
 
@@ -879,7 +916,7 @@ onMounted(async () => {
           :filter-ib-id="filterIbId"
           :status-filter="statusFilter"
           :wallet-target="walletTargetFilter"
-          @back="isDrilldownActive = false"
+          @back="handleDrilldownBack"
         />
       </div>
 

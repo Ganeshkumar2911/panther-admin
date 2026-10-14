@@ -782,6 +782,51 @@ const routes = [
         },
       },
       {
+        path: "/commission-engine/reports/details/:period",
+        alias: [
+          "/commission-engine/reports/performance/:period",
+          "/commission-engine/reports/performance/period/:period",
+        ],
+        name: "commission-engine-reports-detail",
+        component: () => import("@/pages/commission-engine/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Period Performance Breakdown",
+          description: "Main IB partner breakdown for this period.",
+          showBackButton: true,
+        },
+      },
+      {
+        path: "/commission-engine/reports/details/:period/ib/:ibId",
+        alias: [
+          "/commission-engine/reports/performance/:period/ib/:ibId",
+          "/commission-engine/reports/performance/period/:period/ib/:ibId",
+        ],
+        name: "commission-engine-reports-ib",
+        component: () => import("@/pages/commission-engine/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Partner Performance Breakdown",
+          description: "Direct clients, sub-IB network, and trade line items for this partner.",
+          showBackButton: true,
+        },
+      },
+      {
+        path: "/commission-engine/reports/details/:period/ib/:ibId/user/:userId",
+        alias: [
+          "/commission-engine/reports/performance/:period/ib/:ibId/user/:userId",
+          "/commission-engine/reports/performance/period/:period/ib/:ibId/user/:userId",
+        ],
+        name: "commission-engine-reports-user",
+        component: () => import("@/pages/commission-engine/index.vue"),
+        meta: {
+          requiresAuth: true,
+          title: "Client Trade Line Items",
+          description: "Detailed follower trades and period breakdown for this client.",
+          showBackButton: true,
+        },
+      },
+      {
         path: "/commission-engine/approvals",
         name: "commission-engine-approvals",
         component: () => import("@/pages/commission-engine/index.vue"),
