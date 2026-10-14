@@ -115,256 +115,161 @@
       </div>
     </div>
 
-    <!-- Loading Skeleton -->
-    <div v-if="store.loading" class="space-y-3">
-      <div
-        v-for="n in 5"
-        :key="n"
-        class="h-14 bg-card-background border border-primary-border rounded-xl animate-pulse"
-      />
-    </div>
-
-    <!-- Empty State -->
-    <div
-      v-else-if="redemptions.length === 0"
-      class="flex flex-col items-center justify-center p-12 bg-card-background border border-dashed border-primary-border rounded-xl text-center gap-3"
+    <!-- Redemptions DataTable -->
+    <DataTable
+      :columns="columns"
+      :data="redemptions"
+      :loading="store.loading"
+      :pagination="pagination"
+      row-key="id"
+      @page-change="changePage"
     >
-      <div
-        class="w-12 h-12 rounded-xl bg-card-background border border-primary-border flex items-center justify-center text-secondary-text"
-      >
-        <PackageCheck class="w-6 h-6 text-primary" />
-      </div>
-      <div class="space-y-1">
-        <h3 class="text-sm font-semibold text-primary-text">
-          No Store Redemptions Found
-        </h3>
-        <p class="text-xs text-secondary-text max-w-sm mx-auto">
-          {{
-            filters.email || filters.product_id || filters.status
-              ? "No redemption requests match your filter parameters."
-              : "Member claims for store products, vouchers, and merchandise will queue here for review and fulfillment."
-          }}
-        </p>
-      </div>
-    </div>
-
-    <!-- Redemptions Table -->
-    <div
-      v-else
-      class="bg-card-background border border-primary-border rounded-xl overflow-hidden shadow-2xs"
-    >
-      <div
-        class="px-4 py-3 border-b border-primary-border flex items-center justify-between bg-background/50"
-      >
-        <h3
-          class="text-xs font-semibold text-primary-text uppercase tracking-wider"
+      <template #empty>
+        <div
+          class="flex flex-col items-center justify-center p-12 text-center gap-3"
         >
-          Redemptions Queue ({{ pagination.total }})
-        </h3>
-      </div>
-
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs">
-          <thead
-            class="bg-background/60 text-secondary-text border-b border-primary-border"
+          <div
+            class="w-12 h-12 rounded-xl bg-card-background border border-primary-border flex items-center justify-center text-secondary-text"
           >
-            <tr>
-              <th
-                class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider"
-              >
-                ID
-              </th>
-              <th
-                class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider"
-              >
-                Member Account
-              </th>
-              <th
-                class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider"
-              >
-                Product Claimed
-              </th>
-              <th
-                class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider"
-              >
-                Points
-              </th>
-              <th
-                class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider"
-              >
-                Est. Value
-              </th>
-              <th
-                class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider"
-              >
-                Status
-              </th>
-              <th
-                class="py-2.5 px-4 text-[11px] font-medium uppercase tracking-wider"
-              >
-                Requested At
-              </th>
-              <th
-                class="py-2.5 px-4 text-right text-[11px] font-medium uppercase tracking-wider"
-              >
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-primary-border">
-            <tr
-              v-for="item in redemptions"
-              :key="item.id"
-              class="hover:bg-background/40 transition-colors"
-            >
-              <td class="py-3 px-4 font-mono text-secondary-text">
-                #{{ item.id }}
-              </td>
-              <td class="py-3 px-4">
-                <div class="space-y-0.5">
-                  <span class="font-mono font-semibold text-primary block"
-                    >A/C #{{ item.trading_account_id }}</span
-                  >
-                  <span class="text-[10px] text-secondary-text font-mono"
-                    >User #{{ item.user_id }}</span
-                  >
-                </div>
-              </td>
-              <td class="py-3 px-4">
-                <div class="space-y-0.5">
-                  <span
-                    class="font-semibold text-primary-text block max-w-xs truncate"
-                  >
-                    {{
-                      item.item_snapshot?.title ||
-                      item.item_snapshot?.name ||
-                      `Product #${item.product_id || item.reward_item_id}`
-                    }}
-                  </span>
-                  <span
-                    class="text-[10px] uppercase font-mono text-secondary-text"
-                  >
-                    {{ item.reward_type || item.item_snapshot?.type || "item" }}
-                  </span>
-                </div>
-              </td>
-              <td class="py-3 px-4 font-mono font-bold text-primary-green">
-                {{ item.points || item.points_requested }} pts
-              </td>
-              <td class="py-3 px-4 font-mono text-secondary-text">
-                ${{ item.cash_value_snapshot || item.cash_amount || "—" }}
-              </td>
-              <td class="py-3 px-4">
-                <span
-                  class="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase font-mono inline-flex items-center gap-1.5"
-                  :class="getStatusBadgeClass(item.status)"
-                >
-                  <span
-                    class="w-1.5 h-1.5 rounded-full"
-                    :class="getStatusDotClass(item.status)"
-                  />
-                  <span>{{ item.status }}</span>
-                </span>
-              </td>
-              <td class="py-3 px-4 text-secondary-text whitespace-nowrap">
-                {{ formatDate(item.requested_at || item.created_at) }}
-              </td>
-              <td class="py-3 px-4 text-right whitespace-nowrap">
-                <div class="flex items-center justify-end gap-1.5">
-                  <!-- PENDING: Approve -->
-                  <button
-                    v-if="
-                      item.status?.toUpperCase() === 'PENDING' &&
-                      hasPermission('loyalty_redemption.approve')
-                    "
-                    type="button"
-                    class="px-2.5 py-1 rounded-lg bg-primary/10 hover:bg-primary text-primary hover:text-white font-semibold text-[11px] transition cursor-pointer"
-                    title="Approve Redemption"
-                    @click="handleApprove(item)"
-                  >
-                    Approve
-                  </button>
+            <PackageCheck class="w-6 h-6 text-primary" />
+          </div>
+          <div class="space-y-1">
+            <h3 class="text-sm font-semibold text-primary-text">
+              No Store Redemptions Found
+            </h3>
+            <p class="text-xs text-secondary-text max-w-sm mx-auto">
+              {{
+                filters.email || filters.product_id || filters.status
+                  ? "No redemption requests match your filter parameters."
+                  : "Member claims for store products, vouchers, and merchandise will queue here for review and fulfillment."
+              }}
+            </p>
+          </div>
+        </div>
+      </template>
 
-                  <!-- PENDING: Reject -->
-                  <button
-                    v-if="
-                      item.status?.toUpperCase() === 'PENDING' &&
-                      hasPermission('loyalty_redemption.reject')
-                    "
-                    type="button"
-                    class="px-2.5 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white font-semibold text-[11px] transition cursor-pointer"
-                    title="Reject Redemption"
-                    @click="handleOpenReject(item)"
-                  >
-                    Reject
-                  </button>
+      <template #cell-id="{ row }">
+        <span class="font-mono text-secondary-text">#{{ row.id }}</span>
+      </template>
 
-                  <!-- APPROVED: Fulfill -->
-                  <button
-                    v-if="
-                      item.status?.toUpperCase() === 'APPROVED' &&
-                      hasPermission('loyalty_redemption.fulfill')
-                    "
-                    type="button"
-                    class="px-2.5 py-1 rounded-lg bg-primary-green/10 hover:bg-primary-green text-primary-green hover:text-white font-semibold text-[11px] transition cursor-pointer flex items-center gap-1"
-                    title="Fulfill Redemption"
-                    @click="handleOpenFulfill(item)"
-                  >
-                    <CheckCircle2 class="w-3 h-3" />
-                    <span>Fulfill</span>
-                  </button>
+      <template #cell-member="{ row }">
+        <div class="space-y-0.5">
+          <span class="font-mono font-semibold text-primary block"
+            >A/C #{{ row.trading_account_id }}</span
+          >
+          <span class="text-[10px] text-secondary-text font-mono"
+            >User #{{ row.user_id }}</span
+          >
+        </div>
+      </template>
 
-                  <!-- Inspect Details -->
-                  <button
-                    type="button"
-                    class="p-1.5 rounded-lg border border-primary-border hover:bg-background text-secondary-text hover:text-primary transition cursor-pointer"
-                    title="Inspect Details"
-                    @click="handleInspect(item)"
-                  >
-                    <Eye class="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <template #cell-product="{ row }">
+        <div class="space-y-0.5">
+          <span
+            class="font-semibold text-primary-text block max-w-xs truncate"
+          >
+            {{
+              row.item_snapshot?.title ||
+              row.item_snapshot?.name ||
+              `Product #${row.product_id || row.reward_item_id}`
+            }}
+          </span>
+          <span
+            class="text-[10px] uppercase font-mono text-secondary-text"
+          >
+            {{ row.reward_type || row.item_snapshot?.type || "item" }}
+          </span>
+        </div>
+      </template>
 
-      <!-- Pagination Footer -->
-      <div
-        v-if="pagination.pages > 1"
-        class="px-4 py-3 border-t border-primary-border flex items-center justify-between bg-background/50 text-xs"
-      >
-        <span class="text-secondary-text">
-          Showing page
-          <span class="font-mono text-primary-text font-bold">{{
-            pagination.page
-          }}</span>
-          of
-          <span class="font-mono text-primary-text font-bold">{{
-            pagination.pages
-          }}</span>
+      <template #cell-points="{ row }">
+        <span class="font-mono font-bold text-primary-green">
+          {{ row.points || row.points_requested }} pts
         </span>
-        <div class="flex items-center gap-2">
+      </template>
+
+      <template #cell-cash_value="{ row }">
+        <span class="font-mono text-secondary-text">
+          ${{ row.cash_value_snapshot || row.cash_amount || "—" }}
+        </span>
+      </template>
+
+      <template #cell-status="{ row }">
+        <span
+          class="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase font-mono inline-flex items-center gap-1.5"
+          :class="getStatusBadgeClass(row.status)"
+        >
+          <span
+            class="w-1.5 h-1.5 rounded-full"
+            :class="getStatusDotClass(row.status)"
+          />
+          <span>{{ row.status }}</span>
+        </span>
+      </template>
+
+      <template #cell-requested_at="{ row }">
+        <span class="text-secondary-text whitespace-nowrap">
+          {{ formatDate(row.requested_at || row.created_at) }}
+        </span>
+      </template>
+
+      <template #cell-actions="{ row }">
+        <div class="flex items-center justify-end gap-1.5 whitespace-nowrap">
+          <!-- PENDING: Approve -->
           <button
+            v-if="
+              row.status?.toUpperCase() === 'PENDING' &&
+              hasPermission('loyalty_redemption.approve')
+            "
             type="button"
-            :disabled="pagination.page <= 1"
-            class="px-2.5 py-1 rounded-lg border border-primary-border text-secondary-text hover:bg-card-background disabled:opacity-40 cursor-pointer"
-            @click="changePage(pagination.page - 1)"
+            class="px-2.5 py-1 rounded-lg bg-primary/10 hover:bg-primary text-primary hover:text-white font-semibold text-[11px] transition cursor-pointer"
+            title="Approve Redemption"
+            @click="handleApprove(row)"
           >
-            Prev
+            Approve
           </button>
+
+          <!-- PENDING: Reject -->
+          <button
+            v-if="
+              row.status?.toUpperCase() === 'PENDING' &&
+              hasPermission('loyalty_redemption.reject')
+            "
+            type="button"
+            class="px-2.5 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white font-semibold text-[11px] transition cursor-pointer"
+            title="Reject Redemption"
+            @click="handleOpenReject(row)"
+          >
+            Reject
+          </button>
+
+          <!-- APPROVED: Fulfill -->
+          <button
+            v-if="
+              row.status?.toUpperCase() === 'APPROVED' &&
+              hasPermission('loyalty_redemption.fulfill')
+            "
+            type="button"
+            class="px-2.5 py-1 rounded-lg bg-primary-green/10 hover:bg-primary-green text-primary-green hover:text-white font-semibold text-[11px] transition cursor-pointer flex items-center gap-1"
+            title="Fulfill Redemption"
+            @click="handleOpenFulfill(row)"
+          >
+            <CheckCircle2 class="w-3 h-3" />
+            <span>Fulfill</span>
+          </button>
+
+          <!-- Inspect Details -->
           <button
             type="button"
-            :disabled="pagination.page >= pagination.pages"
-            class="px-2.5 py-1 rounded-lg border border-primary-border text-secondary-text hover:bg-card-background disabled:opacity-40 cursor-pointer"
-            @click="changePage(pagination.page + 1)"
+            class="p-1.5 rounded-lg border border-primary-border hover:bg-background text-secondary-text hover:text-primary transition cursor-pointer"
+            title="Inspect Details"
+            @click="handleInspect(row)"
           >
-            Next
+            <Eye class="w-3.5 h-3.5" />
           </button>
         </div>
-      </div>
-    </div>
+      </template>
+    </DataTable>
 
     <!-- Modals & Drawers -->
     <RedemptionDetailDrawer
@@ -407,12 +312,24 @@ import { formatDate } from "@/utils/timeFormatter";
 import apiRequest from "@/api/request";
 import urls from "@/api/urls";
 import BaseDatePicker from "@/components/common/BaseDatePicker.vue";
+import DataTable from "@/components/common/DataTable/DataTable.vue";
 import RedemptionDetailDrawer from "../components/RedemptionDetailDrawer.vue";
 import FulfillRedemptionModal from "../components/FulfillRedemptionModal.vue";
 import RejectRedemptionModal from "../components/RejectRedemptionModal.vue";
 
 const store = useLoyaltyStore();
 const { hasPermission } = usePermissionCheck();
+
+const columns = [
+  { key: "id", label: "ID", sortable: true },
+  { key: "member", label: "Member Account", sortable: true },
+  { key: "product", label: "Product Claimed", sortable: true },
+  { key: "points", label: "Points", sortable: true },
+  { key: "cash_value", label: "Est. Value", sortable: true },
+  { key: "status", label: "Status", sortable: true },
+  { key: "requested_at", label: "Requested At", sortable: true },
+  { key: "actions", label: "Actions", align: "right" },
+];
 
 const isDetailDrawerOpen = ref(false);
 const isFulfillModalOpen = ref(false);

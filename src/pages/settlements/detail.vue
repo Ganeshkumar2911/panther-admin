@@ -345,203 +345,179 @@
       <div v-if="activeTab === 'users'">
 
         <!-- Desktop Table -->
-        <div class="hidden lg:block border border-primary-border rounded-2xl overflow-hidden bg-card-background shadow-2xs">
-          <div class="overflow-x-auto">
-            <table class="w-full border-collapse">
-              <thead>
-                <tr class="border-b border-primary-border bg-background/50">
-                  <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Client</th>
-                  <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Accounts</th>
-                  <th class="text-center text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Trades</th>
-                  <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Gross PnL</th>
-                  <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Total Fee</th>
-                  <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">FM Fee</th>
-                  <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Broker Fee</th>
-                  <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">IB Distributed</th>
-                  <th class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Net PnL</th>
-                  <th class="text-center text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3 w-28">Action</th>
-                </tr>
-              </thead>
+        <div class="hidden lg:block">
+          <DataTable
+            :data="filteredUsers"
+            :columns="clientColumns"
+            :loading="store.loading"
+            row-key="user_id"
+            :min-table-width="1000"
+            :row-class="() => 'cursor-pointer'"
+            empty-title="No clients found"
+            empty-text="No clients found matching your search."
+            @row-click="({ row }) => goToUserDetails(row)"
+          >
+            <template #empty>
+              <div class="text-center py-12 text-xs text-secondary-text">
+                No clients found matching your search.
+              </div>
+            </template>
 
-              <tbody v-if="store.loading">
-                <tr v-for="n in 4" :key="n" class="border-b border-primary-border animate-pulse">
-                  <td class="p-3"><div class="h-3 w-28 bg-background rounded" /></td>
-                  <td class="p-3"><div class="h-3 w-20 bg-background rounded" /></td>
-                  <td class="p-3"><div class="h-3 w-12 bg-background rounded mx-auto" /></td>
-                  <td class="p-3"><div class="h-3 w-14 bg-background rounded" /></td>
-                  <td class="p-3"><div class="h-3 w-14 bg-background rounded" /></td>
-                  <td class="p-3"><div class="h-3 w-14 bg-background rounded" /></td>
-                  <td class="p-3"><div class="h-3 w-14 bg-background rounded" /></td>
-                  <td class="p-3"><div class="h-3 w-14 bg-background rounded" /></td>
-                  <td class="p-3 flex justify-end"><div class="h-3 w-16 bg-background rounded" /></td>
-                  <td class="p-3"><div class="h-6 w-16 bg-background rounded mx-auto" /></td>
-                </tr>
-              </tbody>
+            <!-- Client Profile -->
+            <template #cell-client="{ row }">
+              <div>
+                <p class="text-xs font-semibold text-primary-text">{{ row.user_name || 'Client' }}</p>
+                <p class="text-[11px] text-secondary-text font-mono">{{ row.user_email }}</p>
+                <div class="flex items-center gap-1.5 mt-0.5">
+                  <span class="text-[10px] text-secondary-text font-mono">User ID: #{{ row.user_id }}</span>
+                  <span v-if="row.phone_number" class="text-[10px] text-secondary-text">· {{ row.phone_number }}</span>
+                </div>
+              </div>
+            </template>
 
-              <tbody v-else>
-                <tr
-                  v-for="u in filteredUsers"
-                  :key="u.user_id"
-                  class="border-b border-primary-border last:border-none hover:bg-background/40 transition-colors"
+            <!-- Accounts & Follower Counts -->
+            <template #cell-accounts="{ row }">
+              <div>
+                <div class="flex flex-wrap gap-1 mb-1">
+                  <span
+                    v-for="acc in (row.account_numbers || [])"
+                    :key="acc"
+                    class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-background border border-primary-border text-primary-text"
+                  >
+                    {{ acc }}
+                  </span>
+                  <span v-if="!row.account_numbers?.length" class="text-[11px] text-secondary-text">—</span>
+                </div>
+                <p class="text-[10px] text-secondary-text">
+                  {{ row.followers_count ?? 1 }} Follower{{ (row.followers_count ?? 1) === 1 ? '' : 's' }}
+                </p>
+              </div>
+            </template>
+
+            <!-- Trades Count -->
+            <template #cell-trades_count="{ row }">
+              <span class="inline-block px-2 py-0.5 rounded text-xs font-mono font-bold bg-background border border-primary-border text-primary-text">
+                {{ row.trades_count ?? 0 }}
+              </span>
+            </template>
+
+            <!-- Gross PnL -->
+            <template #cell-gross_pnl="{ row }">
+              <p
+                class="text-xs font-semibold tabular-nums"
+                :class="row.gross_pnl >= 0 ? 'text-primary-green' : 'text-primary-red'"
+              >
+                {{ row.gross_pnl > 0 ? '+' : '' }}{{ formatCurrency(row.gross_pnl, isBothView ? accountCurrency : null) }}
+              </p>
+              <p
+                v-if="isBothView && row.usd"
+                class="text-[10px] font-mono tabular-nums mt-0.5"
+                :class="row.usd.gross_pnl >= 0 ? 'text-primary-green/80' : 'text-primary-red/80'"
+              >
+                {{ row.usd.gross_pnl > 0 ? '+' : '' }}{{ formatCurrency(row.usd.gross_pnl, 'USD') }} USD
+              </p>
+            </template>
+
+            <!-- Total Fee -->
+            <template #cell-total_fee="{ row }">
+              <p class="text-xs font-medium text-primary-text tabular-nums">
+                {{ formatCurrency(row.total_fee, isBothView ? accountCurrency : null) }}
+              </p>
+              <p
+                v-if="isBothView && row.usd"
+                class="text-[10px] font-mono text-secondary-text tabular-nums mt-0.5"
+              >
+                {{ formatCurrency(row.usd.total_fee, 'USD') }} USD
+              </p>
+            </template>
+
+            <!-- FM Fee -->
+            <template #cell-fm_fee="{ row }">
+              <p class="text-xs font-medium text-primary-text tabular-nums">
+                {{ formatCurrency(row.fm_net_after_agents ?? row.fm_fee, isBothView ? accountCurrency : null) }}
+              </p>
+              <p
+                v-if="isBothView && row.usd"
+                class="text-[10px] font-mono text-secondary-text tabular-nums mt-0.5"
+              >
+                {{ formatCurrency(row.usd.fm_net_after_agents ?? row.usd.fm_fee, 'USD') }} USD
+              </p>
+              <p
+                v-if="row.fm_fee !== (row.fm_net_after_agents ?? row.fm_fee) && row.fm_fee != null"
+                class="text-[10px] text-secondary-text"
+              >
+                Gross: {{ formatCurrency(row.fm_fee, isBothView ? accountCurrency : null) }}
+                <template v-if="isBothView && row.usd">
+                  / {{ formatCurrency(row.usd.fm_fee, 'USD') }}
+                </template>
+              </p>
+            </template>
+
+            <!-- Broker Fee -->
+            <template #cell-broker_fee="{ row }">
+              <p class="text-xs font-medium text-primary-text tabular-nums">
+                {{ formatCurrency(row.broker_net ?? row.broker_fee, isBothView ? accountCurrency : null) }}
+              </p>
+              <p
+                v-if="isBothView && row.usd"
+                class="text-[10px] font-mono text-secondary-text tabular-nums mt-0.5"
+              >
+                {{ formatCurrency(row.usd.broker_net ?? row.usd.broker_fee, 'USD') }} USD
+              </p>
+              <p
+                v-if="row.broker_fee !== (row.broker_net ?? row.broker_fee) && row.broker_fee != null"
+                class="text-[10px] text-secondary-text"
+              >
+                Gross: {{ formatCurrency(row.broker_fee, isBothView ? accountCurrency : null) }}
+                <template v-if="isBothView && row.usd">
+                  / {{ formatCurrency(row.usd.broker_fee, 'USD') }}
+                </template>
+              </p>
+            </template>
+
+            <!-- IB Distributed -->
+            <template #cell-ib_distributed="{ row }">
+              <p class="text-xs font-medium text-primary-green tabular-nums">
+                {{ formatCurrency(row.ib_distributed ?? row.ib_pool, isBothView ? accountCurrency : null) }}
+              </p>
+              <p
+                v-if="isBothView && row.usd"
+                class="text-[10px] font-mono text-primary-green/80 tabular-nums mt-0.5"
+              >
+                {{ formatCurrency(row.usd.ib_distributed ?? row.usd.ib_pool, 'USD') }} USD
+              </p>
+            </template>
+
+            <!-- Net PnL -->
+            <template #cell-net_pnl="{ row }">
+              <p
+                class="text-xs font-bold tabular-nums"
+                :class="row.net_pnl >= 0 ? 'text-primary-green' : 'text-primary-red'"
+              >
+                {{ row.net_pnl > 0 ? '+' : '' }}{{ formatCurrency(row.net_pnl, isBothView ? accountCurrency : null) }}
+              </p>
+              <p
+                v-if="isBothView && row.usd"
+                class="text-[10px] font-mono tabular-nums mt-0.5"
+                :class="row.usd.net_pnl >= 0 ? 'text-primary-green/80' : 'text-primary-red/80'"
+              >
+                {{ row.usd.net_pnl > 0 ? '+' : '' }}{{ formatCurrency(row.usd.net_pnl, 'USD') }} USD
+              </p>
+            </template>
+
+            <!-- Action Button -->
+            <template #cell-action="{ row }">
+              <div class="flex items-center justify-center" @click.stop>
+                <button
+                  class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-xs font-medium transition-colors cursor-pointer"
+                  @click="goToUserDetails(row)"
                 >
-                  <!-- Client Profile -->
-                  <td class="p-3">
-                    <p class="text-xs font-semibold text-primary-text">{{ u.user_name || 'Client' }}</p>
-                    <p class="text-[11px] text-secondary-text font-mono">{{ u.user_email }}</p>
-                    <div class="flex items-center gap-1.5 mt-0.5">
-                      <span class="text-[10px] text-secondary-text font-mono">User ID: #{{ u.user_id }}</span>
-                      <span v-if="u.phone_number" class="text-[10px] text-secondary-text">· {{ u.phone_number }}</span>
-                    </div>
-                  </td>
-
-                  <!-- Accounts & Follower Counts -->
-                  <td class="p-3">
-                    <div class="flex flex-wrap gap-1 mb-1">
-                      <span
-                        v-for="acc in (u.account_numbers || [])"
-                        :key="acc"
-                        class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-background border border-primary-border text-primary-text"
-                      >
-                        {{ acc }}
-                      </span>
-                      <span v-if="!u.account_numbers?.length" class="text-[11px] text-secondary-text">—</span>
-                    </div>
-                    <p class="text-[10px] text-secondary-text">
-                      {{ u.followers_count ?? 1 }} Follower{{ (u.followers_count ?? 1) === 1 ? '' : 's' }}
-                    </p>
-                  </td>
-
-                  <!-- Trades Count -->
-                  <td class="p-3 text-center">
-                    <span class="inline-block px-2 py-0.5 rounded text-xs font-mono font-bold bg-background border border-primary-border text-primary-text">
-                      {{ u.trades_count ?? 0 }}
-                    </span>
-                  </td>
-
-                  <!-- Gross PnL -->
-                  <td class="p-3">
-                    <p
-                      class="text-xs font-semibold tabular-nums"
-                      :class="u.gross_pnl >= 0 ? 'text-primary-green' : 'text-primary-red'"
-                    >
-                      {{ u.gross_pnl > 0 ? '+' : '' }}{{ formatCurrency(u.gross_pnl, isBothView ? accountCurrency : null) }}
-                    </p>
-                    <p
-                      v-if="isBothView && u.usd"
-                      class="text-[10px] font-mono tabular-nums mt-0.5"
-                      :class="u.usd.gross_pnl >= 0 ? 'text-primary-green/80' : 'text-primary-red/80'"
-                    >
-                      {{ u.usd.gross_pnl > 0 ? '+' : '' }}{{ formatCurrency(u.usd.gross_pnl, 'USD') }} USD
-                    </p>
-                  </td>
-
-                  <!-- Total Fee -->
-                  <td class="p-3">
-                    <p class="text-xs font-medium text-primary-text tabular-nums">
-                      {{ formatCurrency(u.total_fee, isBothView ? accountCurrency : null) }}
-                    </p>
-                    <p
-                      v-if="isBothView && u.usd"
-                      class="text-[10px] font-mono text-secondary-text tabular-nums mt-0.5"
-                    >
-                      {{ formatCurrency(u.usd.total_fee, 'USD') }} USD
-                    </p>
-                  </td>
-
-                  <!-- FM Fee -->
-                  <td class="p-3">
-                    <p class="text-xs font-medium text-primary-text tabular-nums">
-                      {{ formatCurrency(u.fm_net_after_agents ?? u.fm_fee, isBothView ? accountCurrency : null) }}
-                    </p>
-                    <p
-                      v-if="isBothView && u.usd"
-                      class="text-[10px] font-mono text-secondary-text tabular-nums mt-0.5"
-                    >
-                      {{ formatCurrency(u.usd.fm_net_after_agents ?? u.usd.fm_fee, 'USD') }} USD
-                    </p>
-                    <p
-                      v-if="u.fm_fee !== (u.fm_net_after_agents ?? u.fm_fee) && u.fm_fee != null"
-                      class="text-[10px] text-secondary-text"
-                    >
-                      Gross: {{ formatCurrency(u.fm_fee, isBothView ? accountCurrency : null) }}
-                      <template v-if="isBothView && u.usd">
-                        / {{ formatCurrency(u.usd.fm_fee, 'USD') }}
-                      </template>
-                    </p>
-                  </td>
-
-                  <!-- Broker Fee -->
-                  <td class="p-3">
-                    <p class="text-xs font-medium text-primary-text tabular-nums">
-                      {{ formatCurrency(u.broker_net ?? u.broker_fee, isBothView ? accountCurrency : null) }}
-                    </p>
-                    <p
-                      v-if="isBothView && u.usd"
-                      class="text-[10px] font-mono text-secondary-text tabular-nums mt-0.5"
-                    >
-                      {{ formatCurrency(u.usd.broker_net ?? u.usd.broker_fee, 'USD') }} USD
-                    </p>
-                    <p
-                      v-if="u.broker_fee !== (u.broker_net ?? u.broker_fee) && u.broker_fee != null"
-                      class="text-[10px] text-secondary-text"
-                    >
-                      Gross: {{ formatCurrency(u.broker_fee, isBothView ? accountCurrency : null) }}
-                      <template v-if="isBothView && u.usd">
-                        / {{ formatCurrency(u.usd.broker_fee, 'USD') }}
-                      </template>
-                    </p>
-                  </td>
-
-                  <!-- IB Distributed -->
-                  <td class="p-3">
-                    <p class="text-xs font-medium text-primary-green tabular-nums">
-                      {{ formatCurrency(u.ib_distributed ?? u.ib_pool, isBothView ? accountCurrency : null) }}
-                    </p>
-                    <p
-                      v-if="isBothView && u.usd"
-                      class="text-[10px] font-mono text-primary-green/80 tabular-nums mt-0.5"
-                    >
-                      {{ formatCurrency(u.usd.ib_distributed ?? u.usd.ib_pool, 'USD') }} USD
-                    </p>
-                  </td>
-
-                  <!-- Net PnL -->
-                  <td class="p-3 text-right">
-                    <p
-                      class="text-xs font-bold tabular-nums"
-                      :class="u.net_pnl >= 0 ? 'text-primary-green' : 'text-primary-red'"
-                    >
-                      {{ u.net_pnl > 0 ? '+' : '' }}{{ formatCurrency(u.net_pnl, isBothView ? accountCurrency : null) }}
-                    </p>
-                    <p
-                      v-if="isBothView && u.usd"
-                      class="text-[10px] font-mono tabular-nums mt-0.5"
-                      :class="u.usd.net_pnl >= 0 ? 'text-primary-green/80' : 'text-primary-red/80'"
-                    >
-                      {{ u.usd.net_pnl > 0 ? '+' : '' }}{{ formatCurrency(u.usd.net_pnl, 'USD') }} USD
-                    </p>
-                  </td>
-
-                  <!-- Action Button -->
-                  <td class="p-3 text-center">
-                    <button
-                      class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-xs font-medium transition-colors cursor-pointer"
-                      @click="goToUserDetails(u)"
-                    >
-                      <span>Details</span>
-                      <ChevronRight class="w-3.5 h-3.5" />
-                    </button>
-                  </td>
-                </tr>
-
-                <tr v-if="filteredUsers.length === 0">
-                  <td colspan="10" class="text-center py-12 text-xs text-secondary-text">
-                    No clients found matching your search.
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+                  <span>Details</span>
+                  <ChevronRight class="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </template>
+          </DataTable>
         </div>
 
         <!-- Mobile Client Cards -->
@@ -665,90 +641,86 @@
       <!-- TAB 2: IB SUMMARY -->
       <!-- ═══════════════════════════════════════════════════════════════ -->
       <div v-else-if="activeTab === 'ib_summary'">
-        <div class="border border-primary-border rounded-2xl overflow-hidden bg-card-background shadow-2xs">
-          <div class="px-5 py-3.5 border-b border-primary-border flex items-center justify-between bg-card-background">
-            <div class="flex items-center gap-2">
-              <PieChart class="w-4 h-4 text-secondary-text" />
-              <span class="text-xs font-semibold text-primary-text">IB Settlement Summary</span>
-            </div>
-            <span class="text-xs text-secondary-text">
-              Total Commission:
-              <span class="font-semibold text-primary-green">
-                {{ formatCurrency(summaryData.total_ib_distributed, isBothView ? accountCurrency : null) }}
-              </span>
-              <span v-if="isBothView && usdSummaryData" class="text-xs text-secondary-text ml-1">
-                (≈ {{ formatCurrency(usdSummaryData.total_ib_distributed, 'USD') }} USD)
-              </span>
-            </span>
-          </div>
+        <div>
+          <DataTable
+            :data="filteredIbSummary"
+            :columns="ibColumns"
+            :loading="store.loading"
+            row-key="ib_id"
+            empty-title="No IB records found"
+            empty-text="No IB summary records found."
+          >
+            <template #toolbar>
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <PieChart class="w-4 h-4 text-secondary-text" />
+                  <span class="text-xs font-semibold text-primary-text">IB Settlement Summary</span>
+                </div>
+                <span class="text-xs text-secondary-text">
+                  Total Commission:
+                  <span class="font-semibold text-primary-green">
+                    {{ formatCurrency(summaryData.total_ib_distributed, isBothView ? accountCurrency : null) }}
+                  </span>
+                  <span v-if="isBothView && usdSummaryData" class="text-xs text-secondary-text ml-1">
+                    (≈ {{ formatCurrency(usdSummaryData.total_ib_distributed, 'USD') }} USD)
+                  </span>
+                </span>
+              </div>
+            </template>
 
-          <div class="overflow-x-auto">
-            <table class="w-full border-collapse">
-              <thead>
-                <tr class="border-b border-primary-border bg-background/50">
-                  <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">IB Partner</th>
-                  <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Level</th>
-                  <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Split %</th>
-                  <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Eligible Trades</th>
-                  <th class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Total Commission</th>
-                </tr>
-              </thead>
+            <template #empty>
+              <div class="text-center py-10 text-xs text-secondary-text">
+                No IB summary records found.
+              </div>
+            </template>
 
-              <tbody>
-                <tr
-                  v-for="(ib, idx) in filteredIbSummary"
-                  :key="ib.ib_id || idx"
-                  class="border-b border-primary-border last:border-none hover:bg-background/40 transition-colors"
+            <!-- IB Partner -->
+            <template #cell-ib_partner="{ row }">
+              <div>
+                <p class="text-xs font-semibold text-primary-text">{{ row.ib_name }}</p>
+                <p class="text-[11px] text-secondary-text">{{ row.ib_email }}</p>
+                <p class="text-[10px] text-secondary-text">User ID: #{{ row.ib_user_id }} · IB ID: #{{ row.ib_id }}</p>
+              </div>
+            </template>
+
+            <!-- Level -->
+            <template #cell-ib_level="{ row }">
+              <span class="px-2 py-0.5 rounded text-[11px] font-medium bg-background border border-primary-border text-primary-text">
+                Level {{ row.ib_level }}
+              </span>
+            </template>
+
+            <!-- Split % -->
+            <template #cell-split_percentage="{ row }">
+              <span class="text-xs font-mono text-primary-text">{{ row.split_percentage }}%</span>
+            </template>
+
+            <!-- Eligible Trades -->
+            <template #cell-eligible_trades="{ row }">
+              <div class="flex flex-wrap gap-1">
+                <span
+                  v-for="tid in row.trade_ids"
+                  :key="tid"
+                  class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-background border border-primary-border text-secondary-text"
                 >
-                  <td class="p-3">
-                    <p class="text-xs font-semibold text-primary-text">{{ ib.ib_name }}</p>
-                    <p class="text-[11px] text-secondary-text">{{ ib.ib_email }}</p>
-                    <p class="text-[10px] text-secondary-text">User ID: #{{ ib.ib_user_id }} · IB ID: #{{ ib.ib_id }}</p>
-                  </td>
+                  #{{ tid }}
+                </span>
+              </div>
+            </template>
 
-                  <td class="p-3">
-                    <span class="px-2 py-0.5 rounded text-[11px] font-medium bg-background border border-primary-border text-primary-text">
-                      Level {{ ib.ib_level }}
-                    </span>
-                  </td>
-
-                  <td class="p-3">
-                    <span class="text-xs font-mono text-primary-text">{{ ib.split_percentage }}%</span>
-                  </td>
-
-                  <td class="p-3">
-                    <div class="flex flex-wrap gap-1">
-                      <span
-                        v-for="tid in ib.trade_ids"
-                        :key="tid"
-                        class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-background border border-primary-border text-secondary-text"
-                      >
-                        #{{ tid }}
-                      </span>
-                    </div>
-                  </td>
-
-                  <td class="p-3 text-right">
-                    <p class="text-xs font-bold font-mono text-primary-green">
-                      {{ formatCurrency(ib.total_commission, isBothView ? accountCurrency : null) }}
-                    </p>
-                    <p
-                      v-if="isBothView && ib.usd"
-                      class="text-[10px] font-mono text-primary-green/80 mt-0.5"
-                    >
-                      {{ formatCurrency(ib.usd.total_commission, 'USD') }} USD
-                    </p>
-                  </td>
-                </tr>
-
-                <tr v-if="filteredIbSummary.length === 0">
-                  <td colspan="5" class="text-center py-10 text-xs text-secondary-text">
-                    No IB summary records found.
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+            <!-- Total Commission -->
+            <template #cell-total_commission="{ row }">
+              <p class="text-xs font-bold font-mono text-primary-green text-right">
+                {{ formatCurrency(row.total_commission, isBothView ? accountCurrency : null) }}
+              </p>
+              <p
+                v-if="isBothView && row.usd"
+                class="text-[10px] font-mono text-primary-green/80 mt-0.5 text-right"
+              >
+                {{ formatCurrency(row.usd.total_commission, 'USD') }} USD
+              </p>
+            </template>
+          </DataTable>
         </div>
       </div>
 
@@ -756,49 +728,53 @@
       <!-- TAB 3: AGENT DISTRIBUTION -->
       <!-- ═══════════════════════════════════════════════════════════════ -->
       <div v-else-if="activeTab === 'agent_distribution'">
-        <div class="border border-primary-border rounded-2xl overflow-hidden bg-card-background shadow-2xs">
-          <div class="px-5 py-3.5 border-b border-primary-border flex items-center justify-between bg-card-background">
-            <div class="flex items-center gap-2">
-              <Shield class="w-4 h-4 text-secondary-text" />
-              <span class="text-xs font-semibold text-primary-text">Agent Distribution</span>
-            </div>
-            <span class="text-xs text-secondary-text">
-              Total Agent Distributed:
-              <span class="font-semibold text-primary-text">
-                {{ formatCurrency(summaryData.total_agent_distributed, isBothView ? accountCurrency : null) }}
-              </span>
-              <span v-if="isBothView && usdSummaryData" class="text-xs text-secondary-text ml-1">
-                (≈ {{ formatCurrency(usdSummaryData.total_agent_distributed, 'USD') }} USD)
-              </span>
-            </span>
-          </div>
+        <div>
+          <DataTable
+            :data="settlement?.agent_distribution || []"
+            :columns="agentColumns"
+            :loading="store.loading"
+            row-key="id"
+            empty-title="No Agent Distributions"
+            empty-text="No agent distributions recorded for this settlement."
+          >
+            <template #toolbar>
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <Shield class="w-4 h-4 text-secondary-text" />
+                  <span class="text-xs font-semibold text-primary-text">Agent Distribution</span>
+                </div>
+                <span class="text-xs text-secondary-text">
+                  Total Agent Distributed:
+                  <span class="font-semibold text-primary-text">
+                    {{ formatCurrency(summaryData.total_agent_distributed, isBothView ? accountCurrency : null) }}
+                  </span>
+                  <span v-if="isBothView && usdSummaryData" class="text-xs text-secondary-text ml-1">
+                    (≈ {{ formatCurrency(usdSummaryData.total_agent_distributed, 'USD') }} USD)
+                  </span>
+                </span>
+              </div>
+            </template>
 
-          <div v-if="!settlement?.agent_distribution?.length" class="text-center py-12 text-xs text-secondary-text">
-            No agent distributions recorded for this settlement.
-          </div>
+            <template #empty>
+              <div class="text-center py-12 text-xs text-secondary-text">
+                No agent distributions recorded for this settlement.
+              </div>
+            </template>
 
-          <div v-else class="overflow-x-auto">
-            <table class="w-full border-collapse">
-              <thead>
-                <tr class="border-b border-primary-border bg-background/50">
-                  <th class="text-left text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Agent</th>
-                  <th class="text-right text-[11px] font-medium text-secondary-text uppercase tracking-wider p-3">Commission</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="(agent, idx) in settlement.agent_distribution"
-                  :key="idx"
-                  class="border-b border-primary-border last:border-none"
-                >
-                  <td class="p-3 text-xs font-medium text-primary-text">{{ agent.name || agent.email || 'Agent' }}</td>
-                  <td class="p-3 text-right text-xs font-semibold text-primary-green tabular-nums">
-                    {{ formatCurrency(agent.commission, isBothView ? accountCurrency : null) }}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+            <!-- Agent -->
+            <template #cell-agent="{ row }">
+              <span class="text-xs font-medium text-primary-text">
+                {{ row.name || row.email || 'Agent' }}
+              </span>
+            </template>
+
+            <!-- Commission -->
+            <template #cell-commission="{ row }">
+              <span class="text-xs font-semibold text-primary-green tabular-nums text-right block">
+                {{ formatCurrency(row.commission, isBothView ? accountCurrency : null) }}
+              </span>
+            </template>
+          </DataTable>
         </div>
       </div>
 
@@ -810,6 +786,7 @@
 <script setup>
 import { onMounted, computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import DataTable from '@/components/common/DataTable/DataTable.vue'
 import {
   ReceiptText,
   Users,
@@ -834,6 +811,32 @@ const route = useRoute()
 const router = useRouter()
 const store = useSettlementDetailStore()
 const { hasPermission } = usePermissionCheck()
+
+const clientColumns = [
+  { key: 'client', label: 'Client', sortable: false },
+  { key: 'accounts', label: 'Accounts', sortable: false },
+  { key: 'trades_count', label: 'Trades', align: 'center', sortable: false },
+  { key: 'gross_pnl', label: 'Gross PnL', sortable: false },
+  { key: 'total_fee', label: 'Total Fee', sortable: false },
+  { key: 'fm_fee', label: 'FM Fee', sortable: false },
+  { key: 'broker_fee', label: 'Broker Fee', sortable: false },
+  { key: 'ib_distributed', label: 'IB Distributed', sortable: false },
+  { key: 'net_pnl', label: 'Net PnL', align: 'right', sortable: false },
+  { key: 'action', label: 'Action', align: 'center', sortable: false, width: 110 },
+]
+
+const ibColumns = [
+  { key: 'ib_partner', label: 'IB Partner', sortable: false },
+  { key: 'ib_level', label: 'Level', sortable: false },
+  { key: 'split_percentage', label: 'Split %', sortable: false },
+  { key: 'eligible_trades', label: 'Eligible Trades', sortable: false },
+  { key: 'total_commission', label: 'Total Commission', align: 'right', sortable: false },
+]
+
+const agentColumns = [
+  { key: 'agent', label: 'Agent', sortable: false },
+  { key: 'commission', label: 'Commission', align: 'right', sortable: false },
+]
 
 const activeTab = ref('users')
 const searchQuery = ref('')
