@@ -117,10 +117,12 @@ jobs:
                       $keyDir `
                       "client_key"
 
-                  $env:CLIENT_SSH_PRIVATE_KEY |
-                      Set-Content `
-                          -Path $keyPath `
-                          -NoNewline
+                  $rawKey = $env:CLIENT_SSH_PRIVATE_KEY
+                  if ($rawKey -match '\\n' -and $rawKey -notmatch "`n") {
+                      $rawKey = $rawKey -replace '\\n', "`n"
+                  }
+                  $privateKey = $rawKey.Trim() + "`n"
+                  [System.IO.File]::WriteAllText($keyPath, $privateKey, [System.Text.Encoding]::ASCII)
 
                   # Remove inherited permissions.
                   icacls `
@@ -197,6 +199,8 @@ jobs:
                   ssh `
                       -i "$env:SSH_KEY_PATH" `
                       -o StrictHostKeyChecking=no `
+                      -o BatchMode=yes `
+                      -o ConnectTimeout=30 `
                       -p "$env:CLIENT_PORT" `
                       "${env:CLIENT_USER}@${env:CLIENT_HOST}" `
                       "powershell.exe -NoProfile -EncodedCommand $prepareEncoded"
@@ -212,6 +216,8 @@ jobs:
                   scp `
                       -i "$env:SSH_KEY_PATH" `
                       -o StrictHostKeyChecking=no `
+                      -o BatchMode=yes `
+                      -o ConnectTimeout=30 `
                       -P "$env:CLIENT_PORT" `
                       "$($releaseZip.FullName)" `
                       "${env:CLIENT_USER}@${env:CLIENT_HOST}:${env:FRONTEND_INCOMING}/"
@@ -301,6 +307,8 @@ jobs:
                   ssh `
                       -i "$env:SSH_KEY_PATH" `
                       -o StrictHostKeyChecking=no `
+                      -o BatchMode=yes `
+                      -o ConnectTimeout=30 `
                       -p "$env:CLIENT_PORT" `
                       "${env:CLIENT_USER}@${env:CLIENT_HOST}" `
                       "powershell.exe -NoProfile -ExecutionPolicy Bypass -EncodedCommand $invokeEncoded"
