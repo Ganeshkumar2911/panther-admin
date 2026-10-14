@@ -6,37 +6,6 @@
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div class="space-y-1.5">
         <div class="flex items-center gap-2.5 flex-wrap">
-          <!-- Back Button: Level-aware -->
-          <button
-            v-if="currentLevel === 'ibs_list'"
-            type="button"
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-primary-border bg-card-background hover:bg-background text-xs font-semibold text-primary hover:text-primary-hover transition-colors cursor-pointer"
-            @click="handleBack"
-          >
-            <ArrowLeft :size="14" />
-            <span>Back to Performance</span>
-          </button>
-
-          <button
-            v-else-if="currentLevel === 'ib_summary'"
-            type="button"
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-primary-border bg-card-background hover:bg-background text-xs font-semibold text-primary hover:text-primary-hover transition-colors cursor-pointer"
-            @click="backToIbList"
-          >
-            <ArrowLeft :size="14" />
-            <span>Back to Main IBs</span>
-          </button>
-
-          <button
-            v-else-if="currentLevel === 'client_trades'"
-            type="button"
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-primary-border bg-card-background hover:bg-background text-xs font-semibold text-primary hover:text-primary-hover transition-colors cursor-pointer"
-            @click="returnToIbSummary"
-          >
-            <ArrowLeft :size="14" />
-            <span>Back to {{ selectedSubIb ? 'Sub-IB Network' : 'Direct Clients' }}</span>
-          </button>
-
           <!-- Period Badge -->
           <span class="px-2.5 py-1 rounded-md text-xs font-bold bg-primary text-white font-mono">
             {{ activePeriodLabel }}
@@ -175,160 +144,199 @@
     <!-- ================================================================= -->
     <!-- Period Level KPI Cards (When currentLevel === 'ibs_list') -->
     <div v-if="currentLevel === 'ibs_list'" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
-      <!-- Grand Total Commission -->
-      <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between">
-        <div class="flex items-center justify-between">
-          <span class="text-[11px] font-medium uppercase tracking-wide text-secondary-text">Grand Total Commission</span>
-          <DollarSign :size="16" class="text-primary-green" />
+      <!-- Skeleton Loading State for Period KPI Cards -->
+      <template v-if="store.performanceEntriesLoading">
+        <div
+          v-for="n in 5"
+          :key="`period-skeleton-${n}`"
+          class="bg-card-background border border-primary-border rounded-2xl p-4 animate-pulse space-y-2.5"
+        >
+          <div class="flex items-center justify-between">
+            <div class="h-3 w-24 bg-background rounded" />
+            <div class="h-4 w-4 bg-background rounded-full" />
+          </div>
+          <div class="h-7 w-32 bg-background rounded mt-2" />
+          <div class="h-2.5 w-24 bg-background rounded mt-1" />
         </div>
-        <div class="mt-2">
-          <p class="text-2xl font-bold text-primary-green tabular-nums">
-            +{{ formatUSD(periodSummary.grand_total) }}
-          </p>
-          <p class="text-[10px] text-secondary-text mt-0.5">Aggregated commission payout</p>
-        </div>
-      </div>
+      </template>
 
-      <!-- Grand Total Lots -->
-      <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between">
-        <div class="flex items-center justify-between">
-          <span class="text-[11px] font-medium uppercase tracking-wide text-secondary-text">Total Traded Volume</span>
-          <BarChart3 :size="16" class="text-secondary-text" />
+      <!-- KPI Cards with Real API Data -->
+      <template v-else>
+        <!-- Grand Total Commission -->
+        <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-medium uppercase tracking-wide text-secondary-text">Grand Total Commission</span>
+            <DollarSign :size="16" class="text-primary-green" />
+          </div>
+          <div class="mt-2">
+            <p class="text-2xl font-bold text-primary-green tabular-nums">
+              +{{ formatUSD(periodSummary?.grand_total) }}
+            </p>
+            <p class="text-[10px] text-secondary-text mt-0.5">Aggregated commission payout</p>
+          </div>
         </div>
-        <div class="mt-2">
-          <p class="text-2xl font-bold text-primary-text tabular-nums">
-            {{ formatLots(periodSummary.grand_total_lots) }} lots
-          </p>
-          <p class="text-[10px] text-secondary-text mt-0.5">Traded volume in period</p>
-        </div>
-      </div>
 
-      <!-- Eligible IBs Count -->
-      <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between">
-        <div class="flex items-center justify-between">
-          <span class="text-[11px] font-medium uppercase tracking-wide text-secondary-text">Eligible Main IBs</span>
-          <Users :size="16" class="text-primary" />
+        <!-- Grand Total Lots -->
+        <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-medium uppercase tracking-wide text-secondary-text">Total Traded Volume</span>
+            <BarChart3 :size="16" class="text-secondary-text" />
+          </div>
+          <div class="mt-2">
+            <p class="text-2xl font-bold text-primary-text tabular-nums">
+              {{ formatLots(periodSummary?.grand_total_lots) }} lots
+            </p>
+            <p class="text-[10px] text-secondary-text mt-0.5">Traded volume in period</p>
+          </div>
         </div>
-        <div class="mt-2">
-          <p class="text-2xl font-bold text-primary-text tabular-nums">
-            {{ periodSummary.ib_count }}
-          </p>
-          <p class="text-[10px] text-secondary-text mt-0.5">Active partner accounts</p>
-        </div>
-      </div>
 
-      <!-- Total Deals / Entries -->
-      <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between">
-        <div class="flex items-center justify-between">
-          <span class="text-[11px] font-medium uppercase tracking-wide text-secondary-text">Total Deals / Entries</span>
-          <Coins :size="16" class="text-secondary-text" />
+        <!-- Eligible IBs Count -->
+        <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-medium uppercase tracking-wide text-secondary-text">Eligible Main IBs</span>
+            <Users :size="16" class="text-primary" />
+          </div>
+          <div class="mt-2">
+            <p class="text-2xl font-bold text-primary-text tabular-nums">
+              {{ periodSummary?.ib_count ?? 0 }}
+            </p>
+            <p class="text-[10px] text-secondary-text mt-0.5">Active partner accounts</p>
+          </div>
         </div>
-        <div class="mt-2">
-          <p class="text-2xl font-bold text-primary-text tabular-nums">
-            {{ (periodSummary.entry_count || 0).toLocaleString() }}
-          </p>
-          <p class="text-[10px] text-secondary-text mt-0.5">Individual trade commissions</p>
-        </div>
-      </div>
 
-      <!-- Period Window -->
-      <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between">
-        <div class="flex items-center justify-between">
-          <span class="text-[11px] font-medium uppercase tracking-wide text-secondary-text">Period Window</span>
-          <Calendar :size="16" class="text-secondary-text" />
+        <!-- Total Deals / Entries -->
+        <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-medium uppercase tracking-wide text-secondary-text">Total Deals / Entries</span>
+            <Coins :size="16" class="text-secondary-text" />
+          </div>
+          <div class="mt-2">
+            <p class="text-2xl font-bold text-primary-text tabular-nums">
+              {{ (periodSummary?.entry_count || 0).toLocaleString() }}
+            </p>
+            <p class="text-[10px] text-secondary-text mt-0.5">Individual trade commissions</p>
+          </div>
         </div>
-        <div class="mt-2">
-          <p class="text-sm font-bold text-primary-text font-mono truncate">
-            {{ activePeriodLabel }}
-          </p>
-          <p class="text-[10px] text-secondary-text font-mono mt-0.5">
-            {{ formatTime(periodSummary.start) }}
-          </p>
+
+        <!-- Period Window -->
+        <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-medium uppercase tracking-wide text-secondary-text">Period Window</span>
+            <Calendar :size="16" class="text-secondary-text" />
+          </div>
+          <div class="mt-2">
+            <p class="text-sm font-bold text-primary-text font-mono truncate">
+              {{ periodSummary?.period_key || activePeriodLabel }}
+            </p>
+            <p class="text-[10px] text-secondary-text font-mono mt-0.5">
+              {{ formatPeriodDate(periodSummary?.start) }}
+            </p>
+          </div>
         </div>
-      </div>
+      </template>
     </div>
 
     <!-- IB Level KPI Cards (When currentLevel === 'ib_summary') -->
     <div v-else-if="currentLevel === 'ib_summary'" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-      <!-- Grand Total Commission -->
-      <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between lg:col-span-2">
-        <div class="flex items-center justify-between">
-          <span class="text-[11px] font-medium uppercase tracking-wide text-secondary-text">Grand Total Commission</span>
-          <DollarSign :size="16" class="text-primary-green" />
+      <!-- Skeleton Loading for Step 2 IB KPI Cards -->
+      <template v-if="store.performanceEntriesLoading">
+        <div
+          v-for="n in 6"
+          :key="`ib-skeleton-${n}`"
+          class="bg-card-background border border-primary-border rounded-2xl p-4 animate-pulse space-y-2.5"
+          :class="n === 1 ? 'lg:col-span-2' : ''"
+        >
+          <div class="flex items-center justify-between">
+            <div class="h-3 w-20 bg-background rounded" />
+            <div class="h-4 w-4 bg-background rounded-full" />
+          </div>
+          <div class="h-6 w-28 bg-background rounded mt-2" />
+          <div class="h-2.5 w-16 bg-background rounded mt-1" />
         </div>
-        <div class="mt-2">
-          <p class="text-2xl font-bold text-primary-green tabular-nums">
-            +{{ formatUSD(grandTotalCommission) }}
-          </p>
-          <p class="text-[10px] text-secondary-text mt-0.5">
-            {{ formatLots(totalLots) }} lots &middot; {{ totalEntries }} entries in period
-          </p>
-        </div>
-      </div>
+      </template>
 
-      <!-- Direct Performance Commission -->
-      <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between">
-        <div class="flex items-center justify-between">
-          <span class="text-[11px] font-medium uppercase tracking-wide text-secondary-text">Direct Clients</span>
-          <Users :size="16" class="text-primary" />
+      <!-- IB KPI Cards with Real Data -->
+      <template v-else>
+        <!-- Grand Total Commission -->
+        <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between lg:col-span-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-medium uppercase tracking-wide text-secondary-text">Grand Total Commission</span>
+            <DollarSign :size="16" class="text-primary-green" />
+          </div>
+          <div class="mt-2">
+            <p class="text-2xl font-bold text-primary-green tabular-nums">
+              +{{ formatUSD(grandTotalCommission) }}
+            </p>
+            <p class="text-[10px] text-secondary-text mt-0.5">
+              {{ formatLots(totalLots) }} lots &middot; {{ totalEntries }} entries in period
+            </p>
+          </div>
         </div>
-        <div class="mt-2">
-          <p class="text-lg font-bold text-primary-text tabular-nums">
-            +{{ formatUSD(directCommission) }}
-          </p>
-          <p class="text-[10px] text-secondary-text mt-0.5">
-            {{ formatLots(directLots) }} lots &middot; {{ directEntries }} trades
-          </p>
-        </div>
-      </div>
 
-      <!-- From Sub-IBs -->
-      <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between">
-        <div class="flex items-center justify-between">
-          <span class="text-[11px] font-medium uppercase tracking-wide text-secondary-text">From Sub-IBs</span>
-          <GitFork :size="16" class="text-primary-yellow" />
+        <!-- Direct Performance Commission -->
+        <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-medium uppercase tracking-wide text-secondary-text">Direct Clients</span>
+            <Users :size="16" class="text-primary" />
+          </div>
+          <div class="mt-2">
+            <p class="text-lg font-bold text-primary-text tabular-nums">
+              +{{ formatUSD(directCommission) }}
+            </p>
+            <p class="text-[10px] text-secondary-text mt-0.5">
+              {{ formatLots(directLots) }} lots &middot; {{ directEntries }} trades
+            </p>
+          </div>
         </div>
-        <div class="mt-2">
-          <p class="text-lg font-bold text-primary-yellow tabular-nums">
-            +{{ formatUSD(subIbsCommission) }}
-          </p>
-          <p class="text-[10px] text-secondary-text mt-0.5">
-            {{ formatLots(subIbsLots) }} lots &middot; {{ subIbsEntries }} trades
-          </p>
-        </div>
-      </div>
 
-      <!-- Paid to Master -->
-      <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between">
-        <div class="flex items-center justify-between">
-          <span class="text-[11px] font-medium uppercase tracking-wide text-secondary-text">Paid to Master</span>
-          <TrendingUp :size="16" class="text-secondary-text" />
+        <!-- From Sub-IBs -->
+        <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-medium uppercase tracking-wide text-secondary-text">From Sub-IBs</span>
+            <GitFork :size="16" class="text-primary-yellow" />
+          </div>
+          <div class="mt-2">
+            <p class="text-lg font-bold text-primary-yellow tabular-nums">
+              +{{ formatUSD(subIbsCommission) }}
+            </p>
+            <p class="text-[10px] text-secondary-text mt-0.5">
+              {{ formatLots(subIbsLots) }} lots &middot; {{ subIbsEntries }} trades
+            </p>
+          </div>
         </div>
-        <div class="mt-2">
-          <p class="text-lg font-bold text-primary-text tabular-nums">
-            {{ Number(paidToMaster) > 0 ? `-${formatUSD(paidToMaster)}` : "$0.00" }}
-          </p>
-          <p class="text-[10px] text-secondary-text mt-0.5">
-            Upline / Master IB share
-          </p>
-        </div>
-      </div>
 
-      <!-- Traded Volume -->
-      <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between">
-        <div class="flex items-center justify-between">
-          <span class="text-[11px] font-medium uppercase tracking-wide text-secondary-text">Total Volume</span>
-          <BarChart3 :size="16" class="text-secondary-text" />
+        <!-- Paid to Master -->
+        <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-medium uppercase tracking-wide text-secondary-text">Paid to Master</span>
+            <TrendingUp :size="16" class="text-secondary-text" />
+          </div>
+          <div class="mt-2">
+            <p class="text-lg font-bold text-primary-text tabular-nums">
+              {{ Number(paidToMaster) > 0 ? `-${formatUSD(paidToMaster)}` : "$0.00" }}
+            </p>
+            <p class="text-[10px] text-secondary-text mt-0.5">
+              Upline / Master IB share
+            </p>
+          </div>
         </div>
-        <div class="mt-2">
-          <p class="text-lg font-bold text-primary-text tabular-nums">
-            {{ formatLots(totalLots) }} lots
-          </p>
-          <p class="text-[10px] text-secondary-text mt-0.5">
-            Direct &amp; sub-IB aggregate
-          </p>
+
+        <!-- Traded Volume -->
+        <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-medium uppercase tracking-wide text-secondary-text">Total Volume</span>
+            <BarChart3 :size="16" class="text-secondary-text" />
+          </div>
+          <div class="mt-2">
+            <p class="text-lg font-bold text-primary-text tabular-nums">
+              {{ formatLots(totalLots) }} lots
+            </p>
+            <p class="text-[10px] text-secondary-text mt-0.5">
+              Direct &amp; sub-IB aggregate
+            </p>
+          </div>
         </div>
-      </div>
+      </template>
     </div>
 
     <!-- ================================================================= -->
@@ -1026,7 +1034,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, watch, onMounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import {
   ArrowLeft,
   Users,
@@ -1048,7 +1057,7 @@ import StatusBadge from "@/components/common/StatusBadge.vue";
 const props = defineProps({
   periodRow: {
     type: Object,
-    required: true,
+    default: () => ({}),
   },
   frequency: {
     type: String,
@@ -1078,6 +1087,8 @@ const props = defineProps({
 
 const emit = defineEmits(["back"]);
 
+const route = useRoute();
+const router = useRouter();
 const store = useCommissionEngineStore();
 
 // ─── 3-Step Navigation Flow State ──────────────────────────────────────────
@@ -1099,8 +1110,14 @@ const tradeSearch = ref("");
 
 // ─── Period Label & Headers ──────────────────────────────────────────────────
 const activePeriodLabel = computed(() => {
-  const row = props.periodRow;
-  return row?.label || row?.period_key || props.dateFrom || "Selected Period";
+  const row = props.periodRow || {};
+  return (
+    row?.label ||
+    row?.period_key ||
+    (route.params.period ? decodeURIComponent(route.params.period) : "") ||
+    props.dateFrom ||
+    "Selected Period"
+  );
 });
 
 const effectiveWalletTarget = computed(() => {
@@ -1108,17 +1125,9 @@ const effectiveWalletTarget = computed(() => {
   return props.walletTarget;
 });
 
-// ─── Step 1: Period Summary ───────────────────────────────────────────────────
+// ─── Step 1: Period Summary (Exclusively from API Response) ───────────────────
 const periodSummary = computed(() => {
-  return (
-    store.performanceEntriesPeriodSummary || {
-      grand_total: props.periodRow?.grand_total_commission ?? props.periodRow?.total_commission ?? 0,
-      grand_total_lots: props.periodRow?.total_lots ?? props.periodRow?.total_lots_all ?? 0,
-      ib_count: (store.performanceEntriesIbs || []).length,
-      entry_count: props.periodRow?.entry_count_all ?? props.periodRow?.entry_count ?? 0,
-      start: props.periodRow?.start || "",
-    }
-  );
+  return store.performanceEntriesPeriodSummary || null;
 });
 
 // ─── Step 2: Metrics for Selected IB ─────────────────────────────────────────
@@ -1335,14 +1344,28 @@ const formatTime = (iso) => {
   }
 };
 
+const formatPeriodDate = (iso) => {
+  if (!iso) return "";
+  try {
+    const d = new Date(iso);
+    return isNaN(d.getTime())
+      ? String(iso)
+      : d.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  } catch {
+    return String(iso);
+  }
+};
+
 // ─── API Query Builder ────────────────────────────────────────────────────────
 const buildQueryParams = (extra = {}) => {
-  const row = props.periodRow;
+  const row = props.periodRow || {};
+  const periodParam = route.params.period ? decodeURIComponent(route.params.period) : undefined;
+  const periodKey = periodParam || row?.period_key || row?.label || undefined;
+  const frequency = props.frequency || store.performanceEntriesPeriodSummary?.frequency || "daily";
+
   const params = {
-    frequency: props.frequency || "daily",
-    period_key: row?.period_key || row?.label || undefined,
-    date_from: props.dateFrom || (row?.start ? row.start.slice(0, 10) : undefined),
-    date_to: props.dateTo || (row?.end ? row.end.slice(0, 10) : undefined),
+    frequency,
+    period_key: periodKey,
     ib_id: props.filterIbId || undefined,
     status: props.statusFilter !== "all" ? props.statusFilter : undefined,
     wallet_target: props.walletTarget !== "all" ? props.walletTarget : undefined,
@@ -1363,7 +1386,7 @@ const loadDrilldownData = async (force = false) => {
 };
 
 // Step 1 -> Step 2: Open specific IB details
-const openIbDetail = async (ib) => {
+const openIbDetail = (ib) => {
   selectedIb.value = ib;
   selectedClient.value = null;
   selectedSubIb.value = null;
@@ -1372,15 +1395,21 @@ const openIbDetail = async (ib) => {
   clientSearch.value = "";
   subIbSearch.value = "";
   tradeSearch.value = "";
-  await loadIbDetailData(true);
+
+  const period = route.params.period || props.periodRow?.period_key || "all";
+  router.push(`/commission-engine/reports/details/${encodeURIComponent(period)}/ib/${ib.ib_id}`);
 };
 
 // Step 2: Load specific IB's breakdown (clients, sub_ibs, etc.)
 const loadIbDetailData = async (force = false) => {
-  if (!selectedIb.value?.ib_id) return;
-  const params = buildQueryParams({ ib_id: selectedIb.value.ib_id });
+  const ibId = selectedIb.value?.ib_id || route.params.ibId;
+  if (!ibId) return;
+  const params = buildQueryParams({ ib_id: ibId });
   try {
     await store.fetchPerformanceEntries(params);
+    if (selectedIb.value && store.performanceEntriesIbSummary?.ib_name) {
+      selectedIb.value.ib_name = store.performanceEntriesIbSummary.ib_name;
+    }
   } catch (err) {
     // Handled in store
   }
@@ -1388,11 +1417,8 @@ const loadIbDetailData = async (force = false) => {
 
 // Step 2 -> Step 1: Back to main IBs list
 const backToIbList = () => {
-  currentLevel.value = "ibs_list";
-  selectedIb.value = null;
-  selectedClient.value = null;
-  selectedSubIb.value = null;
-  loadDrilldownData(true);
+  const period = route.params.period || props.periodRow?.period_key || "all";
+  router.push(`/commission-engine/reports/details/${encodeURIComponent(period)}`);
 };
 
 // Step 2 tabs switch
@@ -1403,7 +1429,7 @@ const switchTab = (tab) => {
     selectedSubIb.value = null;
     store.fetchPerformanceEntries(
       buildQueryParams({
-        ib_id: selectedIb.value?.ib_id,
+        ib_id: selectedIb.value?.ib_id || route.params.ibId,
         include_items: true,
         page: 1,
         per_page: 50,
@@ -1423,32 +1449,25 @@ const drillIntoClientTrades = (client, subIb = null) => {
   currentLevel.value = "client_trades";
   tradeSearch.value = "";
 
-  const extra = {
-    ib_id: selectedIb.value?.ib_id,
-    user_id: client.user_id,
-    sub_ib_id: subIb ? subIb.sub_ib_id : undefined,
-    include_items: true,
-    page: 1,
-    per_page: 50,
-  };
+  const period = route.params.period || props.periodRow?.period_key || "all";
+  const ibId = selectedIb.value?.ib_id || route.params.ibId;
 
-  store.fetchPerformanceEntries(buildQueryParams(extra));
+  router.push(`/commission-engine/reports/details/${encodeURIComponent(period)}/ib/${ibId}/user/${client.user_id}`);
 };
 
 // Step 3 -> Step 2: Return from client trades to IB summary
 const returnToIbSummary = () => {
-  currentLevel.value = "ib_summary";
-  selectedClient.value = null;
-  selectedSubIb.value = null;
-  loadIbDetailData(true);
+  const period = route.params.period || props.periodRow?.period_key || "all";
+  const ibId = selectedIb.value?.ib_id || route.params.ibId;
+  router.push(`/commission-engine/reports/details/${encodeURIComponent(period)}/ib/${ibId}`);
 };
 
 // Trades pagination
 const handleTradePageChange = (newPage) => {
   const pageVal = typeof newPage === "object" && newPage !== null ? newPage.page || 1 : newPage;
   const extra = {
-    ib_id: selectedIb.value?.ib_id,
-    user_id: selectedClient.value?.user_id || undefined,
+    ib_id: selectedIb.value?.ib_id || route.params.ibId,
+    user_id: selectedClient.value?.user_id || route.params.userId || undefined,
     sub_ib_id: selectedSubIb.value?.sub_ib_id || undefined,
     include_items: true,
     page: pageVal,
@@ -1460,8 +1479,8 @@ const handleTradePageChange = (newPage) => {
 const handleTradePerPageChange = (newPerPage) => {
   const perPageVal = typeof newPerPage === "object" && newPerPage !== null ? newPerPage.per_page || 50 : newPerPage;
   const extra = {
-    ib_id: selectedIb.value?.ib_id,
-    user_id: selectedClient.value?.user_id || undefined,
+    ib_id: selectedIb.value?.ib_id || route.params.ibId,
+    user_id: selectedClient.value?.user_id || route.params.userId || undefined,
     sub_ib_id: selectedSubIb.value?.sub_ib_id || undefined,
     include_items: true,
     page: 1,
@@ -1474,7 +1493,66 @@ const handleBack = () => {
   emit("back");
 };
 
+// ─── Route Synchronization (Preserves State on Refresh & Navigation) ──────────
+const syncFromRoute = () => {
+  const period = route.params.period;
+  const ibId = route.params.ibId;
+  const userId = route.params.userId;
+
+  if (userId && ibId && period) {
+    currentLevel.value = "client_trades";
+    if (!selectedIb.value || String(selectedIb.value.ib_id) !== String(ibId)) {
+      const cachedIb = store.performanceEntriesIbs.find((i) => String(i.ib_id) === String(ibId));
+      selectedIb.value = cachedIb || { ib_id: Number(ibId), ib_name: `IB #${ibId}` };
+    }
+    if (!selectedClient.value || String(selectedClient.value.user_id) !== String(userId)) {
+      selectedClient.value = { user_id: Number(userId), name: `Client #${userId}` };
+    }
+    const extra = {
+      ib_id: Number(ibId),
+      user_id: Number(userId),
+      include_items: true,
+      page: 1,
+      per_page: 50,
+    };
+    store.fetchPerformanceEntries(buildQueryParams(extra));
+  } else if (ibId && period) {
+    currentLevel.value = "ib_summary";
+    selectedClient.value = null;
+    selectedSubIb.value = null;
+    if (!selectedIb.value || String(selectedIb.value.ib_id) !== String(ibId)) {
+      const cached = store.performanceEntriesIbs.find((i) => String(i.ib_id) === String(ibId));
+      selectedIb.value = cached || { ib_id: Number(ibId), ib_name: `IB #${ibId}` };
+    }
+    if (activeTab.value === "trades") {
+      store.fetchPerformanceEntries(
+        buildQueryParams({
+          ib_id: Number(ibId),
+          include_items: true,
+          page: 1,
+          per_page: 50,
+        })
+      );
+    } else {
+      loadIbDetailData(true);
+    }
+  } else if (period) {
+    currentLevel.value = "ibs_list";
+    selectedIb.value = null;
+    selectedClient.value = null;
+    selectedSubIb.value = null;
+    loadDrilldownData(true);
+  }
+};
+
+watch(
+  () => [route.path, route.params.period, route.params.ibId, route.params.userId],
+  () => {
+    syncFromRoute();
+  }
+);
+
 onMounted(() => {
-  loadDrilldownData(true);
+  syncFromRoute();
 });
 </script>

@@ -2451,6 +2451,9 @@ export const useCommissionEngineStore = defineStore("commissionEngine", () => {
   // ─── 28. Performance Reports Drill-Down (/reports/performance/entries) ───
   const fetchPerformanceEntries = (params = {}) => {
     performanceEntriesLoading.value = true;
+    if (!params.ib_id) {
+      performanceEntriesPeriodSummary.value = null;
+    }
     return new Promise((resolve, reject) => {
       apiRequest(urls.KEYS.GET, urls.ibCommission.reportsPerformanceEntries, {
         params,
