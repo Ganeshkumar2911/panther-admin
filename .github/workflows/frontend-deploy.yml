@@ -1,0 +1,453 @@
+name: Panther Admin Frontend Deploy
+
+on:
+    workflow_dispatch:
+        inputs:
+            build_run_id:
+                description: "GitHub Actions run ID containing the frontend build to deploy"
+                required: true
+                type: string
+
+env:
+    ARTIFACT_NAME: panther-admin-frontend-release
+
+    # ============================================================
+    # NGINX FRONTEND ROOT
+    # ============================================================
+
+    FRONTEND_ROOT: "C:/builds/admin"
+
+    FRONTEND_INCOMING: "C:/builds/admin/.incoming"
+
+    FRONTEND_BACKUPS: "C:/builds/admin/.backups"
+
+    # ============================================================
+    # FRONTEND HEALTH CHECK
+    # ============================================================
+
+    FRONTEND_URL: "https://admin.panthercapitals.com"
+
+    # ============================================================
+    # SSH
+    # ============================================================
+
+    DEFAULT_SSH_PORT: "22"
+
+jobs:
+    # ============================================================
+    # DEPLOY
+    # ============================================================
+
+    deploy_to_client:
+        name: Deploy Admin Frontend
+        runs-on: windows-latest
+
+        permissions:
+            actions: read
+            contents: read
+
+        steps:
+            # ========================================================
+            # CHECKOUT DEPLOY SCRIPT
+            # ========================================================
+
+            - name: Checkout repository
+              uses: actions/checkout@v7
+
+            # ========================================================
+            # DOWNLOAD SELECTED BUILD
+            # ========================================================
+
+            - name: Download frontend artifact
+              uses: actions/download-artifact@v8
+              with:
+                  name: ${{ env.ARTIFACT_NAME }}
+                  path: artifacts
+                  run-id: ${{ fromJSON(inputs.build_run_id) }}
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+
+            # ========================================================
+            # VALIDATE ARTIFACT
+            # ========================================================
+
+            - name: Validate frontend artifact
+              shell: powershell
+              run: |
+
+                  $releaseZip = Get-ChildItem `
+                      -Path "artifacts" `
+                      -Filter "*.zip" `
+                      | Select-Object -First 1
+
+                  if (-not $releaseZip) {
+                      throw "Frontend release ZIP not found."
+                  }
+
+                  Write-Host "Frontend release: $($releaseZip.Name)"
+
+                  Write-Host "Artifact validation passed."
+
+            # ========================================================
+            # WRITE SSH KEY
+            # ========================================================
+
+            - name: Configure SSH key
+              shell: powershell
+
+              env:
+                  CLIENT_SSH_PRIVATE_KEY: ${{ secrets.CLIENT_SSH_PRIVATE_KEY }}
+
+              run: |
+
+                  if (-not $env:CLIENT_SSH_PRIVATE_KEY) {
+                      throw "CLIENT_SSH_PRIVATE_KEY secret is not configured."
+                  }
+
+                  $keyDir = Join-Path `
+                      $env:RUNNER_TEMP `
+                      "ssh"
+
+                  New-Item `
+                      -ItemType Directory `
+                      -Force `
+                      -Path $keyDir |
+                      Out-Null
+
+                  $keyPath = Join-Path `
+                      $keyDir `
+                      "client_key"
+
+                  $rawKey = $env:CLIENT_SSH_PRIVATE_KEY.Trim()
+
+                  # If wrapped in quotes, strip them
+                  if (($rawKey.StartsWith('"') -and $rawKey.EndsWith('"')) -or ($rawKey.StartsWith("'") -and $rawKey.EndsWith("'"))) {
+                      $rawKey = $rawKey.Substring(1, $rawKey.Length - 2).Trim()
+                  }
+
+                  # Check if the secret is base64 encoded without PEM headers
+                  if ($rawKey -notmatch "-----BEGIN" -and $rawKey -match "^[A-Za-z0-9+/=\s]+$") {
+                      try {
+                          $decodedBytes = [System.Convert]::FromBase64String($rawKey -replace '\s', '')
+                          $decoded = [System.Text.Encoding]::UTF8.GetString($decodedBytes)
+                          if ($decoded -match "-----BEGIN") {
+                              Write-Host "Detected and decoded base64-encoded SSH private key."
+                              $rawKey = $decoded.Trim()
+                          }
+                      } catch {
+                          # Not base64, proceed as raw
+                      }
+                  }
+
+                  # Handle escaped newlines (literal \r\n or \n as text)
+                  $rawKey = $rawKey -replace '\\r\\n', "`n" -replace '\\r', "`n" -replace '\\n', "`n"
+
+                  # Strictly convert all CRLF and CR to pure Unix LF
+                  $rawKey = $rawKey -replace "`r", ""
+
+                  # Validate header for known format mismatches
+                  $lines = $rawKey -split "`n" | Where-Object { $_.Trim().Length -gt 0 }
+                  $firstLine = if ($lines.Count -gt 0) { $lines[0].Trim() } else { "" }
+
+                  if ($firstLine -match "^PuTTY-User-Key-File") {
+                      throw "CLIENT_SSH_PRIVATE_KEY is in PuTTY (.ppk) format. OpenSSH requires an OpenSSH/PEM key. In PuTTYgen, open the key and click Conversions -> 'Export OpenSSH key', then save that as your GitHub Secret."
+                  }
+                  if ($firstLine -match "^(ssh-rsa|ssh-ed25519|ecdsa-|ssh-dss)") {
+                      throw "CLIENT_SSH_PRIVATE_KEY is a PUBLIC key (starts with '$firstLine'). You must provide the PRIVATE key (starts with '-----BEGIN OPENSSH PRIVATE KEY-----' or '-----BEGIN RSA PRIVATE KEY-----')."
+                  }
+                  if ($firstLine -notmatch "^-----BEGIN") {
+                      Write-Warning "CLIENT_SSH_PRIVATE_KEY does not start with standard PEM header ('-----BEGIN...'). First line was: '$firstLine'"
+                  }
+
+                  # Ensure pure Unix LF line endings and trailing newline
+                  $privateKey = ($lines -join "`n") + "`n"
+
+                  [System.IO.File]::WriteAllText(
+                      $keyPath,
+                      $privateKey,
+                      [System.Text.Encoding]::ASCII
+                  )
+
+                  # Remove inherited permissions.
+                  icacls `
+                      $keyPath `
+                      /inheritance:r |
+                      Out-Null
+
+                  # Grant current runner user access.
+                  icacls `
+                      $keyPath `
+                      /grant:r `
+                      "$env:USERNAME`:F" |
+                      Out-Null
+
+                  # Validate key with ssh-keygen
+                  $keyInfo = cmd.exe /c "ssh-keygen -l -f `"$keyPath`" 2>&1"
+                  if ($LASTEXITCODE -ne 0) {
+                      Write-Warning "ssh-keygen check failed ($LASTEXITCODE): $keyInfo"
+                      throw "The configured CLIENT_SSH_PRIVATE_KEY could not be loaded by OpenSSH. Error: $keyInfo. Please verify the secret contains an unencrypted OpenSSH private key with valid header and footer (-----BEGIN ... KEY----- to -----END ... KEY-----)."
+                  } else {
+                      Write-Host "SSH key format validated: $keyInfo"
+                      $pubKey = cmd.exe /c "ssh-keygen -y -f `"$keyPath`" 2>&1"
+                      if ($LASTEXITCODE -eq 0) {
+                          Write-Host ""
+                          Write-Host "=== PUBLIC KEY (Must be in authorized_keys on server) ==="
+                          Write-Host "$pubKey"
+                          Write-Host "=========================================================="
+                          Write-Host ""
+                      }
+                  }
+
+                  "SSH_KEY_PATH=$keyPath" |
+                      Out-File `
+                          -FilePath $env:GITHUB_ENV `
+                          -Encoding utf8 `
+                          -Append
+
+                  Write-Host "SSH key configured successfully."
+
+            # ========================================================
+            # UPLOAD ZIP
+            # ========================================================
+
+            - name: Upload frontend release
+              shell: powershell
+
+              env:
+                  CLIENT_HOST: ${{ secrets.CLIENT_HOST }}
+                  CLIENT_PORT: ${{ secrets.CLIENT_PORT }}
+                  CLIENT_USER: ${{ secrets.CLIENT_USER }}
+
+              run: |
+
+                  if (-not $env:CLIENT_HOST) {
+                      throw "CLIENT_HOST secret is not configured."
+                  }
+
+                  if (-not $env:CLIENT_USER) {
+                      throw "CLIENT_USER secret is not configured."
+                  }
+
+                  $env:CLIENT_HOST = $env:CLIENT_HOST.Trim()
+                  $env:CLIENT_USER = $env:CLIENT_USER.Trim()
+
+                  if ($env:CLIENT_PORT) {
+                      $env:CLIENT_PORT = $env:CLIENT_PORT.Trim()
+                  } else {
+                      $env:CLIENT_PORT = $env:DEFAULT_SSH_PORT.Trim()
+                  }
+
+                  $releaseZip = Get-ChildItem `
+                      -Path "artifacts" `
+                      -Filter "*.zip" `
+                      | Select-Object -First 1
+
+                  if (-not $releaseZip) {
+                      throw "Frontend release ZIP not found."
+                  }
+
+                  Write-Host "Uploading: $($releaseZip.Name)"
+
+                  # ----------------------------------------------------
+                  # Create remote directories
+                  #
+                  # Windows OpenSSH uses cmd.exe as the default remote
+                  # shell, so pipes in a raw ssh command are parsed by
+                  # cmd. Encode the PowerShell so cmd never sees "|".
+                  # ----------------------------------------------------
+
+                  $prepareScript = "New-Item -ItemType Directory -Force -Path @('$($env:FRONTEND_ROOT)','$($env:FRONTEND_INCOMING)','$($env:FRONTEND_BACKUPS)') | Out-Null"
+
+                  $prepareEncoded = [Convert]::ToBase64String(
+                      [System.Text.Encoding]::Unicode.GetBytes($prepareScript)
+                  )
+
+                  ssh `
+                      -i "$env:SSH_KEY_PATH" `
+                      -o StrictHostKeyChecking=no `
+                      -o IdentitiesOnly=yes `
+                      -o BatchMode=yes `
+                      -o ConnectTimeout=30 `
+                      -p "$env:CLIENT_PORT" `
+                      "${env:CLIENT_USER}@${env:CLIENT_HOST}" `
+                      "powershell.exe -NoProfile -EncodedCommand $prepareEncoded"
+
+                  if ($LASTEXITCODE -ne 0) {
+                      Write-Host ""
+                      Write-Host "=== SSH DIAGNOSTIC PROBE (ssh -v) ==="
+                      $prevEap = $ErrorActionPreference
+                      $ErrorActionPreference = 'Continue'
+                      cmd.exe /c "ssh -v -i `"$env:SSH_KEY_PATH`" -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=10 -p `"$env:CLIENT_PORT`" `"${env:CLIENT_USER}@${env:CLIENT_HOST}`" exit 2>&1"
+                      $ErrorActionPreference = $prevEap
+                      Write-Host "======================================"
+                      Write-Host ""
+                      throw "Failed to prepare frontend directories. Ensure CLIENT_USER has permissions and the public key is in authorized_keys on the server."
+                  }
+
+                  # ----------------------------------------------------
+                  # Upload ZIP
+                  # ----------------------------------------------------
+
+                  scp `
+                      -i "$env:SSH_KEY_PATH" `
+                      -o StrictHostKeyChecking=no `
+                      -o IdentitiesOnly=yes `
+                      -o BatchMode=yes `
+                      -o ConnectTimeout=30 `
+                      -P "$env:CLIENT_PORT" `
+                      "$($releaseZip.FullName)" `
+                      "${env:CLIENT_USER}@${env:CLIENT_HOST}:${env:FRONTEND_INCOMING}/"
+
+                  if ($LASTEXITCODE -ne 0) {
+                      throw "Frontend ZIP upload failed."
+                  }
+
+                  Write-Host "Frontend ZIP uploaded successfully."
+
+            # ========================================================
+            # DEPLOY ON SERVER
+            # ========================================================
+
+            - name: Deploy frontend on client server
+              shell: powershell
+
+              env:
+                  CLIENT_HOST: ${{ secrets.CLIENT_HOST }}
+                  CLIENT_PORT: ${{ secrets.CLIENT_PORT }}
+                  CLIENT_USER: ${{ secrets.CLIENT_USER }}
+
+              run: |
+
+                  if (-not $env:CLIENT_HOST) {
+                      throw "CLIENT_HOST secret is not configured."
+                  }
+
+                  if (-not $env:CLIENT_USER) {
+                      throw "CLIENT_USER secret is not configured."
+                  }
+
+                  $env:CLIENT_HOST = $env:CLIENT_HOST.Trim()
+                  $env:CLIENT_USER = $env:CLIENT_USER.Trim()
+
+                  if ($env:CLIENT_PORT) {
+                      $env:CLIENT_PORT = $env:CLIENT_PORT.Trim()
+                  } else {
+                      $env:CLIENT_PORT = $env:DEFAULT_SSH_PORT.Trim()
+                  }
+
+                  $releaseZip = Get-ChildItem `
+                      -Path "artifacts" `
+                      -Filter "*.zip" `
+                      | Select-Object -First 1
+
+                  if (-not $releaseZip) {
+                      throw "Frontend release ZIP not found."
+                  }
+
+                  $releaseName = [System.IO.Path]::GetFileNameWithoutExtension(
+                      $releaseZip.Name
+                  )
+
+                  Write-Host "Deploying release: $releaseName"
+
+                  $remoteZip = "$($env:FRONTEND_INCOMING.TrimEnd('/', '\'))/$($releaseZip.Name)"
+
+                  # ----------------------------------------------------
+                  # Upload and run remote deployment script
+                  # ----------------------------------------------------
+
+                  $localScript = Join-Path `
+                      $env:GITHUB_WORKSPACE `
+                      ".github/scripts/deploy-frontend-remote.ps1"
+
+                  if (-not (Test-Path -LiteralPath $localScript)) {
+                      throw "Remote deploy script not found: $localScript"
+                  }
+
+                  $remoteScript = "$($env:FRONTEND_INCOMING.TrimEnd('/', '\'))/_deploy-frontend.ps1"
+
+                  scp `
+                      -i "$env:SSH_KEY_PATH" `
+                      -o StrictHostKeyChecking=no `
+                      -o IdentitiesOnly=yes `
+                      -P "$env:CLIENT_PORT" `
+                      "$localScript" `
+                      "${env:CLIENT_USER}@${env:CLIENT_HOST}:${remoteScript}"
+
+                  if ($LASTEXITCODE -ne 0) {
+                      throw "Failed to upload remote deploy script."
+                  }
+
+                  $invokeScript = "& '$remoteScript' -Root '$($env:FRONTEND_ROOT)' -Incoming '$($env:FRONTEND_INCOMING)' -Backups '$($env:FRONTEND_BACKUPS)' -Package '$remoteZip' -ReleaseName '$releaseName'"
+
+                  $invokeEncoded = [Convert]::ToBase64String(
+                      [System.Text.Encoding]::Unicode.GetBytes($invokeScript)
+                  )
+
+                  Write-Host "Executing deployment on client server..."
+
+                  ssh `
+                      -i "$env:SSH_KEY_PATH" `
+                      -o StrictHostKeyChecking=no `
+                      -o IdentitiesOnly=yes `
+                      -o BatchMode=yes `
+                      -o ConnectTimeout=30 `
+                      -p "$env:CLIENT_PORT" `
+                      "${env:CLIENT_USER}@${env:CLIENT_HOST}" `
+                      "powershell.exe -NoProfile -ExecutionPolicy Bypass -EncodedCommand $invokeEncoded"
+
+                  if ($LASTEXITCODE -ne 0) {
+                      throw "Remote frontend deployment failed with exit code $LASTEXITCODE"
+                  }
+
+                  Write-Host "Remote frontend deployment completed successfully."
+
+            # ========================================================
+            # FRONTEND HEALTH CHECK
+            # ========================================================
+
+            - name: Verify frontend
+              shell: powershell
+              run: |
+
+                  Write-Host "Checking frontend..."
+
+                  $maxAttempts = 10
+                  $healthy = $false
+
+                  for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+
+                      Write-Host "Health check attempt $attempt/$maxAttempts"
+
+                      try {
+
+                          $response = Invoke-WebRequest `
+                              -Uri "${env:FRONTEND_URL}/" `
+                              -UseBasicParsing `
+                              -TimeoutSec 15
+
+                          if ($response.StatusCode -eq 200) {
+
+                              if ($response.Content -match "<html") {
+
+                                  Write-Host "Frontend health check PASSED."
+
+                                  $healthy = $true
+
+                                  break
+                              }
+                          }
+
+                      }
+                      catch {
+
+                          Write-Host "Frontend health check failed: $($_.Exception.Message)"
+                      }
+
+                      Start-Sleep -Seconds 3
+                  }
+
+                  if (-not $healthy) {
+                      throw "Frontend health check failed."
+                  }
+
+                  Write-Host "Frontend deployment completed successfully."

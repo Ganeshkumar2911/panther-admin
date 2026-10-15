@@ -55,6 +55,16 @@
           </button>
         </Tooltip>
       </div>
+
+      <!-- Vendor Wallets Quick Link -->
+      <router-link
+        v-if="hasPermission('vendor.wallet_adjust') || hasPermission('vendor.view')"
+        to="/payment-methods"
+        class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-primary-border bg-card-background hover:bg-background text-primary-text text-xs font-semibold transition cursor-pointer shrink-0 shadow-2xs"
+      >
+        <Wallet class="w-3.5 h-3.5 text-primary" />
+        <span>Vendor Wallets</span>
+      </router-link>
     </div>
 
     <!-- Table -->
@@ -403,6 +413,7 @@ import {
   ArrowUpRight,
   Eye,
   Image as ImageIcon,
+  Wallet,
 } from "lucide-vue-next";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import Tooltip from "@/components/common/Tooltip.vue";
@@ -411,11 +422,13 @@ import ImagePreviewModal from "@/components/common/ImagePreviewModal.vue";
 import VendorTransferDetailDrawer from "./components/VendorTransferDetailDrawer.vue";
 import { useVendorTransfersStore } from "@/stores/vendorTransfers/vendorTransfers";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
+import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import { formatDate } from "@/utils/timeFormatter";
 
 const store = useVendorTransfersStore();
 const snackbar = useSnackbarStore();
 const router = useRouter();
+const { hasPermission } = usePermissionCheck();
 
 // Modal & Drawer State
 const previewModalOpen = ref(false);

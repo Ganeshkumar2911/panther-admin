@@ -152,6 +152,16 @@
 
             <!-- Header Quick Actions -->
             <div class="flex items-center gap-2 shrink-0">
+              <!-- Vendor Wallet Action Button -->
+              <button
+                v-if="hasPermission('vendor.wallet_adjust') || hasPermission('vendor.view')"
+                class="w-7 h-7 flex items-center justify-center rounded-lg bg-background border border-primary-border hover:border-primary/40 text-secondary-text hover:text-primary transition cursor-pointer shadow-2xs"
+                title="Vendor Wallet Balances & Ledger"
+                @click="handleOpenVendorWallet(record)"
+              >
+                <Wallet class="w-3.5 h-3.5" />
+              </button>
+
               <!-- Edit Button -->
               <button
                 v-if="hasPermission('payment_methods.update')"
@@ -271,6 +281,28 @@
               <Star class="w-2.5 h-2.5 fill-amber-500" />
               <span>Def. Withdrawal</span>
             </span>
+          </div>
+
+          <!-- Vendor Wallet Float Row (if available on record) -->
+          <div
+            v-if="record.deposit_balance !== undefined || record.withdrawal_balance !== undefined || record.vendor_wallet"
+            class="flex items-center justify-between px-3 py-1.5 rounded-xl bg-primary/5 border border-primary/20 text-xs cursor-pointer hover:bg-primary/10 transition"
+            title="Click to view ledger and adjust vendor balances"
+            @click="handleOpenVendorWallet(record)"
+          >
+            <div class="flex items-center gap-1.5">
+              <Wallet class="w-3.5 h-3.5 text-primary" />
+              <span class="text-[10px] font-bold text-primary uppercase tracking-wider">Vendor Float</span>
+            </div>
+            <div class="flex items-center gap-2 font-mono text-[10px]">
+              <span class="text-primary-green font-semibold">
+                Dep: ${{ fmt(record.deposit_balance ?? record.vendor_wallet?.deposit_balance ?? 0) }}
+              </span>
+              <span class="text-secondary-text/40">|</span>
+              <span class="text-primary-blue font-semibold">
+                Wth: ${{ fmt(record.withdrawal_balance ?? record.vendor_wallet?.withdrawal_balance ?? 0) }}
+              </span>
+            </div>
           </div>
 
           <!-- Dynamic Client Meta Fields Box (`meta_data`) -->
@@ -394,12 +426,21 @@
       :open="isEditDialogOpen"
       :paymentMethod="selectedPaymentMethod"
       @close="isEditDialogOpen = false"
+      @open-vendor-wallet="handleOpenVendorWalletFromEdit"
     />
 
     <!-- Currency Rates Drawer -->
     <CurrencyRatesDrawer
       :open="isCurrencyDrawerOpen"
       @close="isCurrencyDrawerOpen = false"
+    />
+
+    <!-- Vendor Wallet Drawer -->
+    <VendorWalletDrawer
+      :open="isVendorWalletDrawerOpen"
+      :paymentMethod="selectedVendorWalletMethod"
+      @close="isVendorWalletDrawerOpen = false"
+      @updated="handleVendorWalletUpdated"
     />
 
   </div>
@@ -427,6 +468,7 @@ import Pagination from '@/components/common/Pagination.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import EditPaymentMethodDialog from '@/components/paymentMethods/EditPaymentMethodDialog.vue'
 import CurrencyRatesDrawer from '@/components/paymentMethods/CurrencyRatesDrawer.vue'
+import VendorWalletDrawer from '@/components/paymentMethods/VendorWalletDrawer.vue'
 import { usePermissionCheck } from '@/composables/usePermissionCheck'
 
 const store = usePaymentMethodsStore()
@@ -435,7 +477,9 @@ const { hasPermission } = usePermissionCheck()
 // ── Drawer & Dialog States ──
 const isCurrencyDrawerOpen = ref(false)
 const isEditDialogOpen = ref(false)
+const isVendorWalletDrawerOpen = ref(false)
 const selectedPaymentMethod = ref(null)
+const selectedVendorWalletMethod = ref(null)
 
 const METHOD_TYPES = [
   { value: "", label: "All types" },
@@ -484,6 +528,29 @@ const handleOpenEdit = (record) => {
 const handleOpenCreate = () => {
   selectedPaymentMethod.value = null
   isEditDialogOpen.value = true
+}
+
+const handleOpenVendorWallet = (record) => {
+  selectedVendorWalletMethod.value = record
+  isVendorWalletDrawerOpen.value = true
+}
+
+const handleOpenVendorWalletFromEdit = (record) => {
+  isEditDialogOpen.value = false
+  selectedVendorWalletMethod.value = record
+  isVendorWalletDrawerOpen.value = true
+}
+
+const handleVendorWalletUpdated = () => {
+  store.fetchPaymentMethods(true)
+}
+
+const fmt = (val) => {
+  if (val === null || val === undefined || isNaN(val)) return '0.00'
+  return Number(val).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
 }
 
 const startEdit = async (record) => {
