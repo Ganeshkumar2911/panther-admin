@@ -7,6 +7,7 @@ import {
   Alert02Icon,
 } from "@hugeicons/core-free-icons";
 import { useCommissionEngineStore } from "@/stores/commissionEngine/commissionEngine";
+import { goToTradingAccount } from "@/composables/useNavigation";
 
 const props = defineProps({
   modelValue: {
@@ -132,6 +133,16 @@ const handleReject = async () => {
                 <span class="text-secondary-text">Symbol & Lots:</span>
                 <span class="font-mono text-primary-text">
                   {{ commission.trade?.symbol || "N/A" }} ({{ commission.closed_volume_lots ?? commission.volume_lots ?? '-' }} lots)
+                </span>
+              </div>
+              <div v-if="commission.trade?.login" class="flex items-center justify-between">
+                <span class="text-secondary-text">Trading Account Login:</span>
+                <span
+                  class="font-mono text-primary font-semibold cursor-pointer hover:underline"
+                  :title="`Trading Account ${commission.trade.login} (Ctrl+Click to open in new tab)`"
+                  @click="goToTradingAccount(commission.trade.login, $event)"
+                >
+                  {{ commission.trade.login }}
                 </span>
               </div>
             </div>

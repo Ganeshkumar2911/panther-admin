@@ -55,7 +55,11 @@
                 class="flex items-center gap-1 font-mono font-semibold text-primary-text"
               >
                 <span class="text-secondary-text">Account:</span>
-                #{{ accountNumber }}
+                <span
+                  class="cursor-pointer hover:text-primary hover:underline transition-colors"
+                  :title="`#${accountNumber} (Ctrl+Click to open in new tab)`"
+                  @click="goToTradingAccount(accountNumber, $event)"
+                >#{{ accountNumber }}</span>
               </span>
 
               <span
@@ -63,7 +67,11 @@
                 class="flex items-center gap-1 font-mono font-semibold text-primary-text"
               >
                 <span class="text-secondary-text">Coverage:</span>
-                #{{ coverageAccountNumber }}
+                <span
+                  class="cursor-pointer hover:text-primary hover:underline transition-colors"
+                  :title="`#${coverageAccountNumber} (Ctrl+Click to open in new tab)`"
+                  @click="goToTradingAccount(coverageAccountNumber, $event)"
+                >#{{ coverageAccountNumber }}</span>
               </span>
 
               <span
@@ -796,7 +804,12 @@
             <span class="font-mono font-bold text-primary select-all">#{{ item.position_ticket || item.id || "-" }}</span>
           </template>
           <template #cell-account="{ row: item }">
-            <span class="font-mono font-bold text-primary-text">{{ item.account_number || "-" }}</span>
+            <span
+              class="font-mono font-bold text-primary-text"
+              :class="{ 'cursor-pointer hover:text-primary hover:underline': item.account_number }"
+              :title="item.account_number ? `${item.account_number} (Ctrl+Click to open in new tab)` : ''"
+              @click="item.account_number && goToTradingAccount(item.account_number, $event)"
+            >{{ item.account_number || "-" }}</span>
           </template>
           <template #cell-broker_group="{ row: item }">
             <span class="font-mono text-secondary-text">{{ item.broker_group || "-" }}</span>
@@ -870,7 +883,12 @@
             <span class="font-mono text-secondary-text">#{{ order.position_ticket || "-" }}</span>
           </template>
           <template #cell-account="{ row: order }">
-            <span class="font-mono font-bold text-primary-text">{{ order.account_number || "-" }}</span>
+            <span
+              class="font-mono font-bold text-primary-text"
+              :class="{ 'cursor-pointer hover:text-primary hover:underline': order.account_number }"
+              :title="order.account_number ? `${order.account_number} (Ctrl+Click to open in new tab)` : ''"
+              @click="order.account_number && goToTradingAccount(order.account_number, $event)"
+            >{{ order.account_number || "-" }}</span>
           </template>
           <template #cell-symbol="{ row: order }">
             <span class="font-bold text-primary-text">{{ order.symbol || "-" }}</span>
@@ -950,7 +968,12 @@
             <span class="font-mono text-secondary-text">#{{ deal.order_ticket || "-" }}</span>
           </template>
           <template #cell-account="{ row: deal }">
-            <span class="font-mono font-bold text-primary-text">{{ deal.account_number || "-" }}</span>
+            <span
+              class="font-mono font-bold text-primary-text"
+              :class="{ 'cursor-pointer hover:text-primary hover:underline': deal.account_number }"
+              :title="deal.account_number ? `${deal.account_number} (Ctrl+Click to open in new tab)` : ''"
+              @click="deal.account_number && goToTradingAccount(deal.account_number, $event)"
+            >{{ deal.account_number || "-" }}</span>
           </template>
           <template #cell-broker_group="{ row: deal }">
             <span class="font-mono text-secondary-text">{{ deal.broker_group || "-" }}</span>
@@ -1038,6 +1061,7 @@ import Pagination from "@/components/common/Pagination.vue";
 import Tooltip from "@/components/common/Tooltip.vue";
 import { formatDate as formatTime } from "@/utils/timeFormatter.js";
 import { livePNL } from "@/utils/livePNL.js";
+import { goToTradingAccount } from "@/composables/useNavigation";
 
 const store = useFmTradeBookStore();
 const route = useRoute();

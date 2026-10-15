@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, computed, ref } from "vue";
+import { onMounted, computed, ref, watch } from "vue";
 import {
   Search,
   Users,
@@ -39,7 +39,7 @@ import ClientLoginModal from "@/components/common/ClientLoginModal.vue";
 import ManageTransactionsDialog from "@/components/common/ManageTransactionsDialog.vue";
 import TagChip from "@/components/common/TagChip.vue";
 import TagAssignmentModal from "@/components/common/TagAssignmentModal.vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { useGoToTradingAccount } from "@/composables/useGoToTradingAccount";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import { getFlagCode, cleanCountryLabel } from "@/utils/countries";
@@ -49,6 +49,7 @@ import { useSnackbarStore } from "@/stores/snackbar/snackbar";
 import { useRbacStaffStore } from "@/stores/rbac/staff";
 
 const router = useRouter();
+const route = useRoute();
 const { hasPermission, hasAnyPermission } = usePermissionCheck();
 
 const store = useClientListStore();
@@ -406,16 +407,7 @@ const handleDeleteSuccess = () => {
 const { goToTradingAccount } = useGoToTradingAccount();
 
 const navigateToTradingAccount = (accountOrEmail, event) => {
-  if (!accountOrEmail) return;
-  if (event && (event.ctrlKey || event.metaKey || event.button === 1)) {
-    const routeData = router.resolve({
-      path: "/trading-accounts",
-      query: { search: accountOrEmail },
-    });
-    window.open(routeData.href, "_blank");
-    return;
-  }
-  goToTradingAccount(accountOrEmail);
+  goToTradingAccount(accountOrEmail, event);
 };
 
 const expandedAccountsMap = ref({});
@@ -651,10 +643,28 @@ const getKycClass = (status) => {
 };
 
 onMounted(() => {
+  const querySearch =
+    route.query.search || route.query.search_query || route.query.email;
+  if (querySearch) {
+    store.filters.search = String(querySearch).trim();
+  }
   store.fetchClients();
   tagsStore.fetchTags();
   rbacStaffStore.fetchStaff(false);
 });
+
+watch(
+  () => route.query.search || route.query.search_query || route.query.email,
+  (newSearch) => {
+    if (newSearch !== undefined) {
+      const val = newSearch ? String(newSearch).trim() : "";
+      if (val !== store.filters.search) {
+        store.filters.search = val;
+        store.fetchClients(1);
+      }
+    }
+  }
+);
 </script>
 
 <template>

@@ -43,7 +43,12 @@
               </div>
               <p class="text-xs text-secondary-text truncate mt-0.5 flex items-center gap-1">
                 <Mail class="w-3.5 h-3.5 text-primary shrink-0" />
-                <span class="font-medium text-primary-text select-all">{{ item?.user?.email || 'No email provided' }}</span>
+                <span
+                  class="font-medium text-primary-text select-all"
+                  :class="{ 'cursor-pointer hover:text-primary hover:underline': item?.user?.email }"
+                  :title="item?.user?.email ? `${item.user.email} (Ctrl+Click to open in new tab)` : ''"
+                  @click="item?.user?.email && goToClient(item.user.email, $event)"
+                >{{ item?.user?.email || 'No email provided' }}</span>
               </p>
             </div>
           </div>
@@ -147,7 +152,12 @@
                 <div>
                   <span class="text-secondary-text text-[11px] block">Email Address</span>
                   <div class="flex items-center gap-1.5">
-                    <span class="font-bold text-primary-text font-mono select-all">{{ item?.user?.email || '—' }}</span>
+                    <span 
+                      class="font-bold text-primary-text font-mono select-all transition-colors"
+                      :class="{ 'cursor-pointer hover:text-primary hover:underline': item?.user?.email }"
+                      :title="item?.user?.email ? `${item.user.email} (Ctrl+Click to open in new tab)` : ''"
+                      @click="item?.user?.email && goToClient(item.user.email, $event)"
+                    >{{ item?.user?.email || '—' }}</span>
                     <button
                       v-if="item?.user?.email"
                       type="button"
@@ -259,7 +269,12 @@
                 <div>
                   <span class="text-secondary-text text-[11px] block">Account Number</span>
                   <div class="flex items-center gap-1.5">
-                    <span class="font-mono font-bold text-primary-text text-sm select-all">
+                    <span 
+                      class="font-mono font-bold text-primary-text text-sm select-all transition-colors"
+                      :class="{ 'cursor-pointer hover:text-primary hover:underline': item?.master_account?.account_number || item?.master_account_id }"
+                      :title="(item?.master_account?.account_number || item?.master_account_id) ? 'View Trading Account (Ctrl+Click to open in new tab)' : ''"
+                      @click="(item?.master_account?.account_number || item?.master_account_id) && goToTradingAccount(item?.master_account?.account_number || item?.master_account_id, $event)"
+                    >
                       {{ item?.master_account?.account_number || item?.master_account_id || '—' }}
                     </span>
                     <button
@@ -317,7 +332,12 @@
                 <div>
                   <span class="text-secondary-text text-[11px] block">Account Number</span>
                   <div class="flex items-center gap-1.5">
-                    <span class="font-mono font-bold text-primary-text text-sm select-all">
+                    <span 
+                      class="font-mono font-bold text-primary-text text-sm select-all transition-colors"
+                      :class="{ 'cursor-pointer hover:text-primary hover:underline': item?.coverage_account?.account_number || item?.coverage_account_id }"
+                      :title="(item?.coverage_account?.account_number || item?.coverage_account_id) ? 'View Trading Account (Ctrl+Click to open in new tab)' : ''"
+                      @click="(item?.coverage_account?.account_number || item?.coverage_account_id) && goToTradingAccount(item?.coverage_account?.account_number || item?.coverage_account_id, $event)"
+                    >
                       {{ item?.coverage_account?.account_number || item?.coverage_account_id || '—' }}
                     </span>
                     <button
@@ -491,6 +511,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useNavigation } from '@/composables/useNavigation'
 import {
   X,
   Copy,
@@ -515,6 +536,7 @@ const emit = defineEmits(['close'])
 
 const activeTab = ref('overview')
 const copiedKey = ref('')
+const { goToTradingAccount, goToClient } = useNavigation()
 
 let copyTimeout = null
 const copyText = (val, key = '') => {

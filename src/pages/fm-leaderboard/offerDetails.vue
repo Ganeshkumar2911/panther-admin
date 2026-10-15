@@ -1,3 +1,4 @@
+
 <template>
   <div class="space-y-6 py-2">
     <!-- HERO / ACTIVE OFFER BANNER -->
@@ -615,7 +616,12 @@
                       <Users class="w-4 h-4" />
                     </div>
                     <div>
-                      <p class="font-mono text-xs">{{ formatAgentAccount(agent) }}</p>
+                      <p
+                        class="font-mono text-xs"
+                        :class="{ 'cursor-pointer hover:text-primary hover:underline': formatAgentAccount(agent) && formatAgentAccount(agent) !== '—' }"
+                        :title="formatAgentAccount(agent) && formatAgentAccount(agent) !== '—' ? `${formatAgentAccount(agent)} (Ctrl+Click to open in new tab)` : ''"
+                        @click="formatAgentAccount(agent) && formatAgentAccount(agent) !== '—' && goToTradingAccount(formatAgentAccount(agent), $event)"
+                      >{{ formatAgentAccount(agent) }}</p>
                       <p class="text-[10px] text-secondary-text font-normal">ID #{{ agent.id }}</p>
                     </div>
                   </div>
@@ -781,6 +787,7 @@ import CreateAgentDialog from '@/components/fmOffers/CreateAgentDialog.vue'
 import EditAgentDialog from '@/components/fmOffers/EditAgentDialog.vue'
 import DeleteAgentConfirmationDialog from '@/components/fmOffers/DeleteAgentConfirmationDialog.vue'
 import { usePermissionCheck } from '@/composables/usePermissionCheck'
+import { goToTradingAccount } from '@/composables/useNavigation'
 
 const route = useRoute()
 const router = useRouter()

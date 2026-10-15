@@ -24,7 +24,13 @@
               </span>
             </div>
             <div class="flex items-center gap-3 text-xs text-secondary-text mt-1 flex-wrap font-medium">
-              <span v-if="fmInfo.user?.email" class="flex items-center gap-1 font-mono text-primary-text select-all">
+              <span
+                v-if="fmInfo.user?.email"
+                class="flex items-center gap-1 font-mono text-primary-text select-all"
+                :class="{ 'cursor-pointer hover:text-primary hover:underline': fmInfo.user?.email }"
+                :title="fmInfo.user?.email ? `${fmInfo.user.email} (Ctrl+Click to open in new tab)` : ''"
+                @click="fmInfo.user?.email && goToClient(fmInfo.user.email, $event)"
+              >
                 <Mail class="w-3.5 h-3.5 text-primary shrink-0" />
                 {{ fmInfo.user.email }}
               </span>
@@ -40,12 +46,22 @@
           <div class="flex items-center gap-3 text-xs bg-background/60 border border-primary-border/60 rounded-xl px-3.5 py-2 shrink-0 flex-wrap">
             <div>
               <span class="text-[9px] uppercase text-secondary-text block font-semibold">Master Account</span>
-              <span class="font-bold text-primary-text font-mono text-xs">{{ fmInfo.master_account?.account_number || `#${fmInfo.master_account_id}` }}</span>
+              <span
+                class="font-bold text-primary-text font-mono text-xs cursor-pointer hover:text-primary hover:underline transition-colors break-all"
+                :title="fmInfo.master_account?.account_number || fmInfo.master_account_id ? `${fmInfo.master_account?.account_number || fmInfo.master_account_id} (Ctrl+Click to open in new tab)` : ''"
+                @click="goToTradingAccount(fmInfo.master_account?.account_number || fmInfo.master_account_id, $event)"
+              >{{ fmInfo.master_account?.account_number || `#${fmInfo.master_account_id}` }}</span>
             </div>
             <div class="h-6 w-px bg-primary-border/60" />
             <div>
               <span class="text-[9px] uppercase text-secondary-text block font-semibold">Coverage Account</span>
-              <span class="font-bold text-primary-text font-mono text-xs">{{ fmInfo.coverage_account?.account_number || `#${fmInfo.coverage_account_id}` }}</span>
+              <span
+                v-if="fmInfo.coverage_account?.account_number || fmInfo.coverage_account_id"
+                class="font-bold text-primary-text font-mono text-xs cursor-pointer hover:text-primary hover:underline transition-colors break-all"
+                :title="`${fmInfo.coverage_account?.account_number || fmInfo.coverage_account_id} (Ctrl+Click to open in new tab)`"
+                @click="goToTradingAccount(fmInfo.coverage_account?.account_number || fmInfo.coverage_account_id, $event)"
+              >{{ fmInfo.coverage_account?.account_number || `#${fmInfo.coverage_account_id}` }}</span>
+              <span v-else class="font-bold text-secondary-text font-mono text-xs">—</span>
             </div>
             <div class="h-6 w-px bg-primary-border/60" />
             <div>
@@ -305,7 +321,8 @@
             </button>
             <button
               class="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold transition-colors cursor-pointer"
-              @click="goToOfferDetails(offer)"
+              title="Manage Offer (Ctrl+Click to open in new tab)"
+              @click="goToOfferDetails(offer, $event)"
             >
               <Link2 class="w-3.5 h-3.5" /> Manage
             </button>
@@ -334,6 +351,7 @@ import urls from '@/api/urls'
 import Tooltip from '@/components/common/Tooltip.vue'
 import CreateOfferDialog from '@/components/fmOffers/CreateOfferDialog.vue'
 import { useSnackbarStore } from '@/stores/snackbar/snackbar'
+import { goToTradingAccount, goToClient, openInNewTab, isNewTabEvent } from '@/composables/useNavigation'
 
 const route = useRoute()
 const router = useRouter()
@@ -369,15 +387,19 @@ const closeCreateDialog = () => {
   fetchOffers(true)
 }
 
-const goToOfferDetails = (offer) => {
+const goToOfferDetails = (offer, event) => {
   localStorage.setItem('active_offer', JSON.stringify(offer))
-  router.push({
+  const routeLoc = {
     path: `/fm-offers/${offer.id}`,
     query: {
       fm_id: fmId || offer.fund_manager_id || offer.fm_id,
       currency: getOfferCurrency(offer),
     },
-  })
+  }
+  if (isNewTabEvent(event)) {
+    return openInNewTab(router.resolve(routeLoc).href)
+  }
+  router.push(routeLoc)
 }
 
 const loadFmInfo = () => {

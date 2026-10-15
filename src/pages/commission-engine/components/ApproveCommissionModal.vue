@@ -8,6 +8,7 @@ import {
   Alert02Icon,
 } from "@hugeicons/core-free-icons";
 import { useCommissionEngineStore } from "@/stores/commissionEngine/commissionEngine";
+import { goToTradingAccount } from "@/composables/useNavigation";
 
 const props = defineProps({
   modelValue: {
@@ -148,9 +149,15 @@ const handleApprove = async () => {
                 </div>
                 <div class="flex items-center justify-between">
                   <span class="text-secondary-text">Trading Account Login:</span>
-                  <span class="font-mono text-primary-text">
-                    {{ commission.trade?.login || "N/A" }}
+                  <span
+                    v-if="commission.trade?.login"
+                    class="font-mono text-primary font-semibold cursor-pointer hover:underline"
+                    :title="`Trading Account ${commission.trade.login} (Ctrl+Click to open in new tab)`"
+                    @click="goToTradingAccount(commission.trade.login, $event)"
+                  >
+                    {{ commission.trade.login }}
                   </span>
+                  <span v-else class="font-mono text-primary-text">N/A</span>
                 </div>
                 <div class="flex items-center justify-between">
                   <span class="text-secondary-text">Symbol & Lots:</span>

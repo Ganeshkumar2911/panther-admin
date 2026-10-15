@@ -146,6 +146,9 @@
                 <span
                   v-if="userData.user?.email"
                   class="flex items-center gap-1 font-mono text-primary-text select-all"
+                  :class="{ 'cursor-pointer hover:text-primary hover:underline': userData.user?.email }"
+                  :title="userData.user?.email ? `${userData.user.email} (Ctrl+Click to open in new tab)` : ''"
+                  @click="userData.user?.email && goToClient(userData.user.email, $event)"
                 >
                   <Mail class="w-3.5 h-3.5 text-primary shrink-0" />
                   {{ userData.user.email }}
@@ -493,6 +496,9 @@
                 </span>
                 <span
                   class="font-mono text-xs font-semibold px-2 py-0.5 rounded bg-background border border-primary-border text-primary-text"
+                  :class="{ 'cursor-pointer hover:text-primary hover:underline': follower.account_number }"
+                  :title="follower.account_number ? `${follower.account_number} (Ctrl+Click to open in new tab)` : ''"
+                  @click="follower.account_number && goToTradingAccount(follower.account_number, $event)"
                 >
                   Account: {{ follower.account_number }}
                 </span>
@@ -936,9 +942,12 @@
                         >
                           <td class="py-1.5 px-2 font-medium text-primary-text">
                             {{ split.ib_name }}
-                            <span class="text-secondary-text text-[10px]"
-                              >({{ split.ib_email }})</span
-                            >
+                            <span
+                              v-if="split.ib_email"
+                              class="text-[10px] cursor-pointer hover:underline text-primary"
+                              :title="`${split.ib_email} (Ctrl+Click to open in new tab)`"
+                              @click="goToClient(split.ib_email, $event)"
+                            >({{ split.ib_email }})</span>
                           </td>
                           <td class="py-1.5 px-2 text-secondary-text">
                             L{{ split.ib_level }}
@@ -1020,7 +1029,11 @@
                             </span>
                           </td>
                           <td class="py-2 px-3 font-mono text-secondary-text">
-                            {{ t.account_number }}
+                            <span
+                              :class="{ 'cursor-pointer hover:text-primary hover:underline': t.account_number }"
+                              :title="t.account_number ? `${t.account_number} (Ctrl+Click to open in new tab)` : ''"
+                              @click="t.account_number && goToTradingAccount(t.account_number, $event)"
+                            >{{ t.account_number }}</span>
                           </td>
                           <td class="py-2 px-3 text-secondary-text">
                             {{ formatDate(t.closed_at) }}
@@ -1140,7 +1153,11 @@
                     <p class="text-xs font-semibold text-primary-text">
                       {{ ib.ib_name }}
                     </p>
-                    <p class="text-[11px] text-secondary-text">
+                    <p
+                      class="text-[11px] cursor-pointer hover:underline text-primary"
+                      :title="ib.ib_email ? `${ib.ib_email} (Ctrl+Click to open in new tab)` : ''"
+                      @click="ib.ib_email && goToClient(ib.ib_email, $event)"
+                    >
                       {{ ib.ib_email }}
                     </p>
                     <p class="text-[10px] text-secondary-text">
@@ -1289,6 +1306,7 @@ import {
   Phone,
 } from "lucide-vue-next";
 import { useUserSettlementStore } from "@/stores/fmLeaderboard/userSettlement";
+import { goToTradingAccount, goToClient } from "@/composables/useNavigation";
 
 const route = useRoute();
 const router = useRouter();

@@ -189,7 +189,12 @@
               <div>
                 <span class="text-secondary-text text-[11px] block">Email Address</span>
                 <div class="flex items-center gap-1.5">
-                  <span class="font-bold text-primary-text font-mono select-all truncate">{{ userEmail }}</span>
+                  <span
+                    class="font-bold text-primary-text font-mono select-all truncate"
+                    :class="{ 'cursor-pointer hover:text-primary hover:underline': userEmail && userEmail !== 'N/A' && userEmail !== '—' }"
+                    :title="userEmail && userEmail !== 'N/A' && userEmail !== '—' ? `${userEmail} (Ctrl+Click to open in new tab)` : ''"
+                    @click="userEmail && userEmail !== 'N/A' && userEmail !== '—' && goToClient(userEmail, $event)"
+                  >{{ userEmail }}</span>
                   <button
                     v-if="userEmail && userEmail !== 'N/A' && userEmail !== '—'"
                     type="button"
@@ -286,6 +291,7 @@ import { User02Icon } from '@hugeicons/core-free-icons'
 import ConfirmationDialog from '@/components/common/ConfirmationDialog.vue'
 import { useMyPermissionsStore } from '@/stores/rbac/myPermissions'
 import { useFmLeaderboardStore } from '@/stores/fmLeaderboard/fmLeaderboard'
+import { goToClient } from '@/composables/useNavigation'
 
 const props = defineProps({
   open: { type: Boolean, default: false },

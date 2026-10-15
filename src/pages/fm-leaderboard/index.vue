@@ -402,7 +402,12 @@
               <div class="bg-background/80 border border-primary-border/80 rounded-xl px-3 py-2 flex items-center justify-between mb-3.5">
               <div class="flex items-center gap-2 min-w-0">
                 <Mail class="w-3.5 h-3.5 text-primary shrink-0" />
-                <span class="text-xs font-semibold text-primary-text truncate font-mono select-all" :title="item.user?.email">
+                <span 
+                  class="text-xs font-semibold text-primary-text truncate font-mono select-all transition-colors"
+                  :class="{ 'cursor-pointer hover:text-primary hover:underline': item.user?.email }"
+                  :title="item.user?.email ? `${item.user.email} (Click to open in new tab)` : 'No email registered'"
+                  @click.stop="item.user?.email && goToClient(item.user.email, $event)"
+                >
                   {{ item.user?.email || 'No email registered' }}
                 </span>
               </div>
@@ -487,12 +492,14 @@
                   Master: <span 
                     class="text-primary font-bold"
                     :class="{ 'cursor-pointer hover:underline': item.master_account }"
-                    @click.stop="item.master_account && goToTradingAccount(item.master_account?.account_number)"
+                    :title="item.master_account ? 'Trading Account (Click to open in new tab)' : ''"
+                    @click.stop="item.master_account && goToTradingAccount(item.master_account?.account_number, $event)"
                   >{{ item.master_account?.account_number || `#${item.master_account_id}` }}</span>
                   · Cov: <span 
                     class="text-indigo-400 font-bold"
                     :class="{ 'cursor-pointer hover:underline': item.coverage_account }"
-                    @click.stop="item.coverage_account && goToTradingAccount(item.coverage_account?.account_number)"
+                    :title="item.coverage_account ? 'Trading Account (Click to open in new tab)' : ''"
+                    @click.stop="item.coverage_account && goToTradingAccount(item.coverage_account?.account_number, $event)"
                   >{{ item.coverage_account?.account_number || `#${item.coverage_account_id}` }}</span>
                 </span>
               </div>
@@ -569,7 +576,8 @@
                     <p class="text-[9px] uppercase font-semibold tracking-wider text-secondary-text mb-1">Master MT5</p>
                     <span 
                       class="text-xs font-bold font-mono text-primary cursor-pointer hover:underline"
-                      @click.stop="item.pamm?.master_trading_account?.account_number && goToTradingAccount(item.pamm.master_trading_account.account_number)"
+                      :title="item.pamm?.master_trading_account?.account_number ? 'Trading Account (Ctrl+Click to open in new tab)' : ''"
+                      @click.stop="item.pamm?.master_trading_account?.account_number && goToTradingAccount(item.pamm.master_trading_account.account_number, $event)"
                     >
                       {{ item.pamm?.master_trading_account?.account_number || 'N/A' }}
                     </span>
@@ -617,7 +625,7 @@
 
             <DropdownMenu
               :items="getRowActions(item)"
-              @select="(menuItem) => onMenuSelect(menuItem, item)"
+              @select="(menuItem, event) => onMenuSelect(menuItem, item, event)"
             />
           </div>
         </div>
@@ -632,7 +640,7 @@
           :loading="store.isLoading"
           :has-actions="true"
           :actions="getRowActions"
-          @action="({ item, row }) => onMenuSelect(item, row)"
+          @action="({ item, row, event }) => onMenuSelect(item, row, event)"
           :pagination="store.pagination"
           @page-change="handlePageChange"
           @per-page-change="handlePerPageChange"
@@ -649,7 +657,12 @@
                 <p class="font-bold text-primary-text text-xs truncate" :title="item.label_name">
                   {{ item.label_name || 'Unnamed FM' }}
                 </p>
-                <p class="text-[11px] font-semibold text-primary select-all truncate max-w-52.5" :title="item.user?.email">
+                <p 
+                  class="text-[11px] font-semibold text-primary select-all truncate max-w-52.5 transition-colors"
+                  :class="{ 'cursor-pointer hover:underline': item.user?.email }"
+                  :title="item.user?.email ? `${item.user.email} (Ctrl+Click to open in new tab)` : 'No email'"
+                  @click.stop="item.user?.email && goToClient(item.user.email, $event)"
+                >
                   {{ item.user?.email || 'No email' }}
                 </p>
                 <p v-if="item.user?.name" class="text-[10px] text-secondary-text truncate">
@@ -666,14 +679,16 @@
                 Master: <span 
                   class="font-bold text-primary"
                   :class="{ 'cursor-pointer hover:underline': item.master_account }"
-                  @click.stop="item.master_account && goToTradingAccount(item.master_account?.account_number)"
+                  :title="item.master_account ? 'Trading Account (Ctrl+Click to open in new tab)' : ''"
+                  @click.stop="item.master_account && goToTradingAccount(item.master_account?.account_number, $event)"
                 >{{ item.master_account?.account_number || `#${item.master_account_id}` }}</span>
               </div>
               <div class="font-mono text-[11px] text-secondary-text">
                 Coverage: <span 
                   class="font-semibold text-primary-text"
                   :class="{ 'cursor-pointer hover:underline': item.coverage_account }"
-                  @click.stop="item.coverage_account && goToTradingAccount(item.coverage_account?.account_number)"
+                  :title="item.coverage_account ? 'Trading Account (Ctrl+Click to open in new tab)' : ''"
+                  @click.stop="item.coverage_account && goToTradingAccount(item.coverage_account?.account_number, $event)"
                 >{{ item.coverage_account?.account_number || `#${item.coverage_account_id}` }}</span>
               </div>
               <div class="flex items-center gap-1.5 text-[11px]">
@@ -872,7 +887,7 @@
 <script setup>
 import { onMounted, ref, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useGoToTradingAccount } from '@/composables/useGoToTradingAccount'
+import { useNavigation } from '@/composables/useNavigation'
 import {
   CalendarDays,
   Edit,
@@ -971,7 +986,7 @@ watch(
     }
   }
 )
-const { goToTradingAccount } = useGoToTradingAccount()
+const { goToTradingAccount, goToClient, openInNewTab, isNewTabEvent } = useNavigation()
 
 const layoutMode = ref('grid')
 const searchQuery = ref('')
@@ -1276,10 +1291,10 @@ const handleToggleDummy = async (item) => {
   }
 }
 
-const handleSettlement = (item) => {
+const handleSettlement = (item, event) => {
   if (!item || item.id == null) return
   setActiveFm(item)
-  router.push({
+  const routeLoc = {
     name: 'fm-settlement-preview',
     params: { id: item.id },
     query: {
@@ -1289,7 +1304,11 @@ const handleSettlement = (item) => {
         item.coverage_account?.broker_currency ||
         item.master_account?.broker_currency,
     },
-  })
+  }
+  if (isNewTabEvent(event)) {
+    return openInNewTab(router.resolve(routeLoc).href)
+  }
+  router.push(routeLoc)
 }
 
 const getRowActions = (item) => {
@@ -1389,35 +1408,51 @@ const confirmEnrollPamm = async () => {
   }
 }
 
-const onMenuSelect = (menuItem, item) => {
+const onMenuSelect = (menuItem, item, event) => {
   setActiveFm(item)
+  const isNewTab = isNewTabEvent(event)
   switch (menuItem.action) {
     case 'details':
       return openDetailsDrawer(item)
     case 'fmLogin':
       return handleFmLogin(item)
-    case 'trade-book':
-      return router.push({
+    case 'trade-book': {
+      const routeLoc = {
         name: 'fm-trade-book',
         params: { id: item.id },
         query: { currency: item.broker_currency || item.currency || item.coverage_account?.broker_currency },
-      })
-    case 'offers':
-      return router.push({
+      }
+      if (isNewTab) {
+        return openInNewTab(router.resolve(routeLoc).href)
+      }
+      return router.push(routeLoc)
+    }
+    case 'offers': {
+      const routeLoc = {
         name: 'fm-offers',
         params: { id: item.id },
         query: { currency: item.broker_currency || item.currency || item.coverage_account?.broker_currency || item.master_account?.broker_currency },
-      })
-    case 'followers':
-      return router.push({
+      }
+      if (isNewTab) {
+        return openInNewTab(router.resolve(routeLoc).href)
+      }
+      return router.push(routeLoc)
+    }
+    case 'followers': {
+      const routeLoc = {
         name: 'fm-followers',
         params: { id: item.id },
         query: { currency: item.broker_currency || item.currency || item.coverage_account?.broker_currency || item.master_account?.broker_currency },
-      })
+      }
+      if (isNewTab) {
+        return openInNewTab(router.resolve(routeLoc).href)
+      }
+      return router.push(routeLoc)
+    }
     case 'toggle-mode':
       return openToggleConfirm(item)
     case 'settlement':
-      return handleSettlement(item)
+      return handleSettlement(item, event)
     case 'edit':
       return handleEdit(item)
     case 'enroll-pamm':

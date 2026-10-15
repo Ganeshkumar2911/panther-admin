@@ -44,7 +44,13 @@
             :pagination="{ page: 1, per_page: 200, total: store.tradeAllocations.length, pages: 1 }"
           >
             <template #cell-user_id="{ row }">
-              <span class="font-medium">User #{{ row.user_id }}</span>
+              <span
+                class="font-medium text-primary cursor-pointer hover:underline"
+                :title="`User #${row.user_id} (Ctrl+Click to open in new tab)`"
+                @click.stop="goToClient(row.user_id, $event)"
+              >
+                User #{{ row.user_id }}
+              </span>
             </template>
             
             <template #cell-ownership_percentage="{ row }">
@@ -74,6 +80,7 @@
 <script setup>
 import { onMounted } from 'vue';
 import { usePAMMStore } from '@/stores/pamm/pamm';
+import { goToClient } from '@/composables/useNavigation';
 import DataTable from '@/components/common/DataTable/DataTable.vue';
 
 const props = defineProps({

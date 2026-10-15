@@ -21,6 +21,7 @@ import { useCommissionEngineStore } from "@/stores/commissionEngine/commissionEn
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import LiveBadge from "@/components/LiveBadge.vue";
+import { goToClient } from "@/composables/useNavigation";
 
 const store = useCommissionEngineStore();
 const { hasPermission } = usePermissionCheck();
@@ -789,7 +790,13 @@ const handleSave = async () => {
                     <p
                       class="text-[11px] text-secondary-text truncate max-w-[200px] mt-0.5 font-mono"
                     >
-                      {{ row.email || "No email provided" }}
+                      <span
+                        v-if="row.email"
+                        class="cursor-pointer hover:underline text-primary"
+                        :title="`${row.email} (Ctrl+Click to open in new tab)`"
+                        @click="goToClient(row.email, $event)"
+                      >{{ row.email }}</span>
+                      <span v-else>No email provided</span>
                     </p>
                   </div>
                 </td>

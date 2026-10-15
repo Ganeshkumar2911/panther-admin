@@ -45,6 +45,9 @@
               <span
                 v-if="fmInfo.user?.email"
                 class="flex items-center gap-1 font-mono text-primary-text select-all"
+                :class="{ 'cursor-pointer hover:text-primary hover:underline': fmInfo.user?.email }"
+                :title="fmInfo.user?.email ? `${fmInfo.user.email} (Ctrl+Click to open in new tab)` : ''"
+                @click="fmInfo.user?.email && goToClient(fmInfo.user.email, $event)"
               >
                 <Mail class="w-3.5 h-3.5 text-primary shrink-0" />
                 {{ fmInfo.user.email }}
@@ -71,7 +74,8 @@
               >
               <span
                 class="font-bold text-primary-text font-mono text-xs cursor-pointer hover:text-primary hover:underline transition-colors break-all"
-                @click="goToTradingAccount(fmInfo.master_account?.account_number || fmInfo.master_account_id)"
+                :title="fmInfo.master_account?.account_number || fmInfo.master_account_id ? `${fmInfo.master_account?.account_number || fmInfo.master_account_id} (Ctrl+Click to open in new tab)` : ''"
+                @click="goToTradingAccount(fmInfo.master_account?.account_number || fmInfo.master_account_id, $event)"
               >
                 {{ fmInfo.master_account?.account_number || `#${fmInfo.master_account_id}` }}
               </span>
@@ -85,7 +89,8 @@
               <span
                 v-if="fmInfo.coverage_account?.account_number || fmInfo.coverage_account_id"
                 class="font-bold text-primary-text font-mono text-xs cursor-pointer hover:text-primary hover:underline transition-colors break-all"
-                @click="goToTradingAccount(fmInfo.coverage_account?.account_number || fmInfo.coverage_account_id)"
+                :title="`${fmInfo.coverage_account?.account_number || fmInfo.coverage_account_id} (Ctrl+Click to open in new tab)`"
+                @click="goToTradingAccount(fmInfo.coverage_account?.account_number || fmInfo.coverage_account_id, $event)"
               >
                 {{ fmInfo.coverage_account?.account_number || `#${fmInfo.coverage_account_id}` }}
               </span>
@@ -435,7 +440,9 @@
                     </p>
                     <p
                       class="text-[11px] font-semibold text-primary font-mono select-all truncate max-w-50"
-                      :title="row.email"
+                      :class="{ 'cursor-pointer hover:underline': row.email }"
+                      :title="row.email ? `${row.email} (Ctrl+Click to open in new tab)` : 'No email'"
+                      @click.stop="row.email && goToClient(row.email, $event)"
                     >
                       {{ row.email || "No email" }}
                     </p>
@@ -448,7 +455,8 @@
                 <div class="space-y-0.5">
                   <p 
                     class="font-mono text-xs text-primary-text font-bold cursor-pointer hover:text-primary hover:underline transition-colors w-fit"
-                    @click.stop="goToTradingAccount(row.account_number || row.account_id)"
+                    :title="row.account_number || row.account_id ? `${row.account_number || row.account_id} (Ctrl+Click to open in new tab)` : ''"
+                    @click.stop="goToTradingAccount(row.account_number || row.account_id, $event)"
                   >
                     {{ row.account_number || `#${row.account_id}` }}
                   </p>
@@ -535,7 +543,9 @@
                   <p
                     v-if="row.ib_name || row.ib_email"
                     class="text-[10px] text-secondary-text truncate max-w-42.5"
-                    :title="row.ib_email"
+                    :class="{ 'cursor-pointer hover:text-primary hover:underline': row.ib_email }"
+                    :title="row.ib_email ? `${row.ib_email} (Ctrl+Click to open in new tab)` : ''"
+                    @click.stop="row.ib_email && goToClient(row.ib_email, $event)"
                   >
                     IB: {{ row.ib_name || row.ib_email }}
                   </p>
@@ -578,7 +588,7 @@
                   <Tooltip text="Trade Book" position="right">
                     <button
                       class="flex items-center gap-1.5 px-1.5 py-1.5 rounded-lg text-[11px] font-semibold border bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-colors cursor-pointer"
-                      @click="goToTradeBook(row)"
+                      @click="goToTradeBook(row, $event)"
                     >
                       <BookOpen class="w-3.5 h-3.5" />
                     </button>
@@ -627,7 +637,7 @@
                   <Tooltip text="View Follower Details" position="right">
                     <button
                       class="p-1.5 rounded-lg border border-primary-border hover:bg-background text-secondary-text hover:text-primary transition-colors cursor-pointer inline-flex items-center gap-1 text-xs font-semibold"
-                      @click="goToFollowerDetails(row)"
+                      @click="goToFollowerDetails(row, $event)"
                     >
                       <ChevronsRight class="w-4 h-4" />
                     </button>
@@ -649,7 +659,12 @@
               <p class="text-xs font-bold text-primary-text truncate">
                 {{ row.name || "Unnamed Follower" }}
               </p>
-              <p class="text-[11px] text-primary font-semibold truncate">
+              <p
+                class="text-[11px] text-primary font-semibold truncate"
+                :class="{ 'cursor-pointer hover:underline': row.email }"
+                :title="row.email ? `${row.email} (Ctrl+Click to open in new tab)` : ''"
+                @click.stop="row.email && goToClient(row.email, $event)"
+              >
                 {{ row.email }}
               </p>
             </div>
@@ -663,7 +678,7 @@
               <button
                 class="p-1 rounded-lg border border-primary-border bg-primary/10 text-primary hover:bg-primary/20"
                 title="Trade Book"
-                @click="goToTradeBook(row)"
+                @click="goToTradeBook(row, $event)"
               >
                 <BookOpen class="w-3.5 h-3.5" />
               </button>
@@ -700,7 +715,7 @@
               <button
                 class="p-1 rounded-lg border border-primary-border text-secondary-text hover:text-primary"
                 title="View Follower Details"
-                @click="goToFollowerDetails(row)"
+                @click="goToFollowerDetails(row, $event)"
               >
                 <ChevronsRight class="w-3.5 h-3.5" />
               </button>
@@ -715,7 +730,11 @@
                 class="text-[9px] text-secondary-text block uppercase font-semibold"
                 >Account</span
               >
-              <span class="font-bold text-primary-text font-mono">{{
+              <span
+                class="font-bold text-primary-text font-mono cursor-pointer hover:text-primary hover:underline"
+                :title="row.account_number || row.account_id ? `${row.account_number || row.account_id} (Ctrl+Click to open in new tab)` : ''"
+                @click.stop="goToTradingAccount(row.account_number || row.account_id, $event)"
+              >{{
                 row.account_number || `#${row.account_id}`
               }}</span>
             </div>
@@ -890,17 +909,12 @@ import ConfirmationDialog from "@/components/common/ConfirmationDialog.vue";
 import DataTable from "@/components/common/DataTable/DataTable.vue";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
+import { goToTradingAccount, goToClient, openInNewTab, isNewTabEvent } from "@/composables/useNavigation";
 
 const route = useRoute();
 const router = useRouter();
 const snackbar = useSnackbarStore();
 const { hasPermission } = usePermissionCheck();
-
-const goToTradingAccount = (accountNumber) => {
-  if (!accountNumber) return;
-  const accStr = String(accountNumber).replace('#', '');
-  router.push({ path: '/trading-accounts', query: { search: accStr } });
-};
 
 const columns = [
   { key: "follower_email", label: "Follower & Email" },
@@ -1082,9 +1096,9 @@ watch(
 const editDialogOpen = ref(false);
 const editingFollower = ref(null);
 
-const goToTradeBook = (row) => {
+const goToTradeBook = (row, event) => {
   const followerId = row.id || row.account_id;
-  router.push({
+  const routeLoc = {
     path: `/follower/trade-book/${followerId}`,
     query: {
       fm_id: fmId,
@@ -1096,18 +1110,26 @@ const goToTradeBook = (row) => {
       copy_ratio: row.copy_ratio,
       is_active: row.is_active,
     },
-  });
+  };
+  if (isNewTabEvent(event)) {
+    return openInNewTab(router.resolve(routeLoc).href);
+  }
+  router.push(routeLoc);
 };
 
-const goToFollowerDetails = (row) => {
+const goToFollowerDetails = (row, event) => {
   const followerId = row.id || row.account_id;
-  router.push({
+  const routeLoc = {
     path: `/follower-info/${followerId}`,
     query: {
       fm_id: fmId,
       status: selectedStatus.value,
     },
-  });
+  };
+  if (isNewTabEvent(event)) {
+    return openInNewTab(router.resolve(routeLoc).href);
+  }
+  router.push(routeLoc);
 };
 
 const openEditFollowerDialog = (row) => {

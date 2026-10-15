@@ -29,6 +29,7 @@ import { useAccountsStore } from "@/stores/tradingAccounts/tradingAccounts";
 import { useClientListStore } from "@/stores/clientList/clientList";
 import { useProfileStore } from "@/stores/profile/profile";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
+import { goToClient } from "@/composables/useNavigation";
 
 const store = useAccountsStore();
 const profile = useProfileStore();
@@ -36,13 +37,10 @@ const router = useRouter();
 const route = useRoute();
 const { hasPermission } = usePermissionCheck();
 
-const goToClientSearch = (row) => {
+const goToClientSearch = (row, event) => {
   const searchTerm = row.user?.email || row.client_name;
   if (searchTerm) {
-    const clientStore = useClientListStore();
-    clientStore.filters.search = searchTerm;
-    clientStore.applyFilters();
-    router.push('/clients');
+    goToClient(searchTerm, event);
   }
 };
 
@@ -753,7 +751,7 @@ onBeforeUnmount(() => clearTimeout(searchTimer));
 
       <!-- Custom Cell: Client -->
       <template #cell-client="{ row }">
-        <div class="cursor-pointer group" @click="goToClientSearch(row)">
+        <div class="cursor-pointer group" @click="goToClientSearch(row, $event)">
           <p class="text-xs font-medium text-primary-text group-hover:text-primary group-hover:underline whitespace-nowrap transition-colors">
             {{ row.client_name ?? row.user?.name ?? "—" }}
           </p>

@@ -16,6 +16,7 @@ import BaseSelect from "@/components/common/BaseSelect.vue";
 import BaseDatePicker from "@/components/common/BaseDatePicker.vue";
 import Tooltip from "@/components/common/Tooltip.vue";
 import RebuildTradesModal from "../components/RebuildTradesModal.vue";
+import { goToTradingAccount, goToClient } from "@/composables/useNavigation";
 
 const store = useCommissionEngineStore();
 const { hasPermission } = usePermissionCheck();
@@ -402,7 +403,16 @@ const formatDate = (val) => {
       <!-- Cell: Login & Position -->
       <template #cell-login="{ row }">
         <div class="text-xs font-mono">
-          <p class="font-bold text-primary-text">Login: {{ row.login }}</p>
+          <p class="font-bold text-primary-text">
+            Login:
+            <span
+              v-if="row.login"
+              class="cursor-pointer hover:underline text-primary"
+              :title="`Trading Account ${row.login} (Ctrl+Click to open in new tab)`"
+              @click="goToTradingAccount(row.login, $event)"
+            >{{ row.login }}</span>
+            <span v-else>-</span>
+          </p>
           <p class="text-[10px] text-secondary-text">Pos: #{{ row.position_id }}</p>
         </div>
       </template>

@@ -50,7 +50,12 @@
               <p class="text-xs text-secondary-text truncate mt-0.5 flex items-center gap-1.5 font-medium">
                 <span v-if="userName" class="truncate">{{ userName }}</span>
                 <span v-if="userName" class="text-secondary-text/50">·</span>
-                <span class="font-mono text-secondary-text select-all truncate">{{ userEmail }}</span>
+                <span
+                  class="font-mono select-all truncate"
+                  :class="{ 'cursor-pointer hover:text-primary hover:underline': userEmail && userEmail !== '—' }"
+                  :title="userEmail && userEmail !== '—' ? `${userEmail} (Ctrl+Click to open in new tab)` : ''"
+                  @click="userEmail && userEmail !== '—' && goToClient(userEmail, $event)"
+                >{{ userEmail }}</span>
               </p>
             </div>
           </div>
@@ -902,6 +907,7 @@ import BaseSelect from '@/components/common/BaseSelect.vue'
 import ConfirmationDialog from '@/components/common/ConfirmationDialog.vue'
 import { useMyPermissionsStore } from '@/stores/rbac/myPermissions'
 import { useFmLeaderboardStore } from '@/stores/fmLeaderboard/fmLeaderboard'
+import { goToClient } from '@/composables/useNavigation'
 
 const props = defineProps({
   open: { type: Boolean, default: false },

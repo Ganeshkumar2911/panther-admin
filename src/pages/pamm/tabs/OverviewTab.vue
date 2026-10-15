@@ -84,7 +84,15 @@
               </span>
             </div>
             <div class="text-xs text-secondary-text flex items-center gap-1 mt-0.5">
-              <span>{{ row.user?.email || row.email || '—' }}</span>
+              <span
+                v-if="row.user?.email || row.email"
+                class="text-primary cursor-pointer hover:underline"
+                :title="`${row.user?.email || row.email} (Ctrl+Click to open in new tab)`"
+                @click.stop="goToClient(row.user?.email || row.email, $event)"
+              >
+                {{ row.user?.email || row.email }}
+              </span>
+              <span v-else>—</span>
               <span v-if="row.user?.id || row.id" class="text-secondary-text/60">
                 • #{{ row.user?.id || row.id }}
               </span>
@@ -95,7 +103,13 @@
         <template #cell-trading_account="{ row }">
           <div v-if="row.trading_account" class="flex flex-col">
             <div class="font-mono text-xs font-medium text-primary-text flex items-center gap-1">
-              <span>#{{ row.trading_account.account_number || row.trading_account_id }}</span>
+              <span
+                class="cursor-pointer hover:underline text-primary"
+                :title="`Trading Account #${row.trading_account.account_number || row.trading_account_id} (Ctrl+Click to open in new tab)`"
+                @click.stop="goToTradingAccount(row.trading_account.account_number || row.trading_account_id, $event)"
+              >
+                #{{ row.trading_account.account_number || row.trading_account_id }}
+              </span>
               <span
                 v-if="row.trading_account.broker"
                 class="text-[10px] text-secondary-text font-normal px-1 py-0.2 bg-primary-border/15 rounded"
@@ -115,7 +129,15 @@
             </div>
           </div>
           <div v-else class="text-xs text-secondary-text italic font-mono">
-            #{{ row.trading_account_id || '—' }}
+            <span
+              v-if="row.trading_account_id"
+              class="cursor-pointer hover:underline text-primary not-italic"
+              :title="`Trading Account #${row.trading_account_id} (Ctrl+Click to open in new tab)`"
+              @click.stop="goToTradingAccount(row.trading_account_id, $event)"
+            >
+              #{{ row.trading_account_id }}
+            </span>
+            <span v-else>—</span>
           </div>
         </template>
 
@@ -195,6 +217,7 @@ import { useRoute } from "vue-router";
 import { usePAMMStore } from "@/stores/pamm/pamm";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import { formatDate } from "@/utils/timeFormatter";
+import { goToTradingAccount, goToClient } from "@/composables/useNavigation";
 import DataTable from "@/components/common/DataTable/DataTable.vue";
 import StatusBadge from "@/components/common/StatusBadge.vue";
 import ReconcileModal from "../components/ReconcileModal.vue";

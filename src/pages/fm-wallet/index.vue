@@ -8,6 +8,7 @@ import BaseDatePicker from '@/components/common/BaseDatePicker.vue'
 import Tooltip from '@/components/common/Tooltip.vue'
 import UpdateLedgerDialog from '@/components/fm-wallet/UpdateLedgerDialog.vue'
 import { usePermissionCheck } from '@/composables/usePermissionCheck'
+import { goToTradingAccount, goToClient } from '@/composables/useNavigation'
 
 const store = useFmLedgerStore()
 const { hasPermission } = usePermissionCheck()
@@ -299,14 +300,26 @@ onMounted(() => {
       </template>
 
       <!-- FM Name -->
-      <template #cell-fm_name="{ value }">
-        <span class="text-xs font-medium text-primary-text">{{ value }}</span>
+      <template #cell-fm_name="{ row, value }">
+        <span
+          class="text-xs font-medium text-primary cursor-pointer hover:underline"
+          :title="(row.email || row.fm_email || row.user_email || value) ? `${row.email || row.fm_email || row.user_email || value} (Click to open in new tab)` : ''"
+          @click.stop="goToClient(row.email || row.fm_email || row.user_email || value, $event)"
+        >
+          {{ value }}
+        </span>
       </template>
 
       <!-- Account -->
       <template #cell-account="{ row }">
         <div>
-          <p class="text-xs text-primary-text">#{{ row.account_number }}</p>
+          <p
+            class="text-xs font-mono font-medium text-primary cursor-pointer hover:underline"
+            :title="row.account_number ? `Trading Account #${row.account_number} (Click to open in new tab)` : ''"
+            @click.stop="row.account_number && goToTradingAccount(row.account_number, $event)"
+          >
+            #{{ row.account_number }}
+          </p>
           <p class="text-[11px] text-secondary-text">ID {{ row.account_id }}</p>
         </div>
       </template>

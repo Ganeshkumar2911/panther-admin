@@ -253,7 +253,14 @@
                 </span>
               </div>
               <p class="text-[11px] text-secondary-text font-mono truncate max-w-[220px]">
-                {{ row.ib_email || "No email" }} &middot; User #{{ row.ib_user_id || "N/A" }}
+                <span
+                  v-if="row.ib_email"
+                  class="cursor-pointer hover:underline text-primary"
+                  :title="`${row.ib_email} (Ctrl+Click to open in new tab)`"
+                  @click="goToClient(row.ib_email, $event)"
+                >{{ row.ib_email }}</span>
+                <span v-else>No email</span>
+                &middot; User #{{ row.ib_user_id || "N/A" }}
               </p>
             </div>
           </template>
@@ -714,7 +721,13 @@
                 {{ row.name || `Client #${row.user_id}` }}
               </p>
               <p class="text-[11px] text-secondary-text font-mono truncate max-w-[220px]">
-                {{ row.email || 'No email' }}
+                <span
+                  v-if="row.email"
+                  class="cursor-pointer hover:underline text-primary"
+                  :title="`${row.email} (Ctrl+Click to open in new tab)`"
+                  @click="goToClient(row.email, $event)"
+                >{{ row.email }}</span>
+                <span v-else>No email</span>
               </p>
               <p class="text-[10px] text-secondary-text font-mono">
                 User ID: #{{ row.user_id }}
@@ -729,7 +742,9 @@
                 <span
                   v-for="login in row.logins"
                   :key="login"
-                  class="px-2 py-0.5 rounded text-[11px] font-mono font-semibold bg-background border border-primary-border text-primary-text"
+                  class="px-2 py-0.5 rounded text-[11px] font-mono font-semibold bg-background border border-primary-border text-primary-text hover:border-primary cursor-pointer hover:underline"
+                  :title="`Trading Account ${login} (Ctrl+Click to open in new tab)`"
+                  @click="goToTradingAccount(login, $event)"
                 >
                   {{ login }}
                 </span>
@@ -919,7 +934,13 @@
                   </span>
                 </div>
                 <p class="text-xs text-secondary-text font-mono">
-                  {{ sub.sub_ib_email || 'No email recorded' }}
+                  <span
+                    v-if="sub.sub_ib_email"
+                    class="cursor-pointer hover:underline text-primary"
+                    :title="`${sub.sub_ib_email} (Ctrl+Click to open in new tab)`"
+                    @click="goToClient(sub.sub_ib_email, $event)"
+                  >{{ sub.sub_ib_email }}</span>
+                  <span v-else>No email recorded</span>
                 </p>
               </div>
 
@@ -986,7 +1007,9 @@
                             <span
                               v-for="login in subClient.logins"
                               :key="login"
-                              class="px-2 py-0.5 rounded text-[11px] font-mono font-semibold bg-background border border-primary-border text-primary-text"
+                              class="px-2 py-0.5 rounded text-[11px] font-mono font-semibold bg-background border border-primary-border text-primary-text hover:border-primary cursor-pointer hover:underline"
+                              :title="`Trading Account ${login} (Ctrl+Click to open in new tab)`"
+                              @click="goToTradingAccount(login, $event)"
                             >
                               {{ login }}
                             </span>
@@ -1093,9 +1116,15 @@
 
           <!-- Cell: Login / Account -->
           <template #cell-login="{ row }">
-            <span class="px-2 py-0.5 rounded text-[11px] font-mono font-semibold bg-background border border-primary-border text-primary-text">
-              {{ row.trade?.login || row.login || '—' }}
+            <span
+              v-if="row.trade?.login || row.login"
+              class="px-2 py-0.5 rounded text-[11px] font-mono font-semibold bg-background border border-primary-border text-primary-text hover:border-primary cursor-pointer hover:underline"
+              :title="`Trading Account ${row.trade?.login || row.login} (Ctrl+Click to open in new tab)`"
+              @click="goToTradingAccount(row.trade?.login || row.login, $event)"
+            >
+              {{ row.trade?.login || row.login }}
             </span>
+            <span v-else class="text-secondary-text text-xs font-mono">—</span>
           </template>
 
           <!-- Cell: Symbol -->
@@ -1220,7 +1249,13 @@
                 </span>
               </div>
               <p class="text-xs text-secondary-text font-mono flex items-center gap-2">
-                <span>{{ selectedClient?.email || 'No email' }}</span>
+                <span
+                  v-if="selectedClient?.email"
+                  class="cursor-pointer hover:underline text-primary"
+                  :title="`${selectedClient.email} (Ctrl+Click to open in new tab)`"
+                  @click="goToClient(selectedClient.email, $event)"
+                >{{ selectedClient.email }}</span>
+                <span v-else>No email</span>
               </p>
             </div>
           </div>
@@ -1334,7 +1369,9 @@
             type="button"
             class="px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition-colors cursor-pointer"
             :class="String(selectedLoginFilter) === String(login) ? 'bg-primary text-white' : 'bg-card-background border border-primary-border text-secondary-text hover:text-primary-text hover:bg-background'"
-            @click="handleLoginFilterChange(login)"
+            :title="`Filter by #${login} (Ctrl+Click to open trading account in new tab)`"
+            @click="(e) => isNewTabEvent(e) ? goToTradingAccount(login, e) : handleLoginFilterChange(login)"
+            @auxclick.prevent="goToTradingAccount(login, $event)"
           >
             #{{ login }}
           </button>
@@ -1388,9 +1425,15 @@
 
         <!-- Cell: Login / Account -->
         <template #cell-login="{ row }">
-          <span class="px-2 py-0.5 rounded text-[11px] font-mono font-semibold bg-background border border-primary-border text-primary-text">
-            {{ row.trade?.login || row.login || '—' }}
+          <span
+            v-if="row.trade?.login || row.login"
+            class="px-2 py-0.5 rounded text-[11px] font-mono font-semibold bg-background border border-primary-border text-primary-text hover:border-primary cursor-pointer hover:underline"
+            :title="`Trading Account ${row.trade?.login || row.login} (Ctrl+Click to open in new tab)`"
+            @click="goToTradingAccount(row.trade?.login || row.login, $event)"
+          >
+            {{ row.trade?.login || row.login }}
           </span>
+          <span v-else class="text-secondary-text text-xs font-mono">—</span>
         </template>
 
         <!-- Cell: Symbol -->
@@ -1472,6 +1515,7 @@ import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import Tooltip from "@/components/common/Tooltip.vue";
 import ConfirmationDialog from "@/components/common/ConfirmationDialog.vue";
+import { goToTradingAccount, goToClient, isNewTabEvent } from "@/composables/useNavigation";
 
 const route = useRoute();
 const router = useRouter();

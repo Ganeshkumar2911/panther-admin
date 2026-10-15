@@ -94,19 +94,33 @@
 
               <!-- Subtitle / Contact Row -->
               <div class="flex items-center gap-3 text-xs text-secondary-text mt-2 flex-wrap font-medium">
-                <button
+                <div
                   v-if="store.details.user_email"
-                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-background border border-primary-border font-mono text-[11px] font-bold text-primary hover:border-primary/40 transition-colors cursor-pointer"
-                  @click="copyText(store.details.user_email, 'Email address')"
-                  title="Click to copy email"
+                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-background border border-primary-border font-mono text-[11px] font-bold"
                 >
                   <Mail class="w-3 h-3 text-secondary-text" />
-                  <span>{{ store.details.user_email }}</span>
-                  <Check v-if="copiedField === 'email'" class="w-3 h-3 text-primary-green" />
-                  <Copy v-else class="w-3 h-3 opacity-60" />
-                </button>
+                  <span
+                    class="text-primary cursor-pointer hover:underline"
+                    :title="`${store.details.user_email} (Ctrl+Click to open in new tab)`"
+                    @click="goToClient(store.details.user_email, $event)"
+                  >{{ store.details.user_email }}</span>
+                  <button
+                    type="button"
+                    class="cursor-pointer ml-1 text-secondary-text hover:text-primary transition"
+                    @click.stop="copyText(store.details.user_email, 'Email address')"
+                    title="Click to copy email"
+                  >
+                    <Check v-if="copiedField === 'email'" class="w-3 h-3 text-primary-green" />
+                    <Copy v-else class="w-3 h-3 opacity-60" />
+                  </button>
+                </div>
 
-                <span v-if="store.details.account_number" class="inline-flex items-center gap-1 font-mono text-primary-text">
+                <span
+                  v-if="store.details.account_number"
+                  class="inline-flex items-center gap-1 font-mono text-primary-text cursor-pointer hover:text-primary hover:underline transition-colors"
+                  :title="`Account #${store.details.account_number} (Ctrl+Click to open in new tab)`"
+                  @click="goToTradingAccount(store.details.account_number, $event)"
+                >
                   <Layers class="w-3.5 h-3.5 text-secondary-text" />
                   Account #{{ store.details.account_number }}
                 </span>
@@ -123,21 +137,8 @@
           <div class="flex items-center gap-3 shrink-0 flex-wrap">
             <button
               class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-primary-border bg-background hover:bg-card-background text-primary-text hover:text-primary text-xs font-semibold transition-colors cursor-pointer shadow-2xs"
-              @click="
-                router.push({
-                  path: `/follower/trade-book/${route.params.id}`,
-                  query: {
-                    fm_id: route.query.fm_id,
-                    account_number: store.details?.account_number,
-                    trading_account_id: store.details?.trading_account_id,
-                    currency: activeCurrency,
-                    user_name: store.details?.user_name || store.details?.name,
-                    broker_group: store.details?.broker_group,
-                    copy_ratio: store.details?.copy_ratio,
-                    is_active: store.details?.is_active,
-                  },
-                })
-              "
+              title="Trade Book (Ctrl+Click to open in new tab)"
+              @click="goToFollowerTradeBook($event)"
             >
               <BookOpen class="w-3.5 h-3.5 text-primary" />
               <span>Trade Book</span>
@@ -233,7 +234,12 @@
               <div class="bg-background/60 border border-primary-border/60 rounded-lg p-3">
                 <p class="text-[10px] uppercase font-bold text-secondary-text tracking-wider mb-1">Account Number</p>
                 <div class="flex items-center justify-between">
-                  <span class="text-sm font-bold text-primary-text font-mono select-all">
+                  <span
+                    class="text-sm font-bold text-primary-text font-mono select-all"
+                    :class="{ 'cursor-pointer hover:text-primary hover:underline': store.details.account_number }"
+                    :title="store.details.account_number ? `${store.details.account_number} (Ctrl+Click to open in new tab)` : ''"
+                    @click="store.details.account_number && goToTradingAccount(store.details.account_number, $event)"
+                  >
                     {{ store.details.account_number || '—' }}
                   </span>
                   <button
@@ -249,7 +255,12 @@
 
               <div class="bg-background/60 border border-primary-border/60 rounded-lg p-3">
                 <p class="text-[10px] uppercase font-bold text-secondary-text tracking-wider mb-1">Trading Account ID</p>
-                <p class="text-sm font-bold text-primary-text font-mono">
+                <p
+                  class="text-sm font-bold text-primary-text font-mono"
+                  :class="{ 'cursor-pointer hover:text-primary hover:underline': store.details.trading_account_id }"
+                  :title="store.details.trading_account_id ? `Account #${store.details.trading_account_id} (Ctrl+Click to open in new tab)` : ''"
+                  @click="store.details.trading_account_id && goToTradingAccount(store.details.trading_account_id, $event)"
+                >
                   #{{ store.details.trading_account_id ?? '—' }}
                 </p>
               </div>
@@ -362,7 +373,12 @@
 
               <div class="pt-2 border-t border-primary-border/60">
                 <p class="text-[10px] uppercase font-bold text-secondary-text tracking-wider mb-0.5">Email Address</p>
-                <p class="text-xs font-mono font-bold text-primary select-all">{{ store.details.user_email || '—' }}</p>
+                <p
+                  class="text-xs font-mono font-bold text-primary select-all"
+                  :class="{ 'cursor-pointer hover:underline': store.details.user_email }"
+                  :title="store.details.user_email ? `${store.details.user_email} (Ctrl+Click to open in new tab)` : ''"
+                  @click="store.details.user_email && goToClient(store.details.user_email, $event)"
+                >{{ store.details.user_email || '—' }}</p>
               </div>
 
               <div class="pt-2 border-t border-primary-border/60 grid grid-cols-2 gap-2">
@@ -452,11 +468,32 @@ import { useFollowersDetailsStore } from '@/stores/fmOffers/followersDetails'
 import { useSnackbarStore } from '@/stores/snackbar/snackbar'
 import Tooltip from '@/components/common/Tooltip.vue'
 import EditFollowerDialog from '@/components/fmOffers/EditFollowerDialog.vue'
+import { goToTradingAccount, goToClient, openInNewTab, isNewTabEvent } from '@/composables/useNavigation'
 
 const store = useFollowersDetailsStore()
 const snackbar = useSnackbarStore()
 const route = useRoute()
 const router = useRouter()
+
+const goToFollowerTradeBook = (event) => {
+  const routeLoc = {
+    path: `/follower/trade-book/${route.params.id}`,
+    query: {
+      fm_id: route.query.fm_id,
+      account_number: store.details?.account_number,
+      trading_account_id: store.details?.trading_account_id,
+      currency: activeCurrency.value,
+      user_name: store.details?.user_name || store.details?.name,
+      broker_group: store.details?.broker_group,
+      copy_ratio: store.details?.copy_ratio,
+      is_active: store.details?.is_active,
+    },
+  };
+  if (isNewTabEvent(event)) {
+    return openInNewTab(router.resolve(routeLoc).href);
+  }
+  router.push(routeLoc);
+};
 
 const editDialogOpen = ref(false)
 const copiedField = ref(null)

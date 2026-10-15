@@ -91,7 +91,7 @@
         <button
           v-if="hasPermission('settlement.trades')"
           class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-primary-border bg-card-background hover:bg-background text-xs font-medium text-primary-text transition-colors cursor-pointer"
-          @click="goToTrades"
+          @click="goToTrades($event)"
         >
           <BarChart2 class="w-3.5 h-3.5 text-primary" />
           Flat Trades
@@ -355,7 +355,7 @@
             :row-class="() => 'cursor-pointer'"
             empty-title="No clients found"
             empty-text="No clients found matching your search."
-            @row-click="({ row }) => goToUserDetails(row)"
+            @row-click="({ row, event }) => goToUserDetails(row, event)"
           >
             <template #empty>
               <div class="text-center py-12 text-xs text-secondary-text">
@@ -367,7 +367,13 @@
             <template #cell-client="{ row }">
               <div>
                 <p class="text-xs font-semibold text-primary-text">{{ row.user_name || 'Client' }}</p>
-                <p class="text-[11px] text-secondary-text font-mono">{{ row.user_email }}</p>
+                <p
+                  class="text-[11px] font-mono cursor-pointer hover:underline text-primary"
+                  :title="row.user_email ? `${row.user_email} (Ctrl+Click to open in new tab)` : ''"
+                  @click.stop="row.user_email && goToClient(row.user_email, $event)"
+                >
+                  {{ row.user_email }}
+                </p>
                 <div class="flex items-center gap-1.5 mt-0.5">
                   <span class="text-[10px] text-secondary-text font-mono">User ID: #{{ row.user_id }}</span>
                   <span v-if="row.phone_number" class="text-[10px] text-secondary-text">· {{ row.phone_number }}</span>
@@ -382,7 +388,9 @@
                   <span
                     v-for="acc in (row.account_numbers || [])"
                     :key="acc"
-                    class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-background border border-primary-border text-primary-text"
+                    class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-background border border-primary-border text-primary cursor-pointer hover:underline"
+                    :title="`${acc} (Ctrl+Click to open in new tab)`"
+                    @click.stop="goToTradingAccount(acc, $event)"
                   >
                     {{ acc }}
                   </span>
@@ -510,7 +518,7 @@
               <div class="flex items-center justify-center" @click.stop>
                 <button
                   class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-xs font-medium transition-colors cursor-pointer"
-                  @click="goToUserDetails(row)"
+                  @click="goToUserDetails(row, $event)"
                 >
                   <span>Details</span>
                   <ChevronRight class="w-3.5 h-3.5" />
@@ -526,13 +534,19 @@
             v-for="u in filteredUsers"
             :key="u.user_id"
             class="bg-card-background border border-primary-border rounded-2xl p-4 space-y-3 shadow-2xs cursor-pointer hover:border-primary transition-colors"
-            @click="goToUserDetails(u)"
+            @click="goToUserDetails(u, $event)"
           >
             <!-- Card Header -->
             <div class="flex items-start justify-between">
               <div>
                 <p class="text-xs font-semibold text-primary-text">{{ u.user_name || 'Client' }}</p>
-                <p class="text-[11px] text-secondary-text font-mono">{{ u.user_email }}</p>
+                <p
+                  class="text-[11px] font-mono cursor-pointer hover:underline text-primary"
+                  :title="u.user_email ? `${u.user_email} (Ctrl+Click to open in new tab)` : ''"
+                  @click.stop="u.user_email && goToClient(u.user_email, $event)"
+                >
+                  {{ u.user_email }}
+                </p>
                 <div class="flex items-center gap-2 mt-1">
                   <span class="text-[10px] text-secondary-text font-mono">User ID: #{{ u.user_id }}</span>
                   <span class="text-[10px] text-secondary-text font-mono">· {{ u.trades_count ?? 0 }} trades</span>
@@ -562,7 +576,9 @@
               <span
                 v-for="acc in u.account_numbers"
                 :key="acc"
-                class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-background border border-primary-border text-primary-text"
+                class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-background border border-primary-border text-primary cursor-pointer hover:underline"
+                :title="`${acc} (Ctrl+Click to open in new tab)`"
+                @click.stop="goToTradingAccount(acc, $event)"
               >
                 {{ acc }}
               </span>
@@ -627,7 +643,7 @@
             <!-- Action Details Button -->
             <button
               class="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-primary text-white text-xs font-medium hover:bg-primary-hover transition-colors cursor-pointer"
-              @click.stop="goToUserDetails(u)"
+              @click.stop="goToUserDetails(u, $event)"
             >
               <span>View Client Breakdown & Trades</span>
               <ChevronRight class="w-3.5 h-3.5" />
@@ -678,7 +694,13 @@
             <template #cell-ib_partner="{ row }">
               <div>
                 <p class="text-xs font-semibold text-primary-text">{{ row.ib_name }}</p>
-                <p class="text-[11px] text-secondary-text">{{ row.ib_email }}</p>
+                <p
+                  class="text-[11px] text-primary cursor-pointer hover:underline"
+                  :title="row.ib_email ? `${row.ib_email} (Ctrl+Click to open in new tab)` : ''"
+                  @click.stop="row.ib_email && goToClient(row.ib_email, $event)"
+                >
+                  {{ row.ib_email }}
+                </p>
                 <p class="text-[10px] text-secondary-text">User ID: #{{ row.ib_user_id }} · IB ID: #{{ row.ib_id }}</p>
               </div>
             </template>
@@ -763,7 +785,12 @@
 
             <!-- Agent -->
             <template #cell-agent="{ row }">
-              <span class="text-xs font-medium text-primary-text">
+              <span
+                class="text-xs font-medium"
+                :class="row.email ? 'text-primary cursor-pointer hover:underline' : 'text-primary-text'"
+                :title="row.email ? `${row.email} (Ctrl+Click to open in new tab)` : ''"
+                @click.stop="row.email && goToClient(row.email, $event)"
+              >
                 {{ row.name || row.email || 'Agent' }}
               </span>
             </template>
@@ -806,6 +833,7 @@ import {
 } from 'lucide-vue-next'
 import { useSettlementDetailStore } from '@/stores/settlements/settlementDetail'
 import { usePermissionCheck } from '@/composables/usePermissionCheck'
+import { goToTradingAccount, goToClient, openInNewTab, isNewTabEvent } from '@/composables/useNavigation'
 
 const route = useRoute()
 const router = useRouter()
@@ -1139,20 +1167,28 @@ const statusClass = (s) =>
     failed: 'bg-primary-red/10 text-primary-red border-primary-red/20',
   }[String(s).toLowerCase()] ?? 'bg-background text-secondary-text border-primary-border')
 
-const goToUserDetails = (user) => {
+const goToUserDetails = (user, event) => {
   if (!user?.user_id) return
-  router.push({
+  const routeLoc = {
     name: 'settlement-user-depth',
     params: { id: route.params.id, userId: user.user_id },
     query: {
       currency: store.amountView === 'usd' ? payoutCurrency.value : accountCurrency.value,
       amount_view: store.amountView,
     },
-  })
+  }
+  if (isNewTabEvent(event)) {
+    return openInNewTab(router.resolve(routeLoc).href)
+  }
+  router.push(routeLoc)
 }
 
-const goToTrades = () => {
-  router.push(`/settlement/trade/${route.params.id}`)
+const goToTrades = (event) => {
+  const routeLoc = `/settlement/trade/${route.params.id}`
+  if (isNewTabEvent(event)) {
+    return openInNewTab(router.resolve(routeLoc).href)
+  }
+  router.push(routeLoc)
 }
 
 const loadData = () => {

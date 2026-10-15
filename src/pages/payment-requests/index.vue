@@ -112,7 +112,7 @@
           "
           type="button"
           class="inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-3 py-2 text-xs font-semibold text-primary transition-all hover:bg-primary/20 hover:border-primary/50 sm:flex-none cursor-pointer"
-          @click="router.push('/payment-requests/logs')"
+          @click="isNewTabEvent($event) ? openInNewTab('/payment-requests/logs') : router.push('/payment-requests/logs')"
         >
           <FileText class="h-3.5 w-3.5" />
           <span>Logs</span>
@@ -283,10 +283,18 @@
             <!-- User -->
             <td class="px-3 py-3 min-w-40">
               <div class="space-y-0.5 max-w-48">
-                <p class="text-xs font-semibold text-primary-text truncate" :title="req.user_name">
+                <p
+                  class="text-xs font-semibold truncate hover:underline cursor-pointer text-primary"
+                  :title="`${req.user_name || req.user_email} (Ctrl+Click to open in new tab)`"
+                  @click.stop="goToClient(req.user_email || req.user_name, $event)"
+                >
                   {{ req.user_name || "—" }}
                 </p>
-                <p class="text-[11px] text-secondary-text truncate font-mono" :title="req.user_email">
+                <p
+                  class="text-[11px] truncate font-mono text-secondary-text hover:text-primary hover:underline cursor-pointer"
+                  :title="req.user_email ? `${req.user_email} (Ctrl+Click to open in new tab)` : ''"
+                  @click.stop="req.user_email && goToClient(req.user_email, $event)"
+                >
                   {{ req.user_email || "—" }}
                 </p>
                 <div
@@ -333,7 +341,12 @@
             <!-- Account -->
             <td class="px-3 py-3 min-w-32.5">
               <div class="space-y-0.5 max-w-40">
-                <p class="text-xs font-semibold text-primary-text font-mono">
+                <p
+                  class="text-xs font-semibold font-mono"
+                  :class="req.trading_account_number ? 'text-primary cursor-pointer hover:underline' : 'text-primary-text'"
+                  :title="req.trading_account_number ? `Trading Account #${req.trading_account_number} (Ctrl+Click to open in new tab)` : ''"
+                  @click.stop="req.trading_account_number && goToTradingAccount(req.trading_account_number, $event)"
+                >
                   {{ req.trading_account_number ? `#${req.trading_account_number}` : "IB Wallet" }}
                 </p>
                 <p class="text-[11px] text-secondary-text capitalize">
@@ -736,6 +749,12 @@ import EditPaymentRequestAmountDialog from "@/components/paymentRequests/EditPay
 import BankTransactionDetailsDialog from "@/components/paymentRequests/BankTransactionDetailsDialog.vue";
 import { formatDate } from "@/utils/timeFormatter";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
+import {
+  goToTradingAccount,
+  goToClient,
+  openInNewTab,
+  isNewTabEvent,
+} from "@/composables/useNavigation";
 
 const router = useRouter();
 const store = usePaymentRequestsStore();

@@ -19,7 +19,6 @@ import {
   ChevronDown,
   Coins,
   Clock,
-  Layers,
   FileSpreadsheet,
   AlertCircle,
   CandlestickChart,
@@ -37,6 +36,7 @@ import StatusBadge from "@/components/common/StatusBadge.vue";
 import Tooltip from "@/components/common/Tooltip.vue";
 import ReportColumnsModal from "../components/reports/ReportColumnsModal.vue";
 import PerformanceDrilldownView from "../components/reports/PerformanceDrilldownView.vue";
+import { goToTradingAccount, goToClient } from "@/composables/useNavigation";
 
 const router = useRouter();
 const route = useRoute();
@@ -229,6 +229,7 @@ const dateRangeValue = computed({
 const columnDefinitions = ref({
   performance: [
     { key: "period_or_ib", label: "Date / Period", visible: true, default: true, width: "230px" },
+    { key: "lots_by_symbol", label: "Symbols (Lots)", visible: true, default: true, width: "220px" },
     { key: "grand_total_commission", label: "Grand Total", visible: true, default: true, sortable: true, align: "right", width: "150px" },
     { key: "performance_commission", label: "Performance", visible: true, default: true, sortable: true, align: "right", width: "140px" },
     { key: "commission_from_subibs", label: "From Sub-IBs", visible: true, default: true, sortable: true, align: "right", width: "140px" },
@@ -250,6 +251,7 @@ const columnDefinitions = ref({
   ],
   affiliates: [
     { key: "ib", label: "IB Partner", visible: true, default: true, width: "240px" },
+    { key: "lots_by_symbol", label: "Symbols (Lots)", visible: true, default: true, width: "220px" },
     { key: "grand_total_commission", label: "Grand Total", visible: true, default: true, sortable: true, align: "right", width: "150px" },
     { key: "performance_commission", label: "Performance", visible: true, default: true, sortable: true, align: "right", width: "140px" },
     { key: "commission_from_subibs", label: "From Sub-IBs", visible: true, default: true, sortable: true, align: "right", width: "140px" },
@@ -271,6 +273,7 @@ const columnDefinitions = ref({
   ],
   "sub-affiliates": [
     { key: "child_ib", label: "Sub-Affiliate (Child IB)", visible: true, default: true, width: "240px" },
+    { key: "lots_by_symbol", label: "Symbols (Lots)", visible: true, default: true, width: "220px" },
     { key: "grand_total_commission", label: "Total Commission", visible: true, default: true, sortable: true, align: "right", width: "150px" },
     { key: "performance_commission", label: "Performance", visible: true, default: true, sortable: true, align: "right", width: "140px" },
     { key: "commission_from_subibs", label: "Sub-IB Override", visible: true, default: true, sortable: true, align: "right", width: "140px" },
@@ -293,6 +296,7 @@ const columnDefinitions = ref({
   customers: [
     { key: "customer", label: "Client Account", visible: true, default: true, width: "240px" },
     { key: "logins", label: "MT5 Logins", visible: true, default: true, width: "150px" },
+    { key: "lots_by_symbol", label: "Symbols (Lots)", visible: true, default: true, width: "220px" },
     { key: "grand_total_commission", label: "Commission Generated", visible: true, default: true, sortable: true, align: "right", width: "170px" },
     { key: "total_lots", label: "Lots Traded", visible: true, default: true, sortable: true, align: "right", width: "130px" },
     { key: "entry_count_all", label: "Trades Count", visible: true, default: true, sortable: true, align: "center", width: "120px" },
@@ -320,6 +324,7 @@ const columnDefinitions = ref({
   ],
   payouts: [
     { key: "ib", label: "IB Partner", visible: true, default: true, width: "240px" },
+    { key: "lots_by_symbol", label: "Symbols (Lots)", visible: true, default: true, width: "220px" },
     { key: "grand_total_commission", label: "Approved Payout", visible: true, default: true, sortable: true, align: "right", width: "160px" },
     { key: "total_lots", label: "Volume (Lots)", visible: true, default: true, sortable: true, align: "right", width: "140px" },
     { key: "entry_count_all", label: "Entries Count", visible: true, default: true, sortable: true, align: "center", width: "130px" },
@@ -615,6 +620,95 @@ const getRowSubtitle = (row, reportType) => {
   return "";
 };
 
+const getRowEmail = (row) => {
+  if (!row) return "";
+  return (
+    row.ib_email ||
+    row.email ||
+    row.partner_email ||
+    row.affiliate_email ||
+    (row.ib && typeof row.ib === "object" && row.ib.email) ||
+    ""
+  );
+};
+
+// ─── Symbol Breakdown Parsers & Helpers ────────────────────────────────────────
+const parseSymbolBreakdown = (rawMap, perfMap = {}, subibMap = {}) => {
+  if (!rawMap && !perfMap && !subibMap) return [];
+
+  let target = rawMap;
+  if (typeof target === "string") {
+    try {
+      target = JSON.parse(target);
+    } catch {
+      target = {};
+    }
+  }
+  let perf = perfMap;
+  if (typeof perf === "string") {
+    try {
+      perf = JSON.parse(perf);
+    } catch {
+      perf = {};
+    }
+  }
+  let subib = subibMap;
+  if (typeof subib === "string") {
+    try {
+      subib = JSON.parse(subib);
+    } catch {
+      subib = {};
+    }
+  }
+
+  const keys = new Set([
+    ...Object.keys(target || {}),
+    ...Object.keys(perf || {}),
+    ...Object.keys(subib || {}),
+  ]);
+
+  if (keys.size === 0) return [];
+
+  const list = [];
+  for (const sym of keys) {
+    const lots = Number((target && target[sym]) ?? (perf && perf[sym]) ?? (subib && subib[sym]) ?? 0);
+    const perfLots = Number(perf && perf[sym] ? perf[sym] : 0);
+    const subibLots = Number(subib && subib[sym] ? subib[sym] : 0);
+    list.push({
+      symbol: sym,
+      lots,
+      perfLots,
+      subibLots,
+    });
+  }
+
+  // Sort descending by total lots
+  list.sort((a, b) => b.lots - a.lots);
+  return list;
+};
+
+const getRowSymbols = (row) => {
+  if (!row) return [];
+  if (row.lots_by_symbol || row.lots_by_symbol_performance || row.lots_by_symbol_from_subibs) {
+    return parseSymbolBreakdown(
+      row.lots_by_symbol,
+      row.lots_by_symbol_performance,
+      row.lots_by_symbol_from_subibs
+    );
+  }
+  if (row.symbol) {
+    return [
+      {
+        symbol: row.symbol,
+        lots: Number(row.total_lots ?? row.lots ?? 0),
+        perfLots: Number(row.performance_lots ?? 0),
+        subibLots: Number(row.lots_from_subibs ?? 0),
+      },
+    ];
+  }
+  return [];
+};
+
 // ─── Filtered Table Items ─────────────────────────────────────────────────────
 const filteredTableItems = computed(() => {
   let list = [...(store.reportsList || [])];
@@ -626,7 +720,8 @@ const filteredTableItems = computed(() => {
       const sub = String(getRowSubtitle(item, activeReportType.value)).toLowerCase();
       const symbol = String(item.symbol || "").toLowerCase();
       const label = String(item.label || item.period_key || "").toLowerCase();
-      return title.includes(q) || sub.includes(q) || symbol.includes(q) || label.includes(q);
+      const symbolKeys = Object.keys(item.lots_by_symbol || {}).join(" ").toLowerCase();
+      return title.includes(q) || sub.includes(q) || symbol.includes(q) || label.includes(q) || symbolKeys.includes(q);
     });
   }
 
@@ -671,7 +766,63 @@ const tableTotals = computed(() => {
     entry_count_from_subibs: items.reduce((sum, item) => sum + Number(item.entry_count_from_subibs || 0), 0),
     closed_trades: items.reduce((sum, item) => sum + Number(item.closed_trades || 0), 0),
     open_trades: items.reduce((sum, item) => sum + Number(item.open_trades || 0), 0),
+    lots_by_symbol: items.reduce((acc, item) => {
+      const map = item.lots_by_symbol || (item.symbol ? { [item.symbol]: item.total_lots ?? item.lots } : {});
+      for (const [k, v] of Object.entries(map || {})) {
+        acc[k] = (acc[k] || 0) + Number(v || 0);
+      }
+      return acc;
+    }, {}),
+    lots_by_symbol_performance: items.reduce((acc, item) => {
+      const map = item.lots_by_symbol_performance || {};
+      for (const [k, v] of Object.entries(map || {})) {
+        acc[k] = (acc[k] || 0) + Number(v || 0);
+      }
+      return acc;
+    }, {}),
+    lots_by_symbol_from_subibs: items.reduce((acc, item) => {
+      const map = item.lots_by_symbol_from_subibs || {};
+      for (const [k, v] of Object.entries(map || {})) {
+        acc[k] = (acc[k] || 0) + Number(v || 0);
+      }
+      return acc;
+    }, {}),
   };
+});
+
+// Summary-Level Traded Symbols
+const summarySymbols = computed(() => {
+  const summary = store.reportsSummary;
+  if (summary && (summary.lots_by_symbol || summary.lots_by_symbol_performance || summary.lots_by_symbol_from_subibs)) {
+    return parseSymbolBreakdown(
+      summary.lots_by_symbol,
+      summary.lots_by_symbol_performance,
+      summary.lots_by_symbol_from_subibs
+    );
+  }
+  // Fallback to table totals if summary doesn't have it
+  if (tableTotals.value.lots_by_symbol && Object.keys(tableTotals.value.lots_by_symbol).length > 0) {
+    return parseSymbolBreakdown(
+      tableTotals.value.lots_by_symbol,
+      tableTotals.value.lots_by_symbol_performance,
+      tableTotals.value.lots_by_symbol_from_subibs
+    );
+  }
+  return [];
+});
+
+const totalSummarySymbolLots = computed(() => {
+  return summarySymbols.value.reduce((sum, s) => sum + s.lots, 0);
+});
+
+// Page-Level Symbols Breakdown (Footer)
+const pageSymbolsSummary = computed(() => {
+  if (!tableTotals.value.lots_by_symbol) return [];
+  return parseSymbolBreakdown(
+    tableTotals.value.lots_by_symbol,
+    tableTotals.value.lots_by_symbol_performance,
+    tableTotals.value.lots_by_symbol_from_subibs
+  );
 });
 
 // ─── Column Toggle & Reordering ────────────────────────────────────────────────
@@ -782,6 +933,8 @@ const getExportColumns = () => {
       mapped.push("status_split");
     } else if (c.key === "grand_total_commission" || c.key === "total_commission") {
       mapped.push("grand_total_commission", "total_commission");
+    } else if (c.key === "lots_by_symbol") {
+      mapped.push("lots_by_symbol", "lots_by_symbol_performance", "lots_by_symbol_from_subibs");
     } else {
       mapped.push(c.key);
     }
@@ -1306,11 +1459,11 @@ onMounted(async () => {
     <!-- ================================================================= -->
     <!-- SUMMARY KPI METRIC CARDS                                          -->
     <!-- ================================================================= -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5 gap-3.5">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
       <!-- Loading Skeleton -->
       <template v-if="store.reportsLoading">
         <div
-          v-for="n in 5"
+          v-for="n in 4"
           :key="n"
           class="bg-card-background border border-primary-border rounded-2xl p-4 animate-pulse space-y-3 min-w-0 flex flex-col justify-between"
         >
@@ -1351,9 +1504,9 @@ onMounted(async () => {
             <Tooltip
               :text="`+${formatUSD(store.reportsSummary?.grand_total_commission ?? store.reportsSummary?.total_commission ?? tableTotals.grand_total_commission)}`"
               position="top"
-              class="block max-w-full"
+              class="block max-w-full min-w-0"
             >
-              <p class="text-xl sm:text-2xl font-bold text-emerald-500 tabular-nums font-mono tracking-tight">
+              <p class="text-xl sm:text-2xl font-bold text-emerald-500 tabular-nums font-mono tracking-tight truncate">
                 +{{ formatUSD(store.reportsSummary?.grand_total_commission ?? store.reportsSummary?.total_commission ?? tableTotals.grand_total_commission) }}
               </p>
             </Tooltip>
@@ -1443,65 +1596,7 @@ onMounted(async () => {
           </div>
         </div>
 
-        <!-- KPI 3: Direct vs Sub-IB Split -->
-        <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between hover:border-primary/40 transition-all min-w-0 shadow-2xs group cursor-default">
-          <div class="flex items-center justify-between gap-2 min-w-0">
-            <Tooltip text="Direct vs Sub-IBs" position="top" class="min-w-0 truncate">
-              <span class="text-[11px] font-bold uppercase tracking-wider text-secondary-text truncate block">Direct vs Sub-IBs</span>
-            </Tooltip>
-            <div class="w-7 h-7 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center shrink-0">
-              <Layers :size="15" />
-            </div>
-          </div>
-
-          <div class="mt-2.5 space-y-2 min-w-0">
-            <!-- Direct Block -->
-            <Tooltip
-              :text="`Direct: ${formatUSD(store.reportsSummary?.performance_commission ?? tableTotals.performance_commission)} (${formatLots(store.reportsSummary?.performance_lots ?? tableTotals.performance_lots)} lots)`"
-              position="top"
-              class="block w-full"
-            >
-              <div class="px-2.5 py-1.5 rounded-xl bg-primary/5 border border-primary/15 min-w-0">
-                <div class="flex items-center justify-between gap-1.5 text-[11px] min-w-0">
-                  <span class="inline-flex items-center gap-1 font-bold text-primary shrink-0">
-                    <span class="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
-                    Direct
-                  </span>
-                  <span class="font-mono text-secondary-text text-[10px] font-medium truncate text-right">
-                    {{ formatLots(store.reportsSummary?.performance_lots ?? tableTotals.performance_lots) }} lots
-                  </span>
-                </div>
-                <div class="text-sm font-bold font-mono text-primary-text mt-0.5 truncate">
-                  {{ formatUSD(store.reportsSummary?.performance_commission ?? tableTotals.performance_commission) }}
-                </div>
-              </div>
-            </Tooltip>
-
-            <!-- Sub-IBs Block -->
-            <Tooltip
-              :text="`Sub-IBs: ${formatUSD(store.reportsSummary?.commission_from_subibs ?? tableTotals.commission_from_subibs)} (${formatLots(store.reportsSummary?.lots_from_subibs ?? tableTotals.lots_from_subibs)} lots)`"
-              position="top"
-              class="block w-full"
-            >
-              <div class="px-2.5 py-1.5 rounded-xl bg-amber-500/5 border border-amber-500/15 min-w-0">
-                <div class="flex items-center justify-between gap-1.5 text-[11px] min-w-0">
-                  <span class="inline-flex items-center gap-1 font-bold text-amber-500 shrink-0">
-                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-                    Sub-IBs
-                  </span>
-                  <span class="font-mono text-secondary-text text-[10px] font-medium truncate text-right">
-                    {{ formatLots(store.reportsSummary?.lots_from_subibs ?? tableTotals.lots_from_subibs) }} lots
-                  </span>
-                </div>
-                <div class="text-sm font-bold font-mono text-primary-text mt-0.5 truncate">
-                  {{ formatUSD(store.reportsSummary?.commission_from_subibs ?? tableTotals.commission_from_subibs) }}
-                </div>
-              </div>
-            </Tooltip>
-          </div>
-        </div>
-
-        <!-- KPI 4: Executed Entries / Deals -->
+        <!-- KPI 3: Executed Entries / Deals -->
         <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between hover:border-primary/40 transition-all min-w-0 shadow-2xs group cursor-default">
           <div class="flex items-center justify-between gap-2 min-w-0">
             <Tooltip text="Total Deals / Entries" position="top" class="min-w-0 truncate">
@@ -1566,7 +1661,7 @@ onMounted(async () => {
           </div>
         </div>
 
-        <!-- KPI 5: Pending & Status Liability -->
+        <!-- KPI 4: Pending & Status Liability -->
         <div class="bg-card-background border border-primary-border rounded-2xl p-4 flex flex-col justify-between hover:border-amber-500/40 transition-all min-w-0 shadow-2xs group cursor-default">
           <div class="flex items-center justify-between gap-2 min-w-0">
             <Tooltip text="Pending Approvals" position="top" class="min-w-0 truncate">
@@ -1582,9 +1677,9 @@ onMounted(async () => {
               <Tooltip
                 :text="`Pending: ${formatUSD(store.reportsSummary?.by_status?.pending?.commission)}`"
                 position="top"
-                class="min-w-0"
+                class="min-w-0 flex-1"
               >
-                <p class="text-xl sm:text-2xl font-bold text-amber-500 tabular-nums font-mono tracking-tight whitespace-nowrap">
+                <p class="text-xl sm:text-2xl font-bold text-amber-500 tabular-nums font-mono tracking-tight truncate">
                   {{ formatUSD(store.reportsSummary?.by_status?.pending?.commission) }}
                 </p>
               </Tooltip>
@@ -1636,6 +1731,114 @@ onMounted(async () => {
           </div>
         </div>
       </template>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- TRADED SYMBOLS VOLUME BREAKDOWN SUMMARY                           -->
+    <!-- ================================================================= -->
+    <!-- 1. Loading Skeleton -->
+    <div
+      v-if="store.reportsLoading"
+      class="bg-card-background border border-primary-border rounded-2xl p-4 space-y-3 animate-pulse shadow-2xs"
+    >
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-background shrink-0" />
+          <div class="space-y-1.5">
+            <div class="h-3.5 w-48 bg-background rounded" />
+            <div class="h-2.5 w-64 bg-background rounded" />
+          </div>
+        </div>
+        <div class="h-6 w-36 bg-background rounded-xl" />
+      </div>
+
+      <!-- Loading Skeleton for Symbols -->
+      <div class="flex items-stretch gap-2.5 pt-1 overflow-x-auto no-scrollbar pb-0.5">
+        <div
+          v-for="n in 6"
+          :key="n"
+          class="min-w-[170px] sm:min-w-[190px] shrink-0 bg-background/80 border border-primary-border/60 rounded-xl p-3 space-y-2.5"
+        >
+          <div class="h-3 w-20 bg-card-background rounded" />
+          <div class="h-5 w-24 bg-card-background rounded" />
+          <div class="pt-2 border-t border-primary-border/40 flex justify-between">
+            <div class="h-2.5 w-12 bg-card-background rounded" />
+            <div class="h-2.5 w-12 bg-card-background rounded" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Loaded State -->
+    <div
+      v-else-if="summarySymbols.length > 0"
+      class="bg-card-background border border-primary-border rounded-2xl p-4 space-y-3 shadow-2xs"
+    >
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <Tag :size="16" />
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <h4 class="text-xs font-bold text-primary-text uppercase tracking-wider">
+                Traded Symbols Volume Summary
+              </h4>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-primary/10 text-primary border border-primary/20 shrink-0">
+                {{ summarySymbols.length }} {{ summarySymbols.length === 1 ? 'Symbol' : 'Symbols' }}
+              </span>
+            </div>
+            <p class="text-[11px] text-secondary-text truncate">
+              Volume distribution by trading instrument across selected report period
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 self-start sm:self-auto text-xs shrink-0">
+          <span class="text-secondary-text font-medium">Total Symbols Volume:</span>
+          <span class="font-mono font-bold text-primary-text bg-background px-2.5 py-1 rounded-xl border border-primary-border">
+            {{ formatLots(totalSummarySymbolLots) }} lots
+          </span>
+        </div>
+      </div>
+
+      <!-- Symbols Breakdown Horizontal Scroll -->
+      <div class="flex items-stretch gap-2.5 pt-1 overflow-x-auto no-scrollbar pb-0.5">
+        <div
+          v-for="sym in summarySymbols"
+          :key="sym.symbol"
+          class="min-w-[170px] sm:min-w-[190px] shrink-0 bg-background/80 hover:bg-background border border-primary-border/80 hover:border-primary/40 rounded-xl p-3 transition-all flex flex-col justify-between group cursor-default"
+        >
+          <div>
+            <div class="flex items-center justify-between gap-1.5 mb-1.5">
+              <span class="font-mono font-bold text-xs text-primary group-hover:text-primary-hover flex items-center gap-1.5 truncate">
+                <span class="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+                <span class="truncate">{{ sym.symbol }}</span>
+              </span>
+            </div>
+
+            <div class="flex items-baseline justify-between gap-1 mt-1">
+              <span class="text-base font-bold font-mono text-primary-text tabular-nums truncate">
+                {{ formatLots(sym.lots) }}
+              </span>
+              <span class="text-[10px] text-secondary-text font-medium shrink-0">lots</span>
+            </div>
+          </div>
+
+          <!-- Direct vs Sub-IB Micro Split (shown only when Sub-IB volume exists) -->
+          <div
+            v-if="sym.subibLots > 0"
+            class="flex items-center justify-between text-[10px] text-secondary-text font-mono mt-2.5 pt-1.5 border-t border-primary-border/40"
+          >
+            <Tooltip :text="`Direct Volume: ${formatLots(sym.perfLots || sym.lots)} lots`" position="top">
+              <span class="truncate">Dir: <strong class="text-primary">{{ formatLots(sym.perfLots || sym.lots) }}</strong></span>
+            </Tooltip>
+            <Tooltip :text="`Sub-IB Volume: ${formatLots(sym.subibLots)} lots`" position="top">
+              <span class="truncate">Sub: <strong class="text-amber-500">{{ formatLots(sym.subibLots) }}</strong></span>
+            </Tooltip>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- ================================================================= -->
@@ -1709,7 +1912,13 @@ onMounted(async () => {
                 {{ getRowTitle(row, activeReportType) }}
               </p>
               <p v-if="getRowSubtitle(row, activeReportType)" class="text-[11px] text-secondary-text font-mono">
-                {{ getRowSubtitle(row, activeReportType) }}
+                <span
+                  v-if="getRowEmail(row)"
+                  class="cursor-pointer hover:underline text-primary"
+                  :title="`${getRowEmail(row)} (Ctrl+Click to open in new tab)`"
+                  @click="goToClient(getRowEmail(row), $event)"
+                >{{ getRowSubtitle(row, activeReportType) }}</span>
+                <span v-else>{{ getRowSubtitle(row, activeReportType) }}</span>
               </p>
             </div>
           </div>
@@ -1726,7 +1935,13 @@ onMounted(async () => {
                 {{ getRowTitle(row, activeReportType) }}
               </p>
               <p v-if="getRowSubtitle(row, activeReportType)" class="text-[11px] text-secondary-text font-mono">
-                {{ getRowSubtitle(row, activeReportType) }}
+                <span
+                  v-if="getRowEmail(row)"
+                  class="cursor-pointer hover:underline text-primary"
+                  :title="`${getRowEmail(row)} (Ctrl+Click to open in new tab)`"
+                  @click="goToClient(getRowEmail(row), $event)"
+                >{{ getRowSubtitle(row, activeReportType) }}</span>
+                <span v-else>{{ getRowSubtitle(row, activeReportType) }}</span>
               </p>
             </div>
           </div>
@@ -1745,24 +1960,34 @@ onMounted(async () => {
               </p>
             </Tooltip>
             <p v-if="row.email || row.user_id" class="text-[11px] text-secondary-text font-mono truncate">
-              {{ row.email || `ID: ${row.user_id}` }}
+              <span
+                v-if="row.email"
+                class="cursor-pointer hover:underline text-primary"
+                :title="`${row.email} (Ctrl+Click to open in new tab)`"
+                @click="goToClient(row.email, $event)"
+              >{{ row.email }}</span>
+              <span v-else>ID: {{ row.user_id }}</span>
             </p>
           </div>
         </template>
 
         <!-- Logins Cell -->
         <template #cell-logins="{ row }">
-          <Tooltip
+          <div
             v-if="Array.isArray(row.logins) ? row.logins.length > 0 : row.logins"
-            :text="Array.isArray(row.logins) ? row.logins.join(', ') : String(row.logins)"
-            position="top"
-            class="block max-w-full truncate"
+            class="flex flex-wrap items-center gap-1 font-mono text-xs max-w-[220px]"
           >
-            <span class="font-mono text-secondary-text truncate block">
-              {{ Array.isArray(row.logins) ? row.logins.join(', ') : (row.logins || '-') }}
+            <span
+              v-for="(login, idx) in (Array.isArray(row.logins) ? row.logins : [row.logins])"
+              :key="idx"
+              class="px-1.5 py-0.5 rounded text-[11px] font-mono bg-background border border-primary-border text-primary-text hover:border-primary cursor-pointer hover:underline"
+              :title="`Trading Account ${login} (Ctrl+Click to open in new tab)`"
+              @click="goToTradingAccount(login, $event)"
+            >
+              {{ login }}
             </span>
-          </Tooltip>
-          <span v-else class="font-mono text-secondary-text">-</span>
+          </div>
+          <span v-else class="font-mono text-secondary-text text-xs">-</span>
         </template>
 
         <!-- Attribution Cell -->
@@ -1783,6 +2008,34 @@ onMounted(async () => {
           <span class="font-mono font-bold text-primary">
             {{ row.symbol || '-' }}
           </span>
+        </template>
+
+        <!-- Symbols (Lots) Cell -->
+        <template #cell-lots_by_symbol="{ row }">
+          <div v-if="getRowSymbols(row).length > 0" class="flex items-center gap-1.5 flex-wrap max-w-[260px]">
+            <template v-for="sym in getRowSymbols(row).slice(0, 2)" :key="sym.symbol">
+              <Tooltip
+                :text="`${sym.symbol}: ${formatLots(sym.lots)} lots (Direct: ${formatLots(sym.perfLots)}l, Sub: ${formatLots(sym.subibLots)}l)`"
+                position="top"
+              >
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-mono font-semibold bg-primary/10 border border-primary/20 text-primary hover:border-primary/40 transition-colors">
+                  <span class="font-bold">{{ sym.symbol }}</span>
+                  <span class="text-primary-text font-bold">{{ formatLots(sym.lots) }}</span>
+                  <span class="text-[10px] text-secondary-text font-normal font-sans">lots</span>
+                </span>
+              </Tooltip>
+            </template>
+            <Tooltip
+              v-if="getRowSymbols(row).length > 2"
+              :text="getRowSymbols(row).slice(2).map((s) => `${s.symbol}: ${formatLots(s.lots)} lots (Dir: ${formatLots(s.perfLots)}l, Sub: ${formatLots(s.subibLots)}l)`).join(' • ')"
+              position="top"
+            >
+              <span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-mono font-bold bg-background border border-primary-border text-secondary-text hover:text-primary cursor-default">
+                +{{ getRowSymbols(row).length - 2 }}
+              </span>
+            </Tooltip>
+          </div>
+          <span v-else class="text-xs text-secondary-text font-mono">-</span>
         </template>
 
         <!-- Total Deals Count -->
@@ -2066,6 +2319,29 @@ onMounted(async () => {
           <span v-if="tableTotals.closed_trades">Closed: <strong class="text-primary-text font-mono">{{ tableTotals.closed_trades.toLocaleString() }}</strong></span>
           <span v-if="tableTotals.open_trades">Open: <strong class="text-primary-text font-mono">{{ tableTotals.open_trades.toLocaleString() }}</strong></span>
           <span>Volume: <strong class="text-primary-text font-mono">{{ formatLots(tableTotals.total_lots) }} lots</strong></span>
+          <div v-if="pageSymbolsSummary.length > 0" class="flex items-center gap-1.5 flex-wrap">
+            <span>Symbols:</span>
+            <Tooltip
+              v-for="sym in pageSymbolsSummary.slice(0, 3)"
+              :key="sym.symbol"
+              :text="`${sym.symbol}: ${formatLots(sym.lots)} lots (Direct: ${formatLots(sym.perfLots)}l, Sub: ${formatLots(sym.subibLots)}l)`"
+              position="top"
+            >
+              <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono bg-background border border-primary-border text-primary-text">
+                <span class="font-bold text-primary">{{ sym.symbol }}</span>
+                <span>{{ formatLots(sym.lots) }}l</span>
+              </span>
+            </Tooltip>
+            <Tooltip
+              v-if="pageSymbolsSummary.length > 3"
+              :text="pageSymbolsSummary.slice(3).map((s) => `${s.symbol}: ${formatLots(s.lots)} lots`).join(', ')"
+              position="top"
+            >
+              <span class="text-[10px] text-secondary-text font-mono">
+                +{{ pageSymbolsSummary.length - 3 }} more
+              </span>
+            </Tooltip>
+          </div>
         </div>
 
         <div class="flex items-center gap-4 flex-wrap">

@@ -54,7 +54,13 @@
         
         <template #cell-master_account="{ row }">
           <div v-if="row.master_trading_account">
-            <div class="font-mono font-medium text-primary-text">#{{ row.master_trading_account.account_number }}</div>
+            <div
+              class="font-mono font-medium text-primary cursor-pointer hover:underline"
+              :title="row.master_trading_account.account_number ? `Trading Account #${row.master_trading_account.account_number} (Ctrl+Click to open in new tab)` : ''"
+              @click.stop="goToTradingAccount(row.master_trading_account.account_number, $event)"
+            >
+              #{{ row.master_trading_account.account_number }}
+            </div>
             <div class="text-xs text-secondary-text truncate max-w-[120px]" :title="row.master_trading_account.server">
               {{ row.master_trading_account.server }}
             </div>
@@ -93,8 +99,8 @@
         <template #cell-actions="{ row }">
           <div class="flex justify-end">
             <button 
-              class="btn-secondary whitespace-nowrap"
-              @click="goToDetail(row.id)"
+              class="btn-secondary whitespace-nowrap cursor-pointer"
+              @click="goToDetail(row.id, $event)"
             >
               <span>View Details</span>
               <ChevronRight class="w-3.5 h-3.5" />
@@ -141,6 +147,7 @@ import { useRouter } from 'vue-router';
 import { Plus, RefreshCw, ChevronRight } from 'lucide-vue-next';
 import { usePAMMStore } from '@/stores/pamm/pamm';
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
+import { goToTradingAccount, openInNewTab, isNewTabEvent } from "@/composables/useNavigation";
 import DataTable from '@/components/common/DataTable/DataTable.vue';
 import StatusBadge from '@/components/common/StatusBadge.vue';
 import EnrollFundManagerModal from './components/EnrollFundManagerModal.vue';
@@ -185,7 +192,11 @@ const handlePerPageChange = (perPage) => {
   fetchData(true);
 };
 
-const goToDetail = (id) => {
-  router.push(`/pamm/${id}`);
+const goToDetail = (id, event) => {
+  const routeLoc = `/pamm/${id}`;
+  if (isNewTabEvent(event)) {
+    return openInNewTab(router.resolve(routeLoc).href);
+  }
+  router.push(routeLoc);
 };
 </script>
