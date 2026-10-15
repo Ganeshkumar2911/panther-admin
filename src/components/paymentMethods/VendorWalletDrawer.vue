@@ -80,7 +80,7 @@
               </div>
               <div class="flex items-baseline gap-1.5">
                 <span class="text-2xl font-bold font-mono text-primary-green tracking-tight">
-                  ${{ fmt(currentDepositBalance) }}
+                  ₹{{ fmt(currentDepositBalance) }}
                 </span>
               </div>
               <p class="text-[10px] text-secondary-text">
@@ -103,7 +103,7 @@
               </div>
               <div class="flex items-baseline gap-1.5">
                 <span class="text-2xl font-bold font-mono text-primary-blue tracking-tight">
-                  ${{ fmt(currentWithdrawalBalance) }}
+                  ₹{{ fmt(currentWithdrawalBalance) }}
                 </span>
               </div>
               <p class="text-[10px] text-secondary-text">
@@ -205,11 +205,11 @@
                   <!-- Deposit Balance Input -->
                   <div v-if="exactScope === 'both' || exactScope === 'deposit'">
                     <label class="block text-[11px] font-semibold text-primary-text mb-1">
-                      Deposit Balance ($)
+                      Deposit Balance (₹)
                       <span class="text-primary-red">*</span>
                     </label>
                     <div class="relative">
-                      <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary-text text-xs font-mono">$</span>
+                      <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary-text text-xs font-mono">₹</span>
                       <input
                         v-model="exactForm.deposit_balance"
                         type="number"
@@ -221,18 +221,18 @@
                       />
                     </div>
                     <p class="text-[10px] text-secondary-text mt-1">
-                      Current: ${{ fmt(currentDepositBalance) }}
+                      Current: ₹{{ fmt(currentDepositBalance) }}
                     </p>
                   </div>
 
                   <!-- Withdrawal Balance Input -->
                   <div v-if="exactScope === 'both' || exactScope === 'withdrawal'">
                     <label class="block text-[11px] font-semibold text-primary-text mb-1">
-                      Withdrawal Balance ($)
+                      Withdrawal Balance (₹)
                       <span class="text-primary-red">*</span>
                     </label>
                     <div class="relative">
-                      <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary-text text-xs font-mono">$</span>
+                      <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary-text text-xs font-mono">₹</span>
                       <input
                         v-model="exactForm.withdrawal_balance"
                         type="number"
@@ -244,7 +244,7 @@
                       />
                     </div>
                     <p class="text-[10px] text-secondary-text mt-1">
-                      Current: ${{ fmt(currentWithdrawalBalance) }}
+                      Current: ₹{{ fmt(currentWithdrawalBalance) }}
                     </p>
                   </div>
                 </div>
@@ -346,11 +346,11 @@
                   <!-- Amount Input -->
                   <div>
                     <label class="block text-[11px] font-semibold text-primary-text mb-1">
-                      Top-Up Amount ($)
+                      Top-Up Amount (₹)
                       <span class="text-primary-red">*</span>
                     </label>
                     <div class="relative">
-                      <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary-text text-xs font-mono">$</span>
+                      <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary-text text-xs font-mono">₹</span>
                       <input
                         v-model="creditForm.amount"
                         type="number"
@@ -510,7 +510,7 @@
                   class="text-xs font-bold font-mono tabular-nums whitespace-nowrap"
                   :class="Number(row.amount) >= 0 ? 'text-primary-green' : 'text-primary-red'"
                 >
-                  {{ Number(row.amount) >= 0 ? '+' : '' }}${{ fmt(row.amount) }}
+                  {{ Number(row.amount) >= 0 ? '+' : '' }}₹{{ fmt(row.amount) }}
                 </span>
               </template>
 
@@ -518,11 +518,11 @@
               <template #cell-balances="{ row }">
                 <div class="flex items-center gap-1.5 text-[11px] font-mono tabular-nums whitespace-nowrap">
                   <span class="text-secondary-text" title="Balance Before">
-                    ${{ fmt(row.balance_before) }}
+                    ₹{{ fmt(row.balance_before) }}
                   </span>
                   <span class="text-secondary-text/60">→</span>
                   <span class="text-primary-text font-semibold" title="Balance After">
-                    ${{ fmt(row.balance_after) }}
+                    ₹{{ fmt(row.balance_after) }}
                   </span>
                 </div>
               </template>
