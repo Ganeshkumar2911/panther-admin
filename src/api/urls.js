@@ -511,6 +511,11 @@ const urls = {
   },
   vendor: {
     transfers: "/vendor/transfers",
+    wallets: {
+      balances: (paymentMethodId) => `/vendor/wallets/${paymentMethodId}/balances`,
+      transactions: (paymentMethodId) => `/vendor/wallets/${paymentMethodId}/transactions`,
+      credit: (paymentMethodId) => `/vendor/wallets/${paymentMethodId}/credit`,
+    },
   },
   twoFactor: {
     // Platform-wide settings

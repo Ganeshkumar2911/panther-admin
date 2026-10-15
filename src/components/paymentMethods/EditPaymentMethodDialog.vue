@@ -184,6 +184,18 @@
                 <p class="text-[10px] text-secondary-text mt-1">
                   This staff will see bank-transfer deposits and withdrawals for this method in the Vendor Portal.
                 </p>
+
+                <!-- Manage Vendor Wallet Action -->
+                <div v-if="isEdit && (hasPermission('vendor.wallet_adjust') || hasPermission('vendor.view'))" class="pt-2">
+                  <button
+                    type="button"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary/30 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold transition cursor-pointer shadow-2xs"
+                    @click="emit('open-vendor-wallet', paymentMethod)"
+                  >
+                    <Wallet class="w-3.5 h-3.5" />
+                    <span>Manage Vendor Wallet &amp; Balances</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1196,6 +1208,7 @@ import {
 } from 'lucide-vue-next'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import { usePaymentMethodsStore } from '@/stores/paymentMethods/paymentMethods'
+import { usePermissionCheck } from '@/composables/usePermissionCheck'
 import apiRequest from '@/api/request'
 
 const FIELD_TYPE_OPTIONS = [
@@ -1212,9 +1225,10 @@ const props = defineProps({
   paymentMethod: { type: Object, default: null },
 })
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'open-vendor-wallet'])
 
 const store = usePaymentMethodsStore()
+const { hasPermission } = usePermissionCheck()
 
 const isEdit = computed(() => !!props.paymentMethod)
 const formBodyRef = ref(null)
