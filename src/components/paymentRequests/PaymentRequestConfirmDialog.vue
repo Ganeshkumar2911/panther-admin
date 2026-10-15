@@ -84,20 +84,33 @@
             </div>
             <div>
               <p class="text-[11px] text-secondary-text">User</p>
-              <p class="text-sm font-medium text-primary-text">
+              <p
+                class="text-sm font-medium text-primary hover:underline cursor-pointer truncate"
+                :title="request?.user_email || request?.user_name ? `${request?.user_email || request?.user_name} (Ctrl+Click to open in new tab)` : ''"
+                @click.stop="goToClient(request?.user_email || request?.user_name, $event)"
+              >
                 {{ request?.user_name ?? '—' }}
               </p>
             </div>
             <div>
               <p class="text-[11px] text-secondary-text">Email</p>
-              <p class="text-sm font-medium text-primary-text truncate" :title="request?.user_email">
+              <p
+                class="text-sm font-medium text-primary hover:underline cursor-pointer truncate font-mono"
+                :title="request?.user_email ? `${request?.user_email} (Ctrl+Click to open in new tab)` : ''"
+                @click.stop="request?.user_email && goToClient(request.user_email, $event)"
+              >
                 {{ request?.user_email ?? '—' }}
               </p>
             </div>
             <div>
               <p class="text-[11px] text-secondary-text">Account</p>
-              <p class="text-sm font-medium text-primary-text">
-                {{ request?.trading_account_number ?? 'IB Wallet Withdrawal' }}
+              <p
+                class="text-sm font-medium"
+                :class="request?.trading_account_number ? 'text-primary font-mono cursor-pointer hover:underline' : 'text-primary-text'"
+                :title="request?.trading_account_number ? `Trading Account #${request.trading_account_number} (Ctrl+Click to open in new tab)` : ''"
+                @click.stop="request?.trading_account_number && goToTradingAccount(request.trading_account_number, $event)"
+              >
+                {{ request?.trading_account_number ? `#${request.trading_account_number}` : 'IB Wallet Withdrawal' }}
                 <span v-if="request?.account_type" class="text-xs text-secondary-text capitalize">
                   ({{ request.account_type }})
                 </span>
@@ -213,6 +226,7 @@
 import { computed, ref, watch } from 'vue'
 import { AlertTriangle, CheckCircle2, Loader2, X, Paperclip, Pencil } from 'lucide-vue-next'
 import { usePermissionCheck } from '@/composables/usePermissionCheck'
+import { goToTradingAccount, goToClient } from '@/composables/useNavigation'
 
 const props = defineProps({
   open: { type: Boolean, default: false },

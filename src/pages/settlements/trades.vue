@@ -50,7 +50,7 @@
 
         <button
           class="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-primary-border bg-card-background hover:bg-background text-xs font-medium text-primary-text transition-colors cursor-pointer"
-          @click="goToDetails"
+          @click="goToDetails($event)"
         >
           <Eye class="w-3.5 h-3.5 text-primary" />
           Settlement Overview
@@ -121,14 +121,24 @@
       <template #cell-client="{ row }">
         <div>
           <p class="text-xs font-semibold text-primary-text">{{ row.client?.name ?? row.client_name ?? '—' }}</p>
-          <p class="text-[11px] text-secondary-text font-mono">{{ row.client?.email ?? row.client_email ?? '' }}</p>
+          <p
+            class="text-[11px] font-mono cursor-pointer hover:underline text-primary"
+            :title="(row.client?.email ?? row.client_email) ? `${row.client?.email ?? row.client_email} (Ctrl+Click to open in new tab)` : ''"
+            @click.stop="(row.client?.email ?? row.client_email) && goToClient(row.client?.email ?? row.client_email, $event)"
+          >
+            {{ row.client?.email ?? row.client_email ?? '' }}
+          </p>
         </div>
       </template>
 
       <!-- Account -->
       <template #cell-account="{ row }">
         <div>
-          <p class="text-xs font-mono font-medium text-primary-text">
+          <p
+            class="text-xs font-mono font-medium cursor-pointer hover:underline text-primary"
+            :title="(row.trading_account?.account_number ?? row.account_number) ? `Trading Account #${row.trading_account?.account_number ?? row.account_number} (Ctrl+Click to open in new tab)` : ''"
+            @click.stop="(row.trading_account?.account_number ?? row.account_number) && goToTradingAccount(row.trading_account?.account_number ?? row.account_number, $event)"
+          >
             #{{ row.trading_account?.account_number ?? row.account_number ?? '—' }}
           </p>
           <p class="text-[11px] text-secondary-text">{{ row.trading_account?.broker ?? '' }}</p>
@@ -220,6 +230,7 @@ import { BarChart2, ArrowLeft, RotateCw, Eye } from 'lucide-vue-next'
 import { useSettlementTradesStore } from '@/stores/settlements/settlementTrades'
 import DataTable from '@/components/common/DataTable/DataTable.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
+import { goToTradingAccount, goToClient, openInNewTab, isNewTabEvent } from '@/composables/useNavigation'
 
 const store = useSettlementTradesStore()
 const route = useRoute()
@@ -258,8 +269,12 @@ const goBack = () => {
   router.push(`/settlement/details/${settlementId}`)
 }
 
-const goToDetails = () => {
-  router.push(`/settlement/details/${settlementId}`)
+const goToDetails = (event) => {
+  const routeLoc = `/settlement/details/${settlementId}`
+  if (isNewTabEvent(event)) {
+    return openInNewTab(router.resolve(routeLoc).href)
+  }
+  router.push(routeLoc)
 }
 
 const formatNum = (val) =>

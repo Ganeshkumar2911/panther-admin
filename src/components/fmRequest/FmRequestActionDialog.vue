@@ -4,6 +4,7 @@ import { Loader2, X, Pencil, Check } from 'lucide-vue-next'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import apiRequest from '@/api/request'
 import urls from '@/api/urls'
+import { goToClient } from '@/composables/useNavigation'
 
 const props = defineProps({
   open:         { type: Boolean,  default: false },
@@ -213,7 +214,13 @@ const isAcceptDisabled  = () => props.isSubmitting
           <h2 class="text-primary-text text-sm font-medium">
             {{ action === 'accept' ? 'Accept Request' : 'Reject Request' }}
           </h2>
-          <p class="text-secondary-text text-xs mt-0.5">{{ item?.user_email }}</p>
+          <p
+            class="text-xs mt-0.5 cursor-pointer text-primary hover:underline"
+            :title="item?.user_email ? `${item?.user_email} (Ctrl+Click to open in new tab)` : ''"
+            @click.stop="item?.user_email && goToClient(item?.user_email, $event)"
+          >
+            {{ item?.user_email }}
+          </p>
         </div>
         <div class="flex items-center gap-2">
           <!-- Edit toggle (accept only) -->

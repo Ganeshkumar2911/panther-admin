@@ -223,14 +223,24 @@
         <template #cell-trading_account="{ row }">
           <p class="text-xs font-medium text-primary-text">
             <span
-              @click.stop="goToTradingAccount(row.account_number)"
+              @click.stop="goToTradingAccount(row.account_number, $event)"
               class="cursor-pointer hover:text-primary transition-colors hover:underline"
+              :title="row.account_number ? 'Trading Account (Ctrl+Click to open in new tab)' : ''"
             >
               {{ row.account_number }} · {{ row.broker_label || "—" }}
             </span>
           </p>
           <p class="text-[10px] text-secondary-text">
-            Client: {{ row.client_name }}
+            Client:
+            <span
+              v-if="row.client_name"
+              class="cursor-pointer text-primary hover:underline font-medium"
+              :title="`${row.client_email || row.email || row.client_name} (Ctrl+Click to open in new tab)`"
+              @click.stop="goToClient(row.client_email || row.email || row.client_name, $event)"
+            >
+              {{ row.client_name }}
+            </span>
+            <span v-else>—</span>
           </p>
         </template>
 
@@ -279,6 +289,7 @@ import BaseSelect from "@/components/common/BaseSelect.vue";
 import BaseDatePicker from "@/components/common/BaseDatePicker.vue";
 import InternalTransfers from "./InternalTransfers.vue";
 import { useGoToTradingAccount } from "@/composables/useGoToTradingAccount";
+import { goToClient } from "@/composables/useNavigation";
 import { formatDate } from "@/utils/timeFormatter";
 
 const activeTab = ref("transactions");

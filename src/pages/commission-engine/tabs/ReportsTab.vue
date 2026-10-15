@@ -37,6 +37,7 @@ import StatusBadge from "@/components/common/StatusBadge.vue";
 import Tooltip from "@/components/common/Tooltip.vue";
 import ReportColumnsModal from "../components/reports/ReportColumnsModal.vue";
 import PerformanceDrilldownView from "../components/reports/PerformanceDrilldownView.vue";
+import { goToTradingAccount, goToClient } from "@/composables/useNavigation";
 
 const router = useRouter();
 const route = useRoute();
@@ -613,6 +614,18 @@ const getRowSubtitle = (row, reportType) => {
     return String(row.period_key || row.label);
   }
   return "";
+};
+
+const getRowEmail = (row) => {
+  if (!row) return "";
+  return (
+    row.ib_email ||
+    row.email ||
+    row.partner_email ||
+    row.affiliate_email ||
+    (row.ib && typeof row.ib === "object" && row.ib.email) ||
+    ""
+  );
 };
 
 // ─── Filtered Table Items ─────────────────────────────────────────────────────
@@ -1709,7 +1722,13 @@ onMounted(async () => {
                 {{ getRowTitle(row, activeReportType) }}
               </p>
               <p v-if="getRowSubtitle(row, activeReportType)" class="text-[11px] text-secondary-text font-mono">
-                {{ getRowSubtitle(row, activeReportType) }}
+                <span
+                  v-if="getRowEmail(row)"
+                  class="cursor-pointer hover:underline text-primary"
+                  :title="`${getRowEmail(row)} (Ctrl+Click to open in new tab)`"
+                  @click="goToClient(getRowEmail(row), $event)"
+                >{{ getRowSubtitle(row, activeReportType) }}</span>
+                <span v-else>{{ getRowSubtitle(row, activeReportType) }}</span>
               </p>
             </div>
           </div>
@@ -1726,7 +1745,13 @@ onMounted(async () => {
                 {{ getRowTitle(row, activeReportType) }}
               </p>
               <p v-if="getRowSubtitle(row, activeReportType)" class="text-[11px] text-secondary-text font-mono">
-                {{ getRowSubtitle(row, activeReportType) }}
+                <span
+                  v-if="getRowEmail(row)"
+                  class="cursor-pointer hover:underline text-primary"
+                  :title="`${getRowEmail(row)} (Ctrl+Click to open in new tab)`"
+                  @click="goToClient(getRowEmail(row), $event)"
+                >{{ getRowSubtitle(row, activeReportType) }}</span>
+                <span v-else>{{ getRowSubtitle(row, activeReportType) }}</span>
               </p>
             </div>
           </div>
@@ -1745,24 +1770,34 @@ onMounted(async () => {
               </p>
             </Tooltip>
             <p v-if="row.email || row.user_id" class="text-[11px] text-secondary-text font-mono truncate">
-              {{ row.email || `ID: ${row.user_id}` }}
+              <span
+                v-if="row.email"
+                class="cursor-pointer hover:underline text-primary"
+                :title="`${row.email} (Ctrl+Click to open in new tab)`"
+                @click="goToClient(row.email, $event)"
+              >{{ row.email }}</span>
+              <span v-else>ID: {{ row.user_id }}</span>
             </p>
           </div>
         </template>
 
         <!-- Logins Cell -->
         <template #cell-logins="{ row }">
-          <Tooltip
+          <div
             v-if="Array.isArray(row.logins) ? row.logins.length > 0 : row.logins"
-            :text="Array.isArray(row.logins) ? row.logins.join(', ') : String(row.logins)"
-            position="top"
-            class="block max-w-full truncate"
+            class="flex flex-wrap items-center gap-1 font-mono text-xs max-w-[220px]"
           >
-            <span class="font-mono text-secondary-text truncate block">
-              {{ Array.isArray(row.logins) ? row.logins.join(', ') : (row.logins || '-') }}
+            <span
+              v-for="(login, idx) in (Array.isArray(row.logins) ? row.logins : [row.logins])"
+              :key="idx"
+              class="px-1.5 py-0.5 rounded text-[11px] font-mono bg-background border border-primary-border text-primary-text hover:border-primary cursor-pointer hover:underline"
+              :title="`Trading Account ${login} (Ctrl+Click to open in new tab)`"
+              @click="goToTradingAccount(login, $event)"
+            >
+              {{ login }}
             </span>
-          </Tooltip>
-          <span v-else class="font-mono text-secondary-text">-</span>
+          </div>
+          <span v-else class="font-mono text-secondary-text text-xs">-</span>
         </template>
 
         <!-- Attribution Cell -->

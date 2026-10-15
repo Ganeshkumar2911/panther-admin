@@ -133,7 +133,7 @@
       empty-text="Try adjusting your filters or search criteria"
       @page-change="handlePageChange"
       @per-page-change="handlePerPageChange"
-      @row-click="({ row }) => goToDetail(row.settlement_id)"
+      @row-click="({ row, event }) => goToDetail(row.settlement_id, event)"
     >
       <template #empty>
         <div class="flex flex-col items-center gap-3 py-16">
@@ -254,7 +254,7 @@
           <button
             class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-xs font-medium transition-colors cursor-pointer"
             title="View Settlement Details"
-            @click="goToDetail(row.settlement_id)"
+            @click="goToDetail(row.settlement_id, $event)"
           >
             <Eye class="w-3.5 h-3.5" />
             <span>View</span>
@@ -264,7 +264,7 @@
             v-if="hasPermission('settlement.trades')"
             class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-primary-border text-xs text-secondary-text hover:text-primary-text hover:bg-background transition-colors cursor-pointer"
             title="View Flat Trades"
-            @click="goToTrade(row.settlement_id)"
+            @click="goToTrade(row.settlement_id, $event)"
           >
             <BarChart2 class="w-3.5 h-3.5" />
             <span>Trades</span>
@@ -296,6 +296,7 @@ import { useSettlementsStore } from '@/stores/settlements/settlements'
 import DataTable from '@/components/common/DataTable/DataTable.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import { usePermissionCheck } from '@/composables/usePermissionCheck'
+import { openInNewTab, isNewTabEvent } from '@/composables/useNavigation'
 import apiRequest from '@/api/request'
 import urls from '@/api/urls'
 
@@ -480,12 +481,20 @@ const statusClass = (s) =>
     failed: 'bg-primary-red/10 text-primary-red border-primary-red/20',
   }[String(s).toLowerCase()] ?? 'bg-background text-secondary-text border-primary-border')
 
-const goToDetail = (settlementId) => {
-  router.push(`/settlement/details/${settlementId}`)
+const goToDetail = (settlementId, event) => {
+  const routeLoc = `/settlement/details/${settlementId}`
+  if (isNewTabEvent(event)) {
+    return openInNewTab(router.resolve(routeLoc).href)
+  }
+  router.push(routeLoc)
 }
 
-const goToTrade = (settlementId) => {
-  router.push(`/settlement/trade/${settlementId}`)
+const goToTrade = (settlementId, event) => {
+  const routeLoc = `/settlement/trade/${settlementId}`
+  if (isNewTabEvent(event)) {
+    return openInNewTab(router.resolve(routeLoc).href)
+  }
+  router.push(routeLoc)
 }
 
 onMounted(() => {

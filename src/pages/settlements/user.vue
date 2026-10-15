@@ -177,7 +177,9 @@
               >
                 <span
                   v-if="userData.user_email || userData.user?.email || userData.email"
-                  class="flex items-center gap-1 font-mono text-primary-text select-all"
+                  class="flex items-center gap-1 font-mono text-primary select-all cursor-pointer hover:underline"
+                  :title="`${userData.user_email || userData.user?.email || userData.email} (Ctrl+Click to open in new tab)`"
+                  @click.stop="goToClient(userData.user_email || userData.user?.email || userData.email, $event)"
                 >
                   <Mail class="w-3.5 h-3.5 text-primary shrink-0" />
                   {{ userData.user_email || userData.user?.email || userData.email }}
@@ -549,9 +551,13 @@
             <span class="font-mono font-semibold"
               >#{{ follower.follower_id }}</span
             >
-            <span class="text-[10px] opacity-80 font-mono"
-              >({{ follower.account_number }})</span
+            <span
+              class="text-[10px] opacity-80 font-mono hover:underline cursor-pointer"
+              :title="follower.account_number ? `Trading Account #${follower.account_number} (Ctrl+Click to open in new tab)` : ''"
+              @click.stop="follower.account_number && goToTradingAccount(follower.account_number, $event)"
             >
+              ({{ follower.account_number }})
+            </span>
           </button>
         </div>
 
@@ -571,7 +577,9 @@
                   Follower Session #{{ follower.follower_id }}
                 </span>
                 <span
-                  class="font-mono text-xs font-semibold px-2 py-0.5 rounded bg-background border border-primary-border text-primary-text"
+                  class="font-mono text-xs font-semibold px-2 py-0.5 rounded bg-background border border-primary-border text-primary cursor-pointer hover:underline"
+                  :title="follower.account_number ? `Trading Account #${follower.account_number} (Ctrl+Click to open in new tab)` : ''"
+                  @click.stop="follower.account_number && goToTradingAccount(follower.account_number, $event)"
                 >
                   Account: {{ follower.account_number }}
                 </span>
@@ -960,9 +968,14 @@
                         >
                           <td class="py-1.5 px-2 font-medium text-primary-text">
                             {{ split.ib_name }}
-                            <span class="text-secondary-text text-[10px]"
-                              >({{ split.ib_email }})</span
+                            <span
+                              v-if="split.ib_email"
+                              class="text-[10px] text-primary cursor-pointer hover:underline ml-1"
+                              :title="`${split.ib_email} (Ctrl+Click to open in new tab)`"
+                              @click.stop="goToClient(split.ib_email, $event)"
                             >
+                              ({{ split.ib_email }})
+                            </span>
                           </td>
                           <td class="py-1.5 px-2 text-secondary-text">
                             L{{ split.ib_level }}
@@ -1043,7 +1056,11 @@
                               {{ t.symbol }}
                             </span>
                           </td>
-                          <td class="py-2 px-3 font-mono text-secondary-text">
+                          <td
+                            class="py-2 px-3 font-mono text-primary cursor-pointer hover:underline"
+                            :title="t.account_number ? `Trading Account #${t.account_number} (Ctrl+Click to open in new tab)` : ''"
+                            @click.stop="t.account_number && goToTradingAccount(t.account_number, $event)"
+                          >
                             {{ t.account_number }}
                           </td>
                           <td class="py-2 px-3 text-secondary-text">
@@ -1172,7 +1189,11 @@
                     <p class="text-xs font-semibold text-primary-text">
                       {{ ib.ib_name }}
                     </p>
-                    <p class="text-[11px] text-secondary-text">
+                    <p
+                      class="text-[11px] text-primary cursor-pointer hover:underline"
+                      :title="ib.ib_email ? `${ib.ib_email} (Ctrl+Click to open in new tab)` : ''"
+                      @click.stop="ib.ib_email && goToClient(ib.ib_email, $event)"
+                    >
                       {{ ib.ib_email }}
                     </p>
                     <p class="text-[10px] text-secondary-text">
@@ -1309,6 +1330,7 @@ import {
   Phone,
 } from "lucide-vue-next";
 import { useSettlementUserStore } from "@/stores/settlements/settlementUser";
+import { goToTradingAccount, goToClient, openInNewTab, isNewTabEvent } from "@/composables/useNavigation";
 
 const route = useRoute();
 const router = useRouter();

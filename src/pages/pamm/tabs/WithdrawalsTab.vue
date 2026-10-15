@@ -12,7 +12,13 @@
       >
         <template #cell-reference_id="{ row }">
           <div class="font-mono text-xs">{{ row.reference_id }}</div>
-          <div class="text-xs text-secondary-text">User #{{ row.user_id }}</div>
+          <div
+            class="text-xs text-primary cursor-pointer hover:underline"
+            :title="`User #${row.user_id} (Ctrl+Click to open in new tab)`"
+            @click.stop="goToClient(row.user_id, $event)"
+          >
+            User #{{ row.user_id }}
+          </div>
         </template>
         
         <template #cell-status="{ row }">
@@ -77,6 +83,7 @@ import { RefreshCw } from 'lucide-vue-next';
 import { usePAMMStore } from '@/stores/pamm/pamm';
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import { useSnackbarStore } from '@/stores/snackbar/snackbar';
+import { goToClient } from '@/composables/useNavigation';
 import DataTable from '@/components/common/DataTable/DataTable.vue';
 import StatusBadge from '@/components/common/StatusBadge.vue';
 import ConfirmationDialog from '@/components/common/ConfirmationDialog.vue';

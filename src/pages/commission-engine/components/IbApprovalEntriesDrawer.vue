@@ -39,7 +39,14 @@
                 </span>
               </div>
               <p class="text-xs text-secondary-text truncate">
-                {{ ib?.ib_email || "No email" }} &middot; User #{{ ib?.ib_user_id || "N/A" }} &middot; Period: <span class="font-semibold text-primary-text">{{ periodLabel || periodKey }}</span>
+                <span
+                  v-if="ib?.ib_email"
+                  class="cursor-pointer hover:underline text-primary"
+                  :title="`${ib.ib_email} (Ctrl+Click to open in new tab)`"
+                  @click="goToClient(ib.ib_email, $event)"
+                >{{ ib.ib_email }}</span>
+                <span v-else>No email</span>
+                &middot; User #{{ ib?.ib_user_id || "N/A" }} &middot; Period: <span class="font-semibold text-primary-text">{{ periodLabel || periodKey }}</span>
               </p>
             </div>
 
@@ -156,7 +163,14 @@
                     {{ row.trade?.symbol || '—' }}
                   </span>
                   <p class="text-[10px] text-secondary-text font-mono">
-                    Login: {{ row.trade?.login || '—' }}
+                    Login:
+                    <span
+                      v-if="row.trade?.login"
+                      class="cursor-pointer hover:underline text-primary font-bold"
+                      :title="`Trading Account ${row.trade.login} (Ctrl+Click to open in new tab)`"
+                      @click="goToTradingAccount(row.trade.login, $event)"
+                    >{{ row.trade.login }}</span>
+                    <span v-else>—</span>
                   </p>
                 </div>
               </template>
@@ -215,6 +229,7 @@ import DataTable from "@/components/common/DataTable/DataTable.vue";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import apiRequest from "@/api/request";
 import urls from "@/api/urls";
+import { goToTradingAccount, goToClient } from "@/composables/useNavigation";
 
 const props = defineProps({
   open: {

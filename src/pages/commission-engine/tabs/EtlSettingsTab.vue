@@ -34,6 +34,7 @@ import { usePermissionCheck } from "@/composables/usePermissionCheck";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import BaseDatePicker from "@/components/common/BaseDatePicker.vue";
 import RecalcRunResultModal from "../components/RecalcRunResultModal.vue";
+import { goToClient } from "@/composables/useNavigation";
 
 const store = useCommissionEngineStore();
 const router = useRouter();
@@ -1042,7 +1043,13 @@ const handleRunGlobalClick = async () => {
                     {{ selectedIbOption?.name || `IB #${selectedIbId}` }}
                   </span>
                   <span class="text-[11px] text-secondary-text font-mono block truncate leading-tight mt-0.5">
-                    {{ selectedIbOption?.email || `ID: ${selectedIbId}` }}
+                    <span
+                      v-if="selectedIbOption?.email"
+                      class="cursor-pointer hover:underline text-primary"
+                      :title="`${selectedIbOption.email} (Ctrl+Click to open in new tab)`"
+                      @click="goToClient(selectedIbOption.email, $event)"
+                    >{{ selectedIbOption.email }}</span>
+                    <span v-else>ID: {{ selectedIbId }}</span>
                   </span>
                 </div>
               </div>

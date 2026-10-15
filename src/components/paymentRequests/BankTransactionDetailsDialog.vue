@@ -332,19 +332,32 @@
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
             <div>
               <span class="text-secondary-text text-[10px]">Client</span>
-              <p class="font-medium text-primary-text truncate" :title="request?.user_name">
+              <p
+                class="font-medium text-primary hover:underline cursor-pointer truncate"
+                :title="request?.user_name || request?.user_email ? `${request?.user_name || request?.user_email} (Ctrl+Click to open in new tab)` : ''"
+                @click.stop="goToClient(request?.user_email || request?.user_name, $event)"
+              >
                 {{ request?.user_name || '—' }}
               </p>
             </div>
             <div>
               <span class="text-secondary-text text-[10px]">Email</span>
-              <p class="font-medium text-primary-text truncate font-mono text-[11px]" :title="request?.user_email">
+              <p
+                class="font-medium text-primary hover:underline cursor-pointer truncate font-mono text-[11px]"
+                :title="request?.user_email ? `${request?.user_email} (Ctrl+Click to open in new tab)` : ''"
+                @click.stop="request?.user_email && goToClient(request.user_email, $event)"
+              >
                 {{ request?.user_email || '—' }}
               </p>
             </div>
             <div>
               <span class="text-secondary-text text-[10px]">Account</span>
-              <p class="font-mono font-medium text-primary-text">
+              <p
+                class="font-mono font-medium"
+                :class="request?.trading_account_number ? 'text-primary cursor-pointer hover:underline' : 'text-primary-text'"
+                :title="request?.trading_account_number ? `Trading Account #${request.trading_account_number} (Ctrl+Click to open in new tab)` : ''"
+                @click.stop="request?.trading_account_number && goToTradingAccount(request.trading_account_number, $event)"
+              >
                 {{ request?.trading_account_number ? `#${request.trading_account_number}` : 'IB Wallet' }}
                 <span v-if="request?.account_type" class="text-[10px] text-secondary-text capitalize">
                   ({{ request.account_type }})
@@ -438,6 +451,7 @@ import {
 import { formatDate } from '@/utils/timeFormatter'
 import { useSnackbarStore } from '@/stores/snackbar/snackbar'
 import { usePermissionCheck } from '@/composables/usePermissionCheck'
+import { goToTradingAccount, goToClient } from '@/composables/useNavigation'
 
 const props = defineProps({
   open: { type: Boolean, default: false },

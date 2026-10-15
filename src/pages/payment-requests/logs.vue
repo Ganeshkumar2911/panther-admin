@@ -332,11 +332,12 @@
             <!-- Line 2: Account Badge (Next Line) -->
             <div v-if="row.trading_account_id" class="flex items-center gap-1.5">
               <Tooltip
-                :text="`Trading Account ID: ${row.trading_account_id}`"
+                :text="`Trading Account ID: ${row.trading_account_id} (Ctrl+Click to open in new tab)`"
                 position="top"
               >
                 <span
-                  class="font-mono text-[10px] font-semibold px-1.5 py-0.2 rounded bg-primary/5 text-primary border border-primary/20 cursor-default"
+                  class="font-mono text-[10px] font-semibold px-1.5 py-0.2 rounded bg-primary/5 text-primary border border-primary/20 cursor-pointer hover:underline"
+                  @click.stop="goToTradingAccount(row.trading_account_id, $event)"
                 >
                   Acc #{{ row.trading_account_id }}
                 </span>
@@ -349,8 +350,11 @@
               class="text-[11px] text-secondary-text flex items-center gap-1.5 group/email min-w-0"
             >
               <Mail class="w-3 h-3 text-secondary-text/70 shrink-0" />
-              <Tooltip :text="`Email: ${getLogCustomer(row)?.email || row.email}`" position="top">
-                <span class="truncate select-all cursor-default block max-w-none">
+              <Tooltip :text="`Email: ${getLogCustomer(row)?.email || row.email} (Ctrl+Click to open in new tab)`" position="top">
+                <span
+                  class="truncate select-all cursor-pointer block max-w-none text-primary hover:underline"
+                  @click.stop="goToClient(getLogCustomer(row)?.email || row.email, $event)"
+                >
                   {{ getLogCustomer(row)?.email || row.email }}
                 </span>
               </Tooltip>
@@ -646,11 +650,12 @@
             <!-- Line 2: Account Badge (Next Line) -->
             <div v-if="row.trading_account_id" class="flex items-center gap-1.5">
               <Tooltip
-                :text="`Trading Account ID: ${row.trading_account_id}`"
+                :text="`Trading Account ID: ${row.trading_account_id} (Ctrl+Click to open in new tab)`"
                 position="top"
               >
                 <span
-                  class="font-mono text-[10px] font-semibold px-1.5 py-0.2 rounded bg-primary/5 text-primary border border-primary/20 cursor-default"
+                  class="font-mono text-[10px] font-semibold px-1.5 py-0.2 rounded bg-primary/5 text-primary border border-primary/20 cursor-pointer hover:underline"
+                  @click.stop="goToTradingAccount(row.trading_account_id, $event)"
                 >
                   Acc #{{ row.trading_account_id }}
                 </span>
@@ -663,8 +668,11 @@
               class="text-[11px] text-secondary-text flex items-center gap-1.5 group/email min-w-0"
             >
               <Mail class="w-3 h-3 text-secondary-text/70 shrink-0" />
-              <Tooltip :text="`Email: ${getLogCustomer(row)?.email || row.email}`" position="top">
-                <span class="truncate select-all cursor-default block max-w-none">
+              <Tooltip :text="`Email: ${getLogCustomer(row)?.email || row.email} (Ctrl+Click to open in new tab)`" position="top">
+                <span
+                  class="truncate select-all cursor-pointer block max-w-none text-primary hover:underline"
+                  @click.stop="goToClient(getLogCustomer(row)?.email || row.email, $event)"
+                >
                   {{ getLogCustomer(row)?.email || row.email }}
                 </span>
               </Tooltip>
@@ -1073,7 +1081,13 @@
             </div>
             <p v-if="getLogCustomer(log)?.email" class="text-[11px] text-secondary-text flex items-center gap-1">
               <Mail class="w-3 h-3 shrink-0" />
-              <span class="truncate">{{ getLogCustomer(log).email }}</span>
+              <span
+                class="truncate text-primary hover:underline cursor-pointer"
+                :title="`${getLogCustomer(log).email} (Ctrl+Click to open in new tab)`"
+                @click.stop="goToClient(getLogCustomer(log).email, $event)"
+              >
+                {{ getLogCustomer(log).email }}
+              </span>
             </p>
             <p v-if="getLogCustomer(log)?.phone" class="text-[11px] text-secondary-text flex items-center gap-1 font-mono">
               <Phone class="w-3 h-3 shrink-0" />
@@ -1212,7 +1226,13 @@
             </div>
             <p v-if="getLogCustomer(tx)?.email || tx.email" class="text-[11px] text-secondary-text flex items-center gap-1">
               <Mail class="w-3 h-3 shrink-0" />
-              <span class="truncate">{{ getLogCustomer(tx)?.email || tx.email }}</span>
+              <span
+                class="truncate text-primary hover:underline cursor-pointer"
+                :title="`${getLogCustomer(tx)?.email || tx.email} (Ctrl+Click to open in new tab)`"
+                @click.stop="goToClient(getLogCustomer(tx)?.email || tx.email, $event)"
+              >
+                {{ getLogCustomer(tx)?.email || tx.email }}
+              </span>
             </p>
             <p v-if="getLogCustomer(tx)?.phone || tx.phone" class="text-[11px] text-secondary-text flex items-center gap-1 font-mono">
               <Phone class="w-3 h-3 shrink-0" />
@@ -1252,7 +1272,14 @@
               <span class="text-[10px] text-secondary-text block">Request / Account</span>
               <p class="font-mono text-primary-text">
                 {{ tx.payment_request_id ? `Req #${tx.payment_request_id}` : '' }}
-                {{ tx.trading_account_id ? `Acc #${tx.trading_account_id}` : '' }}
+                <span
+                  v-if="tx.trading_account_id"
+                  class="text-primary hover:underline cursor-pointer ml-1"
+                  :title="`Trading Account #${tx.trading_account_id} (Ctrl+Click to open in new tab)`"
+                  @click.stop="goToTradingAccount(tx.trading_account_id, $event)"
+                >
+                  Acc #{{ tx.trading_account_id }}
+                </span>
               </p>
             </div>
             <div :class="{ 'col-span-2': !tx.payment_request_id && !tx.trading_account_id }">
@@ -1356,6 +1383,7 @@ import Tooltip from "@/components/common/Tooltip.vue";
 import NoPermissionsState from "@/components/common/NoPermissionsState.vue";
 import PaymentGatewayDetailDrawer from "@/components/paymentGatewayLogs/PaymentGatewayDetailDrawer.vue";
 import { formatDate } from "@/utils/timeFormatter";
+import { goToTradingAccount, goToClient } from "@/composables/useNavigation";
 
 const store = usePaymentGatewayLogsStore();
 const snackbar = useSnackbarStore();

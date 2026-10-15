@@ -610,7 +610,14 @@
               {{ row.name || `Client #${row.user_id}` }}
             </p>
             <p class="text-[11px] text-secondary-text font-mono">
-              {{ row.email || `User #${row.user_id}` }} &middot; ID: #{{ row.user_id }}
+              <span
+                v-if="row.email"
+                class="cursor-pointer hover:underline text-primary"
+                :title="`${row.email} (Ctrl+Click to open in new tab)`"
+                @click="goToClient(row.email, $event)"
+              >{{ row.email }}</span>
+              <span v-else>User #{{ row.user_id }}</span>
+              &middot; ID: #{{ row.user_id }}
             </p>
           </div>
         </template>
@@ -621,7 +628,9 @@
               <span
                 v-for="login in row.logins"
                 :key="login"
-                class="px-2 py-0.5 rounded text-[11px] font-mono font-semibold bg-background border border-primary-border text-primary-text"
+                class="px-2 py-0.5 rounded text-[11px] font-mono font-semibold bg-background border border-primary-border text-primary-text hover:border-primary cursor-pointer hover:underline"
+                :title="`Trading Account ${login} (Ctrl+Click to open in new tab)`"
+                @click="goToTradingAccount(login, $event)"
               >
                 {{ login }}
               </span>
@@ -768,7 +777,13 @@
                 </span>
               </div>
               <p class="text-xs text-secondary-text font-mono">
-                {{ sub.sub_ib_email || "No email recorded" }}
+                <span
+                  v-if="sub.sub_ib_email"
+                  class="cursor-pointer hover:underline text-primary"
+                  :title="`${sub.sub_ib_email} (Ctrl+Click to open in new tab)`"
+                  @click="goToClient(sub.sub_ib_email, $event)"
+                >{{ sub.sub_ib_email }}</span>
+                <span v-else>No email recorded</span>
               </p>
             </div>
 
@@ -832,7 +847,9 @@
                           <span
                             v-for="login in subClient.logins"
                             :key="login"
-                            class="px-2 py-0.5 rounded text-[11px] font-mono font-semibold bg-background border border-primary-border text-primary-text"
+                            class="px-2 py-0.5 rounded text-[11px] font-mono font-semibold bg-background border border-primary-border text-primary-text hover:border-primary cursor-pointer hover:underline"
+                            :title="`Trading Account ${login} (Ctrl+Click to open in new tab)`"
+                            @click="goToTradingAccount(login, $event)"
                           >
                             {{ login }}
                           </span>
@@ -904,7 +921,13 @@
             </span>
           </div>
           <p class="text-xs text-secondary-text font-mono">
-            {{ selectedClient.email || "No email" }}
+            <span
+              v-if="selectedClient.email"
+              class="cursor-pointer hover:underline text-primary"
+              :title="`${selectedClient.email} (Ctrl+Click to open in new tab)`"
+              @click="goToClient(selectedClient.email, $event)"
+            >{{ selectedClient.email }}</span>
+            <span v-else>No email</span>
           </p>
         </div>
 
@@ -977,9 +1000,15 @@
         </template>
 
         <template #cell-login="{ row }">
-          <span class="font-mono text-primary-text font-semibold text-xs">
-            {{ row.trade?.login || row.login || "-" }}
+          <span
+            v-if="row.trade?.login || row.login"
+            class="font-mono text-primary-text font-semibold text-xs px-2 py-0.5 rounded bg-background border border-primary-border hover:border-primary cursor-pointer hover:underline"
+            :title="`Trading Account ${row.trade?.login || row.login} (Ctrl+Click to open in new tab)`"
+            @click="goToTradingAccount(row.trade?.login || row.login, $event)"
+          >
+            {{ row.trade?.login || row.login }}
           </span>
+          <span v-else class="font-mono text-secondary-text font-semibold text-xs">-</span>
         </template>
 
         <template #cell-symbol="{ row }">
@@ -1053,6 +1082,7 @@ import {
 import { useCommissionEngineStore } from "@/stores/commissionEngine/commissionEngine";
 import DataTable from "@/components/common/DataTable/DataTable.vue";
 import StatusBadge from "@/components/common/StatusBadge.vue";
+import { goToTradingAccount, goToClient } from "@/composables/useNavigation";
 
 const props = defineProps({
   periodRow: {

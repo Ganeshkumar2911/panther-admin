@@ -85,7 +85,13 @@
               </template>
               
               <template #cell-user_id="{ row }">
-                <span class="font-medium text-xs">User #{{ row.user_id }}</span>
+                <span
+                  class="font-medium text-xs text-primary cursor-pointer hover:underline"
+                  :title="`User #${row.user_id} (Ctrl+Click to open in new tab)`"
+                  @click.stop="goToClient(row.user_id, $event)"
+                >
+                  User #{{ row.user_id }}
+                </span>
               </template>
 
               <template #cell-units="{ row }">
@@ -125,6 +131,7 @@
 import { onMounted, computed } from 'vue';
 import { usePAMMSettlementStore } from '@/stores/pamm/pammSettlement';
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
+import { goToClient } from '@/composables/useNavigation';
 import DataTable from '@/components/common/DataTable/DataTable.vue';
 import StatusBadge from '@/components/common/StatusBadge.vue';
 

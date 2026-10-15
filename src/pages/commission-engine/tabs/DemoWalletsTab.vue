@@ -269,7 +269,13 @@
             User #{{ row.user_id }}
           </p>
           <p class="text-[11px] text-secondary-text font-mono truncate max-w-[180px]">
-            {{ row.user_email || '—' }}
+            <span
+              v-if="row.user_email"
+              class="cursor-pointer hover:underline text-primary"
+              :title="`${row.user_email} (Ctrl+Click to open in new tab)`"
+              @click="goToClient(row.user_email, $event)"
+            >{{ row.user_email }}</span>
+            <span v-else>—</span>
           </p>
         </div>
       </template>
@@ -592,6 +598,7 @@ import {
 import { useCommissionEngineStore } from "@/stores/commissionEngine/commissionEngine";
 import BaseSelect from "@/components/common/BaseSelect.vue";
 import BaseDatePicker from "@/components/common/BaseDatePicker.vue";
+import { goToClient } from "@/composables/useNavigation";
 
 const store = useCommissionEngineStore();
 

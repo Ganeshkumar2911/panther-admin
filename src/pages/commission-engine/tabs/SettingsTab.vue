@@ -28,6 +28,7 @@ import SettlementRunResultModal from "../components/SettlementRunResultModal.vue
 import BatchDetailsModal from "../components/BatchDetailsModal.vue";
 import apiRequest from "@/api/request";
 import urls from "@/api/urls";
+import { goToClient } from "@/composables/useNavigation";
 
 const store = useCommissionEngineStore();
 const router = useRouter();
@@ -570,7 +571,7 @@ const getWalletTargetMasterBadge = (state) => {
         </div>
       </div>
 
-      <div class="p-4 sm:p-5 flex flex-col sm:flex-row items-end gap-4">
+      <div class="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div class="space-y-1.5 flex-1 max-w-sm">
           <label class="text-xs font-semibold text-primary-text block">Min hold time (seconds, optional)</label>
           <input
@@ -585,7 +586,7 @@ const getWalletTargetMasterBadge = (state) => {
         <button
           v-if="canManageSettings"
           type="button"
-          class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg bg-primary text-white hover:bg-primary-hover transition-colors cursor-pointer disabled:opacity-50"
+          class="btn-primary sm:ml-auto shrink-0"
           :disabled="eligibilityLoading"
           @click="handleSaveEligibility"
         >
@@ -899,7 +900,13 @@ const getWalletTargetMasterBadge = (state) => {
                 {{ selectedIbOption?.name || store.currentIbPayoutSettings?.ib_name || `IB #${selectedIbId}` }}
               </span>
               <span class="text-[11px] text-secondary-text font-mono block truncate leading-tight mt-0.5">
-                {{ selectedIbOption?.email || store.currentIbPayoutSettings?.ib_email || `ID: ${selectedIbId}` }}
+                <span
+                  v-if="selectedIbOption?.email || store.currentIbPayoutSettings?.ib_email"
+                  class="cursor-pointer hover:underline text-primary"
+                  :title="`${selectedIbOption?.email || store.currentIbPayoutSettings?.ib_email} (Ctrl+Click to open in new tab)`"
+                  @click="goToClient(selectedIbOption?.email || store.currentIbPayoutSettings?.ib_email, $event)"
+                >{{ selectedIbOption?.email || store.currentIbPayoutSettings?.ib_email }}</span>
+                <span v-else>ID: {{ selectedIbId }}</span>
               </span>
             </div>
           </div>

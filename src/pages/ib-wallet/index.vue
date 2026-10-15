@@ -130,7 +130,13 @@
       <!-- IB Name -->
       <template #cell-ib_name="{ row }">
         <div>
-          <p class="text-xs font-medium text-primary-text">{{ row.ib_name ?? '—' }}</p>
+          <p
+            class="text-xs font-medium text-primary cursor-pointer hover:underline"
+            :title="(row.email || row.ib_email || row.user_email || row.ib_name) ? `${row.email || row.ib_email || row.user_email || row.ib_name} (Ctrl+Click to open in new tab)` : ''"
+            @click.stop="goToClient(row.email || row.ib_email || row.user_email || row.ib_name, $event)"
+          >
+            {{ row.ib_name ?? '—' }}
+          </p>
           <p class="text-[11px] text-secondary-text">ID {{ row.ib_user_id }}</p>
         </div>
       </template>
@@ -206,6 +212,7 @@ import BaseDatePicker from '@/components/common/BaseDatePicker.vue'
 import Tooltip from '@/components/common/Tooltip.vue'
 import UpdateLedgerDialog from '@/components/ib-wallet/UpdateLedgerDialog.vue'
 import { usePermissionCheck } from '@/composables/usePermissionCheck'
+import { goToClient } from '@/composables/useNavigation'
 
 const store = useIbWalletStore()
 const { hasPermission } = usePermissionCheck()

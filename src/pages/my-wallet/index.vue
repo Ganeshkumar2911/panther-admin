@@ -140,8 +140,24 @@
       </template>
 
       <!-- Reference -->
-      <template #cell-reference_id="{ value }">
-        <span class="text-xs text-secondary-text">{{ value ?? '—' }}</span>
+      <template #cell-reference_id="{ row, value }">
+        <span
+          v-if="row.account_number || row.trading_account_id"
+          class="text-xs text-primary font-mono cursor-pointer hover:underline"
+          :title="`Trading Account #${row.account_number || row.trading_account_id} (Click to open in new tab)`"
+          @click.stop="goToTradingAccount(row.account_number || row.trading_account_id, $event)"
+        >
+          {{ value ?? row.account_number ?? row.trading_account_id }}
+        </span>
+        <span
+          v-else-if="row.user_email || row.email || row.client_email"
+          class="text-xs text-primary cursor-pointer hover:underline"
+          :title="`${row.user_email || row.email || row.client_email} (Click to open in new tab)`"
+          @click.stop="goToClient(row.user_email || row.email || row.client_email, $event)"
+        >
+          {{ value ?? row.user_email ?? row.email ?? row.client_email }}
+        </span>
+        <span v-else class="text-xs text-secondary-text">{{ value ?? '—' }}</span>
       </template>
 
       <!-- Description -->
@@ -167,6 +183,7 @@ import { useAdminLedgerStore } from '@/stores/adminLedger/adminLedger'
 import DataTable from '@/components/common/DataTable/DataTable.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import BaseDatePicker from '@/components/common/BaseDatePicker.vue'
+import { goToTradingAccount, goToClient } from '@/composables/useNavigation'
 
 const store = useAdminLedgerStore()
 

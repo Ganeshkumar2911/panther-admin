@@ -390,7 +390,9 @@
                 <Mail class="w-3.5 h-3.5 text-primary shrink-0" />
                 <span
                   class="text-xs font-semibold text-primary-text truncate font-mono select-all"
-                  :title="getUserEmail(item)"
+                  :class="{ 'cursor-pointer hover:text-primary hover:underline': getUserEmail(item) && getUserEmail(item) !== 'N/A' }"
+                  :title="getUserEmail(item) && getUserEmail(item) !== 'N/A' ? `${getUserEmail(item)} (Ctrl+Click to open in new tab)` : ''"
+                  @click.stop="getUserEmail(item) && getUserEmail(item) !== 'N/A' && goToClient(getUserEmail(item), $event)"
                 >
                   {{ getUserEmail(item) }}
                 </span>
@@ -569,8 +571,10 @@
                         </span>
                       </div>
                       <p
-                        class="text-[11px] text-secondary-text font-mono truncate select-all"
-                        :title="getUserEmail(item)"
+                        class="text-[11px] font-mono truncate select-all"
+                        :class="getUserEmail(item) && getUserEmail(item) !== 'N/A' ? 'text-primary cursor-pointer hover:underline' : 'text-secondary-text'"
+                        :title="getUserEmail(item) && getUserEmail(item) !== 'N/A' ? `${getUserEmail(item)} (Ctrl+Click to open in new tab)` : ''"
+                        @click.stop="getUserEmail(item) && getUserEmail(item) !== 'N/A' && goToClient(getUserEmail(item), $event)"
                       >
                         {{ getUserEmail(item) }}
                       </p>
@@ -653,7 +657,11 @@
                     {{ getLabelName(item) }}
                   </h4>
                   <p class="text-xs text-secondary-text font-mono truncate">
-                    {{ getUserEmail(item) }} · FM #{{ getFmId(item) }}
+                    <span
+                      :class="{ 'cursor-pointer hover:text-primary hover:underline': getUserEmail(item) && getUserEmail(item) !== 'N/A' }"
+                      :title="getUserEmail(item) && getUserEmail(item) !== 'N/A' ? `${getUserEmail(item)} (Ctrl+Click to open in new tab)` : ''"
+                      @click.stop="getUserEmail(item) && getUserEmail(item) !== 'N/A' && goToClient(getUserEmail(item), $event)"
+                    >{{ getUserEmail(item) }}</span> · FM #{{ getFmId(item) }}
                   </p>
                 </div>
               </div>
@@ -820,6 +828,7 @@ import ConfirmationDialog from "@/components/common/ConfirmationDialog.vue";
 import DropdownMenu from "@/components/common/DropdownMenu.vue";
 import { useMyPermissionsStore } from "@/stores/rbac/myPermissions";
 import { useFmLeaderboardStore } from "@/stores/fmLeaderboard/fmLeaderboard";
+import { goToClient } from "@/composables/useNavigation";
 
 const props = defineProps({
   isToggling: {

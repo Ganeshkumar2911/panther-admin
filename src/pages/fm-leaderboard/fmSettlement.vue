@@ -550,7 +550,11 @@
                     <p class="text-xs font-semibold text-primary-text">
                       {{ u.user_name || "Client" }}
                     </p>
-                    <p class="text-[11px] text-secondary-text font-mono">
+                    <p
+                      class="text-[11px] font-mono cursor-pointer hover:underline text-primary"
+                      :title="u.user_email ? `${u.user_email} (Ctrl+Click to open in new tab)` : ''"
+                      @click="u.user_email && goToClient(u.user_email, $event)"
+                    >
                       {{ u.user_email }}
                     </p>
                     <div class="flex items-center gap-1.5 mt-0.5">
@@ -571,7 +575,9 @@
                       <span
                         v-for="acc in u.account_numbers || []"
                         :key="acc"
-                        class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-background border border-primary-border text-primary-text"
+                        class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-background border border-primary-border text-primary-text cursor-pointer hover:text-primary hover:border-primary/40 hover:underline transition-colors"
+                        :title="`${acc} (Ctrl+Click to open in new tab)`"
+                        @click="goToTradingAccount(acc, $event)"
                       >
                         {{ acc }}
                       </span>
@@ -797,7 +803,8 @@
                   <td class="p-3 text-center">
                     <button
                       class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-xs font-medium transition-colors cursor-pointer"
-                      @click="goToUserDetails(u)"
+                      title="View Details (Ctrl+Click to open in new tab)"
+                      @click="goToUserDetails(u, $event)"
                     >
                       <span>Details</span>
                       <ChevronRight class="w-3.5 h-3.5" />
@@ -831,7 +838,11 @@
                 <p class="text-xs font-semibold text-primary-text">
                   {{ u.user_name || "Client" }}
                 </p>
-                <p class="text-[11px] text-secondary-text font-mono">
+                <p
+                  class="text-[11px] font-mono cursor-pointer hover:underline text-primary"
+                  :title="u.user_email ? `${u.user_email} (Ctrl+Click to open in new tab)` : ''"
+                  @click="u.user_email && goToClient(u.user_email, $event)"
+                >
                   {{ u.user_email }}
                 </p>
                 <div class="flex items-center gap-2 mt-1">
@@ -880,7 +891,9 @@
               <span
                 v-for="acc in u.account_numbers"
                 :key="acc"
-                class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-background border border-primary-border text-primary-text"
+                class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-background border border-primary-border text-primary-text cursor-pointer hover:text-primary hover:border-primary/40 hover:underline transition-colors"
+                :title="`${acc} (Ctrl+Click to open in new tab)`"
+                @click="goToTradingAccount(acc, $event)"
               >
                 {{ acc }}
               </span>
@@ -985,7 +998,8 @@
             <!-- Action Details button -->
             <button
               class="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-primary text-white text-xs font-medium hover:bg-primary-hover transition-colors cursor-pointer mt-2"
-              @click="goToUserDetails(u)"
+              title="View Client Breakdown (Ctrl+Click to open in new tab)"
+              @click="goToUserDetails(u, $event)"
             >
               <span>View Client Breakdown & Trades</span>
               <ChevronRight class="w-3.5 h-3.5" />
@@ -1075,7 +1089,11 @@
                     <p class="text-xs font-semibold text-primary-text">
                       {{ ib.ib_name }}
                     </p>
-                    <p class="text-[11px] text-secondary-text">
+                    <p
+                      class="text-[11px] cursor-pointer hover:underline text-primary"
+                      :title="ib.ib_email ? `${ib.ib_email} (Ctrl+Click to open in new tab)` : ''"
+                      @click="ib.ib_email && goToClient(ib.ib_email, $event)"
+                    >
                       {{ ib.ib_email }}
                     </p>
                     <p class="text-[10px] text-secondary-text">
@@ -1263,6 +1281,7 @@ import {
 import { useRunSettlementStore } from "@/stores/fmLeaderboard/runSettlement";
 import RunSettlementConfirm from "@/components/fundManager/RunSettlementConfirm.vue";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
+import { goToTradingAccount, goToClient, openInNewTab, isNewTabEvent } from "@/composables/useNavigation";
 
 const route = useRoute();
 const router = useRouter();
@@ -1583,9 +1602,9 @@ const filteredIbSummary = computed(() => {
   );
 });
 
-const goToUserDetails = (user) => {
+const goToUserDetails = (user, event) => {
   if (!user?.user_id) return;
-  router.push({
+  const routeLoc = {
     name: "fm-settlement-user-preview",
     params: { id: route.params.id, userId: user.user_id },
     query: {
@@ -1595,7 +1614,11 @@ const goToUserDetails = (user) => {
           : accountCurrency.value,
       amount_view: store.amountView,
     },
-  });
+  };
+  if (isNewTabEvent(event)) {
+    return openInNewTab(router.resolve(routeLoc).href);
+  }
+  router.push(routeLoc);
 };
 
 const handleRun = async () => {

@@ -228,7 +228,13 @@
                   <div v-if="drawerLogCustomer.email">
                     <span class="text-[10px] uppercase font-bold text-secondary-text block">Email</span>
                     <div class="flex items-center gap-1.5 mt-0.5">
-                      <span class="text-primary-text select-all truncate">{{ drawerLogCustomer.email }}</span>
+                      <span
+                        class="text-primary hover:underline cursor-pointer select-all truncate"
+                        :title="`${drawerLogCustomer.email} (Ctrl+Click to open in new tab)`"
+                        @click.stop="goToClient(drawerLogCustomer.email, $event)"
+                      >
+                        {{ drawerLogCustomer.email }}
+                      </span>
                       <button
                         type="button"
                         class="text-secondary-text hover:text-primary p-0.5 cursor-pointer shrink-0"
@@ -457,7 +463,14 @@
                 </div>
                 <div>
                   <span class="text-[10px] uppercase font-bold text-secondary-text block">Trading Account ID</span>
-                  <span class="font-mono text-primary-text">{{ item?.trading_account_id ? `#${item.trading_account_id}` : '—' }}</span>
+                  <span
+                    class="font-mono"
+                    :class="item?.trading_account_id ? 'text-primary cursor-pointer hover:underline' : 'text-primary-text'"
+                    :title="item?.trading_account_id ? `Trading Account #${item.trading_account_id} (Ctrl+Click to open in new tab)` : ''"
+                    @click.stop="item?.trading_account_id && goToTradingAccount(item.trading_account_id, $event)"
+                  >
+                    {{ item?.trading_account_id ? `#${item.trading_account_id}` : '—' }}
+                  </span>
                 </div>
                 <div>
                   <span class="text-[10px] uppercase font-bold text-secondary-text block">Payment Type</span>
@@ -668,6 +681,7 @@ import {
 } from "lucide-vue-next";
 import { formatDate } from "@/utils/timeFormatter";
 import { useSnackbarStore } from "@/stores/snackbar/snackbar";
+import { goToTradingAccount, goToClient } from "@/composables/useNavigation";
 
 const props = defineProps({
   open: {

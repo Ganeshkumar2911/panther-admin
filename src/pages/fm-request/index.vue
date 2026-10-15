@@ -10,6 +10,7 @@ import AddEditFundManager from "@/components/fundManager/AddEditFundManager.vue"
 import DataTable from "@/components/common/DataTable/DataTable.vue";
 import { RefreshCw } from "lucide-vue-next";
 import { usePermissionCheck } from "@/composables/usePermissionCheck";
+import { goToClient } from "@/composables/useNavigation";
 
 const store = useFmRequestStore();
 const tableColumns = [
@@ -172,7 +173,13 @@ onMounted(() => {
         @per-page-change="handlePerPageChange"
       >
         <template #cell-user="{ row: item }">
-          <p class="text-xs font-medium text-primary-text">{{ item.user_email }}</p>
+          <p
+            class="text-xs font-medium text-primary cursor-pointer hover:underline"
+            :title="item.user_email ? `${item.user_email} (Ctrl+Click to open in new tab)` : ''"
+            @click.stop="item.user_email && goToClient(item.user_email, $event)"
+          >
+            {{ item.user_email }}
+          </p>
           <p class="text-[11px] text-secondary-text mt-0.5">ID {{ item.user_id }}</p>
           <p class="text-[11px] text-secondary-text mt-0.5">{{ item.created_at }}</p>
         </template>

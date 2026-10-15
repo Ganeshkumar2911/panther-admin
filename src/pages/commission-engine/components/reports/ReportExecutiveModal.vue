@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   Building,
 } from "lucide-vue-next";
+import { goToClient } from "@/composables/useNavigation";
 
 const props = defineProps({
   modelValue: {
@@ -225,7 +226,13 @@ const handlePrint = () => {
                       <td class="px-4 py-2.5 font-bold text-secondary-text">{{ idx + 1 }}</td>
                       <td class="px-4 py-2.5">
                         <p class="font-semibold text-primary-text">{{ row.ib_name || row.name || row.symbol || `ID #${row.ib_id || row.user_id}` }}</p>
-                        <p v-if="row.ib_email || row.email" class="text-[10px] text-secondary-text font-mono">{{ row.ib_email || row.email }}</p>
+                        <p v-if="row.ib_email || row.email" class="text-[10px] text-secondary-text font-mono">
+                          <span
+                            class="cursor-pointer hover:underline text-primary"
+                            :title="`${row.ib_email || row.email} (Ctrl+Click to open in new tab)`"
+                            @click="goToClient(row.ib_email || row.email, $event)"
+                          >{{ row.ib_email || row.email }}</span>
+                        </p>
                       </td>
                       <td class="px-4 py-2.5 font-mono text-primary-text">{{ formatLots(row.total_lots || row.lots) }}</td>
                       <td class="px-4 py-2.5 font-mono text-secondary-text">{{ formatUSD(row.performance_commission || 0) }}</td>

@@ -4,8 +4,17 @@
       <div>
         <h1 class="title-text text-primary-text">{{ store.activePAMM?.name || 'PAMM Details' }}</h1>
         <p class="sub-text text-secondary-text">
-          Master MT5: {{ store.activePAMM?.master_trading_account?.account_number || store.activePAMM?.master_trading_account_id }} | 
-          Status: <StatusBadge :status="store.activePAMM?.status || 'draft'" class="ml-1 inline-block" />
+          Master MT5: 
+          <span
+            v-if="store.activePAMM?.master_trading_account?.account_number || store.activePAMM?.master_trading_account_id"
+            class="font-mono text-primary cursor-pointer hover:underline"
+            :title="`Trading Account #${store.activePAMM?.master_trading_account?.account_number || store.activePAMM?.master_trading_account_id} (Ctrl+Click to open in new tab)`"
+            @click.stop="goToTradingAccount(store.activePAMM?.master_trading_account?.account_number || store.activePAMM?.master_trading_account_id, $event)"
+          >
+            #{{ store.activePAMM?.master_trading_account?.account_number || store.activePAMM?.master_trading_account_id }}
+          </span>
+          <span v-else class="italic">N/A</span>
+          | Status: <StatusBadge :status="store.activePAMM?.status || 'draft'" class="ml-1 inline-block" />
         </p>
       </div>
       <div class="flex gap-2">
@@ -52,6 +61,7 @@ import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { RefreshCw } from 'lucide-vue-next';
 import { usePAMMStore } from '@/stores/pamm/pamm';
+import { goToTradingAccount } from '@/composables/useNavigation';
 import StatusBadge from '@/components/common/StatusBadge.vue';
 import OverviewTab from './tabs/OverviewTab.vue';
 import WithdrawalsTab from './tabs/WithdrawalsTab.vue';

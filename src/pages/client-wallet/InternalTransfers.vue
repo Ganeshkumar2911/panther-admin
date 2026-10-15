@@ -119,7 +119,13 @@
 
       <!-- Cell: Client -->
       <template #cell-client="{ row }">
-        <p class="text-xs font-semibold text-primary-text">{{ row.client_name }}</p>
+        <p
+          class="text-xs font-semibold text-primary cursor-pointer hover:underline"
+          :title="`${row.client_name} (Ctrl+Click to open in new tab)`"
+          @click.stop="goToClient(row.client_email || row.client_name, $event)"
+        >
+          {{ row.client_name }}
+        </p>
         <p class="text-[10px] text-secondary-text">ID: {{ row.client_id }}</p>
       </template>
 
@@ -127,8 +133,9 @@
       <template #cell-trading_account="{ row }">
         <p class="text-xs font-medium text-primary-text">
           <span
-            @click.stop="goToTradingAccount(row.account_number)"
+            @click.stop="goToTradingAccount(row.account_number, $event)"
             class="cursor-pointer hover:text-primary transition-colors hover:underline"
+            :title="row.account_number ? 'Trading Account (Ctrl+Click to open in new tab)' : ''"
           >
             {{ row.account_number }} · {{ row.broker_label || '—' }}
           </span>
@@ -159,6 +166,7 @@ import Pagination from '@/components/common/Pagination.vue'
 import BaseSelect from '@/components/common/BaseSelect.vue'
 import BaseDatePicker from '@/components/common/BaseDatePicker.vue'
 import { useGoToTradingAccount } from '@/composables/useGoToTradingAccount'
+import { goToClient } from '@/composables/useNavigation'
 
 const store = useInternalTransfersStore()
 const { goToTradingAccount } = useGoToTradingAccount()

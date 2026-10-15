@@ -25,6 +25,14 @@ app.component('BaseDatePicker', BaseDatePicker)
 app.component('BaseCalendar', BaseDatePicker)
 app.component('DataTable', DataTable)
 
+import { goToTradingAccount, goToClient } from '@/composables/useNavigation'
+app.config.globalProperties.$goToTradingAccount = goToTradingAccount
+app.config.globalProperties.$goToClient = goToClient
+if (typeof window !== 'undefined') {
+  window.$goToTradingAccount = goToTradingAccount
+  window.$goToClient = goToClient
+}
+
 // Prevent mouse wheel from changing input[type=number] values globally
 document.addEventListener(
   'wheel',

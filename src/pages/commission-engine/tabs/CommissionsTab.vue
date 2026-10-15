@@ -22,6 +22,7 @@ import Tooltip from "@/components/common/Tooltip.vue";
 import ApproveCommissionModal from "../components/ApproveCommissionModal.vue";
 import RejectCommissionModal from "../components/RejectCommissionModal.vue";
 import CalculateCommissionsModal from "../components/CalculateCommissionsModal.vue";
+import { goToTradingAccount, goToClient } from "@/composables/useNavigation";
 
 const store = useCommissionEngineStore();
 const { hasPermission } = usePermissionCheck();
@@ -717,7 +718,15 @@ const formatDate = (val) => {
           </div>
           <!-- Login & Trade ID -->
           <p class="text-[10px] text-secondary-text font-mono">
-            Login: {{ row.trade?.login || "-" }} &middot; Trade #{{
+            Login:
+            <span
+              v-if="row.trade?.login"
+              class="cursor-pointer hover:underline text-primary font-bold"
+              :title="`Trading Account ${row.trade.login} (Ctrl+Click to open in new tab)`"
+              @click="goToTradingAccount(row.trade.login, $event)"
+            >{{ row.trade.login }}</span>
+            <span v-else>-</span>
+            &middot; Trade #{{
               row.trade_id || row.trade?.position_id || "-"
             }}
           </p>
